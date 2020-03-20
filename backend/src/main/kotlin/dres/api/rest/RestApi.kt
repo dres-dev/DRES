@@ -12,11 +12,15 @@ import org.eclipse.jetty.server.session.DefaultSessionCache
 import org.eclipse.jetty.server.session.FileSessionDataStore
 import org.eclipse.jetty.server.session.SessionHandler
 import java.io.File
+import java.util.logging.LogManager
 
 object RestApi {
 
+    private var javalin: Javalin? = null
+
+
     fun init(config: Config) {
-        Javalin.create {
+        javalin = Javalin.create {
             it.registerPlugin(getConfiguredOpenApiPlugin())
             it.defaultContentType = "application/json"
             it.sessionHandler { fileSessionHandler() }
@@ -28,7 +32,14 @@ object RestApi {
                 }
 
             }
+        }.before {
+            //TODO log request
         }.start(config.port)
+    }
+
+    fun stop() {
+        javalin?.stop()
+        javalin = null
     }
 
     private fun getConfiguredOpenApiPlugin() = OpenApiPlugin(
@@ -45,7 +56,7 @@ object RestApi {
             }
     )
 
-    fun fileSessionHandler() = SessionHandler().apply {
+    private fun fileSessionHandler() = SessionHandler().apply {
         sessionCache = DefaultSessionCache(this).apply {
             sessionDataStore = FileSessionDataStore().apply {
                 val baseDir = File(".")

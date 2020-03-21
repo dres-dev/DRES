@@ -19,17 +19,17 @@ object RestApi {
 
     private var javalin: Javalin? = null
 
-
     fun init(config: Config) {
 
-        val apiRestHandlers = listOf<RestHandler>(GetVersionHandler(), LoginHandler())
+        val apiRestHandlers = listOf<RestHandler>(GetVersionHandler(), LoginHandler(), LogoutHandler())
 
         javalin = Javalin.create {
             it.registerPlugin(getConfiguredOpenApiPlugin())
             it.defaultContentType = "application/json"
-            it.sessionHandler { fileSessionHandler() }
+            it.sessionHandler(::fileSessionHandler)
             it.accessManager(AccessManager::manage)
         }.routes {
+
             path("api") {
 
                 apiRestHandlers.forEach {handler ->
@@ -42,19 +42,19 @@ object RestApi {
                         }
 
                         if (handler is GetRestHandler){
-                            get({handler.get(it)}, permittedRoles)
+                            get(handler::get, permittedRoles)
                         }
 
                         if (handler is PostRestHandler){
-                            post({handler.post(it)}, permittedRoles)
+                            post(handler::post, permittedRoles)
                         }
 
                         if (handler is PatchRestHandler){
-                            patch({handler.patch(it)}, permittedRoles)
+                            patch(handler::patch, permittedRoles)
                         }
 
                         if (handler is DeleteRestHandler){
-                            delete({handler.delete(it)}, permittedRoles)
+                            delete(handler::delete, permittedRoles)
                         }
 
                     }
@@ -82,7 +82,7 @@ object RestApi {
                 path("/swagger-docs") // endpoint for OpenAPI json
                 swagger(SwaggerOptions("/swagger-ui")) // endpoint for swagger-ui
                 reDoc(ReDocOptions("/redoc")) // endpoint for redoc
-
+                activateAnnotationScanningFor("dres.api.rest.handler")
             }
     )
 

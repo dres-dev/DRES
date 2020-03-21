@@ -15,7 +15,6 @@ object DRES {
         } else {
             null
         } ?: Config()
-
         RestApi.init(config)
 
         Cli.loop() //blocks until quit command is given

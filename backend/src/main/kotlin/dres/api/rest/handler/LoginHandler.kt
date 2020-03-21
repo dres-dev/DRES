@@ -3,10 +3,12 @@ package dres.api.rest.handler
 import dres.api.rest.AccessManager
 import dres.api.rest.RestApiRole
 import io.javalin.http.Context
+import io.javalin.plugin.openapi.annotations.OpenApi
 
 class LoginHandler : RestHandler, GetRestHandler {
 
     //TODO basic testing code, replace with something meaningful
+    @OpenApi(summary = "Sets roles for session based on user account", path = "/api/log")
     override fun get(ctx: Context) {
         val parameters = ctx.req.parameterMap
 

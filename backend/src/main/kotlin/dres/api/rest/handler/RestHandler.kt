@@ -2,6 +2,7 @@ package dres.api.rest.handler
 
 import io.javalin.core.security.Role
 import io.javalin.http.Context
+import io.javalin.plugin.openapi.annotations.OpenApi
 
 interface RestHandler {
 

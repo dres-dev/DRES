@@ -9,6 +9,7 @@ object AccessManager {
 
     fun manage(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
         when {
+            permittedRoles.isEmpty() -> handler.handle(ctx) //fallback in case no roles are set, none are required
             permittedRoles.contains(RestApiRole.ANYONE) -> handler.handle(ctx)
             rolesOfSession(ctx.req.session.id).any { it in permittedRoles } -> handler.handle(ctx)
             else -> ctx.status(401).json("Unauthorized")
@@ -27,6 +28,9 @@ object AccessManager {
         }
     }
 
+    fun clearRoles(sessionId: String) {
+        sessionRoleMap[sessionId]?.clear()
+    }
 
 }
 

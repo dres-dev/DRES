@@ -8,8 +8,14 @@ import java.nio.file.Path
  * @author Ralph Gasser
  * @version 1.0
  */
-sealed class MediaItem(val id: Long, val name: String, val location: Path)
+sealed class MediaItem() {
 
-class ImageItem(id: Long, name: String, location: Path): MediaItem(id, name, location)
+    companion object {
+        const val VIDEO_MEDIA_ITEM = 0
+        const val IMAGE_MEDIA_ITEM = 1
+    }
 
-class VideoItem(id: Long, name: String, location: Path, val range: TemporalRange): MediaItem(id, name, location)
+    class ImageItem(val id: Long, val name: String, val location: Path): MediaItem()
+
+    class VideoItem(val id: Long, val name: String, val location: Path, val range: TemporalRange): MediaItem()
+}

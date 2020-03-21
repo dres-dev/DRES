@@ -93,8 +93,9 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
         private var id: Long = 1L
 
         override fun hasNext(): Boolean {
-            for (id in this.id until this@DAO.autoincrement.get()) {
+            for (id in this.id .. this@DAO.autoincrement.get()) {
                 if (this@DAO.data.containsKey(id)) {
+                    this.id = id
                     return true
                 }
             }
@@ -104,11 +105,11 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
         override fun next(): T {
             while(true) {
                 if (this@DAO.data.containsKey(this.id)) {
-                    this.id++
-                    return this@DAO.data[id]!!
+                    return this@DAO.data[id++]!!
                 }
                 this.id++
             }
         }
     }
+
 }

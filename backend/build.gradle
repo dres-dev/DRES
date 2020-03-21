@@ -40,7 +40,7 @@ dependencies {
 
 
     ///// MapDB
-    compile group: 'org.mapdb', name: 'mapdb', version: '3.0.7'
+    compile group: 'org.mapdb', name: 'mapdb', version: '3.0.8'
 
     /////// GRPC & ProtoBuf
     compile group: 'javax.annotation', name: 'javax.annotation-api', version: '1.2'

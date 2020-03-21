@@ -34,4 +34,4 @@ object AccessManager {
 
 }
 
-enum class RestApiRole : Role { ANYONE, VIEWER, USER, ADMIN }
+enum class RestApiRole : Role { ANYONE, VIEWER, JUDGE, ADMIN }

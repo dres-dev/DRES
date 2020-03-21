@@ -1,7 +1,9 @@
 package dres.api.rest
 
 import dres.api.rest.handler.*
+import dres.data.dbo.DAO
 import dres.data.model.Config
+import dres.data.serializers.UserSerializer
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.core.security.SecurityUtil.roles
@@ -14,6 +16,7 @@ import org.eclipse.jetty.server.session.DefaultSessionCache
 import org.eclipse.jetty.server.session.FileSessionDataStore
 import org.eclipse.jetty.server.session.SessionHandler
 import java.io.File
+import java.nio.file.Paths
 
 object RestApi {
 
@@ -21,7 +24,9 @@ object RestApi {
 
     fun init(config: Config) {
 
-        val apiRestHandlers = listOf<RestHandler>(GetVersionHandler(), LoginHandler(), LogoutHandler())
+
+
+        val apiRestHandlers = listOf<RestHandler>(GetVersionHandler(), LoginHandler(DAO(Paths.get(config.dataPath + "/users.db"), UserSerializer)), LogoutHandler())
 
         javalin = Javalin.create {
             it.registerPlugin(getConfiguredOpenApiPlugin())

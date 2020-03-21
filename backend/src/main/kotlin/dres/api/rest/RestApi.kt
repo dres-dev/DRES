@@ -1,12 +1,10 @@
 package dres.api.rest
 
-import dres.api.rest.handler.GetRestHandler
-import dres.api.rest.handler.GetVersionHandler
-import dres.api.rest.handler.PostRestHandler
-import dres.api.rest.handler.RestHandler
+import dres.api.rest.handler.*
 import dres.data.Config
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
+import io.javalin.core.security.SecurityUtil.roles
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
 import io.javalin.plugin.openapi.ui.ReDocOptions
@@ -16,7 +14,6 @@ import org.eclipse.jetty.server.session.DefaultSessionCache
 import org.eclipse.jetty.server.session.FileSessionDataStore
 import org.eclipse.jetty.server.session.SessionHandler
 import java.io.File
-import java.util.logging.LogManager
 
 object RestApi {
 
@@ -25,24 +22,39 @@ object RestApi {
 
     fun init(config: Config) {
 
-        val apiRestHandlers = listOf<RestHandler>(GetVersionHandler())
+        val apiRestHandlers = listOf<RestHandler>(GetVersionHandler(), LoginHandler())
 
         javalin = Javalin.create {
             it.registerPlugin(getConfiguredOpenApiPlugin())
             it.defaultContentType = "application/json"
             it.sessionHandler { fileSessionHandler() }
+            it.accessManager(AccessManager::manage)
         }.routes {
             path("api") {
 
                 apiRestHandlers.forEach {handler ->
                     path(handler.route){
 
+                        val permittedRoles = if (handler is AccessManagedRestHandler) {
+                            handler.permittedRoles
+                        } else {
+                            roles(RestApiRole.ANYONE)
+                        }
+
                         if (handler is GetRestHandler){
-                            get{handler.get(it)}
+                            get({handler.get(it)}, permittedRoles)
                         }
 
                         if (handler is PostRestHandler){
-                            post{handler.post(it)}
+                            post({handler.post(it)}, permittedRoles)
+                        }
+
+                        if (handler is PatchRestHandler){
+                            patch({handler.patch(it)}, permittedRoles)
+                        }
+
+                        if (handler is DeleteRestHandler){
+                            delete({handler.delete(it)}, permittedRoles)
                         }
 
                     }
@@ -51,7 +63,8 @@ object RestApi {
             }
         }.before {
             //TODO log request
-        }.start(config.port)
+        }.exception(Exception::class.java)
+        { e, _ -> e.printStackTrace() }.start(config.port)
     }
 
     fun stop() {

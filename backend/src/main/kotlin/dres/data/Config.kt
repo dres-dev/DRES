@@ -6,17 +6,16 @@ import kotlinx.serialization.json.*
 import java.io.File
 
 @Serializable
-data class Config(val port: Int = 8080) {
+data class Config(val port: Int = 8080, val dataPath: String = "./data") {
 
     companion object{
         fun read(file: File): Config? {
             val json = Json(JsonConfiguration.Stable)
             return try {
-                json.parse(Config.serializer(), file.readText())
+                json.parse(serializer(), file.readText())
             } catch (e: Exception) {
                 null
             }
         }
     }
-
 }

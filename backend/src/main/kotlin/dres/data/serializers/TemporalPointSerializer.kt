@@ -13,7 +13,7 @@ object TemporalPointSerializer: Serializer<TemporalPoint> {
     }
 
     override fun deserialize(input: DataInput2, available: Int): TemporalPoint = TemporalPoint(
-        input.readDouble(),
-        TemporalUnit.values()[input.readInt()]
+            input.readDouble(),
+            TemporalUnit.values()[input.readInt()]
     )
 }

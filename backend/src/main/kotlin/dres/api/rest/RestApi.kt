@@ -1,7 +1,7 @@
 package dres.api.rest
 
 import dres.api.rest.handler.*
-import dres.data.Config
+import dres.data.model.Config
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.core.security.SecurityUtil.roles

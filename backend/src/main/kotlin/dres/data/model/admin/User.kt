@@ -1,3 +1,5 @@
 package dres.data.model.admin
 
-data class User (val id: Long, val username: String, val password: String, val role: Role)
+import dres.data.model.Entity
+
+data class User (override var id: Long = -1, val username: String, val password: String, val role: Role) : Entity

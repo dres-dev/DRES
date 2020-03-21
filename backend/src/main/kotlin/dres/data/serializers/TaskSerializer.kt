@@ -16,10 +16,10 @@ object TaskSerializer: Serializer<Task> {
     }
 
     override fun deserialize(input: DataInput2, available: Int): Task = Task(
-        input.unpackLong(),
-        input.readUTF(),
-        TaskType.values()[input.readInt()],
-        input.readBoolean(),
-        TaskDescriptionSerializer.deserialize(input, available)
+            input.unpackLong(),
+            input.readUTF(),
+            TaskType.values()[input.readInt()],
+            input.readBoolean(),
+            TaskDescriptionSerializer.deserialize(input, available)
     )
 }

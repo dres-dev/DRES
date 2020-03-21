@@ -12,7 +12,7 @@ object TemporalRangeSerializer: Serializer<TemporalRange> {
     }
 
     override fun deserialize(input: DataInput2, available: Int): TemporalRange = TemporalRange(
-        TemporalPointSerializer.deserialize(input, available),
-        TemporalPointSerializer.deserialize(input, available)
+            TemporalPointSerializer.deserialize(input, available),
+            TemporalPointSerializer.deserialize(input, available)
     )
 }

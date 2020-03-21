@@ -17,10 +17,10 @@ object TeamSerializer : Serializer<Team> {
     }
 
     override fun deserialize(input: DataInput2, available: Int): Team = Team(
-        input.unpackLong(),
-        input.readUTF(),
-        input.readInt(),
-        Color(input.readInt()),
-        Paths.get(input.readUTF())
+            input.unpackLong(),
+            input.readUTF(),
+            input.readInt(),
+            Color(input.readInt()),
+            Paths.get(input.readUTF())
     )
 }

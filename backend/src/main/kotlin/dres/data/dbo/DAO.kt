@@ -1,17 +1,18 @@
-package dres.data.dbos
+package dres.data.dbo
 
+import dres.data.model.Entity
 import org.mapdb.DB
 import org.mapdb.DBMaker
 import org.mapdb.Serializer
 import java.nio.file.Path
 
 /**
- * A simple data access object [DAO] implementation for the entities used by DRES.
+ * A simple data access object [DAO] implementation for the [Entity] objects used by DRES.
  *
  * @author Ralph Gasser
  * @version 1.0
  */
-class DAO<T>(path: Path, private val serializer: Serializer<T>) : Iterable<T>, AutoCloseable {
+class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterable<T>, AutoCloseable {
 
     /** The [DB] object used to store */
     private val db = DBMaker.fileDB(path.toFile()).transactionEnable().make()
@@ -28,7 +29,7 @@ class DAO<T>(path: Path, private val serializer: Serializer<T>) : Iterable<T>, A
      * @param id The ID of the entry.
      * @return Entry [T]
      */
-    fun get(id: Long): T? = this.data[id]
+    operator fun get(id: Long): T? = this.data[id]
 
     /**
      * Deletes the value [T] for the given ID.
@@ -43,17 +44,12 @@ class DAO<T>(path: Path, private val serializer: Serializer<T>) : Iterable<T>, A
     }
 
     /**
-     * Appends the given value using this [DAO]
+     * Deletes the value [T]
      *
-     * @param value The value [T] that should be appended
-     * @return ID of the new value.
+     * @param value The value that should be deleted.
+     * @return Deleted entry [T]
      */
-    fun append(value: T?): Long {
-        val next = this.autoincrement.incrementAndGet()
-        this.data[next] = value
-        this.db.commit()
-        return next
-    }
+    fun delete(value: T) = this.delete(value.id)
 
     /**
      * Updates the value for the given ID with the new value [T]
@@ -64,6 +60,20 @@ class DAO<T>(path: Path, private val serializer: Serializer<T>) : Iterable<T>, A
     fun update(id: Long, value: T?) {
         this.data[id] = value
         this.db.commit()
+    }
+
+    /**
+     * Appends the given value using this [DAO]
+     *
+     * @param value The value [T] that should be appended
+     * @return ID of the new value.
+     */
+    fun append(value: T?): Long {
+        val next = this.autoincrement.incrementAndGet()
+        value?.id = next
+        this.data[next] = value
+        this.db.commit()
+        return next
     }
 
     /**

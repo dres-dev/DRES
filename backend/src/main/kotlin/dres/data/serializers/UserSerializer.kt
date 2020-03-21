@@ -15,9 +15,9 @@ object UserSerializer : Serializer<User> {
     }
 
     override fun deserialize(input: DataInput2, available: Int): User = User(
-        input.unpackLong(),
-        input.readUTF(),
-        input.readUTF(),
-        Role.values()[input.readInt()]
+            input.unpackLong(),
+            input.readUTF(),
+            input.readUTF(),
+            Role.values()[input.readInt()]
     )
 }

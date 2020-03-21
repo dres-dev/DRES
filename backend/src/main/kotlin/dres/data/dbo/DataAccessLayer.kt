@@ -1,5 +1,6 @@
-package dres.data.dbos
+package dres.data.dbo
 
+import dres.data.dbo.DAO
 import dres.data.serializers.CompetitionSerializer
 import dres.data.serializers.MediaItemSerializer
 import dres.data.serializers.UserSerializer
@@ -16,8 +17,8 @@ class DataAccessLayer(private val basePath: Path) {
     val users = DAO(this.basePath.resolve("users.db"), UserSerializer)
 
     /** List of [dres.data.model.competition.Competition]s managed by this DRES instance. */
-    val competitions = DAO (this.basePath.resolve("competitions.db"), CompetitionSerializer)
+    val competitions = DAO(this.basePath.resolve("competitions.db"), CompetitionSerializer)
 
     /** List of [dres.data.model.basics.MediaItem]s managed by this DRES instance. */
-    val collection = DAO (this.basePath.resolve("collection.db"), MediaItemSerializer)
+    val collection = DAO(this.basePath.resolve("collection.db"), MediaItemSerializer)
 }

@@ -1,4 +1,4 @@
-package dres.data
+package dres.data.model
 
 
 import kotlinx.serialization.*

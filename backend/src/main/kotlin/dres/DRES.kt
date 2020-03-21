@@ -2,7 +2,7 @@ package dres
 
 import dres.api.cli.Cli
 import dres.api.rest.RestApi
-import dres.data.Config
+import dres.data.model.Config
 import java.io.File
 
 object DRES {

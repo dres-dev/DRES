@@ -1,5 +1,9 @@
 package dres.api.rest
 
+import dres.api.rest.handler.GetRestHandler
+import dres.api.rest.handler.GetVersionHandler
+import dres.api.rest.handler.PostRestHandler
+import dres.api.rest.handler.RestHandler
 import dres.data.Config
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
@@ -20,6 +24,9 @@ object RestApi {
 
 
     fun init(config: Config) {
+
+        val apiRestHandlers = listOf<RestHandler>(GetVersionHandler())
+
         javalin = Javalin.create {
             it.registerPlugin(getConfiguredOpenApiPlugin())
             it.defaultContentType = "application/json"
@@ -27,8 +34,18 @@ object RestApi {
         }.routes {
             path("api") {
 
-                path("version"){
-                    get { ctx -> ctx.result("0.1") }
+                apiRestHandlers.forEach {handler ->
+                    path(handler.route){
+
+                        if (handler is GetRestHandler){
+                            get{handler.get(it)}
+                        }
+
+                        if (handler is PostRestHandler){
+                            post{handler.post(it)}
+                        }
+
+                    }
                 }
 
             }

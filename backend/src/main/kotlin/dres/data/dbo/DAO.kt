@@ -115,7 +115,7 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
 
         override fun next(): T = this@DAO.lock.optimisticRead {
             if (this@DAO.data.containsKey(this.id)) {
-                return this@DAO.data[this.id]!!
+                return this@DAO.data[this.id++]!!
             }
             throw NoSuchElementException("There is no element with ID ${this.id} for DAO '${this@DAO.name}'.")
         }

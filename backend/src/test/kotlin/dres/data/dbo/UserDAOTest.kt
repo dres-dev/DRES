@@ -48,4 +48,26 @@ class UserDAOTest {
         assertEquals(user3, this.dao!![3L])
     }
 
+    /**
+     * Tests the [DAO]s append method.
+     */
+    @Test
+    fun testIteration() {
+        val users = arrayOf(
+                User(username = "rgasser", password = "12345", role = Role.ADMIN),
+                User(username = "lrossetto", password = "45678", role = Role.ADMIN),
+                User(username = "vbs2021", password = "abcde", role = Role.JUDGE),
+                User(username = "testUser1", password = "lalala", role = Role.VIEWER),
+                User(username = "testUser2", password = "truestory!", role = Role.VIEWER)
+        )
+
+
+        for ((i, user) in users.withIndex()) {
+            assertEquals(i+1L, this.dao!!.append(user))
+        }
+
+        for ((i, user) in this.dao!!.withIndex()) {
+            assertEquals(users[i], user)
+        }
+    }
 }

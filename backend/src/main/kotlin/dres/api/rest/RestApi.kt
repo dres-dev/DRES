@@ -27,7 +27,7 @@ object RestApi {
 
 
 
-        val apiRestHandlers = listOf<RestHandler>(GetVersionHandler(), LoginHandler(dataAccessLayer.users), LogoutHandler())
+        val apiRestHandlers = listOf<RestHandler>(GetVersionHandler(), LoginHandler(dataAccessLayer.users), LogoutHandler(), ListUsersHandler(dataAccessLayer.users))
 
         javalin = Javalin.create {
             it.registerPlugin(getConfiguredOpenApiPlugin())

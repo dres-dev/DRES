@@ -9,16 +9,16 @@ import dres.data.model.admin.User
 import dres.data.model.admin.UserName
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
+import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiFormParam
+import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
 import org.mindrot.jbcrypt.BCrypt
 
 class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler {
 
 
 
-    @OpenApi(summary = "Sets roles for session based on user account", path = "/api/log", formParams = arrayOf(
-            OpenApiFormParam(name = "user", type = String::class), OpenApiFormParam(name = "pass", type = String::class)
-    ))
+    @OpenApi(summary = "Sets roles for session based on user account", path = "/api/login") //TODO specify params
     override fun post(ctx: Context) {
         val parameters = ctx.formParamMap()
 

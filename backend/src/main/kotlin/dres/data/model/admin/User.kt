@@ -3,7 +3,9 @@ package dres.data.model.admin
 import dres.data.model.Entity
 import org.mindrot.jbcrypt.BCrypt
 
-data class User (override var id: Long = -1, val username: UserName, val password: HashedPassword, val role: Role) : Entity
+data class User (override var id: Long = -1, val username: UserName, val password: HashedPassword, val role: Role) : Entity {
+    override fun toString(): String = "User(id=$id, username=${username.name}, role=$role)"
+}
 
 data class UserName(val name: String)
 

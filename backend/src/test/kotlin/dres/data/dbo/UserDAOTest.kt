@@ -1,7 +1,9 @@
 package dres.data.dbo
 
+import dres.data.model.admin.PlainPassword
 import dres.data.model.admin.Role
 import dres.data.model.admin.User
+import dres.data.model.admin.UserName
 import dres.data.serializers.UserSerializer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -34,9 +36,9 @@ class UserDAOTest {
      */
     @Test
     fun testAppend() {
-        val user1 = User(username = "rgasser", password = "12345", role = Role.ADMIN)
-        val user2 = User(username = "lrossetto", password = "45678", role = Role.ADMIN)
-        val user3 = User(username = "vbs2021", password = "abcde", role = Role.JUDGE)
+        val user1 = User(username = UserName("rgasser"), password = PlainPassword("12345").hash(), role = Role.ADMIN)
+        val user2 = User(username = UserName("lrossetto"), password = PlainPassword("45678").hash(), role = Role.ADMIN)
+        val user3 = User(username = UserName("vbs2021"), password = PlainPassword("abcde").hash(), role = Role.JUDGE)
 
         assertEquals(1L, this.dao!!.append(user1))
         assertEquals(2L, this.dao!!.append(user2))
@@ -54,11 +56,11 @@ class UserDAOTest {
     @Test
     fun testIteration() {
         val users = arrayOf(
-                User(username = "rgasser", password = "12345", role = Role.ADMIN),
-                User(username = "lrossetto", password = "45678", role = Role.ADMIN),
-                User(username = "vbs2021", password = "abcde", role = Role.JUDGE),
-                User(username = "testUser1", password = "lalala", role = Role.VIEWER),
-                User(username = "testUser2", password = "truestory!", role = Role.VIEWER)
+                User(username = UserName("rgasser"), password = PlainPassword("12345").hash(), role = Role.ADMIN),
+                User(username = UserName("lrossetto"), password = PlainPassword("45678").hash(), role = Role.ADMIN),
+                User(username = UserName("vbs2021"), password = PlainPassword("abcde").hash(), role = Role.JUDGE),
+                User(username = UserName("testUser1"), password = PlainPassword("lalala").hash(), role = Role.VIEWER),
+                User(username = UserName("testUser2"), password = PlainPassword("truestory!").hash(), role = Role.VIEWER)
         )
 
 

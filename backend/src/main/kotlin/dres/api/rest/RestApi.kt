@@ -2,6 +2,7 @@ package dres.api.rest
 
 import dres.api.rest.handler.*
 import dres.data.dbo.DAO
+import dres.data.dbo.DataAccessLayer
 import dres.data.model.Config
 import dres.data.serializers.UserSerializer
 import io.javalin.Javalin
@@ -22,11 +23,11 @@ object RestApi {
 
     private var javalin: Javalin? = null
 
-    fun init(config: Config) {
+    fun init(config: Config, dataAccessLayer: DataAccessLayer) {
 
 
 
-        val apiRestHandlers = listOf<RestHandler>(GetVersionHandler(), LoginHandler(DAO(Paths.get(config.dataPath + "/users.db"), UserSerializer)), LogoutHandler())
+        val apiRestHandlers = listOf<RestHandler>(GetVersionHandler(), LoginHandler(dataAccessLayer.users), LogoutHandler())
 
         javalin = Javalin.create {
             it.registerPlugin(getConfiguredOpenApiPlugin())

@@ -1,9 +1,9 @@
 package dres.api.cli
 
 
-import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
+import dres.data.dbo.DataAccessLayer
 import org.jline.builtins.Completers
 import org.jline.reader.Completer
 import org.jline.reader.LineReaderBuilder
@@ -23,9 +23,9 @@ object Cli {
     /**
      * blocking call
      */
-    fun loop() {
+    fun loop(dataAccessLayer: DataAccessLayer) {
 
-        val clikt = DRESBaseCommand().subcommands(CompetitionCommand())
+        val clikt = DRESBaseCommand().subcommands(CompetitionCommand(), UserCommand(dataAccessLayer.users))
 
         var terminal: Terminal? = null
         try {

@@ -2,8 +2,10 @@ package dres
 
 import dres.api.cli.Cli
 import dres.api.rest.RestApi
+import dres.data.dbo.DataAccessLayer
 import dres.data.model.Config
 import java.io.File
+import java.nio.file.Paths
 
 object DRES {
 
@@ -15,9 +17,15 @@ object DRES {
         } else {
             null
         } ?: Config()
-        RestApi.init(config)
 
-        Cli.loop() //blocks until quit command is given
+
+        /* Initialize data access layer. */
+        val dataAccessLayer = DataAccessLayer(Paths.get(config.dataPath))
+
+
+        RestApi.init(config, dataAccessLayer)
+
+        Cli.loop(dataAccessLayer) //blocks until quit command is given
         RestApi.stop()
 
     }

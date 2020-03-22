@@ -3,8 +3,10 @@ package dres.api.rest.handler
 import dres.api.rest.AccessManager
 import dres.api.rest.RestApiRole
 import dres.data.dbo.DAO
+import dres.data.model.admin.PlainPassword
 import dres.data.model.admin.Role
 import dres.data.model.admin.User
+import dres.data.model.admin.UserName
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiFormParam
@@ -26,8 +28,8 @@ class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler {
             return
         }
 
-        val username = parameters["user"]!!.first()
-        val password = parameters["pass"]!!.first()
+        val username = UserName(parameters["user"]!!.first())
+        val password = PlainPassword(parameters["pass"]!!.first())
 
         val user = getMatchingUser(dao, username, password)
 
@@ -45,9 +47,9 @@ class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler {
 
     }
 
-    private fun getMatchingUser(dao: DAO<User>, username: String, password: String) : User?  {
+    private fun getMatchingUser(dao: DAO<User>, username: UserName, password: PlainPassword) : User?  {
         val user = dao.find { it.username == username } ?: return null
-        return if (BCrypt.checkpw(password, user.password)) user else null
+        return if (user.password.check(password)) user else null
     }
 
     override val route = "login";

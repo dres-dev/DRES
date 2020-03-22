@@ -9,8 +9,7 @@ import com.github.ajalt.clikt.parameters.options.validate
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.long
 import dres.data.dbo.DAO
-import dres.data.model.admin.Role
-import dres.data.model.admin.User
+import dres.data.model.admin.*
 import org.mindrot.jbcrypt.BCrypt
 
 /**
@@ -24,7 +23,6 @@ class UserCommand (val users: DAO<User>) : NoOpCliktCommand(name = "users") {
     companion object {
         const val MIN_LENGTH_USERNAME = 4
         const val MIN_LENGTH_PASSWORD = 6
-        val SALT = BCrypt.gensalt()
     }
 
     init {
@@ -40,7 +38,7 @@ class UserCommand (val users: DAO<User>) : NoOpCliktCommand(name = "users") {
         val role: Role by option("-r", "--role").enum<Role>().required()
 
         override fun run() {
-            val newUser = User(username = username, password = BCrypt.hashpw(password, SALT), role = role)
+            val newUser = User(username = UserName(this.username), password = PlainPassword(this.password).hash(), role = role)
             for (existingUser in this@UserCommand.users) {
                 if (existingUser.username == newUser.username) {
                     println("Could not create user '${newUser}' because a user with that name already exists.")
@@ -65,7 +63,7 @@ class UserCommand (val users: DAO<User>) : NoOpCliktCommand(name = "users") {
                     this.id!!
                 }
                 this.username != null -> {
-                    this@UserCommand.users.find { it.username == this.username!! }?.id
+                    this@UserCommand.users.find { it.username == UserName(this.username!!) }?.id
                 }
                 else -> {
                     null
@@ -92,7 +90,7 @@ class UserCommand (val users: DAO<User>) : NoOpCliktCommand(name = "users") {
         override fun run() {
             println("Available users:")
             for (user in this@UserCommand.users) {
-                println("${user}")
+                println("$user")
             }
         }
     }

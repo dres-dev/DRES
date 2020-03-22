@@ -7,6 +7,7 @@ import dres.data.model.admin.PlainPassword
 import dres.data.model.admin.Role
 import dres.data.model.admin.User
 import dres.data.model.admin.UserName
+import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
@@ -17,19 +18,22 @@ import org.mindrot.jbcrypt.BCrypt
 class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler {
 
 
+    data class LoginRequest(var username: String, var password: String)
 
-    @OpenApi(summary = "Sets roles for session based on user account", path = "/api/login") //TODO specify params
+    @OpenApi(summary = "Sets roles for session based on user account", path = "/api/login",
+    requestBody = OpenApiRequestBody([OpenApiContent(LoginRequest::class)]))
     override fun post(ctx: Context) {
-        val parameters = ctx.formParamMap()
 
-
-        if (!parameters.containsKey("user") || !parameters.containsKey("pass")) {
-            ctx.status(400).json("parameters required")
+        var loginRequest = try {
+            ctx.bodyAsClass(LoginRequest::class.java)
+        }catch (e: BadRequestResponse){
+            ctx.status(400).json("invalid request parameters")
             return
         }
 
-        val username = UserName(parameters["user"]!!.first())
-        val password = PlainPassword(parameters["pass"]!!.first())
+
+        val username = UserName(loginRequest.username)
+        val password = PlainPassword(loginRequest.password)
 
         val user = getMatchingUser(dao, username, password)
 

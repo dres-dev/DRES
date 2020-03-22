@@ -104,8 +104,9 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
         private var id: Long = 1L
 
         override fun hasNext(): Boolean = this@DAO.lock.optimisticRead {
-            for (id in this.id until this@DAO.autoincrement.get()) {
+            for (id in this.id..this@DAO.autoincrement.get()) {
                 if (this@DAO.data.containsKey(id)) {
+                    this.id = id
                     return true
                 }
             }
@@ -113,14 +114,10 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
         }
 
         override fun next(): T = this@DAO.lock.optimisticRead {
-            while(this.id < this@DAO.autoincrement.get()) {
-                if (this@DAO.data.containsKey(this.id)) {
-                    this.id++
-                    return this@DAO.data[id]!!
-                }
-                this.id++
+            if (this@DAO.data.containsKey(this.id)) {
+                return this@DAO.data[this.id]!!
             }
-            throw NoSuchElementException("There is no more element left for DAO '${this@DAO.name}'.")
+            throw NoSuchElementException("There is no element with ID ${this.id} for DAO '${this@DAO.name}'.")
         }
     }
 }

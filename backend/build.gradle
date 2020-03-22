@@ -59,6 +59,9 @@ dependencies {
     compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.10.1'
     compile group: 'io.github.classgraph', name: 'classgraph', version: '4.8.34'
 
+    ////// bcrypt
+    compile group: 'org.mindrot', name: 'jbcrypt', version: '0.4'
+
     ////// CLIKT
     compile group: 'com.github.ajalt', name: 'clikt', version: '2.6.0'
 

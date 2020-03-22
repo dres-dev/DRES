@@ -81,9 +81,20 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      * @param value The new value [T]
      */
     fun update(id: Long, value: T?) = this.lock.write {
-        this.data[id] = value
-        this.db.commit()
+        if (id <= this.autoincrement.get()) {
+            this.data[id] = value
+            this.db.commit()
+        } else {
+            throw IndexOutOfBoundsException("Could not update value with ID $id because such a value doesn't exist.")
+        }
     }
+
+    /**
+     * Updates the value [T]
+     *
+     * @param value The new value [T]
+     */
+    fun update(value: T) = this.update(value.id, value)
 
     /**
      * Appends the given value using this [DAO]

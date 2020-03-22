@@ -32,6 +32,10 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
     /** Name of the entity accessed through this [DAO]. */
     val name = path.fileName.toString().replace(".db","")
 
+    init {
+        this.db.commit()
+    }
+
     /**
      * Returns the value [T] for the given ID.
      *
@@ -39,6 +43,14 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      * @return Entry [T]
      */
     operator fun get(id: Long): T? = this.lock.optimisticRead { this.data[id] }
+
+    /**
+     * Returns true if value for given key exists and false otherwise.
+     *
+     * @param id The key of the entry.
+     * @return Entry [T]
+     */
+    fun exists(id: Long) = this.lock.optimisticRead { this.data.containsKey(id) }
 
     /**
      * Deletes the value [T] for the given ID.

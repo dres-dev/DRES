@@ -17,7 +17,7 @@ sealed class MediaItem : Entity {
         const val IMAGE_MEDIA_ITEM = 1
     }
 
-    data class ImageItem(override var id: Long, val name: String, val location: Path): MediaItem()
+    data class ImageItem(override var id: Long, val name: String, val location: Path, val collection: Long): MediaItem()
 
-    data class VideoItem(override var id: Long, val name: String, val location: Path, val duration: Duration, val fps: Float): MediaItem()
+    data class VideoItem(override var id: Long, val name: String, val location: Path, val collection: Long, val duration: Duration, val fps: Float): MediaItem()
 }

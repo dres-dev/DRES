@@ -25,7 +25,7 @@ object Cli {
      */
     fun loop(dataAccessLayer: DataAccessLayer) {
 
-        val clikt = DRESBaseCommand().subcommands(CompetitionCommand(), UserCommand(dataAccessLayer.users))
+        val clikt = DRESBaseCommand().subcommands(CompetitionCommand(), UserCommand(dataAccessLayer.users), MediaCollectionCommand(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaSegments))
 
         var terminal: Terminal? = null
         try {
@@ -75,7 +75,7 @@ object Cli {
 
     }
 
-    val lineSplitRegex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'")
+    val lineSplitRegex: Pattern = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'")
 
     //based on https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double/366532
     private fun splitLine(line: String?): List<String> {

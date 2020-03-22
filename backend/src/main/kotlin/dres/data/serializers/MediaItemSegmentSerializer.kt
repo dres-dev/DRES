@@ -9,12 +9,13 @@ object MediaItemSegmentSerializer: Serializer<MediaItemSegment> {
     override fun serialize(out: DataOutput2, value: MediaItemSegment) {
         out.packLong(value.id)
         out.packLong(value.mediaItemId)
+        out.writeUTF(value.name)
         TemporalRangeSerializer.serialize(out, value.range)
     }
 
     override fun deserialize(input: DataInput2, available: Int): MediaItemSegment {
         return MediaItemSegment(
-                input.unpackLong(), input.unpackLong(), TemporalRangeSerializer.deserialize(input, available)
+                input.unpackLong(), input.unpackLong(), input.readUTF(), TemporalRangeSerializer.deserialize(input, available)
         )
     }
 }

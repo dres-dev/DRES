@@ -9,19 +9,16 @@ import dres.data.model.admin.User
 import dres.data.model.admin.UserName
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiFormParam
-import io.javalin.plugin.openapi.annotations.OpenApiRequestBody
-import org.mindrot.jbcrypt.BCrypt
+import io.javalin.plugin.openapi.annotations.*
 
 class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler {
 
 
     data class LoginRequest(var username: String, var password: String)
 
-    @OpenApi(summary = "Sets roles for session based on user account", path = "/api/login",
-    requestBody = OpenApiRequestBody([OpenApiContent(LoginRequest::class)]))
+    @OpenApi(summary = "Sets roles for session based on user account", path = "/api/login", method = HttpMethod.POST,
+    requestBody = OpenApiRequestBody([OpenApiContent(LoginRequest::class)]),
+    responses = [OpenApiResponse("200"), OpenApiResponse("401")])
     override fun post(ctx: Context) {
 
         var loginRequest = try {

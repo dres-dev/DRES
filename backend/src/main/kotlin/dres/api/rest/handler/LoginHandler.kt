@@ -1,10 +1,8 @@
 package dres.api.rest.handler
 
 import dres.api.rest.AccessManager
-import dres.api.rest.RestApiRole
 import dres.data.dbo.DAO
 import dres.data.model.admin.PlainPassword
-import dres.data.model.admin.Role
 import dres.data.model.admin.User
 import dres.data.model.admin.UserName
 import io.javalin.http.BadRequestResponse
@@ -35,12 +33,7 @@ class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler {
         val user = getMatchingUser(dao, username, password)
 
         if(user != null){
-            val userRoles = when(user.role) {
-                Role.ADMIN -> arrayOf(RestApiRole.VIEWER, RestApiRole.JUDGE, RestApiRole.ADMIN)
-                Role.JUDGE -> arrayOf(RestApiRole.VIEWER, RestApiRole.JUDGE)
-                Role.VIEWER -> arrayOf(RestApiRole.VIEWER)
-            }
-            AccessManager.addRoleToSession(ctx.req.session.id, *userRoles)
+            AccessManager.setUserforSession(ctx.req.session.id, user)
             ctx.json("login successful")
         } else {
             ctx.status(401).json("invalid credentials")

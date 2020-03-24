@@ -1,8 +1,9 @@
 package dres.api.rest
 
+import dres.data.model.admin.User
+import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.http.Handler
-import io.javalin.core.security.Role;
 
 
 object AccessManager {
@@ -17,20 +18,35 @@ object AccessManager {
     }
 
     private val sessionRoleMap = mutableMapOf<String, MutableSet<Role>>()
+    private val sessionUserMap = mutableMapOf<String, Long>()
+
+    fun setUserforSession(sessionId: String, user: User){
+
+        if (!sessionRoleMap.containsKey(sessionId)){
+            sessionRoleMap[sessionId] = mutableSetOf()
+        }
+
+        sessionRoleMap[sessionId]!!.addAll(
+                when(user.role) {
+                    dres.data.model.admin.Role.ADMIN -> arrayOf(RestApiRole.VIEWER, RestApiRole.JUDGE, RestApiRole.ADMIN)
+                    dres.data.model.admin.Role.JUDGE -> arrayOf(RestApiRole.VIEWER, RestApiRole.JUDGE)
+                    dres.data.model.admin.Role.VIEWER -> arrayOf(RestApiRole.VIEWER)
+                }
+        )
+
+        sessionUserMap[sessionId] = user.id
+
+    }
+
+    fun clearUserSession(sessionId: String){
+        sessionRoleMap.remove(sessionId)
+        sessionUserMap.remove(sessionId)
+    }
 
     private fun rolesOfSession(sessionId: String): Set<Role> = sessionRoleMap[sessionId] ?: emptySet()
 
-    fun addRoleToSession(sessionId: String, vararg roles: Role) {
-        if (sessionRoleMap.containsKey(sessionId)){
-            sessionRoleMap[sessionId]!!.addAll(roles)
-        } else {
-            sessionRoleMap[sessionId] = mutableSetOf(*roles)
-        }
-    }
+    fun getUserIdforSession(sessionId: String): Long? = sessionUserMap[sessionId]
 
-    fun clearRoles(sessionId: String) {
-        sessionRoleMap[sessionId]?.clear()
-    }
 
 }
 

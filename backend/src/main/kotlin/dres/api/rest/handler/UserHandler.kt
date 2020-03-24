@@ -1,5 +1,6 @@
 package dres.api.rest.handler
 
+import dres.api.rest.AccessManager
 import dres.api.rest.RestApiRole
 import dres.data.dbo.DAO
 import dres.data.model.admin.Role
@@ -17,9 +18,7 @@ abstract class UserHandler(protected val users: DAO<User>) : RestHandler {
         companion object {
             fun of(user: User): UserDetails = UserDetails(user.username.name, user.role)
         }
-
     }
-
 }
 
 class ListUsersHandler(users: DAO<User>) : UserHandler(users), GetRestHandler, AccessManagedRestHandler {
@@ -38,5 +37,22 @@ class ListUsersHandler(users: DAO<User>) : UserHandler(users), GetRestHandler, A
 
     override val route = "user/list"
 
+}
+
+class CurrentUsersHandler(users: DAO<User>) : UserHandler(users), GetRestHandler, AccessManagedRestHandler {
+
+    @OpenApi(
+            summary = "Get current user information",
+            path = "/api/user/info",
+            tags = ["User"],
+            responses = [OpenApiResponse("200", [OpenApiContent(UserDetails::class)])]
+    )
+    override fun get(ctx: Context) {
+        ctx.json(users[AccessManager.getUserIdforSession(ctx.req.session.id)!!]!!)
+    }
+
+    override val permittedRoles = setOf(RestApiRole.VIEWER)
+
+    override val route = "user/info"
 
 }

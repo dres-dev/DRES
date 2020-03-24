@@ -65,6 +65,9 @@ dependencies {
     ////// CLIKT
     compile group: 'com.github.ajalt', name: 'clikt', version: '2.6.0'
 
+    ////// CSV
+    compile group: 'com.github.doyaaaaaken', name: 'kotlin-csv-jvm', version: '0.7.3'
+
     ////// Log4J
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.2'
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.2'

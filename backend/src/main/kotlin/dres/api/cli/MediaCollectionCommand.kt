@@ -6,10 +6,13 @@ import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.float
 import com.github.ajalt.clikt.parameters.types.long
+import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import dres.data.dbo.DAO
 import dres.data.model.basics.MediaCollection
 import dres.data.model.basics.MediaItem
 import dres.data.model.basics.MediaItemSegment
+import java.io.FileOutputStream
+import java.io.OutputStream
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.Duration
@@ -18,7 +21,16 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         NoOpCliktCommand(name = "collection") {
 
     init {
-        this.subcommands(CreateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), AddMediaItemCommand())
+        this.subcommands(CreateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), AddMediaItemCommand(), ExportCollectionCommand())
+    }
+
+    abstract inner class AbstractCollectionCommand(private val name: String) : CliktCommand(name = name) {
+
+        protected val collectionId: Long by option("-c", "--collection")
+                .convert { this@MediaCollectionCommand.collections.find { c -> c.name == it }?.id ?: -1 }
+                .required()
+                .validate { require(it > -1) {"Collection not found"} }
+
     }
 
     inner class CreateCollectionCommand : CliktCommand(name = "create") {
@@ -47,12 +59,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         }
     }
 
-    inner class ShowCollectionCommand : CliktCommand(name = "show") {
-
-        private val collectionId: Long by option("-c", "--collection")
-                .convert { this@MediaCollectionCommand.collections.find { c -> c.name == it }?.id ?: -1 }
-                .required()
-                .validate { require(it > -1) {"Collection not found"} }
+    inner class ShowCollectionCommand : AbstractCollectionCommand("show") {
 
         override fun run() {
             this@MediaCollectionCommand.items.filter{ it.collection == collectionId}.forEach {
@@ -69,12 +76,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         }
 
 
-        inner class AddImageCommand : CliktCommand(name = "image") {
-
-            private val collectionId: Long by option("-c", "--collection")
-                    .convert { this@MediaCollectionCommand.collections.find { c -> c.name == it }?.id ?: -1 }
-                    .required()
-                    .validate { require(it > -1) {"Collection not found"} }
+        inner class AddImageCommand : AbstractCollectionCommand(name = "image") {
 
             private val name: String by option("-n", "--name").required()
             private val path: Path by option("-p", "--path")
@@ -94,12 +96,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
         }
 
-        inner class AddVideoCommans : CliktCommand(name = "video"){
-
-            private val collectionId: Long by option("-c", "--collection")
-                    .convert { this@MediaCollectionCommand.collections.find { c -> c.name == it }?.id ?: -1 }
-                    .required()
-                    .validate { require(it > -1) {"Collection not found"} }
+        inner class AddVideoCommans : AbstractCollectionCommand(name = "video"){
 
             private val name: String by option("-n", "--name").required()
             private val path: Path by option("-p", "--path")
@@ -122,7 +119,32 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
         }
 
+    }
 
+    inner class ExportCollectionCommand : AbstractCollectionCommand("export") {
+
+        private val outputStream: OutputStream by option("-f", "--file")
+                .convert { FileOutputStream(it) as OutputStream }
+                .default(System.out)
+
+        private fun toRow(item: MediaItem): List<String?> =
+                when(item){
+                    is MediaItem.ImageItem -> listOf<String?>("image", item.name, item.location.toString(), null, null)
+                    is MediaItem.VideoItem -> listOf<String?>("video", item.name, item.location.toString(), item.duration.toString(), item.fps.toString())
+                }
+
+        private val header = listOf<String>("type", "name", "location", "duration", "fps")
+
+        override fun run() {
+
+            csvWriter().open(outputStream){
+                writeRow(header)
+                this@MediaCollectionCommand.items.forEach{
+                    writeRow(toRow(it))
+                }
+            }
+
+        }
 
     }
 }

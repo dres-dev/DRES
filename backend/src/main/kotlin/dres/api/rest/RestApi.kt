@@ -30,7 +30,8 @@ object RestApi {
 
 
         val apiRestHandlers = listOf<RestHandler>(GetVersionHandler(), LoginHandler(dataAccessLayer.users),
-                LogoutHandler(), ListUsersHandler(dataAccessLayer.users), CurrentUsersHandler(dataAccessLayer.users))
+                LogoutHandler(), ListUsersHandler(dataAccessLayer.users), CurrentUsersHandler(dataAccessLayer.users),
+                GetFrameHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems))
 
         javalin = Javalin.create {
             it.server { setupHttpServer(config) }
@@ -38,6 +39,7 @@ object RestApi {
             it.defaultContentType = "application/json"
             it.sessionHandler(::fileSessionHandler)
             it.accessManager(AccessManager::manage)
+
         }.routes {
 
             path("api") {
@@ -71,6 +73,8 @@ object RestApi {
                 }
 
             }
+
+
         }.before {
             //TODO log request
         }.exception(Exception::class.java)

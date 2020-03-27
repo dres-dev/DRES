@@ -35,7 +35,7 @@ object Playground {
                 ), listOf<String>("a segment", "a segment with a description")
                 ))
 
-        val team = Team(-1, "testTeam", 1, Color.BLUE, Path.of("testTeamLogo.png")) //TODO teams should probably be stored in runs rather than competitions
+        val team = Team(-1, "testTeam", 1, "#FFFF00", "testTeamLogo.png") //TODO teams should probably be stored in runs rather than competitions
 
         val competition = Competition(-1, "testCompetition", "just a test", listOf(task), listOf(team))
 

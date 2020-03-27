@@ -12,15 +12,15 @@ object TeamSerializer : Serializer<Team> {
         out.packLong(value.id)
         out.writeUTF(value.name)
         out.writeInt(value.number)
-        out.writeInt(value.color.rgb)
-        out.writeUTF(value.logo.toString())
+        out.writeUTF(value.color)
+        out.writeUTF(value.logoLocation)
     }
 
     override fun deserialize(input: DataInput2, available: Int): Team = Team(
             input.unpackLong(),
             input.readUTF(),
             input.readInt(),
-            Color(input.readInt()),
-            Paths.get(input.readUTF())
+            input.readUTF(),
+            input.readUTF()
     )
 }

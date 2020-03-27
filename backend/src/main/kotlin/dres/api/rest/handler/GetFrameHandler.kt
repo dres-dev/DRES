@@ -13,6 +13,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import java.io.File
+import java.nio.file.Path
 
 class GetFrameHandler(private val collections: DAO<MediaCollection>, private val items: DAO<MediaItem>) : GetRestHandler, AccessManagedRestHandler {
 
@@ -33,7 +34,7 @@ class GetFrameHandler(private val collections: DAO<MediaCollection>, private val
                 OpenApiParam("time", String::class, "time code")
             ],
             tags = ["Media"],
-            responses = [OpenApiResponse("200", [OpenApiContent(type = "image/png")]), OpenApiResponse("401")]
+            responses = [OpenApiResponse("200", [OpenApiContent(type = "image/png")]), OpenApiResponse("401"), OpenApiResponse("400")]
             )
     override fun get(ctx: Context) {
 
@@ -59,7 +60,7 @@ class GetFrameHandler(private val collections: DAO<MediaCollection>, private val
         }
 
         if (item is MediaItem.ImageItem) {
-            StaticFileHelper.serveFile(ctx, item.location.toFile())
+            StaticFileHelper.serveFile(ctx, File(item.location))
         } else if (item is MediaItem.VideoItem){
 
             if (!params.containsKey("time")){
@@ -76,7 +77,7 @@ class GetFrameHandler(private val collections: DAO<MediaCollection>, private val
 
             if (!imgFile.exists()){
 
-                FFmpegUtil.extractFrame(item.location, time, imgFile.toPath())
+                FFmpegUtil.extractFrame(Path.of(item.location), time, imgFile.toPath())
 
             }
 

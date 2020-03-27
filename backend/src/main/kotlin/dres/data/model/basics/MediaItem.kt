@@ -20,7 +20,11 @@ sealed class MediaItem : Entity {
     abstract val collection: Long
     abstract val name: String
 
-    data class ImageItem(override var id: Long, override val name: String, val location: Path, override val collection: Long): MediaItem()
+    data class ImageItem(override var id: Long, override val name: String, val location: String, override val collection: Long): MediaItem()
 
-    data class VideoItem(override var id: Long, override val name: String, val location: Path, override val collection: Long, val duration: Duration, val fps: Float): MediaItem()
+    data class VideoItem(override var id: Long, override val name: String, val location: String, override val collection: Long, val ms: Long, val fps: Float): MediaItem() {
+
+        fun duration(): Duration = Duration.ofMillis(ms)
+
+    }
 }

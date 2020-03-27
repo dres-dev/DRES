@@ -253,9 +253,8 @@ gradle-app.setting
 **/build/
 
 # End of https://www.gitignore.io/api/node,java,gradle,kotlin,intellij
-backend/session-store
-backend/.idea
-backend/data
-frontend/node_modules
-frontend/.idea
-*.db
+/backend/session-store
+/backend/data
+
+.idea/
+node_modules/

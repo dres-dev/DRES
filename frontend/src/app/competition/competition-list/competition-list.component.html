@@ -1,34 +1,67 @@
-<p>competition-list works!</p>
+<div style="display: flex">
+    <div><h1>Competitions</h1></div>
+
+    <div class="spacer-flex"></div>
+
+    <div>
+        <button mat-icon-button aria-label="Refresh list of competitions." matTooltip="Refresh list of competitions." (click)="refresh()">
+            <mat-icon>refresh</mat-icon>
+        </button>
+    </div>
+    <div>
+        <button mat-icon-button aria-label="Create new competition." matTooltip="Create new competition.">
+            <mat-icon>note_add</mat-icon>
+        </button>
+    </div>
+</div>
+
 
 <div>
-    <table mat-table [dataSource]="competitions">
+    <table mat-table [dataSource]="competitions" style="width: 100%">
+        <!-- Name Column -->
+        <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let row">
+                <button mat-icon-button aria-label="Start new run for competition." matTooltip="Start new run for competition.">
+                    <mat-icon>access_time</mat-icon>
+                </button>
+                <button mat-icon-button aria-label="Edit competition." matTooltip="Edit competition.">
+                    <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button aria-label="Delete competition." matTooltip="Delete competition.">
+                    <mat-icon>delete</mat-icon>
+                </button>
+            </td>
+        </ng-container>
+
+        <!-- Name Column -->
+        <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef>ID</th>
+            <td mat-cell *matCellDef="let row">{{row.id}}</td>
+        </ng-container>
+
         <!-- Name Column -->
         <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef> Name </th>
-            <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let row">{{row.name}}</td>
         </ng-container>
 
         <!-- Description Column -->
         <ng-container matColumnDef="description">
-            <th mat-header-cell *matHeaderCellDef> Description </th>
-            <td mat-cell *matCellDef="let element"> {{element.description}} </td>
+            <th mat-header-cell *matHeaderCellDef>Description</th>
+            <td mat-cell *matCellDef="let row">{{row.description}}</td>
         </ng-container>
 
         <!-- Name Column -->
         <ng-container matColumnDef="taskCount">
-            <th mat-header-cell *matHeaderCellDef> # Tasks </th>
-            <td mat-cell *matCellDef="let element"> {{element.taskCount}} </td>
+            <th mat-header-cell *matHeaderCellDef># Tasks</th>
+            <td mat-cell *matCellDef="let row">{{row.taskCount}}</td>
         </ng-container>
 
         <!-- Name Column -->
         <ng-container matColumnDef="teamCount">
-            <th mat-header-cell *matHeaderCellDef> # Teams </th>
-            <td mat-cell *matCellDef="let element"> {{element.teamCount}} </td>
-        </ng-container>
-
-        <!-- Name Column -->
-        <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef> Actions </th>
+            <th mat-header-cell *matHeaderCellDef># Teams</th>
+            <td mat-cell *matCellDef="let row">{{row.teamCount}}</td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

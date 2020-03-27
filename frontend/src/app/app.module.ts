@@ -19,6 +19,7 @@ import {HttpClientModule} from '@angular/common/http';
 import {ServicesModule} from './services/services.module';
 import {MatMenuModule} from '@angular/material/menu';
 import {CompetitionModule} from './competition/competition.module';
+import {MatSnackBarModule} from '@angular/material/snack-bar';
 
 @NgModule({
   declarations: [
@@ -36,6 +37,7 @@ import {CompetitionModule} from './competition/competition.module';
     MatFormFieldModule,
     MatCardModule,
     MatInputModule,
+    MatSnackBarModule,
     ServicesModule,
     HttpClientModule,
     ServicesModule,

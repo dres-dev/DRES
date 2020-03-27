@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {AfterViewInit, Component, OnInit} from '@angular/core';
 import {CompetitionOverview, CompetitionService} from '../../../../openapi';
 
 @Component({
@@ -6,18 +6,13 @@ import {CompetitionOverview, CompetitionService} from '../../../../openapi';
   templateUrl: './competition-list.component.html',
   styleUrls: ['./competition-list.component.scss']
 })
-export class CompetitionListComponent implements OnInit {
+export class CompetitionListComponent implements AfterViewInit {
 
   /** */
-  displayedColumns = ['name', 'description', 'taskCount', 'teamCount', 'actions'];
+  displayedColumns = ['actions', 'id', 'name', 'description', 'taskCount', 'teamCount'];
   competitions: CompetitionOverview[] = [];
 
   constructor(private competitionService: CompetitionService) {}
-
-  public ngOnInit(): void {
-    this.refresh()
-  }
-
 
   public refresh() {
     this.competitionService.getApiCompetitionList().subscribe((results: CompetitionOverview[]) => {
@@ -26,6 +21,10 @@ export class CompetitionListComponent implements OnInit {
     () => {
 
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.refresh()
   }
 
 }

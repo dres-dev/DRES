@@ -2,3 +2,29 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Defines some spacer classes that can be used in flexboxes etc. */
+
+.spacer-xlarge {
+  padding: 0 40px;
+}
+
+.spacer-large {
+  padding: 0 25px;
+}
+
+.spacer-medium {
+  padding: 0 15px;
+}
+
+.spacer-small {
+  padding: 0 10px;
+}
+
+.spacer-tiny {
+  padding: 0 5px;
+}
+
+.spacer-flex  {
+  flex: 1 1 auto;
+}

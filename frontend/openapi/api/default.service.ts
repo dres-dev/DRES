@@ -138,7 +138,7 @@ export class DefaultService {
     }
 
     /**
-     * Clears all user roles of the current session
+     * Clears all user roles of the current session.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
@@ -178,7 +178,7 @@ export class DefaultService {
     }
 
     /**
-     * returns the API version
+     * Returns the API version
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
@@ -218,7 +218,7 @@ export class DefaultService {
     }
 
     /**
-     * Sets roles for session based on user account
+     * Sets roles for session based on user account and returns a session cookie.
      * @param loginRequest 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.

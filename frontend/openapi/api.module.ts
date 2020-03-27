@@ -3,6 +3,7 @@ import { Configuration } from './configuration';
 import { HttpClient } from '@angular/common/http';
 
 
+import { CompetitionService } from './api/competition.service';
 import { DefaultService } from './api/default.service';
 import { UserService } from './api/user.service';
 

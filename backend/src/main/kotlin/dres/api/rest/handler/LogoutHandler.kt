@@ -6,11 +6,11 @@ import io.javalin.plugin.openapi.annotations.OpenApi
 
 class LogoutHandler : RestHandler, GetRestHandler {
 
-    @OpenApi(summary = "Clears all user roles of the current session", path = "/api/logout")
+    @OpenApi(summary = "Clears all user roles of the current session.", path = "/api/logout")
     override fun get(ctx: Context) {
 
         AccessManager.clearUserSession(ctx.req.session.id);
-        ctx.json("logged out")
+        ctx.json("Logged out")
 
     }
 

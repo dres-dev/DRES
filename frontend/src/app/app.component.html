@@ -1,8 +1,29 @@
 <mat-toolbar color="primary">
     <div>DRES</div>
+
+    <div class="spacer-flex"></div>
+
     <a mat-icon-button aria-label="Example icon-button with a heart icon" routerLink="/competition/list">
         <mat-icon>build</mat-icon>
     </a>
+
+    <div class="spacer-flex"></div>
+
+    <div *ngIf="!sessionService.isLoggedIn()">
+        <button mat-button routerLink="/login">
+            Login
+        </button>
+    </div>
+    <div *ngIf="sessionService.isLoggedIn()">
+        <mat-menu #userMenu="matMenu" (close)="sessionService.logout()">
+            <button mat-menu-item (click)="logout()">Logout</button>
+        </mat-menu>
+        <button mat-button [matMenuTriggerFor]="userMenu">
+            <mat-icon>person</mat-icon>
+            {{sessionService.getUsername()}}
+        </button>
+    </div>
+
 </mat-toolbar>
 
 <router-outlet></router-outlet>

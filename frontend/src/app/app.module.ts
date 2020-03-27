@@ -9,12 +9,22 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { CompetitionListComponent } from './competition-list/competition-list.component';
+import { LoginComponent } from './login-component/login.component';
+import {ReactiveFormsModule} from '@angular/forms';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatCardModule} from '@angular/material/card';
+import {MatInputModule} from '@angular/material/input';
+import {ApiModule, Configuration} from '../../openapi';
+import {HttpClientModule} from '@angular/common/http';
+import {ServicesModule} from './services/services.module';
+import {MatMenuModule} from '@angular/material/menu';
 
 @NgModule({
   declarations: [
     AppComponent,
     CompetitionBuilerComponent,
-    CompetitionListComponent
+    CompetitionListComponent,
+    LoginComponent
   ],
   imports: [
     BrowserModule,
@@ -22,7 +32,15 @@ import { CompetitionListComponent } from './competition-list/competition-list.co
     BrowserAnimationsModule,
     MatToolbarModule,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatCardModule,
+    MatInputModule,
+    ServicesModule,
+    HttpClientModule,
+    ServicesModule,
+    MatMenuModule
   ],
   providers: [],
   bootstrap: [AppComponent]

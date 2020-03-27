@@ -35,6 +35,7 @@ object RestApi {
                 ListCompetitionHandler(dataAccessLayer.competitions), GetCompetitionHandler(dataAccessLayer.competitions))
 
         javalin = Javalin.create {
+            it.enableCorsForAllOrigins()
             it.server { setupHttpServer(config) }
             it.registerPlugin(getConfiguredOpenApiPlugin())
             it.defaultContentType = "application/json"

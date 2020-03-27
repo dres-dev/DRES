@@ -14,7 +14,7 @@ class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler {
 
     data class LoginRequest(var username: String, var password: String)
 
-    @OpenApi(summary = "Sets roles for session based on user account", path = "/api/login", method = HttpMethod.POST,
+    @OpenApi(summary = "Sets roles for session based on user account and returns a session cookie.", path = "/api/login", method = HttpMethod.POST,
     requestBody = OpenApiRequestBody([OpenApiContent(LoginRequest::class)]),
     responses = [OpenApiResponse("200"), OpenApiResponse("401")])
     override fun post(ctx: Context) {
@@ -34,9 +34,9 @@ class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler {
 
         if(user != null){
             AccessManager.setUserforSession(ctx.req.session.id, user)
-            ctx.json("login successful")
+            ctx.json("Login successful")
         } else {
-            ctx.status(401).json("invalid credentials")
+            ctx.status(401).json("Invalid credentials")
         }
 
     }

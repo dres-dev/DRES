@@ -1,6 +1,7 @@
 package dres.data.model.competition
 
 import dres.data.model.basics.MediaItem
+import dres.data.model.basics.TemporalRange
 
 /**
  * General [TaskDescription]
@@ -22,14 +23,14 @@ sealed class TaskDescription {
      *
      * @param item [MediaItem] the user should be looking for.
      */
-    data class KisVisualTaskDescription(val item: MediaItem.VideoItem) : TaskDescription()
+    data class KisVisualTaskDescription(val item: MediaItem.VideoItem, val temporalRange: TemporalRange) : TaskDescription()
 
     /**
      * Describes a [TaskType.KIS_TEXTUAL] [Task]
      *
      * @param item [MediaItem] the user should be looking for.
      */
-    data class KisTextualTaskDescription(val item: MediaItem.VideoItem, val descriptions: List<String>, val delay: Int = 30) : TaskDescription()
+    data class KisTextualTaskDescription(val item: MediaItem.VideoItem, val temporalRange: TemporalRange, val descriptions: List<String>, val delay: Int = 30) : TaskDescription()
 
     /**
      * Describes a [TaskType.AVS] video [Task]

@@ -15,10 +15,12 @@ object TaskDescriptionSerializer: Serializer<TaskDescription> {
         is TaskDescription.KisVisualTaskDescription -> {
             out.writeInt(KIS_VISUAL_TASK_DESCRIPTION)
             MediaItemSerializer.serialize(out, value.item)
+            TemporalRangeSerializer.serialize(out, value.temporalRange)
         }
         is TaskDescription.KisTextualTaskDescription -> {
             out.writeInt(KIS_TEXTUAL_TASK_DESCRIPTION)
             MediaItemSerializer.serialize(out, value.item)
+            TemporalRangeSerializer.serialize(out, value.temporalRange)
             out.writeInt(value.descriptions.size)
             for (description in value.descriptions) {
                 out.writeUTF(description)
@@ -32,8 +34,8 @@ object TaskDescriptionSerializer: Serializer<TaskDescription> {
     }
 
     override fun deserialize(input: DataInput2, available: Int): TaskDescription = when (input.readInt()) {
-        KIS_VISUAL_TASK_DESCRIPTION -> TaskDescription.KisVisualTaskDescription(MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem)
-        KIS_TEXTUAL_TASK_DESCRIPTION -> TaskDescription.KisTextualTaskDescription(MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem, (0 until input.readInt()).map { input.readUTF() }, input.readInt())
+        KIS_VISUAL_TASK_DESCRIPTION -> TaskDescription.KisVisualTaskDescription(MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
+        KIS_TEXTUAL_TASK_DESCRIPTION -> TaskDescription.KisTextualTaskDescription(MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available), (0 until input.readInt()).map { input.readUTF() }, input.readInt())
         AVS_TASK_DESCRIPTION -> TaskDescription.AvsTaskDescription(input.readUTF())
         else -> throw IllegalStateException("Unsupported TaskDescription type detected upon deserialization.")
     }

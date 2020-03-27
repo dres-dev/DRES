@@ -31,7 +31,8 @@ object RestApi {
 
         val apiRestHandlers = listOf<RestHandler>(GetVersionHandler(), LoginHandler(dataAccessLayer.users),
                 LogoutHandler(), ListUsersHandler(dataAccessLayer.users), CurrentUsersHandler(dataAccessLayer.users),
-                GetFrameHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems))
+                GetFrameHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+                ListCompetitionHandler(dataAccessLayer.competitions))
 
         javalin = Javalin.create {
             it.enableCorsForAllOrigins()

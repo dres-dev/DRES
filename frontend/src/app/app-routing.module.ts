@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { CompetitionBuilerComponent } from './competition-builer/competition-builer.component';
-import { CompetitionListComponent } from './competition-list/competition-list.component';
+import { CompetitionBuilerComponent } from './competition/competition-builer/competition-builer.component';
+import { CompetitionListComponent } from './competition/competition-list/competition-list.component';
 import {LoginComponent} from './login-component/login.component';
 
 

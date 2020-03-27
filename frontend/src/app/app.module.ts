@@ -4,11 +4,11 @@ import { NgModule } from '@angular/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { CompetitionBuilerComponent } from './competition-builer/competition-builer.component';
+import { CompetitionBuilerComponent } from './competition/competition-builer/competition-builer.component';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { CompetitionListComponent } from './competition-list/competition-list.component';
+import { CompetitionListComponent } from './competition/competition-list/competition-list.component';
 import { LoginComponent } from './login-component/login.component';
 import {ReactiveFormsModule} from '@angular/forms';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -18,12 +18,11 @@ import {ApiModule, Configuration} from '../../openapi';
 import {HttpClientModule} from '@angular/common/http';
 import {ServicesModule} from './services/services.module';
 import {MatMenuModule} from '@angular/material/menu';
+import {CompetitionModule} from './competition/competition.module';
 
 @NgModule({
   declarations: [
     AppComponent,
-    CompetitionBuilerComponent,
-    CompetitionListComponent,
     LoginComponent
   ],
   imports: [
@@ -40,6 +39,7 @@ import {MatMenuModule} from '@angular/material/menu';
     ServicesModule,
     HttpClientModule,
     ServicesModule,
+    CompetitionModule,
     MatMenuModule
   ],
   providers: [],

@@ -256,4 +256,6 @@ gradle-app.setting
 backend/session-store
 backend/.idea
 backend/data
-backend/.idea
+frontend/node_modules
+frontend/.idea
+*.db

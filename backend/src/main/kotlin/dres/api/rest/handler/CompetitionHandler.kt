@@ -1,6 +1,7 @@
 package dres.api.rest.handler
 
 import dres.api.rest.RestApiRole
+import dres.api.rest.types.status.ErrorStatus
 import dres.data.dbo.DAO
 import dres.data.model.competition.Competition
 import io.javalin.core.security.Role
@@ -18,67 +19,58 @@ abstract class CompetitionHandler(protected val competitions: DAO<Competition>) 
 class ListCompetitionHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), GetRestHandler {
 
     @OpenApi(
-            summary = "list overview of all competitions",
+            summary = "Lists an overview of all available competitions with basic information about their content.",
             path = "/api/competition/list",
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<CompetitionOverview>::class)]),
-                OpenApiResponse("401")
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
             ]
     )
     override fun get(ctx: Context) {
         ctx.json(
-                competitions.map { CompetitionOverview.of(it) }
+            competitions.map { CompetitionOverview.of(it) }
         )
     }
 
     override val route: String = "competition/list"
-
 }
 
 class GetCompetitionHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), GetRestHandler {
 
     @OpenApi(
-            summary = "gets the definition of a competition",
-            path = "/api/competition/get/:competition",
-            pathParams = [OpenApiParam("competition", String::class, "Competition name")],
+            summary = "Loads the detailed definition of a specific competition.",
+            path = "/api/competition/get/:competitionId",
+            pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Competition::class)]),
-                OpenApiResponse("400"),
-                OpenApiResponse("401"),
-                OpenApiResponse("404")
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
     override fun get(ctx: Context) {
 
-        val params = ctx.pathParamMap()
-
-        if (!params.containsKey("competition")){
-            ctx.status(400).result("missing parameters")
+        val competitionId = ctx.pathParamMap().getOrElse("competitionId") {
+            ctx.status(400).json(ErrorStatus("Parameter 'competitionId' is missing!'"))
             return
-        }
+        }.toLong()
 
-        val competitionName = params["competition"]!!
-
-        val competition = competitions.find { it.name == competitionName }
-
+        val competition = this.competitions[competitionId]
         if (competition == null){
-            ctx.status(404).result("competition not found")
+            ctx.status(404).json(ErrorStatus("Competition with ID $competitionId not found.'"))
             return
         }
 
         ctx.json(competition)
-
     }
 
     override val route: String = "competition/get/:competition"
-
 }
 
-data class CompetitionOverview(val name: String, val description: String, val taskCount: Int, val teamCount: Int) {
-
+data class CompetitionOverview(val id: Long, val name: String, val description: String, val taskCount: Int, val teamCount: Int) {
     companion object {
-        fun of(competition: Competition) : CompetitionOverview = CompetitionOverview(competition.name, competition.description ?: "", competition.tasks.size, competition.teams.size)
+        fun of(competition: Competition) : CompetitionOverview = CompetitionOverview(competition.id, competition.name, competition.description ?: "", competition.tasks.size, competition.teams.size)
     }
 }

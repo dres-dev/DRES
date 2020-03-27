@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import {CompetitionOverview, CompetitionService} from '../../../../openapi';
 
 @Component({
   selector: 'app-competition-list',
@@ -7,8 +8,24 @@ import { Component, OnInit } from '@angular/core';
 })
 export class CompetitionListComponent implements OnInit {
 
-  constructor() { }
+  /** */
+  displayedColumns = ['name', 'description', 'taskCount', 'teamCount', 'actions'];
+  competitions: CompetitionOverview[] = [];
 
-  ngOnInit(): void {}
+  constructor(private competitionService: CompetitionService) {}
+
+  public ngOnInit(): void {
+    this.refresh()
+  }
+
+
+  public refresh() {
+    this.competitionService.getApiCompetitionList().subscribe((results: CompetitionOverview[]) => {
+      this.competitions = results;
+    },
+    () => {
+
+    });
+  }
 
 }

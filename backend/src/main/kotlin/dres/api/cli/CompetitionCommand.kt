@@ -8,12 +8,14 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
 import dres.data.dbo.DAO
+import dres.data.model.admin.PlainPassword
+import dres.data.model.admin.UserName
 import dres.data.model.competition.Competition
 
 class CompetitionCommand(val competitions: DAO<Competition>) : NoOpCliktCommand(name = "competition") {
 
     init {
-        this.subcommands(ListCompetitionCommand(), ShowCompetitionCommand())
+        this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand())
     }
 
     abstract inner class AbstractCompetitionCommand(private val name: String) : CliktCommand(name = name) {
@@ -24,6 +26,23 @@ class CompetitionCommand(val competitions: DAO<Competition>) : NoOpCliktCommand(
                 .validate { require(it > -1) {"Competition not found"} }
 
     }
+
+    inner class CreateCompetitionCommand(): CliktCommand(name = "create") {
+        private val name: String by option("-n", "--name")
+                .required()
+                .validate { require(it.isNotEmpty()) { "Competition name must be non empty." } }
+
+        private val description: String by option("-d", "--description")
+                .required()
+                .validate {require(it.isNotEmpty()) { "Competition description must be non empty." } }
+
+        override fun run() {
+            val newCompetition = Competition(id = -1, name = name, description = description, teams = emptyList(), tasks = emptyList())
+            val id = this@CompetitionCommand.competitions.append(newCompetition)
+            println("New competition '$newCompetition' created with ID=$id.")
+        }
+    }
+
 
     inner class ListCompetitionCommand : CliktCommand(name = "list") {
         override fun run() {

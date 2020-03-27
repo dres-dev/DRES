@@ -22,11 +22,11 @@ export class SessionService {
      * @param pass The password.
      */
     public login(user: string, pass: string) {
-        return this.defaultService.postApiLogin({username: user, password: pass } as LoginRequest, 'response').pipe(
+        return this.defaultService.postApiLogin({username: user, password: pass } as LoginRequest).pipe(
             flatMap(data => this.userService.getApiUserInfo()),
             tap(data => {
                 this.userDetails = data;
-                console.log(`Successfully logged in as '${this.userDetails.username['name']}'.`);
+                console.log(`Successfully logged in as '${this.userDetails.username}'.`);
             })
         );
     }
@@ -37,7 +37,7 @@ export class SessionService {
     public logout() {
         return this.defaultService.getApiLogout().pipe(
             tap(data => {
-                console.log(`User '${this.userDetails.username['name']}' was logged out.`);
+                console.log(`User '${this.userDetails.username}' was logged out.`);
                 this.userDetails = null;
             })
         );

@@ -28,6 +28,9 @@ export class LoginComponent implements OnInit {
     if (this.form.valid) {
       this.sessionService.login(this.form.controls.username.value, this.form.controls.password.value).subscribe(() => {
         this.router.navigateByUrl('/');
+      },
+      (e) => {
+        console.log("Error")
       });
     }
   }

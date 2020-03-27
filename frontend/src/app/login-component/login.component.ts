@@ -2,6 +2,7 @@ import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
 import {SessionService} from '../services/session/session.service';
 import {Router} from '@angular/router';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-login-component',
@@ -18,19 +19,23 @@ export class LoginComponent implements OnInit {
 
   @Output() submitEM = new EventEmitter();
 
-  constructor(private sessionService: SessionService, private router: Router) {
+  constructor(
+      private sessionService: SessionService,
+      private router: Router,
+      private snackBar: MatSnackBar
+  ) {
   }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   public submit() {
     if (this.form.valid) {
-      this.sessionService.login(this.form.controls.username.value, this.form.controls.password.value).subscribe(() => {
+      this.sessionService.login(this.form.controls.username.value, this.form.controls.password.value).subscribe((r) => {
+        this.snackBar.open(`Login successful!`, null, { duration: 5000});
         this.router.navigateByUrl('/');
       },
-      (e) => {
-        console.log("Error")
+      (error) => {
+        this.snackBar.open(`Login failed: ${error.error.description}!`, null, { duration: 5000});
       });
     }
   }

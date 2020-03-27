@@ -10,10 +10,14 @@ export class SessionService {
     /** UserDetails created during login. */
     private userDetails: UserDetails = null
 
-    constructor(
-        @Inject(DefaultService) private defaultService: DefaultService,
-        @Inject(UserService) private userService: UserService
-    ) {}
+    constructor(@Inject(DefaultService) private defaultService: DefaultService, @Inject(UserService) private userService: UserService) {
+        this.userService.getApiUserInfo().subscribe(
+            data => {
+                this.userDetails = data;
+                console.log(`Successfully refreshed session for '${this.userDetails.username}'.`);
+            }
+        );
+    }
 
     /**
      * Tries to login a user with the given username and password.
@@ -54,7 +58,7 @@ export class SessionService {
      * Returns the username of the current user.
      */
     public getUsername(): string {
-        return this.userDetails?.username['name'];
+        return this.userDetails?.username;
     }
 
     /**

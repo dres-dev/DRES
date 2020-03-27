@@ -1,6 +1,8 @@
 package dres.api.rest.handler
 
 import dres.api.rest.AccessManager
+import dres.api.rest.types.status.ErrorStatus
+import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
 import dres.data.model.admin.PlainPassword
 import dres.data.model.admin.User
@@ -16,18 +18,19 @@ class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler {
 
     @OpenApi(summary = "Sets roles for session based on user account and returns a session cookie.", path = "/api/login", method = HttpMethod.POST,
     requestBody = OpenApiRequestBody([OpenApiContent(LoginRequest::class)]),
-    responses = [OpenApiResponse("200"), OpenApiResponse("401")])
+    responses = [
+        OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+        OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+        OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+    ])
     override fun post(ctx: Context) {
 
-        ctx.contentType("text/plain")
-
-        var loginRequest = try {
+        val loginRequest = try {
             ctx.bodyAsClass(LoginRequest::class.java)
         }catch (e: BadRequestResponse){
-            ctx.status(400).result("invalid request parameters")
+            ctx.status(400).json(ErrorStatus("Invalid parameters. This is a programmers error."))
             return
         }
-
 
         val username = UserName(loginRequest.username)
         val password = PlainPassword(loginRequest.password)
@@ -36,9 +39,9 @@ class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler {
 
         if(user != null){
             AccessManager.setUserforSession(ctx.req.session.id, user)
-            ctx.result("Login successful")
+            ctx.json(SuccessStatus("Login of '${user.username}' successful!"))
         } else {
-            ctx.status(401).result("Invalid credentials")
+            ctx.status(401).json(ErrorStatus("Invalid credentials. Please try again!"))
         }
 
     }

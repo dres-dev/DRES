@@ -79,8 +79,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         inner class AddImageCommand : AbstractCollectionCommand(name = "image") {
 
             private val name: String by option("-n", "--name").required()
-            private val path: Path by option("-p", "--path")
-                    .convert { Paths.get(it) }
+            private val path: String by option("-p", "--path")
                     .required()
 
             override fun run() {
@@ -99,8 +98,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         inner class AddVideoCommans : AbstractCollectionCommand(name = "video"){
 
             private val name: String by option("-n", "--name").required()
-            private val path: Path by option("-p", "--path")
-                    .convert { Paths.get(it) }
+            private val path: String by option("-p", "--path")
                     .required()
 
             private val duration: Long by option("-d", "--duration", help = "video duration in seconds").long().required()
@@ -113,7 +111,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                     println(existing)
                     return
                 }
-                this@MediaCollectionCommand.items.append(MediaItem.VideoItem(name = name, location = path, collection = collectionId, duration = Duration.ofSeconds(duration), fps = fps, id = -1))
+                this@MediaCollectionCommand.items.append(MediaItem.VideoItem(name = name, location = path, collection = collectionId, ms = duration, fps = fps, id = -1))
                 println("item added")
             }
 
@@ -129,8 +127,8 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
         private fun toRow(item: MediaItem): List<String?> =
                 when(item){
-                    is MediaItem.ImageItem -> listOf<String?>("image", item.name, item.location.toString(), null, null)
-                    is MediaItem.VideoItem -> listOf<String?>("video", item.name, item.location.toString(), item.duration.toString(), item.fps.toString())
+                    is MediaItem.ImageItem -> listOf<String?>("image", item.name, item.location, null, null)
+                    is MediaItem.VideoItem -> listOf<String?>("video", item.name, item.location, item.duration().toString(), item.fps.toString())
                 }
 
         private val header = listOf<String>("type", "name", "location", "duration", "fps")

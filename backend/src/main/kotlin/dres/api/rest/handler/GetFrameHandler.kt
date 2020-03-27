@@ -5,13 +5,17 @@ import dres.api.rest.util.StaticFileHelper
 import dres.data.dbo.DAO
 import dres.data.model.basics.MediaCollection
 import dres.data.model.basics.MediaItem
-import dres.utilities.extensions.FFmpegUtil
+import dres.utilities.FFmpegUtil
 
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
+import io.javalin.plugin.openapi.annotations.OpenApiContent
+import io.javalin.plugin.openapi.annotations.OpenApiParam
+import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import java.io.File
+import java.nio.file.Path
 
-class GetFrameHandler(val collections: DAO<MediaCollection>, val items: DAO<MediaItem>) : GetRestHandler, AccessManagedRestHandler {
+class GetFrameHandler(private val collections: DAO<MediaCollection>, private val items: DAO<MediaItem>) : GetRestHandler, AccessManagedRestHandler {
 
     companion object {
         private val cacheLocation = File("cache") //TODO make configurable
@@ -22,7 +26,16 @@ class GetFrameHandler(val collections: DAO<MediaCollection>, val items: DAO<Medi
 
     }
 
-    @OpenApi(summary = "returns a image from a collection item", path = "/api/frame/collection/item/:time")
+    @OpenApi(summary = "returns a image from a collection item",
+            path = "/api/frame/:collection/:item/:time",
+            pathParams = [
+                OpenApiParam("collection", String::class, "Collection name"),
+                OpenApiParam("item", String::class, "MediaItem name"),
+                OpenApiParam("time", String::class, "time code")
+            ],
+            tags = ["Media"],
+            responses = [OpenApiResponse("200", [OpenApiContent(type = "image/png")]), OpenApiResponse("401"), OpenApiResponse("400")]
+            )
     override fun get(ctx: Context) {
 
         val params = ctx.pathParamMap()
@@ -47,7 +60,7 @@ class GetFrameHandler(val collections: DAO<MediaCollection>, val items: DAO<Medi
         }
 
         if (item is MediaItem.ImageItem) {
-            StaticFileHelper.serveFile(ctx, item.location.toFile())
+            StaticFileHelper.serveFile(ctx, File(item.location))
         } else if (item is MediaItem.VideoItem){
 
             if (!params.containsKey("time")){
@@ -64,7 +77,7 @@ class GetFrameHandler(val collections: DAO<MediaCollection>, val items: DAO<Medi
 
             if (!imgFile.exists()){
 
-                FFmpegUtil.extractFrame(item.location, time, imgFile.toPath())
+                FFmpegUtil.extractFrame(Path.of(item.location), time, imgFile.toPath())
 
             }
 

@@ -16,23 +16,23 @@ object MediaItemSerializer: Serializer<MediaItem> {
             out.writeInt(VIDEO_MEDIA_ITEM)
             out.packLong(value.id)
             out.writeUTF(value.name)
-            out.writeUTF(value.location.toString())
+            out.writeUTF(value.location)
             out.packLong(value.collection)
-            out.packLong(value.duration.toMillis())
+            out.packLong(value.ms)
             out.writeFloat(value.fps)
         }
         is MediaItem.ImageItem -> {
             out.writeInt(IMAGE_MEDIA_ITEM)
             out.packLong(value.id)
             out.writeUTF(value.name)
-            out.writeUTF(value.location.toString())
+            out.writeUTF(value.location)
             out.packLong(value.collection)
         }
     }
 
     override fun deserialize(input: DataInput2, available: Int): MediaItem = when (input.readInt()) {
-        VIDEO_MEDIA_ITEM -> MediaItem.VideoItem(input.unpackLong(), input.readUTF(), Paths.get(input.readUTF()), input.unpackLong(), Duration.ofMillis(input.unpackLong()), input.readFloat())
-        IMAGE_MEDIA_ITEM -> MediaItem.ImageItem(input.unpackLong(), input.readUTF(), Paths.get(input.readUTF()), input.unpackLong())
+        VIDEO_MEDIA_ITEM -> MediaItem.VideoItem(input.unpackLong(), input.readUTF(), input.readUTF(), input.unpackLong(), input.unpackLong(), input.readFloat())
+        IMAGE_MEDIA_ITEM -> MediaItem.ImageItem(input.unpackLong(), input.readUTF(), input.readUTF(), input.unpackLong())
         else -> throw IllegalStateException("Unsupported MediaItem type detected upon deserialization.")
     }
 }

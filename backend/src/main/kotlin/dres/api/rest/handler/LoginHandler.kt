@@ -19,10 +19,12 @@ class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler {
     responses = [OpenApiResponse("200"), OpenApiResponse("401")])
     override fun post(ctx: Context) {
 
+        ctx.contentType("text/plain")
+
         var loginRequest = try {
             ctx.bodyAsClass(LoginRequest::class.java)
         }catch (e: BadRequestResponse){
-            ctx.status(400).json("invalid request parameters")
+            ctx.status(400).result("invalid request parameters")
             return
         }
 
@@ -34,9 +36,9 @@ class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler {
 
         if(user != null){
             AccessManager.setUserforSession(ctx.req.session.id, user)
-            ctx.json("Login successful")
+            ctx.result("Login successful")
         } else {
-            ctx.status(401).json("Invalid credentials")
+            ctx.status(401).result("Invalid credentials")
         }
 
     }

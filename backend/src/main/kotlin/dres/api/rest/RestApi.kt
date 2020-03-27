@@ -1,10 +1,8 @@
 package dres.api.rest
 
 import dres.api.rest.handler.*
-import dres.data.dbo.DAO
 import dres.data.dbo.DataAccessLayer
 import dres.data.model.Config
-import dres.data.serializers.UserSerializer
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.core.security.SecurityUtil.roles
@@ -13,11 +11,15 @@ import io.javalin.plugin.openapi.OpenApiPlugin
 import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.swagger.v3.oas.models.info.Info
+import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory
+import org.eclipse.jetty.http2.HTTP2Cipher
+import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory
+import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.session.DefaultSessionCache
 import org.eclipse.jetty.server.session.FileSessionDataStore
 import org.eclipse.jetty.server.session.SessionHandler
+import org.eclipse.jetty.util.ssl.SslContextFactory
 import java.io.File
-import java.nio.file.Paths
 
 object RestApi {
 
@@ -27,13 +29,17 @@ object RestApi {
 
 
 
-        val apiRestHandlers = listOf<RestHandler>(GetVersionHandler(), LoginHandler(dataAccessLayer.users), LogoutHandler())
+        val apiRestHandlers = listOf<RestHandler>(GetVersionHandler(), LoginHandler(dataAccessLayer.users),
+                LogoutHandler(), ListUsersHandler(dataAccessLayer.users), CurrentUsersHandler(dataAccessLayer.users),
+                GetFrameHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems))
 
         javalin = Javalin.create {
+            it.server { setupHttpServer(config) }
             it.registerPlugin(getConfiguredOpenApiPlugin())
             it.defaultContentType = "application/json"
             it.sessionHandler(::fileSessionHandler)
             it.accessManager(AccessManager::manage)
+
         }.routes {
 
             path("api") {
@@ -67,10 +73,12 @@ object RestApi {
                 }
 
             }
+
+
         }.before {
             //TODO log request
         }.exception(Exception::class.java)
-        { e, _ -> e.printStackTrace() }.start(config.port)
+        { e, _ -> e.printStackTrace() }.start(config.httpPort)
     }
 
     fun stop() {
@@ -100,5 +108,52 @@ object RestApi {
             }
         }
     }
+
+    private fun setupHttpServer(config: Config): Server {
+
+        val httpConfig = HttpConfiguration().apply {
+            sendServerVersion = false
+            sendXPoweredBy = false
+            secureScheme = "https"
+            securePort = config.httpsPort
+        }
+
+        val httpsConfig = HttpConfiguration(httpConfig).apply {
+            addCustomizer(SecureRequestCustomizer())
+        }
+
+        val alpn = ALPNServerConnectionFactory().apply {
+            defaultProtocol = "h2"
+        }
+
+        val sslContextFactory = SslContextFactory.Server().apply {
+            keyStorePath = config.keystorePath
+            setKeyStorePassword(config.keystorePassword)
+            cipherComparator = HTTP2Cipher.COMPARATOR
+            provider = "Conscrypt"
+        }
+
+        val ssl = SslConnectionFactory(sslContextFactory, alpn.protocol)
+
+        val http2 = HTTP2ServerConnectionFactory(httpsConfig)
+
+        val fallback = HttpConnectionFactory(httpsConfig)
+
+
+        return Server().apply {
+            //HTTP Connector
+            addConnector(ServerConnector(server, HttpConnectionFactory(httpConfig), HTTP2ServerConnectionFactory(httpConfig)).apply {
+                port = config.httpPort
+            })
+            // HTTPS Connector
+            addConnector(ServerConnector(server, ssl, alpn, http2, fallback).apply {
+                port = config.httpsPort
+            })
+        }
+
+
+    }
+
+
 
 }

@@ -2,6 +2,7 @@ package dres.data.model.basics
 
 import dres.data.model.Entity
 import java.nio.file.Path
+import java.time.Duration
 
 /**
  * A media item such as a video or an image
@@ -16,7 +17,10 @@ sealed class MediaItem : Entity {
         const val IMAGE_MEDIA_ITEM = 1
     }
 
-    data class ImageItem(override var id: Long, val name: String, val location: Path): MediaItem()
+    abstract val collection: Long
+    abstract val name: String
 
-    data class VideoItem(override var id: Long, val name: String, val location: Path, val range: TemporalRange): MediaItem()
+    data class ImageItem(override var id: Long, override val name: String, val location: Path, override val collection: Long): MediaItem()
+
+    data class VideoItem(override var id: Long, override val name: String, val location: Path, override val collection: Long, val duration: Duration, val fps: Float): MediaItem()
 }

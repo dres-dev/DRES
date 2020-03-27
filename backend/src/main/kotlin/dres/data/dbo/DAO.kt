@@ -17,6 +17,10 @@ import java.util.concurrent.locks.StampedLock
  */
 class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterable<T>, AutoCloseable {
 
+    init {
+        path.parent.toFile().mkdirs()
+    }
+
     /** The [DB] object used to store */
     private val db = DBMaker.fileDB(path.toFile()).transactionEnable().make()
 

@@ -11,7 +11,6 @@ import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.long
 import dres.data.dbo.DAO
 import dres.data.model.admin.*
-import org.mindrot.jbcrypt.BCrypt
 
 /**
  * A collection of [CliktCommand]s for user management

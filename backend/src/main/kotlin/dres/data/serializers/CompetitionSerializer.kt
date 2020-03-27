@@ -21,7 +21,7 @@ object CompetitionSerializer: Serializer<Competition> {
     }
 
     override fun deserialize(input: DataInput2, available: Int): Competition = Competition(
-            input.readLong(),
+            input.unpackLong(),
             input.readUTF(),
             input.readUTF(),
             (0 until input.readInt()).map { TaskSerializer.deserialize(input, available) },

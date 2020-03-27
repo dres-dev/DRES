@@ -2,6 +2,7 @@ package dres.api.rest.handler
 
 import dres.api.rest.AccessManager
 import dres.api.rest.RestApiRole
+import dres.api.rest.types.status.ErrorStatus
 import dres.data.dbo.DAO
 import dres.data.model.admin.Role
 import dres.data.model.admin.User
@@ -13,10 +14,10 @@ import io.javalin.plugin.openapi.annotations.OpenApiResponse
 
 abstract class UserHandler(protected val users: DAO<User>) : RestHandler {
 
-    data class UserDetails(val username: String, val role: Role) {
+    data class UserDetails(val id: Long, val username: String, val role: Role) {
 
         companion object {
-            fun of(user: User): UserDetails = UserDetails(user.username.name, user.role)
+            fun of(user: User): UserDetails = UserDetails(user.id, user.username.name, user.role)
         }
     }
 }
@@ -24,7 +25,7 @@ abstract class UserHandler(protected val users: DAO<User>) : RestHandler {
 class ListUsersHandler(users: DAO<User>) : UserHandler(users), GetRestHandler, AccessManagedRestHandler {
 
     @OpenApi(
-            summary = "List all users",
+            summary = "Lists all availabe users.",
             path = "/api/user/list",
             tags = ["User"],
             responses = [OpenApiResponse("200", [OpenApiContent(Array<UserDetails>::class)])]
@@ -42,13 +43,21 @@ class ListUsersHandler(users: DAO<User>) : UserHandler(users), GetRestHandler, A
 class CurrentUsersHandler(users: DAO<User>) : UserHandler(users), GetRestHandler, AccessManagedRestHandler {
 
     @OpenApi(
-            summary = "Get current user information",
+            summary = "Get information about the current user.",
             path = "/api/user/info",
             tags = ["User"],
-            responses = [OpenApiResponse("200", [OpenApiContent(UserDetails::class)])]
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
+                OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
+            ]
     )
     override fun get(ctx: Context) {
-        ctx.json(users[AccessManager.getUserIdforSession(ctx.req.session.id)!!]!!)
+        val user = this.users[AccessManager.getUserIdforSession(ctx.req.session.id)!!]
+        if (user != null) {
+            ctx.json(UserDetails.of(user))
+        } else {
+            ctx.status(500).json(ErrorStatus("User could not be found!"))
+        }
     }
 
     override val permittedRoles = setOf(RestApiRole.VIEWER)

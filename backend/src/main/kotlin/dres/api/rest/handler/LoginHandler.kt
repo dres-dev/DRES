@@ -2,6 +2,7 @@ package dres.api.rest.handler
 
 import dres.api.rest.AccessManager
 import dres.api.rest.types.status.ErrorStatus
+import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
 import dres.data.model.admin.PlainPassword
@@ -11,7 +12,7 @@ import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
 
-class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler {
+class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler<SuccessStatus> {
 
 
     data class LoginRequest(var username: String, var password: String)
@@ -23,26 +24,22 @@ class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler {
         OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
         OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
     ])
-    override fun post(ctx: Context) {
+    override fun doPost(ctx: Context) : SuccessStatus{
 
         val loginRequest = try {
             ctx.bodyAsClass(LoginRequest::class.java)
         }catch (e: BadRequestResponse){
-            ctx.status(400).json(ErrorStatus("Invalid parameters. This is a programmers error."))
-            return
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error.")
         }
 
         val username = UserName(loginRequest.username)
         val password = PlainPassword(loginRequest.password)
 
         val user = getMatchingUser(dao, username, password)
+                ?: throw ErrorStatusException(401, "Invalid credentials. Please try again!")
 
-        if(user != null){
-            AccessManager.setUserforSession(ctx.req.session.id, user)
-            ctx.json(SuccessStatus("Login of '${user.username}' successful!"))
-        } else {
-            ctx.status(401).json(ErrorStatus("Invalid credentials. Please try again!"))
-        }
+        AccessManager.setUserforSession(ctx.req.session.id, user)
+        return SuccessStatus("Login of '${user.username}' successful!")
 
     }
 

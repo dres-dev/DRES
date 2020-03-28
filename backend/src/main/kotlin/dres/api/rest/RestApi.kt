@@ -32,7 +32,7 @@ object RestApi {
         val apiRestHandlers = listOf<RestHandler>(GetVersionHandler(), LoginHandler(dataAccessLayer.users),
                 LogoutHandler(), ListUsersHandler(dataAccessLayer.users), CurrentUsersHandler(dataAccessLayer.users),
                 GetFrameHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-                ListCompetitionHandler(dataAccessLayer.competitions), GetCompetitionHandler(dataAccessLayer.competitions))
+                ListCompetitionHandler(dataAccessLayer.competitions), GetCompetitionHandler(dataAccessLayer.competitions), ListTeamHandler(dataAccessLayer.competitions), ListTaskHandler(dataAccessLayer.competitions))
 
         javalin = Javalin.create {
             it.enableCorsForAllOrigins()
@@ -55,19 +55,19 @@ object RestApi {
                             roles(RestApiRole.ANYONE)
                         }
 
-                        if (handler is GetRestHandler){
+                        if (handler is GetRestHandler<*>){
                             get(handler::get, permittedRoles)
                         }
 
-                        if (handler is PostRestHandler){
+                        if (handler is PostRestHandler<*>){
                             post(handler::post, permittedRoles)
                         }
 
-                        if (handler is PatchRestHandler){
+                        if (handler is PatchRestHandler<*>){
                             patch(handler::patch, permittedRoles)
                         }
 
-                        if (handler is DeleteRestHandler){
+                        if (handler is DeleteRestHandler<*>){
                             delete(handler::delete, permittedRoles)
                         }
 

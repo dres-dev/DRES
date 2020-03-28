@@ -15,7 +15,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import java.io.File
 import java.nio.file.Path
 
-class GetFrameHandler(private val collections: DAO<MediaCollection>, private val items: DAO<MediaItem>) : GetRestHandler, AccessManagedRestHandler {
+class GetFrameHandler(private val collections: DAO<MediaCollection>, private val items: DAO<MediaItem>) : GetRestHandler<Any>, AccessManagedRestHandler {
 
     companion object {
         private val cacheLocation = File("cache") //TODO make configurable
@@ -90,6 +90,8 @@ class GetFrameHandler(private val collections: DAO<MediaCollection>, private val
     override val permittedRoles = setOf(RestApiRole.VIEWER)
     override val route: String = "frame/:collection/:item/:time"
 
+    //not used
+    override fun doGet(ctx: Context): Any = ""
 
 
 }

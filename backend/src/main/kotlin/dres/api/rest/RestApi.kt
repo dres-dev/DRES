@@ -25,6 +25,7 @@ object RestApi {
 
     private var javalin: Javalin? = null
 
+
     fun init(config: Config, dataAccessLayer: DataAccessLayer) {
 
 

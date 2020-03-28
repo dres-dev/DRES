@@ -54,7 +54,7 @@ dependencies {
 	compile group: 'org.jline', name: 'jline', version: '3.12.1'
 	
 	////// Javalin
-	compile group: 'io.javalin', name: 'javalin', version: '3.7.0'
+	compile group: 'io.javalin', name: 'javalin', version: '3.8.0'
     compile group: 'io.swagger.core.v3', name: 'swagger-core', version: '2.0.9'
     compile group: 'org.webjars', name: 'swagger-ui', version: '3.24.3'
     compile group: 'org.webjars.npm', name: 'js-tokens', version: '3.0.2'
@@ -79,9 +79,10 @@ dependencies {
     compile group: 'com.github.kokorin.jaffree', name: 'jaffree', version: '0.9.3'
 
     ////// Log4J
-    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.2'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.2'
-    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.1'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.13.1'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.13.1'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-jul', version: '2.13.1'
 
     ///// JUnit 5
     testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.3.2'
@@ -97,5 +98,13 @@ dependencies {
 idea {
     module {
         downloadJavadoc = true
+    }
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDir 'config'
+        }
     }
 }

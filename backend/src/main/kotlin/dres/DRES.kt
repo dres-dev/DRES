@@ -9,8 +9,15 @@ import java.nio.file.Paths
 
 object DRES {
 
+    init {
+        //redirect log of JLine3 from jdk logger to log4j
+        System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager")
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
+
+
 
         val config = if (args.isNotEmpty()) {
             Config.read(File(args[0]))

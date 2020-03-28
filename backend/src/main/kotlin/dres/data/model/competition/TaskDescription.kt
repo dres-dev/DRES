@@ -1,10 +1,12 @@
 package dres.data.model.competition
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import dres.data.model.basics.MediaItem
 import dres.data.model.basics.TemporalRange
-import kotlinx.serialization.*
-import kotlinx.serialization.json.JsonInput
-import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.Polymorphic
+import kotlinx.serialization.Serializable
+
 
 /**
  * General [TaskDescription]
@@ -13,6 +15,11 @@ import kotlinx.serialization.json.JsonObject
  * @version 1.0
  */
 @Serializable
+//@JsonDeserialize(using = TaskDescriptionDeserializer::class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "taskType")
+@JsonSubTypes(JsonSubTypes.Type(value = TaskDescription.KisVisualTaskDescription::class, name = "KIS_VISUAL"),
+        JsonSubTypes.Type(value = TaskDescription.KisTextualTaskDescription::class, name = "KIS_TEXTUAL"),
+        JsonSubTypes.Type(value = TaskDescription.AvsTaskDescription::class, name = "AVS"))
 sealed class TaskDescription(val taskType: TaskType) {
 
 
@@ -80,4 +87,5 @@ sealed class TaskDescription(val taskType: TaskType) {
     @Serializable
     data class AvsTaskDescription(val description: String) : TaskDescription(TaskType.AVS)
 }
+
 

@@ -9,7 +9,7 @@
         </button>
     </div>
     <div>
-        <button mat-icon-button aria-label="Create new competition." matTooltip="Create new competition.">
+        <button mat-icon-button aria-label="Create new competition." matTooltip="Create new competition." (click)="create()">
             <mat-icon>note_add</mat-icon>
         </button>
     </div>
@@ -28,7 +28,7 @@
                 <button mat-icon-button aria-label="Edit competition." matTooltip="Edit competition.">
                     <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button aria-label="Delete competition." matTooltip="Delete competition.">
+                <button mat-icon-button aria-label="Delete competition." matTooltip="Delete competition." (click)="delete(row.id)">
                     <mat-icon>delete</mat-icon>
                 </button>
             </td>

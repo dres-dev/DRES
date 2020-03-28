@@ -3,17 +3,15 @@ package dres.api.rest.handler
 import dres.api.rest.RestApiRole
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
+import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
 import dres.data.model.competition.Competition
 import dres.data.model.competition.Task
 import dres.data.model.competition.Team
 import io.javalin.core.security.Role
+import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
-import java.lang.Exception
+import io.javalin.plugin.openapi.annotations.*
 
 abstract class CompetitionHandler(protected val competitions: DAO<Competition>) : RestHandler, AccessManagedRestHandler {
 
@@ -114,3 +112,58 @@ class ListTaskHandler(competitions: DAO<Competition>) : CompetitionHandler(compe
     override fun doGet(ctx: Context) = competitionFromContext(ctx).tasks
 
 }
+
+class CreateCompetitionHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), PostRestHandler<SuccessStatus> {
+    @OpenApi(
+            summary = "Creates a new competition.",
+            path = "/api/competition", method = HttpMethod.POST,
+            requestBody = OpenApiRequestBody([OpenApiContent(CompetitionOverview::class)]),
+            tags = ["Competition"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doPost(ctx: Context): SuccessStatus {
+        val createRequest = try {
+            ctx.bodyAsClass(CompetitionOverview::class.java)
+        }catch (e: BadRequestResponse){
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+
+        }
+
+        val competition = Competition(-1L, createRequest.name, createRequest.description, emptyList(), emptyList())
+        val competitionId = this.competitions.append(competition)
+        return SuccessStatus("Competition with ID $competitionId was created.")
+    }
+
+    override val route: String = "competition"
+}
+
+
+class DeleteCompetitionHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), DeleteRestHandler<SuccessStatus> {
+    @OpenApi(
+            summary = "Deletes the competition with the given competition ID.",
+            path = "/api/competition/:competitionId", method = HttpMethod.DELETE,
+            pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
+            tags = ["Competition"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doDelete(ctx: Context): SuccessStatus {
+        val competitionToDelete = competitionFromContext(ctx)
+
+        val competition = this.competitions.delete(competitionToDelete.id)
+        return SuccessStatus("Competition with ID ${competitionToDelete.id} was deleted.")
+    }
+
+    override val route: String = "competition/:competitionId"
+}
+
+

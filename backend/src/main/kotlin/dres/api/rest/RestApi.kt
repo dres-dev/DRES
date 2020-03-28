@@ -28,11 +28,16 @@ object RestApi {
     fun init(config: Config, dataAccessLayer: DataAccessLayer) {
 
 
-
-        val apiRestHandlers = listOf<RestHandler>(GetVersionHandler(), LoginHandler(dataAccessLayer.users),
-                LogoutHandler(), ListUsersHandler(dataAccessLayer.users), CurrentUsersHandler(dataAccessLayer.users),
+        val apiRestHandlers = listOf(
+                GetVersionHandler(), LoginHandler(dataAccessLayer.users),
+                LogoutHandler(), ListUsersHandler(dataAccessLayer.users),
+                CurrentUsersHandler(dataAccessLayer.users),
                 GetFrameHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-                ListCompetitionHandler(dataAccessLayer.competitions), GetCompetitionHandler(dataAccessLayer.competitions), ListTeamHandler(dataAccessLayer.competitions), ListTaskHandler(dataAccessLayer.competitions))
+                ListCompetitionHandler(dataAccessLayer.competitions), GetCompetitionHandler(dataAccessLayer.competitions),
+                ListTeamHandler(dataAccessLayer.competitions), ListTaskHandler(dataAccessLayer.competitions), CreateCompetitionHandler(dataAccessLayer.competitions),
+                DeleteCompetitionHandler(dataAccessLayer.competitions)
+
+                )
 
         javalin = Javalin.create {
             it.enableCorsForAllOrigins()
@@ -91,8 +96,9 @@ object RestApi {
     private fun getConfiguredOpenApiPlugin() = OpenApiPlugin(
             OpenApiOptions(
                     Info().apply {
+                        title("DRES API")
                         version("1.0")
-                        description("DRES API")
+                        description("API for DRES (Distributed Retrieval Evaluation Server), Version 1.0")
                     }
             ).apply {
                 path("/swagger-docs") // endpoint for OpenAPI json

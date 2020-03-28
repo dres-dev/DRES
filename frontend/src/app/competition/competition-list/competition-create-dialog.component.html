@@ -1,0 +1,22 @@
+<h1 mat-dialog-title>New competition</h1>
+<div mat-dialog-content>
+    <form [formGroup]="form" (ngSubmit)="create()">
+        <p>
+            <mat-form-field style="width: 100%">
+                <mat-label>Name</mat-label>
+                <input type="text" matInput placeholder="Username" formControlName="name" required/>
+            </mat-form-field>
+        </p>
+
+        <p>
+            <mat-form-field style="width: 100%">
+                <mat-label>Description</mat-label>
+                <textarea type="password" matInput placeholder="Password" formControlName="description" required></textarea>
+            </mat-form-field>
+        </p>
+    </form>
+</div>
+<div mat-dialog-actions>
+    <button mat-button (click)="close()">Cancel</button>
+    <button mat-button (click)="create()">Create</button>
+</div>

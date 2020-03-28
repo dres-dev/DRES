@@ -1,6 +1,6 @@
 /**
- * 
  * DRES API
+ * API for DRES (Distributed Retrieval Evaluation Server), Version 1.0
  *
  * The version of the OpenAPI document: 1.0
  * 

@@ -30,15 +30,31 @@ object RestApi {
 
 
         val apiRestHandlers = listOf(
-                GetVersionHandler(), LoginHandler(dataAccessLayer.users),
-                LogoutHandler(), ListUsersHandler(dataAccessLayer.users),
-                CurrentUsersHandler(dataAccessLayer.users),
-                GetFrameHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-                ListCompetitionHandler(dataAccessLayer.competitions), GetCompetitionHandler(dataAccessLayer.competitions),
-                ListTeamHandler(dataAccessLayer.competitions), ListTaskHandler(dataAccessLayer.competitions), CreateCompetitionHandler(dataAccessLayer.competitions),
-                DeleteCompetitionHandler(dataAccessLayer.competitions)
+                //misc
+                GetVersionHandler(),
 
-                )
+                //user
+                LoginHandler(dataAccessLayer.users),
+                LogoutHandler(),
+                ListUsersHandler(dataAccessLayer.users),
+                CurrentUsersHandler(dataAccessLayer.users),
+
+                //media
+                GetFrameHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+
+                //competition
+                ListCompetitionHandler(dataAccessLayer.competitions),
+                CreateCompetitionHandler(dataAccessLayer.competitions),
+
+                GetCompetitionHandler(dataAccessLayer.competitions),
+                DeleteCompetitionHandler(dataAccessLayer.competitions),
+
+                ListTeamHandler(dataAccessLayer.competitions),
+                AddTeamHandler(dataAccessLayer.competitions),
+
+                ListTaskHandler(dataAccessLayer.competitions),
+                AddTaskHandler(dataAccessLayer.competitions)
+        )
 
         javalin = Javalin.create {
             it.enableCorsForAllOrigins()

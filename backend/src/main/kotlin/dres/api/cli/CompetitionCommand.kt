@@ -37,7 +37,7 @@ class CompetitionCommand(val competitions: DAO<Competition>) : NoOpCliktCommand(
                 .validate {require(it.isNotEmpty()) { "Competition description must be non empty." } }
 
         override fun run() {
-            val newCompetition = Competition(id = -1, name = name, description = description, teams = emptyList(), tasks = emptyList())
+            val newCompetition = Competition(id = -1, name = name, description = description, teams = mutableListOf(), tasks = mutableListOf())
             val id = this@CompetitionCommand.competitions.append(newCompetition)
             println("New competition '$newCompetition' created with ID=$id.")
         }

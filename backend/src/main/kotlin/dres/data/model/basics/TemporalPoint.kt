@@ -1,5 +1,7 @@
 package dres.data.model.basics
 
+import kotlinx.serialization.Serializable
+
 /**
  * Notion of a [TemporalPoint] within a [MediaItem] that exhibits temporal development (e.g. [VideoItem]).
  *
@@ -9,4 +11,5 @@ package dres.data.model.basics
  * @param value Value of the [TemporalPoint]
  * @param value Unit of the [TemporalPoint]
  */
-class TemporalPoint(val value: Double, val unit: TemporalUnit)
+@Serializable
+data class TemporalPoint(val value: Double, val unit: TemporalUnit)

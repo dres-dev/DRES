@@ -1,5 +1,7 @@
 package dres.data.model.basics
 
+import kotlinx.serialization.Serializable
+
 /**
  * Notion of a [TemporalRange] within a [MediaItem] that exhibits temporal development (e.g. [VideoItem].
  *
@@ -9,4 +11,5 @@ package dres.data.model.basics
  * @param start The start of the [TemporalRange]
  * @param end The end of the [TemporalRange]
  */
-class TemporalRange(val start: TemporalPoint, val end: TemporalPoint)
+@Serializable
+data class TemporalRange(val start: TemporalPoint, val end: TemporalPoint)

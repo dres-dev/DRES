@@ -11,6 +11,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiResponse
 class LogoutHandler : RestHandler, GetRestHandler<SuccessStatus> {
 
     @OpenApi(summary = "Clears all user roles of the current session.", path = "/api/logout",
+            tags = ["User"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)])

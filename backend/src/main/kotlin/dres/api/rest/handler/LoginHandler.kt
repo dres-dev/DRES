@@ -17,13 +17,15 @@ class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler<Su
 
     data class LoginRequest(var username: String, var password: String)
 
-    @OpenApi(summary = "Sets roles for session based on user account and returns a session cookie.", path = "/api/login", method = HttpMethod.POST,
-    requestBody = OpenApiRequestBody([OpenApiContent(LoginRequest::class)]),
-    responses = [
-        OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
-        OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-        OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
-    ])
+    @OpenApi(summary = "Sets roles for session based on user account and returns a session cookie.", path = "/api/login",
+            method = HttpMethod.POST,
+            tags = ["User"],
+            requestBody = OpenApiRequestBody([OpenApiContent(LoginRequest::class)]),
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+            ])
     override fun doPost(ctx: Context) : SuccessStatus{
 
         val loginRequest = try {

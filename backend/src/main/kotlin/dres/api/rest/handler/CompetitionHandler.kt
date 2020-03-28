@@ -12,6 +12,7 @@ import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
+import java.lang.IllegalArgumentException
 
 abstract class CompetitionHandler(protected val competitions: DAO<Competition>) : RestHandler, AccessManagedRestHandler {
 
@@ -89,7 +90,6 @@ class ListTeamHandler(competitions: DAO<Competition>) : CompetitionHandler(compe
     )
     override fun doGet(ctx: Context) = competitionFromContext(ctx).teams
 
-
 }
 
 class ListTaskHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), GetRestHandler<List<Task>> {
@@ -134,7 +134,7 @@ class CreateCompetitionHandler(competitions: DAO<Competition>) : CompetitionHand
 
         }
 
-        val competition = Competition(-1L, createRequest.name, createRequest.description, emptyList(), emptyList())
+        val competition = Competition(-1L, createRequest.name, createRequest.description, mutableListOf(), mutableListOf())
         val competitionId = this.competitions.append(competition)
         return SuccessStatus("Competition with ID $competitionId was created.")
     }
@@ -166,4 +166,84 @@ class DeleteCompetitionHandler(competitions: DAO<Competition>) : CompetitionHand
     override val route: String = "competition/:competitionId"
 }
 
+class AddTeamHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), PostRestHandler<SuccessStatus> {
 
+    override val route: String = "competition/:competitionId/team"
+
+    @OpenApi(
+            summary = "Adds a Team to a specific competition.",
+            path = "/api/competition/:competitionId/team",
+            method = HttpMethod.POST,
+            pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
+            requestBody = OpenApiRequestBody([OpenApiContent(Team::class)]),
+            tags = ["Competition"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doPost(ctx: Context): SuccessStatus {
+
+        val createRequest = try {
+            ctx.bodyAsClass(Team::class.java)
+        }catch (e: BadRequestResponse){
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+        }
+
+        val competition = competitionFromContext(ctx)
+
+        try {
+            competition.addTeam(createRequest)
+        }catch (e: IllegalArgumentException) {
+            throw ErrorStatusException(400, e.message!!)
+        }
+
+        competitions.update(competition)
+
+        return SuccessStatus("Team added to competition")
+
+    }
+}
+
+class AddTaskHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), PostRestHandler<SuccessStatus> {
+
+    override val route: String = "competition/:competitionId/task"
+
+    @OpenApi(
+            summary = "Adds a Task to a specific competition.",
+            path = "/api/competition/:competitionId/task",
+            method = HttpMethod.POST,
+            pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
+            requestBody = OpenApiRequestBody([OpenApiContent(Task::class)]),
+            tags = ["Competition"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doPost(ctx: Context): SuccessStatus {
+
+        val createRequest = try {
+            ctx.bodyAsClass(Task::class.java)
+        }catch (e: BadRequestResponse){
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+        }
+
+        val competition = competitionFromContext(ctx)
+
+        try {
+            competition.addTask(createRequest)
+        }catch (e: IllegalArgumentException) {
+            throw ErrorStatusException(400, e.message!!)
+        }
+
+        competitions.update(competition)
+
+        return SuccessStatus("Task added to competition")
+
+    }
+}

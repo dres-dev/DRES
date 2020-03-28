@@ -24,7 +24,7 @@ object CompetitionSerializer: Serializer<Competition> {
             input.unpackLong(),
             input.readUTF(),
             input.readUTF(),
-            (0 until input.readInt()).map { TaskSerializer.deserialize(input, available) },
-            (0 until input.readInt()).map { TeamSerializer.deserialize(input, available) }
+            (0 until input.readInt()).map { TaskSerializer.deserialize(input, available) }.toMutableList(),
+            (0 until input.readInt()).map { TeamSerializer.deserialize(input, available) }.toMutableList()
     )
 }

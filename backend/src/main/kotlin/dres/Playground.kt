@@ -28,7 +28,7 @@ object Playground {
 
         val videoItem = dataAccessLayer.mediaItems[2]!! as MediaItem.VideoItem
 
-        val task = Task(-1, "T-KIS-1", TaskType.KIS_VISUAL, false,
+        val task = Task(-1, "T-KIS-1", TaskType.KIS_VISUAL, "Textual Expert KIS",
                 TaskDescription.KisTextualTaskDescription(
                         videoItem, TemporalRange(
                         TemporalPoint(1.0, TemporalUnit.SECONDS), TemporalPoint(3.0, TemporalUnit.SECONDS)

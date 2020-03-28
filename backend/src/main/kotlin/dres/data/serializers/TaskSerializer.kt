@@ -11,7 +11,7 @@ object TaskSerializer: Serializer<Task> {
         out.packLong(value.id)
         out.writeUTF(value.name)
         out.writeInt(value.type.ordinal)
-        out.writeBoolean(value.novice)
+        out.writeUTF(value.taskGroup)
         TaskDescriptionSerializer.serialize(out, value.description)
     }
 
@@ -19,7 +19,7 @@ object TaskSerializer: Serializer<Task> {
             input.unpackLong(),
             input.readUTF(),
             TaskType.values()[input.readInt()],
-            input.readBoolean(),
+            input.readUTF(),
             TaskDescriptionSerializer.deserialize(input, available)
     )
 }

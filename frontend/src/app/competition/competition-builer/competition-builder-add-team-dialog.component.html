@@ -4,26 +4,29 @@
         <p>
             <mat-form-field style="width: 75%">
                 <mat-label>Name</mat-label>
-                <input type="text" matInput placeholder="Name" formControlName="name" required/>
+                <input type="text" matInput placeholder="Name" formControlName="name"/>
             </mat-form-field>
 
             <mat-form-field style="width: 20%">
                 <mat-label>Number</mat-label>
-                <input type="number" matInput placeholder="Number" formControlName="number" required/>
+                <input type="number" matInput placeholder="Number" formControlName="number"/>
             </mat-form-field>
         </p>
 
         <p>
             <mat-form-field style="width: 100%">
                 <mat-label>Color</mat-label>
-                <input type="color" matInput placeholder="Color" formControlName="color" required/>
+                <input type="color" matInput placeholder="Color" formControlName="color"/>
             </mat-form-field>
         </p>
 
         <p>
             <input hidden type="file" #logoInput formControlName="logo" (change)="processImage($event)"/>
             <button type="button" mat-button (click)="logoInput.click()">Select logo</button>
-            {{logoName}}
+            <span *ngIf="form.get('logo').value" style="max-height: 25px; text-align: center">
+                <img [src]="form.get('logo').value" style="height: 20px;">
+                ({{logoName}})
+            </span>
         </p>
     </form>
 </div>

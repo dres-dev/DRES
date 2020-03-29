@@ -1,6 +1,7 @@
-import {Component, OnInit} from '@angular/core';
-import {FormControl, FormGroup} from '@angular/forms';
-import {MatDialogRef} from '@angular/material/dialog';
+import {Component, Inject, OnInit} from '@angular/core';
+import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import {Competition} from '../../../../openapi';
 
 
 export interface CompetitionBuilderAddTeamDialogResult {
@@ -17,17 +18,18 @@ export interface CompetitionBuilderAddTeamDialogResult {
 })
 export class CompetitionBuilderAddTeamDialogComponent implements OnInit {
 
-    form: FormGroup = new FormGroup({
-        name: new FormControl(''),
-        number: new FormControl(''),
-        color: new FormControl(''),
-        logo: new FormControl('')
-    });
-
+    form: FormGroup;
     logoName = '';
 
-    constructor(public dialogRef: MatDialogRef<CompetitionBuilderAddTeamDialogComponent>) {
-        this.form.get('color').setValue(this.randomColor());
+    constructor(public dialogRef: MatDialogRef<CompetitionBuilderAddTeamDialogComponent>,
+                @Inject(MAT_DIALOG_DATA) public data: Competition) {
+
+        this.form = new FormGroup({
+            name: new FormControl('', Validators.required),
+            number: new FormControl({value: data.teams.length + 1, disabled: true}, Validators.required),
+            color: new FormControl(this.randomColor(), Validators.required),
+            logo: new FormControl('', Validators.required)
+        });
     }
 
     ngOnInit(): void {

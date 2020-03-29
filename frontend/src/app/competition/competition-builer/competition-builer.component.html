@@ -60,7 +60,7 @@
                 <mat-list-option [style.color]="team.color" *ngFor="let team of competition.teams" >
                     <img matListAvatar src="{{team.logo}}">
                     <h3 matLine>
-                        {{team.name}}
+                        {{team.number}}: {{team.name}}
                     </h3>
                 </mat-list-option>
             </mat-selection-list>

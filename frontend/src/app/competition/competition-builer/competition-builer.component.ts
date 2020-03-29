@@ -60,7 +60,7 @@ export class CompetitionBuilerComponent implements OnInit {
   }
 
   public addTeam() {
-    const dialogRef = this.dialog.open(CompetitionBuilderAddTeamDialogComponent, {width: '500px'});
+    const dialogRef = this.dialog.open(CompetitionBuilderAddTeamDialogComponent, {data: this.competition, width: '500px'});
     dialogRef.afterClosed().pipe(
         filter(r => r != null),
     ).subscribe((r) => {

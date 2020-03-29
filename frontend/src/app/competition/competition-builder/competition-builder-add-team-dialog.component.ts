@@ -1,16 +1,7 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {Competition} from '../../../../openapi';
-
-
-export interface CompetitionBuilderAddTeamDialogResult {
-    name: string;
-    number: number;
-    color: string;
-    logo: string;
-}
-
+import {Competition, Team} from '../../../../openapi';
 
 @Component({
     selector: 'app-competition-builder-add-team-dialog',
@@ -42,7 +33,7 @@ export class CompetitionBuilderAddTeamDialogComponent implements OnInit {
                 number: this.form.get('number').value as number,
                 color: this.form.get('color').value as string,
                 logo: this.form.get('logo').value as string
-            } as CompetitionBuilderAddTeamDialogResult);
+            } as Team);
         }
     }
 

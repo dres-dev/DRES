@@ -11,6 +11,10 @@ import {
 } from './competition-builder-add-team-dialog.component';
 import {MatListOption} from '@angular/material/list';
 import TaskTypeEnum = TaskDescription.TaskTypeEnum;
+import {
+  CompetitionBuilderAddTaskDialogComponent,
+  CompetitionBuilderAddTaskDialogData
+} from './competition-builder-add-task-dialog.component';
 
 @Component({
   selector: 'app-competition-builer',
@@ -72,17 +76,17 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     }
   }
 
-  public addTask(type: TaskTypeEnum) {
-    switch (type) {
-      case 'AVS':
-        break;
-      case 'KIS_TEXTUAL':
-        break;
-      case 'KIS_VISUAL':
-        break;
-      default:
-        this.snackBar.open(`Error: Task type ${type} currently not supported`, null, { duration: 5000});
-    }
+  public addTask(taskType: TaskTypeEnum) {
+    const dialogRef = this.dialog.open(
+        CompetitionBuilderAddTaskDialogComponent,
+        {data: {type: taskType, competition: this.competition} as CompetitionBuilderAddTaskDialogData, width: '500px'}
+    );
+    dialogRef.afterClosed().pipe(
+        filter(r => r != null),
+    ).subscribe((r) => {
+      this.competition.tasks.push(r);
+      this.dirty = true;
+    });
   }
 
   public removeTasks(tasks: MatListOption[]) {
@@ -97,7 +101,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().pipe(
         filter(r => r != null),
     ).subscribe((r) => {
-      this.competition.teams.push(r as Team);
+      this.competition.teams.push(r);
       this.dirty = true;
     });
   }

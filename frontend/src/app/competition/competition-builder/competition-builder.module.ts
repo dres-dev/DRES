@@ -13,6 +13,7 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatMenuModule} from '@angular/material/menu';
 import {CompetitionBuilderComponent} from './competition-builder.component';
 import {CompetitionBuilderAddTeamDialogComponent} from './competition-builder-add-team-dialog.component';
+import {CompetitionBuilderAddTaskDialogComponent} from './competition-builder-add-task-dialog.component';
 
 @NgModule({
     imports: [
@@ -31,7 +32,7 @@ import {CompetitionBuilderAddTeamDialogComponent} from './competition-builder-ad
         MatMenuModule
     ],
     exports:      [ CompetitionBuilderComponent ],
-    declarations: [ CompetitionBuilderComponent, CompetitionBuilderAddTeamDialogComponent ],
+    declarations: [ CompetitionBuilderComponent, CompetitionBuilderAddTeamDialogComponent, CompetitionBuilderAddTaskDialogComponent ],
     providers:    [ ]
 })
 export class CompetitionBuilderModule { }

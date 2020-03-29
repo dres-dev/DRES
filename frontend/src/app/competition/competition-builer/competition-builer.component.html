@@ -1,9 +1,91 @@
-<div style="display: flex">
+
+<div style="display: flex" class="header">
     <div>
-        <button mat-icon-button aria-label="Refresh list of competitions." matTooltip="Refresh list of competitions." (click)="back()">
+        <button mat-icon-button aria-label="Go back to overview." matTooltip="Go back to overview." (click)="back()">
             <mat-icon>navigate_before</mat-icon>
         </button>
     </div>
 
     <div><h1>Edit competition {{competitionId}}</h1></div>
+
+    <div class="spacer-flex"></div>
+
+    <div>
+        <button mat-icon-button aria-label="Save changes to competition." matTooltip="Save changes to competition." (click)="save()">
+            <mat-icon>save</mat-icon>
+        </button>
+    </div>
+    <div>
+        <button mat-icon-button aria-label="Refresh competition (changes will be lost)." matTooltip="Refresh competition (changes will be lost)." (click)="refresh()">
+            <mat-icon>refresh</mat-icon>
+        </button>
+    </div>
+</div>
+
+<div *ngIf="competition">
+    <div style="display:flex; flex-wrap: wrap; width: 100%; justify-content: space-between;">
+        <div style="flex-basis: 100%;">
+            <form [formGroup]="form" >
+                <p>
+                    <mat-form-field style="width: 100%">
+                        <mat-label>Name</mat-label>
+                        <input type="text" matInput placeholder="Username" formControlName="name" required/>
+                    </mat-form-field>
+                </p>
+
+                <p>
+                    <mat-form-field style="width: 100%">
+                        <mat-label>Description</mat-label>
+                        <textarea type="password" matInput placeholder="Password" formControlName="description" required></textarea>
+                    </mat-form-field>
+                </p>
+            </form>
+        </div>
+        <div style="flex-basis: 30%;">
+            <div style="display: flex; align-items: center">
+                <h2>Teams</h2>
+
+                <div class="spacer-flex"></div>
+
+                <button mat-icon-button aria-label="Add new team." matTooltip="Add new team." (click)="addTeam()">
+                    <mat-icon>add</mat-icon>
+                </button>
+
+                <button mat-icon-button aria-label="Remove selected teams." matTooltip="Remove selected teams." [disabled]="teams.selectedOptions.selected.length == 0">
+                    <mat-icon>remove</mat-icon>
+                </button>
+            </div>
+
+            <mat-selection-list #teams>
+                <mat-list-option [style.color]="team.color" *ngFor="let team of competition.teams" >
+                    <img matListAvatar src="{{team.logo}}">
+                    <h3 matLine>
+                        {{team.name}}
+                    </h3>
+                </mat-list-option>
+            </mat-selection-list>
+        </div>
+
+        <div style="flex-basis: 65%;">
+            <div style="display: flex; align-items: center">
+                <h2>Tasks</h2>
+
+                <div class="spacer-flex"></div>
+
+                <button mat-icon-button aria-label="Add new task." matTooltip="Add new task." >
+                    <mat-icon>add</mat-icon>
+                </button>
+
+                <button mat-icon-button aria-label="Remove selected tasks." matTooltip="Remove selected tasks." [disabled]="tasks.selectedOptions.selected.length == 0">
+                    <mat-icon>remove</mat-icon>
+                </button>
+            </div>
+
+            <mat-selection-list #tasks>
+            </mat-selection-list>
+        </div>
+    </div>
+</div>
+<div *ngIf="!competition">
+    <mat-spinner></mat-spinner>
 </div>

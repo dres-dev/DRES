@@ -1,13 +1,13 @@
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-import { CompetitionBuilerComponent } from './competition/competition-builer/competition-builer.component';
-import { CompetitionListComponent } from './competition/competition-list/competition-list.component';
+import {NgModule } from '@angular/core';
+import {Routes, RouterModule} from '@angular/router';
+import {CompetitionBuilderComponent} from './competition/competition-builder/competition-builder.component';
+import {CompetitionListComponent} from './competition/competition-list/competition-list.component';
 import {LoginComponent} from './login-component/login.component';
 
 
 const routes: Routes = [
   { path: 'competition/list', component: CompetitionListComponent },
-  { path: 'competition/builder/:competitionId', component: CompetitionBuilerComponent },
+  { path: 'competition/builder/:competitionId', component: CompetitionBuilderComponent },
   { path: 'login', component: LoginComponent }
 ];
 

@@ -76,15 +76,14 @@
                 <div class="spacer-flex"></div>
 
                 <mat-menu #taskMenu="matMenu">
-                    <button mat-menu-item>Settings</button>
-                    <button mat-menu-item>Help</button>
+                    <button *ngFor="let type of taskTypes" mat-menu-item (click)="addTask(type)">{{type}}</button>
                 </mat-menu>
 
                 <button mat-icon-button aria-label="Add new task." matTooltip="Add new task." [matMenuTriggerFor]="taskMenu">
                     <mat-icon>add</mat-icon>
                 </button>
 
-                <button mat-icon-button aria-label="Remove selected tasks." matTooltip="Remove selected tasks." [disabled]="tasks.selectedOptions.selected.length == 0">
+                <button mat-icon-button aria-label="Remove selected tasks." matTooltip="Remove selected tasks." (click)="removeTasks(tasks.selectedOptions.selected)" [disabled]="tasks.selectedOptions.selected.length == 0">
                     <mat-icon>remove</mat-icon>
                 </button>
             </div>

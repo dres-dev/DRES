@@ -1,21 +1,18 @@
 import {NgModule} from '@angular/core';
-import {CompetitionBuilderComponent} from './competition-builder/competition-builder.component';
-import {CompetitionListComponent} from './competition-list/competition-list.component';
 import {MatTableModule} from '@angular/material/table';
 import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {CompetitionCreateDialogComponent} from './competition-list/competition-create-dialog.component';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {CompetitionBuilderAddTeamDialogComponent} from './competition-builder/competition-builder-add-team-dialog.component';
 import {MatListModule} from '@angular/material/list';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatMenuModule} from '@angular/material/menu';
-import {CompetitionBuilderModule} from './competition-builder/competition-builder.module';
+import {CompetitionBuilderComponent} from './competition-builder.component';
+import {CompetitionBuilderAddTeamDialogComponent} from './competition-builder-add-team-dialog.component';
 
 @NgModule({
     imports: [
@@ -31,11 +28,10 @@ import {CompetitionBuilderModule} from './competition-builder/competition-builde
         CommonModule,
         MatListModule,
         MatProgressSpinnerModule,
-        MatMenuModule,
-        CompetitionBuilderModule
+        MatMenuModule
     ],
-    exports:      [ CompetitionListComponent ],
-    declarations: [ CompetitionListComponent, CompetitionCreateDialogComponent ],
+    exports:      [ CompetitionBuilderComponent ],
+    declarations: [ CompetitionBuilderComponent, CompetitionBuilderAddTeamDialogComponent ],
     providers:    [ ]
 })
-export class CompetitionModule { }
+export class CompetitionBuilderModule { }

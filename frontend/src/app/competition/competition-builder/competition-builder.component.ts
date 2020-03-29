@@ -1,24 +1,23 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {filter, first, flatMap, tap} from 'rxjs/operators';
-import {Competition, CompetitionOverview, CompetitionService, Team} from '../../../../openapi';
+import {filter} from 'rxjs/operators';
+import {Competition, CompetitionService, TaskDescription, Team} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
-import {Observable, Subscription} from 'rxjs';
+import { Subscription} from 'rxjs';
 import {MatDialog} from '@angular/material/dialog';
-import {CompetitionCreateDialogComponent, CompetitionCreateDialogResult} from '../competition-list/competition-create-dialog.component';
 import {
   CompetitionBuilderAddTeamDialogComponent,
-  CompetitionBuilderAddTeamDialogResult
 } from './competition-builder-add-team-dialog.component';
 import {MatListOption} from '@angular/material/list';
+import TaskTypeEnum = TaskDescription.TaskTypeEnum;
 
 @Component({
   selector: 'app-competition-builer',
-  templateUrl: './competition-builer.component.html',
-  styleUrls: ['./competition-builer.component.scss']
+  templateUrl: './competition-builder.component.html',
+  styleUrls: ['./competition-builder.component.scss']
 })
-export class CompetitionBuilerComponent implements OnInit, OnDestroy {
+export class CompetitionBuilderComponent implements OnInit, OnDestroy {
 
   competitionId: number;
   competition: Competition;
@@ -26,6 +25,7 @@ export class CompetitionBuilerComponent implements OnInit, OnDestroy {
   dirty = false;
   routeSubscription: Subscription;
   changeSubscription: Subscription;
+  taskTypes = [TaskTypeEnum.AVS, TaskTypeEnum.KISTEXTUAL, TaskTypeEnum.KISVISUAL]
 
   constructor(private competitionService: CompetitionService,
               private route: ActivatedRoute,
@@ -70,6 +70,26 @@ export class CompetitionBuilerComponent implements OnInit, OnDestroy {
           }
       );
     }
+  }
+
+  public addTask(type: TaskTypeEnum) {
+    switch (type) {
+      case 'AVS':
+        break;
+      case 'KIS_TEXTUAL':
+        break;
+      case 'KIS_VISUAL':
+        break;
+      default:
+        this.snackBar.open(`Error: Task type ${type} currently not supported`, null, { duration: 5000});
+    }
+  }
+
+  public removeTasks(tasks: MatListOption[]) {
+    for (const task of tasks) {
+      this.competition.tasks.splice(this.competition.tasks.indexOf(task.value));
+    }
+    this.dirty = true;
   }
 
   public addTeam() {

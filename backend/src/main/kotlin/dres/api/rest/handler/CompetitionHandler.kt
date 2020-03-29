@@ -142,6 +142,43 @@ class CreateCompetitionHandler(competitions: DAO<Competition>) : CompetitionHand
     override val route: String = "competition"
 }
 
+class UpdateCompetition(competitions: DAO<Competition>) : CompetitionHandler(competitions), PatchRestHandler<SuccessStatus> {
+    @OpenApi(
+            summary = "Updates an existing competition.",
+            path = "/api/competition", method = HttpMethod.PATCH,
+            requestBody = OpenApiRequestBody([OpenApiContent(CompetitionOverview::class)]),
+            tags = ["Competition"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doPatch(ctx: Context): SuccessStatus {
+        val competition = try {
+            ctx.bodyAsClass(Competition::class.java)
+        } catch (e: BadRequestResponse) {
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+        }
+
+        if (!this.competitions.exists(competition.id)) {
+            throw ErrorStatusException(404, "Competition with ID ${competition.id} does not exist.")
+        }
+
+        try {
+            competition.validate()
+        }catch (e: IllegalArgumentException) {
+            throw ErrorStatusException(400, e.message!!)
+        }
+
+        this.competitions.update(competition)
+        return SuccessStatus("Competition with ID ${competition.id} was updated.")
+    }
+
+    override val route: String = "competition"
+}
+
 
 class DeleteCompetitionHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), DeleteRestHandler<SuccessStatus> {
     @OpenApi(

@@ -1,6 +1,7 @@
 package dres.api.rest
 
 import dres.api.rest.handler.*
+import dres.api.rest.types.status.ErrorStatus
 import dres.data.dbo.DataAccessLayer
 import dres.data.model.Config
 import io.javalin.Javalin
@@ -101,8 +102,11 @@ object RestApi {
 
         }.before {
             //TODO log request
-        }.exception(Exception::class.java)
-        { e, _ -> e.printStackTrace() }.start(config.httpPort)
+        }
+        .error(401) {
+            it.json(ErrorStatus("Unauthorized request!"))
+        }
+        .exception(Exception::class.java) { e, _ -> e.printStackTrace() }.start(config.httpPort)
     }
 
     fun stop() {

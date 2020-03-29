@@ -22,9 +22,9 @@ export class CompetitionListComponent implements AfterViewInit {
   public create() {
     const dialogRef = this.dialog.open(CompetitionCreateDialogComponent, {width: '500px'});
     dialogRef.afterClosed().pipe(
-        filter(r => r == null),
+        filter(r => r != null),
         flatMap((r: CompetitionCreateDialogResult) => {
-          return this.competitionService.postApiCompetitionCreate({name: r.name, description: r.description} as CompetitionOverview);
+          return this.competitionService.postApiCompetition({name: r.name, description: r.description} as CompetitionOverview);
         })
     ).subscribe((r) => {
         this.refresh();
@@ -35,7 +35,7 @@ export class CompetitionListComponent implements AfterViewInit {
   }
 
   public delete(competitionId: number) {
-    this.competitionService.deleteApiCompetitionDeleteWithCompetitionid(competitionId).subscribe(
+    this.competitionService.deleteApiCompetitionWithCompetitionid(competitionId).subscribe(
         (r) => {
           this.refresh();
           this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
@@ -47,7 +47,7 @@ export class CompetitionListComponent implements AfterViewInit {
   }
 
   public refresh() {
-    this.competitionService.getApiCompetitionList().subscribe((results: CompetitionOverview[]) => {
+    this.competitionService.getApiCompetition().subscribe((results: CompetitionOverview[]) => {
       this.competitions = results;
     },
     () => {

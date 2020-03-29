@@ -18,5 +18,6 @@ export interface VideoItem {
     collection: number;
     ms: number;
     fps: number;
+    itemType: string;
 }
 

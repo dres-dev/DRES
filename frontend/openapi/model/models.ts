@@ -10,6 +10,7 @@ export * from './kisVisualTaskDescriptionAllOf';
 export * from './loginRequest';
 export * from './successStatus';
 export * from './task';
+export * from './taskDescription';
 export * from './team';
 export * from './temporalPoint';
 export * from './temporalRange';

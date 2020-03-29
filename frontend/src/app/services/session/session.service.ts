@@ -10,7 +10,7 @@ export class SessionService {
     /** UserDetails created during login. */
     private userDetails: UserDetails = null
 
-    constructor(@Inject(DefaultService) private defaultService: DefaultService, @Inject(UserService) private userService: UserService) {
+    constructor(@Inject(UserService) private userService: UserService) {
         this.userService.getApiUserInfo().subscribe(
             data => {
                 this.userDetails = data;
@@ -26,7 +26,7 @@ export class SessionService {
      * @param pass The password.
      */
     public login(user: string, pass: string) {
-        return this.defaultService.postApiLogin({username: user, password: pass } as LoginRequest).pipe(
+        return this.userService.postApiLogin({username: user, password: pass } as LoginRequest).pipe(
             flatMap(data => this.userService.getApiUserInfo()),
             tap(data => {
                 this.userDetails = data;
@@ -39,7 +39,7 @@ export class SessionService {
      * Tries to logout the current user.
      */
     public logout() {
-        return this.defaultService.getApiLogout().pipe(
+        return this.userService.getApiLogout().pipe(
             tap(data => {
                 console.log(`User '${this.userDetails.username}' was logged out.`);
                 this.userDetails = null;

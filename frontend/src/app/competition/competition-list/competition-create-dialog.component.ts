@@ -26,6 +26,6 @@ export class CompetitionCreateDialogComponent {
     }
 
     public close(): void {
-        this.dialogRef.close({ });
+        this.dialogRef.close(null);
     }
 }

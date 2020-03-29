@@ -14,6 +14,7 @@ import {CommonModule} from '@angular/common';
 import {CompetitionBuilderAddTeamDialogComponent} from './competition-builer/competition-builder-add-team-dialog.component';
 import {MatListModule} from '@angular/material/list';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {MatMenuModule} from '@angular/material/menu';
 
 @NgModule({
     imports: [
@@ -28,7 +29,8 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
         ReactiveFormsModule,
         CommonModule,
         MatListModule,
-        MatProgressSpinnerModule
+        MatProgressSpinnerModule,
+        MatMenuModule
     ],
     exports:      [ CompetitionBuilerComponent, CompetitionListComponent ],
     declarations: [ CompetitionBuilerComponent, CompetitionListComponent, CompetitionCreateDialogComponent, CompetitionBuilderAddTeamDialogComponent ],

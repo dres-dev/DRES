@@ -6,7 +6,10 @@
         </button>
     </div>
 
-    <div><h1>Edit competition {{competitionId}}</h1></div>
+    <div>
+        <h1 *ngIf="!dirty">Edit competition {{competitionId}}</h1>
+        <h1 *ngIf="dirty">Edit competition {{competitionId}} (unsaved changes)</h1>
+    </div>
 
     <div class="spacer-flex"></div>
 
@@ -51,13 +54,13 @@
                     <mat-icon>add</mat-icon>
                 </button>
 
-                <button mat-icon-button aria-label="Remove selected teams." matTooltip="Remove selected teams." [disabled]="teams.selectedOptions.selected.length == 0">
+                <button mat-icon-button aria-label="Remove selected teams." matTooltip="Remove selected teams." [disabled]="teams.selectedOptions.selected.length == 0" (click)="removeTeams(teams.selectedOptions.selected)">
                     <mat-icon>remove</mat-icon>
                 </button>
             </div>
 
             <mat-selection-list #teams>
-                <mat-list-option [style.color]="team.color" *ngFor="let team of competition.teams" >
+                <mat-list-option [style.color]="team.color" *ngFor="let team of competition.teams" [value]="team">
                     <img matListAvatar src="{{team.logo}}">
                     <h3 matLine>
                         {{team.number}}: {{team.name}}
@@ -72,7 +75,12 @@
 
                 <div class="spacer-flex"></div>
 
-                <button mat-icon-button aria-label="Add new task." matTooltip="Add new task." >
+                <mat-menu #taskMenu="matMenu">
+                    <button mat-menu-item>Settings</button>
+                    <button mat-menu-item>Help</button>
+                </mat-menu>
+
+                <button mat-icon-button aria-label="Add new task." matTooltip="Add new task." [matMenuTriggerFor]="taskMenu">
                     <mat-icon>add</mat-icon>
                 </button>
 

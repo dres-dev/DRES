@@ -328,15 +328,15 @@ class DeleteTaskHandler(competitions: DAO<Competition>) : CompetitionHandler(com
 
 class DeleteTeamHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), DeleteRestHandler<SuccessStatus> {
 
-    override val route: String = "competition/:competitionId/team/:teamId"
+    override val route: String = "competition/:competitionId/team/:teamNumber"
 
     @OpenApi(
             summary = "Deletes a specific Team from a specific competition.",
-            path = "/api/competition/:competitionId/team/:teamId",
+            path = "/api/competition/:competitionId/team/:teamNumber",
             method = HttpMethod.DELETE,
             pathParams = [
                 OpenApiParam("competitionId", Long::class, "Competition ID"),
-                OpenApiParam("teamId", Long::class, "Team ID")
+                OpenApiParam("teamNumber", Long::class, "Team Number")
             ],
             tags = ["Competition"],
             responses = [
@@ -350,12 +350,12 @@ class DeleteTeamHandler(competitions: DAO<Competition>) : CompetitionHandler(com
 
         val competition = competitionFromContext(ctx)
 
-        val teamId = ctx.pathParamMap().getOrElse("teamId") {
+        val teamNumber = ctx.pathParamMap().getOrElse("teamNumber") {
             throw ErrorStatusException(404, "Parameter 'teamId' is missing!'")
-        }.toLong()
+        }.toInt()
 
-        val team = competition.teams.find { it.id == teamId } ?:
-        throw ErrorStatusException(404, "No team with id '$teamId' in competition")
+        val team = competition.teams.find { it.number == teamNumber } ?:
+        throw ErrorStatusException(404, "No team with number '$teamNumber' in competition")
 
         competition.teams.remove(team)
 

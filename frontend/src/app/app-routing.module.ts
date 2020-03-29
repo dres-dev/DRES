@@ -7,7 +7,7 @@ import {LoginComponent} from './login-component/login.component';
 
 const routes: Routes = [
   { path: 'competition/list', component: CompetitionListComponent },
-  { path: 'competition/builder', component: CompetitionBuilerComponent },
+  { path: 'competition/builder/:competitionId', component: CompetitionBuilerComponent },
   { path: 'login', component: LoginComponent }
 ];
 

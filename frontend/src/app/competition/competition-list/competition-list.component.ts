@@ -4,6 +4,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {CompetitionCreateDialogComponent, CompetitionCreateDialogResult} from './competition-create-dialog.component';
 import {filter, flatMap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-competition-list',
@@ -16,7 +17,10 @@ export class CompetitionListComponent implements AfterViewInit {
   displayedColumns = ['actions', 'id', 'name', 'description', 'taskCount', 'teamCount'];
   competitions: CompetitionOverview[] = [];
 
-  constructor(private competitionService: CompetitionService, private dialog: MatDialog, private snackBar: MatSnackBar) {}
+  constructor(private competitionService: CompetitionService,
+              private routerService: Router,
+              private dialog: MatDialog,
+              private snackBar: MatSnackBar) {}
 
 
   public create() {
@@ -32,6 +36,10 @@ export class CompetitionListComponent implements AfterViewInit {
     }, (r) => {
        this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
     });
+  }
+
+  public edit(competitionId: number) {
+    this.routerService.navigate(['/competition/builder', competitionId]);
   }
 
   public delete(competitionId: number) {

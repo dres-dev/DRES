@@ -247,3 +247,85 @@ class AddTaskHandler(competitions: DAO<Competition>) : CompetitionHandler(compet
 
     }
 }
+
+class DeleteTaskHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), DeleteRestHandler<SuccessStatus> {
+
+    override val route: String = "competition/:competitionId/task/:taskId"
+
+    @OpenApi(
+            summary = "Deletes a specific Task from a specific competition.",
+            path = "/api/competition/:competitionId/task/:taskId",
+            method = HttpMethod.DELETE,
+            pathParams = [
+                OpenApiParam("competitionId", Long::class, "Competition ID"),
+                OpenApiParam("taskId", Long::class, "Task ID")
+            ],
+            tags = ["Competition"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doDelete(ctx: Context): SuccessStatus {
+
+        val competition = competitionFromContext(ctx)
+
+        val taskId = ctx.pathParamMap().getOrElse("taskId") {
+            throw ErrorStatusException(404, "Parameter 'taskId' is missing!'")
+        }.toLong()
+
+        val task = competition.tasks.find { it.id == taskId } ?:
+                throw ErrorStatusException(404, "No task with id '$taskId' in competition")
+
+        competition.tasks.remove(task)
+
+        competitions.update(competition)
+
+        return SuccessStatus("Task '$taskId' deleted from competition")
+
+    }
+
+}
+
+class DeleteTeamHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), DeleteRestHandler<SuccessStatus> {
+
+    override val route: String = "competition/:competitionId/team/:teamId"
+
+    @OpenApi(
+            summary = "Deletes a specific Team from a specific competition.",
+            path = "/api/competition/:competitionId/team/:teamId",
+            method = HttpMethod.DELETE,
+            pathParams = [
+                OpenApiParam("competitionId", Long::class, "Competition ID"),
+                OpenApiParam("teamId", Long::class, "Team ID")
+            ],
+            tags = ["Competition"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doDelete(ctx: Context): SuccessStatus {
+
+        val competition = competitionFromContext(ctx)
+
+        val teamId = ctx.pathParamMap().getOrElse("teamId") {
+            throw ErrorStatusException(404, "Parameter 'teamId' is missing!'")
+        }.toLong()
+
+        val team = competition.teams.find { it.id == teamId } ?:
+        throw ErrorStatusException(404, "No team with id '$teamId' in competition")
+
+        competition.teams.remove(team)
+
+        competitions.update(competition)
+
+        return SuccessStatus("Team '$team' deleted from competition")
+
+    }
+
+}

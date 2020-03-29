@@ -24,10 +24,10 @@ sealed class MediaItem(val itemType: String) : Entity {
     @Serializer(forClass = MediaItem::class)
     companion object : KSerializer<MediaItem> {
 
-        override fun serialize(encoder: Encoder, obj: MediaItem) {
-            when(obj) {
-                is ImageItem -> encoder.encode(ImageItem.serializer(), obj)
-                is VideoItem -> encoder.encode(VideoItem.serializer(), obj)
+        override fun serialize(encoder: Encoder, value: MediaItem) {
+            when(value) {
+                is ImageItem -> encoder.encode(ImageItem.serializer(), value)
+                is VideoItem -> encoder.encode(VideoItem.serializer(), value)
             }
         }
 
@@ -59,18 +59,19 @@ sealed class MediaItem(val itemType: String) : Entity {
 
     abstract val collection: Long
     abstract val name: String
+    abstract val location: String
 
     abstract fun withCollection(collection: Long): MediaItem
 
     @Serializable
-    data class ImageItem(override var id: Long, override val name: String, val location: String, override val collection: Long): MediaItem("image") {
+    data class ImageItem(override var id: Long, override val name: String, override val location: String, override val collection: Long): MediaItem("image") {
 
         override fun withCollection(collection: Long): ImageItem = ImageItem(id, name, location, collection)
 
     }
 
     @Serializable
-    data class VideoItem(override var id: Long, override val name: String, val location: String, override val collection: Long, val ms: Long, val fps: Float): MediaItem("video") {
+    data class VideoItem(override var id: Long, override val name: String, override val location: String, override val collection: Long, val ms: Long, val fps: Float): MediaItem("video") {
 
         override fun withCollection(collection: Long): VideoItem = VideoItem(id, name, location, collection, ms, fps)
 

@@ -12,7 +12,6 @@ import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
-import java.lang.IllegalArgumentException
 
 abstract class CompetitionHandler(protected val competitions: DAO<Competition>) : RestHandler, AccessManagedRestHandler {
 
@@ -131,7 +130,6 @@ class CreateCompetitionHandler(competitions: DAO<Competition>) : CompetitionHand
             ctx.bodyAsClass(CompetitionOverview::class.java)
         }catch (e: BadRequestResponse){
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
-
         }
 
         val competition = Competition(-1L, createRequest.name, createRequest.description, mutableListOf(), mutableListOf())

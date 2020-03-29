@@ -46,6 +46,7 @@ object RestApi {
                 //collection
                 ListCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 ShowCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+                AddMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
 
                 //competition
                 ListCompetitionHandler(dataAccessLayer.competitions),

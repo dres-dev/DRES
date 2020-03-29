@@ -2,8 +2,7 @@ package dres
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import dres.data.model.competition.Task
-import dres.data.model.competition.TaskDescription
+import dres.data.model.basics.MediaItem
 
 
 object Playground {
@@ -32,73 +31,19 @@ object Playground {
 //
 //        dataAccessLayer.competitions.append(competition)
 
-        val inputString = """
-               {
-    "id": -1,
-    "name": "T-KIS-1",
-    "type": "KIS_VISUAL",
-    "taskGroup": "Textual Expert KIS",
-    "description": {
-      "item": {
-        "id": 2,
-        "name": "testVideo",
-        "location": "v3c1\\testVideo.mp4",
-        "collection": 1,
-        "ms": 10000000,
-        "fps": 24.0,
-        "itemType": "video"
-      },
-      "temporalRange": {
-        "start": {
-          "value": 1.0,
-          "unit": "SECONDS"
-        },
-        "end": {
-          "value": 3.0,
-          "unit": "SECONDS"
-        }
-      },
-      "descriptions": [
-        "a segment",
-        "a segment with a description"
-      ],
-      "delay": 30,
-      "taskType": "KIS_TEXTUAL"
-    }
+        val inputString = """  {
+    "id": 2,
+    "name": "testVideo",
+    "location": "v3c1\\testVideo.mp4",
+    "collection": 1,
+    "ms": 10000000,
+    "fps": 24.0,
+    "itemType": "video"
   }"""
-
-
-        val descriptionString = """{
-      "item": {
-        "id": 2,
-        "name": "testVideo",
-        "location": "v3c1\\testVideo.mp4",
-        "collection": 1,
-        "ms": 10000000,
-        "fps": 24.0,
-        "itemType": "video"
-      },
-      "temporalRange": {
-        "start": {
-          "value": 1.0,
-          "unit": "SECONDS"
-        },
-        "end": {
-          "value": 3.0,
-          "unit": "SECONDS"
-        }
-      },
-      "descriptions": [
-        "a segment",
-        "a segment with a description"
-      ],
-      "delay": 30,
-      "taskType": "KIS_TEXTUAL"
-    }"""
 
         val mapper = ObjectMapper().registerModule(KotlinModule())
 
-        val task = mapper.readValue(inputString, Task::class.java)
+        val task = mapper.readValue(inputString, MediaItem::class.java)
 
         println(task)
 

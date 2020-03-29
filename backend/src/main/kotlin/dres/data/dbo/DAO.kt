@@ -74,9 +74,7 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      * @param value The value that should be deleted.
      * @return Deleted entry [T]
      */
-    fun delete(value: T) = this.lock.write {
-        this.delete(value.id)
-    }
+    fun delete(value: T) = this.delete(value.id)
 
     /**
      * Updates the value for the given ID with the new value [T]

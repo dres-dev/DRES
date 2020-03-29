@@ -34,7 +34,7 @@ export class CompetitionListComponent implements AfterViewInit {
         this.refresh();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
     }, (r) => {
-       this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+        this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
     });
   }
 
@@ -58,8 +58,9 @@ export class CompetitionListComponent implements AfterViewInit {
     this.competitionService.getApiCompetition().subscribe((results: CompetitionOverview[]) => {
       this.competitions = results;
     },
-    () => {
-
+    (r) => {
+        this.competitions = [];
+        this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
     });
   }
 

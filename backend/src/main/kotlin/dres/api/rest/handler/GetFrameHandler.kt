@@ -5,6 +5,7 @@ import dres.api.rest.util.StaticFileHelper
 import dres.data.dbo.DAO
 import dres.data.model.basics.MediaCollection
 import dres.data.model.basics.MediaItem
+import dres.utilities.FFmpegUtil
 //import dres.utilities.FFmpegUtil
 
 import io.javalin.http.Context
@@ -76,9 +77,7 @@ class GetFrameHandler(private val collections: DAO<MediaCollection>, private val
             val imgFile = File(cacheDir, "${time}.png")
 
             if (!imgFile.exists()){
-
-                //FFmpegUtil.extractFrame(Path.of(item.location), time, imgFile.toPath())
-
+                FFmpegUtil.extractFrame(Path.of(item.location), time, imgFile.toPath())
             }
 
             StaticFileHelper.serveFile(ctx, imgFile)

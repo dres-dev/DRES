@@ -19,4 +19,21 @@ object FFmpegUtil {
             .execute()
     }
 
+    fun extractSegment(video: Path, startTimecode: String, endTimecode: String, outputVideo: Path) {
+        FFmpeg.atPath(ffmpegBin)
+                .addInput(UrlInput.fromPath(video))
+                .addOutput(UrlOutput.toPath(outputVideo))
+                .setOverwriteOutput(true)
+                .addArguments("-ss", startTimecode)
+                .addArguments("-to", endTimecode)
+                .addArguments("-c:v", "libx264")
+                .addArguments("-c:a", "aac")
+                .addArguments("-b:v", "2000k")
+                .addArguments("-tune", "zerolatency")
+                .addArguments("-preset", "slow")
+                .execute()
+    }
+
+
+
 }

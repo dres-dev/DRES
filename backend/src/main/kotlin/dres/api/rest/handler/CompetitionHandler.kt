@@ -140,7 +140,7 @@ class CreateCompetitionHandler(competitions: DAO<Competition>) : CompetitionHand
     override val route: String = "competition"
 }
 
-class UpdateCompetition(competitions: DAO<Competition>) : CompetitionHandler(competitions), PatchRestHandler<SuccessStatus> {
+class UpdateCompetitionHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), PatchRestHandler<SuccessStatus> {
     @OpenApi(
             summary = "Updates an existing competition.",
             path = "/api/competition", method = HttpMethod.PATCH,

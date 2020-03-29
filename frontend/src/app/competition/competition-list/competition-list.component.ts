@@ -4,6 +4,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {CompetitionCreateDialogComponent, CompetitionCreateDialogResult} from './competition-create-dialog.component';
 import {filter, flatMap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-competition-list',
@@ -16,26 +17,33 @@ export class CompetitionListComponent implements AfterViewInit {
   displayedColumns = ['actions', 'id', 'name', 'description', 'taskCount', 'teamCount'];
   competitions: CompetitionOverview[] = [];
 
-  constructor(private competitionService: CompetitionService, private dialog: MatDialog, private snackBar: MatSnackBar) {}
+  constructor(private competitionService: CompetitionService,
+              private routerService: Router,
+              private dialog: MatDialog,
+              private snackBar: MatSnackBar) {}
 
 
   public create() {
     const dialogRef = this.dialog.open(CompetitionCreateDialogComponent, {width: '500px'});
     dialogRef.afterClosed().pipe(
-        filter(r => r == null),
+        filter(r => r != null),
         flatMap((r: CompetitionCreateDialogResult) => {
-          return this.competitionService.postApiCompetitionCreate({name: r.name, description: r.description} as CompetitionOverview);
+          return this.competitionService.postApiCompetition({name: r.name, description: r.description} as CompetitionOverview);
         })
     ).subscribe((r) => {
         this.refresh();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
     }, (r) => {
-       this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+        this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
     });
   }
 
+  public edit(competitionId: number) {
+    this.routerService.navigate(['/competition/builder', competitionId]);
+  }
+
   public delete(competitionId: number) {
-    this.competitionService.deleteApiCompetitionDeleteWithCompetitionid(competitionId).subscribe(
+    this.competitionService.deleteApiCompetitionWithCompetitionid(competitionId).subscribe(
         (r) => {
           this.refresh();
           this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
@@ -47,11 +55,12 @@ export class CompetitionListComponent implements AfterViewInit {
   }
 
   public refresh() {
-    this.competitionService.getApiCompetitionList().subscribe((results: CompetitionOverview[]) => {
+    this.competitionService.getApiCompetition().subscribe((results: CompetitionOverview[]) => {
       this.competitions = results;
     },
-    () => {
-
+    (r) => {
+        this.competitions = [];
+        this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
     });
   }
 

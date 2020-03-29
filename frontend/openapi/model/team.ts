@@ -12,10 +12,9 @@
 
 
 export interface Team { 
-    id: number;
-    name: string;
     number: number;
+    name: string;
     color: string;
-    logoLocation: string;
+    logo: string;
 }
 

@@ -9,8 +9,14 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { TaskDescription } from './taskDescription';
+import { AvsTaskDescriptionAllOf } from './avsTaskDescriptionAllOf';
 
-export interface AvsTaskDescription { 
+
+export interface AvsTaskDescription extends TaskDescription { 
     description: string;
 }
+export namespace AvsTaskDescription {
+}
+
 

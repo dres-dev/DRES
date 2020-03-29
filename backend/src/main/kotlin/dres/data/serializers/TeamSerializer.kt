@@ -9,18 +9,16 @@ import java.nio.file.Paths
 
 object TeamSerializer : Serializer<Team> {
     override fun serialize(out: DataOutput2, value: Team) {
-        out.packLong(value.id)
-        out.writeUTF(value.name)
         out.writeInt(value.number)
+        out.writeUTF(value.name)
         out.writeUTF(value.color)
-        out.writeUTF(value.logoLocation)
+        out.writeUTF(value.logo)
     }
 
     override fun deserialize(input: DataInput2, available: Int): Team = Team(
-            input.unpackLong(),
-            input.readUTF(),
-            input.readInt(),
-            input.readUTF(),
-            input.readUTF()
+        input.readInt(),
+        input.readUTF(),
+        input.readUTF(),
+        input.readUTF()
     )
 }

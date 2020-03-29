@@ -9,14 +9,15 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { TaskDescription } from './taskDescription';
 
 
 export interface Task { 
     id: number;
     name: string;
     type: Task.TypeEnum;
-    novice: boolean;
-    description: object;
+    taskGroup: string;
+    description: TaskDescription;
 }
 export namespace Task {
     export type TypeEnum = 'KIS_VISUAL' | 'KIS_TEXTUAL' | 'AVS';

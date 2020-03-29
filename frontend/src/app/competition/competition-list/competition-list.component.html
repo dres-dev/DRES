@@ -25,7 +25,7 @@
                 <button mat-icon-button aria-label="Start new run for competition." matTooltip="Start new run for competition.">
                     <mat-icon>access_time</mat-icon>
                 </button>
-                <button mat-icon-button aria-label="Edit competition." matTooltip="Edit competition.">
+                <button mat-icon-button aria-label="Edit competition." matTooltip="Edit competition." (click)="edit(row.id)">
                     <mat-icon>edit</mat-icon>
                 </button>
                 <button mat-icon-button aria-label="Delete competition." matTooltip="Delete competition." (click)="delete(row.id)">

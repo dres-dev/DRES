@@ -4,8 +4,8 @@ import {FormControl, FormGroup} from '@angular/forms';
 
 
 export interface CompetitionCreateDialogResult {
-    name: string
-    description: string
+    name: string;
+    description: string;
 }
 
 @Component({
@@ -26,6 +26,6 @@ export class CompetitionCreateDialogComponent {
     }
 
     public close(): void {
-        this.dialogRef.close({ });
+        this.dialogRef.close(null);
     }
 }

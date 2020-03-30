@@ -8,18 +8,16 @@ import org.mapdb.Serializer
 
 object TaskSerializer: Serializer<Task> {
     override fun serialize(out: DataOutput2, value: Task) {
-        out.packLong(value.id)
+        //out.packLong(value.id)
         out.writeUTF(value.name)
-        out.writeInt(value.type.ordinal)
         out.writeUTF(value.taskGroup)
         TaskDescriptionSerializer.serialize(out, value.description)
     }
 
     override fun deserialize(input: DataInput2, available: Int): Task = Task(
-            input.unpackLong(),
-            input.readUTF(),
-            TaskType.values()[input.readInt()],
-            input.readUTF(),
-            TaskDescriptionSerializer.deserialize(input, available)
+            //input.unpackLong(),
+        input.readUTF(),
+        input.readUTF(),
+        TaskDescriptionSerializer.deserialize(input, available)
     )
 }

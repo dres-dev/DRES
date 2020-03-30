@@ -10,7 +10,7 @@ export class HttpErrorInterceptor implements HttpInterceptor {
     intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         return next.handle(request).pipe(catchError(err => {
             if (this.sessionService.isLoggedIn()) {
-                console.log("Warning: It seems that you were logged out by the server!");
+                console.log('Warning: It seems that you were logged out by the server!');
                 this.sessionService.end();
             }
             location.reload();

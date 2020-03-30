@@ -40,7 +40,7 @@ class ListCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaI
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context)  = collections.toList()
+    override fun doGet(ctx: Context)  = this.collections.toList()
 
     override val route: String = "collection"
 }
@@ -111,4 +111,39 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
     }
 
     override val route: String = "collection/:collectionId"
+}
+
+class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), GetRestHandler<Array<MediaItem>> {
+    @OpenApi(
+            summary = "Adds a Media Item to the specified Media Collection.",
+            path = "/api/collection/:collectionId/:startsWith", method = HttpMethod.GET,
+            pathParams = [
+                OpenApiParam("collectionId", Long::class, "Collection ID"),
+                OpenApiParam("startsWith", String::class, "Name starts with")
+            ],
+            requestBody = OpenApiRequestBody([OpenApiContent(MediaItem::class)]),
+            tags = ["Collection"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(Array<MediaItem>::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): Array<MediaItem> {
+        val collection = collectionFromContext(ctx)
+        val startsWith = ctx.pathParamMap()["startsWith"]
+
+        val results =  if (startsWith!= null) {
+            this.items.filter {
+                it.collection == collection.id && it.name.startsWith(startsWith)
+            }.take(50).toTypedArray()
+        } else {
+            this.items.filter {
+                it.collection == collection.id
+            }.take(50).toTypedArray()
+        }
+        return results
+    }
+    override val route: String = "collection/:collectionId/:startsWith"
 }

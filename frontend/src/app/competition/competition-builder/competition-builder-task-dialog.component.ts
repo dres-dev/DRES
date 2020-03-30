@@ -24,7 +24,7 @@ export interface CompetitionBuilderTaskDialogData {
 }
 
 @Component({
-    selector: 'app-competition-builder-add-task-dialog',
+    selector: 'app-competition-builder-task-dialog',
     templateUrl: './competition-builder-task-dialog.component.html'
 })
 export class CompetitionBuilderTaskDialogComponent {
@@ -37,7 +37,7 @@ export class CompetitionBuilderTaskDialogComponent {
 
     constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskDialogComponent>,
                 public collectionService: CollectionService,
-                @Inject(MAT_DIALOG_DATA) private data: CompetitionBuilderTaskDialogData) {
+                @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData) {
 
 
 

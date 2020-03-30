@@ -12,11 +12,12 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatCardModule} from '@angular/material/card';
 import {MatInputModule} from '@angular/material/input';
-import {HttpClientModule} from '@angular/common/http';
+import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
 import {ServicesModule} from './services/services.module';
 import {MatMenuModule} from '@angular/material/menu';
 import {CompetitionModule} from './competition/competition.module';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
+import {HttpErrorInterceptor} from './services/session/http-error.interceptor';
 
 @NgModule({
   declarations: [
@@ -35,7 +36,6 @@ import {MatSnackBarModule} from '@angular/material/snack-bar';
     MatCardModule,
     MatInputModule,
     MatSnackBarModule,
-    ServicesModule,
     HttpClientModule,
     ServicesModule,
     CompetitionModule,

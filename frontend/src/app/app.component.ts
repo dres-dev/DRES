@@ -1,6 +1,7 @@
 import {Component, Inject} from '@angular/core';
 import {SessionService} from './services/session/session.service';
 import {Router} from '@angular/router';
+import {AuthenticationService} from './services/session/authentication.sevice';
 
 @Component({
   selector: 'app-root',
@@ -11,13 +12,13 @@ export class AppComponent {
   title = 'dres-frontend';
 
 
-  constructor(@Inject(SessionService) public sessionService: SessionService, private router: Router) {
-
-  }
+  constructor(private authenticationService: AuthenticationService,
+              public sessionService: SessionService,
+              private router: Router) {}
 
   public logout() {
-    this.sessionService.logout().subscribe(() => {
-      this.router.navigateByUrl('/login');
+    this.authenticationService.logout().subscribe(() => {
+      this.router.navigate(['/login']);
     });
   }
 }

@@ -160,7 +160,7 @@ export class CompetitionBuilderTaskDialogComponent {
      * @param index The index to add description at.
      */
     public addDescription(index: number) {
-        (this.form.get('descriptions') as FormArray).insert(index, CompetitionBuilderTaskDialogComponent.taskDescriptionFormControl());
+        (this.form.get('descriptions') as FormArray).insert(index, new FormControl('', Validators.minLength(1)));
     }
 
     /**

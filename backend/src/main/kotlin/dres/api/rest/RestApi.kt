@@ -42,6 +42,7 @@ object RestApi {
 
                 //media
                 GetFrameHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+                GetMediaHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
 
                 //collection
                 ListCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),

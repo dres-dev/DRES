@@ -1,12 +1,12 @@
 package dres.api.rest.handler
 
 import dres.api.rest.RestApiRole
-import dres.api.rest.util.StaticFileHelper
 import dres.data.dbo.DAO
 import dres.data.model.basics.MediaCollection
 import dres.data.model.basics.MediaItem
 import dres.utilities.FFmpegUtil
-//import dres.utilities.FFmpegUtil
+import dres.utilities.extensions.errorResponse
+import dres.utilities.extensions.streamFile
 
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
@@ -20,6 +20,7 @@ class GetFrameHandler(private val collections: DAO<MediaCollection>, private val
 
     companion object {
         private val cacheLocation = File("cache") //TODO make configurable
+        private const val imageMime = "image/png"
 
         init {
             cacheLocation.mkdirs()
@@ -42,30 +43,31 @@ class GetFrameHandler(private val collections: DAO<MediaCollection>, private val
         val params = ctx.pathParamMap()
 
         if (!params.containsKey("collection") || !params.containsKey("item")){
-            ctx.status(400).result("missing parameters")
+            ctx.errorResponse(400, "missing parameters")
             return
         }
 
         val collection = collections.find { it.name == params["collection"] }
         
         if (collection == null){
-            ctx.status(404).result("collection not found")
+            ctx.errorResponse(404, "collection not found")
             return
         }
         
         val item = items.find { it.collection == collection.id && it.name == params["item"] }
 
         if (item == null){
-            ctx.status(404).result("item not found")
+            ctx.errorResponse(404, "item not found")
             return
         }
 
         if (item is MediaItem.ImageItem) {
-            StaticFileHelper.serveFile(ctx, File(item.location))
+            ctx.streamFile(File(item.location))
+            return
         } else if (item is MediaItem.VideoItem){
 
             if (!params.containsKey("time")){
-                ctx.status(400).result("missing parameters")
+                ctx.errorResponse(400, "missing parameters")
                 return
             }
 
@@ -80,8 +82,7 @@ class GetFrameHandler(private val collections: DAO<MediaCollection>, private val
                 FFmpegUtil.extractFrame(Path.of(item.location), time, imgFile.toPath())
             }
 
-            StaticFileHelper.serveFile(ctx, imgFile)
-
+            ctx.streamFile(imgFile)
         }
 
     }

@@ -41,9 +41,12 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         private val description: String by option("-d", "--description")
                 .default("")
 
+        private val basePath: String by option("-p", "--path")
+                .required()
+
         override fun run() {
             this@MediaCollectionCommand.collections.append(
-                    MediaCollection(name = name, description = description)
+                    MediaCollection(name = name, description = description, basePath = basePath)
             )
             println("added collection")
         }

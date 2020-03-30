@@ -48,6 +48,7 @@ object RestApi {
                 ListCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 ShowCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 AddMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+                ListMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
 
                 //competition
                 ListCompetitionHandler(dataAccessLayer.competitions),
@@ -58,12 +59,7 @@ object RestApi {
                 DeleteCompetitionHandler(dataAccessLayer.competitions),
 
                 ListTeamHandler(dataAccessLayer.competitions),
-                AddTeamHandler(dataAccessLayer.competitions),
-                DeleteTeamHandler(dataAccessLayer.competitions),
-
-                ListTaskHandler(dataAccessLayer.competitions),
-                AddTaskHandler(dataAccessLayer.competitions),
-                DeleteTaskHandler(dataAccessLayer.competitions)
+                ListTaskHandler(dataAccessLayer.competitions)
         )
 
         javalin = Javalin.create {

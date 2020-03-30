@@ -15,7 +15,7 @@
         </button>
     </div>
     <div *ngIf="sessionService.isLoggedIn()">
-        <mat-menu #userMenu="matMenu" (close)="sessionService.logout()">
+        <mat-menu #userMenu="matMenu" (close)="authenticationService.logout()">
             <button mat-menu-item (click)="logout()">Logout</button>
         </mat-menu>
         <button mat-button [matMenuTriggerFor]="userMenu">

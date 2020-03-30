@@ -15,11 +15,12 @@ import kotlinx.serialization.Serializable
  * @version 1.0
  */
 @Serializable
-//@JsonDeserialize(using = TaskDescriptionDeserializer::class)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "taskType")
-@JsonSubTypes(JsonSubTypes.Type(value = TaskDescription.KisVisualTaskDescription::class, name = "KIS_VISUAL"),
-        JsonSubTypes.Type(value = TaskDescription.KisTextualTaskDescription::class, name = "KIS_TEXTUAL"),
-        JsonSubTypes.Type(value = TaskDescription.AvsTaskDescription::class, name = "AVS"))
+@JsonSubTypes(
+    JsonSubTypes.Type(value = TaskDescription.KisVisualTaskDescription::class, name = "KIS_VISUAL"),
+    JsonSubTypes.Type(value = TaskDescription.KisTextualTaskDescription::class, name = "KIS_TEXTUAL"),
+    JsonSubTypes.Type(value = TaskDescription.AvsTaskDescription::class, name = "AVS")
+)
 sealed class TaskDescription(val taskType: TaskType) {
 
 

@@ -12,7 +12,6 @@
 
 
 export interface Team { 
-    number: number;
     name: string;
     color: string;
     logo: string;

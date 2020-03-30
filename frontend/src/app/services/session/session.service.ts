@@ -1,54 +1,47 @@
-import {Inject, Injectable} from '@angular/core';
-import {DefaultService, LoginRequest, UserDetails, UserService} from '../../../../openapi';
-import {flatMap, tap} from 'rxjs/operators';
+import {Injectable} from '@angular/core';
+import {UserDetails} from '../../../../openapi';
 import RoleEnum = UserDetails.RoleEnum;
 
-
+/**
+ * This service class is used to keep track of the current session and the current user. To avoid cyclic injections with the HTTP interceptor,
+ * this class is isolated from the service that actually performs the HTTP requests through the Open API endpoint.
+ */
 @Injectable()
 export class SessionService {
 
     /** UserDetails created during login. */
-    private userDetails: UserDetails = null
+    private userDetails: UserDetails = null;
 
-    constructor(@Inject(UserService) private userService: UserService) {
-        this.userService.getApiUserInfo().subscribe(
-            data => {
-                this.userDetails = data;
-                console.log(`Successfully refreshed session for '${this.userDetails.username}'.`);
-            }
-        );
-    }
+    constructor() {}
 
     /**
-     * Tries to login a user with the given username and password.
+     * Starts a new session with the given user.
      *
-     * @param user The username.
-     * @param pass The password.
+     * @param user The user to start the session with.
      */
-    public login(user: string, pass: string) {
-        return this.userService.postApiLogin({username: user, password: pass } as LoginRequest).pipe(
-            flatMap(data => this.userService.getApiUserInfo()),
-            tap(data => {
-                this.userDetails = data;
-                console.log(`Successfully logged in as '${this.userDetails.username}'.`);
-            })
-        );
+    public start(user: UserDetails) {
+        if (this.userDetails == null) {
+            this.userDetails = user;
+            console.log(`Successfully logged in '${this.userDetails.username}'.`);
+        } else {
+            console.log(`The user '${this.userDetails.username}' is already logged in. Logout before startin new session.`);
+        }
     }
 
     /**
-     * Tries to logout the current user.
+     * Ends the current session.
      */
-    public logout() {
-        return this.userService.getApiLogout().pipe(
-            tap(data => {
-                console.log(`User '${this.userDetails.username}' was logged out.`);
-                this.userDetails = null;
-            })
-        );
+    public end() {
+        if (this.userDetails != null) {
+            console.log(`Successfully logged out '${this.userDetails.username}'.`);
+            this.userDetails = null;
+        } else {
+            console.log(`Session cannot be ended. No user is currently logged in.`);
+        }
     }
 
     /**
-     * Returns the curren login state.
+     * Returns the current login state.
      */
     public isLoggedIn(): boolean {
         return this.userDetails != null;

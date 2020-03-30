@@ -22,7 +22,7 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
     }
 
     /** The [DB] object used to store */
-    private val db = DBMaker.fileDB(path.toFile()).transactionEnable().make()
+    private val db = DBMaker.fileDB(path.toFile()).transactionEnable().fileMmapEnableIfSupported().make()
 
     /** Internal counter used to keep track of the next autoincrement ID.  */
     private val autoincrement = this.db.atomicLong("counter", 0L).createOrOpen()

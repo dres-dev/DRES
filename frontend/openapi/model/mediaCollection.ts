@@ -9,12 +9,11 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TaskDescription } from './taskDescription';
 
 
-export interface Task { 
+export interface MediaCollection { 
+    id: number;
     name: string;
-    taskGroup: string;
-    description: TaskDescription;
+    description?: string;
 }
 

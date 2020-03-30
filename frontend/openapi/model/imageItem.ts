@@ -9,12 +9,9 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TaskDescription } from './taskDescription';
+import { MediaItem } from './mediaItem';
 
 
-export interface Task { 
-    name: string;
-    taskGroup: string;
-    description: TaskDescription;
+export interface ImageItem extends MediaItem { 
 }
 

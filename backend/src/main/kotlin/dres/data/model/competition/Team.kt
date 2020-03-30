@@ -6,7 +6,7 @@ import javax.imageio.ImageIO
 import javax.xml.bind.DatatypeConverter
 
 
-data class Team (val number: Int, val name: String, val color: String, val logo: String) {
+data class Team (val name: String, val color: String, val logo: String) {
     /**
      * Returns the logo data as [BufferedImage].
      *

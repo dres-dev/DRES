@@ -18,7 +18,8 @@ import java.time.Duration
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "itemType")
 @JsonSubTypes(
         JsonSubTypes.Type(value = MediaItem.ImageItem::class, name = "image"),
-        JsonSubTypes.Type(value = MediaItem.VideoItem::class, name = "video"))
+        JsonSubTypes.Type(value = MediaItem.VideoItem::class, name = "video")
+)
 sealed class MediaItem(val itemType: String) : Entity {
 
     @Serializer(forClass = MediaItem::class)
@@ -52,7 +53,6 @@ sealed class MediaItem(val itemType: String) : Entity {
                 "video" -> VideoItem(id, name, location, collection, jsonObject.getPrimitive("ms").long, jsonObject.getPrimitive("fps").float)
                 else -> throw SerializationException("Type $type not supported")
             }
-
         }
 
     }

@@ -13,19 +13,8 @@ import { TaskDescription } from './taskDescription';
 
 
 export interface Task { 
-    id: number;
     name: string;
-    type: Task.TypeEnum;
     taskGroup: string;
     description: TaskDescription;
 }
-export namespace Task {
-    export type TypeEnum = 'KIS_VISUAL' | 'KIS_TEXTUAL' | 'AVS';
-    export const TypeEnum = {
-        KISVISUAL: 'KIS_VISUAL' as TypeEnum,
-        KISTEXTUAL: 'KIS_TEXTUAL' as TypeEnum,
-        AVS: 'AVS' as TypeEnum
-    };
-}
-
 

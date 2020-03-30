@@ -11,7 +11,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {CompetitionBuilderAddTeamDialogComponent} from './competition-builder/competition-builder-add-team-dialog.component';
+import {CompetitionBuilderTeamDialogComponent} from './competition-builder/competition-builder-team-dialog.component';
 import {MatListModule} from '@angular/material/list';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatMenuModule} from '@angular/material/menu';

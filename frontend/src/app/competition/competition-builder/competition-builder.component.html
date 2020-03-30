@@ -1,14 +1,8 @@
 
 <div style="display: flex" class="header">
     <div>
-        <button mat-icon-button aria-label="Go back to overview." matTooltip="Go back to overview." (click)="back()">
-            <mat-icon>navigate_before</mat-icon>
-        </button>
-    </div>
-
-    <div>
         <h1 *ngIf="!dirty">Edit competition {{competitionId}}</h1>
-        <h1 *ngIf="dirty">Edit competition {{competitionId}} (unsaved changes)</h1>
+        <h1 *ngIf="dirty">Edit competition {{competitionId}} <span style="color: darkred">(unsaved changes)</span></h1>
     </div>
 
     <div class="spacer-flex"></div>
@@ -39,7 +33,7 @@
                 <p>
                     <mat-form-field style="width: 100%">
                         <mat-label>Description</mat-label>
-                        <textarea type="password" matInput placeholder="Password" formControlName="description" required></textarea>
+                        <textarea matInput placeholder="Password" formControlName="description" required></textarea>
                     </mat-form-field>
                 </p>
             </form>
@@ -50,23 +44,31 @@
 
                 <div class="spacer-flex"></div>
 
-                <button mat-icon-button aria-label="Add new team." matTooltip="Add new team." (click)="addTeam()">
+                <button mat-button aria-label="Add new team." matTooltip="Add new team." (click)="addTeam()">
                     <mat-icon>add</mat-icon>
+                    Add team
                 </button>
 
-                <button mat-icon-button aria-label="Remove selected teams." matTooltip="Remove selected teams." [disabled]="teams.selectedOptions.selected.length == 0" (click)="removeTeams(teams.selectedOptions.selected)">
-                    <mat-icon>remove</mat-icon>
-                </button>
             </div>
 
-            <mat-selection-list #teams>
-                <mat-list-option [style.color]="team.color" *ngFor="let team of competition.teams" [value]="team">
+            <mat-list>
+                <mat-list-item [style.color]="team.color" *ngFor="let team of competition.teams">
                     <img matListAvatar src="{{team.logo}}">
-                    <h3 matLine>
-                        {{team.number}}: {{team.name}}
-                    </h3>
-                </mat-list-option>
-            </mat-selection-list>
+                    <div style="display: flex" matLine>
+                        <span>{{team.name}}</span>
+
+                        <div class="spacer-flex"></div>
+
+                        <button mat-icon-button aria-label="Edit task." matTooltip="Edit task." (click)="editTeam(team)">
+                            <mat-icon>edit</mat-icon>
+                        </button>
+
+                        <button mat-icon-button aria-label="Remove selected teams." matTooltip="Remove selected teams."  (click)="removeTeam(team)">
+                            <mat-icon>remove</mat-icon>
+                        </button>
+                    </div>
+                </mat-list-item>
+            </mat-list>
         </div>
 
         <div style="flex-basis: 65%;">
@@ -79,17 +81,30 @@
                     <button *ngFor="let type of taskTypes" mat-menu-item (click)="addTask(type)">{{type}}</button>
                 </mat-menu>
 
-                <button mat-icon-button aria-label="Add new task." matTooltip="Add new task." [matMenuTriggerFor]="taskMenu">
+                <button mat-button aria-label="Add new task." matTooltip="Add new task." [matMenuTriggerFor]="taskMenu">
                     <mat-icon>add</mat-icon>
+                    Add task
                 </button>
 
-                <button mat-icon-button aria-label="Remove selected tasks." matTooltip="Remove selected tasks." (click)="removeTasks(tasks.selectedOptions.selected)" [disabled]="tasks.selectedOptions.selected.length == 0">
-                    <mat-icon>remove</mat-icon>
-                </button>
+
             </div>
 
-            <mat-selection-list #tasks>
-            </mat-selection-list>
+            <mat-list>
+                <mat-list-item *ngFor="let task of competition.tasks">
+                    <div style="display: flex" matLine>
+                        <span>{{task.name}} | {{task.taskGroup}} ({{task.description.taskType}})</span>
+
+                        <div class="spacer-flex"></div>
+
+                        <button mat-icon-button aria-label="Edit task." matTooltip="Edit task." (click)="editTask(task)">
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button aria-label="Remove task." matTooltip="Remove task." (click)="removeTask(task)">
+                            <mat-icon>remove</mat-icon>
+                        </button>
+                    </div>
+                </mat-list-item>
+            </mat-list>
         </div>
     </div>
 </div>

@@ -1,20 +1,16 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {filter} from 'rxjs/operators';
-import {Competition, CompetitionService, TaskDescription, Team} from '../../../../openapi';
+import {Competition, CompetitionService, Task, TaskDescription, Team} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
 import { Subscription} from 'rxjs';
 import {MatDialog} from '@angular/material/dialog';
 import {
-  CompetitionBuilderAddTeamDialogComponent,
-} from './competition-builder-add-team-dialog.component';
-import {MatListOption} from '@angular/material/list';
+  CompetitionBuilderTeamDialogComponent,
+} from './competition-builder-team-dialog.component';
 import TaskTypeEnum = TaskDescription.TaskTypeEnum;
-import {
-  CompetitionBuilderAddTaskDialogComponent,
-  CompetitionBuilderAddTaskDialogData
-} from './competition-builder-add-task-dialog.component';
+import {CompetitionBuilderTaskDialogComponent, CompetitionBuilderTaskDialogData} from './competition-builder-task-dialog.component';
 
 @Component({
   selector: 'app-competition-builer',
@@ -29,7 +25,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
   dirty = false;
   routeSubscription: Subscription;
   changeSubscription: Subscription;
-  taskTypes = [TaskTypeEnum.AVS, TaskTypeEnum.KISTEXTUAL, TaskTypeEnum.KISVISUAL]
+  taskTypes = [TaskTypeEnum.AVS, TaskTypeEnum.KISTEXTUAL, TaskTypeEnum.KISVISUAL];
 
   constructor(private competitionService: CompetitionService,
               private route: ActivatedRoute,
@@ -52,7 +48,21 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     this.changeSubscription.unsubscribe();
   }
 
-  public save() {}
+  public save() {
+    if (this.form.valid) {
+      this.competition.name = this.form.get('name').value;
+      this.competition.description = this.form.get('description').value;
+      this.competitionService.patchApiCompetition(this.competition).subscribe(
+          (c) => {
+            this.snackBar.open(c.description, null, { duration: 5000});
+            this.dirty = false;
+          },
+          (r) => {
+            this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+          }
+      );
+    }
+  }
 
   public back() {
     if (this.checkDirty()) {
@@ -78,38 +88,63 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
 
   public addTask(taskType: TaskTypeEnum) {
     const dialogRef = this.dialog.open(
-        CompetitionBuilderAddTaskDialogComponent,
-        {data: {type: taskType, competition: this.competition} as CompetitionBuilderAddTaskDialogData, width: '500px'}
+        CompetitionBuilderTaskDialogComponent,
+        {data: {taskType: taskType, task: null} as CompetitionBuilderTaskDialogData, width: '750px'}
     );
     dialogRef.afterClosed().pipe(
-        filter(r => r != null),
-    ).subscribe((r) => {
-      this.competition.tasks.push(r);
+        filter(t => t != null),
+    ).subscribe((t) => {
+      this.competition.tasks.push(t);
       this.dirty = true;
     });
   }
 
-  public removeTasks(tasks: MatListOption[]) {
-    for (const task of tasks) {
-      this.competition.tasks.splice(this.competition.tasks.indexOf(task.value));
+  public editTask(task: Task) {
+    const index = this.competition.tasks.indexOf(task);
+    if (index > -1) {
+      const dialogRef = this.dialog.open(
+          CompetitionBuilderTaskDialogComponent,
+          {data: {taskType: task.description.taskType, task: task} as CompetitionBuilderTaskDialogData, width: '750px'}
+      );
+      dialogRef.afterClosed().pipe(
+          filter(t => t != null),
+      ).subscribe((t) => {
+        this.competition.tasks[index] = t;
+        this.dirty = true;
+      });
     }
+  }
+
+  public removeTask(task: Task) {
+    this.competition.tasks.splice(this.competition.tasks.indexOf(task), 1);
     this.dirty = true;
   }
 
   public addTeam() {
-    const dialogRef = this.dialog.open(CompetitionBuilderAddTeamDialogComponent, {data: this.competition, width: '500px'});
+    const dialogRef = this.dialog.open(CompetitionBuilderTeamDialogComponent, {width: '500px'});
     dialogRef.afterClosed().pipe(
-        filter(r => r != null),
-    ).subscribe((r) => {
-      this.competition.teams.push(r);
+        filter(t => t != null),
+    ).subscribe((t) => {
+      this.competition.teams.push(t);
       this.dirty = true;
     });
   }
 
-  public removeTeams(teams: MatListOption[]) {
-    for (const team of teams) {
-      this.competition.teams.splice(this.competition.teams.indexOf(team.value));
+  public editTeam(team: Team) {
+    const index = this.competition.teams.indexOf(team);
+    if (index > -1) {
+      const dialogRef = this.dialog.open(CompetitionBuilderTeamDialogComponent, {data: team, width: '500px'});
+      dialogRef.afterClosed().pipe(
+          filter(t => t != null),
+      ).subscribe((t: Team) => {
+        this.competition.teams[index] = t;
+        this.dirty = true;
+      });
     }
+  }
+
+  public removeTeam(team: Team) {
+    this.competition.teams.splice(this.competition.teams.indexOf(team), 1);
     this.dirty = true;
   }
 

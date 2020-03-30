@@ -12,7 +12,7 @@ export class AppComponent {
   title = 'dres-frontend';
 
 
-  constructor(private authenticationService: AuthenticationService,
+  constructor(public authenticationService: AuthenticationService,
               public sessionService: SessionService,
               private router: Router) {}
 

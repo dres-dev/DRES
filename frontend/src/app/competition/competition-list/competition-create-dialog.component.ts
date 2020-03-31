@@ -20,8 +20,8 @@ export class CompetitionCreateDialogComponent {
     public create(): void {
         if (this.form.valid) {
             this.dialogRef.close({
-                name: this.form.controls.name.value,
-                description: this.form.controls.name.value} as CompetitionCreateDialogResult);
+                name: this.form.get('name').value,
+                description: this.form.get('description').value} as CompetitionCreateDialogResult);
         }
     }
 

@@ -43,15 +43,17 @@ export class CompetitionListComponent implements AfterViewInit {
   }
 
   public delete(competitionId: number) {
-    this.competitionService.deleteApiCompetitionWithCompetitionid(competitionId).subscribe(
-        (r) => {
-          this.refresh();
-          this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
-        },
-        (r) => {
-          this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
-        }
-    );
+      if (confirm(`Do you really want to delete competition with ID ${competitionId}?`)) {
+          this.competitionService.deleteApiCompetitionWithCompetitionid(competitionId).subscribe(
+              (r) => {
+                  this.refresh();
+                  this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
+              },
+              (r) => {
+                  this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+              }
+          );
+      }
   }
 
   public refresh() {

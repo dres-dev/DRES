@@ -12,11 +12,14 @@ object TeamSerializer : Serializer<Team> {
         out.writeUTF(value.name)
         out.writeUTF(value.color)
         out.writeUTF(value.logo)
+        out.packInt(value.users.size)
+        value.users.forEach { out.packLong(it) }
     }
 
     override fun deserialize(input: DataInput2, available: Int): Team = Team(
         input.readUTF(),
         input.readUTF(),
-        input.readUTF()
+        input.readUTF(),
+        (0 until input.unpackInt()).map { input.unpackLong() }.toMutableList()
     )
 }

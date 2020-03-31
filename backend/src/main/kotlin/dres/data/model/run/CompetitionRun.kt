@@ -1,5 +1,6 @@
 package dres.data.model.run
 
+import dres.data.model.Entity
 import dres.data.model.competition.Competition
 import kotlinx.serialization.Serializable
 import java.lang.IllegalArgumentException
@@ -13,7 +14,12 @@ import java.util.*
  * @param 1.0
  */
 @Serializable
-class CompetitionRun(val name: String, val competition: Competition): Run {
+class CompetitionRun(override var id: Long, val name: String, val competition: Competition): Run, Entity {
+
+    internal constructor(id: Long, name: String, competition: Competition, started: Long?, ended: Long?) : this(id, name, competition) {
+        this.started = started
+        this.ended = ended
+    }
 
     /** Timestamp of when this [CompetitionRun] was started. */
     @Volatile
@@ -53,6 +59,20 @@ class CompetitionRun(val name: String, val competition: Competition): Run {
     }
 
     /**
+     * Creates a new [TaskRun] for the given [Task].
+     *
+     * @param task ID of the [Task] to start a [TaskRun]
+     */
+    fun newTaskRun(task: Int) {
+        if (this@CompetitionRun.runs.isEmpty() || this@CompetitionRun.runs.last().hasEnded) {
+            (this.runs as MutableList<TaskRun>).add(TaskRun(task))
+        } else {
+            throw IllegalStateException("Another Task is currently running.")
+        }
+    }
+
+
+    /**
      * Represents a concrete instance or `run` of a [Task]. [TaskRun]s always exist within a
      * [CompetitionRun]. As a [CompetitionRun], [TaskRun]s can be started and ended and they
      * can be used to register [Submission]s.
@@ -62,6 +82,11 @@ class CompetitionRun(val name: String, val competition: Competition): Run {
      */
     @Serializable
     inner class TaskRun (val task: Int): Run {
+
+        internal constructor(task: Int, started: Long, ended: Long): this(task) {
+            this.started =  if (started == -1L) { null } else { started }
+            this.ended = if (ended == -1L) { null } else { ended }
+        }
 
         /** Timestamp of when this [TaskRun] was started. */
         @Volatile
@@ -83,11 +108,6 @@ class CompetitionRun(val name: String, val competition: Competition): Run {
         init {
             if (this@CompetitionRun.competition.tasks.size < this.task) {
                 throw IllegalArgumentException("There is no task with ID $task.")
-            }
-            if (this@CompetitionRun.runs.isEmpty() || this@CompetitionRun.runs.last().hasEnded) {
-                (this@CompetitionRun.runs as LinkedList<TaskRun>).add(this)
-            } else {
-                throw IllegalStateException("Another Task is currently running.")
             }
         }
 

@@ -16,6 +16,9 @@ class DataAccessLayer(private val basePath: Path) {
     /** List of [dres.data.model.competition.Competition]s managed by this DRES instance. */
     val competitions = DAO(this.basePath.resolve("competitions.db"), CompetitionSerializer)
 
+    /** List of [dres.data.model.run.CompetitionRun]s managed by this DRES instance. */
+    val runs = DAO(this.basePath.resolve("runs.db"), CompetitionRunSerializer)
+
     val collections = DAO(this.basePath.resolve("collections.db"), MediaCollectionSerializer)
     val mediaItems = DAO(this.basePath.resolve("mediaItems.db"), MediaItemSerializer)
     val mediaSegments = DAO(this.basePath.resolve("mediaSegments.db"), MediaItemSegmentSerializer)

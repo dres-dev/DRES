@@ -24,6 +24,16 @@ interface Run {
     /** Boolean indicating whether this [Run] has ended. */
     val hasEnded: Boolean
         get() = this.ended != null
+
+    /**
+     * Starts this [Run]. Can only be invoked once.
+     */
+    fun start()
+
+    /**
+     * Ends this [Run]. Can only be invoked once.
+     */
+    fun end()
 }
 
 

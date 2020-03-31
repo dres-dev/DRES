@@ -41,7 +41,7 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
     /**
      * Starts this [CompetitionRun].
      */
-    fun start() {
+    override fun start() {
         if (this.hasStarted) {
             throw IllegalStateException("Competition run '$name' has already been started.")
         }
@@ -51,7 +51,7 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
     /**
      * Ends this [CompetitionRun].
      */
-    fun end() {
+    override fun end() {
         if (!this.isRunning) {
             throw IllegalStateException("Competition run '$name' is not running.")
         }
@@ -114,7 +114,7 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         /**
          * Starts this [CompetitionRun].
          */
-        fun start() {
+        override fun start() {
             if (this.hasStarted) {
                 throw IllegalStateException("Task run '${this@CompetitionRun.name}.${this.position}' has already been started.")
             }
@@ -124,7 +124,7 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         /**
          * Ends this [CompetitionRun].
          */
-        fun end() {
+        override fun end() {
             if (!this.isRunning) {
                 throw IllegalStateException("Task run '${this@CompetitionRun.name}.${this.position}' is currently not running.")
             }

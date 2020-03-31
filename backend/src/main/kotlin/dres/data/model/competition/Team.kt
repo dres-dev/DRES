@@ -1,11 +1,12 @@
 package dres.data.model.competition
 
+import kotlinx.serialization.Serializable
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 import javax.xml.bind.DatatypeConverter
 
-
+@Serializable
 data class Team (val name: String, val color: String, val logo: String) {
     /**
      * Returns the logo data as [BufferedImage].

@@ -1,8 +1,10 @@
 package dres.data.model.competition
 
 import dres.data.model.Entity
+import kotlinx.serialization.Serializable
 import java.lang.IllegalArgumentException
 
+@Serializable
 data class Competition(override var id: Long, val name: String, val description: String?, val tasks: MutableList<Task>, val teams: MutableList<Team>) : Entity {
     fun validate() {
         for (task in this.tasks) {

@@ -1,5 +1,6 @@
 package dres.api.rest.handler
 
+import dres.api.rest.AccessManager
 import dres.api.rest.RestApiRole
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
@@ -20,7 +21,8 @@ abstract class AbstractCompetitionRunRestHandler(val runs: DAO<CompetitionRun>) 
      * returns the runs visible to the current user
      */
     fun getRuns(ctx: Context): List<CompetitionRun> {
-        return emptyList() //TODO
+        val userId = AccessManager.getUserIdforSession(ctx.req.session.id)!!
+        return runs.filter { it.competition.teams.any { it.users.contains(userId) } }
     }
 }
 

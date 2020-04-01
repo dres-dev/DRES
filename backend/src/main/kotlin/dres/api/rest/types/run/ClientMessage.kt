@@ -9,8 +9,10 @@ import kotlinx.serialization.Serializable
  * @version 1.0
  */
 @Serializable
-data class ClientMessage(val type: ClientMessageType)
+data class ClientMessage(val runId: Long, val type: ClientMessageType)
 
 enum class ClientMessageType {
-    ACK     /** Acknowledgement of the last message received. */
+    ACK,     /** Acknowledgement of the last message received. */
+    REGISTER,
+    UNREGISTER
 }

@@ -9,11 +9,14 @@ import kotlinx.serialization.Serializable
  * @version 1.0
  */
 @Serializable
-data class ServerMessage(val type: ServerMessageType, val timestamp: Long = System.currentTimeMillis())
+data class ServerMessage(val runId: Long, val type: ServerMessageType, val timestamp: Long = System.currentTimeMillis())
 
 enum class ServerMessageType {
-    PREPARE,  /** Prepare for run to start. */
-    START,    /** Run started. */
-    UPDATED,  /** State of run has changed. */
-    END       /** Run ended. */
+    COMPETITION_START, /* Competition run started. */
+    COMPETITION_UPDATE, /* State of competition run was updated. */
+    COMPETITION_END, /* Competition run ended. */
+    TASK_PREPARE,  /** Prepare for a task run to start. */
+    TASK_START,    /** Task run started. */
+    TASK_UPDATED,  /** State of task run has changed. */
+    TASK_END       /** Taks run ended. */
 }

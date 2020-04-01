@@ -1,5 +1,6 @@
 package dres.run
 
+import dres.api.rest.types.run.ClientMessage
 import dres.data.model.competition.Competition
 import dres.data.model.competition.Task
 import dres.data.model.run.Submission
@@ -10,7 +11,13 @@ import dres.data.model.run.Submission
  * @author Ralph Gasser
  * @version 1.0
  */
-interface RunManager {
+interface RunManager : Runnable {
+    /** Unique ID for this [RunManager]. */
+    val runId: Long
+
+    /** A name for identifying this [RunManager]. */
+    val name: String
+
     /** The [Competition] that is executed / run by this [RunManager]. */
     val competition: Competition
 
@@ -40,6 +47,13 @@ interface RunManager {
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     fun terminate()
+    /**
+     * Prepares this [RunManager] for the execution of previous [Task] as per order defined in [Competition.tasks].
+     * Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
+     *
+     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
+     */
+    fun previousTask()
 
     /**
      * Prepares this [RunManager] for the execution of next [Task] as per order defined in [Competition.tasks].
@@ -80,6 +94,13 @@ interface RunManager {
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
     fun abortTask()
+
+    /**
+     * Invoked by an external caller such as a [RunExecutor] in order to inform the [RunManager] that it has received a [ClientMessage].
+     *
+     * @param message The [ClientMessage] that was received.
+     */
+    fun wsMessageReceived(message: ClientMessage)
 
     /**
      * Posts a new [Submission] for the [Task] that is currently being executed by this [RunManager].

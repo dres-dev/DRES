@@ -15,7 +15,7 @@ interface RunManager {
     val competition: Competition
 
     /** The [Scoreboard] used to track the [Score] per team. */
-    val scoreboard: Scoreboard
+    val scoreboards: List<Scoreboard>
 
     /** The [Task] that is currently being executed or waiting for execution by this [RunManager]. Can be null!*/
     val currentTask: Task?
@@ -25,7 +25,7 @@ interface RunManager {
 
     /**
      * Starts this [RunManager] moving [RunManager.status] from [RunManagerStatus.CREATED] to
-     * [RunManagerStatus.STARTED]. A [RunManager] can refuse to start.
+     * [RunManagerStatus.ACTIVE]. A [RunManager] can refuse to start.
      *
      * @return True if [RunManager] was started, false otherwise.
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.CREATED]
@@ -33,35 +33,35 @@ interface RunManager {
     fun start(): Boolean
 
     /**
-     * Ends this [RunManager] moving [RunManager.status] from [RunManagerStatus.STARTED] to
+     * Ends this [RunManager] moving [RunManager.status] from [RunManagerStatus.ACTIVE] to
      * [RunManagerStatus.TERMINATED]. A [RunManager] can refuse to terminate.
      *
      * @return True if [RunManager] was terminated, false otherwise.
-     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.STARTED]
+     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     fun terminate()
 
     /**
      * Prepares this [RunManager] for the execution of next [Task] as per order defined in [Competition.tasks].
-     * Requires [RunManager.status] to be [RunManagerStatus.STARTED].
+     * Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
-     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.STARTED]
+     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     fun nextTask()
 
     /**
      * Prepares this [RunManager] for the execution of the [Task] given by the index as per order
-     * defined in [Competition.tasks]. Requires [RunManager.status] to be [RunManagerStatus.STARTED].
+     * defined in [Competition.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
-     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.STARTED]
+     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     fun goToTask(index: Int)
 
     /**
      * Starts the [RunManager.currentTask] and thus moves the [RunManager.status] from
-     * [RunManagerStatus.STARTED] to either [RunManagerStatus.PREPARING_TASK] or [RunManagerStatus.RUNNING_TASK]
+     * [RunManagerStatus.ACTIVE] to either [RunManagerStatus.PREPARING_TASK] or [RunManagerStatus.RUNNING_TASK]
      *
-     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.STARTED] or [RunManager.currentTask] is not set.
+     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE] or [RunManager.currentTask] is not set.
      */
     fun startTask()
 
@@ -75,7 +75,7 @@ interface RunManager {
 
     /**
      * Force-abort the [RunManager.currentTask] and thus moves the [RunManager.status] from
-     * [RunManagerStatus.PREPARING_TASK] or [RunManagerStatus.RUNNING_TASK] to [RunManagerStatus.STARTED]
+     * [RunManagerStatus.PREPARING_TASK] or [RunManagerStatus.RUNNING_TASK] to [RunManagerStatus.ACTIVE]
      *
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */

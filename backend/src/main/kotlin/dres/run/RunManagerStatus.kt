@@ -11,7 +11,7 @@ enum class RunManagerStatus {
     CREATED,
 
     /** [RunManager] was started and setup; it is ready to run [Task]s. */
-    STARTED,
+    ACTIVE,
 
     /**
      * A [Task] is currently being prepared for execution by this [RunManager].

@@ -4,6 +4,7 @@ import dres.api.rest.handler.*
 import dres.api.rest.types.status.ErrorStatus
 import dres.data.dbo.DataAccessLayer
 import dres.data.model.Config
+import dres.run.RunExecutor
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.core.security.SecurityUtil.roles
@@ -28,6 +29,8 @@ object RestApi {
 
 
     fun init(config: Config, dataAccessLayer: DataAccessLayer) {
+
+        val runExecutor = RunExecutor
 
 
         val apiRestHandlers = listOf(
@@ -70,7 +73,7 @@ object RestApi {
                 CurrentSubmissionInfoHandler()
         )
 
-        javalin = Javalin.create {
+        javalin = Javalin.create() {
             it.enableCorsForAllOrigins()
             it.server { setupHttpServer(config) }
             it.registerPlugin(getConfiguredOpenApiPlugin())
@@ -81,7 +84,6 @@ object RestApi {
         }.routes {
 
             path("api") {
-
                 apiRestHandlers.forEach {handler ->
                     path(handler.route){
 
@@ -109,7 +111,7 @@ object RestApi {
 
                     }
                 }
-
+                ws("ws/run", runExecutor)
             }
 
 

@@ -34,38 +34,54 @@ interface RunManager : Runnable {
      * Starts this [RunManager] moving [RunManager.status] from [RunManagerStatus.CREATED] to
      * [RunManagerStatus.ACTIVE]. A [RunManager] can refuse to start.
      *
-     * @return True if [RunManager] was started, false otherwise.
+     * As all state affecting methods, this method throws an [IllegalStateException] if invocation
+     * does not match the current state.
+     *
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.CREATED]
      */
-    fun start(): Boolean
+    fun start()
 
     /**
      * Ends this [RunManager] moving [RunManager.status] from [RunManagerStatus.ACTIVE] to
      * [RunManagerStatus.TERMINATED]. A [RunManager] can refuse to terminate.
      *
-     * @return True if [RunManager] was terminated, false otherwise.
+     * As all state affecting methods, this method throws an [IllegalStateException] if invocation
+     * does not match the current state.
+     *
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     fun terminate()
+
     /**
      * Prepares this [RunManager] for the execution of previous [Task] as per order defined in [Competition.tasks].
      * Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
+     * As all state affecting methods, this method throws an [IllegalStateException] if invocation
+     * does not match the current state.
+     *
+     * @return True if [Task] was moved, false otherwise. Usually happens if last [Task] has been reached.
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
-    fun previousTask()
+    fun previousTask(): Boolean
 
     /**
      * Prepares this [RunManager] for the execution of next [Task] as per order defined in [Competition.tasks].
      * Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
+     * As all state affecting methods, this method throws an [IllegalStateException] if invocation
+     * does not match the current state.
+     *
+     * @return True if [Task] was moved, false otherwise. Usually happens if last [Task] has been reached.
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
-    fun nextTask()
+    fun nextTask(): Boolean
 
     /**
      * Prepares this [RunManager] for the execution of the [Task] given by the index as per order
      * defined in [Competition.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
+     *
+     * As all state affecting methods, this method throws an [IllegalStateException] if invocation
+     * does not match the current state.
      *
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
@@ -75,39 +91,56 @@ interface RunManager : Runnable {
      * Starts the [RunManager.currentTask] and thus moves the [RunManager.status] from
      * [RunManagerStatus.ACTIVE] to either [RunManagerStatus.PREPARING_TASK] or [RunManagerStatus.RUNNING_TASK]
      *
+     * As all state affecting methods, this method throws an [IllegalStateException] if invocation
+     * does not match the current state.
+     *
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE] or [RunManager.currentTask] is not set.
      */
     fun startTask()
 
     /**
-     * Returns the time in milliseconds that has elapsed since the start of the last [Task]. Only works
-     * if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK].
-     *
-     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
-     */
-    fun timeElapsed(): Long
-
-    /**
      * Force-abort the [RunManager.currentTask] and thus moves the [RunManager.status] from
      * [RunManagerStatus.PREPARING_TASK] or [RunManagerStatus.RUNNING_TASK] to [RunManagerStatus.ACTIVE]
+     *
+     * As all state affecting methods, this method throws an [IllegalStateException] if invocation
+     * does not match the current state.
      *
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
     fun abortTask()
 
     /**
-     * Invoked by an external caller such as a [RunExecutor] in order to inform the [RunManager] that it has received a [ClientMessage].
+     * Returns the time in milliseconds that has elapsed since the start of the last [Task]. Only works
+     * if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no [Task] is running, this
+     * method returns -1L.
      *
-     * @param message The [ClientMessage] that was received.
+     * @return Time that has elapsed since the start of the running [Task] or -1, if no [Task] is running.
      */
-    fun wsMessageReceived(message: ClientMessage)
+    fun timeElapsed(): Long
 
     /**
-     * Posts a new [Submission] for the [Task] that is currently being executed by this [RunManager].
-     * [Submission]s usually cause updates to the internal state and/or the [Scoreboard] of this [RunManager]
+     * Invoked by an external caller such in order to inform the [RunManager] that it has received a [ClientMessage].
+     *
+     * This method does not throw an exception and instead returns false if a [Submission] was
+     * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
+     * this method again.
+     *
+     * @param message The [ClientMessage] that was received.
+     * @return True if [ClientMessage] was processed, false otherwise
+     */
+    fun wsMessageReceived(message: ClientMessage): Boolean
+
+    /**
+     * Invoked by an external caller to post a new [Submission] for the [Task] that is currently being
+     * executed by this [RunManager]. [Submission]s usually cause updates to the internal state and/or
+     * the [Scoreboard] of this [RunManager].
+     *
+     * This method will not throw an exception and instead returns false if a [Submission] was
+     * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
+     * this method again.
      *
      * @param sub The [Submission] to be posted.
-     * @throws IllegalStateException If [RunManager] was not in [RunManagerStatus.RUNNING_TASK]
+     * @return True if [Submission] was processed, false otherwise.
      */
-    fun postSubmission(sub: Submission)
+    fun postSubmission(sub: Submission): Boolean
 }

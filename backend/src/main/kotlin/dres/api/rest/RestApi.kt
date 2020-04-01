@@ -59,7 +59,11 @@ object RestApi {
                 DeleteCompetitionHandler(dataAccessLayer.competitions),
 
                 ListTeamHandler(dataAccessLayer.competitions),
-                ListTaskHandler(dataAccessLayer.competitions)
+                ListTaskHandler(dataAccessLayer.competitions),
+
+                //competition run
+                ListCompetitionRunsHandler(dataAccessLayer.runs),
+                GetCompetitionRunHandler(dataAccessLayer.runs)
         )
 
         javalin = Javalin.create {

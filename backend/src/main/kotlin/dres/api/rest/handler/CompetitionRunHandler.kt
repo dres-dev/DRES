@@ -26,7 +26,7 @@ abstract class AbstractCompetitionRunRestHandler(val runs: DAO<CompetitionRun>) 
     }
 }
 
-class ListCurrentRunsHandler(runs: DAO<CompetitionRun>) : AbstractCompetitionRunRestHandler(runs), GetRestHandler<List<CompetitionRun>> {
+class ListCompetitionRunsHandler(runs: DAO<CompetitionRun>) : AbstractCompetitionRunRestHandler(runs), GetRestHandler<List<CompetitionRun>> {
 
     override val route = "run"
 
@@ -43,7 +43,7 @@ class ListCurrentRunsHandler(runs: DAO<CompetitionRun>) : AbstractCompetitionRun
 
 }
 
-class GetCurrentRunsHandler(runs: DAO<CompetitionRun>) : AbstractCompetitionRunRestHandler(runs), GetRestHandler<CompetitionRun> {
+class GetCompetitionRunHandler(runs: DAO<CompetitionRun>) : AbstractCompetitionRunRestHandler(runs), GetRestHandler<CompetitionRun> {
 
     override val route = "run/:runId"
 

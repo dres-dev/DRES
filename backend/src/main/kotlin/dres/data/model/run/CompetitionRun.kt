@@ -2,6 +2,7 @@ package dres.data.model.run
 
 import dres.data.model.Entity
 import dres.data.model.competition.Competition
+import dres.data.model.competition.Task
 import kotlinx.serialization.Serializable
 import java.lang.IllegalArgumentException
 import java.util.*
@@ -81,7 +82,7 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
      * @author Ralph Gasser
      */
     @Serializable
-    inner class TaskRun (val task: Int): Run {
+    inner class TaskRun (private val taskId: Int): Run {
 
         internal constructor(task: Int, started: Long, ended: Long): this(task) {
             this.started =  if (started == -1L) { null } else { started }
@@ -105,9 +106,13 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         /** List of [Submission]s* registered for this [TaskRun]. */
         val submissions: List<Submission> = LinkedList()
 
+        /** The [Task] referenced by this [TaskRun]. */
+        val task: Task
+            get() = this@CompetitionRun.competition.tasks[this.taskId]
+
         init {
-            if (this@CompetitionRun.competition.tasks.size < this.task) {
-                throw IllegalArgumentException("There is no task with ID $task.")
+            if (this@CompetitionRun.competition.tasks.size < this.taskId) {
+                throw IllegalArgumentException("There is no task with ID $taskId.")
             }
         }
 

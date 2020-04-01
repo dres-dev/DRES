@@ -7,7 +7,7 @@ import javax.imageio.ImageIO
 import javax.xml.bind.DatatypeConverter
 
 @Serializable
-data class Team (val name: String, val color: String, val logo: String) {
+data class Team (val name: String, val color: String, val logo: String, val users: MutableList<Long>) {
     /**
      * Returns the logo data as [BufferedImage].
      *

@@ -118,7 +118,7 @@ object RunExecutor : Consumer<WsHandler> {
      * @return Immutable list of all [RunManager]s currently executed.
      */
     fun managers(): List<RunManager> = this.runManagerLock.read {
-        return Collections.unmodifiableList(this.runManagers.values.toList())
+        return this.runManagers.values.toList()
     }
 
     /**

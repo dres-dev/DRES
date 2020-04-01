@@ -31,4 +31,9 @@ interface Scoreboard {
      * Updates the [Scoreboard].
      */
     fun update()
+
+    /**
+     * Returns the name of the [Scoreboard]
+     */
+    fun name(): String
 }

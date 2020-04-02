@@ -73,7 +73,7 @@ object RestApi {
                 CurrentSubmissionInfoHandler()
         )
 
-        javalin = Javalin.create() {
+        javalin = Javalin.create {
             it.enableCorsForAllOrigins()
             it.server { setupHttpServer(config) }
             it.registerPlugin(getConfiguredOpenApiPlugin())
@@ -112,6 +112,13 @@ object RestApi {
                     }
                 }
                 ws("ws/run", runExecutor)
+            }
+
+            path("submit") {
+
+                val submissionHandler = SubmissionHandler()
+                get(submissionHandler::get, submissionHandler.permittedRoles)
+
             }
 
 

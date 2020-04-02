@@ -28,8 +28,9 @@ object AccessManager {
 
         sessionRoleMap[sessionId]!!.addAll(
                 when(user.role) {
-                    dres.data.model.admin.Role.ADMIN -> arrayOf(RestApiRole.VIEWER, RestApiRole.JUDGE, RestApiRole.ADMIN)
+                    dres.data.model.admin.Role.ADMIN -> arrayOf(RestApiRole.VIEWER, RestApiRole.PARTICIPANT, RestApiRole.JUDGE, RestApiRole.ADMIN)
                     dres.data.model.admin.Role.JUDGE -> arrayOf(RestApiRole.VIEWER, RestApiRole.JUDGE)
+                    dres.data.model.admin.Role.PARTICIPANT -> arrayOf(RestApiRole.VIEWER, RestApiRole.PARTICIPANT)
                     dres.data.model.admin.Role.VIEWER -> arrayOf(RestApiRole.VIEWER)
                 }
         )
@@ -50,4 +51,4 @@ object AccessManager {
 
 }
 
-enum class RestApiRole : Role { ANYONE, VIEWER, JUDGE, ADMIN }
+enum class RestApiRole : Role { ANYONE, VIEWER, PARTICIPANT, JUDGE, ADMIN }

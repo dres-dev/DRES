@@ -12,12 +12,14 @@ object TaskSerializer: Serializer<Task> {
         out.writeUTF(value.name)
         out.writeUTF(value.taskGroup)
         TaskDescriptionSerializer.serialize(out, value.description)
+        out.writeLong(value.duration)
     }
 
     override fun deserialize(input: DataInput2, available: Int): Task = Task(
             //input.unpackLong(),
         input.readUTF(),
         input.readUTF(),
-        TaskDescriptionSerializer.deserialize(input, available)
+        TaskDescriptionSerializer.deserialize(input, available),
+        input.readLong()
     )
 }

@@ -11,6 +11,5 @@ package dres.data.model.basics
 enum class TemporalUnit {
     FRAME_NUMBER,
     SECONDS,
-    MILLISECONDS,
-    TIMECODE
+    MILLISECONDS
 }

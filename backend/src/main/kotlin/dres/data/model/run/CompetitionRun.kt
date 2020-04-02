@@ -82,7 +82,7 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
      * @author Ralph Gasser
      */
     @Serializable
-    inner class TaskRun (private val taskId: Int): Run {
+    inner class TaskRun (val taskId: Int): Run {
 
         internal constructor(task: Int, started: Long, ended: Long): this(task) {
             this.started =  if (started == -1L) { null } else { started }

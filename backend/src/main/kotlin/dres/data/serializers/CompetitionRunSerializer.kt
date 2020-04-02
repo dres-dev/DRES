@@ -15,7 +15,7 @@ object CompetitionRunSerializer: Serializer<CompetitionRun> {
         out.writeLong(value.ended ?: -1)
         out.writeInt(value.runs.size)
         for (taskRun in value.runs) {
-            out.writeInt(taskRun.task)
+            out.writeInt(taskRun.taskId)
             out.writeLong(taskRun.started ?: -1)
             out.writeLong(taskRun.ended ?: -1)
             out.writeInt(taskRun.submissions.size)

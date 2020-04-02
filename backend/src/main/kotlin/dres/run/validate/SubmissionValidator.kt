@@ -1,4 +1,4 @@
-package dres.run
+package dres.run.validate
 
 import dres.api.rest.handler.SubmissionInfo
 import dres.data.model.competition.TaskDescription

@@ -1,5 +1,6 @@
 package dres.data.model.basics
 
+import dres.utilities.TimeUtil
 import kotlinx.serialization.Serializable
 
 /**
@@ -12,4 +13,14 @@ import kotlinx.serialization.Serializable
  * @param end The end of the [TemporalRange]
  */
 @Serializable
-data class TemporalRange(val start: TemporalPoint, val end: TemporalPoint)
+data class TemporalRange(val start: TemporalPoint, val end: TemporalPoint) {
+
+    init {
+        require(TimeUtil.toMilliseconds(start) <= TimeUtil.toMilliseconds(end)) {"Start point must be before End point in TemporalRange"}
+    }
+
+    fun contains(inner: TemporalRange, outerFps: Float = 24.0f, innerFps: Float = 24.0f): Boolean =
+            TimeUtil.toMilliseconds(start, outerFps) <= TimeUtil.toMilliseconds(inner.start, innerFps) &&
+                    TimeUtil.toMilliseconds(end, outerFps) >= TimeUtil.toMilliseconds(inner.end, innerFps)
+
+}

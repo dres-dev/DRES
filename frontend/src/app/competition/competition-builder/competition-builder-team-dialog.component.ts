@@ -54,7 +54,8 @@ export class CompetitionBuilderTeamDialogComponent implements OnInit {
             this.dialogRef.close({
                 name: this.form.get('name').value,
                 color: this.form.get('color').value,
-                logo: this.form.get('logo').value
+                logo: this.form.get('logo').value,
+                users: []
             } as Team);
         }
     }

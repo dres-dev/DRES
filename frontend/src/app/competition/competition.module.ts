@@ -11,11 +11,12 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {CompetitionBuilderTeamDialogComponent} from './competition-builder/competition-builder-team-dialog.component';
 import {MatListModule} from '@angular/material/list';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatMenuModule} from '@angular/material/menu';
 import {CompetitionBuilderModule} from './competition-builder/competition-builder.module';
+import {CompetitionStartDialogComponent} from './competition-list/competition-start-dialog.component';
+import {MatSelectModule} from '@angular/material/select';
 
 @NgModule({
     imports: [
@@ -32,10 +33,11 @@ import {CompetitionBuilderModule} from './competition-builder/competition-builde
         MatListModule,
         MatProgressSpinnerModule,
         MatMenuModule,
-        CompetitionBuilderModule
+        CompetitionBuilderModule,
+        MatSelectModule
     ],
     exports:      [ CompetitionListComponent ],
-    declarations: [ CompetitionListComponent, CompetitionCreateDialogComponent ],
+    declarations: [ CompetitionListComponent, CompetitionCreateDialogComponent, CompetitionStartDialogComponent ],
     providers:    [ ]
 })
 export class CompetitionModule { }

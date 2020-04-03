@@ -40,7 +40,6 @@ export class CompetitionBuilderTaskDialogComponent {
                 @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData) {
 
 
-
         switch (data.taskType) {
             case 'KIS_VISUAL':
                 this.form = CompetitionBuilderTaskDialogComponent.KisVisualFormControl(data.task);
@@ -72,12 +71,14 @@ export class CompetitionBuilderTaskDialogComponent {
         if (task) {
             return new FormGroup({
                 name: new FormControl(task.name, Validators.required),
-                taskGroup: new FormControl(task.taskGroup, Validators.required)
+                taskGroup: new FormControl(task.taskGroup, Validators.required),
+                duration: new FormControl(task.duration, [Validators.required, Validators.min(5)])
             });
         } else {
             return new FormGroup({
                 name: new FormControl('', Validators.required),
-                taskGroup: new FormControl('', Validators.required)
+                taskGroup: new FormControl('', Validators.required),
+                duration: new FormControl(300, [Validators.required, Validators.min(5)])
             });
         }
     }
@@ -193,6 +194,7 @@ export class CompetitionBuilderTaskDialogComponent {
             this.dialogRef.close({
                 name: this.form.get('name'). value,
                 taskGroup: this.form.get('taskGroup').value,
+                duration: this.form.get('duration').value,
                 description: this.getTaskDescription()
             } as Task);
         }

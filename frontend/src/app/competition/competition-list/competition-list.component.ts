@@ -5,6 +5,8 @@ import {CompetitionCreateDialogComponent, CompetitionCreateDialogResult} from '.
 import {filter, flatMap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Router} from '@angular/router';
+import {CompetitionStart} from '../../../../openapi/model/competitionStart';
+import {CompetitionStartDialogComponent, CompetitionStartDialogResult} from './competition-start-dialog.component';
 
 @Component({
   selector: 'app-competition-list',
@@ -17,6 +19,7 @@ export class CompetitionListComponent implements AfterViewInit {
   displayedColumns = ['actions', 'id', 'name', 'description', 'taskCount', 'teamCount'];
   competitions: CompetitionOverview[] = [];
 
+
   constructor(private competitionService: CompetitionService,
               private routerService: Router,
               private dialog: MatDialog,
@@ -28,7 +31,9 @@ export class CompetitionListComponent implements AfterViewInit {
     dialogRef.afterClosed().pipe(
         filter(r => r != null),
         flatMap((r: CompetitionCreateDialogResult) => {
-          return this.competitionService.postApiCompetition({name: r.name, description: r.description} as CompetitionOverview);
+          return this.competitionService.postApiCompetition(
+              {name: r.name, description: r.description} as CompetitionOverview
+          );
         })
     ).subscribe((r) => {
         this.refresh();
@@ -36,6 +41,22 @@ export class CompetitionListComponent implements AfterViewInit {
     }, (r) => {
         this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
     });
+  }
+
+  public startRun(id: number) {
+      const dialogRef = this.dialog.open(CompetitionStartDialogComponent, {width: '500px'});
+      dialogRef.afterClosed().pipe(
+          filter(r => r != null),
+          flatMap((r: CompetitionStartDialogResult) => {
+              return this.competitionService.postApiCompetitionStart(
+                  {competitionId: id, name: r.name, type: r.type, scoreboards: []} as CompetitionStart
+              );
+          })
+      ).subscribe((r) => {
+          this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
+      }, (r) => {
+          this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+      });
   }
 
   public edit(competitionId: number) {

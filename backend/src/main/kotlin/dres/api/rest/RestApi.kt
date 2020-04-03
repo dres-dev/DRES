@@ -2,7 +2,6 @@ package dres.api.rest
 
 import dres.api.rest.handler.*
 import dres.api.rest.types.status.ErrorStatus
-import dres.api.rest.types.status.ErrorStatusException
 import dres.data.dbo.DataAccessLayer
 import dres.data.model.Config
 import dres.run.RunExecutor
@@ -71,7 +70,11 @@ object RestApi {
                 ListCompetitionScoreHandler(),
                 CurrentQueryHandler(),
                 CurrentTaskInfoHandler(),
-                CurrentSubmissionInfoHandler()
+                CurrentSubmissionInfoHandler(),
+
+
+                NextOpenJudgementHandler(),
+                PostJudgementHandler()
         )
 
         javalin = Javalin.create {

@@ -57,7 +57,7 @@ object RestApi {
                 ListCompetitionHandler(dataAccessLayer.competitions),
                 CreateCompetitionHandler(dataAccessLayer.competitions),
                 UpdateCompetitionHandler(dataAccessLayer.competitions),
-
+                StartCompetitionHandler(dataAccessLayer.runs, dataAccessLayer.competitions),
                 GetCompetitionHandler(dataAccessLayer.competitions),
                 DeleteCompetitionHandler(dataAccessLayer.competitions),
 

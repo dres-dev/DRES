@@ -207,7 +207,7 @@ class DeleteCompetitionHandler(competitions: DAO<Competition>) : CompetitionHand
 }
 
 class StartCompetitionHandler(val runs: DAO<CompetitionRun>, competitions: DAO<Competition>) : CompetitionHandler(competitions), PostRestHandler<SuccessStatus> {
-    override val route = "create"
+    override val route = "competition/start"
 
     @OpenApi(
             summary = "Creates a new competition run from an existing competition",
@@ -235,7 +235,7 @@ class StartCompetitionHandler(val runs: DAO<CompetitionRun>, competitions: DAO<C
             RunType.LOCAL -> TODO()
             RunType.DISTRIBUTED -> DistributedRunManager(competitionToStart, competitionStartMessage.name, emptyList(), RunExecutor, this.runs)
         }
-        
+
         /**... and schedule RunManager. */
         RunExecutor.schedule(manager)
 

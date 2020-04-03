@@ -9,13 +9,14 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { Team } from './team';
 
 
-export interface MediaItem { 
-    itemType: string;
-    collection: number;
-    name: string;
-    location: string;
+export interface CompetitionInfo { 
     id: number;
+    name: string;
+    Description?: string;
+    teams: Array<Team>;
+    description: string;
 }
 

@@ -9,13 +9,21 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TaskDescription } from './taskDescription';
 
 
-export interface Task { 
+export interface TaskInfo { 
     name: string;
     taskGroup: string;
-    description: TaskDescription;
+    type: TaskInfo.TypeEnum;
     duration: number;
 }
+export namespace TaskInfo {
+    export type TypeEnum = 'KIS_VISUAL' | 'KIS_TEXTUAL' | 'AVS';
+    export const TypeEnum = {
+        KISVISUAL: 'KIS_VISUAL' as TypeEnum,
+        KISTEXTUAL: 'KIS_TEXTUAL' as TypeEnum,
+        AVS: 'AVS' as TypeEnum
+    };
+}
+
 

@@ -16,12 +16,11 @@ export interface TemporalPoint {
     unit: TemporalPoint.UnitEnum;
 }
 export namespace TemporalPoint {
-    export type UnitEnum = 'FRAME_NUMBER' | 'SECONDS' | 'MILLISECONDS' | 'TIMECODE';
+    export type UnitEnum = 'FRAME_NUMBER' | 'SECONDS' | 'MILLISECONDS';
     export const UnitEnum = {
         FRAMENUMBER: 'FRAME_NUMBER' as UnitEnum,
         SECONDS: 'SECONDS' as UnitEnum,
-        MILLISECONDS: 'MILLISECONDS' as UnitEnum,
-        TIMECODE: 'TIMECODE' as UnitEnum
+        MILLISECONDS: 'MILLISECONDS' as UnitEnum
     };
 }
 

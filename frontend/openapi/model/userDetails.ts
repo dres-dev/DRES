@@ -17,11 +17,12 @@ export interface UserDetails {
     role: UserDetails.RoleEnum;
 }
 export namespace UserDetails {
-    export type RoleEnum = 'ADMIN' | 'JUDGE' | 'VIEWER';
+    export type RoleEnum = 'ADMIN' | 'JUDGE' | 'VIEWER' | 'PARTICIPANT';
     export const RoleEnum = {
         ADMIN: 'ADMIN' as RoleEnum,
         JUDGE: 'JUDGE' as RoleEnum,
-        VIEWER: 'VIEWER' as RoleEnum
+        VIEWER: 'VIEWER' as RoleEnum,
+        PARTICIPANT: 'PARTICIPANT' as RoleEnum
     };
 }
 

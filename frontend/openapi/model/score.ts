@@ -11,11 +11,8 @@
  */
 
 
-export interface MediaItem { 
-    itemType: string;
-    collection: number;
-    name: string;
-    location: string;
-    id: number;
+export interface Score { 
+    teamId: number;
+    score: number;
 }
 

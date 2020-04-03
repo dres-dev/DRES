@@ -9,13 +9,11 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { Score } from './score';
 
 
-export interface MediaItem { 
-    itemType: string;
-    collection: number;
+export interface ScoreOverview { 
     name: string;
-    location: string;
-    id: number;
+    scores: Array<Score>;
 }
 

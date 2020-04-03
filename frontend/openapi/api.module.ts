@@ -5,8 +5,10 @@ import { HttpClient } from '@angular/common/http';
 
 import { CollectionService } from './api/collection.service';
 import { CompetitionService } from './api/competition.service';
+import { CompetitionRunService } from './api/competitionRun.service';
 import { DefaultService } from './api/default.service';
 import { MediaService } from './api/media.service';
+import { SubmissionService } from './api/submission.service';
 import { UserService } from './api/user.service';
 
 @NgModule({

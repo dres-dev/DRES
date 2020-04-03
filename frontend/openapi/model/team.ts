@@ -15,5 +15,6 @@ export interface Team {
     name: string;
     color: string;
     logo: string;
+    users: Array<number>;
 }
 

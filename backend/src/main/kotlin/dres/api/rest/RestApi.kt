@@ -2,6 +2,7 @@ package dres.api.rest
 
 import dres.api.rest.handler.*
 import dres.api.rest.types.status.ErrorStatus
+import dres.api.rest.types.status.ErrorStatusException
 import dres.data.dbo.DataAccessLayer
 import dres.data.model.Config
 import dres.run.RunExecutor
@@ -128,7 +129,11 @@ object RestApi {
         .error(401) {
             it.json(ErrorStatus("Unauthorized request!"))
         }
-        .exception(Exception::class.java) { e, _ -> e.printStackTrace() }.start(config.httpPort)
+        .exception(Exception::class.java) { e, ctx ->
+            ctx.status(500).json(ErrorStatus("Internal server error!"))
+            e.printStackTrace()
+        }
+        .start(config.httpPort)
     }
 
     fun stop() {

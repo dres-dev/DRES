@@ -231,15 +231,19 @@ class StartCompetitionHandler(val runs: DAO<CompetitionRun>, competitions: DAO<C
         val competitionToStart = this.competitionById(competitionStartMessage.competitionId)
 
         /* Prepare... */
-        val manager = when (competitionStartMessage.type) {
-            RunType.LOCAL -> TODO()
-            RunType.DISTRIBUTED -> DistributedRunManager(competitionToStart, competitionStartMessage.name, emptyList(), RunExecutor, this.runs)
+        try {
+            val manager = when (competitionStartMessage.type) {
+                RunType.LOCAL -> TODO()
+                RunType.DISTRIBUTED -> DistributedRunManager(competitionToStart, competitionStartMessage.name, emptyList(), RunExecutor, this.runs)
+            }
+
+            /**... and schedule RunManager. */
+            RunExecutor.schedule(manager)
+
+            return SuccessStatus("Competition ${competitionStartMessage.name} was started and is running with ID ${manager.runId}.")
+        } catch (e: IllegalArgumentException) {
+            throw ErrorStatusException(400, e.message ?: "Invalid parameters. This is a programmers error!")
         }
-
-        /**... and schedule RunManager. */
-        RunExecutor.schedule(manager)
-
-        return SuccessStatus("Competition ${competitionStartMessage.name} was started and is running with ID ${manager.runId}.")
     }
 
     data class CompetitionStart(val competitionId: Long, val name: String, val type: RunType, val scoreboards: Array<String>)

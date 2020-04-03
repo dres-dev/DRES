@@ -22,6 +22,11 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         this.ended = ended
     }
 
+    init {
+        require(competition.tasks.size > 0) { "Cannot create a run from a competition that doesn't have any tasks. "}
+        require(competition.teams.size > 0) { "Cannot create a run from a competition that doesn't have any teams. "}
+    }
+
     /** Timestamp of when this [CompetitionRun] was started. */
     @Volatile
     override var started: Long? = null

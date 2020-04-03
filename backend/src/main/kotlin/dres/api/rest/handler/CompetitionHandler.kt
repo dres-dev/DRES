@@ -1,6 +1,7 @@
 package dres.api.rest.handler
 
 import dres.api.rest.RestApiRole
+import dres.api.rest.types.run.RunType
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
@@ -8,6 +9,10 @@ import dres.data.dbo.DAO
 import dres.data.model.competition.Competition
 import dres.data.model.competition.Task
 import dres.data.model.competition.Team
+import dres.data.model.run.CompetitionRun
+import dres.run.DistributedRunManager
+import dres.run.RunExecutor
+import dres.run.Scoreboard
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -22,7 +27,7 @@ abstract class CompetitionHandler(protected val competitions: DAO<Competition>) 
                 throw ErrorStatusException(404, "Parameter 'competitionId' is missing!'")
             }.toLong()
 
-    private fun competitionById(id: Long): Competition =
+    protected fun competitionById(id: Long): Competition =
             competitions[id] ?: throw ErrorStatusException(404, "Competition with ID $id not found.'")
 
     protected fun competitionFromContext(ctx: Context): Competition = competitionById(competitionId(ctx))
@@ -200,3 +205,43 @@ class DeleteCompetitionHandler(competitions: DAO<Competition>) : CompetitionHand
 
     override val route: String = "competition/:competitionId"
 }
+
+class StartCompetitionHandler(val runs: DAO<CompetitionRun>, competitions: DAO<Competition>) : CompetitionHandler(competitions), PostRestHandler<SuccessStatus> {
+    override val route = "create"
+
+    @OpenApi(
+            summary = "Creates a new competition run from an existing competition",
+            path = "/api/competition/start",
+            method = HttpMethod.POST,
+            requestBody = OpenApiRequestBody([OpenApiContent(CompetitionStart::class)]),
+            tags = ["Competition"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doPost(ctx: Context): SuccessStatus {
+
+        val competitionStartMessage = try {
+            ctx.bodyAsClass(CompetitionStart::class.java)
+        } catch (e: BadRequestResponse) {
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+        }
+
+        val competitionToStart = this.competitionById(competitionStartMessage.competitionId)
+
+        /* Prepare... */
+        val manager = when (competitionStartMessage.type) {
+            RunType.LOCAL -> TODO()
+            RunType.DISTRIBUTED -> DistributedRunManager(competitionToStart, competitionStartMessage.name, emptyList(), RunExecutor, this.runs)
+        }
+        
+        /**... and schedule RunManager. */
+        RunExecutor.schedule(manager)
+
+        return SuccessStatus("Competition ${competitionStartMessage.name} was started and is running with ID ${manager.runId}.")
+    }
+
+    data class CompetitionStart(val competitionId: Long, val name: String, val type: RunType, val scoreboards: Array<String>)
+}
+

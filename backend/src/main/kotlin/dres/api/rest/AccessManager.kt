@@ -44,7 +44,7 @@ object AccessManager {
         sessionUserMap.remove(sessionId)
     }
 
-    private fun rolesOfSession(sessionId: String): Set<Role> = sessionRoleMap[sessionId] ?: emptySet()
+    fun rolesOfSession(sessionId: String): Set<Role> = sessionRoleMap[sessionId] ?: emptySet()
 
     fun getUserIdforSession(sessionId: String): Long? = sessionUserMap[sessionId]
 

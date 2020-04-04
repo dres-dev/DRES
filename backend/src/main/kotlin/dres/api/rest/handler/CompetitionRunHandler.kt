@@ -24,6 +24,8 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
 
     private fun userId(ctx: Context): Long = AccessManager.getUserIdforSession(ctx.req.session.id)!!
 
+    private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.req.session.id).contains(RestApiRole.ADMIN)
+
 //    /**
 //     * returns the runs visible to the current user
 //     */
@@ -33,11 +35,17 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
 //    }
 
     fun getRelevantManagers(ctx: Context): List<RunManager> {
+        if (isAdmin(ctx)){
+            return RunExecutor.managers()
+        }
         val userId = userId(ctx)
         return RunExecutor.managers().filter { it.competition.teams.any { it.users.contains(userId) } }
     }
 
     fun getRun(ctx: Context, runId: Long): RunManager? {
+        if (isAdmin(ctx)){
+            return RunExecutor.managerForId(runId)
+        }
         val userId = userId(ctx)
         val run = RunExecutor.managerForId(runId) ?: return null
         if (run.competition.teams.any { it.users.contains(userId) }){

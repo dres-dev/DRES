@@ -209,7 +209,7 @@ class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<
 data class SubmissionInfo(val team: Long, val submissionTime: Long, val status: SubmissionStatus, val collection: String?, val item: String?, val timeCode: String?){
 
     enum class SubmissionStatus {
-        CORRECT, WRONG, INDETERMINATE
+        CORRECT, WRONG, INDETERMINATE, UNDECIDABLE
     }
 
 }

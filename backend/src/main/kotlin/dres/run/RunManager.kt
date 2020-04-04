@@ -27,6 +27,9 @@ interface RunManager : Runnable {
     /** The [Task] that is currently being executed or waiting for execution by this [RunManager]. Can be null!*/
     val currentTask: Task?
 
+    /** The list of [Submission]s fpr the current [Task]. */
+    val submissions: List<Submission>
+
     /** Current [RunManagerStatus] of the [RunManager]. */
     val status: RunManagerStatus
 
@@ -129,6 +132,7 @@ interface RunManager : Runnable {
      * @return True if [ClientMessage] was processed, false otherwise
      */
     fun wsMessageReceived(message: ClientMessage): Boolean
+
 
     /**
      * Invoked by an external caller to post a new [Submission] for the [Task] that is currently being

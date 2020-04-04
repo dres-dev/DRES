@@ -51,6 +51,12 @@ class DistributedRunManager(competition: Competition, name: String, override val
     override var currentTask: Task = this.competition.tasks.first()
         private set
 
+    /** The list of [Submission]s fpr the current [Task]. */
+    override val submissions: List<Submission>
+        get() = this.stateLock.read {
+            this.run.currentTask?.submissions ?: emptyList()
+        }
+
     /** A lock for state changes to this [DistributedRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
 
@@ -227,6 +233,8 @@ class DistributedRunManager(competition: Competition, name: String, override val
                     this.dao.update(this.run)
                     this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.TASK_END))
                 }
+
+
 
                 /** Sleep for 250ms. */
                 Thread.sleep(250)

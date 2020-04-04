@@ -217,6 +217,7 @@ class StartCompetitionHandler(val runs: DAO<CompetitionRun>, competitions: DAO<C
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
             ]
     )
@@ -240,7 +241,7 @@ class StartCompetitionHandler(val runs: DAO<CompetitionRun>, competitions: DAO<C
             /**... and schedule RunManager. */
             RunExecutor.schedule(manager)
 
-            return SuccessStatus("Competition ${competitionStartMessage.name} was started and is running with ID ${manager.runId}.")
+            return SuccessStatus("Competition '${competitionStartMessage.name}' was started and is running with ID ${manager.runId}.")
         } catch (e: IllegalArgumentException) {
             throw ErrorStatusException(400, e.message ?: "Invalid parameters. This is a programmers error!")
         }

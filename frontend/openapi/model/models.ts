@@ -6,6 +6,8 @@ export * from './competitionOverview';
 export * from './competitionStart';
 export * from './errorStatus';
 export * from './imageItem';
+export * from './judgement';
+export * from './judgementRequest';
 export * from './kisTextualTaskDescription';
 export * from './kisTextualTaskDescriptionAllOf';
 export * from './kisVisualTaskDescription';

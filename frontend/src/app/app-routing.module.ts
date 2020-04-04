@@ -6,6 +6,7 @@ import {LoginComponent} from './login-component/login.component';
 import {AuthenticationGuard} from './services/session/authentication.guard';
 import {UserDetails} from '../../openapi';
 import RoleEnum = UserDetails.RoleEnum;
+import {RunListComponent} from './run/run-list.component';
 
 
 const routes: Routes = [
@@ -14,13 +15,20 @@ const routes: Routes = [
     component: CompetitionListComponent,
     canActivate: [AuthenticationGuard],
     data: { roles: [RoleEnum.ADMIN] }
-},
+  },
   {
     path: 'competition/builder/:competitionId',
     component: CompetitionBuilderComponent,
     canActivate: [AuthenticationGuard],
     data: { roles: [RoleEnum.ADMIN] }
   },
+  {
+    path: 'run/list',
+    component: RunListComponent,
+    canActivate: [AuthenticationGuard],
+    data: { roles: [RoleEnum.ADMIN] }
+  },
+
   { path: 'login', component: LoginComponent },
 
   // otherwise redirect to home

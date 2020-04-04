@@ -17,14 +17,16 @@ export interface SubmissionInfo {
     status: SubmissionInfo.StatusEnum;
     collection?: string;
     item?: string;
-    timeCode?: string;
+    startTime?: string;
+    endTime?: string;
 }
 export namespace SubmissionInfo {
-    export type StatusEnum = 'CORRECT' | 'WRONG' | 'INDETERMINATE';
+    export type StatusEnum = 'CORRECT' | 'WRONG' | 'INDETERMINATE' | 'UNDECIDABLE';
     export const StatusEnum = {
         CORRECT: 'CORRECT' as StatusEnum,
         WRONG: 'WRONG' as StatusEnum,
-        INDETERMINATE: 'INDETERMINATE' as StatusEnum
+        INDETERMINATE: 'INDETERMINATE' as StatusEnum,
+        UNDECIDABLE: 'UNDECIDABLE' as StatusEnum
     };
 }
 

@@ -15,8 +15,19 @@ import { Team } from './team';
 export interface CompetitionInfo { 
     id: number;
     name: string;
-    Description?: string;
-    teams: Array<Team>;
+    status: CompetitionInfo.StatusEnum;
     description: string;
+    teams: Array<Team>;
 }
+export namespace CompetitionInfo {
+    export type StatusEnum = 'CREATED' | 'ACTIVE' | 'PREPARING_TASK' | 'RUNNING_TASK' | 'TERMINATED';
+    export const StatusEnum = {
+        CREATED: 'CREATED' as StatusEnum,
+        ACTIVE: 'ACTIVE' as StatusEnum,
+        PREPARINGTASK: 'PREPARING_TASK' as StatusEnum,
+        RUNNINGTASK: 'RUNNING_TASK' as StatusEnum,
+        TERMINATED: 'TERMINATED' as StatusEnum
+    };
+}
+
 

@@ -12,35 +12,39 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatCardModule} from '@angular/material/card';
 import {MatInputModule} from '@angular/material/input';
-import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
+import {HttpClientModule} from '@angular/common/http';
 import {ServicesModule} from './services/services.module';
 import {MatMenuModule} from '@angular/material/menu';
 import {CompetitionModule} from './competition/competition.module';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
-import {HttpErrorInterceptor} from './services/session/http-error.interceptor';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {RunModule} from './run/run.module';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent
   ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    BrowserAnimationsModule,
-    MatToolbarModule,
-    MatIconModule,
-    MatButtonModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatCardModule,
-    MatInputModule,
-    MatSnackBarModule,
-    HttpClientModule,
-    ServicesModule,
-    CompetitionModule,
-    MatMenuModule
-  ],
+    imports: [
+        BrowserModule,
+        AppRoutingModule,
+        BrowserAnimationsModule,
+        MatToolbarModule,
+        MatIconModule,
+        MatButtonModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatCardModule,
+        MatInputModule,
+        MatSnackBarModule,
+        HttpClientModule,
+        ServicesModule,
+        MatMenuModule,
+        MatTooltipModule,
+
+        CompetitionModule,
+        RunModule
+    ],
   providers: [],
   bootstrap: [AppComponent]
 })

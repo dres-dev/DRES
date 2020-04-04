@@ -3,8 +3,17 @@ package dres.data.model.run
 import dres.data.model.Entity
 import dres.data.model.competition.Competition
 import dres.data.model.competition.Task
+import dres.data.model.competition.TaskDescription
+import dres.data.model.competition.TaskType
+import dres.data.model.run.CompetitionRun.TaskRun
+import dres.run.validate.SubmissionValidator
+import dres.run.validate.TextualKisSubmissionValidator
+import dres.run.validate.VisualKisSubmissionValidator
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
-import java.lang.IllegalArgumentException
 import java.util.*
 
 /**
@@ -77,6 +86,30 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         }
     }
 
+    @kotlinx.serialization.Transient
+    val awaitingValidation = mutableListOf<Deferred<Pair<Submission, SubmissionStatus>>>()
+
+    val hasUnvalidatedSubmissions: Boolean
+        get() = awaitingValidation.isNotEmpty()
+
+    /**
+     * Checks if new submission validations are available and updates [Submission]s accordingly
+     */
+    @ExperimentalCoroutinesApi
+    fun updateSubmissionValidations() {
+        if (!hasUnvalidatedSubmissions) {
+            return
+        }
+        val completed = awaitingValidation.filter { it.isCompleted }
+        completed.forEach {
+            val result = it.getCompleted()
+            result.first.status = result.second
+        }
+        //remove completed ones
+        awaitingValidation.removeAll(completed)
+
+        //TODO maybe trigger an update with the freshly evaluated submissions somewhere?
+    }
 
     /**
      * Represents a concrete instance or `run` of a [Task]. [TaskRun]s always exist within a
@@ -114,6 +147,18 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         /** The [Task] referenced by this [TaskRun]. */
         val task: Task
             get() = this@CompetitionRun.competition.tasks[this.taskId]
+
+        private val validator: SubmissionValidator<Submission, TaskDescription> = validator()
+
+        private fun validator(): SubmissionValidator<Submission, TaskDescription> {
+
+            return when(task.description.taskType){
+                TaskType.KIS_VISUAL -> VisualKisSubmissionValidator() as SubmissionValidator<Submission, TaskDescription>
+                TaskType.KIS_TEXTUAL -> TextualKisSubmissionValidator() as SubmissionValidator<Submission, TaskDescription>
+                TaskType.AVS -> TODO()
+            }
+
+        }
 
         init {
             if (this@CompetitionRun.competition.tasks.size < this.taskId) {
@@ -155,6 +200,14 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
                 throw IllegalStateException("Team ${submission.team} does not exists for competition run ${this@CompetitionRun.name}.")
             }
             (this.submissions as LinkedList).add(submission)
+
+            runBlocking { //TODO specify execution context
+                awaitingValidation.add(
+                        async {
+                           submission to validator.validate(submission, task.description)
+                    }
+                )
+            }
         }
     }
 }

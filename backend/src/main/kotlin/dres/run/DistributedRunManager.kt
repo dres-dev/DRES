@@ -9,7 +9,6 @@ import dres.data.model.competition.Competition
 import dres.data.model.competition.Task
 import dres.data.model.run.CompetitionRun
 import dres.data.model.run.Submission
-
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -70,7 +69,6 @@ class DistributedRunManager(competition: Competition, name: String, override val
      */
     @Volatile
     private var ackCounter = -1
-
 
     init {
         this.run.id = this.dao.append(this.run)
@@ -180,7 +178,7 @@ class DistributedRunManager(competition: Competition, name: String, override val
      * @param sub [Submission] that should be registered.
      */
     override fun postSubmission(sub: Submission): Boolean = this.stateLock.read {
-        if (this.status == RunManagerStatus.RUNNING_TASK) {
+        return if (this.status == RunManagerStatus.RUNNING_TASK) {
             /* Register submission. */
             this.run.currentTask?.addSubmission(sub)
 
@@ -190,9 +188,9 @@ class DistributedRunManager(competition: Competition, name: String, override val
             /* Inform clients about update. */
             this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.TASK_UPDATED))
 
-            return true
+            true
         } else {
-            return false
+            false
         }
     }
 
@@ -234,11 +232,13 @@ class DistributedRunManager(competition: Competition, name: String, override val
                     this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.TASK_END))
                 }
 
-
+                this.run.updateSubmissionValidations()
 
                 /** Sleep for 250ms. */
                 Thread.sleep(250)
             }
+
+            this.run.updateSubmissionValidations()
 
             Thread.onSpinWait()
         }

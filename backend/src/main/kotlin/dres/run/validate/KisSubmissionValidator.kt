@@ -1,42 +1,42 @@
 package dres.run.validate
 
-import dres.api.rest.handler.SubmissionInfo
 import dres.data.model.competition.TaskDescription
-import dres.data.model.run.KisSubmission
+import dres.data.model.run.SubmissionStatus
+import dres.data.model.run.VBSSubmission
 import dres.utilities.TimeUtil
 
-class VisualKisSubmissionValidator : SubmissionValidator<KisSubmission, TaskDescription.KisVisualTaskDescription> {
+class VisualKisSubmissionValidator : SubmissionValidator<VBSSubmission, TaskDescription.KisVisualTaskDescription> {
 
     //TODO framenumber not currently supported
-    override fun validate(submission: KisSubmission, task: TaskDescription.KisVisualTaskDescription): SubmissionInfo.SubmissionStatus {
+    override suspend fun validate(submission: VBSSubmission, task: TaskDescription.KisVisualTaskDescription): SubmissionStatus {
         val outer = TimeUtil.toMilliseconds(task.temporalRange)
 
         if (submission.start > submission.end) { //invalid submission
-            return SubmissionInfo.SubmissionStatus.WRONG
+            return SubmissionStatus.WRONG
         }
 
         if (outer.first <= submission.start && outer.second >= submission.end) {
-            return SubmissionInfo.SubmissionStatus.CORRECT
+            return SubmissionStatus.CORRECT
         }
 
-        return SubmissionInfo.SubmissionStatus.WRONG
+        return SubmissionStatus.WRONG
     }
 }
 
-class TextualKisSubmissionValidator : SubmissionValidator<KisSubmission, TaskDescription.KisTextualTaskDescription> {
+class TextualKisSubmissionValidator : SubmissionValidator<VBSSubmission, TaskDescription.KisTextualTaskDescription> {
 
     //TODO framenumber not currently supported
-    override fun validate(submission: KisSubmission, task: TaskDescription.KisTextualTaskDescription): SubmissionInfo.SubmissionStatus {
+    override suspend fun validate(submission: VBSSubmission, task: TaskDescription.KisTextualTaskDescription): SubmissionStatus {
         val outer = TimeUtil.toMilliseconds(task.temporalRange)
 
         if (submission.start > submission.end) { //invalid submission
-            return SubmissionInfo.SubmissionStatus.WRONG
+            return SubmissionStatus.WRONG
         }
 
         if (outer.first <= submission.start && outer.second >= submission.end) {
-            return SubmissionInfo.SubmissionStatus.CORRECT
+            return SubmissionStatus.CORRECT
         }
 
-        return SubmissionInfo.SubmissionStatus.WRONG
+        return SubmissionStatus.WRONG
     }
 }

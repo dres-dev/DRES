@@ -7,7 +7,8 @@ import dres.api.rest.types.status.ErrorStatusException
 import dres.data.model.competition.Task
 import dres.data.model.competition.TaskType
 import dres.data.model.competition.Team
-import dres.data.model.run.KisSubmission
+import dres.data.model.run.SubmissionStatus
+import dres.data.model.run.VBSSubmission
 import dres.run.RunExecutor
 import dres.run.RunManager
 import dres.run.ScoreOverview
@@ -215,15 +216,7 @@ class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<
 }
 
 
-data class SubmissionInfo(val team: Int, val submissionTime: Long, val status: SubmissionStatus, val collection: String?, val item: String?, val timeCode: String?){
-
-    enum class SubmissionStatus {
-        CORRECT, WRONG, INDETERMINATE, UNDECIDABLE
-    }
-
-
-
-}
+data class SubmissionInfo(val team: Int, val submissionTime: Long, val status: SubmissionStatus, val collection: String?, val item: String?, val startTime: String?, val endTime: String? = startTime)
 
 class CurrentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
 
@@ -250,11 +243,12 @@ class CurrentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
         val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId")
 
         return if(task.description.taskType ==  TaskType.KIS_TEXTUAL) {
-           run.submissions.map { SubmissionInfo(it.team, it.timestamp, SubmissionInfo.SubmissionStatus.INDETERMINATE, null, null, null) }
+           run.submissions.map { SubmissionInfo(it.team, it.timestamp, SubmissionStatus.INDETERMINATE, null, null, null) }
         }else {
             run.submissions.map {
-                val kis = it as KisSubmission //FIXME submission data class does not contain all relevant fields
-                SubmissionInfo(it.team, it.timestamp, SubmissionInfo.SubmissionStatus.INDETERMINATE, kis.name, null, null) }
+                val vbsSubmission = it as VBSSubmission //FIXME submission data class does not contain all relevant fields
+                SubmissionInfo(it.team, it.timestamp, SubmissionStatus.INDETERMINATE, vbsSubmission.collection, vbsSubmission.item, vbsSubmission.start.toString(), vbsSubmission.end.toString())
+            }
         }
 
     }

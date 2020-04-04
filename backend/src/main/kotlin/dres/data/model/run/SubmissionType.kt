@@ -7,6 +7,6 @@ package dres.data.model.run
  * @version 1.0
  */
 enum class SubmissionType {
-    AVS,
-    KIS
+    LSC,
+    VBS
 }

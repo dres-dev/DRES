@@ -4,6 +4,7 @@ import dres.api.rest.RestApiRole
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
+import dres.data.model.run.SubmissionStatus
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -15,7 +16,7 @@ abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler 
 
 }
 
-data class Judgement(val id: Long, val judgement: SubmissionInfo.SubmissionStatus)
+data class Judgement(val id: Long, val judgement: SubmissionStatus)
 
 data class JudgementRequest(val id: Long, val collection: String, val item: String, val timeCode: String?)
 

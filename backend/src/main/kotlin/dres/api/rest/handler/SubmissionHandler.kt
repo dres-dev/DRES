@@ -7,10 +7,8 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.model.competition.Task
-import dres.data.model.competition.TaskType
-import dres.data.model.run.AvsSubmission
-import dres.data.model.run.KisSubmission
 import dres.data.model.run.Submission
+import dres.data.model.run.VBSSubmission
 import dres.run.RunExecutor
 import dres.run.RunManager
 import dres.run.RunManagerStatus
@@ -64,17 +62,11 @@ class SubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHandle
         //TODO map frame and shot to time
         val time = map.getOrDefault("timecode", "0").toLong()
 
-        return when(currentTask.description.taskType) {
-            TaskType.KIS_VISUAL -> {
-                KisSubmission(team, submissionTime, video, time, time)
-            }
-            TaskType.KIS_TEXTUAL -> {
-                KisSubmission(team, submissionTime, video, time, time)
-            }
-            TaskType.AVS -> {
-                AvsSubmission(team, submissionTime, video)
-            }
-        }
+        //TODO get collection information from competition?
+
+        return VBSSubmission(team, submissionTime, "TODO", video, time, time)
+
+
 
     }
 

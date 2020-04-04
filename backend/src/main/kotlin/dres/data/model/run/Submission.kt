@@ -3,11 +3,15 @@ package dres.data.model.run
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed class Submission(open val team: Int, open val timestamp: Long, open val name: String, val type: SubmissionType)
+sealed class Submission(open val team: Int, open val timestamp: Long, val collection: String, open val item: String, val type: SubmissionType, var status: SubmissionStatus = SubmissionStatus.INDETERMINATE)
 
 
-/** TODO: Rename + rethink structure. */
+class LSCSubmission(team: Int, timestamp: Long, collection: String, item: String): Submission(team, timestamp, collection, item, SubmissionType.LSC)
 
-class AvsSubmission(team: Int, timestamp: Long, name: String): Submission(team, timestamp, name, SubmissionType.AVS)
+class VBSSubmission(team: Int, timestamp: Long, collection: String, item: String, val start: Long, val end: Long): Submission(team, timestamp, collection, item, SubmissionType.VBS)
 
-class KisSubmission(team: Int, timestamp: Long, name: String, val start: Long, val end: Long): Submission(team, timestamp, name, SubmissionType.KIS)
+
+
+enum class SubmissionStatus {
+    CORRECT, WRONG, INDETERMINATE, UNDECIDABLE
+}

@@ -11,6 +11,7 @@ import dres.data.model.run.SubmissionStatus
 import dres.data.model.run.VBSSubmission
 import dres.run.RunExecutor
 import dres.run.RunManager
+import dres.run.RunManagerStatus
 import dres.run.ScoreOverview
 import dres.utilities.extensions.errorResponse
 import io.javalin.core.security.Role
@@ -61,13 +62,10 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
     }.toLong()
 }
 
-data class CompetitionInfo(val id: Long, val name: String, val Description: String, val teams: List<Team>) {
-
+data class CompetitionInfo(val id: Long, val name: String, val status: RunManagerStatus, val description: String, val teams: List<Team>) {
     companion object {
-        fun of(run: RunManager): CompetitionInfo = CompetitionInfo(run.runId, run.name, run.competition.description
-                ?: "", run.competition.teams)
+        fun of(run: RunManager): CompetitionInfo = CompetitionInfo(run.runId, run.name, run.status, run.competition.description ?: "", run.competition.teams)
     }
-
 }
 
 class ListCompetitionRunsHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<CompetitionInfo>> {

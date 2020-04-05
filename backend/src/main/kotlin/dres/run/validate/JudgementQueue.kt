@@ -6,6 +6,7 @@ import dres.data.model.run.SubmissionStatus
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicInteger
 
 class JudgementQueue<S : Submission, T: TaskDescription> {
 
@@ -13,6 +14,8 @@ class JudgementQueue<S : Submission, T: TaskDescription> {
 
     private val openQueue: ConcurrentLinkedQueue<JudgementQueueElement> = ConcurrentLinkedQueue()
     private val waitingQueue: ConcurrentLinkedQueue<Pair<Long, JudgementQueueElement>> = ConcurrentLinkedQueue()
+
+    private val counter = AtomicInteger()
 
     /**
      * Adds an element to be judged
@@ -28,16 +31,16 @@ class JudgementQueue<S : Submission, T: TaskDescription> {
     /**
      * returns the next element awaiting judgement
      */
-    fun next(): Pair<S, T>? {
+    fun next(): JudgementQueueElement? {
         if (openQueue.isNotEmpty()){
             val jqe = openQueue.poll()
             waitingQueue.add((System.currentTimeMillis() + minExclusiveTime) to jqe)
-            return jqe.submission to jqe.taskDescription
+            return jqe
         }
         if ((waitingQueue.peek()?.first ?: Long.MAX_VALUE) < System.currentTimeMillis()){
             val jqe = waitingQueue.poll().second
             waitingQueue.add((System.currentTimeMillis() + minExclusiveTime) to jqe)
-            return jqe.submission to jqe.taskDescription
+            return jqe
         }
         return null
     }
@@ -53,11 +56,23 @@ class JudgementQueue<S : Submission, T: TaskDescription> {
         waitingQueue.remove(jqe)
     }
 
+    fun judge(id: Int, status: SubmissionStatus) {
+        val jqe = waitingQueue.find { it.second.id == id }
+        if (jqe == null){
+            //no matching element found
+            //TODO log somewhere?
+            return
+        }
+        jqe.second.judge(status)
+        waitingQueue.remove(jqe)
+    }
+
     inner class JudgementQueueElement(val submission: S, val taskDescription: T){
 
-        val status = CompletableDeferred<SubmissionStatus>()
+        internal val status = CompletableDeferred<SubmissionStatus>()
+        val id = counter.incrementAndGet()
 
-        fun judge(status: SubmissionStatus) {
+        internal fun judge(status: SubmissionStatus) {
             this.status.complete(status)
         }
 

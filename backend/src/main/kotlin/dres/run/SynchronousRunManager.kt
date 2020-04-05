@@ -21,20 +21,20 @@ import kotlin.concurrent.write
  * @version 1.0
  * @author Ralph Gasser
  */
-class DistributedRunManager(competition: Competition, name: String, override val scoreboards: List<Scoreboard>, private val executor: RunExecutor, private val dao: DAO<CompetitionRun>) : RunManager {
+class SynchronousRunManager(competition: Competition, name: String, override val scoreboards: List<Scoreboard>, private val executor: RunExecutor, private val dao: DAO<CompetitionRun>) : RunManager {
 
-    /** The [CompetitionRun] capturing the state of this [DistributedRunManager]. */
+    /** The [CompetitionRun] capturing the state of this [SynchronousRunManager]. */
     private val run = CompetitionRun(-1, name, competition)
 
-    /** Run ID of this [DistributedRunManager]. */
+    /** Run ID of this [SynchronousRunManager]. */
     override val runId: Long
         get() = this.run.id
 
-    /** Name of this [DistributedRunManager]. */
+    /** Name of this [SynchronousRunManager]. */
     override val name: String
         get() = this.run.name
 
-    /** The [Competition] executed by this [DistributedRunManager]. */
+    /** The [Competition] executed by this [SynchronousRunManager]. */
     override val competition: Competition
         get() = this.run.competition
 
@@ -56,7 +56,7 @@ class DistributedRunManager(competition: Competition, name: String, override val
             this.run.currentTask?.submissions ?: emptyList()
         }
 
-    /** A lock for state changes to this [DistributedRunManager]. */
+    /** A lock for state changes to this [SynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
 
     /** Internal counter used to count the number of WebSocket connected clients. */

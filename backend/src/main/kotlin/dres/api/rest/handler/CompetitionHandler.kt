@@ -10,9 +10,8 @@ import dres.data.model.competition.Competition
 import dres.data.model.competition.Task
 import dres.data.model.competition.Team
 import dres.data.model.run.CompetitionRun
-import dres.run.DistributedRunManager
+import dres.run.SynchronousRunManager
 import dres.run.RunExecutor
-import dres.run.Scoreboard
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -235,7 +234,7 @@ class StartCompetitionHandler(val runs: DAO<CompetitionRun>, competitions: DAO<C
         try {
             val manager = when (competitionStartMessage.type) {
                 RunType.LOCAL -> TODO()
-                RunType.DISTRIBUTED -> DistributedRunManager(competitionToStart, competitionStartMessage.name, emptyList(), RunExecutor, this.runs)
+                RunType.DISTRIBUTED -> SynchronousRunManager(competitionToStart, competitionStartMessage.name, emptyList(), RunExecutor, this.runs)
             }
 
             /**... and schedule RunManager. */

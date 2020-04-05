@@ -6,6 +6,8 @@ import dres.data.model.competition.Task
 import dres.data.model.competition.TaskDescription
 import dres.data.model.competition.TaskType
 import dres.data.model.run.CompetitionRun.TaskRun
+import dres.run.RunExecutor
+import dres.run.validate.JudgementValidator
 import dres.run.validate.SubmissionValidator
 import dres.run.validate.TextualKisSubmissionValidator
 import dres.run.validate.VisualKisSubmissionValidator
@@ -30,6 +32,12 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         this.started = started
         this.ended = ended
     }
+
+    private val validators = mapOf(
+            TaskType.KIS_VISUAL to VisualKisSubmissionValidator(),
+            TaskType.KIS_TEXTUAL to TextualKisSubmissionValidator(),
+            TaskType.AVS to JudgementValidator(RunExecutor.judgementQueue)
+    )
 
     init {
         require(competition.tasks.size > 0) { "Cannot create a run from a competition that doesn't have any tasks. "}
@@ -111,6 +119,11 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         //TODO maybe trigger an update with the freshly evaluated submissions somewhere?
     }
 
+
+    private fun validator(run: TaskRun): SubmissionValidator<Submission, TaskDescription> {
+        return validators[run.task.description.taskType] as SubmissionValidator<Submission, TaskDescription>
+    }
+
     /**
      * Represents a concrete instance or `run` of a [Task]. [TaskRun]s always exist within a
      * [CompetitionRun]. As a [CompetitionRun], [TaskRun]s can be started and ended and they
@@ -148,17 +161,7 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         val task: Task
             get() = this@CompetitionRun.competition.tasks[this.taskId]
 
-        private val validator: SubmissionValidator<Submission, TaskDescription> = validator()
-
-        private fun validator(): SubmissionValidator<Submission, TaskDescription> {
-
-            return when(task.description.taskType){
-                TaskType.KIS_VISUAL -> VisualKisSubmissionValidator() as SubmissionValidator<Submission, TaskDescription>
-                TaskType.KIS_TEXTUAL -> TextualKisSubmissionValidator() as SubmissionValidator<Submission, TaskDescription>
-                TaskType.AVS -> TODO()
-            }
-
-        }
+        private val validator: SubmissionValidator<Submission, TaskDescription> = validator(this)
 
         init {
             if (this@CompetitionRun.competition.tasks.size < this.taskId) {

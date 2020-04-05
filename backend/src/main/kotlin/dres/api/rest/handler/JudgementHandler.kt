@@ -5,6 +5,8 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.model.run.SubmissionStatus
+import dres.data.model.run.VBSSubmission
+import dres.run.RunExecutor
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -16,9 +18,9 @@ abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler 
 
 }
 
-data class Judgement(val id: Long, val judgement: SubmissionStatus)
+data class Judgement(val id: Int, val judgement: SubmissionStatus)
 
-data class JudgementRequest(val id: Long, val collection: String, val item: String, val timeCode: String?)
+data class JudgementRequest(val id: Int, val collection: String, val item: String, val startTime: String?, val endTime: String?)
 
 class NextOpenJudgementHandler : AbstractJudgementHandler(), GetRestHandler<JudgementRequest> {
     override val route = "judgement/next"
@@ -36,8 +38,13 @@ class NextOpenJudgementHandler : AbstractJudgementHandler(), GetRestHandler<Judg
     )
     override fun doGet(ctx: Context): JudgementRequest {
 
+        val next = RunExecutor.judgementQueue.next() ?: throw ErrorStatusException(404, "No submissions to be judged")
 
-        TODO("Not yet implemented")
+        return if(next.submission is VBSSubmission) {
+            JudgementRequest(next.id, next.submission.collection, next.submission.item, next.submission.start.toString(), next.submission.end.toString())
+        } else {
+            JudgementRequest(next.id, next.submission.collection, next.submission.item, null, null)
+        }
     }
 
 }

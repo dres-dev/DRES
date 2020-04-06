@@ -12,11 +12,14 @@ import dres.data.model.run.VBSSubmission
 import dres.run.RunExecutor
 import dres.run.RunManager
 import dres.run.RunManagerStatus
-import dres.run.ScoreOverview
+import dres.run.score.ScoreOverview
 import dres.utilities.extensions.errorResponse
 import io.javalin.core.security.Role
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.*
+import io.javalin.plugin.openapi.annotations.OpenApi
+import io.javalin.plugin.openapi.annotations.OpenApiContent
+import io.javalin.plugin.openapi.annotations.OpenApiParam
+import io.javalin.plugin.openapi.annotations.OpenApiResponse
 
 abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRestHandler {
 

@@ -4,6 +4,7 @@ import dres.api.rest.types.run.ClientMessage
 import dres.data.model.competition.Competition
 import dres.data.model.competition.Task
 import dres.data.model.run.Submission
+import dres.run.score.Scoreboard
 
 /**
  * A managing class for [Competition] executions or 'runs'.
@@ -27,7 +28,7 @@ interface RunManager : Runnable {
     /** The [Task] that is currently being executed or waiting for execution by this [RunManager]. Can be null!*/
     val currentTask: Task?
 
-    /** The list of [Submission]s fpr the current [Task]. */
+    /** The list of [Submission]s for the current [Task]. */
     val submissions: List<Submission>
 
     /** Current [RunManagerStatus] of the [RunManager]. */

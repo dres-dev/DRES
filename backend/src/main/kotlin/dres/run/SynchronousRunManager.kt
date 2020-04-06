@@ -9,6 +9,7 @@ import dres.data.model.competition.Competition
 import dres.data.model.competition.Task
 import dres.data.model.run.CompetitionRun
 import dres.data.model.run.Submission
+import dres.run.score.Scoreboard
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -52,7 +53,7 @@ class SynchronousRunManager(competition: Competition, name: String, override val
         }
         private set
 
-    /** The list of [Submission]s fpr the current [Task]. */
+    /** The list of [Submission]s for the current [Task]. */
     override val submissions: List<Submission>
         get() = this.stateLock.read {
             this.run.currentTask?.submissions ?: emptyList()
@@ -183,9 +184,6 @@ class SynchronousRunManager(competition: Competition, name: String, override val
             /* Register submission. */
             this.run.currentTask?.addSubmission(sub)
 
-            /* Update scoreboards. */
-            this.scoreboards.forEach { it.update() }
-
             /* Inform clients about update. */
             this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.TASK_UPDATED))
 
@@ -238,13 +236,19 @@ class SynchronousRunManager(competition: Competition, name: String, override val
                     break
                 }
 
-                this.run.updateSubmissionValidations()
+                val updatedSubmissions = this.run.updateSubmissionValidations()
+                if (updatedSubmissions.isNotEmpty()) {
+                    this.scoreboards.forEach { it.update() }
+                }
 
                 /** Sleep for 250ms. */
                 Thread.sleep(max(min(2000, timeLeft), 10000))
             }
 
-            this.run.updateSubmissionValidations()
+            val updatedSubmissions = this.run.updateSubmissionValidations()
+            if (updatedSubmissions.isNotEmpty()) {
+                this.scoreboards.forEach { it.update() }
+            }
 
             Thread.onSpinWait()
         }

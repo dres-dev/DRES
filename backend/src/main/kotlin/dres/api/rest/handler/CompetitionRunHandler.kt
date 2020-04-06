@@ -4,7 +4,6 @@ import dres.api.rest.AccessManager
 import dres.api.rest.RestApiRole
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
-import dres.api.rest.types.status.SuccessStatus
 import dres.data.model.competition.Task
 import dres.data.model.competition.TaskType
 import dres.data.model.competition.Team
@@ -60,9 +59,9 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
     }.toLong()
 }
 
-data class CompetitionInfo(val id: Long, val name: String, val status: RunManagerStatus, val description: String, val currentTask: Task?, val teams: List<Team>) {
+data class CompetitionInfo(val id: Long, val name: String, val status: RunManagerStatus, val description: String, val currentTask: Task?, val timeLeft: Long, val teams: List<Team>) {
     companion object {
-        fun of(run: RunManager): CompetitionInfo = CompetitionInfo(run.runId, run.name, run.status, run.competition.description ?: "", run.currentTask, run.competition.teams)
+        fun of(run: RunManager): CompetitionInfo = CompetitionInfo(run.runId, run.name, run.status, run.competition.description ?: "", run.currentTask, run.timeLeft(), run.competition.teams)
     }
 }
 

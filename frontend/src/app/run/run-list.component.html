@@ -25,6 +25,10 @@
                     <mat-icon>play_circle_outline</mat-icon>
                 </button>
 
+                <button *ngIf="row.status == 'PREPARING_TASK' || row.status == 'RUNNING_TASK'" mat-icon-button aria-label="Abort running task." matTooltip="Abort running task '{{row.currentTask.name}}'." (click)="abortTask(row.id)">
+                    <mat-icon>cancel</mat-icon>
+                </button>
+
                 <button *ngIf="row.status == 'ACTIVE'" mat-icon-button aria-label="Terminate competition run." matTooltip="Terminate competition run." (click)="terminate(row.id)">
                     <mat-icon>stop</mat-icon>
                 </button>
@@ -53,6 +57,12 @@
         <ng-container matColumnDef="currentTask">
             <th mat-header-cell *matHeaderCellDef>Task</th>
             <td mat-cell *matCellDef="let row">{{row.currentTask.name}}</td>
+        </ng-container>
+
+        <!-- Task Column -->
+        <ng-container matColumnDef="timeLeft">
+            <th mat-header-cell *matHeaderCellDef>Time left</th>
+            <td mat-cell *matCellDef="let row">{{normalizeTimeLeft(row.timeLeft)}}</td>
         </ng-container>
 
         <!-- Description Column -->

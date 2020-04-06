@@ -19,6 +19,7 @@ export interface CompetitionInfo {
     status: CompetitionInfo.StatusEnum;
     description: string;
     currentTask?: Task;
+    timeLeft: number;
     teams: Array<Team>;
 }
 export namespace CompetitionInfo {

@@ -1,5 +1,5 @@
 import {AfterViewInit, Component} from '@angular/core';
-import {CompetitionOverview, CompetitionService} from '../../../../openapi';
+import {CompetitionOverview, CompetitionRunAdminService, CompetitionService} from '../../../../openapi';
 import {MatDialog} from '@angular/material/dialog';
 import {CompetitionCreateDialogComponent, CompetitionCreateDialogResult} from './competition-create-dialog.component';
 import {filter, flatMap} from 'rxjs/operators';
@@ -21,6 +21,7 @@ export class CompetitionListComponent implements AfterViewInit {
 
 
   constructor(private competitionService: CompetitionService,
+              private runAdminService: CompetitionRunAdminService,
               private routerService: Router,
               private dialog: MatDialog,
               private snackBar: MatSnackBar) {}
@@ -43,12 +44,12 @@ export class CompetitionListComponent implements AfterViewInit {
     });
   }
 
-  public startRun(id: number) {
+  public createRun(id: number) {
       const dialogRef = this.dialog.open(CompetitionStartDialogComponent, {width: '500px'});
       dialogRef.afterClosed().pipe(
           filter(r => r != null),
           flatMap((r: CompetitionStartDialogResult) => {
-              return this.competitionService.postApiCompetitionStart(
+              return this.runAdminService.postApiRunAdminCreate(
                   {competitionId: id, name: r.name, type: r.type, scoreboards: []} as CompetitionStart
               );
           })

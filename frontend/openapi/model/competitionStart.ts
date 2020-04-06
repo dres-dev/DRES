@@ -18,10 +18,10 @@ export interface CompetitionStart {
     scoreboards: Array<string>;
 }
 export namespace CompetitionStart {
-    export type TypeEnum = 'LOCAL' | 'DISTRIBUTED';
+    export type TypeEnum = 'SYNCHRONOUS' | 'ASYNCHRONOUS';
     export const TypeEnum = {
-        LOCAL: 'LOCAL' as TypeEnum,
-        DISTRIBUTED: 'DISTRIBUTED' as TypeEnum
+        SYNCHRONOUS: 'SYNCHRONOUS' as TypeEnum,
+        ASYNCHRONOUS: 'ASYNCHRONOUS' as TypeEnum
     };
 }
 

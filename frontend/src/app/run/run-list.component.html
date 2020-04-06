@@ -8,10 +8,30 @@
         <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Actions</th>
             <td mat-cell *matCellDef="let row">
+
+                <button *ngIf="row.status == 'CREATED'" mat-icon-button aria-label="Start the competition run." matTooltip="Start the competition run." (click)="start(row.id)">
+                    <mat-icon>play_arrow</mat-icon>
+                </button>
+
+                <button *ngIf="row.status == 'ACTIVE'" mat-icon-button aria-label="Previous task." matTooltip="Got to previous task." (click)="previousTask(row.id)">
+                    <mat-icon>skip_previous</mat-icon>
+                </button>
+
+                <button *ngIf="row.status == 'ACTIVE'" mat-icon-button aria-label="Next task." matTooltip="Got to next task." (click)="nextTask(row.id)">
+                    <mat-icon>skip_next</mat-icon>
+                </button>
+
+                <button *ngIf="row.status == 'ACTIVE'" mat-icon-button aria-label="Start task." matTooltip="Start task '{{row.currentTask.name}}'." (click)="startTask(row.id)">
+                    <mat-icon>play_circle_outline</mat-icon>
+                </button>
+
+                <button *ngIf="row.status == 'ACTIVE'" mat-icon-button aria-label="Terminate competition run." matTooltip="Terminate competition run." (click)="terminate(row.id)">
+                    <mat-icon>stop</mat-icon>
+                </button>
             </td>
         </ng-container>
 
-        <!-- Name Column -->
+        <!-- ID Column -->
         <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef>Run ID</th>
             <td mat-cell *matCellDef="let row">{{row.id}}</td>
@@ -23,10 +43,16 @@
             <td mat-cell *matCellDef="let row">{{row.name}}</td>
         </ng-container>
 
-        <!-- Name Column -->
+        <!-- Status Column -->
         <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef>Status</th>
             <td mat-cell *matCellDef="let row">{{row.status}}</td>
+        </ng-container>
+
+        <!-- Task Column -->
+        <ng-container matColumnDef="currentTask">
+            <th mat-header-cell *matHeaderCellDef>Task</th>
+            <td mat-cell *matCellDef="let row">{{row.currentTask.name}}</td>
         </ng-container>
 
         <!-- Description Column -->

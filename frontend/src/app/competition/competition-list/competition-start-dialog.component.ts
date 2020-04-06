@@ -15,7 +15,7 @@ export interface CompetitionStartDialogResult {
 })
 export class CompetitionStartDialogComponent {
     form: FormGroup = new FormGroup({name: new FormControl(''), type: new FormControl('')});
-    runTypes: CompetitionStart.TypeEnum[] = ['LOCAL', 'DISTRIBUTED'];
+    runTypes: CompetitionStart.TypeEnum[] = ['SYNCHRONOUS', 'ASYNCHRONOUS'];
 
     constructor(public dialogRef: MatDialogRef<CompetitionStartDialogComponent>) {}
 

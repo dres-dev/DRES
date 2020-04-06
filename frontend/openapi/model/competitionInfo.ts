@@ -9,6 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { Task } from './task';
 import { Team } from './team';
 
 
@@ -17,6 +18,7 @@ export interface CompetitionInfo {
     name: string;
     status: CompetitionInfo.StatusEnum;
     description: string;
+    currentTask?: Task;
     teams: Array<Team>;
 }
 export namespace CompetitionInfo {

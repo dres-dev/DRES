@@ -22,7 +22,7 @@
         <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Actions</th>
             <td mat-cell *matCellDef="let row">
-                <button mat-icon-button aria-label="Start new run for competition." matTooltip="Start new run for competition." (click)="startRun(row.id)">
+                <button mat-icon-button aria-label="Start new run for competition." matTooltip="Start new run for competition." (click)="createRun(row.id)">
                     <mat-icon>access_time</mat-icon>
                 </button>
                 <button mat-icon-button aria-label="Edit competition." matTooltip="Edit competition." (click)="edit(row.id)">

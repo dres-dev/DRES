@@ -11,11 +11,11 @@
  */
 
 
-export interface MediaItem { 
-    itemType: string;
-    name: string;
-    location: string;
-    collection: number;
+export interface JudgementRequest { 
     id: number;
+    collection: string;
+    item: string;
+    startTime?: string;
+    endTime?: string;
 }
 

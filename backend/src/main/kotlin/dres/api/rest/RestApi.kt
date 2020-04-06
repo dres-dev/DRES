@@ -77,6 +77,7 @@ object RestApi {
                 NextTaskCompetitionRunAdminHandler(),
                 PreviousTaskCompetitionRunAdminHandler(),
                 StartTaskCompetitionRunAdminHandler(),
+                AbortTaskCompetitionRunAdminHandler(),
                 TerminateCompetitionRunAdminHandler(),
 
                 NextOpenJudgementHandler(),

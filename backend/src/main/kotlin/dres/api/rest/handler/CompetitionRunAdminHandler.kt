@@ -22,18 +22,7 @@ abstract class AbstractCompetitionRunAdminRestHandler : RestHandler, AccessManag
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.ADMIN)
 
-    private fun userId(ctx: Context): Long = AccessManager.getUserIdforSession(ctx.req.session.id)!!
-
-    private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.req.session.id).contains(RestApiRole.ADMIN)
-
-    fun getRun(ctx: Context, runId: Long): RunManager? {
-        val userId = userId(ctx)
-        val run = RunExecutor.managerForId(runId) ?: return null
-        if (run.competition.teams.any { it.users.contains(userId) }){
-            return run
-        }
-        return null
-    }
+    fun getRun(runId: Long): RunManager? = RunExecutor.managerForId(runId)
 
     fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
         throw ErrorStatusException(404, "Parameter 'runId' is missing!'")
@@ -101,6 +90,7 @@ class StartCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(),
             summary = "Starts a competition run. This is a method for admins.",
             path = "/api/run/admin/:runId/start",
             method = HttpMethod.POST,
+            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -110,7 +100,7 @@ class StartCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(),
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         try {
             run.start()
             return SuccessStatus("Run $runId was successfully started.")
@@ -130,6 +120,7 @@ class NextTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler
             summary = "Moves to the next task. This is a method for admins.",
             path = "/api/run/admin/:runId/task/next",
             method = HttpMethod.POST,
+            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -139,7 +130,7 @@ class NextTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         try {
             if (run.nextTask()) {
                 return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTask!!.name}'.")
@@ -162,6 +153,7 @@ class PreviousTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHan
             summary = "Moves to the previous task. This is a method for admins.",
             path = "/api/run/admin/:runId/task/previous",
             method = HttpMethod.POST,
+            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -171,7 +163,7 @@ class PreviousTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHan
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         try {
             if (run.previousTask()) {
                 return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTask!!.name}'.")
@@ -194,6 +186,7 @@ class StartTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
             summary = "Starts the current task. This is a method for admins.",
             path = "/api/run/admin/:runId/task/start",
             method = HttpMethod.POST,
+            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -203,7 +196,7 @@ class StartTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         try {
             run.startTask()
             return SuccessStatus("Task '${run.currentTask!!.name}' for run $runId was successfully started.")
@@ -217,12 +210,13 @@ class StartTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
  * REST handler to abort the current task in a [CompetitionRun].
  */
 class AbortTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
-    override val route: String = "run/admin/:runId/task/start"
+    override val route: String = "run/admin/:runId/task/abort"
 
     @OpenApi(
             summary = "Aborts the currently running task. This is a method for admins.",
             path = "/api/run/admin/:runId/task/abort",
             method = HttpMethod.POST,
+            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -232,9 +226,9 @@ class AbortTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         try {
-            run.startTask()
+            run.abortTask()
             return SuccessStatus("Task '${run.currentTask!!.name}' for run $runId was successfully aborted.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Task '${run.currentTask!!.name}' for run $runId could not be aborted because run is in the wrong state (state = ${run.status}).")
@@ -252,6 +246,7 @@ class TerminateCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
             summary = "Starts a competition run. This is a method for admins.",
             path = "/api/run/admin/:runId/terminate",
             method = HttpMethod.POST,
+            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -261,7 +256,7 @@ class TerminateCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         try {
             run.terminate()
             return SuccessStatus("Run $runId was successfully terminated.")

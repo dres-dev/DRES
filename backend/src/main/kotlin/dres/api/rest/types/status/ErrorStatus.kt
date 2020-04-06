@@ -1,3 +1,3 @@
 package dres.api.rest.types.status
 
-data class ErrorStatus(val description: String)
+data class ErrorStatus(val description: String):AbstractStatus(status = false)

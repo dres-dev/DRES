@@ -40,8 +40,10 @@ object RestApi {
                 //user
                 LoginHandler(dataAccessLayer.users),
                 LogoutHandler(),
-                ListUsersHandler(dataAccessLayer.users),
-                CurrentUsersHandler(dataAccessLayer.users),
+                ListUsersHandler(),
+                CurrentUsersHandler(),
+                DeleteUsersHandler(),
+                CreateUsersHandler(),
 
                 //media
                 GetFrameHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),

@@ -1,5 +1,6 @@
 package dres.mgmt.admin
 
+import dres.api.rest.handler.UserHandler
 import dres.data.dbo.DAO
 import dres.data.model.admin.PlainPassword
 import dres.data.model.admin.Role
@@ -61,6 +62,10 @@ object UserManager {
         } else {
             return false
         }
+    }
+
+    fun delete(id:Long?):Boolean{
+        return delete(id=id,username = null)
     }
 
     fun list(): List<User> {
@@ -125,5 +130,9 @@ object UserManager {
 
     private fun isInit(): Boolean {
         return ::users.isInitialized
+    }
+
+    fun create(toCreate: UserHandler.CreateUserRequest): Boolean {
+        return create(UserName(toCreate.username), PlainPassword(toCreate.password), toCreate.role)
     }
 }

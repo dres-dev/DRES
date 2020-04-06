@@ -26,18 +26,7 @@ abstract class AbstractCompetitionRunAdminRestHandler : RestHandler, AccessManag
 
     private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.req.session.id).contains(RestApiRole.ADMIN)
 
-    fun getRelevantManagers(ctx: Context): List<RunManager> {
-        if (isAdmin(ctx)){
-            return RunExecutor.managers()
-        }
-        val userId = userId(ctx)
-        return RunExecutor.managers().filter { it.competition.teams.any { it.users.contains(userId) } }
-    }
-
     fun getRun(ctx: Context, runId: Long): RunManager? {
-        if (isAdmin(ctx)){
-            return RunExecutor.managerForId(runId)
-        }
         val userId = userId(ctx)
         val run = RunExecutor.managerForId(runId) ?: return null
         if (run.competition.teams.any { it.users.contains(userId) }){
@@ -196,7 +185,7 @@ class PreviousTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHan
 }
 
 /**
- * REST handler to move to the previous task in a [CompetitionRun].
+ * REST handler to start the current task in a [CompetitionRun].
  */
 class StartTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/task/start"
@@ -220,6 +209,35 @@ class StartTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
             return SuccessStatus("Task '${run.currentTask!!.name}' for run $runId was successfully started.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Task '${run.currentTask!!.name}' for run $runId could not be started because run is in the wrong state (state = ${run.status}).")
+        }
+    }
+}
+
+/**
+ * REST handler to abort the current task in a [CompetitionRun].
+ */
+class AbortTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+    override val route: String = "run/admin/:runId/task/start"
+
+    @OpenApi(
+            summary = "Aborts the currently running task. This is a method for admins.",
+            path = "/api/run/admin/:runId/task/abort",
+            method = HttpMethod.POST,
+            tags = ["Competition Run Admin"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doPost(ctx: Context): SuccessStatus {
+        val runId = runId(ctx)
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        try {
+            run.startTask()
+            return SuccessStatus("Task '${run.currentTask!!.name}' for run $runId was successfully aborted.")
+        } catch (e: IllegalStateException) {
+            throw ErrorStatusException(400, "Task '${run.currentTask!!.name}' for run $runId could not be aborted because run is in the wrong state (state = ${run.status}).")
         }
     }
 }

@@ -12,6 +12,8 @@ import dres.data.model.run.Submission
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * An implementation of [RunManager] aimed at distributed execution having a single DRES Server
@@ -38,16 +40,16 @@ class SynchronousRunManager(competition: Competition, name: String, override val
     override val competition: Competition
         get() = this.run.competition
 
+    /** Currently active task. */
+    override var currentTask: Task? = null
+        private set
+
     /** The status of this [RunManager]. */
     @Volatile
     override var status: RunManagerStatus = RunManagerStatus.CREATED
         get() = this.stateLock.read {
             return field
         }
-        private set
-
-    /** Currently active task. */
-    override var currentTask: Task = this.competition.tasks.first()
         private set
 
     /** The list of [Submission]s fpr the current [Task]. */
@@ -74,11 +76,11 @@ class SynchronousRunManager(competition: Competition, name: String, override val
         this.run.id = this.dao.append(this.run)
     }
 
-
     override fun start() = this.stateLock.write {
         if (this.status != RunManagerStatus.CREATED) throw IllegalStateException("DistributedRunManager is in status ${this.status} and cannot be started.")
         this.run.start()
         this.status = RunManagerStatus.ACTIVE
+        this.goToTask(0)
         this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.COMPETITION_START))
     }
 
@@ -100,6 +102,7 @@ class SynchronousRunManager(competition: Competition, name: String, override val
     }
 
     override fun nextTask(): Boolean = this.stateLock.write {
+        check(this.status == RunManagerStatus.ACTIVE) { "DistributedRunManager is in status ${this.status}. Tasks can therefore not be changed." }
         val newIndex = this.competition.tasks.indexOf(this.currentTask) + 1
         return try {
             this.goToTask(newIndex)
@@ -122,10 +125,8 @@ class SynchronousRunManager(competition: Competition, name: String, override val
     override fun startTask() = this.stateLock.write {
         check(this.status == RunManagerStatus.ACTIVE) { "DistributedRunManager is in status ${this.status}. Tasks can therefore not be started." }
 
-        /* Creates a new TaskRun; the run is not started until the PREPARE phase has completed. */
-        this.run.TaskRun(this.competition.tasks.indexOf(this.currentTask))
-
         /* Update status. */
+        this.run.newTaskRun(this.competition.tasks.indexOf(this.currentTask))
         this.status = RunManagerStatus.PREPARING_TASK
         this.ackCounter = 0
         this.executor.broadcastWsMessage(this.runId, ServerMessage(this.runId, ServerMessageType.TASK_PREPARE))
@@ -143,9 +144,9 @@ class SynchronousRunManager(competition: Competition, name: String, override val
         this.executor.broadcastWsMessage(this.runId, ServerMessage(this.runId, ServerMessageType.TASK_END))
     }
 
-    override fun timeElapsed(): Long = this.stateLock.read {
+    override fun timeLeft(): Long = this.stateLock.read {
         if (this.status == RunManagerStatus.RUNNING_TASK) {
-            return (System.currentTimeMillis() - this.run.currentTask!!.started!!)
+            return (this.run.currentTask!!.task.duration - (System.currentTimeMillis() - this.run.currentTask!!.started!!))
         } else {
             -1L
         }
@@ -194,8 +195,11 @@ class SynchronousRunManager(competition: Competition, name: String, override val
         }
     }
 
+    /**
+     * Internal method that orchestrates the internal progression of the [CompetitionRun].
+     */
     override fun run() {
-        /** WAi*/
+        /** Wait for [SynchronousRunManager] to be started. */
         while (true) {
             if (this.status != RunManagerStatus.CREATED) {
                 break
@@ -204,7 +208,7 @@ class SynchronousRunManager(competition: Competition, name: String, override val
         }
 
         /** Handles the activity part of the DistributedRunManager (status = ACTIVE).*/
-        while (this.status == RunManagerStatus.ACTIVE) {
+        while (this.status == RunManagerStatus.ACTIVE || this.status == RunManagerStatus.PREPARING_TASK || this.status == RunManagerStatus.RUNNING_TASK) {
 
             /** Handles the preparation period of the DistributedRunManager (status = PREPARING_TASK). */
             while (this.status == RunManagerStatus.PREPARING_TASK) {
@@ -223,19 +227,21 @@ class SynchronousRunManager(competition: Competition, name: String, override val
 
             /** Handles the task execution period of the DistributedRunManager (status = RUNNING_TASK). */
             while (this.status == RunManagerStatus.RUNNING_TASK) {
-                if ((System.currentTimeMillis() - this.run.currentTask!!.started!!) >= this.run.currentTask!!.task.duration) {
+                val timeLeft = this.timeLeft()
+                if (timeLeft <= 0) {
                     this.stateLock.write {
                         this.run.currentTask!!.end()
                         this.status = RunManagerStatus.ACTIVE
                     }
                     this.dao.update(this.run)
                     this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.TASK_END))
+                    break
                 }
 
                 this.run.updateSubmissionValidations()
 
                 /** Sleep for 250ms. */
-                Thread.sleep(250)
+                Thread.sleep(max(min(2000, timeLeft), 10000))
             }
 
             this.run.updateSubmissionValidations()

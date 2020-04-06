@@ -113,13 +113,13 @@ interface RunManager : Runnable {
     fun abortTask()
 
     /**
-     * Returns the time in milliseconds that has elapsed since the start of the last [Task]. Only works
-     * if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no [Task] is running, this
-     * method returns -1L.
+     * Returns the time in milliseconds that is left until the end of the currently running [Task].
+     * Only works if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no [Task] is running,
+     * this method returns -1L.
      *
      * @return Time that has elapsed since the start of the running [Task] or -1, if no [Task] is running.
      */
-    fun timeElapsed(): Long
+    fun timeLeft(): Long
 
     /**
      * Invoked by an external caller such in order to inform the [RunManager] that it has received a [ClientMessage].

@@ -57,7 +57,6 @@ object RestApi {
                 ListCompetitionHandler(dataAccessLayer.competitions),
                 CreateCompetitionHandler(dataAccessLayer.competitions),
                 UpdateCompetitionHandler(dataAccessLayer.competitions),
-                StartCompetitionHandler(dataAccessLayer.runs, dataAccessLayer.competitions),
                 GetCompetitionHandler(dataAccessLayer.competitions),
                 DeleteCompetitionHandler(dataAccessLayer.competitions),
 
@@ -72,6 +71,13 @@ object RestApi {
                 CurrentTaskInfoHandler(),
                 CurrentSubmissionInfoHandler(),
 
+                //Competition run admin
+                CreateCompetitionRunAdminHandler(dataAccessLayer.runs, dataAccessLayer.competitions),
+                StartCompetitionRunAdminHandler(),
+                NextTaskCompetitionRunAdminHandler(),
+                PreviousTaskCompetitionRunAdminHandler(),
+                StartTaskCompetitionRunAdminHandler(),
+                TerminateCompetitionRunAdminHandler(),
 
                 NextOpenJudgementHandler(),
                 PostJudgementHandler()

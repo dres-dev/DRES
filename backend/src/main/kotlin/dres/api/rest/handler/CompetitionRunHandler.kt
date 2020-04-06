@@ -4,6 +4,7 @@ import dres.api.rest.AccessManager
 import dres.api.rest.RestApiRole
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
+import dres.api.rest.types.status.SuccessStatus
 import dres.data.model.competition.Task
 import dres.data.model.competition.TaskType
 import dres.data.model.competition.Team
@@ -16,10 +17,7 @@ import dres.run.ScoreOverview
 import dres.utilities.extensions.errorResponse
 import io.javalin.core.security.Role
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.plugin.openapi.annotations.*
 
 abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRestHandler {
 
@@ -62,9 +60,9 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
     }.toLong()
 }
 
-data class CompetitionInfo(val id: Long, val name: String, val status: RunManagerStatus, val description: String, val teams: List<Team>) {
+data class CompetitionInfo(val id: Long, val name: String, val status: RunManagerStatus, val description: String, val currentTask: Task?, val teams: List<Team>) {
     companion object {
-        fun of(run: RunManager): CompetitionInfo = CompetitionInfo(run.runId, run.name, run.status, run.competition.description ?: "", run.competition.teams)
+        fun of(run: RunManager): CompetitionInfo = CompetitionInfo(run.runId, run.name, run.status, run.competition.description ?: "", run.currentTask, run.competition.teams)
     }
 }
 
@@ -248,6 +246,5 @@ class CurrentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
                 SubmissionInfo(it.team, it.timestamp, SubmissionStatus.INDETERMINATE, vbsSubmission.collection, vbsSubmission.item, vbsSubmission.start.toString(), vbsSubmission.end.toString())
             }
         }
-
     }
 }

@@ -139,6 +139,32 @@ class ListCompetitionScoreHandler : AbstractCompetitionRunRestHandler(), GetRest
     }
 }
 
+class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<ScoreOverview>> {
+
+    override val route = "run/:runId/score/task"
+
+    @OpenApi(
+            summary = "Returns the overviews of all score boards for the current task.",
+            path = "/api/run/:runId/score/task",
+            tags = ["Competition Run"],
+            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(Array<ScoreOverview>::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): List<ScoreOverview> {
+
+        val runId = runId(ctx)
+
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+
+        return run.scoreboards.map { it.taskOverview() }
+
+    }
+}
+
 data class TaskInfo(val name: String, val taskGroup: String, val type: TaskType, val duration: Long) {
 
     companion object{
@@ -170,7 +196,7 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
 
         val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId")
 
-        return TaskInfo.of(task, 1000 * 60 * 5) //FIXME get task duration
+        return TaskInfo.of(task, task.description.taskType.defaultDuration) //FIXME get task duration
 
     }
 }
@@ -250,3 +276,5 @@ class CurrentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
         }
     }
 }
+
+

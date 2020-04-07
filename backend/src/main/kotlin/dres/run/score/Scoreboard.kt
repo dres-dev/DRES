@@ -1,11 +1,11 @@
-package dres.run
+package dres.run.score
 
 import dres.data.model.competition.Team
 
 /**
  * Container for [Scoreboard].
  */
-data class Score(val teamId: Long, val score: Double)
+data class Score(val teamId: Int, val score: Double)
 
 data class ScoreOverview(val name: String, val scores: List<Score>)
 
@@ -17,9 +17,14 @@ data class ScoreOverview(val name: String, val scores: List<Score>)
  */
 interface Scoreboard {
     /**
-     * Returns all [Score]s tracked by this [Scoreboard].
+     * Returns all [Score]s for the current [Task] tracked by this [Scoreboard].
      */
-    fun all(): List<Score>
+    fun taskScores(): List<Score>
+
+    /**
+     * Returns all overall [Score]s tracked by this [Scoreboard].
+     */
+    fun overallScores(): List<Score>
 
     /**
      * Retrieves and returns the score of the given [Team]
@@ -27,7 +32,7 @@ interface Scoreboard {
      * @param team The [Team]'s ID.
      * @return The score for the given [Team].
      */
-    fun score(team: Team): Double
+    fun taskScore(team: Team): Double
 
     /**
      * Updates the [Scoreboard].
@@ -42,5 +47,5 @@ interface Scoreboard {
     /**
      * Returns a summary of all current scores in a [ScoreOverview]
      */
-    fun overview(): ScoreOverview = ScoreOverview(name(), all())
+    fun overview(): ScoreOverview = ScoreOverview(name(), overallScores())
 }

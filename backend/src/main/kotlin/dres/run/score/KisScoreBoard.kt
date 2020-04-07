@@ -43,6 +43,7 @@ class KisScoreBoard(private val name: String, private val run: CompetitionRun, p
 
     override fun taskScore(team: Team) = overallScoreMap()[team] ?: 0.0
 
+    //TODO introduce some caching
     override fun update() {
 
         val submissions = run.runs.filter { it.started != null && taskFilter(it.task) }
@@ -58,7 +59,8 @@ class KisScoreBoard(private val name: String, private val run: CompetitionRun, p
 
             it.key.task to it.value.map{
 
-                val sorted =  it.value.sortedBy { it.timestamp }
+                //explicitly enforce valid types and order
+                val sorted =  it.value.filter { it.status == SubmissionStatus.CORRECT || it.status == SubmissionStatus.WRONG }.sortedBy { it.timestamp }
 
                 val firstCorrect = sorted.indexOfFirst { it.status == SubmissionStatus.CORRECT }
 

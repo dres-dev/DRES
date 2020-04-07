@@ -104,17 +104,20 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
      * Checks if new submission validations are available and updates [Submission]s accordingly
      */
     @ExperimentalCoroutinesApi
-    fun updateSubmissionValidations() {
+    fun updateSubmissionValidations() : List<Submission> {
         if (!hasUnvalidatedSubmissions) {
-            return
+            return emptyList()
         }
         val completed = awaitingValidation.filter { it.isCompleted }
-        completed.forEach {
+        val submissions = completed.map {
             val result = it.getCompleted()
             result.first.status = result.second
+            return@map result.first
         }
         //remove completed ones
         awaitingValidation.removeAll(completed)
+
+        return submissions
 
         //TODO maybe trigger an update with the freshly evaluated submissions somewhere?
     }
@@ -155,7 +158,7 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
             get() = this@CompetitionRun.runs.indexOf(this)
 
         /** List of [Submission]s* registered for this [TaskRun]. */
-        val submissions: List<Submission> = LinkedList()
+        val submissions: List<Submission> = mutableListOf()
 
         /** The [Task] referenced by this [TaskRun]. */
         val task: Task
@@ -202,7 +205,7 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
             if (this@CompetitionRun.competition.teams.size < submission.team) {
                 throw IllegalStateException("Team ${submission.team} does not exists for competition run ${this@CompetitionRun.name}.")
             }
-            (this.submissions as LinkedList).add(submission)
+            (this.submissions as MutableList).add(submission)
 
             runBlocking { //TODO specify execution context
                 awaitingValidation.add(

@@ -4,6 +4,7 @@ import dres.api.rest.types.run.ClientMessage
 import dres.data.model.competition.Competition
 import dres.data.model.competition.Task
 import dres.data.model.run.Submission
+import dres.run.score.Scoreboard
 
 /**
  * A managing class for [Competition] executions or 'runs'.
@@ -27,7 +28,7 @@ interface RunManager : Runnable {
     /** The [Task] that is currently being executed or waiting for execution by this [RunManager]. Can be null!*/
     val currentTask: Task?
 
-    /** The list of [Submission]s fpr the current [Task]. */
+    /** The list of [Submission]s for the current [Task]. */
     val submissions: List<Submission>
 
     /** Current [RunManagerStatus] of the [RunManager]. */
@@ -113,13 +114,13 @@ interface RunManager : Runnable {
     fun abortTask()
 
     /**
-     * Returns the time in milliseconds that has elapsed since the start of the last [Task]. Only works
-     * if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no [Task] is running, this
-     * method returns -1L.
+     * Returns the time in milliseconds that is left until the end of the currently running [Task].
+     * Only works if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no [Task] is running,
+     * this method returns -1L.
      *
      * @return Time that has elapsed since the start of the running [Task] or -1, if no [Task] is running.
      */
-    fun timeElapsed(): Long
+    fun timeLeft(): Long
 
     /**
      * Invoked by an external caller such in order to inform the [RunManager] that it has received a [ClientMessage].

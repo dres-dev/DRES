@@ -13,9 +13,7 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatMenuModule} from '@angular/material/menu';
 import {CompetitionBuilderModule} from '../competition/competition-builder/competition-builder.module';
 import {MatSelectModule} from '@angular/material/select';
-import {RunListComponent} from './run-list.component';
-import {AdminRunListComponent} from './admin-run-list.component';
-import {ViewerRunListComponent} from './viewer-run-list.component';
+import {RunViewerComponent} from './run-viewer.component';
 
 @NgModule({
     imports: [
@@ -35,8 +33,8 @@ import {ViewerRunListComponent} from './viewer-run-list.component';
         CompetitionBuilderModule,
         MatSelectModule
     ],
-    exports:      [ RunListComponent ],
-    declarations: [ RunListComponent, AdminRunListComponent, ViewerRunListComponent ],
+    exports:      [ RunViewerComponent ],
+    declarations: [ RunViewerComponent ],
     providers:    [ ]
 })
-export class RunModule { }
+export class ViewerModule { }

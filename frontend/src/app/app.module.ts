@@ -19,6 +19,7 @@ import {CompetitionModule} from './competition/competition.module';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {RunModule} from './run/run.module';
+import {ViewerModule} from './viewer/viewer.module';
 
 @NgModule({
   declarations: [
@@ -43,6 +44,7 @@ import {RunModule} from './run/run.module';
         MatTooltipModule,
 
         CompetitionModule,
+        ViewerModule,
         RunModule
     ],
   providers: [],

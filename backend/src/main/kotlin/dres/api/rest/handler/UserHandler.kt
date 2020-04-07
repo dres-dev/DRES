@@ -27,8 +27,13 @@ abstract class UserHandler() : RestHandler {
     }
 
     protected fun getIdFromPath(ctx: Context): Long {
-        return ctx.pathParam("id").toLongOrNull()
+        val id = ctx.pathParam("id").toLongOrNull()
                 ?: throw ErrorStatusException(400, "Path parameter 'id' invalid formatted or non-existent!")
+        if(UserManager.exists(id=id)){
+            return id
+        }else{
+            throw ErrorStatusException(404, "User ($id) not found!")
+        }
     }
 
     protected fun getUserFromId(ctx: Context): User {
@@ -36,11 +41,11 @@ abstract class UserHandler() : RestHandler {
         return UserManager.get(id = id) ?: throw ErrorStatusException(404, "User ($id) not found!")
     }
 
-    protected fun getCreateUserFromBody(ctx: Context): CreateUserRequest {
-        return ctx.body<CreateUserRequest>()
+    protected fun getCreateUserFromBody(ctx: Context): UserRequest {
+        return ctx.body<UserRequest>()
     }
 
-    data class CreateUserRequest(val username: String, val password: String, val role: Role)
+    data class UserRequest(val username: String, val password: String?, val role: Role)
 
 }
 
@@ -48,7 +53,7 @@ abstract class UserHandler() : RestHandler {
 class ListUsersHandler() : UserHandler(), GetRestHandler<List<UserHandler.UserDetails>>, AccessManagedRestHandler {
 
     @OpenApi(
-            summary = "Lists all availabe users.",
+            summary = "Lists all available users.",
             path = "/api/user/list",
             tags = ["User"],
             responses = [OpenApiResponse("200", [OpenApiContent(Array<UserDetails>::class)])]
@@ -64,9 +69,9 @@ class ListUsersHandler() : UserHandler(), GetRestHandler<List<UserHandler.UserDe
 class DeleteUsersHandler() : UserHandler(), DeleteRestHandler<UserHandler.UserDetails>, AccessManagedRestHandler {
 
     @OpenApi(
-            summary = "Delete the user, if allowed to do so",
-            path = "/api/user/:id",
-            pathParams = [OpenApiParam(name = "id", description = "The id of the user to delete")],
+            summary = "Deletes the specified user. Requires ADMIN privileges",
+            path = "/api/user/:id", method = HttpMethod.DELETE,
+            pathParams = [OpenApiParam("id", Long::class, "User ID")],
             tags = ["User"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
@@ -91,11 +96,10 @@ class DeleteUsersHandler() : UserHandler(), DeleteRestHandler<UserHandler.UserDe
 
 class CreateUsersHandler() : UserHandler(), PostRestHandler<UserHandler.UserDetails>, AccessManagedRestHandler {
 
-
     @OpenApi(
-            summary = "Creates a new user, if the username is not already taken",
-            path = "/api/user/create",
-            requestBody = OpenApiRequestBody(content = [OpenApiContent(CreateUserRequest::class)]),
+            summary = "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
+            path = "/api/user/create", method = HttpMethod.POST,
+            requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
             tags = ["User"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
@@ -109,13 +113,60 @@ class CreateUsersHandler() : UserHandler(), PostRestHandler<UserHandler.UserDeta
         if(success){
             return UserDetails.of(UserManager.get(username = UserName(req.username))!!)
         }else{
-            throw ErrorStatusException(400, "Username ${req.username} already taken")
+            throw ErrorStatusException(400, "The request could not be fulfilled.")
         }
     }
 
     override val permittedRoles = setOf(RestApiRole.ADMIN)
 
     override val route = "user/create"
+}
+
+class UpdateUsersHandler() : UserHandler(), PatchRestHandler<UserHandler.UserDetails>, AccessManagedRestHandler {
+
+    @OpenApi(
+            summary = "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone",
+            path = "/api/user/:id", method = HttpMethod.PATCH,
+            pathParams = [OpenApiParam("id", Long::class, "User ID")],
+            requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
+            tags = ["User"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doPatch(ctx: Context): UserDetails {
+        val id = getIdFromPath(ctx) // Id was verified that it exists
+        val req = getCreateUserFromBody(ctx)
+        val caller = getUserFromId(ctx)
+        when{
+            (caller.role == Role.ADMIN) and (caller.id != id)-> {
+                /* ADMIN -- Can edit anyone */
+                val success = UserManager.updateEntirely(id=id, user=req)
+                if(success){
+                    return UserDetails.of(UserManager.get(id=id)!!)
+                }else{
+                    throw ErrorStatusException(500, "Could not update user!")
+                }
+            }
+            caller.id == id -> {
+                /* Self-Update*/
+                val success = UserManager.update(id=id, user=req)
+                if(success){
+                    return UserDetails.of(UserManager.get(id=id)!!)
+                }else{
+                    throw ErrorStatusException(500, "Could not update user!")
+                }
+            }
+            else -> throw ErrorStatusException(400, "Cannot edit user ($id) as $caller!")
+        }
+    }
+
+    override val permittedRoles = setOf(RestApiRole.VIEWER)
+
+    override val route = "user/:id"
 }
 
 class CurrentUsersHandler() : UserHandler(), GetRestHandler<UserHandler.UserDetails>, AccessManagedRestHandler {
@@ -138,3 +189,4 @@ class CurrentUsersHandler() : UserHandler(), GetRestHandler<UserHandler.UserDeta
     override val route = "user/info"
 
 }
+

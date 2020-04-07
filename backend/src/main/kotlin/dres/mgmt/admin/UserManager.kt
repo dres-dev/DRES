@@ -6,6 +6,8 @@ import dres.data.model.admin.PlainPassword
 import dres.data.model.admin.Role
 import dres.data.model.admin.User
 import dres.data.model.admin.UserName
+import dres.utilities.extensions.toPlainPassword
+import dres.utilities.extensions.toUsername
 
 /**
  * User management of DRES.
@@ -28,6 +30,12 @@ object UserManager {
 
     fun create(username: UserName, password: PlainPassword, role: Role): Boolean {
         validateInitalised()
+        if(password.length < MIN_LENGTH_PASSWORD){
+            throw RuntimeException("Password is less than $MIN_LENGTH_PASSWORD characters")
+        }
+        if(username.length < MIN_LENGTH_USERNAME){
+            throw RuntimeException("Username is less than $MIN_LENGTH_USERNAME characters")
+        }
         val newUser = User(username = username, password = password.hash(), role = role)
         for (existingUser in this.users) {
             if (existingUser in users) {
@@ -132,7 +140,17 @@ object UserManager {
         return ::users.isInitialized
     }
 
-    fun create(toCreate: UserHandler.CreateUserRequest): Boolean {
-        return create(UserName(toCreate.username), PlainPassword(toCreate.password), toCreate.role)
+    fun create(toCreate: UserHandler.UserRequest): Boolean {
+        return create(UserName(toCreate.username), if(toCreate.password != null){PlainPassword(toCreate.password)}else{
+            PlainPassword("")
+        }, toCreate.role)
+    }
+
+    fun updateEntirely(id:Long?, user: UserHandler.UserRequest): Boolean {
+        return update(id=id, username = user.username.toUsername(), password = user.password.toPlainPassword(), role = user.role)
+    }
+
+    fun update(id:Long?, user:UserHandler.UserRequest):Boolean{
+        return update(id=id, username = user.username.toUsername(), password = user.password.toPlainPassword(), role=null)
     }
 }

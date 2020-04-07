@@ -1,4 +1,4 @@
-import {Component, Inject} from '@angular/core';
+import {Component} from '@angular/core';
 import {SessionService} from './services/session/session.service';
 import {Router} from '@angular/router';
 import {AuthenticationService} from './services/session/authentication.sevice';

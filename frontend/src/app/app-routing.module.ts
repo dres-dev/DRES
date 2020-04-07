@@ -6,7 +6,8 @@ import {LoginComponent} from './login-component/login.component';
 import {AuthenticationGuard} from './services/session/authentication.guard';
 import {UserDetails} from '../../openapi';
 import RoleEnum = UserDetails.RoleEnum;
-import {RunListComponent} from './run/run-list.component';
+import {AdminRunListComponent} from './run/admin-run-list.component';
+import {RunViewerComponent} from './viewer/run-viewer.component';
 
 
 const routes: Routes = [
@@ -24,9 +25,15 @@ const routes: Routes = [
   },
   {
     path: 'run/list',
-    component: RunListComponent,
+    component: AdminRunListComponent,
     canActivate: [AuthenticationGuard],
-    data: { roles: [RoleEnum.ADMIN] }
+    data: { roles: [RoleEnum.ADMIN, RoleEnum.VIEWER] }
+  },
+  {
+    path: 'run/viewer/:runId',
+    component: RunViewerComponent,
+    canActivate: [AuthenticationGuard],
+    data: { roles: [RoleEnum.ADMIN, RoleEnum.VIEWER] }
   },
 
   { path: 'login', component: LoginComponent },

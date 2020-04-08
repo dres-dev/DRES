@@ -5,11 +5,12 @@ import {HTTP_INTERCEPTORS} from '@angular/common/http';
 import {HttpErrorInterceptor} from './session/http-error.interceptor';
 import {AuthenticationGuard} from './session/authentication.guard';
 import {AuthenticationService} from './session/authentication.sevice';
+import {AppConfig} from '../app.config';
 
 @NgModule({
     imports: [ ApiModule.forRoot(() => {
         return new Configuration({
-            basePath: `http://localhost:8080`,
+            basePath: `${AppConfig.settings.endpoint.tls ? 'https://' : 'http://'}${AppConfig.settings.endpoint.host}:${AppConfig.settings.endpoint.port}`,
             withCredentials: true
         });
     })],

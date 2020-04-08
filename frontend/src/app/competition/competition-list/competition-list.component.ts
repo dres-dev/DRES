@@ -5,7 +5,7 @@ import {CompetitionCreateDialogComponent, CompetitionCreateDialogResult} from '.
 import {filter, flatMap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Router} from '@angular/router';
-import {CompetitionStart} from '../../../../openapi/model/competitionStart';
+import {CompetitionStart} from '../../../../openapi';
 import {CompetitionStartDialogComponent, CompetitionStartDialogResult} from './competition-start-dialog.component';
 
 @Component({

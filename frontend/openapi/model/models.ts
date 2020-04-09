@@ -26,4 +26,5 @@ export * from './team';
 export * from './temporalPoint';
 export * from './temporalRange';
 export * from './userDetails';
+export * from './userRequest';
 export * from './videoItem';

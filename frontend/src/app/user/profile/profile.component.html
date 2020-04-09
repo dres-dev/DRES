@@ -1,0 +1,26 @@
+<mat-card *ngIf="sessionService.isLoggedIn()">
+    <mat-card-title>User Profile - {{(user | async)?.username }}</mat-card-title>
+    <mat-divider></mat-divider>
+    <mat-card-content>
+        <mat-grid-list *ngIf="!isEditing()" cols="2" rowHeight="16:9" gutterSize="2em">
+            <mat-grid-tile>Name:</mat-grid-tile>
+            <mat-grid-tile>{{(user | async)?.username}}</mat-grid-tile>
+            <mat-grid-tile>Role:</mat-grid-tile>
+            <mat-grid-tile>{{(user | async)?.role | titlecase}}</mat-grid-tile>
+        </mat-grid-list>
+
+        <form *ngIf="isEditing()" [formGroup]="form" (ngSubmit)="submit()">
+            <p>
+                <mat-form-field>
+                    <input type="text" matInput placeholder="Username" formControlName="username">
+                </mat-form-field>
+            </p>
+
+            <p>
+                <mat-form-field>
+                    <input type="password" matInput placeholder="Password" formControlName="password">
+                </mat-form-field>
+            </p>
+        </form>
+    </mat-card-content>
+</mat-card>

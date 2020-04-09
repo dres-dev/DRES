@@ -10,19 +10,15 @@
  * Do not edit the class manually.
  */
 import { Task } from './task';
-import { Team } from './team';
 
 
-export interface CompetitionInfo { 
+export interface RunState { 
     id: number;
-    name: string;
-    status: CompetitionInfo.StatusEnum;
-    description: string;
+    status: RunState.StatusEnum;
     currentTask?: Task;
     timeLeft: number;
-    teams: Array<Team>;
 }
-export namespace CompetitionInfo {
+export namespace RunState {
     export type StatusEnum = 'CREATED' | 'ACTIVE' | 'PREPARING_TASK' | 'RUNNING_TASK' | 'TERMINATED';
     export const StatusEnum = {
         CREATED: 'CREATED' as StatusEnum,

@@ -10,4 +10,13 @@ export namespace ServerMessageType {
         TASK_UPDATED: 'TASK_UPDATED' as ServerMessageTypeEnum,
         TASK_END: 'TASK_END' as ServerMessageTypeEnum
     };
+    export const ServerMessageTypes: ServerMessageTypeEnum[] = [
+        'COMPETITION_START',
+        'COMPETITION_UPDATE',
+        'COMPETITION_END',
+        'TASK_PREPARE',
+        'TASK_START',
+        'TASK_UPDATED',
+        'TASK_END'
+    ];
 }

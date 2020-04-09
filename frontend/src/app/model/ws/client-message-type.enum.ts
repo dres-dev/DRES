@@ -9,4 +9,5 @@ export namespace ClientMessageType {
         TASK_UPDATED: 'TASK_UPDATED' as ClientMessageTypeEnum,
         TASK_END: 'TASK_END' as ClientMessageTypeEnum
     };
+    export const ClientMessageTypes: ClientMessageTypeEnum[] = ['ACK', 'REGISTER', 'UNREGISTER'];
 }

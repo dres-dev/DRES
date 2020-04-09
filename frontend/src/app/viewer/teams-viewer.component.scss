@@ -1,0 +1,19 @@
+.tile {
+  padding: 10px;
+
+  min-width: 125px;
+  max-width: 200px;
+
+  min-height: 250px;
+  max-height: 350px;
+
+  border-radius: 15px;
+}
+
+.tile div {
+  border-radius: 5px;
+}
+
+.tile div img {
+  width: 100%;
+}

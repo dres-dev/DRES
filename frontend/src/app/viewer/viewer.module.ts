@@ -14,6 +14,9 @@ import {MatMenuModule} from '@angular/material/menu';
 import {CompetitionBuilderModule} from '../competition/competition-builder/competition-builder.module';
 import {MatSelectModule} from '@angular/material/select';
 import {RunViewerComponent} from './run-viewer.component';
+import {MatCardModule} from '@angular/material/card';
+import {TaskViewerComponent} from './task-viewer.component';
+import {TeamsViewerComponent} from './teams-viewer.component';
 
 @NgModule({
     imports: [
@@ -31,10 +34,11 @@ import {RunViewerComponent} from './run-viewer.component';
         MatProgressSpinnerModule,
         MatMenuModule,
         CompetitionBuilderModule,
-        MatSelectModule
+        MatSelectModule,
+        MatCardModule
     ],
     exports:      [ RunViewerComponent ],
-    declarations: [ RunViewerComponent ],
+    declarations: [ RunViewerComponent, TaskViewerComponent, TeamsViewerComponent ],
     providers:    [ ]
 })
 export class ViewerModule { }

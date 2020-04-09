@@ -1,5 +1,5 @@
 import {BrowserModule} from '@angular/platform-browser';
-import {NgModule} from '@angular/core';
+import {APP_INITIALIZER, NgModule} from '@angular/core';
 
 import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
@@ -20,6 +20,17 @@ import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {RunModule} from './run/run.module';
 import {ViewerModule} from './viewer/viewer.module';
+import {AppConfig} from './app.config';
+
+
+/**
+ * Method used to load application config.
+ *
+ * @param appConfig AppConfig service
+ */
+export function initializeApp(appConfig: AppConfig) {
+    return () => appConfig.load();
+}
 
 @NgModule({
   declarations: [
@@ -47,7 +58,7 @@ import {ViewerModule} from './viewer/viewer.module';
         ViewerModule,
         RunModule
     ],
-  providers: [],
+  providers: [AppConfig, { provide: APP_INITIALIZER, useFactory: initializeApp, deps: [AppConfig], multi: true }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -25,7 +25,8 @@
             "aot": true,
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              "src/config.json"
             ],
             "styles": [
               "./node_modules/@angular/material/prebuilt-themes/purple-green.css",

@@ -48,4 +48,9 @@ interface Scoreboard {
      * Returns a summary of all current scores in a [ScoreOverview]
      */
     fun overview(): ScoreOverview = ScoreOverview(name(), overallScores())
+
+    /**
+     * Returns a summary of [Score]s for the current [Task] in a [ScoreOverview]
+     */
+    fun taskOverview(): ScoreOverview = ScoreOverview(name(), taskScores())
 }

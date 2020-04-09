@@ -1,6 +1,5 @@
 package dres.api.rest.handler
 
-import dres.api.rest.AccessManager
 import dres.api.rest.RestApiRole
 import dres.api.rest.types.run.RunType
 import dres.api.rest.types.status.ErrorStatus
@@ -12,6 +11,7 @@ import dres.data.model.run.CompetitionRun
 import dres.run.RunExecutor
 import dres.run.RunManager
 import dres.run.SynchronousRunManager
+
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context

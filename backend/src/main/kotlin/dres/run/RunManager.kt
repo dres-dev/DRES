@@ -1,6 +1,6 @@
 package dres.run
 
-import dres.api.rest.types.run.ClientMessage
+import dres.api.rest.types.run.websocket.ClientMessage
 import dres.data.model.competition.Competition
 import dres.data.model.competition.Task
 import dres.data.model.run.Submission

@@ -45,7 +45,7 @@ abstract class UserHandler() : RestHandler {
         return ctx.body<UserRequest>()
     }
 
-    data class UserRequest(val username: String, val password: String?, val role: Role)
+    data class UserRequest(val username: String, val password: String?, val role: Role?)
 
 }
 
@@ -140,7 +140,7 @@ class UpdateUsersHandler() : UserHandler(), PatchRestHandler<UserHandler.UserDet
     override fun doPatch(ctx: Context): UserDetails {
         val id = getIdFromPath(ctx) // Id was verified that it exists
         val req = getCreateUserFromBody(ctx)
-        val caller = getUserFromId(ctx)
+        val caller = getFromSessionOrDie(ctx)
         when{
             (caller.role == Role.ADMIN) and (caller.id != id)-> {
                 /* ADMIN -- Can edit anyone */

@@ -52,7 +52,7 @@ object UserManager {
         if (updateId != null) {
             val currentUser = users[updateId]
             if (currentUser != null) {
-                val updatedUser = currentUser.copy(id = currentUser.id, username = currentUser.username, password = password?.hash()
+                val updatedUser = currentUser.copy(id = currentUser.id, username = username ?: currentUser.username, password = password?.hash()
                         ?: currentUser.password, role = role ?: currentUser.role)
                 users.update(updatedUser)
                 return true
@@ -143,7 +143,7 @@ object UserManager {
     fun create(toCreate: UserHandler.UserRequest): Boolean {
         return create(UserName(toCreate.username), if(toCreate.password != null){PlainPassword(toCreate.password)}else{
             PlainPassword("")
-        }, toCreate.role)
+        }, toCreate.role!!)
     }
 
     fun updateEntirely(id:Long?, user: UserHandler.UserRequest): Boolean {

@@ -3,18 +3,9 @@ package dres.data.model.run
 import dres.data.model.Entity
 import dres.data.model.competition.Competition
 import dres.data.model.competition.Task
-import dres.data.model.competition.TaskDescription
-import dres.data.model.competition.TaskType
 import dres.data.model.run.CompetitionRun.TaskRun
-import dres.run.RunExecutor
-import dres.run.validate.JudgementValidator
-import dres.run.validate.SubmissionValidator
-import dres.run.validate.TextualKisSubmissionValidator
-import dres.run.validate.VisualKisSubmissionValidator
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import java.util.*
 
@@ -32,12 +23,6 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         this.started = started
         this.ended = ended
     }
-
-    private val validators = mapOf(
-            TaskType.KIS_VISUAL to VisualKisSubmissionValidator(),
-            TaskType.KIS_TEXTUAL to TextualKisSubmissionValidator(),
-            TaskType.AVS to JudgementValidator(RunExecutor.judgementQueue)
-    )
 
     init {
         require(competition.tasks.size > 0) { "Cannot create a run from a competition that doesn't have any tasks. "}
@@ -94,39 +79,6 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         }
     }
 
-    @kotlinx.serialization.Transient
-    val awaitingValidation = mutableListOf<Deferred<Pair<Submission, SubmissionStatus>>>()
-
-    val hasUnvalidatedSubmissions: Boolean
-        get() = awaitingValidation.isNotEmpty()
-
-    /**
-     * Checks if new submission validations are available and updates [Submission]s accordingly
-     */
-    @ExperimentalCoroutinesApi
-    fun updateSubmissionValidations() : List<Submission> {
-        if (!hasUnvalidatedSubmissions) {
-            return emptyList()
-        }
-        val completed = awaitingValidation.filter { it.isCompleted }
-        val submissions = completed.map {
-            val result = it.getCompleted()
-            result.first.status = result.second
-            return@map result.first
-        }
-        //remove completed ones
-        awaitingValidation.removeAll(completed)
-
-        return submissions
-
-        //TODO maybe trigger an update with the freshly evaluated submissions somewhere?
-    }
-
-
-    private fun validator(run: TaskRun): SubmissionValidator<Submission, TaskDescription> {
-        return validators[run.task.description.taskType] as SubmissionValidator<Submission, TaskDescription>
-    }
-
     /**
      * Represents a concrete instance or `run` of a [Task]. [TaskRun]s always exist within a
      * [CompetitionRun]. As a [CompetitionRun], [TaskRun]s can be started and ended and they
@@ -163,8 +115,6 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         /** The [Task] referenced by this [TaskRun]. */
         val task: Task
             get() = this@CompetitionRun.competition.tasks[this.taskId]
-
-        private val validator: SubmissionValidator<Submission, TaskDescription> = validator(this)
 
         init {
             if (this@CompetitionRun.competition.tasks.size < this.taskId) {
@@ -206,14 +156,6 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
                 throw IllegalStateException("Team ${submission.team} does not exists for competition run ${this@CompetitionRun.name}.")
             }
             (this.submissions as MutableList).add(submission)
-
-            runBlocking { //TODO specify execution context
-                awaitingValidation.add(
-                        async {
-                           submission to validator.validate(submission, task.description)
-                    }
-                )
-            }
         }
     }
 }

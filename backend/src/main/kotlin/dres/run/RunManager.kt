@@ -4,7 +4,9 @@ import dres.api.rest.types.run.websocket.ClientMessage
 import dres.data.model.competition.Competition
 import dres.data.model.competition.Task
 import dres.data.model.run.Submission
+import dres.data.model.run.SubmissionStatus
 import dres.run.score.Scoreboard
+import dres.run.validate.JudgementValidator
 
 /**
  * A managing class for [Competition] executions or 'runs'.
@@ -23,16 +25,19 @@ interface RunManager : Runnable {
     val competition: Competition
 
     /** The [Scoreboard] used to track the [Score] per team. */
-    val scoreboards: List<Scoreboard>
+    val scoreboards: List<Scoreboard>?
 
     /** The [Task] that is currently being executed or waiting for execution by this [RunManager]. Can be null!*/
     val currentTask: Task?
 
     /** The list of [Submission]s for the current [Task]. */
-    val submissions: List<Submission>
+    val submissions: List<Submission>?
 
     /** Current [RunManagerStatus] of the [RunManager]. */
     val status: RunManagerStatus
+
+    /** The [JudgementValidator] instance used for manual verdicts. */
+    val judgementValidator: JudgementValidator
 
     /**
      * Starts this [RunManager] moving [RunManager.status] from [RunManagerStatus.CREATED] to
@@ -145,7 +150,8 @@ interface RunManager : Runnable {
      * this method again.
      *
      * @param sub The [Submission] to be posted.
-     * @return True if [Submission] was processed, false otherwise.
+     * @return [SubmissionStatus] of the [Submission]
+     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    fun postSubmission(sub: Submission): Boolean
+    fun postSubmission(sub: Submission): SubmissionStatus
 }

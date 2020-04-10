@@ -35,7 +35,7 @@ export class AbstractRunListComponent implements AfterViewInit {
         const infoUpdate = this.update.pipe(
             switchMap(() => this.runService.getApiRunInfo())
         );
-        const stateUpdate = merge(interval(5000), this.update).pipe(
+        const stateUpdate = merge(this.update, interval(5000)).pipe(
             switchMap(() => this.runService.getApiRunState())
         );
 

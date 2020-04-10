@@ -1,11 +1,11 @@
 package dres.data.model.competition
 
 import dres.data.model.Entity
+import dres.data.model.competition.interfaces.TaskDescription
 import kotlinx.serialization.Serializable
-import java.lang.IllegalArgumentException
 
 @Serializable
-data class Competition(override var id: Long, val name: String, val description: String?, val tasks: MutableList<Task>, val teams: MutableList<Team>) : Entity {
+data class Competition(override var id: Long, val name: String, val description: String?, val tasks: MutableList<TaskDescription>, val teams: MutableList<Team>) : Entity {
     fun validate() {
         for (task in this.tasks) {
             if (tasks.map { it.name }.count { it == task.name } > 1) {
@@ -20,7 +20,7 @@ data class Competition(override var id: Long, val name: String, val description:
         }
     }
 
-    fun addTask(task: Task) {
+    fun addTask(task: TaskDescription) {
         if (tasks.map { it.name }.contains(task.name)) {
             throw IllegalArgumentException("Task with name ${task.name} already exists")
         }

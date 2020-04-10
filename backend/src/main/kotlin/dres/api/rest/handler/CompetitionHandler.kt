@@ -1,17 +1,13 @@
 package dres.api.rest.handler
 
 import dres.api.rest.RestApiRole
-import dres.api.rest.types.run.RunType
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
 import dres.data.model.competition.Competition
-import dres.data.model.competition.Task
 import dres.data.model.competition.Team
-import dres.data.model.run.CompetitionRun
-import dres.run.SynchronousRunManager
-import dres.run.RunExecutor
+import dres.data.model.competition.interfaces.TaskDescription
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -95,7 +91,7 @@ class ListTeamHandler(competitions: DAO<Competition>) : CompetitionHandler(compe
 
 }
 
-class ListTaskHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), GetRestHandler<List<Task>> {
+class ListTaskHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), GetRestHandler<List<TaskDescription>> {
 
     override val route: String = "competition/:competitionId/task"
 
@@ -105,7 +101,7 @@ class ListTaskHandler(competitions: DAO<Competition>) : CompetitionHandler(compe
             pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<Task>::class)]),
+                OpenApiResponse("200", [OpenApiContent(Array<TaskDescription>::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])

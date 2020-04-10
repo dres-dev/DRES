@@ -2,7 +2,7 @@ package dres.run
 
 import dres.api.rest.types.run.websocket.ClientMessage
 import dres.data.model.competition.Competition
-import dres.data.model.competition.Task
+import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.score.Scoreboard
@@ -28,7 +28,7 @@ interface RunManager : Runnable {
     val scoreboards: List<Scoreboard>?
 
     /** The [Task] that is currently being executed or waiting for execution by this [RunManager]. Can be null!*/
-    val currentTask: Task?
+    val currentTask: TaskDescription?
 
     /** The list of [Submission]s for the current [Task]. */
     val submissions: List<Submission>?

@@ -6,7 +6,7 @@ import dres.api.rest.RestApiRole
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
-import dres.data.model.competition.Task
+import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.run.RunExecutor
 import dres.run.RunManager
@@ -42,7 +42,7 @@ class SubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHandle
         return managers.first()
     }
 
-    private fun toSubmission(ctx: Context, currentTask: Task, submissionTime: Long): Submission {
+    private fun toSubmission(ctx: Context, currentTask: TaskDescription, submissionTime: Long): Submission {
 
         val map = ctx.pathParamMap()
 
@@ -122,7 +122,7 @@ class OpenSubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHa
                 OpenApiResponse("409", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    private fun toSubmission(ctx: Context, currentTask: Task, submissionTime: Long): Submission {
+    private fun toSubmission(ctx: Context, currentTask: TaskDescription, submissionTime: Long): Submission {
         val map = ctx.queryParamMap()
         val team = map.getOrElse("team") { //TODO replace with team from session
             throw ErrorStatusException(404, "Parameter 'team' is missing!'")

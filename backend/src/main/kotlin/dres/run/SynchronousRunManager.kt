@@ -5,9 +5,11 @@ import dres.api.rest.types.run.websocket.ClientMessageType
 import dres.api.rest.types.run.websocket.ServerMessage
 import dres.api.rest.types.run.websocket.ServerMessageType
 import dres.data.dbo.DAO
+import dres.data.model.competition.AvsTaskDescription
 import dres.data.model.competition.Competition
-import dres.data.model.competition.Task
-import dres.data.model.competition.TaskDescriptionBase
+import dres.data.model.competition.KisTextualTaskDescription
+import dres.data.model.competition.KisVisualTaskDescription
+import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
@@ -44,7 +46,7 @@ class SynchronousRunManager(competition: Competition, name: String, override val
         get() = this.run.competition
 
     /** Currently active task. */
-    override var currentTask: Task? = null
+    override var currentTask: TaskDescription? = null
         private set
 
     /** The status of this [RunManager]. */
@@ -197,11 +199,12 @@ class SynchronousRunManager(competition: Competition, name: String, override val
         this.run.currentTask?.addSubmission(sub)
 
         /* Validate submission or enqueue it for late validation. */
-        val ret = this.currentTask!!.description.let {
+        val ret = this.currentTask!!.let {
             when(it) {
-                is TaskDescriptionBase.KisTextualTaskDescription -> TemporalOverlapSubmissionValidator.validate(sub, it)
-                is TaskDescriptionBase.KisVisualTaskDescription -> TemporalOverlapSubmissionValidator.validate(sub, it)
-                is TaskDescriptionBase.AvsTaskDescription -> this.judgementValidator.validate(sub, it)
+                is KisTextualTaskDescription -> TemporalOverlapSubmissionValidator.validate(sub, it)
+                is KisVisualTaskDescription -> TemporalOverlapSubmissionValidator.validate(sub, it)
+                is AvsTaskDescription -> this.judgementValidator.validate(sub, it)
+                else -> throw IllegalStateException("No validator for ${it::class.qualifiedName} defined")
             }
         }
 

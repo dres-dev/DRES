@@ -2,10 +2,8 @@ package dres.data.model.run
 
 import dres.data.model.Entity
 import dres.data.model.competition.Competition
-import dres.data.model.competition.Task
+import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun.TaskRun
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.serialization.Serializable
 import java.util.*
 
@@ -113,7 +111,7 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         val submissions: List<Submission> = mutableListOf()
 
         /** The [Task] referenced by this [TaskRun]. */
-        val task: Task
+        val task: TaskDescription
             get() = this@CompetitionRun.competition.tasks[this.taskId]
 
         init {

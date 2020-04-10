@@ -1,6 +1,6 @@
 package dres.api.rest.types.run
 
-import dres.data.model.competition.Task
+import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun
 import dres.run.RunManager
 import dres.run.RunManagerStatus
@@ -13,7 +13,7 @@ import dres.run.RunManagerStatus
  * @author Ralph Gasser
  * @version 1.0
  */
-data class RunState(val id: Long, val status: RunManagerStatus, val currentTask: Task?, val timeLeft: Long) {
+data class RunState(val id: Long, val status: RunManagerStatus, val currentTask: TaskDescription?, val timeLeft: Long) {
     constructor(run: RunManager) : this(run.runId, run.status, run.currentTask, run.timeLeft())
 }
 

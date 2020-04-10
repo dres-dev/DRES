@@ -9,7 +9,13 @@ import dres.data.model.competition.TaskGroup
  * @version 1.0
  */
 interface TaskDescription {
+    /**
+     * The name of the task
+     */
+    val name: String
 
     /** The [TaskType] of the [Task] */
     val taskGroup: TaskGroup
+
+    val duration: Long
 }

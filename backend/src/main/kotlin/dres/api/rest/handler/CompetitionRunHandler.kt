@@ -6,10 +6,9 @@ import dres.api.rest.types.run.RunInfo
 import dres.api.rest.types.run.RunState
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
-import dres.data.model.competition.Task
-import dres.data.model.competition.TaskType
+import dres.data.model.competition.TaskGroup
+import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
-import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor
 import dres.run.RunManager
 import dres.run.score.ScoreOverview
@@ -196,9 +195,9 @@ class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHand
     }
 }
 
-data class TaskInfo(val name: String, val taskGroup: String, val type: TaskType, val duration: Long) {
+data class TaskInfo(val name: String, val taskGroup: TaskGroup, val duration: Long) {
     companion object{
-        fun of(task: Task, duration: Long): TaskInfo = TaskInfo(task.name, task.taskGroup, task.description.taskType, duration)
+        fun of(task: TaskDescription): TaskInfo = TaskInfo(task.name, task.taskGroup, task.duration)
     }
 }
 
@@ -225,7 +224,7 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
 
         val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId")
 
-        return TaskInfo.of(task, task.description.taskType.defaultDuration) //FIXME get task duration
+        return TaskInfo.of(task)
 
     }
 }

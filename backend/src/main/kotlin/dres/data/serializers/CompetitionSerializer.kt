@@ -12,7 +12,7 @@ object CompetitionSerializer: Serializer<Competition> {
         out.writeUTF(value.description ?: "")
         out.writeInt(value.tasks.size)
         for (task in value.tasks) {
-            TaskSerializer.serialize(out, task)
+            TaskDescriptionSerializer.serialize(out, task)
         }
         out.writeInt(value.teams.size)
         for (team in value.teams) {
@@ -24,7 +24,7 @@ object CompetitionSerializer: Serializer<Competition> {
             input.unpackLong(),
             input.readUTF(),
             input.readUTF(),
-            (0 until input.readInt()).map { TaskSerializer.deserialize(input, available) }.toMutableList(),
+            (0 until input.readInt()).map { TaskDescriptionSerializer.deserialize(input, available) }.toMutableList(),
             (0 until input.readInt()).map { TeamSerializer.deserialize(input, available) }.toMutableList()
     )
 }

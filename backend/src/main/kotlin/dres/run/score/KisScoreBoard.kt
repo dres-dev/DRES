@@ -1,23 +1,23 @@
 package dres.run.score
 
-import dres.data.model.competition.Task
 import dres.data.model.competition.Team
+import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun
 import dres.data.model.run.SubmissionStatus
 import kotlin.math.max
 
-class KisScoreBoard(private val name: String, private val run: CompetitionRun, private val taskFilter: (Task) -> Boolean) : Scoreboard {
+class KisScoreBoard(private val name: String, private val run: CompetitionRun, private val taskFilter: (TaskDescription) -> Boolean) : Scoreboard {
 
     private val maxPointsPerTask = 100.0
     private val maxScoreNormalized = 100.0
     private val maxPointsAtTaskEnd = 50.0
     private val penaltyPerWrongSubmission = 20.0
 
-    private val scorePerTaskMap = mutableMapOf<Task, Map<Team, Double>>()
+    private val scorePerTaskMap = mutableMapOf<TaskDescription, Map<Team, Double>>()
 
     override fun taskScores(): List<Score> {
 
-        val currentTask: Task = run.currentTask?.task ?: return emptyList()
+        val currentTask: TaskDescription = run.currentTask?.task ?: return emptyList()
         return scorePerTaskMap[currentTask]?.map { Score(run.competition.teams.indexOf(it.key), it.value) } ?: emptyList()
 
     }

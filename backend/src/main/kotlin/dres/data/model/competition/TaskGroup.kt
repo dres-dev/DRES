@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
  * TODO:
  */
 @Serializable
-data class TaskGroup(val name: String) {
+data class TaskGroup(val name: String, val defaultTaskDuration: Long) {
 }

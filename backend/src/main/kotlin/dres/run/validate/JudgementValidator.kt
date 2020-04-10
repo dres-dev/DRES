@@ -3,27 +3,10 @@ package dres.run.validate
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
-import java.util.*
-import kotlin.collections.HashMap
 
-/**
- * A validator class that checks, if a submission is correct based on a manual judgement by a user.
- *
- * @author Luca Rossetto & Ralph Gasser
- * @version 1.0
- */
-class JudgementValidator(val callback: ((Submission) -> Unit)? = null): SubmissionValidator<TaskDescription> {
-
-    /** Internal queue that keeps track of all the [Submission]s in need of a verdict. */
-    private val queue: Queue<Submission> = LinkedList()
-
-    /** Internal map of all [Submission]s that have been retrieved by a judge and are pending a verdict. */
-    private val waiting = HashMap<String, Submission>()
-
+interface JudgementValidator : SubmissionValidator<TaskDescription> {
     /** Returns the number of [Submission]s that are currently pending a judgement. */
     val pending: Int
-        @Synchronized
-        get() = this.queue.size + this.waiting.size
 
     /**
      * Enqueues a [Submission] with the internal judgment queue.
@@ -33,11 +16,7 @@ class JudgementValidator(val callback: ((Submission) -> Unit)? = null): Submissi
      *
      * @return [SubmissionStatus] of the [Submission]
      */
-    @Synchronized
-    override fun validate(submission: Submission, task: TaskDescription): SubmissionStatus {
-        this.queue.offer(submission)
-        return SubmissionStatus.INDETERMINATE
-    }
+    override fun validate(submission: Submission, task: TaskDescription): SubmissionStatus
 
     /**
      * Retrieves and returns the next element that requires a verdict from this [JudgementValidator]'
@@ -46,17 +25,7 @@ class JudgementValidator(val callback: ((Submission) -> Unit)? = null): Submissi
      *
      * @return Optional [Pair] containing a string token and the [Submission] that should be judged.
      */
-    @Synchronized
-    fun next(): Pair<String,Submission>? {
-        val next = this.queue.poll()
-        return if (next != null) {
-            val token = UUID.randomUUID().toString()
-            this.waiting[token] = next
-            Pair(token, next)
-        } else {
-            null
-        }
-    }
+    fun next(queue: String): Pair<String, Submission>?
 
     /**
      * Places a verdict for the [Submission] identified by the given token.
@@ -64,20 +33,6 @@ class JudgementValidator(val callback: ((Submission) -> Unit)? = null): Submissi
      * @param token The token used to identify the [Submission].
      * @param verdict The verdict of the judge.
      */
-    @Synchronized
-    fun judge(token: String, verdict: SubmissionStatus) {
-        require(this.waiting.containsKey(token)) { "This JudgementValidator does not contain a submission for the token '$token'." }
-        val submission = this.waiting.getValue(token)
-        submission.status = verdict
-        this.callback?.invoke(submission) /* Invoke callback if any. */
-    }
-
-    /**
-     * Clears this [JudgementValidator] and all the associated queues and maps.
-     */
-    @Synchronized
-    fun clear() {
-        this.waiting.clear()
-        this.queue.clear()
-    }
+    fun judge(token: String, verdict: SubmissionStatus)
 }
+

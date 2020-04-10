@@ -14,6 +14,7 @@ import dres.data.model.run.CompetitionRun
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.score.Scoreboard
+import dres.run.validate.BasicJudgementValidator
 import dres.run.validate.JudgementValidator
 import dres.run.validate.TemporalOverlapSubmissionValidator
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -64,7 +65,7 @@ class SynchronousRunManager(competition: Competition, name: String, override val
         }
 
     /** Internal instance of [JudgementValidator], in case it is required. */
-    override val judgementValidator = JudgementValidator {
+    override val judgementValidator = BasicJudgementValidator {
         this.scoreboardUpdateRequired = true
     }
 

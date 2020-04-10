@@ -1,6 +1,6 @@
 package dres.data.model.competition.interfaces
 
-import dres.data.model.competition.TaskType
+import dres.data.model.competition.TaskGroup
 
 /**
  * Basic description of a [Task].
@@ -11,5 +11,5 @@ import dres.data.model.competition.TaskType
 interface TaskDescription {
 
     /** The [TaskType] of the [Task] */
-    val taskType: TaskType
+    val taskGroup: TaskGroup
 }

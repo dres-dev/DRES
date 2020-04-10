@@ -1,8 +1,7 @@
 package dres.data.serializers
 
 import dres.data.model.basics.MediaItem
-import dres.data.model.competition.TaskDescriptionBase
-import dres.data.model.competition.TaskType
+import dres.data.model.competition.*
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer
@@ -10,12 +9,12 @@ import java.lang.IllegalStateException
 
 object TaskDescriptionSerializer: Serializer<TaskDescriptionBase> {
     override fun serialize(out: DataOutput2, value: TaskDescriptionBase) = when (value) {
-        is TaskDescriptionBase.KisVisualTaskDescription -> {
+        is KisVisualTaskDescription -> {
             out.writeInt(value.taskType.ordinal)
             MediaItemSerializer.serialize(out, value.item)
             TemporalRangeSerializer.serialize(out, value.temporalRange)
         }
-        is TaskDescriptionBase.KisTextualTaskDescription -> {
+        is KisTextualTaskDescription -> {
             out.writeInt(value.taskType.ordinal)
             MediaItemSerializer.serialize(out, value.item)
             TemporalRangeSerializer.serialize(out, value.temporalRange)
@@ -25,7 +24,7 @@ object TaskDescriptionSerializer: Serializer<TaskDescriptionBase> {
             }
             out.writeInt(value.delay)
         }
-        is TaskDescriptionBase.AvsTaskDescription -> {
+        is AvsTaskDescription -> {
             out.writeInt(value.taskType.ordinal)
             out.writeUTF(value.description)
         }

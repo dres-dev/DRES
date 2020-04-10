@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {merge, Observable} from 'rxjs';
-import {filter, first, flatMap, map} from 'rxjs/operators';
+import {merge, Observable, Subscription} from 'rxjs';
+import {filter, first, flatMap, map, tap} from 'rxjs/operators';
 import {webSocket, WebSocketSubject, WebSocketSubjectConfig} from 'rxjs/webSocket';
 import {AppConfig} from '../app.config';
 import {IWsMessage} from '../model/ws/ws-message.interface';
@@ -18,12 +18,15 @@ import {IWsServerMessage} from '../model/ws/ws-server-message.interface';
 })
 export class RunViewerComponent implements OnInit, OnDestroy  {
 
-    private webSocket: WebSocketSubject<IWsMessage> = webSocket({
+    webSocket: WebSocketSubject<IWsMessage> = webSocket({
         url: `${AppConfig.settings.endpoint.tls ? 'wss://' : 'ws://'}${AppConfig.settings.endpoint.host}:${AppConfig.settings.endpoint.port}/api/ws/run`,
     } as WebSocketSubjectConfig<IWsMessage>);
 
     runInfo: Observable<RunInfo>;
     runState: Observable<RunState>;
+
+    /** Internal WebSocket subscription for logging purposes. */
+    private logSubscription: Subscription;
 
     /**
      * Constructor; extracts the runId and keeps a local reference.
@@ -59,6 +62,11 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         this.activeRoute.params.subscribe(p => {
             this.webSocket.next({runId: p.runId, type: 'REGISTER'} as IWsClientMessage);
         });
+
+        /* Register WebSocket logger. */
+        this.logSubscription = this.webSocket.subscribe(m => {
+            console.log(`WebSocket message received: ${m.type}`);
+        });
     }
 
     /**
@@ -68,5 +76,9 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         this.activeRoute.params.subscribe(p => {
             this.webSocket.next({runId: p.runId, type: 'UNREGISTER'} as IWsClientMessage);
         });
+
+        /* Unregister WebSocket logger. */
+        this.logSubscription.unsubscribe();
+        this.logSubscription = null;
     }
 }

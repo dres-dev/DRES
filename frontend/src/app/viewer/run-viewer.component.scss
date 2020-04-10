@@ -1,12 +1,8 @@
 .grid-container {
   display: grid;
-  grid-template-columns: 25% 50% 25%;
-  grid-template-areas:
-          'header header header '
-          'left main right'
-          'footer footer footer';
   grid-gap: 10px;
   padding: 10px;
+  height: 90vh;
 }
 
 .header {

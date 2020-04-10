@@ -3,9 +3,9 @@ import { RunInfo, RunState} from '../../../openapi';
 import {Observable} from 'rxjs';
 
 @Component({
-    selector: 'app-teams-viewer',
-    templateUrl: './teams-viewer.component.html',
-    styleUrls: ['./teams-viewer.component.scss']
+    selector: 'app-scoreboard-viewer',
+    templateUrl: './scoreboard-viewer.component.html',
+    styleUrls: ['./scoreboard-viewer.component.scss']
 })
 export class ScoreboardViewerComponent {
     @Input() info: Observable<RunInfo>;

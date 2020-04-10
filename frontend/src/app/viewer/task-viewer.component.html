@@ -1,1 +1,15 @@
-<h2>{{(state | async)?.currentTask?.name}}</h2>
+<mat-card>
+    <h2 style="text-align: center;">{{(polledState | async)?.currentTask?.name}} ({{(polledState | async)?.status}})</h2>
+
+    <div *ngIf="(polledState | async)?.status == 'ACTIVE'">
+        <p>Waiting for task to start.</p>
+    </div>
+
+    <div *ngIf="(polledState | async)?.status == 'PREPARING_TASK'">
+
+    </div>
+
+    <div *ngIf="(polledState | async)?.status == 'RUNNING_TASK'">
+        <h3 style="text-align: center;">{{toHHMMSS((polledState | async)?.timeLeft)}}</h3>
+    </div>
+</mat-card>

@@ -17,6 +17,7 @@ import {RunViewerComponent} from './run-viewer.component';
 import {MatCardModule} from '@angular/material/card';
 import {TaskViewerComponent} from './task-viewer.component';
 import {TeamsViewerComponent} from './teams-viewer.component';
+import {ScoreboardViewerComponent} from './scoreboard-viewer.component';
 
 @NgModule({
     imports: [
@@ -38,7 +39,7 @@ import {TeamsViewerComponent} from './teams-viewer.component';
         MatCardModule
     ],
     exports:      [ RunViewerComponent ],
-    declarations: [ RunViewerComponent, TaskViewerComponent, TeamsViewerComponent ],
+    declarations: [ RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, ScoreboardViewerComponent ],
     providers:    [ ]
 })
 export class ViewerModule { }

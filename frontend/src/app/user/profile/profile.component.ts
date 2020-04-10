@@ -14,6 +14,8 @@ export class ProfileComponent implements OnInit {
 
     user: Observable<UserDetails>;
 
+    editing = false;
+
     form: FormGroup = new FormGroup({
         username: new FormControl(''),
         password: new FormControl(''),
@@ -45,7 +47,16 @@ export class ProfileComponent implements OnInit {
         }
     }
 
+    public reset() {
+        this.toggleEdit();
+        // TODO reset form components
+    }
+
     isEditing() {
-        return false;
+        return this.editing;
+    }
+
+    toggleEdit() {
+        this.editing = !this.editing;
     }
 }

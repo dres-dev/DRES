@@ -7,6 +7,8 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {FlexLayoutModule} from '@angular/flex-layout';
 import {MatGridListModule} from '@angular/material/grid-list';
 import {MatDividerModule} from '@angular/material/divider';
+import {MatIconModule} from '@angular/material/icon';
+import {MatButtonModule} from '@angular/material/button';
 
 
 
@@ -19,7 +21,9 @@ import {MatDividerModule} from '@angular/material/divider';
         MatFormFieldModule,
         FlexLayoutModule,
         MatGridListModule,
-        MatDividerModule
+        MatDividerModule,
+        MatIconModule,
+        MatButtonModule
     ]
 })
 export class UserModule { }

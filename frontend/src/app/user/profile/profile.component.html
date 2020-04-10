@@ -1,5 +1,19 @@
 <mat-card *ngIf="sessionService.isLoggedIn()">
-    <mat-card-title>User Profile - {{(user | async)?.username }}</mat-card-title>
+    <mat-card-header>
+        <div mat-card-avatar>
+            <mat-icon>person</mat-icon>
+        </div>
+        <mat-card-title>
+            {{(user | async)?.username }}
+        </mat-card-title>
+        <mat-card-subtitle>
+            User Profile
+        </mat-card-subtitle>
+        <div *ngIf="isEditing()" class="spacer-flex"></div>
+        <button *ngIf="!isEditing()" mat-icon-button class="flush-right" aria-label="Edit your profile" (click)="toggleEdit()">
+            <mat-icon>edit</mat-icon>
+        </button>
+    </mat-card-header>
     <mat-divider></mat-divider>
     <mat-card-content>
         <mat-grid-list *ngIf="!isEditing()" cols="2" rowHeight="16:9" gutterSize="2em">
@@ -15,12 +29,16 @@
                     <input type="text" matInput placeholder="Username" formControlName="username">
                 </mat-form-field>
             </p>
-
             <p>
                 <mat-form-field>
                     <input type="password" matInput placeholder="Password" formControlName="password">
                 </mat-form-field>
             </p>
+
         </form>
     </mat-card-content>
+    <mat-card-actions *ngIf="isEditing()">
+        <button type="submit" mat-button>Save</button>
+        <button mat-button (click)="reset()">Cancel</button>
+    </mat-card-actions>
 </mat-card>

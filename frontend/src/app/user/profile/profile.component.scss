@@ -30,3 +30,12 @@ mat-grid-list {
   display: flex;
   justify-content: flex-end;
 }
+
+// See https://stackoverflow.com/a/52009315
+.mat-card-header{
+  width: 100% !important;
+}
+
+.flush-right{
+  margin-left: auto;
+}

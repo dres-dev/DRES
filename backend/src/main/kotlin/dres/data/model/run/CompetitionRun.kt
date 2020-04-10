@@ -2,8 +2,12 @@ package dres.data.model.run
 
 import dres.data.model.Entity
 import dres.data.model.competition.Competition
+import dres.data.model.competition.KisTextualTaskDescription
+import dres.data.model.competition.KisVisualTaskDescription
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun.TaskRun
+import dres.run.score.KisTaskScorer
+import dres.run.score.TaskRunScorer
 import kotlinx.serialization.Serializable
 import java.util.*
 
@@ -77,6 +81,14 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         }
     }
 
+    fun scorerForTask(run: TaskRun): TaskRunScorer {
+        return when(run.task) {
+            is KisVisualTaskDescription -> KisTaskScorer(this)
+            is KisTextualTaskDescription -> KisTaskScorer(this)
+            else -> TODO("No scorer for task type yet")
+        }
+    }
+
     /**
      * Represents a concrete instance or `run` of a [Task]. [TaskRun]s always exist within a
      * [CompetitionRun]. As a [CompetitionRun], [TaskRun]s can be started and ended and they
@@ -113,6 +125,8 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         /** The [Task] referenced by this [TaskRun]. */
         val task: TaskDescription
             get() = this@CompetitionRun.competition.tasks[this.taskId]
+
+        val scorer: TaskRunScorer = scorerForTask(this)
 
         init {
             if (this@CompetitionRun.competition.tasks.size < this.taskId) {

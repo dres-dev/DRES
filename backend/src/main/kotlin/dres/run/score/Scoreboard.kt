@@ -16,15 +16,11 @@ data class ScoreOverview(val name: String, val scores: List<Score>)
  * @version 1.0
  */
 interface Scoreboard {
-    /**
-     * Returns all [Score]s for the current [Task] tracked by this [Scoreboard].
-     */
-    fun taskScores(): List<Score>
 
     /**
      * Returns all overall [Score]s tracked by this [Scoreboard].
      */
-    fun overallScores(): List<Score>
+    fun scores(): List<Score>
 
     /**
      * Retrieves and returns the score of the given [Team]
@@ -32,7 +28,7 @@ interface Scoreboard {
      * @param team The [Team]'s ID.
      * @return The score for the given [Team].
      */
-    fun taskScore(team: Team): Double
+    fun score(team: Team): Double
 
     /**
      * Updates the [Scoreboard].
@@ -47,10 +43,6 @@ interface Scoreboard {
     /**
      * Returns a summary of all current scores in a [ScoreOverview]
      */
-    fun overview(): ScoreOverview = ScoreOverview(name(), overallScores())
+    fun overview(): ScoreOverview = ScoreOverview(name(), scores())
 
-    /**
-     * Returns a summary of [Score]s for the current [Task] in a [ScoreOverview]
-     */
-    fun taskOverview(): ScoreOverview = ScoreOverview(name(), taskScores())
 }

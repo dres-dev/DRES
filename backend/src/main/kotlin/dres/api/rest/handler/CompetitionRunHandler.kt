@@ -188,10 +188,10 @@ class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHand
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): List<ScoreOverview> {
+    override fun doGet(ctx: Context): List<ScoreOverview> { //FIXME
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-        return run.scoreboards?.map { it.taskOverview() } ?: throw  ErrorStatusException(400, "Not scoreboards available. There is probably no run going on.")
+        /*return run.currentTask?.scorer ?:*/ throw  ErrorStatusException(400, "Not scoreboards available. There is probably no run going on.")
     }
 }
 

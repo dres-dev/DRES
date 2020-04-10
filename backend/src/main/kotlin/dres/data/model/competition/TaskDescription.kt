@@ -4,6 +4,10 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import dres.data.model.basics.MediaItem
 import dres.data.model.basics.TemporalRange
+import dres.data.model.competition.interfaces.TaskDescription
+import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
+import dres.run.validate.JudgementValidator
+import dres.run.validate.SubmissionValidator
 import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.Serializable
 
@@ -17,12 +21,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "taskType")
 @JsonSubTypes(
-    JsonSubTypes.Type(value = TaskDescription.KisVisualTaskDescription::class, name = "KIS_VISUAL"),
-    JsonSubTypes.Type(value = TaskDescription.KisTextualTaskDescription::class, name = "KIS_TEXTUAL"),
-    JsonSubTypes.Type(value = TaskDescription.AvsTaskDescription::class, name = "AVS")
+    JsonSubTypes.Type(value = TaskDescriptionBase.KisVisualTaskDescription::class, name = "KIS_VISUAL"),
+    JsonSubTypes.Type(value = TaskDescriptionBase.KisTextualTaskDescription::class, name = "KIS_TEXTUAL"),
+    JsonSubTypes.Type(value = TaskDescriptionBase.AvsTaskDescription::class, name = "AVS")
 )
-sealed class TaskDescription(val taskType: TaskType) {
-
+sealed class TaskDescriptionBase(override val taskType: TaskType): TaskDescription {
 
 //    @Serializer(forClass = TaskDescription::class)
 //    companion object : KSerializer<TaskDescription> {
@@ -68,7 +71,9 @@ sealed class TaskDescription(val taskType: TaskType) {
      */
     @Polymorphic
     @Serializable
-    data class KisVisualTaskDescription(val item: MediaItem.VideoItem, val temporalRange: TemporalRange) : TaskDescription(TaskType.KIS_VISUAL)
+    data class KisVisualTaskDescription(override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange) : TaskDescriptionBase(TaskType.KIS_VISUAL), MediaSegmentTaskDescription {
+
+    }
 
     /**
      * Describes a [TaskType.KIS_TEXTUAL] [Task]
@@ -77,7 +82,7 @@ sealed class TaskDescription(val taskType: TaskType) {
      */
     @Polymorphic
     @Serializable
-    data class KisTextualTaskDescription(val item: MediaItem.VideoItem, val temporalRange: TemporalRange, val descriptions: List<String>, val delay: Int = 30) : TaskDescription(TaskType.KIS_TEXTUAL)
+    data class KisTextualTaskDescription(override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange, val descriptions: List<String>, val delay: Int = 30) : TaskDescriptionBase(TaskType.KIS_TEXTUAL), MediaSegmentTaskDescription
 
     /**
      * Describes a [TaskType.AVS] video [Task]
@@ -86,7 +91,7 @@ sealed class TaskDescription(val taskType: TaskType) {
      */
     @Polymorphic
     @Serializable
-    data class AvsTaskDescription(val description: String) : TaskDescription(TaskType.AVS)
+    data class AvsTaskDescription(val description: String) : TaskDescriptionBase(TaskType.AVS)
 }
 
 

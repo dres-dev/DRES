@@ -1,14 +1,23 @@
 package dres.run.validate
 
-import dres.data.model.competition.TaskDescription
+import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 
 /**
- *  Checks if a submission is correct
+ * A validator class that checks, if  a submission is correct.
+ *
+ * @author Luca Rossetto & Ralph Gasser
+ * @version 1.0
  */
-interface SubmissionValidator<S : Submission, T: TaskDescription> {
-
-    suspend fun validate(submission: S, task: T): SubmissionStatus
-
+interface SubmissionValidator<T: TaskDescription> {
+    /**
+     * Validates the [Submission] and returns its [SubmissionStatus].
+     *
+     * @param submission The [Submission] to validate.
+     * @param task The [TaskDescription] that acts as a baseline for validation.
+     *
+     * @return [SubmissionStatus] of the [Submission]
+     */
+    fun validate(submission: Submission, task: T): SubmissionStatus
 }

@@ -3,9 +3,6 @@ package dres.run
 import dres.api.rest.types.run.websocket.ClientMessage
 import dres.api.rest.types.run.websocket.ClientMessageType
 import dres.api.rest.types.run.websocket.ServerMessage
-import dres.data.model.competition.TaskDescription
-import dres.data.model.run.Submission
-import dres.run.validate.JudgementQueue
 import dres.utilities.extensions.read
 import dres.utilities.extensions.write
 
@@ -47,9 +44,6 @@ object RunExecutor : Consumer<WsHandler> {
 
     /** Internal array of [Future]s for cleaning after [RunManager]s. See [RunExecutor.cleanerThread]*/
     private val results = HashMap<Future<*>, Long>()
-
-    //TODO not sure if this belongs here
-    val judgementQueue = JudgementQueue<Submission, TaskDescription>()
 
     /** A thread that cleans after [RunManager] have finished. */
     private val cleanerThread = Thread(Runnable {

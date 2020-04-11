@@ -83,9 +83,6 @@ object RestApi {
                 AbortTaskCompetitionRunAdminHandler(),
                 TerminateCompetitionRunAdminHandler(),
 
-                // Submission
-                OpenSubmissionHandler(),
-
                 NextOpenJudgementHandler(),
                 PostJudgementHandler()
         )
@@ -131,11 +128,15 @@ object RestApi {
                 ws("ws/run", runExecutor)
             }
 
-            /*path("submit") {
-                // TODO: Replace
+            path("submit") {
+                val submissionHandler = SubmissionHandler()
+                get(submissionHandler::get, submissionHandler.permittedRoles)
+            }
+
+            path("submit/:runId") {
                 val submissionHandler = OpenSubmissionHandler()
                 get(submissionHandler::get, submissionHandler.permittedRoles)
-            } */
+            }
 
 
         }.before {

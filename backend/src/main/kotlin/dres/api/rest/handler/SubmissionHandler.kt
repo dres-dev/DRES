@@ -70,7 +70,7 @@ class SubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHandle
     }
 
     @OpenApi(summary = "Endpoint to accept submissions",
-            path = "/api/submit",
+            path = "/submit",
             queryParams = [
                 OpenApiParam("team", Int::class, "Team number"),
                 OpenApiParam("video", String::class, "Video ID for VBS Submissions"),

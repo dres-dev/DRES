@@ -6,7 +6,7 @@ import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.score.Scoreboard
-import dres.run.validate.JudgementValidator
+import dres.run.score.interfaces.TaskRunScorer
 
 /**
  * A managing class for [CompetitionDescription] executions or 'runs'.
@@ -27,8 +27,11 @@ interface RunManager : Runnable {
     /** The [Scoreboard] used to track the [Score] per team. */
     val scoreboards: List<Scoreboard>?
 
-    /** The [Task] that is currently being executed or waiting for execution by this [RunManager]. Can be null!*/
+    /** The [Task] that is currently being executed or waiting for execution by this [RunManager]. Can be null! */
     val currentTask: TaskDescription?
+
+    /** The [TaskRunScorer] of the current [TaskRun]. Can be null! */
+    val currentTaskScore: TaskRunScorer?
 
     /** The list of [Submission]s for the current [Task]. */
     val submissions: List<Submission>?

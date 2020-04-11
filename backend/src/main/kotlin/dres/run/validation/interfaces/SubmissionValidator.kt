@@ -1,4 +1,4 @@
-package dres.run.validate
+package dres.run.validation.interfaces
 
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
@@ -10,12 +10,13 @@ import dres.data.model.run.SubmissionStatus
  * @version 1.0
  */
 interface SubmissionValidator {
+    /** Callback function that is invoked everytime a [Submission] has been validated. */
+    val callback: ((Submission) -> Unit)?
+
     /**
-     * Validates the [Submission] and returns its [SubmissionStatus].
+     * Validates the [Submission] and updates its [SubmissionStatus].
      *
      * @param submission The [Submission] to validate.
-     *
-     * @return [SubmissionStatus] of the [Submission]
      */
-    fun validate(submission: Submission): SubmissionStatus
+    fun validate(submission: Submission)
 }

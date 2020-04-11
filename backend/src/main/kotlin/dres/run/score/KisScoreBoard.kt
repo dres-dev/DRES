@@ -1,6 +1,5 @@
 package dres.run.score
 
-import dres.data.model.competition.Team
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun
 

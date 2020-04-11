@@ -6,10 +6,11 @@ import dres.data.model.basics.MediaItem
 import dres.data.model.basics.TemporalRange
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.data.model.competition.interfaces.TaskDescription
+import dres.data.model.run.Submission
 import dres.run.score.KisTaskScorer
-import dres.run.score.TaskRunScorer
-import dres.run.validate.BasicJudgementValidator
-import dres.run.validate.TemporalOverlapSubmissionValidator
+import dres.run.score.interfaces.TaskRunScorer
+import dres.run.validation.judged.BasicJudgementValidator
+import dres.run.validation.TemporalOverlapSubmissionValidator
 
 import kotlinx.serialization.Serializable
 
@@ -34,18 +35,18 @@ sealed class TaskDescriptionBase() : TaskDescription {
     @Serializable
     data class KisVisualTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange) : TaskDescriptionBase(), MediaSegmentTaskDescription{
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
-        override fun newValidator() = TemporalOverlapSubmissionValidator(this)
+        override fun newValidator(callback: ((Submission) -> Unit)?) = TemporalOverlapSubmissionValidator(this, callback)
     }
 
     /**
      * Describes a textual Known Item Search (KIS) [Task]
-     *
+     *x
      * @param item [MediaItem] the user should be looking for.
      */
     @Serializable
     class KisTextualTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange, val descriptions: List<String>, val delay: Int = 30) : TaskDescriptionBase(), MediaSegmentTaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
-        override fun newValidator() = TemporalOverlapSubmissionValidator(this)
+        override fun newValidator(callback: ((Submission) -> Unit)?) = TemporalOverlapSubmissionValidator(this, callback)
     }
 
     /**
@@ -56,6 +57,6 @@ sealed class TaskDescriptionBase() : TaskDescription {
     @Serializable
     class AvsTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, val description: String) : TaskDescriptionBase(), TaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
-        override fun newValidator() = BasicJudgementValidator()
+        override fun newValidator(callback: ((Submission) -> Unit)?) = BasicJudgementValidator(callback)
     }
 }

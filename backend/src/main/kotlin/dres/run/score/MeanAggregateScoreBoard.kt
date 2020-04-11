@@ -1,7 +1,5 @@
 package dres.run.score
 
-import dres.data.model.competition.Team
-
 class MeanAggregateScoreBoard(private val name: String, private val boards: List<Scoreboard>) : Scoreboard {
 
 //    override fun taskScores(): List<Score> {

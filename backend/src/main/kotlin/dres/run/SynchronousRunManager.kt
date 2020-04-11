@@ -10,7 +10,11 @@ import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
+import dres.run.filter.SubmissionFilter
 import dres.run.score.Scoreboard
+import dres.run.score.interfaces.TaskRunScorer
+import dres.run.validation.interfaces.SubmissionValidator
+import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -40,9 +44,13 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
     override val competitionDescription: CompetitionDescription
         get() = this.run.competitionDescription
 
-    /** Currently active task. */
+    /** Currently active [TaskDescription]. */
     override var currentTask: TaskDescription? = null
         private set
+
+    /** Currently active [TaskRunScorer]. */
+    override val currentTaskScore: TaskRunScorer?
+        get() = this.run.currentTask?.scorer
 
     /** The status of this [RunManager]. */
     @Volatile
@@ -57,6 +65,9 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
         get() = this.stateLock.read {
             this.run.currentTask?.submissions ?: emptyList()
         }
+
+    /** The pipeline for [Submission] processing. All [Submission]s undergo three steps: filter, validation and score update. */
+    private val submissionPipeline: List<Triple<SubmissionFilter,SubmissionValidator, TaskRunScorer>> = LinkedList()
 
     /** A lock for state changes to this [SynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
@@ -129,8 +140,15 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
     override fun startTask() = this.stateLock.write {
         check(this.status == RunManagerStatus.ACTIVE) { "SynchronizedRunManager is in status ${this.status}. Tasks can therefore not be started." }
 
+        /* Create and prepare pipeline for submission. */
+        val ret = this.run.newTaskRun(this.competitionDescription.tasks.indexOf(this.currentTask))
+        val pipeline = Triple(ret.task.newFilter(), ret.task.newValidator(), ret.task.newScorer())
+        (this.submissionPipeline as MutableList).add(pipeline)
+
+        /* Update competition run. */
+        this.dao.update(this.run)
+
         /* Update status. */
-        this.run.newTaskRun(this.competitionDescription.tasks.indexOf(this.currentTask))
         this.status = RunManagerStatus.PREPARING_TASK
         this.ackCounter = 0
         this.executor.broadcastWsMessage(this.runId, ServerMessage(this.runId, ServerMessageType.TASK_PREPARE))
@@ -186,14 +204,11 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
         check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronizedRunManager is in status ${this.status} and can currently not accept submissions." }
 
         /* Register submission. */
-        this.run.currentTask?.addSubmission(sub)
-
-        /* Validate submission or enqueue it for late validation. */
-        /* TODO: Make judgement. */
+        this.run.currentTask!!.addSubmission(sub)
 
         /* Inform clients about update. */
         this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.TASK_UPDATED))
-        return SubmissionStatus.UNDECIDABLE
+        return sub.status
     }
 
     /**
@@ -224,6 +239,9 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
                     break
                 }
 
+                /** Update scoreboards on each iteration. */
+                this.scoreboards.forEach { it.update() }
+
                 /** Sleep for 250ms. */
                 Thread.onSpinWait()
             }
@@ -241,21 +259,18 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
                     break
                 }
 
+                /** Update scoreboards on each iteration. */
+                this.scoreboards.forEach { it.update() }
+
                 /** Sleep for 100ms. */
                 Thread.sleep(100)
             }
 
+            /** Update scoreboards on each iteration. */
+            this.scoreboards.forEach { it.update() }
+
             /** Yield to other threads. */
             Thread.onSpinWait()
         }
-    }
-
-    /**
-     * Updates the [Scoreboard]s for this [SynchronousRunManager].
-     */
-    private fun updateScoreboards() = this.stateLock.read {
-        check(this.status == RunManagerStatus.RUNNING_TASK) { }
-        this.scoreboards.forEach { it.update() }
-        this.scoreboardUpdateRequired = false
     }
 }

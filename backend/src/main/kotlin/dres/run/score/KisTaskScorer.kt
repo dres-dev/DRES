@@ -1,7 +1,9 @@
 package dres.run.score
 
 import dres.data.model.run.CompetitionRun
+import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
+import dres.run.score.interfaces.TaskRunScorer
 import kotlin.math.max
 
 class KisTaskScorer(): TaskRunScorer {

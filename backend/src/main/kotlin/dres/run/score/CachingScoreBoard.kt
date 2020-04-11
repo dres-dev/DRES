@@ -1,7 +1,5 @@
 package dres.run.score
 
-import dres.data.model.competition.Team
-
 class CachingScoreBoard(private val board: Scoreboard): Scoreboard {
 
     //private var taskScores: List<Score> = board.taskScores()

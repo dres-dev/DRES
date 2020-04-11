@@ -1,22 +1,26 @@
-package dres.run.validate
+package dres.run.validation.interfaces
 
-import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 
+/**
+ * A [SubmissionValidator] that bases validation on human (manual) verdicts. This kind of [SubmissionValidator]
+ * is inherently asynchronous.
+ *
+ * @author Luca Rossetto & Ralph Gasser
+ * @version 1.0
+ */
 interface JudgementValidator : SubmissionValidator {
     /** Returns the number of [Submission]s that are currently pending a judgement. */
     val pending: Int
 
     /**
-     * Enqueues a [Submission] with the internal judgment queue.
+     * Enqueues a [Submission] with the internal judgment queue and updates its [SubmissionStatus]
+     * to [SubmissionStatus.INDETERMINATE].
      *
      * @param submission The [Submission] to validate.
-     * @param task The [TaskDescription] that acts as a baseline for validation.
-     *
-     * @return [SubmissionStatus] of the [Submission]
      */
-    override fun validate(submission: Submission): SubmissionStatus
+    override fun validate(submission: Submission)
 
     /**
      * Retrieves and returns the next element that requires a verdict from this [JudgementValidator]'

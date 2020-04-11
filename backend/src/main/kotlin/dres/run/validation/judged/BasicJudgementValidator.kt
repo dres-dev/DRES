@@ -1,7 +1,8 @@
-package dres.run.validate
+package dres.run.validation.judged
 
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
+import dres.run.validation.interfaces.JudgementValidator
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -11,7 +12,7 @@ import kotlin.collections.HashMap
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */
-class BasicJudgementValidator: JudgementValidator { //TODO better name
+class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = null): JudgementValidator { //TODO better name
 
     /** Internal queue that keeps track of all the [Submission]s in need of a verdict. */
     private val queue: Queue<Submission> = LinkedList()
@@ -19,25 +20,22 @@ class BasicJudgementValidator: JudgementValidator { //TODO better name
     /** Internal map of all [Submission]s that have been retrieved by a judge and are pending a verdict. */
     private val waiting = HashMap<String, Submission>()
 
-    /** Callback function that can be registered by an outside instance. */
-    var callback: ((Submission) -> Unit)? = null
-
     /** Returns the number of [Submission]s that are currently pending a judgement. */
     override val pending: Int
         @Synchronized
         get() = this.queue.size + this.waiting.size
 
     /**
-     * Enqueues a [Submission] with the internal judgment queue.
+     * Enqueues a [Submission] with the internal judgment queue and updates its [SubmissionStatus]
+     * to [SubmissionStatus.INDETERMINATE].
      *
      * @param submission The [Submission] to validate.
-     *
      * @return [SubmissionStatus] of the [Submission]
      */
     @Synchronized
-    override fun validate(submission: Submission): SubmissionStatus {
+    override fun validate(submission: Submission) {
         this.queue.offer(submission)
-        return SubmissionStatus.INDETERMINATE
+        submission.status = SubmissionStatus.INDETERMINATE
     }
 
     /**

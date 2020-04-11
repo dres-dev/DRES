@@ -1,8 +1,11 @@
 package dres.data.model.competition.interfaces
 
 import dres.data.model.competition.TaskGroup
-import dres.run.score.TaskRunScorer
-import dres.run.validate.SubmissionValidator
+import dres.data.model.run.Submission
+import dres.run.filter.AllSubmissionFilter
+import dres.run.filter.SubmissionFilter
+import dres.run.score.interfaces.TaskRunScorer
+import dres.run.validation.interfaces.SubmissionValidator
 
 /**
  * Basic description of a [Task].
@@ -21,16 +24,27 @@ interface TaskDescription {
     val duration: Long
 
     /**
-     * Generates a new [TaskRunScorer] for this [TaskDescription].
+     * Generates a new [TaskRunScorer] for this [TaskDescription]. Depending
+     * on the implementation, the returned instance is a new instance or being re-use.
      *
      * @return [TaskRunScorer].
      */
     fun newScorer(): TaskRunScorer
 
     /**
-     * Generates and returns a new [SubmissionValidator] for this [TaskDescription].
+     * Generates and returns a new [SubmissionValidator] for this [TaskDescription]. Depending
+     * on the implementation, the returned instance is a new instance or being re-use.
      *
+     * @param callback An optional callback function that should be registered with the [SubmissionValidator].
      * @return [SubmissionValidator].
      */
-    fun newValidator(): SubmissionValidator
+    fun newValidator(callback: ((Submission) -> Unit)? = null): SubmissionValidator
+
+    /**
+     * Generates and returns a [SubmissionValidator] instance for this [TaskDescription]. Depending
+     * on the implementation, the returned instance is a new instance or being re-use.
+     *
+     * @return [SubmissionFilter]
+     */
+    fun newFilter(): SubmissionFilter = AllSubmissionFilter
 }

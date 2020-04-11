@@ -4,7 +4,10 @@ import dres.data.model.Entity
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun.TaskRun
-import dres.run.score.TaskRunScorer
+import dres.run.filter.SubmissionFilter
+import dres.run.score.interfaces.IncrementalTaskRunScorer
+import dres.run.score.interfaces.TaskRunScorer
+import dres.run.validation.interfaces.SubmissionValidator
 import kotlinx.serialization.Serializable
 import java.util.*
 
@@ -70,9 +73,11 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
      *
      * @param task ID of the [Task] to start a [TaskRun]
      */
-    fun newTaskRun(task: Int) {
+    fun newTaskRun(task: Int): TaskRun {
         if (this@CompetitionRun.runs.isEmpty() || this@CompetitionRun.runs.last().hasEnded) {
-            (this.runs as MutableList<TaskRun>).add(TaskRun(task))
+            val ret = TaskRun(task)
+            (this.runs as MutableList<TaskRun>).add(ret)
+            return ret
         } else {
             throw IllegalStateException("Another Task is currently running.")
         }
@@ -105,7 +110,7 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
             private set
 
         /** The position of this [TaskRun] within the [CompetitionRun]. */
-        val position: Int
+        private val position: Int
             get() = this@CompetitionRun.runs.indexOf(this)
 
         /** List of [Submission]s* registered for this [TaskRun]. */
@@ -115,8 +120,23 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
         val task: TaskDescription
             get() = this@CompetitionRun.competitionDescription.tasks[this.taskId]
 
-        /** The [TaskRunScorer] instance used by [TaskRun]. */
+        /** The [SubmissionFilter] used to filter [Submission]s. */
+        @Transient
+        val filter: SubmissionFilter = this.task.newFilter()
+
+        /** The [TaskRunScorer] used to update score for this [TaskRun]. */
+        @Transient
         val scorer: TaskRunScorer = this.task.newScorer()
+
+        /** The [SubmissionValidator] used to validate [Submission]s. */
+        @Transient
+        val validator: SubmissionValidator = this.task.newValidator {
+            if (this.scorer is IncrementalTaskRunScorer) {
+                this.scorer.update(it)
+            } else {
+                this.scorer.analyze(this)
+            }
+        }
 
         init {
             if (this@CompetitionRun.competitionDescription.tasks.size < this.taskId) {
@@ -157,7 +177,13 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
             if (this@CompetitionRun.competitionDescription.teams.size < submission.team) {
                 throw IllegalStateException("Team ${submission.team} does not exists for competition run ${this@CompetitionRun.name}.")
             }
+            if (!this.filter.test(submission)) {
+                throw IllegalArgumentException("The provided submission $submission was rejected.")
+            }
+
+            /* Process Submission. */
             (this.submissions as MutableList).add(submission)
+            this.validator.validate(submission)
         }
     }
 }

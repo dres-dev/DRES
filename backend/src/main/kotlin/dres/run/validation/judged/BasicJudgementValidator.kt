@@ -9,6 +9,8 @@ import kotlin.collections.HashMap
 /**
  * A validator class that checks, if a submission is correct based on a manual judgement by a user.
  *
+ * TODO: Track these in the RunExecutor
+ *
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */

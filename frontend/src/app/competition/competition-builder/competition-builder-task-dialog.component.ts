@@ -2,25 +2,23 @@ import {Component, Inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {
     AvsTaskDescription,
-    CollectionService,
     KisTextualTaskDescription,
-    KisVisualTaskDescription, MediaCollection,
+    KisVisualTaskDescription,
+    TaskDescriptionBase,
+    CollectionService,
+    MediaCollection,
     MediaItem,
-    Task,
-    TaskDescription,
-    TemporalPoint,
-    TemporalRange,
-    VideoItem
+    TaskGroup,
+    VideoItem, TemporalPoint, TemporalRange
 } from '../../../../openapi';
-import TaskTypeEnum = TaskDescription.TaskTypeEnum;
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Observable} from 'rxjs';
 import {filter, flatMap} from 'rxjs/operators';
 
 
 export interface CompetitionBuilderTaskDialogData {
-    taskType: TaskTypeEnum;
-    task?: Task;
+    taskGroup: TaskGroup;
+    task?: TaskDescriptionBase;
 }
 
 @Component({
@@ -40,9 +38,9 @@ export class CompetitionBuilderTaskDialogComponent {
                 @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData) {
 
 
-        switch (data.taskType) {
+        switch (this.data.taskGroup.type) {
             case 'KIS_VISUAL':
-                this.form = CompetitionBuilderTaskDialogComponent.KisVisualFormControl(data.task);
+                this.form = CompetitionBuilderTaskDialogComponent.KisVisualFormControl(this.data.taskGroup, this.data.task as KisVisualTaskDescription);
                 this.mediaCollectionSource = this.collectionService.getApiCollection();
                 this.mediaItemSource = this.form.get('mediaItemId').valueChanges.pipe(
                     filter((value: string) => value.length >= 3),
@@ -52,7 +50,7 @@ export class CompetitionBuilderTaskDialogComponent {
                 );
                 break;
             case 'KIS_TEXTUAL':
-                this.form = CompetitionBuilderTaskDialogComponent.KisTextualFormControl(data.task);
+                this.form = CompetitionBuilderTaskDialogComponent.KisTextualFormControl(this.data.taskGroup, this.data.task as KisTextualTaskDescription);
                 this.mediaCollectionSource = this.collectionService.getApiCollection();
                 this.mediaItemSource = this.form.get('mediaItemId').valueChanges.pipe(
                     filter((value: string) => value.length >= 3),
@@ -62,96 +60,66 @@ export class CompetitionBuilderTaskDialogComponent {
                 );
                 break;
             case 'AVS':
-                this.form = CompetitionBuilderTaskDialogComponent.AvsFormControl(data.task);
+                this.form = CompetitionBuilderTaskDialogComponent.AvsFormControl(this.data.taskGroup, this.data.task as AvsTaskDescription);
                 break;
         }
     }
 
-    public static BasicFormControl(task?: Task) {
-        if (task) {
-            return new FormGroup({
-                name: new FormControl(task.name, Validators.required),
-                taskGroup: new FormControl(task.taskGroup, Validators.required),
-                duration: new FormControl(task.duration, [Validators.required, Validators.min(5)])
-            });
-        } else {
-            return new FormGroup({
-                name: new FormControl('', Validators.required),
-                taskGroup: new FormControl('', Validators.required),
-                duration: new FormControl(300, [Validators.required, Validators.min(5)])
-            });
-        }
+    public static BasicFormControl(taskGroup: TaskGroup, task?: TaskDescriptionBase) {
+        return new FormGroup({
+            name: new FormControl(task?.name, Validators.required),
+            duration: new FormControl(task?.duration ? task.duration : taskGroup?.defaultTaskDuration, [Validators.required, Validators.min(5)])
+        });
     }
 
     /**
      * Prepares and initializes the FormControl for an KIS Textual Task Description.
      *
+     * @param taskGroup The task group the new task should belong to.
      * @param task The task item (optional)
      */
-    public static KisVisualFormControl(task?: Task) {
-        const addTo = this.BasicFormControl(task);
-        if (task) {
-            const desc = task.description as KisVisualTaskDescription;
-            addTo.addControl('mediaCollection', new FormControl(0));
-            addTo.addControl('mediaItemId', new FormControl(desc.item, [Validators.required, Validators.min(1)]));
-            addTo.addControl('start', new FormControl(desc.temporalRange.start.value, [Validators.required, Validators.min(0)]));
-            addTo.addControl('end', new FormControl(desc.temporalRange.end.value, [Validators.required, Validators.min(0)]));
-            addTo.addControl('time_unit', new FormControl(desc.temporalRange.start.unit, [Validators.required, Validators.min(0)]));
-        } else {
-            addTo.addControl('mediaCollection', new FormControl(''));
-            addTo.addControl('mediaItemId', new FormControl('', [Validators.required, Validators.min(1)]));
-            addTo.addControl('start', new FormControl(0, [Validators.required, Validators.min(0)]));
-            addTo.addControl('end', new FormControl(0, [Validators.required, Validators.min(0)]));
-            addTo.addControl('time_unit', new FormControl(TemporalPoint.UnitEnum.FRAMENUMBER, [Validators.required, Validators.min(0)]));
-        }
+    public static KisVisualFormControl(taskGroup: TaskGroup, task?: KisVisualTaskDescription) {
+        const addTo = this.BasicFormControl(taskGroup, task);
+
+        addTo.addControl('mediaCollection', new FormControl(0));
+        addTo.addControl('mediaItemId', new FormControl(task?.item, [Validators.required, Validators.min(1)]));
+        addTo.addControl('start', new FormControl(task?.temporalRange.start.value, [Validators.required, Validators.min(0)]));
+        addTo.addControl('end', new FormControl(task?.temporalRange.end.value, [Validators.required, Validators.min(0)]));
+        addTo.addControl('time_unit', new FormControl(task?.temporalRange.start.unit ? task.temporalRange.start.unit : 'FRAME_NUMBER', [Validators.required, Validators.min(0)]));
         return addTo;
     }
 
     /**
      * Prepares and initializes the FormControl for an KIS Textual Task Description.
      *
-     * @param addTo The form control to initialize.
+     * @param taskGroup The task group the new task should belong to.
      * @param task The task item (optional)
      */
-    public static KisTextualFormControl(task?: Task) {
-        const addTo = this.BasicFormControl(task);
-        if (task) {
-            const desc = task.description as KisTextualTaskDescription;
-            addTo.addControl('mediaCollection', new FormControl(0));
-            addTo.addControl('mediaItemId', new FormControl(desc.item, [Validators.required, Validators.min(1)]));
-            addTo.addControl('start', new FormControl(desc.temporalRange.start.value, [Validators.required, Validators.min(0)]));
-            addTo.addControl('end', new FormControl(desc.temporalRange.end.value, [Validators.required, Validators.min(0)]));
-            addTo.addControl('time_unit', new FormControl(desc.temporalRange.start.unit, [Validators.required, Validators.min(0)]));
-            addTo.addControl('descriptions', new FormArray(desc.descriptions.map(
-                (v) => new FormControl(v, Validators.minLength(1)), Validators.required))
-            );
-            addTo.addControl('delay', new FormControl(desc.delay, [Validators.required, Validators.min(0)]));
+    public static KisTextualFormControl(taskGroup: TaskGroup, task?: KisTextualTaskDescription) {
+        const addTo = this.BasicFormControl(taskGroup, task);
+        addTo.addControl('mediaCollection', new FormControl(0));
+        addTo.addControl('mediaItemId', new FormControl(task?.item, [Validators.required, Validators.min(1)]));
+        addTo.addControl('start', new FormControl(task?.temporalRange.start.value, [Validators.required, Validators.min(0)]));
+        addTo.addControl('end', new FormControl(task?.temporalRange.end.value, [Validators.required, Validators.min(0)]));
+        addTo.addControl('time_unit', new FormControl(task?.temporalRange.start.unit ? task.temporalRange.start.unit : 'FRAME_NUMBER', [Validators.required, Validators.min(0)]));
+        if (task != null) {
+            addTo.addControl('descriptions', new FormArray(task.descriptions.map((v) => new FormControl(v, [Validators.minLength(1), Validators.required]))));
         } else {
-            addTo.addControl('mediaCollection', new FormControl(''));
-            addTo.addControl('mediaItemId', new FormControl('', [Validators.required, Validators.min(1)]));
-            addTo.addControl('start', new FormControl(0, [Validators.required, Validators.min(0)]));
-            addTo.addControl('end', new FormControl(0, [Validators.required, Validators.min(0)]));
-            addTo.addControl('time_unit', new FormControl(TemporalPoint.UnitEnum.FRAMENUMBER, [Validators.required, Validators.min(0)]));
-            addTo.addControl('descriptions', new FormArray([new FormControl('', Validators.minLength(1))], Validators.required));
-            addTo.addControl('delay', new FormControl('30', [Validators.required, Validators.min(0)]));
+            addTo.addControl('descriptions', new FormArray([new FormControl('', [Validators.minLength(1), Validators.required])]));
         }
+        addTo.addControl('delay', new FormControl(task?.delay, [Validators.required, Validators.min(0)]));
         return addTo;
     }
 
     /**
      * Prepares and initializes the FormControl for an AVS Task Description.
      *
-     * @param addTo The form control to initialize.
+     * @param taskGroup The task group the new task should belong to.
      * @param task The task item (optional)
      */
-    public static AvsFormControl(task?: Task) {
-        const addTo = this.BasicFormControl(task);
-        if (task) {
-            const desc = task.description as AvsTaskDescription;
-            addTo.addControl('description', new FormControl(desc.description, Validators.minLength(1)));
-        } else {
-            addTo.addControl('description', new FormControl('', Validators.minLength(1)));
-        }
+    public static AvsFormControl(taskGroup: TaskGroup, task?: AvsTaskDescription) {
+        const addTo = this.BasicFormControl(taskGroup, task);
+        addTo.addControl('description', new FormControl(task?.description, Validators.minLength(1)));
         return addTo;
     }
 
@@ -191,12 +159,7 @@ export class CompetitionBuilderTaskDialogComponent {
      */
     public save() {
         if (this.form.valid) {
-            this.dialogRef.close({
-                name: this.form.get('name'). value,
-                taskGroup: this.form.get('taskGroup').value,
-                duration: this.form.get('duration').value,
-                description: this.getTaskDescription()
-            } as Task);
+            this.dialogRef.close(this.getTaskDescription());
         }
     }
 
@@ -207,13 +170,21 @@ export class CompetitionBuilderTaskDialogComponent {
         this.dialogRef.close(null);
     }
 
-    private getTaskDescription(): TaskDescription {
-        switch (this.data.taskType) {
+    private getTaskDescription(): TaskDescriptionBase {
+        switch (this.data.taskGroup.type) {
             case 'AVS':
-                return {taskType: 'AVS', description: this.form.get('description').value} as AvsTaskDescription;
+                return {
+                    name: this.form.get('name').value,
+                    taskType: this.data.taskGroup.type,
+                    taskGroup: this.data.taskGroup,
+                    duration: this.form.get('duration').value,
+                    description: this.form.get('description').value} as AvsTaskDescription;
             case 'KIS_TEXTUAL':
                 return {
-                    taskType: 'KIS_TEXTUAL',
+                    name: this.form.get('name').value,
+                    taskType: this.data.taskGroup.type,
+                    taskGroup: this.data.taskGroup,
+                    duration: this.form.get('duration').value,
                     item: (this.form.get('mediaItemId').value) as VideoItem,
                     temporalRange: {
                         start: {
@@ -230,7 +201,10 @@ export class CompetitionBuilderTaskDialogComponent {
                 } as KisTextualTaskDescription;
             case 'KIS_VISUAL':
                 return {
-                    taskType: 'KIS_VISUAL',
+                    name: this.form.get('name').value,
+                    taskType: this.data.taskGroup.type,
+                    taskGroup: this.data.taskGroup,
+                    duration: this.form.get('duration').value,
                     item: (this.form.get('mediaItemId').value) as VideoItem,
                     temporalRange: {
                         start: {

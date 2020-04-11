@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, Input} from '@angular/core';
-import {CompetitionRunService, RunInfo, RunState, SubmissionInfo, Team} from '../../../openapi';
+import {CompetitionRunService, RunInfo, RunState, Submission, Team} from '../../../openapi';
 import {Observable} from 'rxjs';
 import {map, switchMap, withLatestFrom} from 'rxjs/operators';
 
@@ -12,7 +12,7 @@ export class TeamsViewerComponent implements AfterViewInit {
     @Input() info: Observable<RunInfo>;
     @Input() state: Observable<RunState>;
 
-    submissions: Observable<Map<Team, SubmissionInfo[]>>;
+    submissions: Observable<Map<Team, Submission[]>>;
 
     constructor(protected runService: CompetitionRunService) {}
 
@@ -21,7 +21,7 @@ export class TeamsViewerComponent implements AfterViewInit {
             switchMap(s => this.runService.getApiRunWithRunidTaskSubmissions(s.id)),
             withLatestFrom(this.info),
             map(([submissions, info]) => {
-                const submissionMap = new Map<Team, SubmissionInfo[]>();
+                const submissionMap = new Map<Team, Submission[]>();
                 info.teams.forEach((v, i) => {
                     submissionMap.set(v,  submissions.filter(s => s.team === i));
                 });

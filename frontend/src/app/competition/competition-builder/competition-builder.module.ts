@@ -16,6 +16,8 @@ import {CompetitionBuilderTeamDialogComponent} from './competition-builder-team-
 import {CompetitionBuilderTaskDialogComponent} from './competition-builder-task-dialog.component';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatSelectModule} from '@angular/material/select';
+import {CompetitionBuilderTaskGroupDialogComponent} from './competition-builder-task-group.component';
+import {MatChipsModule} from '@angular/material/chips';
 
 @NgModule({
     imports: [
@@ -33,10 +35,11 @@ import {MatSelectModule} from '@angular/material/select';
         MatProgressSpinnerModule,
         MatMenuModule,
         MatAutocompleteModule,
-        MatSelectModule
+        MatSelectModule,
+        MatChipsModule
     ],
     exports:      [ CompetitionBuilderComponent ],
-    declarations: [ CompetitionBuilderComponent, CompetitionBuilderTeamDialogComponent, CompetitionBuilderTaskDialogComponent ],
+    declarations: [ CompetitionBuilderComponent, CompetitionBuilderTeamDialogComponent, CompetitionBuilderTaskDialogComponent, CompetitionBuilderTaskGroupDialogComponent ],
     providers:    [ ]
 })
 export class CompetitionBuilderModule { }

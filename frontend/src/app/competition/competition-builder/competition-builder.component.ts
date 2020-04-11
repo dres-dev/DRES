@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {filter} from 'rxjs/operators';
-import {Competition, CompetitionService, Task, TaskDescription, Team} from '../../../../openapi';
+import {CompetitionDescription, CompetitionService, TaskDescription, TaskDescriptionBase, TaskGroup, Team} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
 import { Subscription} from 'rxjs';
@@ -9,8 +9,8 @@ import {MatDialog} from '@angular/material/dialog';
 import {
   CompetitionBuilderTeamDialogComponent,
 } from './competition-builder-team-dialog.component';
-import TaskTypeEnum = TaskDescription.TaskTypeEnum;
 import {CompetitionBuilderTaskDialogComponent, CompetitionBuilderTaskDialogData} from './competition-builder-task-dialog.component';
+import {CompetitionBuilderTaskGroupDialogComponent} from './competition-builder-task-group.component';
 
 @Component({
   selector: 'app-competition-builer',
@@ -20,12 +20,11 @@ import {CompetitionBuilderTaskDialogComponent, CompetitionBuilderTaskDialogData}
 export class CompetitionBuilderComponent implements OnInit, OnDestroy {
 
   competitionId: number;
-  competition: Competition;
+  competition: CompetitionDescription;
   form: FormGroup = new FormGroup({name: new FormControl(''), description: new FormControl('')});
   dirty = false;
   routeSubscription: Subscription;
   changeSubscription: Subscription;
-  taskTypes = [TaskTypeEnum.AVS, TaskTypeEnum.KISTEXTUAL, TaskTypeEnum.KISVISUAL];
 
   constructor(private competitionService: CompetitionService,
               private route: ActivatedRoute,
@@ -86,10 +85,43 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     }
   }
 
-  public addTask(taskType: TaskTypeEnum) {
+
+  /**
+   * Opens the dialog to add a new task group.
+   */
+  public addTaskGroup() {
+    const dialogRef = this.dialog.open(
+        CompetitionBuilderTaskGroupDialogComponent,
+        {data: null, width: '750px'}
+    );
+    dialogRef.afterClosed().pipe(
+        filter(g => g != null),
+    ).subscribe((g) => {
+      this.competition.groups.push(g);
+      this.dirty = true;
+    });
+  }
+
+  /**
+   * Removes a Task Group and all associated tasks.
+   */
+  public removeTaskGroup(group: TaskGroup) {
+    this.competition.groups.splice(this.competition.groups.indexOf(group));
+    this.competition.tasks.filter(t => t.taskGroup.name === group.name).map(t => this.competition.tasks.indexOf(t)).forEach(i => {
+      this.competition.tasks.splice(i);
+    });
+    this.dirty = true;
+  }
+
+  /**
+   * Opens the dialog to add a new task description.
+   *
+   * @param group The TaskGroup to add a description to.
+   */
+  public addTask(group: TaskGroup) {
     const dialogRef = this.dialog.open(
         CompetitionBuilderTaskDialogComponent,
-        {data: {taskType: taskType, task: null} as CompetitionBuilderTaskDialogData, width: '750px'}
+        {data: {taskGroup: group, task: null} as CompetitionBuilderTaskDialogData, width: '750px'}
     );
     dialogRef.afterClosed().pipe(
         filter(t => t != null),
@@ -99,12 +131,17 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     });
   }
 
-  public editTask(task: Task) {
+  /**
+   * Opens the dialog to edit a task description.
+   *
+   * @param task The TaskDescription to edit.
+   */
+  public editTask(task: TaskDescriptionBase) {
     const index = this.competition.tasks.indexOf(task);
     if (index > -1) {
       const dialogRef = this.dialog.open(
           CompetitionBuilderTaskDialogComponent,
-          {data: {taskType: task.description.taskType, task: task} as CompetitionBuilderTaskDialogData, width: '750px'}
+          {data: {taskGroup: task.taskGroup, task: task} as CompetitionBuilderTaskDialogData, width: '750px'}
       );
       dialogRef.afterClosed().pipe(
           filter(t => t != null),
@@ -115,7 +152,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     }
   }
 
-  public removeTask(task: Task) {
+  public removeTask(task: TaskDescriptionBase) {
     this.competition.tasks.splice(this.competition.tasks.indexOf(task), 1);
     this.dirty = true;
   }

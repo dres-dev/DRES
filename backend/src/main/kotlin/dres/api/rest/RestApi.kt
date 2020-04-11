@@ -45,6 +45,7 @@ object RestApi {
                 DeleteUsersHandler(),
                 CreateUsersHandler(),
                 UpdateUsersHandler(),
+                CurrentUsersSessionIdHandler(),
 
                 //media
                 GetFrameHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),

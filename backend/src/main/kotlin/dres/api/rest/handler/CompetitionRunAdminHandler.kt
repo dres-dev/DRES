@@ -6,7 +6,7 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
-import dres.data.model.competition.Competition
+import dres.data.model.competition.CompetitionDescription
 import dres.data.model.run.CompetitionRun
 import dres.run.RunExecutor
 import dres.run.RunManager
@@ -32,9 +32,9 @@ abstract class AbstractCompetitionRunAdminRestHandler : RestHandler, AccessManag
 /**
  * REST handler to create a [CompetitionRun].
  */
-class CreateCompetitionRunAdminHandler(val runs: DAO<CompetitionRun>, val competitions: DAO<Competition>) : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class CreateCompetitionRunAdminHandler(val runs: DAO<CompetitionRun>, val competitions: DAO<CompetitionDescription>) : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
 
-    private fun competitionById(id: Long): Competition =
+    private fun competitionById(id: Long): CompetitionDescription =
             competitions[id] ?: throw ErrorStatusException(404, "Competition with ID $id not found.'")
 
     override val route = "run/admin/create"

@@ -10,16 +10,14 @@
  * Do not edit the class manually.
  */
 import { KisVisualTaskDescriptionAllOf } from './kisVisualTaskDescriptionAllOf';
-import { TaskDescription } from './taskDescription';
+import { TaskDescriptionBase } from './taskDescriptionBase';
 import { TemporalRange } from './temporalRange';
+import { TaskGroup } from './taskGroup';
 import { VideoItem } from './videoItem';
 
 
-export interface KisVisualTaskDescription extends TaskDescription { 
+export interface KisVisualTaskDescription extends TaskDescriptionBase { 
     item: VideoItem;
     temporalRange: TemporalRange;
 }
-export namespace KisVisualTaskDescription {
-}
-
 

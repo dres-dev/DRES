@@ -3,6 +3,7 @@ package dres.run
 import dres.api.rest.types.run.websocket.ClientMessage
 import dres.api.rest.types.run.websocket.ClientMessageType
 import dres.api.rest.types.run.websocket.ServerMessage
+import dres.run.validation.interfaces.JudgementValidator
 import dres.utilities.extensions.read
 import dres.utilities.extensions.write
 
@@ -29,6 +30,9 @@ object RunExecutor : Consumer<WsHandler> {
 
     /** List of [RunManager] executed by this [RunExecutor]. */
     private val runManagers = HashMap<Long,RunManager>()
+
+    /** List of [JudgementValidator]s registered with this [RunExecutor]. */
+    private val judgementValidators = LinkedList<JudgementValidator>()
 
     /** List of [WsContext] that are currently connected. */
     private val connectedClients = HashMap<String, WsContext>()

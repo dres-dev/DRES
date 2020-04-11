@@ -11,16 +11,16 @@
  */
 
 
-export interface SubmissionInfo { 
+export interface Submission { 
     team: number;
-    submissionTime: number;
-    status: SubmissionInfo.StatusEnum;
-    collection?: string;
-    item?: string;
-    startTime?: string;
-    endTime?: string;
+    timestamp: number;
+    collection: string;
+    item: string;
+    start?: number;
+    end?: number;
+    status: Submission.StatusEnum;
 }
-export namespace SubmissionInfo {
+export namespace Submission {
     export type StatusEnum = 'CORRECT' | 'WRONG' | 'INDETERMINATE' | 'UNDECIDABLE';
     export const StatusEnum = {
         CORRECT: 'CORRECT' as StatusEnum,

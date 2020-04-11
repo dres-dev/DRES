@@ -8,11 +8,9 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
 import dres.data.dbo.DAO
-import dres.data.model.admin.PlainPassword
-import dres.data.model.admin.UserName
-import dres.data.model.competition.Competition
+import dres.data.model.competition.CompetitionDescription
 
-class CompetitionCommand(val competitions: DAO<Competition>) : NoOpCliktCommand(name = "competition") {
+class CompetitionCommand(val competitions: DAO<CompetitionDescription>) : NoOpCliktCommand(name = "competition") {
 
     init {
         this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand())
@@ -37,7 +35,7 @@ class CompetitionCommand(val competitions: DAO<Competition>) : NoOpCliktCommand(
                 .validate {require(it.isNotEmpty()) { "Competition description must be non empty." } }
 
         override fun run() {
-            val newCompetition = Competition(id = -1, name = name, description = description, teams = mutableListOf(), tasks = mutableListOf())
+            val newCompetition = CompetitionDescription(id = -1, name = name, description = description, groups = mutableListOf(), teams = mutableListOf(), tasks = mutableListOf())
             val id = this@CompetitionCommand.competitions.append(newCompetition)
             println("New competition '$newCompetition' created with ID=$id.")
         }

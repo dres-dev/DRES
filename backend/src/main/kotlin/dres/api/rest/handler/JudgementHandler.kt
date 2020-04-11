@@ -10,7 +10,6 @@ import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
-import java.lang.IllegalArgumentException
 
 abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler {
     override val permittedRoles: Set<Role> = setOf(RestApiRole.JUDGE)
@@ -42,13 +41,13 @@ class NextOpenJudgementHandler : AbstractJudgementHandler(), GetRestHandler<Judg
     override fun doGet(ctx: Context): JudgementRequest {
         val runId = this.runId(ctx)
         val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-        val next = run.judgementValidator.next()
+        //val next = run.judgementValidator.next(ctx.req.session.id)
 
-        if (next != null) {
-            return JudgementRequest(next.first, next.second.collection, next.second.item, next.second.start?.toString(), next.second.end?.toString())
-        } else {
+        //if (next != null) {
+        //    return JudgementRequest(next.first, next.second.collection, next.second.item, next.second.start?.toString(), next.second.end?.toString())
+        //} else {
            throw ErrorStatusException(202, "No element left.")
-        }
+        //}
     }
 }
 
@@ -76,11 +75,11 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
         }
 
         val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-        try {
-            run.judgementValidator.judge(judgement.token, judgement.verdict)
-            return SuccessStatus("Verdict received and accepted. Thanks!")
-        } catch (e: IllegalArgumentException) {
-            throw ErrorStatusException(404, e.message!!)
-        }
+        //try {
+        //    run.judgementValidator.judge(judgement.token, judgement.verdict)
+        //    return SuccessStatus("Verdict received and accepted. Thanks!")
+        //} catch (e: IllegalArgumentException) {
+            throw ErrorStatusException(404, "")
+       // }
     }
 }

@@ -1,18 +1,20 @@
-package dres.run.validate
+package dres.run.validation.judged
 
-import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
+import dres.run.validation.interfaces.JudgementValidator
 import java.util.*
 import kotlin.collections.HashMap
 
 /**
  * A validator class that checks, if a submission is correct based on a manual judgement by a user.
  *
+ * TODO: Track these in the RunExecutor
+ *
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */
-class JudgementValidator(val callback: ((Submission) -> Unit)? = null): SubmissionValidator<TaskDescription> {
+class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = null): JudgementValidator { //TODO better name
 
     /** Internal queue that keeps track of all the [Submission]s in need of a verdict. */
     private val queue: Queue<Submission> = LinkedList()
@@ -21,22 +23,21 @@ class JudgementValidator(val callback: ((Submission) -> Unit)? = null): Submissi
     private val waiting = HashMap<String, Submission>()
 
     /** Returns the number of [Submission]s that are currently pending a judgement. */
-    val pending: Int
+    override val pending: Int
         @Synchronized
         get() = this.queue.size + this.waiting.size
 
     /**
-     * Enqueues a [Submission] with the internal judgment queue.
+     * Enqueues a [Submission] with the internal judgment queue and updates its [SubmissionStatus]
+     * to [SubmissionStatus.INDETERMINATE].
      *
      * @param submission The [Submission] to validate.
-     * @param task The [TaskDescription] that acts as a baseline for validation.
-     *
      * @return [SubmissionStatus] of the [Submission]
      */
     @Synchronized
-    override fun validate(submission: Submission, task: TaskDescription): SubmissionStatus {
+    override fun validate(submission: Submission) {
         this.queue.offer(submission)
-        return SubmissionStatus.INDETERMINATE
+        submission.status = SubmissionStatus.INDETERMINATE
     }
 
     /**
@@ -47,7 +48,7 @@ class JudgementValidator(val callback: ((Submission) -> Unit)? = null): Submissi
      * @return Optional [Pair] containing a string token and the [Submission] that should be judged.
      */
     @Synchronized
-    fun next(): Pair<String,Submission>? {
+    override fun next(queue: String): Pair<String, Submission>? {
         val next = this.queue.poll()
         return if (next != null) {
             val token = UUID.randomUUID().toString()
@@ -65,7 +66,7 @@ class JudgementValidator(val callback: ((Submission) -> Unit)? = null): Submissi
      * @param verdict The verdict of the judge.
      */
     @Synchronized
-    fun judge(token: String, verdict: SubmissionStatus) {
+    override fun judge(token: String, verdict: SubmissionStatus) {
         require(this.waiting.containsKey(token)) { "This JudgementValidator does not contain a submission for the token '$token'." }
         val submission = this.waiting.getValue(token)
         submission.status = verdict

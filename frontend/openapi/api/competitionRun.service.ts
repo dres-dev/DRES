@@ -21,7 +21,7 @@ import { ErrorStatus } from '../model/models';
 import { RunInfo } from '../model/models';
 import { RunState } from '../model/models';
 import { ScoreOverview } from '../model/models';
-import { SubmissionInfo } from '../model/models';
+import { Submission } from '../model/models';
 import { TaskInfo } from '../model/models';
 
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
@@ -403,9 +403,9 @@ export class CompetitionRunService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiRunWithRunidTaskSubmissions(runId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<SubmissionInfo>>;
-    public getApiRunWithRunidTaskSubmissions(runId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<SubmissionInfo>>>;
-    public getApiRunWithRunidTaskSubmissions(runId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<SubmissionInfo>>>;
+    public getApiRunWithRunidTaskSubmissions(runId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<Submission>>;
+    public getApiRunWithRunidTaskSubmissions(runId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<Submission>>>;
+    public getApiRunWithRunidTaskSubmissions(runId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<Submission>>>;
     public getApiRunWithRunidTaskSubmissions(runId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
             throw new Error('Required parameter runId was null or undefined when calling getApiRunWithRunidTaskSubmissions.');
@@ -431,7 +431,7 @@ export class CompetitionRunService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<Array<SubmissionInfo>>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/task/submissions`,
+        return this.httpClient.get<Array<Submission>>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/task/submissions`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

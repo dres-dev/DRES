@@ -6,12 +6,11 @@ import dres.api.rest.RestApiRole
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
-import dres.data.model.competition.Task
+import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.run.RunExecutor
 import dres.run.RunManager
 import dres.run.RunManagerStatus
-import dres.utilities.extensions.sessionId
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
@@ -22,11 +21,11 @@ class SubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHandle
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
     override val route = "submit"
 
-    private fun userId(ctx: Context): Long = AccessManager.getUserIdforSession(ctx.sessionId())!!
+    private fun userId(ctx: Context): Long = AccessManager.getUserIdforSession(ctx.req.session.id)!!
 
     private fun getRelevantManagers(ctx: Context): List<RunManager> { //TODO there needs to be a more efficient way to do this
         val userId = userId(ctx)
-        return RunExecutor.managers().filter { it.competition.teams.any { it.users.contains(userId) } }
+        return RunExecutor.managers().filter { it.competitionDescription.teams.any { it.users.contains(userId) } }
     }
 
     private fun getActiveCompetition(ctx: Context): RunManager {
@@ -37,13 +36,13 @@ class SubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHandle
         }
 
         if (managers.size > 1) {
-            throw ErrorStatusException(409, "More than one possible Competition found: ${managers.map { it.competition.name }.joinToString()}")
+            throw ErrorStatusException(409, "More than one possible Competition found: ${managers.map { it.competitionDescription.name }.joinToString()}")
         }
 
         return managers.first()
     }
 
-    private fun toSubmission(ctx: Context, currentTask: Task, submissionTime: Long): Submission {
+    private fun toSubmission(ctx: Context, currentTask: TaskDescription, submissionTime: Long): Submission {
 
         val map = ctx.pathParamMap()
 
@@ -123,7 +122,7 @@ class OpenSubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHa
                 OpenApiResponse("409", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    private fun toSubmission(ctx: Context, currentTask: Task, submissionTime: Long): Submission {
+    private fun toSubmission(ctx: Context, currentTask: TaskDescription, submissionTime: Long): Submission {
         val map = ctx.queryParamMap()
         val team = map.getOrElse("team") { //TODO replace with team from session
             throw ErrorStatusException(404, "Parameter 'team' is missing!'")

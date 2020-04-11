@@ -95,7 +95,7 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
     }
 
     @kotlinx.serialization.Transient
-    val awaitingValidation = mutableListOf<Pair<Submission, Deferred<SubmissionStatus>>>()
+    val awaitingValidation = mutableListOf<Deferred<Pair<Submission, SubmissionStatus>>>()
 
     val hasUnvalidatedSubmissions: Boolean
         get() = awaitingValidation.isNotEmpty()
@@ -108,11 +108,11 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         if (!hasUnvalidatedSubmissions) {
             return emptyList()
         }
-        val completed = awaitingValidation.filter { it.second.isCompleted }
+        val completed = awaitingValidation.filter { it.isCompleted }
         val submissions = completed.map {
-            val status = it.second.getCompleted()
-            it.first.status = status
-            return@map it.first
+            val result = it.getCompleted()
+            result.first.status = result.second
+            return@map result.first
         }
         //remove completed ones
         awaitingValidation.removeAll(completed)
@@ -207,10 +207,13 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
             }
             (this.submissions as MutableList).add(submission)
 
+            runBlocking { //TODO specify execution context
                 awaitingValidation.add(
+                        async {
                            submission to validator.validate(submission, task.description)
+                    }
                 )
-
+            }
         }
     }
 }

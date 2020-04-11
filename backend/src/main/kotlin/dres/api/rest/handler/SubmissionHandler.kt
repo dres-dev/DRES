@@ -12,6 +12,7 @@ import dres.data.model.run.VBSSubmission
 import dres.run.RunExecutor
 import dres.run.RunManager
 import dres.run.RunManagerStatus
+import dres.utilities.extensions.sessionId
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
@@ -22,7 +23,7 @@ class SubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHandle
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
     override val route = "submit"
 
-    private fun userId(ctx: Context): Long = AccessManager.getUserIdforSession(ctx.req.session.id)!!
+    private fun userId(ctx: Context): Long = AccessManager.getUserIdforSession(ctx.sessionId())!!
 
     private fun getRelevantManagers(ctx: Context): List<RunManager> { //TODO there needs to be a more efficient way to do this
         val userId = userId(ctx)

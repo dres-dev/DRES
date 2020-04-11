@@ -8,21 +8,26 @@ import dres.data.model.admin.Role
 import dres.data.model.admin.User
 import dres.data.model.admin.UserName
 import dres.mgmt.admin.UserManager
+import dres.utilities.extensions.sessionId
+import dres.utilities.extensions.toSessionId
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
 
 
 abstract class UserHandler() : RestHandler {
 
-    data class UserDetails(val id: Long, val username: String, val role: Role) {
+    data class SessionId(val sessionId:String)
+
+    data class UserDetails(val id: Long, val username: String, val role: Role, val sessionId:String?=null) {
 
         companion object {
             fun of(user: User): UserDetails = UserDetails(user.id, user.username.name, user.role)
+            fun create(user:User, ctx:Context): UserDetails = UserDetails(user.id,user.username.name,user.role,ctx.sessionId())
         }
     }
 
     protected fun getFromSessionOrDie(ctx: Context): User {
-        return UserManager.get(id = AccessManager.getUserIdforSession(ctx.req.session.id)!!)
+        return UserManager.get(id = AccessManager.getUserIdforSession(ctx.sessionId())!!)
                 ?: throw ErrorStatusException(404, "User could not be found!")
     }
 
@@ -180,13 +185,33 @@ class CurrentUsersHandler() : UserHandler(), GetRestHandler<UserHandler.UserDeta
                 OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): UserDetails {
-        return UserDetails.of(getFromSessionOrDie(ctx))
+    override fun doGet(ctx: Context) : UserDetails {
+        return UserDetails.create(getFromSessionOrDie(ctx),ctx)
     }
 
     override val permittedRoles = setOf(RestApiRole.VIEWER)
 
     override val route = "user/info"
 
+}
+
+class CurrentUsersSessionIdHandler(): UserHandler(), GetRestHandler<UserHandler.SessionId>, AccessManagedRestHandler {
+
+    @OpenApi(
+            summary = "Get current sessionId",
+            path = "/api/user/session",
+            tags = ["User"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
+                OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context) : SessionId {
+        return ctx.sessionId().toSessionId()
+    }
+
+    override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
+
+    override val route = "user/session"
 }
 

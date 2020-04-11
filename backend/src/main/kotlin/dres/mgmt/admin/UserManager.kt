@@ -130,6 +130,14 @@ object UserManager {
         }
     }
 
+    /**
+     * Either returns a user for this username/password tuple or null
+     */
+    fun getMatchingUser(username: UserName, password: PlainPassword) : User?  {
+        val user = users.find { it.username == username } ?: return null
+        return if (user.password.check(password)) user else null
+    }
+
     private fun validateInitalised() {
         if (isInit().not()) {
             throw RuntimeException("The UserManager was not initialised with a DAO")

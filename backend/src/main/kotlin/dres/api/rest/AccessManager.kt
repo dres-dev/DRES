@@ -1,6 +1,7 @@
 package dres.api.rest
 
 import dres.data.model.admin.User
+import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.http.Handler
@@ -12,7 +13,7 @@ object AccessManager {
         when {
             permittedRoles.isEmpty() -> handler.handle(ctx) //fallback in case no roles are set, none are required
             permittedRoles.contains(RestApiRole.ANYONE) -> handler.handle(ctx)
-            rolesOfSession(ctx.req.session.id).any { it in permittedRoles } -> handler.handle(ctx)
+            rolesOfSession(ctx.sessionId()).any { it in permittedRoles } -> handler.handle(ctx)
             else -> ctx.status(401).json("Unauthorized")
         }
     }

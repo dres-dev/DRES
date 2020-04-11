@@ -67,14 +67,15 @@ object RestApi {
                 ListTaskHandler(dataAccessLayer.competitions),
 
                 //competition run
-                ListCompetitionRunsHandler(),
-                GetCompetitionRunHandler(),
+                ListCompetitionRunInfosHandler(),
+                ListCompetitionRunStatesHandler(),
+                GetCompetitionRunInfoHandler(),
+                GetCompetitionRunStateHandler(),
                 ListCompetitionScoreHandler(),
                 CurrentTaskScoreHandler(),
                 CurrentQueryHandler(),
                 CurrentTaskInfoHandler(),
                 CurrentSubmissionInfoHandler(),
-
 
                 //Competition run admin
                 CreateCompetitionRunAdminHandler(dataAccessLayer.runs, dataAccessLayer.competitions),

@@ -1,0 +1,28 @@
+mat-card {
+  height: 100%;
+}
+
+.flex {
+  display: flex;
+}
+
+.tile {
+  padding: 10px;
+  margin: 15px;
+
+  min-width: 100px;
+  max-width: 150px;
+
+  min-height: 200px;
+  max-height: 300px;
+
+  border-radius: 15px;
+}
+
+.tile div {
+  border-radius: 5px;
+}
+
+.tile div img {
+  width: 100%;
+}

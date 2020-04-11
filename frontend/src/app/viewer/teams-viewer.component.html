@@ -1,0 +1,14 @@
+<mat-card class="flex">
+    <div *ngFor="let team of (info|async)?.teams" [style.background-color]="team.color + '44'" class="tile">
+        <p [style.text-align]="'center'">{{team.name}}</p>
+        <div [style.background-color]="team.color">
+            <img src="{{team.logo}}">
+            <div>
+                <div *ngFor="let submission of (submissions | async)?.get(team)">
+                    {{1}}
+                </div>
+            </div>
+        </div>
+    </div> 
+</mat-card>
+

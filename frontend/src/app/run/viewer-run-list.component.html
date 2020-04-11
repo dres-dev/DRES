@@ -35,13 +35,13 @@
         <!-- Task Column -->
         <ng-container matColumnDef="currentTask">
             <th mat-header-cell *matHeaderCellDef>Task</th>
-            <td mat-cell *matCellDef="let row">{{row.currentTask.name}}</td>
+            <td mat-cell *matCellDef="let row">{{row.currentTask}}</td>
         </ng-container>
 
         <!-- Task Column -->
         <ng-container matColumnDef="timeLeft">
             <th mat-header-cell *matHeaderCellDef>Time left</th>
-            <td mat-cell *matCellDef="let row">{{normalizeTimeLeft(row.timeLeft)}}</td>
+            <td mat-cell *matCellDef="let row">{{row.timeLeft}}</td>
         </ng-container>
 
         <!-- Description Column -->

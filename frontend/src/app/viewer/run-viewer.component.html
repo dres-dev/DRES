@@ -1,1 +1,20 @@
-<h1>Viewer for run {{runId | async}}</h1>
+<div class="grid-container">
+    <div class="header">
+        <h1>Viewer for '{{(runInfo | async)?.name}}' (ID = {{(runInfo | async)?.id}}) </h1>
+        <p><strong>Description:</strong> {{(runInfo | async)?.description}}</p>
+    </div>
+    <div class="left">
+        <app-scoreboard-viewer [info]="runInfo" [state]="runState"></app-scoreboard-viewer>
+    </div>
+    <div class="main">
+        <app-task-viewer [info]="runInfo" [state]="runState" [webSocket]="webSocket">
+        </app-task-viewer>
+    </div>
+    <div class="right">
+        <app-scoreboard-viewer [info]="runInfo" [state]="runState"></app-scoreboard-viewer>
+    </div>
+    <div class="footer">
+        <app-teams-viewer [info]="runInfo" [state]="runState"></app-teams-viewer>
+    </div>
+</div>
+

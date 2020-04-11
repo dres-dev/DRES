@@ -1,4 +1,4 @@
-package dres.api.rest.types.run
+package dres.api.rest.types.run.websocket
 
 import kotlinx.serialization.Serializable
 

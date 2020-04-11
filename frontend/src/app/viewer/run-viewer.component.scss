@@ -1,0 +1,27 @@
+.grid-container {
+  display: grid;
+  grid-gap: 10px;
+  padding: 10px;
+  height: 90vh;
+}
+
+.header {
+  grid-column: 1 / span 3;
+  grid-row: 1;
+}
+.left {
+  grid-column: 1;
+  grid-row: 2;
+}
+.main {
+  grid-column: 2;
+  grid-row: 2;
+}
+.right {
+  grid-column: 3;
+  grid-row: 2;
+}
+.footer {
+  grid-column: 1 / span 3;
+  grid-row: 3;
+}

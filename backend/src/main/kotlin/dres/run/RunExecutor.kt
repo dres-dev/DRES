@@ -1,8 +1,8 @@
 package dres.run
 
-import dres.api.rest.types.run.ClientMessage
-import dres.api.rest.types.run.ClientMessageType
-import dres.api.rest.types.run.ServerMessage
+import dres.api.rest.types.run.websocket.ClientMessage
+import dres.api.rest.types.run.websocket.ClientMessageType
+import dres.api.rest.types.run.websocket.ServerMessage
 import dres.data.model.competition.TaskDescription
 import dres.data.model.run.Submission
 import dres.run.validate.JudgementQueue

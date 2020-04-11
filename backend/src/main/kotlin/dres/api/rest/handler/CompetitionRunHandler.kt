@@ -2,6 +2,8 @@ package dres.api.rest.handler
 
 import dres.api.rest.AccessManager
 import dres.api.rest.RestApiRole
+import dres.api.rest.types.run.RunInfo
+import dres.api.rest.types.run.RunState
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.data.model.competition.Task
@@ -62,65 +64,103 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
     }.toLong()
 }
 
-data class CompetitionInfo(val id: Long, val name: String, val status: RunManagerStatus, val description: String, val currentTask: Task?, val timeLeft: Long, val teams: List<Team>) {
-    companion object {
-        fun of(run: RunManager): CompetitionInfo = CompetitionInfo(run.runId, run.name, run.status, run.competition.description ?: "", run.currentTask, run.timeLeft(), run.competition.teams)
-    }
-}
+class ListCompetitionRunInfosHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<RunInfo>> {
 
-class ListCompetitionRunsHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<CompetitionInfo>> {
-
-    override val route = "run"
+    override val route = "run/info"
 
     @OpenApi(
             summary = "Lists an overview of all competition runs visible to the current user",
-            path = "/api/run",
+            path = "/api/run/info",
             tags = ["Competition Run"],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<CompetitionInfo>::class)]),
+                OpenApiResponse("200", [OpenApiContent(Array<RunInfo>::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): List<CompetitionInfo> = getRelevantManagers(ctx).map { CompetitionInfo.of(it) }
+    override fun doGet(ctx: Context): List<RunInfo> = getRelevantManagers(ctx).map { RunInfo(it) }
+}
+
+class ListCompetitionRunStatesHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<RunState>> {
+
+    override val route = "run/state"
+
+    @OpenApi(
+            summary = "Lists an overview of all competition runs visible to the current user",
+            path = "/api/run/state",
+            tags = ["Competition Run"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(Array<RunState>::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): List<RunState> = getRelevantManagers(ctx).map { RunState(it) }
 
 }
 
-class GetCompetitionRunHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<CompetitionInfo> {
 
-    override val route = "run/:runId"
+class GetCompetitionRunInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<RunInfo> {
+
+    override val route = "run/info/:runId"
 
     @OpenApi(
             summary = "Returns a specific competition run.",
-            path = "/api/run/:runId",
+            path = "/api/run/info/:runId",
             tags = ["Competition Run"],
             pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(CompetitionInfo::class)]),
+                OpenApiResponse("200", [OpenApiContent(RunInfo::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): CompetitionInfo {
+    override fun doGet(ctx: Context): RunInfo {
 
         val runId = runId(ctx)
 
         val run = getRun(ctx, runId)
 
         if (run != null){
-            return CompetitionInfo.of(run)
+            return RunInfo(run)
         }
 
         throw ErrorStatusException(404, "Run $runId not found")
     }
 }
 
+class GetCompetitionRunStateHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<RunState> {
+
+    override val route = "run/state/:runId"
+
+    @OpenApi(
+            summary = "Returns the state of a specific competition run.",
+            path = "/api/run/state/:runId",
+            tags = ["Competition Run"],
+            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(RunState::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): RunState {
+        val runId = runId(ctx)
+        val run = getRun(ctx, runId)
+
+        if (run != null){
+            return RunState(run)
+        }
+        throw ErrorStatusException(404, "Run $runId not found")
+    }
+}
+
+
 class ListCompetitionScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<ScoreOverview>> {
 
-    override val route = "run/:runId/score"
+    override val route = "run/score/:runId/"
 
     @OpenApi(
             summary = "Returns the score overviews of a specific competition run.",
-            path = "/api/run/:runId/score",
+            path = "/api/run/score/:runId",
             tags = ["Competition Run"],
             pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
             responses = [
@@ -166,11 +206,9 @@ class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHand
 }
 
 data class TaskInfo(val name: String, val taskGroup: String, val type: TaskType, val duration: Long) {
-
     companion object{
         fun of(task: Task, duration: Long): TaskInfo = TaskInfo(task.name, task.taskGroup, task.description.taskType, duration)
     }
-
 }
 
 class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<TaskInfo> {

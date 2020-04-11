@@ -23,10 +23,6 @@ enum class RunManagerStatus {
     /** A [Task] is currently being executed by this [RunManager]. */
     RUNNING_TASK,
 
-    /** A [Task] has been executed by this [RunManager] but not all processing has completed yet
-     * . */
-    FINALIZING_TASK,
-
     /** [RunManager] was terminated and cannot run anymore [Task]s. */
     TERMINATED
 }

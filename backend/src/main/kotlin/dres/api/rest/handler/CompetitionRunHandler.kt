@@ -41,7 +41,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
             return RunExecutor.managers()
         }
         val userId = userId(ctx)
-        return RunExecutor.managers().filter { it.competition.teams.any { it.users.contains(userId) } }
+        return RunExecutor.managers().filter { it.competitionDescription.teams.any { it.users.contains(userId) } }
     }
 
     fun getRun(ctx: Context, runId: Long): RunManager? {
@@ -50,7 +50,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
         }
         val userId = userId(ctx)
         val run = RunExecutor.managerForId(runId) ?: return null
-        if (run.competition.teams.any { it.users.contains(userId) }){
+        if (run.competitionDescription.teams.any { it.users.contains(userId) }){
             return run
         }
         return null

@@ -16,7 +16,7 @@ class MeanAggregateScoreBoard(private val name: String, private val boards: List
                 .map { Score(it.first().teamId, it.map { it.score }.sum() / boards.size) }
     }
 
-    override fun score(team: Team) = boards.map { it.score(team) }.sum() / boards.size
+    override fun score(teamId: Int) = boards.map { it.score(teamId) }.sum() / boards.size
 
 
     override fun update() {

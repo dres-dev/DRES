@@ -1,6 +1,5 @@
 package dres.run.validate
 
-import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import java.util.*
@@ -12,13 +11,16 @@ import kotlin.collections.HashMap
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */
-class BasicJudgementValidator(val callback: ((Submission) -> Unit)? = null): JudgementValidator { //TODO better name
+class BasicJudgementValidator: JudgementValidator { //TODO better name
 
     /** Internal queue that keeps track of all the [Submission]s in need of a verdict. */
     private val queue: Queue<Submission> = LinkedList()
 
     /** Internal map of all [Submission]s that have been retrieved by a judge and are pending a verdict. */
     private val waiting = HashMap<String, Submission>()
+
+    /** Callback function that can be registered by an outside instance. */
+    var callback: ((Submission) -> Unit)? = null
 
     /** Returns the number of [Submission]s that are currently pending a judgement. */
     override val pending: Int
@@ -29,12 +31,11 @@ class BasicJudgementValidator(val callback: ((Submission) -> Unit)? = null): Jud
      * Enqueues a [Submission] with the internal judgment queue.
      *
      * @param submission The [Submission] to validate.
-     * @param task The [TaskDescription] that acts as a baseline for validation.
      *
      * @return [SubmissionStatus] of the [Submission]
      */
     @Synchronized
-    override fun validate(submission: Submission, task: TaskDescription): SubmissionStatus {
+    override fun validate(submission: Submission): SubmissionStatus {
         this.queue.offer(submission)
         return SubmissionStatus.INDETERMINATE
     }

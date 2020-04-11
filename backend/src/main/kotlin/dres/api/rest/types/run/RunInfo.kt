@@ -13,6 +13,6 @@ import dres.run.RunManager
  * @version 1.0
  */
 data class RunInfo(val id: Long, val name: String, val description: String?, val teams: List<Team>) {
-    constructor(run: RunManager) : this(run.runId, run.name, run.competition.description, run.competition.teams)
+    constructor(run: RunManager) : this(run.runId, run.name, run.competitionDescription.description, run.competitionDescription.teams)
 }
 

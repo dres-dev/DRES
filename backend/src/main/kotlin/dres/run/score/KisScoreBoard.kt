@@ -11,7 +11,7 @@ class KisScoreBoard(private val name: String, private val run: CompetitionRun, p
     private val maxPointsAtTaskEnd = 50.0
     private val penaltyPerWrongSubmission = 20.0
 
-    private val scorePerTaskMap = mutableMapOf<TaskDescription, Map<Team, Double>>()
+    private val scorePerTaskMap = mutableMapOf<TaskDescription, Map<Int, Double>>()
 
 //    override fun taskScores(): List<Score> {
 //
@@ -20,7 +20,7 @@ class KisScoreBoard(private val name: String, private val run: CompetitionRun, p
 //
 //    }
 
-    private fun overallScoreMap(): Map<Team, Double> {
+    private fun overallScoreMap(): Map<Int, Double> {
         val scoreSums = scorePerTaskMap.values
                 .flatMap {it.entries} //all team to score pairs independent of task
                 .groupBy { it.key } //individual scores per team
@@ -35,11 +35,11 @@ class KisScoreBoard(private val name: String, private val run: CompetitionRun, p
 
     override fun scores(): List<Score> {
         return overallScoreMap().entries.map {
-            Score(run.competition.teams.indexOf(it.key), it.value)
+            Score(it.key, it.value)
         }
     }
 
-    override fun score(team: Team) = overallScoreMap()[team] ?: 0.0
+    override fun score(teamId: Int) = overallScoreMap()[teamId] ?: 0.0
 
     //TODO introduce some caching
     override fun update() {

@@ -1,34 +1,61 @@
 package dres.data.model.competition
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import dres.data.model.basics.MediaItem
 import dres.data.model.basics.TemporalRange
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.data.model.competition.interfaces.TaskDescription
+import dres.run.score.KisTaskScorer
+import dres.run.score.TaskRunScorer
+import dres.run.validate.BasicJudgementValidator
+import dres.run.validate.TemporalOverlapSubmissionValidator
+
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class KisVisualTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange) : MediaSegmentTaskDescription{
-    constructor(name: String, taskGroup: TaskGroup, item: MediaItem.VideoItem, temporalRange: TemporalRange) : this(name, taskGroup, taskGroup.defaultTaskDuration, item, temporalRange)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "taskType")
+@JsonSubTypes(
+        JsonSubTypes.Type(value = TaskDescriptionBase.KisVisualTaskDescription::class, name = "KIS_VISUAL"),
+        JsonSubTypes.Type(value = TaskDescriptionBase.KisTextualTaskDescription::class, name = "KIS_TEXTUAL"),
+        JsonSubTypes.Type(value = TaskDescriptionBase.AvsTaskDescription::class, name = "AVS")
+)
+sealed class TaskDescriptionBase() : TaskDescription {
+
+    /** Helper property for de/serialization. */
+    val taskType: String
+        get() = this.taskGroup.type.name
+
+    /**
+     * Describes a visual Known Item Search (KIS)
+     *
+     * @param item [MediaItem] the user should be looking for.
+     */
+    @Serializable
+    data class KisVisualTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange) : TaskDescriptionBase(), MediaSegmentTaskDescription{
+        override fun newScorer(): TaskRunScorer = KisTaskScorer()
+        override fun newValidator() = TemporalOverlapSubmissionValidator(this)
+    }
+
+    /**
+     * Describes a textual Known Item Search (KIS) [Task]
+     *
+     * @param item [MediaItem] the user should be looking for.
+     */
+    @Serializable
+    class KisTextualTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange, val descriptions: List<String>, val delay: Int = 30) : TaskDescriptionBase(), MediaSegmentTaskDescription {
+        override fun newScorer(): TaskRunScorer = KisTaskScorer()
+        override fun newValidator() = TemporalOverlapSubmissionValidator(this)
+    }
+
+    /**
+     * Describes a AVS type video [Task]
+     *
+     * @param description Textual task description presented to the user.
+     */
+    @Serializable
+    class AvsTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, val description: String) : TaskDescriptionBase(), TaskDescription {
+        override fun newScorer(): TaskRunScorer = KisTaskScorer()
+        override fun newValidator() = BasicJudgementValidator()
+    }
 }
-
-/**
- * Describes a [TaskType.KIS_TEXTUAL] [Task]
- *
- * @param item [MediaItem] the user should be looking for.
- */
-@Serializable
-data class KisTextualTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange, val descriptions: List<String>, val delay: Int = 30) : MediaSegmentTaskDescription {
-    constructor(name: String, taskGroup: TaskGroup, item: MediaItem.VideoItem, temporalRange: TemporalRange, descriptions: List<String>, delay: Int = 30) : this(name, taskGroup, taskGroup.defaultTaskDuration, item, temporalRange, descriptions, delay)
-}
-
-/**
- * Describes a [TaskType.AVS] video [Task]
- *
- * @param description Textual task description presented to the user.
- */
-@Serializable
-data class AvsTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, val description: String) : TaskDescription {
-    constructor(name: String, taskGroup: TaskGroup, description: String) : this(name, taskGroup, taskGroup.defaultTaskDuration, description)
-}
-
-

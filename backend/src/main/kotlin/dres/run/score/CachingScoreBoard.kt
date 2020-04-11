@@ -6,17 +6,17 @@ class CachingScoreBoard(private val board: Scoreboard): Scoreboard {
 
     //private var taskScores: List<Score> = board.taskScores()
     private var overallScores: List<Score> = board.scores()
-    private val taskScoreMap = mutableMapOf<Team, Double>()
+    private val taskScoreMap = mutableMapOf<Int, Double>()
 
     //override fun taskScores() = taskScores
 
     override fun scores() = overallScores
 
-    override fun score(team: Team): Double {
-        if (!taskScoreMap.containsKey(team)){
-            taskScoreMap.put(team, board.score(team))
+    override fun score(teamId: Int): Double {
+        if (!taskScoreMap.containsKey(teamId)){
+            taskScoreMap[teamId] = board.score(teamId)
         }
-        return taskScoreMap[team]!!
+        return taskScoreMap[teamId]!!
     }
 
     override fun update() {

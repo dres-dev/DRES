@@ -1,6 +1,7 @@
 package dres.run.validate
 
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
+import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.utilities.TimeUtil
@@ -12,7 +13,7 @@ import dres.utilities.TimeUtil
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */
-object TemporalOverlapSubmissionValidator : SubmissionValidator<MediaSegmentTaskDescription> {
+class TemporalOverlapSubmissionValidator(private val task: MediaSegmentTaskDescription) : SubmissionValidator {
     /**
      * Validates a [Submission] based on the target segment and the temporal overlap of the
      * [Submission] with the [TaskDescription]. TODO: Framenumber not currently supported
@@ -22,12 +23,11 @@ object TemporalOverlapSubmissionValidator : SubmissionValidator<MediaSegmentTask
      *
      * @return [SubmissionStatus] of the [Submission]
      */
-    override fun validate(submission: Submission, task: MediaSegmentTaskDescription): SubmissionStatus {
+    override fun validate(submission: Submission): SubmissionStatus {
         if (submission.start == null || submission.end == null) return SubmissionStatus.WRONG // Invalid
         if (submission.start > submission.end) return SubmissionStatus.WRONG // Invalid
 
-
-        val outer = TimeUtil.toMilliseconds(task.temporalRange)
+        val outer = TimeUtil.toMilliseconds(this.task.temporalRange)
         if (outer.first <= submission.start && outer.second >= submission.end) {
             return SubmissionStatus.CORRECT
         }

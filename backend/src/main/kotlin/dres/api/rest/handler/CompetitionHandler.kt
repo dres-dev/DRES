@@ -5,7 +5,7 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
-import dres.data.model.competition.Competition
+import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.Team
 import dres.data.model.competition.interfaces.TaskDescription
 import io.javalin.core.security.Role
@@ -13,7 +13,7 @@ import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
 
-abstract class CompetitionHandler(protected val competitions: DAO<Competition>) : RestHandler, AccessManagedRestHandler {
+abstract class CompetitionHandler(protected val competitions: DAO<CompetitionDescription>) : RestHandler, AccessManagedRestHandler {
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.ADMIN)
 
@@ -22,21 +22,21 @@ abstract class CompetitionHandler(protected val competitions: DAO<Competition>) 
                 throw ErrorStatusException(404, "Parameter 'competitionId' is missing!'")
             }.toLong()
 
-    protected fun competitionById(id: Long): Competition =
+    protected fun competitionById(id: Long): CompetitionDescription =
             competitions[id] ?: throw ErrorStatusException(404, "Competition with ID $id not found.'")
 
-    protected fun competitionFromContext(ctx: Context): Competition = competitionById(competitionId(ctx))
+    protected fun competitionFromContext(ctx: Context): CompetitionDescription = competitionById(competitionId(ctx))
 
 }
 
 data class CompetitionOverview(val id: Long, val name: String, val description: String, val taskCount: Int, val teamCount: Int) {
     companion object {
-        fun of(competition: Competition): CompetitionOverview = CompetitionOverview(competition.id, competition.name, competition.description
-                ?: "", competition.tasks.size, competition.teams.size)
+        fun of(competitionDescription: CompetitionDescription): CompetitionOverview = CompetitionOverview(competitionDescription.id, competitionDescription.name, competitionDescription.description
+                ?: "", competitionDescription.tasks.size, competitionDescription.teams.size)
     }
 }
 
-class ListCompetitionHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), GetRestHandler<List<CompetitionOverview>> {
+class ListCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<CompetitionOverview>> {
 
     @OpenApi(
             summary = "Lists an overview of all available competitions with basic information about their content.",
@@ -52,7 +52,7 @@ class ListCompetitionHandler(competitions: DAO<Competition>) : CompetitionHandle
     override val route: String = "competition"
 }
 
-class GetCompetitionHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), GetRestHandler<Competition> {
+class GetCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<CompetitionDescription> {
 
     @OpenApi(
             summary = "Loads the detailed definition of a specific competition.",
@@ -60,7 +60,7 @@ class GetCompetitionHandler(competitions: DAO<Competition>) : CompetitionHandler
             pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(Competition::class)]),
+                OpenApiResponse("200", [OpenApiContent(CompetitionDescription::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
@@ -71,7 +71,7 @@ class GetCompetitionHandler(competitions: DAO<Competition>) : CompetitionHandler
     override val route: String = "competition/:competitionId"
 }
 
-class ListTeamHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), GetRestHandler<List<Team>> {
+class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<Team>> {
 
     override val route: String = "competition/:competitionId/team"
 
@@ -91,7 +91,7 @@ class ListTeamHandler(competitions: DAO<Competition>) : CompetitionHandler(compe
 
 }
 
-class ListTaskHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), GetRestHandler<List<TaskDescription>> {
+class ListTaskHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<TaskDescription>> {
 
     override val route: String = "competition/:competitionId/task"
 
@@ -112,7 +112,7 @@ class ListTaskHandler(competitions: DAO<Competition>) : CompetitionHandler(compe
 
 }
 
-class CreateCompetitionHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), PostRestHandler<SuccessStatus> {
+class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), PostRestHandler<SuccessStatus> {
     @OpenApi(
             summary = "Creates a new competition.",
             path = "/api/competition", method = HttpMethod.POST,
@@ -132,7 +132,7 @@ class CreateCompetitionHandler(competitions: DAO<Competition>) : CompetitionHand
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
 
-        val competition = Competition(-1L, createRequest.name, createRequest.description, mutableListOf(), mutableListOf())
+        val competition = CompetitionDescription(-1L, createRequest.name, createRequest.description, mutableListOf(), mutableListOf(), mutableListOf())
         val competitionId = this.competitions.append(competition)
         return SuccessStatus("Competition with ID $competitionId was created.")
     }
@@ -140,11 +140,11 @@ class CreateCompetitionHandler(competitions: DAO<Competition>) : CompetitionHand
     override val route: String = "competition"
 }
 
-class UpdateCompetitionHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), PatchRestHandler<SuccessStatus> {
+class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), PatchRestHandler<SuccessStatus> {
     @OpenApi(
             summary = "Updates an existing competition.",
             path = "/api/competition", method = HttpMethod.PATCH,
-            requestBody = OpenApiRequestBody([OpenApiContent(Competition::class)]),
+            requestBody = OpenApiRequestBody([OpenApiContent(CompetitionDescription::class)]),
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -155,7 +155,7 @@ class UpdateCompetitionHandler(competitions: DAO<Competition>) : CompetitionHand
     )
     override fun doPatch(ctx: Context): SuccessStatus {
         val competition = try {
-            ctx.bodyAsClass(Competition::class.java)
+            ctx.bodyAsClass(CompetitionDescription::class.java)
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
@@ -178,7 +178,7 @@ class UpdateCompetitionHandler(competitions: DAO<Competition>) : CompetitionHand
 }
 
 
-class DeleteCompetitionHandler(competitions: DAO<Competition>) : CompetitionHandler(competitions), DeleteRestHandler<SuccessStatus> {
+class DeleteCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), DeleteRestHandler<SuccessStatus> {
     @OpenApi(
             summary = "Deletes the competition with the given competition ID.",
             path = "/api/competition/:competitionId", method = HttpMethod.DELETE,
@@ -193,9 +193,12 @@ class DeleteCompetitionHandler(competitions: DAO<Competition>) : CompetitionHand
     )
     override fun doDelete(ctx: Context): SuccessStatus {
         val competitionToDelete = competitionFromContext(ctx)
-
         val competition = this.competitions.delete(competitionToDelete.id)
-        return SuccessStatus("Competition with ID ${competitionToDelete.id} was deleted.")
+        return if (competition != null) {
+            SuccessStatus("Competition with ID ${competitionToDelete.id} was deleted.")
+        } else {
+            throw ErrorStatusException(404, "Competition with ID ${competitionToDelete.id} not found.")
+        }
     }
 
     override val route: String = "competition/:competitionId"

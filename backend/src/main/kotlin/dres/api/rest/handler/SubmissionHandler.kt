@@ -25,7 +25,7 @@ class SubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHandle
 
     private fun getRelevantManagers(ctx: Context): List<RunManager> { //TODO there needs to be a more efficient way to do this
         val userId = userId(ctx)
-        return RunExecutor.managers().filter { it.competition.teams.any { it.users.contains(userId) } }
+        return RunExecutor.managers().filter { it.competitionDescription.teams.any { it.users.contains(userId) } }
     }
 
     private fun getActiveCompetition(ctx: Context): RunManager {
@@ -36,7 +36,7 @@ class SubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHandle
         }
 
         if (managers.size > 1) {
-            throw ErrorStatusException(409, "More than one possible Competition found: ${managers.map { it.competition.name }.joinToString()}")
+            throw ErrorStatusException(409, "More than one possible Competition found: ${managers.map { it.competitionDescription.name }.joinToString()}")
         }
 
         return managers.first()

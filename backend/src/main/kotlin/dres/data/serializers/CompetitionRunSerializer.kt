@@ -10,7 +10,7 @@ object CompetitionRunSerializer: Serializer<CompetitionRun> {
     override fun serialize(out: DataOutput2, value: CompetitionRun) {
         out.packLong(value.id)
         out.writeUTF(value.name)
-        CompetitionSerializer.serialize(out, value.competition)
+        CompetitionSerializer.serialize(out, value.competitionDescription)
         out.writeLong(value.started ?: -1)
         out.writeLong(value.ended ?: -1)
         out.writeInt(value.runs.size)

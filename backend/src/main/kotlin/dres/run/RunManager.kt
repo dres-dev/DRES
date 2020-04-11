@@ -1,7 +1,7 @@
 package dres.run
 
 import dres.api.rest.types.run.websocket.ClientMessage
-import dres.data.model.competition.Competition
+import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
@@ -9,7 +9,7 @@ import dres.run.score.Scoreboard
 import dres.run.validate.JudgementValidator
 
 /**
- * A managing class for [Competition] executions or 'runs'.
+ * A managing class for [CompetitionDescription] executions or 'runs'.
  *
  * @author Ralph Gasser
  * @version 1.0
@@ -21,8 +21,8 @@ interface RunManager : Runnable {
     /** A name for identifying this [RunManager]. */
     val name: String
 
-    /** The [Competition] that is executed / run by this [RunManager]. */
-    val competition: Competition
+    /** The [CompetitionDescription] that is executed / run by this [RunManager]. */
+    val competitionDescription: CompetitionDescription
 
     /** The [Scoreboard] used to track the [Score] per team. */
     val scoreboards: List<Scoreboard>?
@@ -35,9 +35,6 @@ interface RunManager : Runnable {
 
     /** Current [RunManagerStatus] of the [RunManager]. */
     val status: RunManagerStatus
-
-    /** The [JudgementValidator] instance used for manual verdicts. */
-    val judgementValidator: JudgementValidator
 
     /**
      * Starts this [RunManager] moving [RunManager.status] from [RunManagerStatus.CREATED] to
@@ -62,7 +59,7 @@ interface RunManager : Runnable {
     fun terminate()
 
     /**
-     * Prepares this [RunManager] for the execution of previous [Task] as per order defined in [Competition.tasks].
+     * Prepares this [RunManager] for the execution of previous [Task] as per order defined in [CompetitionDescription.tasks].
      * Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
      * As all state affecting methods, this method throws an [IllegalStateException] if invocation
@@ -74,7 +71,7 @@ interface RunManager : Runnable {
     fun previousTask(): Boolean
 
     /**
-     * Prepares this [RunManager] for the execution of next [Task] as per order defined in [Competition.tasks].
+     * Prepares this [RunManager] for the execution of next [Task] as per order defined in [CompetitionDescription.tasks].
      * Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
      * As all state affecting methods, this method throws an [IllegalStateException] if invocation
@@ -87,7 +84,7 @@ interface RunManager : Runnable {
 
     /**
      * Prepares this [RunManager] for the execution of the [Task] given by the index as per order
-     * defined in [Competition.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
+     * defined in [CompetitionDescription.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
      * As all state affecting methods, this method throws an [IllegalStateException] if invocation
      * does not match the current state.

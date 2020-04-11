@@ -28,7 +28,7 @@ interface Scoreboard {
      * @param team The [Team]'s ID.
      * @return The score for the given [Team].
      */
-    fun score(team: Team): Double
+    fun score(teamId: Int): Double
 
     /**
      * Updates the [Scoreboard].

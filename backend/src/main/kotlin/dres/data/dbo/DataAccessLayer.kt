@@ -13,7 +13,7 @@ class DataAccessLayer(private val basePath: Path) {
     /** List of [dres.data.model.admin.User]s managed by this DRES instance. */
     val users = DAO(this.basePath.resolve("users.db"), UserSerializer)
 
-    /** List of [dres.data.model.competition.Competition]s managed by this DRES instance. */
+    /** List of [dres.data.model.competition.CompetitionDescription]s managed by this DRES instance. */
     val competitions = DAO(this.basePath.resolve("competitions.db"), CompetitionSerializer)
 
     /** List of [dres.data.model.run.CompetitionRun]s managed by this DRES instance. */

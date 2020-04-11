@@ -4,7 +4,7 @@ import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 
-interface JudgementValidator : SubmissionValidator<TaskDescription> {
+interface JudgementValidator : SubmissionValidator {
     /** Returns the number of [Submission]s that are currently pending a judgement. */
     val pending: Int
 
@@ -16,7 +16,7 @@ interface JudgementValidator : SubmissionValidator<TaskDescription> {
      *
      * @return [SubmissionStatus] of the [Submission]
      */
-    override fun validate(submission: Submission, task: TaskDescription): SubmissionStatus
+    override fun validate(submission: Submission): SubmissionStatus
 
     /**
      * Retrieves and returns the next element that requires a verdict from this [JudgementValidator]'

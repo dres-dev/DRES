@@ -1,34 +1,31 @@
 package dres.data.model.run
 
 import dres.data.model.Entity
-import dres.data.model.competition.Competition
-import dres.data.model.competition.KisTextualTaskDescription
-import dres.data.model.competition.KisVisualTaskDescription
+import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun.TaskRun
-import dres.run.score.KisTaskScorer
 import dres.run.score.TaskRunScorer
 import kotlinx.serialization.Serializable
 import java.util.*
 
 /**
- * Represents a concrete instance or `run` of a [Competition]. [CompetitionRun]s can be started
+ * Represents a concrete instance or `run` of a [CompetitionDescription]. [CompetitionRun]s can be started
  * and ended and they can be used to create new [TaskRun]s and access the current [TaskRun].
  *
  * @author Ralph Gasser
  * @param 1.0
  */
 @Serializable
-class CompetitionRun(override var id: Long, val name: String, val competition: Competition): Run, Entity {
+class CompetitionRun(override var id: Long, val name: String, val competitionDescription: CompetitionDescription): Run, Entity {
 
-    internal constructor(id: Long, name: String, competition: Competition, started: Long?, ended: Long?) : this(id, name, competition) {
+    internal constructor(id: Long, name: String, competitionDescription: CompetitionDescription, started: Long?, ended: Long?) : this(id, name, competitionDescription) {
         this.started = started
         this.ended = ended
     }
 
     init {
-        require(competition.tasks.size > 0) { "Cannot create a run from a competition that doesn't have any tasks. "}
-        require(competition.teams.size > 0) { "Cannot create a run from a competition that doesn't have any teams. "}
+        require(competitionDescription.tasks.size > 0) { "Cannot create a run from a competition that doesn't have any tasks. "}
+        require(competitionDescription.teams.size > 0) { "Cannot create a run from a competition that doesn't have any teams. "}
     }
 
     /** Timestamp of when this [CompetitionRun] was started. */
@@ -81,14 +78,6 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
         }
     }
 
-    fun scorerForTask(run: TaskRun): TaskRunScorer {
-        return when(run.task) {
-            is KisVisualTaskDescription -> KisTaskScorer(this)
-            is KisTextualTaskDescription -> KisTaskScorer(this)
-            else -> TODO("No scorer for task type yet")
-        }
-    }
-
     /**
      * Represents a concrete instance or `run` of a [Task]. [TaskRun]s always exist within a
      * [CompetitionRun]. As a [CompetitionRun], [TaskRun]s can be started and ended and they
@@ -124,12 +113,13 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
 
         /** The [Task] referenced by this [TaskRun]. */
         val task: TaskDescription
-            get() = this@CompetitionRun.competition.tasks[this.taskId]
+            get() = this@CompetitionRun.competitionDescription.tasks[this.taskId]
 
-        val scorer: TaskRunScorer = scorerForTask(this)
+        /** The [TaskRunScorer] instance used by [TaskRun]. */
+        val scorer: TaskRunScorer = this.task.newScorer()
 
         init {
-            if (this@CompetitionRun.competition.tasks.size < this.taskId) {
+            if (this@CompetitionRun.competitionDescription.tasks.size < this.taskId) {
                 throw IllegalArgumentException("There is no task with ID $taskId.")
             }
         }
@@ -164,7 +154,7 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
             if (!this.isRunning) {
                 throw IllegalStateException("Task run '${this@CompetitionRun.name}.${this.position}' is currently not running.")
             }
-            if (this@CompetitionRun.competition.teams.size < submission.team) {
+            if (this@CompetitionRun.competitionDescription.teams.size < submission.team) {
                 throw IllegalStateException("Team ${submission.team} does not exists for competition run ${this@CompetitionRun.name}.")
             }
             (this.submissions as MutableList).add(submission)

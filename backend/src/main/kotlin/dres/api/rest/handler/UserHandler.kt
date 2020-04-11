@@ -7,6 +7,7 @@ import dres.api.rest.types.status.ErrorStatusException
 import dres.data.dbo.DAO
 import dres.data.model.admin.Role
 import dres.data.model.admin.User
+import dres.utilities.extensions.sessionId
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
@@ -52,7 +53,7 @@ class CurrentUsersHandler(users: DAO<User>) : UserHandler(users), GetRestHandler
             ]
     )
     override fun doGet(ctx: Context) : UserDetails {
-        val user = this.users[AccessManager.getUserIdforSession(ctx.req.session.id)!!]
+        val user = this.users[AccessManager.getUserIdforSession(ctx.sessionId())!!]
                 ?: throw ErrorStatusException(404, "User could not be found!")
         return UserDetails.of(user)
     }

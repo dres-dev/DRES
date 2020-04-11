@@ -8,14 +8,13 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.data.model.competition.Task
 import dres.data.model.competition.TaskType
-import dres.data.model.competition.Team
 import dres.data.model.run.SubmissionStatus
 import dres.data.model.run.VBSSubmission
 import dres.run.RunExecutor
 import dres.run.RunManager
-import dres.run.RunManagerStatus
 import dres.run.score.ScoreOverview
 import dres.utilities.extensions.errorResponse
+import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
@@ -27,9 +26,9 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.VIEWER)
 
-    private fun userId(ctx: Context): Long = AccessManager.getUserIdforSession(ctx.req.session.id)!!
+    private fun userId(ctx: Context): Long = AccessManager.getUserIdforSession(ctx.sessionId())!!
 
-    private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.req.session.id).contains(RestApiRole.ADMIN)
+    private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
 
 //    /**
 //     * returns the runs visible to the current user

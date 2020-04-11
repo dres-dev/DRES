@@ -26,3 +26,5 @@ fun Context.streamFile(file: File){
     this.contentType(mimeType) //needs to be set, probably a bug in Javalin
     this.seekableStream(file.inputStream(), mimeType)
 }
+
+fun Context.sessionId(): String = this.queryParam("session", this.req.session.id)!!

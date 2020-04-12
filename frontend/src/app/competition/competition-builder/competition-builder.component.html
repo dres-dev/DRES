@@ -36,6 +36,20 @@
                         <textarea matInput placeholder="Password" formControlName="description" required></textarea>
                     </mat-form-field>
                 </p>
+                <p>
+                    <button mat-button aria-label="Add new task group." matTooltip="Add new task group." (click)="addTaskGroup()">
+                        <mat-icon>add</mat-icon>
+                        Add task group
+                    </button>
+                    <mat-list style="display: inline-block;">
+                        <mat-chip-list>
+                            <mat-chip *ngFor="let group of competition.groups"  [removable]="true" (removed)="removeTaskGroup(group)">
+                                {{group.name}}
+                                <mat-icon matChipRemove>cancel</mat-icon>
+                            </mat-chip>
+                        </mat-chip-list>
+                    </mat-list>
+                </p>
             </form>
         </div>
         <div style="flex-basis: 30%;">
@@ -43,12 +57,10 @@
                 <h2>Teams</h2>
 
                 <div class="spacer-flex"></div>
-
                 <button mat-button aria-label="Add new team." matTooltip="Add new team." (click)="addTeam()">
                     <mat-icon>add</mat-icon>
                     Add team
                 </button>
-
             </div>
 
             <mat-list>
@@ -78,7 +90,7 @@
                 <div class="spacer-flex"></div>
 
                 <mat-menu #taskMenu="matMenu">
-                    <button *ngFor="let type of taskTypes" mat-menu-item (click)="addTask(type)">{{type}}</button>
+                    <button *ngFor="let group of competition.groups" mat-menu-item (click)="addTask(group)">{{group.name}}</button>
                 </mat-menu>
 
                 <button mat-button aria-label="Add new task." matTooltip="Add new task." [matMenuTriggerFor]="taskMenu">
@@ -92,7 +104,7 @@
             <mat-list>
                 <mat-list-item *ngFor="let task of competition.tasks">
                     <div style="display: flex" matLine>
-                        <span>{{task.name}} | {{task.taskGroup}} ({{task.description.taskType}})</span>
+                        <span>{{task.name}} | {{task.taskGroup.name}} ({{task.taskGroup.type}})</span>
 
                         <div class="spacer-flex"></div>
 

@@ -133,10 +133,13 @@ object RestApi {
             }
 
             path("submit") {
-
                 val submissionHandler = SubmissionHandler()
                 get(submissionHandler::get, submissionHandler.permittedRoles)
+            }
 
+            path("submit/:runId") {
+                val submissionHandler = OpenSubmissionHandler()
+                get(submissionHandler::get, submissionHandler.permittedRoles)
             }
 
 

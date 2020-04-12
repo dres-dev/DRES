@@ -9,22 +9,23 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { Task } from './task';
+import { TaskDescription } from './taskDescription';
 
 
 export interface RunState { 
     id: number;
     status: RunState.StatusEnum;
-    currentTask?: Task;
+    currentTask?: TaskDescription;
     timeLeft: number;
 }
 export namespace RunState {
-    export type StatusEnum = 'CREATED' | 'ACTIVE' | 'PREPARING_TASK' | 'RUNNING_TASK' | 'TERMINATED';
+    export type StatusEnum = 'CREATED' | 'ACTIVE' | 'PREPARING_TASK' | 'RUNNING_TASK' | 'FINALIZING_TASK' | 'TERMINATED';
     export const StatusEnum = {
         CREATED: 'CREATED' as StatusEnum,
         ACTIVE: 'ACTIVE' as StatusEnum,
         PREPARINGTASK: 'PREPARING_TASK' as StatusEnum,
         RUNNINGTASK: 'RUNNING_TASK' as StatusEnum,
+        FINALIZINGTASK: 'FINALIZING_TASK' as StatusEnum,
         TERMINATED: 'TERMINATED' as StatusEnum
     };
 }

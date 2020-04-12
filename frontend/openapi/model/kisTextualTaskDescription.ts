@@ -9,19 +9,17 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TaskDescription } from './taskDescription';
 import { KisTextualTaskDescriptionAllOf } from './kisTextualTaskDescriptionAllOf';
+import { TaskDescriptionBase } from './taskDescriptionBase';
 import { TemporalRange } from './temporalRange';
+import { TaskGroup } from './taskGroup';
 import { VideoItem } from './videoItem';
 
 
-export interface KisTextualTaskDescription extends TaskDescription { 
+export interface KisTextualTaskDescription extends TaskDescriptionBase { 
     item: VideoItem;
     temporalRange: TemporalRange;
     descriptions: Array<string>;
     delay: number;
 }
-export namespace KisTextualTaskDescription {
-}
-
 

@@ -1,47 +1,34 @@
 package dres.data.model.run
 
 import dres.data.model.Entity
-import dres.data.model.competition.Competition
-import dres.data.model.competition.Task
-import dres.data.model.competition.TaskDescription
-import dres.data.model.competition.TaskType
+import dres.data.model.competition.CompetitionDescription
+import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun.TaskRun
-import dres.run.RunExecutor
-import dres.run.validate.JudgementValidator
-import dres.run.validate.SubmissionValidator
-import dres.run.validate.TextualKisSubmissionValidator
-import dres.run.validate.VisualKisSubmissionValidator
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
+import dres.run.filter.SubmissionFilter
+import dres.run.score.interfaces.IncrementalTaskRunScorer
+import dres.run.score.interfaces.TaskRunScorer
+import dres.run.validation.interfaces.SubmissionValidator
 import kotlinx.serialization.Serializable
 import java.util.*
 
 /**
- * Represents a concrete instance or `run` of a [Competition]. [CompetitionRun]s can be started
+ * Represents a concrete instance or `run` of a [CompetitionDescription]. [CompetitionRun]s can be started
  * and ended and they can be used to create new [TaskRun]s and access the current [TaskRun].
  *
  * @author Ralph Gasser
  * @param 1.0
  */
 @Serializable
-class CompetitionRun(override var id: Long, val name: String, val competition: Competition): Run, Entity {
+class CompetitionRun(override var id: Long, val name: String, val competitionDescription: CompetitionDescription): Run, Entity {
 
-    internal constructor(id: Long, name: String, competition: Competition, started: Long?, ended: Long?) : this(id, name, competition) {
+    internal constructor(id: Long, name: String, competitionDescription: CompetitionDescription, started: Long?, ended: Long?) : this(id, name, competitionDescription) {
         this.started = started
         this.ended = ended
     }
 
-    private val validators = mapOf(
-            TaskType.KIS_VISUAL to VisualKisSubmissionValidator(),
-            TaskType.KIS_TEXTUAL to TextualKisSubmissionValidator(),
-            TaskType.AVS to JudgementValidator(RunExecutor.judgementQueue)
-    )
-
     init {
-        require(competition.tasks.size > 0) { "Cannot create a run from a competition that doesn't have any tasks. "}
-        require(competition.teams.size > 0) { "Cannot create a run from a competition that doesn't have any teams. "}
+        require(competitionDescription.tasks.size > 0) { "Cannot create a run from a competition that doesn't have any tasks. "}
+        require(competitionDescription.teams.size > 0) { "Cannot create a run from a competition that doesn't have any teams. "}
     }
 
     /** Timestamp of when this [CompetitionRun] was started. */
@@ -86,45 +73,14 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
      *
      * @param task ID of the [Task] to start a [TaskRun]
      */
-    fun newTaskRun(task: Int) {
+    fun newTaskRun(task: Int): TaskRun {
         if (this@CompetitionRun.runs.isEmpty() || this@CompetitionRun.runs.last().hasEnded) {
-            (this.runs as MutableList<TaskRun>).add(TaskRun(task))
+            val ret = TaskRun(task)
+            (this.runs as MutableList<TaskRun>).add(ret)
+            return ret
         } else {
             throw IllegalStateException("Another Task is currently running.")
         }
-    }
-
-    @kotlinx.serialization.Transient
-    val awaitingValidation = mutableListOf<Deferred<Pair<Submission, SubmissionStatus>>>()
-
-    val hasUnvalidatedSubmissions: Boolean
-        get() = awaitingValidation.isNotEmpty()
-
-    /**
-     * Checks if new submission validations are available and updates [Submission]s accordingly
-     */
-    @ExperimentalCoroutinesApi
-    fun updateSubmissionValidations() : List<Submission> {
-        if (!hasUnvalidatedSubmissions) {
-            return emptyList()
-        }
-        val completed = awaitingValidation.filter { it.isCompleted }
-        val submissions = completed.map {
-            val result = it.getCompleted()
-            result.first.status = result.second
-            return@map result.first
-        }
-        //remove completed ones
-        awaitingValidation.removeAll(completed)
-
-        return submissions
-
-        //TODO maybe trigger an update with the freshly evaluated submissions somewhere?
-    }
-
-
-    private fun validator(run: TaskRun): SubmissionValidator<Submission, TaskDescription> {
-        return validators[run.task.description.taskType] as SubmissionValidator<Submission, TaskDescription>
     }
 
     /**
@@ -154,20 +110,36 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
             private set
 
         /** The position of this [TaskRun] within the [CompetitionRun]. */
-        val position: Int
+        private val position: Int
             get() = this@CompetitionRun.runs.indexOf(this)
 
         /** List of [Submission]s* registered for this [TaskRun]. */
         val submissions: List<Submission> = mutableListOf()
 
         /** The [Task] referenced by this [TaskRun]. */
-        val task: Task
-            get() = this@CompetitionRun.competition.tasks[this.taskId]
+        val task: TaskDescription
+            get() = this@CompetitionRun.competitionDescription.tasks[this.taskId]
 
-        private val validator: SubmissionValidator<Submission, TaskDescription> = validator(this)
+        /** The [SubmissionFilter] used to filter [Submission]s. */
+        @Transient
+        val filter: SubmissionFilter = this.task.newFilter()
+
+        /** The [TaskRunScorer] used to update score for this [TaskRun]. */
+        @Transient
+        val scorer: TaskRunScorer = this.task.newScorer()
+
+        /** The [SubmissionValidator] used to validate [Submission]s. */
+        @Transient
+        val validator: SubmissionValidator = this.task.newValidator {
+            if (this.scorer is IncrementalTaskRunScorer) {
+                this.scorer.update(it)
+            } else {
+                this.scorer.analyze(this)
+            }
+        }
 
         init {
-            if (this@CompetitionRun.competition.tasks.size < this.taskId) {
+            if (this@CompetitionRun.competitionDescription.tasks.size < this.taskId) {
                 throw IllegalArgumentException("There is no task with ID $taskId.")
             }
         }
@@ -202,18 +174,16 @@ class CompetitionRun(override var id: Long, val name: String, val competition: C
             if (!this.isRunning) {
                 throw IllegalStateException("Task run '${this@CompetitionRun.name}.${this.position}' is currently not running.")
             }
-            if (this@CompetitionRun.competition.teams.size < submission.team) {
+            if (this@CompetitionRun.competitionDescription.teams.size < submission.team) {
                 throw IllegalStateException("Team ${submission.team} does not exists for competition run ${this@CompetitionRun.name}.")
             }
-            (this.submissions as MutableList).add(submission)
-
-            runBlocking { //TODO specify execution context
-                awaitingValidation.add(
-                        async {
-                           submission to validator.validate(submission, task.description)
-                    }
-                )
+            if (!this.filter.test(submission)) {
+                throw IllegalArgumentException("The provided submission $submission was rejected.")
             }
+
+            /* Process Submission. */
+            (this.submissions as MutableList).add(submission)
+            this.validator.validate(submission)
         }
     }
 }

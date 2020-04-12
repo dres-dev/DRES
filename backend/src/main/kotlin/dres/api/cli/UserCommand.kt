@@ -40,7 +40,7 @@ class UserCommand() : NoOpCliktCommand(name = "users") {
         private val password: PlainPassword by option("-p", "--password")
                 .convert { PlainPassword(it) }
                 .required()
-                .validate { require(it.pass.length >= MIN_LENGTH_PASSWORD) { "Password for DRES user must consist of at least $MIN_LENGTH_PASSWORD characters." } }
+                .validate { require(it.pass.length >= MIN_LENGTH_PASSWORD) { "Password for DRES password must consist of at least $MIN_LENGTH_PASSWORD characters." } }
 
         private val role: Role by option("-r", "--role").enum<Role>().required()
 

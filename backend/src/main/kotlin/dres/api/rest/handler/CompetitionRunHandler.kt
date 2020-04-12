@@ -6,15 +6,13 @@ import dres.api.rest.types.run.RunInfo
 import dres.api.rest.types.run.RunState
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
-import dres.data.model.competition.Task
-import dres.data.model.competition.TaskType
-import dres.data.model.run.SubmissionStatus
-import dres.data.model.run.VBSSubmission
+import dres.data.model.competition.TaskGroup
+import dres.data.model.competition.interfaces.TaskDescription
+import dres.data.model.run.Submission
 import dres.run.RunExecutor
 import dres.run.RunManager
 import dres.run.score.ScoreOverview
 import dres.utilities.extensions.errorResponse
-import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
@@ -26,9 +24,9 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.VIEWER)
 
-    private fun userId(ctx: Context): Long = AccessManager.getUserIdforSession(ctx.sessionId())!!
+    private fun userId(ctx: Context): Long = AccessManager.getUserIdforSession(ctx.req.session.id)!!
 
-    private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
+    private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.req.session.id).contains(RestApiRole.ADMIN)
 
 //    /**
 //     * returns the runs visible to the current user
@@ -43,7 +41,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
             return RunExecutor.managers()
         }
         val userId = userId(ctx)
-        return RunExecutor.managers().filter { it.competition.teams.any { it.users.contains(userId) } }
+        return RunExecutor.managers().filter { it.competitionDescription.teams.any { it.users.contains(userId) } }
     }
 
     fun getRun(ctx: Context, runId: Long): RunManager? {
@@ -52,7 +50,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
         }
         val userId = userId(ctx)
         val run = RunExecutor.managerForId(runId) ?: return null
-        if (run.competition.teams.any { it.users.contains(userId) }){
+        if (run.competitionDescription.teams.any { it.users.contains(userId) }){
             return run
         }
         return null
@@ -169,12 +167,9 @@ class ListCompetitionScoreHandler : AbstractCompetitionRunRestHandler(), GetRest
             ]
     )
     override fun doGet(ctx: Context): List<ScoreOverview> {
-
         val runId = runId(ctx)
-
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-
-        return run.scoreboards.map { it.overview() }
+        return run.scoreboards?.map { it.overview() } ?: throw  ErrorStatusException(400, "Not scoreboards available. There is probably no run going on.")
     }
 }
 
@@ -193,20 +188,16 @@ class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHand
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): List<ScoreOverview> {
-
+    override fun doGet(ctx: Context): List<ScoreOverview> { //FIXME
         val runId = runId(ctx)
-
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-
-        return run.scoreboards.map { it.taskOverview() }
-
+        /*return run.currentTask?.scorer ?:*/ throw  ErrorStatusException(400, "Not scoreboards available. There is probably no run going on.")
     }
 }
 
-data class TaskInfo(val name: String, val taskGroup: String, val type: TaskType, val duration: Long) {
+data class TaskInfo(val name: String, val taskGroup: TaskGroup, val duration: Long) {
     companion object{
-        fun of(task: Task, duration: Long): TaskInfo = TaskInfo(task.name, task.taskGroup, task.description.taskType, duration)
+        fun of(task: TaskDescription): TaskInfo = TaskInfo(task.name, task.taskGroup, task.duration)
     }
 }
 
@@ -233,7 +224,7 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
 
         val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId")
 
-        return TaskInfo.of(task, task.description.taskType.defaultDuration) //FIXME get task duration
+        return TaskInfo.of(task)
 
     }
 }
@@ -277,9 +268,7 @@ class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<
 }
 
 
-data class SubmissionInfo(val team: Int, val submissionTime: Long, val status: SubmissionStatus, val collection: String?, val item: String?, val startTime: String?, val endTime: String? = startTime)
-
-class CurrentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
+class CurrentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<Submission>> {
 
     override val route = "run/:runId/task/submissions" //TODO add a second handler with a time parameter to only get 'new' submissions
 
@@ -289,28 +278,15 @@ class CurrentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
             tags = ["Competition Run"],
             pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
+                OpenApiResponse("200", [OpenApiContent(Array<Submission>::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): List<SubmissionInfo> {
-
+    override fun doGet(ctx: Context): List<Submission> {
         val runId = runId(ctx)
-
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-
-
-        val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId")
-
-        return if(task.description.taskType ==  TaskType.KIS_TEXTUAL) {
-           run.submissions.map { SubmissionInfo(it.team, it.timestamp, SubmissionStatus.INDETERMINATE, null, null, null) }
-        }else {
-            run.submissions.map {
-                val vbsSubmission = it as VBSSubmission //FIXME submission data class does not contain all relevant fields
-                SubmissionInfo(it.team, it.timestamp, SubmissionStatus.INDETERMINATE, vbsSubmission.collection, vbsSubmission.item, vbsSubmission.start.toString(), vbsSubmission.end.toString())
-            }
-        }
+        return run.submissions ?: throw  ErrorStatusException(400, "Not submissions available. There is probably no run going on.")
     }
 }
 

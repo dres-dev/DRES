@@ -1,13 +1,15 @@
 package dres.run
 
 import dres.api.rest.types.run.websocket.ClientMessage
-import dres.data.model.competition.Competition
-import dres.data.model.competition.Task
+import dres.data.model.competition.CompetitionDescription
+import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
+import dres.data.model.run.SubmissionStatus
 import dres.run.score.Scoreboard
+import dres.run.score.interfaces.TaskRunScorer
 
 /**
- * A managing class for [Competition] executions or 'runs'.
+ * A managing class for [CompetitionDescription] executions or 'runs'.
  *
  * @author Ralph Gasser
  * @version 1.0
@@ -19,17 +21,20 @@ interface RunManager : Runnable {
     /** A name for identifying this [RunManager]. */
     val name: String
 
-    /** The [Competition] that is executed / run by this [RunManager]. */
-    val competition: Competition
+    /** The [CompetitionDescription] that is executed / run by this [RunManager]. */
+    val competitionDescription: CompetitionDescription
 
     /** The [Scoreboard] used to track the [Score] per team. */
-    val scoreboards: List<Scoreboard>
+    val scoreboards: List<Scoreboard>?
 
-    /** The [Task] that is currently being executed or waiting for execution by this [RunManager]. Can be null!*/
-    val currentTask: Task?
+    /** The [Task] that is currently being executed or waiting for execution by this [RunManager]. Can be null! */
+    val currentTask: TaskDescription?
+
+    /** The [TaskRunScorer] of the current [TaskRun]. Can be null! */
+    val currentTaskScore: TaskRunScorer?
 
     /** The list of [Submission]s for the current [Task]. */
-    val submissions: List<Submission>
+    val submissions: List<Submission>?
 
     /** Current [RunManagerStatus] of the [RunManager]. */
     val status: RunManagerStatus
@@ -57,7 +62,7 @@ interface RunManager : Runnable {
     fun terminate()
 
     /**
-     * Prepares this [RunManager] for the execution of previous [Task] as per order defined in [Competition.tasks].
+     * Prepares this [RunManager] for the execution of previous [Task] as per order defined in [CompetitionDescription.tasks].
      * Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
      * As all state affecting methods, this method throws an [IllegalStateException] if invocation
@@ -69,7 +74,7 @@ interface RunManager : Runnable {
     fun previousTask(): Boolean
 
     /**
-     * Prepares this [RunManager] for the execution of next [Task] as per order defined in [Competition.tasks].
+     * Prepares this [RunManager] for the execution of next [Task] as per order defined in [CompetitionDescription.tasks].
      * Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
      * As all state affecting methods, this method throws an [IllegalStateException] if invocation
@@ -82,7 +87,7 @@ interface RunManager : Runnable {
 
     /**
      * Prepares this [RunManager] for the execution of the [Task] given by the index as per order
-     * defined in [Competition.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
+     * defined in [CompetitionDescription.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
      * As all state affecting methods, this method throws an [IllegalStateException] if invocation
      * does not match the current state.
@@ -145,7 +150,8 @@ interface RunManager : Runnable {
      * this method again.
      *
      * @param sub The [Submission] to be posted.
-     * @return True if [Submission] was processed, false otherwise.
+     * @return [SubmissionStatus] of the [Submission]
+     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    fun postSubmission(sub: Submission): Boolean
+    fun postSubmission(sub: Submission): SubmissionStatus
 }

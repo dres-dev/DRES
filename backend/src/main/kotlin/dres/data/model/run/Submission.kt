@@ -2,16 +2,13 @@ package dres.data.model.run
 
 import kotlinx.serialization.Serializable
 
+/**
+ * A [Submission] as received by a competition participant.
+ *
+ * @author Ralph Gasser & Luca Rossetto
+ * @version 1.0
+ */
 @Serializable
-sealed class Submission(open val team: Int, open val timestamp: Long, val collection: String, open val item: String, val type: SubmissionType, var status: SubmissionStatus = SubmissionStatus.INDETERMINATE)
-
-
-class LSCSubmission(team: Int, timestamp: Long, collection: String, item: String): Submission(team, timestamp, collection, item, SubmissionType.LSC)
-
-class VBSSubmission(team: Int, timestamp: Long, collection: String, item: String, val start: Long, val end: Long): Submission(team, timestamp, collection, item, SubmissionType.VBS)
-
-
-
-enum class SubmissionStatus {
-    CORRECT, WRONG, INDETERMINATE, UNDECIDABLE
+data class Submission(val team: Int, val timestamp: Long, val collection: String, val item: String, val start: Long? = null, val end: Long? = null) {
+    var status: SubmissionStatus = SubmissionStatus.INDETERMINATE
 }

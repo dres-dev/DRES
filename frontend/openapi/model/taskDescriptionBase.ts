@@ -9,13 +9,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { TaskGroup } from './taskGroup';
 
 
-export interface JudgementRequest { 
-    id: number;
-    collection: string;
-    item: string;
-    startTime?: string;
-    endTime?: string;
+export interface TaskDescriptionBase { 
+    taskType: string;
+    taskGroup: TaskGroup;
+    name: string;
+    duration: number;
 }
 

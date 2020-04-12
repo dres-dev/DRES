@@ -1,7 +1,7 @@
-import {AfterViewInit, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState} from '../../../openapi';
-import {interval, Observable, of, pipe, Subscription} from 'rxjs';
-import {filter, flatMap, map, switchMap} from 'rxjs/operators';
+import {interval, Observable, of, Subscription} from 'rxjs';
+import {filter, switchMap} from 'rxjs/operators';
 import {IWsMessage} from '../model/ws/ws-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {WebSocketSubject} from 'rxjs/webSocket';

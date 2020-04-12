@@ -44,22 +44,23 @@ class SubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHandle
 
     private fun toSubmission(ctx: Context, currentTask: TaskDescription, submissionTime: Long): Submission {
 
-        val map = ctx.pathParamMap()
+        val map = ctx.queryParamMap()
 
         val team = map.getOrElse("team") { //TODO replace with team from session
             throw ErrorStatusException(404, "Parameter 'team' is missing!'")
-        }.toInt()
+        }.first().toInt()
 
         val video = map.getOrElse("video") {
             throw ErrorStatusException(404, "Parameter 'video' is missing!'")
-        }
+        }.first()
 
         if (!map.containsKey("frame") && !map.containsKey("shot") && !map.containsKey("timecode")) {
             throw ErrorStatusException(404, "Neither Parameter 'frame', 'shot', nor 'timecode' os present")
         }
 
         //TODO map frame and shot to time
-        val time = map.getOrDefault("timecode", "0").toLong()
+        //TODO validate
+        val time = map.getOrDefault("timecode", listOf("0")).first().toLong() * 1000
 
         //TODO get collection information from competition?
 
@@ -137,7 +138,8 @@ class OpenSubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHa
         }
 
         //TODO map frame and shot to time
-        val time = 0L
+        //TODO validate
+        val time =  map.getOrDefault("timecode", listOf("0")).first().toLong() * 1000
 
         //TODO get collection information from competition?
 

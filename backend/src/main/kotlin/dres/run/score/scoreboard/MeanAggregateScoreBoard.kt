@@ -1,4 +1,4 @@
-package dres.run.score
+package dres.run.score.scoreboard
 
 class MeanAggregateScoreBoard(private val name: String, private val boards: List<Scoreboard>) : Scoreboard {
 

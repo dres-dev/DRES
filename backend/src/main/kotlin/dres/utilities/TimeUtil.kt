@@ -18,4 +18,36 @@ object TimeUtil {
             toMilliseconds(range.start, fps) to toMilliseconds(range.end, fps)
             )
 
+    /**
+     * merges overlapping ranges
+     */
+    fun merge(ranges: List<TemporalRange>, fps: Float = 24.0f): List<TemporalRange> {
+
+        if (ranges.isEmpty()){
+            return emptyList()
+        }
+
+        val pairs = ranges.map { toMilliseconds(it, fps) }.sortedBy { it.first }
+
+        var i = 1;
+        var current = pairs.first()
+
+        val merged = mutableListOf<Pair<Long, Long>>()
+
+        while (i < pairs.size){
+            val next = pairs[i]
+
+            //if overlapping, merge
+            current = if (current.second >= next.first){
+                current.copy(second = next.second)
+            } else { //else add to list and continue
+                merged.add(current)
+                next
+            }
+            ++i
+        }
+
+        return merged.map { TemporalRange(it.first, it.second) }
+
+    }
 }

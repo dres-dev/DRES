@@ -5,8 +5,8 @@ import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
-import dres.run.score.Scoreboard
 import dres.run.score.interfaces.TaskRunScorer
+import dres.run.score.scoreboard.Scoreboard
 
 /**
  * A managing class for [CompetitionDescription] executions or 'runs'.

@@ -15,6 +15,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TemporalRange(val start: TemporalPoint, val end: TemporalPoint) {
 
+    constructor(startMs: Long, endMs: Long): this(TemporalPoint(startMs.toDouble(), TemporalUnit.MILLISECONDS), TemporalPoint(endMs.toDouble(), TemporalUnit.MILLISECONDS))
+
     init {
         require(TimeUtil.toMilliseconds(start) <= TimeUtil.toMilliseconds(end)) {"Start point must be before End point in TemporalRange"}
     }

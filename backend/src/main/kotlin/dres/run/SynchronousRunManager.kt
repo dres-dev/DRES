@@ -11,8 +11,8 @@ import dres.data.model.run.CompetitionRun
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.filter.SubmissionFilter
-import dres.run.score.Scoreboard
 import dres.run.score.interfaces.TaskRunScorer
+import dres.run.score.scoreboard.Scoreboard
 import dres.run.validation.interfaces.SubmissionValidator
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock

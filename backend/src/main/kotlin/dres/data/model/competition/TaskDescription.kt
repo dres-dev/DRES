@@ -7,11 +7,10 @@ import dres.data.model.basics.TemporalRange
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
-import dres.run.score.KisTaskScorer
 import dres.run.score.interfaces.TaskRunScorer
-import dres.run.validation.judged.BasicJudgementValidator
+import dres.run.score.scorer.KisTaskScorer
 import dres.run.validation.TemporalOverlapSubmissionValidator
-
+import dres.run.validation.judged.BasicJudgementValidator
 import kotlinx.serialization.Serializable
 
 @Serializable

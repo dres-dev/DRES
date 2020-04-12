@@ -11,7 +11,7 @@ import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.run.RunExecutor
 import dres.run.RunManager
-import dres.run.score.ScoreOverview
+import dres.run.score.scoreboard.ScoreOverview
 import dres.utilities.extensions.errorResponse
 import io.javalin.core.security.Role
 import io.javalin.http.Context

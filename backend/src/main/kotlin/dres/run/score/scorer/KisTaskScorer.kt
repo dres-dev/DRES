@@ -1,7 +1,6 @@
-package dres.run.score
+package dres.run.score.scorer
 
 import dres.data.model.run.CompetitionRun
-import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.score.interfaces.TaskRunScorer
 import kotlin.math.max
@@ -10,7 +9,7 @@ class KisTaskScorer(): TaskRunScorer {
 
     private val maxPointsPerTask = 100.0
     private val maxPointsAtTaskEnd = 50.0
-    private val penaltyPerWrongSubmission = 20.0
+    private val penaltyPerWrongSubmission = 10.0
 
     override fun analyze(task: CompetitionRun.TaskRun): Map<Int, Double> {
 

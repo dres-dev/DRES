@@ -17,4 +17,9 @@ interface IncrementalTaskRunScorer {
      * @param submission The [Submission] to update this [TaskRunScorer] with.
      */
     fun update(submission: Submission)
+
+    /**
+     * Returns the current scores for all teams in the relevant Task
+     */
+    fun scores(): Map<Int, Double>
 }

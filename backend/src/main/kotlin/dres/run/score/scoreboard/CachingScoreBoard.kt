@@ -1,4 +1,4 @@
-package dres.run.score
+package dres.run.score.scoreboard
 
 class CachingScoreBoard(private val board: Scoreboard): Scoreboard {
 

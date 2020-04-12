@@ -1,4 +1,4 @@
-package dres.run.score
+package dres.run.score.scoreboard
 
 import dres.data.model.competition.Team
 

@@ -1,7 +1,8 @@
-package dres.run.score
+package dres.run.score.scoreboard
 
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun
+import dres.run.score.scorer.KisTaskScorer
 
 class KisScoreBoard(private val name: String, private val run: CompetitionRun, private val scorer: KisTaskScorer, private val taskFilter: (TaskDescription) -> Boolean) : Scoreboard {
 

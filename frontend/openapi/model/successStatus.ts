@@ -13,5 +13,6 @@
 
 export interface SuccessStatus { 
     description: string;
+    status: boolean;
 }
 

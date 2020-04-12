@@ -11,6 +11,9 @@ import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.long
 import dres.data.dbo.DAO
 import dres.data.model.admin.*
+import dres.mgmt.admin.UserManager
+import dres.mgmt.admin.UserManager.MIN_LENGTH_PASSWORD
+import dres.mgmt.admin.UserManager.MIN_LENGTH_USERNAME
 
 /**
  * A collection of [CliktCommand]s for user management
@@ -18,12 +21,8 @@ import dres.data.model.admin.*
  * @author Ralph Gasser
  * @version 1.0
  */
-class UserCommand (val users: DAO<User>) : NoOpCliktCommand(name = "users") {
+class UserCommand() : NoOpCliktCommand(name = "users") {
 
-    companion object {
-        const val MIN_LENGTH_USERNAME = 4
-        const val MIN_LENGTH_PASSWORD = 6
-    }
 
     init {
         this.subcommands(CreateUserCommand(), UpdateUserCommand(), DeleteUserCommand(), ListUsers(), ListRoles())
@@ -46,15 +45,14 @@ class UserCommand (val users: DAO<User>) : NoOpCliktCommand(name = "users") {
         private val role: Role by option("-r", "--role").enum<Role>().required()
 
         override fun run() {
-            val newUser = User(username = this.username, password = this.password.hash(), role = role)
-            for (existingUser in this@UserCommand.users) {
-                if (existingUser.username == newUser.username) {
-                    println("Could not create user '${newUser}' because a user with that name already exists.")
-                    return
-                }
+            val successful = UserManager.create(username = this.username, password = this.password, role = role)
+            if (successful) {
+                println("New user '${UserManager.get(username = this.username)}' created.")
+
+            } else {
+                println("Could not create user '${this.username}' because a user with that name already exists.")
+
             }
-            this@UserCommand.users.append(newUser)
-            println("New user '${newUser}' created.")
         }
     }
 
@@ -74,24 +72,23 @@ class UserCommand (val users: DAO<User>) : NoOpCliktCommand(name = "users") {
         private val role: Role? by option("-r", "--role").enum<Role>()
 
         override fun run() {
-            val updateId = when {
-                this.id != null -> this.id!!
-                this.username != null -> this@UserCommand.users.find { it.username == this.username!! }?.id
-                else -> null
+            if (UserManager.id(id = this.id, username = this.username) == null) {
+                println("You must specify a valid username or user ID in order to update a user!")
+                return
+            }
+            if (UserManager.exists(id = this.id, username = this.username)) {
+                val userId = UserManager.id(id = id, username = username)!!
+                val currentUser = UserManager.get(id = userId)
+                val success = UserManager.update(id = id, username = username, password = password, role = role)
+                if (success) {
+                    val updatedUser = UserManager.get(id = id, username = username)
+                    println("User $userId updated successfully (old: $currentUser, new: $updatedUser)!")
+                    return
+                }
             }
 
-            if (updateId != null) {
-                val currentUser = this@UserCommand.users[updateId]
-                if (currentUser != null) {
-                    val updatedUser = currentUser.copy(id = currentUser.id, username = currentUser.username, password = this.password?.hash() ?: currentUser.password, role = this.role ?: currentUser.role )
-                    this@UserCommand.users.update(updatedUser)
-                    println("User $updateId updated successfully (old: $currentUser, new: $updatedUser)!")
-                } else {
-                    println("User $updateId could not be updated because it doesn't exist!")
-                }
-            } else {
-                println("You must specify a valid username or user ID in order to delete a user!")
-            }
+            println("User[id=${id ?: "N/A"},username=${username
+                    ?: "N/A"}] could not be updated because it doesn't exist!")
         }
     }
 
@@ -105,22 +102,19 @@ class UserCommand (val users: DAO<User>) : NoOpCliktCommand(name = "users") {
                 .validate { require(it.name.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
 
         override fun run() {
-            val id = when {
-                this.id != null -> this.id!!
-                this.username != null -> this@UserCommand.users.find { it.username == this.username!! }?.id
-                else -> null
-            }
-
-            if (id != null) {
-                if (this@UserCommand.users.exists(id)) {
-                    val user = this@UserCommand.users.delete(id)
-                    println("User $user deleted successfully!")
-                } else {
-                    println("User with ID $id could not be deleted because it doesn't exist!")
-                }
-            } else {
+            val delId = UserManager.id(id = id, username = username)
+            if (delId == null) {
                 println("You must specify a valid username or user ID in order to delete a user!")
             }
+            if (UserManager.exists(id = delId)) {
+                val user = UserManager.get(delId)!! // !! okay, exists checks
+                val success = UserManager.delete(id = id, username = username)
+                if (success) {
+                    println("User $user deleted successfully!")
+                    return
+                }
+            }
+            println("User with ID $delId could not be deleted because it doesn't exist!")
         }
     }
 
@@ -130,7 +124,7 @@ class UserCommand (val users: DAO<User>) : NoOpCliktCommand(name = "users") {
     inner class ListUsers : CliktCommand(name = "list") {
         override fun run() {
             println("Available users:")
-            for (user in this@UserCommand.users) {
+            for (user in UserManager.list()) {
                 println("$user")
             }
         }

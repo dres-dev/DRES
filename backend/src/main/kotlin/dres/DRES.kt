@@ -4,6 +4,7 @@ import dres.api.cli.Cli
 import dres.api.rest.RestApi
 import dres.data.dbo.DataAccessLayer
 import dres.data.model.Config
+import dres.mgmt.admin.UserManager
 import java.io.File
 import java.nio.file.Paths
 
@@ -28,7 +29,8 @@ object DRES {
 
         /* Initialize data access layer. */
         val dataAccessLayer = DataAccessLayer(Paths.get(config.dataPath))
-
+        /* Initialize user manager */
+        UserManager.init(dataAccessLayer.users)
 
         RestApi.init(config, dataAccessLayer)
 

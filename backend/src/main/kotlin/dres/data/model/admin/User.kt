@@ -7,7 +7,9 @@ data class User (override var id: Long = -1, val username: UserName, val passwor
     override fun toString(): String = "User(id=$id, username=${username.name}, role=$role)"
 }
 
-data class UserName(val name: String)
+data class UserName(val name: String){
+    val length = name.length
+}
 
 sealed class Password(private val pass: String)
 
@@ -16,6 +18,8 @@ class PlainPassword(internal val pass: String) : Password(pass){
     fun hash(): HashedPassword {
         return HashedPassword(BCrypt.hashpw(pass, BCrypt.gensalt()))
     }
+
+    val length = pass.length
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

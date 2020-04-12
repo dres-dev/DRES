@@ -13,5 +13,6 @@
 
 export interface ErrorStatus { 
     description: string;
+    status: boolean;
 }
 

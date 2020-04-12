@@ -21,6 +21,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 import {RunModule} from './run/run.module';
 import {ViewerModule} from './viewer/viewer.module';
 import {AppConfig} from './app.config';
+import {UserModule} from './user/user.module';
 
 
 /**
@@ -54,6 +55,7 @@ export function initializeApp(appConfig: AppConfig) {
         MatMenuModule,
         MatTooltipModule,
 
+        UserModule,
         CompetitionModule,
         ViewerModule,
         RunModule

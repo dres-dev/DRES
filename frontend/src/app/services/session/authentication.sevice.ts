@@ -20,7 +20,7 @@ export class AuthenticationService {
      * @param pass The password.
      */
     public login(user: string, pass: string) {
-        return this.userService.postApiLogin({username: user, password: pass } as LoginRequest).pipe(
+        return this.userService.postApiLogin({username: user, password: pass} as LoginRequest).pipe(
             flatMap(() => this.userService.getApiUserInfo()),
             tap(data => {
                 this.sessionService.start(data);
@@ -36,10 +36,11 @@ export class AuthenticationService {
             tap(() => {
                 if (!this.sessionService.isLoggedIn()) {
                     console.log(`User '${this.sessionService.getUsername()}' was logged out.`);
-                    this.sessionService.end();
                 } else {
                     console.log(`Nobody is logged in.`);
                 }
+                // FIXME (loris.sauter 9.4.) I don't understand why, but clean logout only works this way round.
+                this.sessionService.end();
             })
         );
     }

@@ -1,0 +1,45 @@
+:host {
+  display: flex;
+  justify-content: center;
+  margin: 100px 0px;
+}
+
+.mat-form-field {
+  width: 100%;
+  min-width: 300px;
+}
+
+mat-card-title,
+mat-card-content {
+  display: flex;
+  justify-content: center;
+}
+
+mat-grid-list {
+  min-width: 300px;
+}
+
+.error {
+  padding: 16px;
+  width: 300px;
+  color: white;
+  background-color: red;
+}
+
+.button {
+  display: flex;
+  justify-content: flex-end;
+}
+
+// See https://stackoverflow.com/a/52009315
+.mat-card-header{
+  width: 100% !important;
+}
+
+.flush-right{
+  margin-left: auto;
+}
+
+form {
+  padding: 5%;
+}

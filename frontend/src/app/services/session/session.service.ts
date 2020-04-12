@@ -9,55 +9,58 @@ import RoleEnum = UserDetails.RoleEnum;
 @Injectable()
 export class SessionService {
 
-    /** UserDetails created during login. */
-    private userDetails: UserDetails = null;
+  // TODO (loris.sauter, 12.4.) Shouldn't userDetails be a 'cached observable' -- i.e. get() to get the actual value, but update when changed (i.e. user profile edited)
 
-    constructor() {}
+  /** UserDetails created during login. */
+  private userDetails: UserDetails = null;
 
-    /**
-     * Starts a new session with the given user.
-     *
-     * @param user The user to start the session with.
-     */
-    public start(user: UserDetails) {
-        if (this.userDetails == null) {
-            this.userDetails = user;
-            console.log(`Successfully logged in '${this.userDetails.username}'.`);
-        } else {
-            console.log(`The user '${this.userDetails.username}' is already logged in. Logout before startin new session.`);
-        }
+  constructor() {
+  }
+
+  /**
+   * Starts a new session with the given user.
+   *
+   * @param user The user to start the session with.
+   */
+  public start(user: UserDetails) {
+    if (this.userDetails == null) {
+      this.userDetails = user;
+      console.log(`Successfully logged in '${this.userDetails.username}'.`);
+    } else {
+      console.log(`The user '${this.userDetails.username}' is already logged in. Logout before startin new session.`);
     }
+  }
 
-    /**
-     * Ends the current session.
-     */
-    public end() {
-        if (this.userDetails != null) {
-            console.log(`Successfully logged out '${this.userDetails.username}'.`);
-            this.userDetails = null;
-        } else {
-            console.log(`Session cannot be ended. No user is currently logged in.`);
-        }
+  /**
+   * Ends the current session.
+   */
+  public end() {
+    if (this.userDetails != null) {
+      console.log(`Successfully logged out '${this.userDetails.username}'.`);
+      this.userDetails = null;
+    } else {
+      console.log(`Session cannot be ended. No user is currently logged in.`);
     }
+  }
 
-    /**
-     * Returns the current login state.
-     */
-    public isLoggedIn(): boolean {
-        return this.userDetails != null;
-    }
+  /**
+   * Returns the current login state.
+   */
+  public isLoggedIn(): boolean {
+    return this.userDetails != null;
+  }
 
-    /**
-     * Returns the username of the current user.
-     */
-    public getUsername(): string {
-        return this.userDetails?.username;
-    }
+  /**
+   * Returns the username of the current user.
+   */
+  public getUsername(): string {
+    return this.userDetails?.username;
+  }
 
-    /**
-     * Returns the role of the current user.
-     */
-    public getRole(): RoleEnum {
-        return this.userDetails?.role;
-    }
+  /**
+   * Returns the role of the current user.
+   */
+  public getRole(): RoleEnum {
+    return this.userDetails?.role;
+  }
 }

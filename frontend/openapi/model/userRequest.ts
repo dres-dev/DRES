@@ -11,13 +11,12 @@
  */
 
 
-export interface UserDetails { 
-    id: number;
+export interface UserRequest { 
     username: string;
-    role: UserDetails.RoleEnum;
-    sessionId?: string;
+    password?: string;
+    role?: UserRequest.RoleEnum;
 }
-export namespace UserDetails {
+export namespace UserRequest {
     export type RoleEnum = 'ADMIN' | 'JUDGE' | 'VIEWER' | 'PARTICIPANT';
     export const RoleEnum = {
         ADMIN: 'ADMIN' as RoleEnum,

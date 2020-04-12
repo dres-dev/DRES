@@ -18,8 +18,6 @@ class LogoutHandler : RestHandler, GetRestHandler<SuccessStatus> {
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)])
             ])
     override fun doGet(ctx: Context): SuccessStatus {
-
-        AccessManager.clearUserSession(ctx.req.session.id)
         AccessManager.clearUserSession(ctx.sessionId())
         return SuccessStatus("Logged out")
 

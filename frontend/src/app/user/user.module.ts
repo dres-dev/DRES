@@ -10,10 +10,16 @@ import {MatDividerModule} from '@angular/material/divider';
 import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
 import {MatInputModule} from '@angular/material/input';
+import { AdminUserListComponent } from './admin-user-list/admin-user-list.component';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatTableModule} from '@angular/material/table';
+import { AdminUserCreateOrEditDialogComponent } from './admin-user-create-or-edit-dialog/admin-user-create-or-edit-dialog.component';
+import {MatDialogModule} from '@angular/material/dialog';
+import {MatSelectModule} from '@angular/material/select';
 
 
 @NgModule({
-  declarations: [ProfileComponent],
+  declarations: [ProfileComponent, AdminUserListComponent, AdminUserCreateOrEditDialogComponent],
   imports: [
     CommonModule,
     MatCardModule,
@@ -24,7 +30,11 @@ import {MatInputModule} from '@angular/material/input';
     MatDividerModule,
     MatIconModule,
     MatButtonModule,
-    MatInputModule
+    MatInputModule,
+    MatTooltipModule,
+    MatTableModule,
+    MatDialogModule,
+    MatSelectModule
   ]
 })
 export class UserModule {

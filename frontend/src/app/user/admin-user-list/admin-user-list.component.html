@@ -1,0 +1,52 @@
+<div style="display: flex">
+  <div><h1>Users</h1></div>
+  <div class="spacer-flex"></div>
+  <div>
+    <button mat-icon-button aria-label="Refresh list of users" matTooltip="Refresh list of users" (click)="refresh()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+  <div>
+    <button mat-icon-button aria-label="Create new user" matTooltip="Create new user" (click)="create()">
+      <mat-icon>person_add</mat-icon>
+    </button>
+  </div>
+</div>
+
+<div>
+  <table mat-table [dataSource]="users" style="width:100%;">
+    <!-- action col -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let row">
+        <button mat-icon-button aria-label="Edit user" matTooltip="Edit user" (click)="edit(row)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button aria-label="Delete user" matTooltip="Delete user" (click)="delete(row.id)">
+          <mat-icon>delete_forever</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <!-- id col -->
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef>ID</th>
+      <td mat-cell *matCellDef="let row">{{row.id}}</td>
+    </ng-container>
+
+    <!-- name col -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let row">{{row.username}}</td>
+    </ng-container>
+
+    <!-- role col -->
+    <ng-container matColumnDef="role">
+      <th mat-header-cell *matHeaderCellDef>Role</th>
+      <td mat-cell *matCellDef="let row">{{(row.role | titlecase)}}</td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayColumns;"></tr>
+  </table>
+</div>

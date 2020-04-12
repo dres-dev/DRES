@@ -35,6 +35,10 @@ export class ProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.syncUser();
+  }
+
+  private syncUser(): void {
     this.user = this.userService.getApiUserInfo();
     this.sessionId = this.userService.getApiUserSession();
 
@@ -54,6 +58,8 @@ export class ProfileComponent implements OnInit {
       }
       this.userService.patchApiUserWithId(this.id, usr).subscribe((r: UserDetails) => {
             this.snackBar.open(`Save successful!`, null, {duration: 5000});
+            this.toggleEdit();
+            this.syncUser();
           },
           (error) => {
             this.snackBar.open(`Save failed: ${error.error.description}!`, null, {duration: 5000});

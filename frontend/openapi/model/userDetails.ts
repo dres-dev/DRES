@@ -15,6 +15,7 @@ export interface UserDetails {
     id: number;
     username: string;
     role: UserDetails.RoleEnum;
+    sessionId?: string;
 }
 export namespace UserDetails {
     export type RoleEnum = 'ADMIN' | 'JUDGE' | 'VIEWER' | 'PARTICIPANT';

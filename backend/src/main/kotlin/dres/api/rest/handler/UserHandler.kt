@@ -202,7 +202,7 @@ class CurrentUsersSessionIdHandler(): UserHandler(), GetRestHandler<UserHandler.
             path = "/api/user/session",
             tags = ["User"],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
+                OpenApiResponse("200", [OpenApiContent(SessionId::class)]),
                 OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
             ]
     )
@@ -210,7 +210,7 @@ class CurrentUsersSessionIdHandler(): UserHandler(), GetRestHandler<UserHandler.
         return ctx.sessionId().toSessionId()
     }
 
-    override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
+    override val permittedRoles = setOf(RestApiRole.VIEWER)
 
     override val route = "user/session"
 }

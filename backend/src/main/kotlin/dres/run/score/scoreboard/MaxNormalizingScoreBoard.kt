@@ -2,23 +2,11 @@ package dres.run.score.scoreboard
 
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun
-import dres.run.score.scorer.KisTaskScorer
 
-class KisScoreBoard(private val name: String, private val run: CompetitionRun, private val scorer: KisTaskScorer, private val taskFilter: (TaskDescription) -> Boolean) : Scoreboard {
-
-    private val maxPointsPerTask = 100.0
-    private val maxScoreNormalized = 100.0
-    private val maxPointsAtTaskEnd = 50.0
-    private val penaltyPerWrongSubmission = 20.0
+class MaxNormalizingScoreBoard(private val name: String, private val run: CompetitionRun, private val taskFilter: (TaskDescription) -> Boolean, private val maxScoreNormalized: Double = 100.0) : Scoreboard {
 
     private val scorePerTaskMap = mutableMapOf<TaskDescription, Map<Int, Double>>()
 
-//    override fun taskScores(): List<Score> {
-//
-//        val currentTask: TaskDescription = run.currentTask?.task ?: return emptyList()
-//        return scorePerTaskMap[currentTask]?.map { Score(run.competition.teams.indexOf(it.key), it.value) } ?: emptyList()
-//
-//    }
 
     private fun overallScoreMap(): Map<Int, Double> {
         val scoreSums = scorePerTaskMap.values
@@ -41,12 +29,12 @@ class KisScoreBoard(private val name: String, private val run: CompetitionRun, p
 
     override fun score(teamId: Int) = overallScoreMap()[teamId] ?: 0.0
 
-    //TODO introduce some caching
+
     override fun update() {
 
         val runs = run.runs.filter { it.started != null && taskFilter(it.task) }
 
-        val scoresPerTask = runs.map { it.task to scorer.analyze(it) }
+        val scoresPerTask = runs.map { it.task to it.scorer.scores() }
 
         scorePerTaskMap.clear()
         scorePerTaskMap.putAll(scoresPerTask)

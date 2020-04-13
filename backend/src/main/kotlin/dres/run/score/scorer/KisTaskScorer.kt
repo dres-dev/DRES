@@ -2,14 +2,16 @@ package dres.run.score.scorer
 
 import dres.data.model.run.CompetitionRun
 import dres.data.model.run.SubmissionStatus
-import dres.run.score.interfaces.TaskRunScorer
+import dres.run.score.interfaces.RecalculatingTaskRunScorer
 import kotlin.math.max
 
-class KisTaskScorer(): TaskRunScorer {
+class KisTaskScorer : RecalculatingTaskRunScorer {
 
     private val maxPointsPerTask = 100.0
     private val maxPointsAtTaskEnd = 50.0
     private val penaltyPerWrongSubmission = 10.0
+
+    private var lastScores: Map<Int, Double> = emptyMap()
 
     override fun analyze(task: CompetitionRun.TaskRun): Map<Int, Double> {
 
@@ -18,7 +20,7 @@ class KisTaskScorer(): TaskRunScorer {
         //actual duration of task, in case it was extended during competition
         val taskDuration = max(task.task.duration, (task.ended ?: 0) - taskStart ).toDouble()
 
-        return task.submissions.groupBy { it.team }.map{
+        lastScores = task.submissions.groupBy { it.team }.map{
 
             //explicitly enforce valid types and order
             val sorted =  it.value.filter { it.status == SubmissionStatus.CORRECT || it.status == SubmissionStatus.WRONG }.sortedBy { it.timestamp }
@@ -39,5 +41,9 @@ class KisTaskScorer(): TaskRunScorer {
             }
             it.key to score
         }.toMap()
+
+        return lastScores
     }
+
+    override fun scores(): Map<Int, Double> = lastScores
 }

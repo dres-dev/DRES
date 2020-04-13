@@ -6,6 +6,7 @@ import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun.TaskRun
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.IncrementalTaskRunScorer
+import dres.run.score.interfaces.RecalculatingTaskRunScorer
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.validation.interfaces.SubmissionValidator
 import kotlinx.serialization.Serializable
@@ -131,11 +132,13 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
         /** The [SubmissionValidator] used to validate [Submission]s. */
         @Transient
         val validator: SubmissionValidator = this.task.newValidator {
-            if (this.scorer is IncrementalTaskRunScorer) {
-                this.scorer.update(it)
-            } else {
-                this.scorer.analyze(this)
+
+            when(this.scorer){
+                is IncrementalTaskRunScorer -> this.scorer.update(it)
+                is RecalculatingTaskRunScorer -> this.scorer.analyze(this)
+                else -> this.scorer.scores()
             }
+
         }
 
         init {

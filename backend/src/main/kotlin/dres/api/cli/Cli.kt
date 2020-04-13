@@ -52,10 +52,13 @@ object Cli {
 
             val line = lineReader.readLine(PROMPT).trim()
             if (line.toLowerCase() == "exit" || line.toLowerCase() == "quit") {
-                break;
+                break
             }
             if (line.toLowerCase() == "help") {
                 println(clikt.getFormattedHelp()) //TODO overwrite with something more useful in a cli context
+                continue
+            }
+            if (line.isBlank()){
                 continue
             }
 
@@ -65,6 +68,8 @@ object Cli {
 
                 when (e) {
                     is com.github.ajalt.clikt.core.NoSuchSubcommand -> println("command not found")
+                    is com.github.ajalt.clikt.core.PrintHelpMessage -> println(e.command.getFormattedHelp())
+                    is com.github.ajalt.clikt.core.MissingParameter -> println(e.localizedMessage)
                     else -> e.printStackTrace()
                 }
 
@@ -99,9 +104,6 @@ object Cli {
         return matchList
     }
 
-    class DRESBaseCommand() : NoOpCliktCommand(name = "dres") {
-
-
-    }
+    class DRESBaseCommand : NoOpCliktCommand(name = "dres")
 
 }

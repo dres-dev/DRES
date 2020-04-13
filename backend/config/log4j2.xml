@@ -6,12 +6,18 @@
         </Console>
     </Appenders>
     <Loggers>
-        <logger name="io" level="ERROR">
+
+        <logger name="org.eclipse.jetty" level="WARN">
             <AppenderRef ref="Console"/>
         </logger>
-        <logger name="org" level="INFO">
+        <logger name="io.javalin" level="INFO">
             <AppenderRef ref="Console"/>
         </logger>
+        <logger name="org.jline" level="WARN">
+            <AppenderRef ref="Console"/>
+        </logger>
+
+
         <Root level="info">
         </Root>
     </Loggers>

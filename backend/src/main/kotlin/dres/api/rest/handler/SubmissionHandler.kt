@@ -50,6 +50,8 @@ class SubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHandle
             throw ErrorStatusException(404, "Parameter 'team' is missing!'")
         }.first().toInt()
 
+        val member = map.get("member")?.first()?.toInt() ?: 0
+
         val video = map.getOrElse("video") {
             throw ErrorStatusException(404, "Parameter 'video' is missing!'")
         }.first()
@@ -64,7 +66,7 @@ class SubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHandle
 
         //TODO get collection information from competition?
 
-        return Submission(team, submissionTime, "TODO", video, time, time)
+        return Submission(team, member, submissionTime, "TODO", video, time, time)
 
 
 
@@ -74,6 +76,7 @@ class SubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHandle
             path = "/submit",
             queryParams = [
                 OpenApiParam("team", Int::class, "Team number"),
+                OpenApiParam("member", Int::class, "Team member number"),
                 OpenApiParam("video", String::class, "Video ID for VBS Submissions"),
                 OpenApiParam("image", String::class, "Image ID for LSC Submissions"),
                 OpenApiParam("frame", Int::class, "Frame number for VBS Submissions"),
@@ -108,6 +111,7 @@ class OpenSubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHa
             queryParams = [
                 OpenApiParam("runId", Long::class, "Run ID"),
                 OpenApiParam("team", Int::class, "Team number"),
+                OpenApiParam("member", Int::class, "Team member number"),
                 OpenApiParam("video", String::class, "Video ID for VBS Submissions"),
                 OpenApiParam("image", String::class, "Image ID for LSC Submissions"),
                 OpenApiParam("frame", Int::class, "Frame number for VBS Submissions"),
@@ -129,6 +133,8 @@ class OpenSubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHa
             throw ErrorStatusException(404, "Parameter 'team' is missing!'")
         }.first().toInt()
 
+        val member = map.get("member")?.first()?.toInt() ?: 0
+
         val video = map.getOrElse("video") {
             throw ErrorStatusException(404, "Parameter 'video' is missing!'")
         }.first()
@@ -143,7 +149,7 @@ class OpenSubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHa
 
         //TODO get collection information from competition?
 
-        return Submission(team, submissionTime, "TODO", video, time, time)
+        return Submission(team, member, submissionTime, "TODO", video, time, time)
     }
 
     override fun doGet(ctx: Context): SuccessStatus {

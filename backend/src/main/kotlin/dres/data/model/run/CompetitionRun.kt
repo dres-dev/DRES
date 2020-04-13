@@ -186,6 +186,7 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
 
             /* Process Submission. */
             (this.submissions as MutableList).add(submission)
+            submission.taskRun = this
             this.validator.validate(submission)
         }
     }

@@ -16,10 +16,11 @@ import {MatTableModule} from '@angular/material/table';
 import { AdminUserCreateOrEditDialogComponent } from './admin-user-create-or-edit-dialog/admin-user-create-or-edit-dialog.component';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatSelectModule} from '@angular/material/select';
+import {LoginComponent} from './login/login.component';
 
 
 @NgModule({
-  declarations: [ProfileComponent, AdminUserListComponent, AdminUserCreateOrEditDialogComponent],
+  declarations: [LoginComponent, ProfileComponent, AdminUserListComponent, AdminUserCreateOrEditDialogComponent],
   imports: [
     CommonModule,
     MatCardModule,

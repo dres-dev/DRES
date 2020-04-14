@@ -1,4 +1,4 @@
-<mat-card *ngIf="sessionService.isLoggedIn()">
+<mat-card *ngIf="(loggedIn | async)">
   <mat-card-header>
     <div mat-card-avatar>
       <mat-icon>person</mat-icon>

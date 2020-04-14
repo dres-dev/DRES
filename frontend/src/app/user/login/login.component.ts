@@ -1,17 +1,16 @@
-import {AfterViewInit, Component, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
-import {SessionService} from '../services/session/session.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {AuthenticationService} from '../services/session/authentication.sevice';
-import {tap} from 'rxjs/operators';
+import {AuthenticationService} from '../../services/session/authentication.sevice';
+import {filter, first} from 'rxjs/operators';
 
 @Component({
   selector: 'app-login-component',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent implements OnInit, AfterViewInit {
+export class LoginComponent implements OnInit {
   form: FormGroup = new FormGroup({
     username: new FormControl(''),
     password: new FormControl(''),
@@ -21,7 +20,6 @@ export class LoginComponent implements OnInit, AfterViewInit {
 
   constructor(
       private authenticationService: AuthenticationService,
-      private sessionService: SessionService,
       private router: Router,
       private route: ActivatedRoute,
       private snackBar: MatSnackBar
@@ -30,15 +28,12 @@ export class LoginComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '';
-  }
-
-  ngAfterViewInit(): void {
-
-    this.sessionService.isLoggedIn().subscribe(b => {
-      if (b) {
-        this.router.navigate(['']);
-      }
+    this.returnUrl = this.route.snapshot.queryParams.returnUrl || '';
+    this.authenticationService.isLoggedIn.pipe(
+        first(),
+        filter(b => b)
+    ).subscribe(b => {
+      this.router.navigate(['']);
     });
   }
 

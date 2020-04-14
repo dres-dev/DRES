@@ -7,7 +7,7 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
-import {LoginComponent} from './login-component/login.component';
+import {LoginComponent} from './user/login/login.component';
 import {ReactiveFormsModule} from '@angular/forms';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatCardModule} from '@angular/material/card';
@@ -34,10 +34,7 @@ export function initializeApp(appConfig: AppConfig) {
 }
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    LoginComponent
-  ],
+  declarations: [AppComponent],
     imports: [
         BrowserModule,
         AppRoutingModule,
@@ -50,17 +47,21 @@ export function initializeApp(appConfig: AppConfig) {
         MatCardModule,
         MatInputModule,
         MatSnackBarModule,
-        HttpClientModule,
-        ServicesModule,
         MatMenuModule,
         MatTooltipModule,
 
+        HttpClientModule,
+
+        ServicesModule,
         UserModule,
         CompetitionModule,
         ViewerModule,
         RunModule
     ],
-  providers: [AppConfig, { provide: APP_INITIALIZER, useFactory: initializeApp, deps: [AppConfig], multi: true }],
+  providers: [
+      AppConfig,
+      {provide: APP_INITIALIZER, useFactory: initializeApp, deps: [AppConfig], multi: true }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

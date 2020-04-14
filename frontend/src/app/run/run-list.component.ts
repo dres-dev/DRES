@@ -1,8 +1,9 @@
 import {Component} from '@angular/core';
-import {SessionService} from '../services/session/session.service';
 import {UserDetails} from '../../../openapi';
 import RoleEnum = UserDetails.RoleEnum;
 import {Observable} from 'rxjs';
+import {AuthenticationService} from '../services/session/authentication.sevice';
+import {map} from 'rxjs/operators';
 
 @Component({
     selector: 'app-run-list',
@@ -11,7 +12,7 @@ import {Observable} from 'rxjs';
 export class RunListComponent {
 
     currentRole: Observable<RoleEnum>;
-    constructor(private sessionService: SessionService) {
-        this.currentRole = this.sessionService.getRole();
+    constructor(private authenticationService: AuthenticationService) {
+        this.currentRole = this.authenticationService.user.pipe(map(u => u.role));
     }
 }

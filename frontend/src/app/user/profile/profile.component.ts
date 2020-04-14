@@ -1,11 +1,10 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {SessionService} from '../../services/session/session.service';
 import {SessionId, UserDetails, UserRequest, UserService} from '../../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Observable, Subscription} from 'rxjs';
 import {FormControl, FormGroup} from '@angular/forms';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {first, flatMap} from 'rxjs/operators';
+import {first, flatMap, tap} from 'rxjs/operators';
 import {AuthenticationService} from '../../services/session/authentication.sevice';
 
 @Component({
@@ -17,6 +16,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   user: Observable<UserDetails>;
   sessionId: Observable<SessionId>;
+  loggedIn: Observable<boolean>;
 
   editing = false;
 
@@ -29,18 +29,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   constructor(
       public authenticationService: AuthenticationService,
-      public sessionService: SessionService,
       private router: Router,
       private route: ActivatedRoute,
       public userService: UserService,
       private snackBar: MatSnackBar
   ) {
+    this.user = this.authenticationService.user;
+    this.loggedIn = this.authenticationService.isLoggedIn;
+    this.sessionId = this.userService.getApiUserSession();
   }
 
   ngOnInit(): void {
-    this.user = this.sessionService.currentUser;
-    this.sessionId = this.userService.getApiUserSession();
-
     this.userSub = this.user.subscribe(u => {
       this.form.patchValue({username: u.username});
     });
@@ -48,6 +47,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.userSub.unsubscribe();
+    this.userSub = null;
   }
 
 
@@ -58,21 +58,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
       if (this.form.controls.password.value !== '') {
         usr.password = this.form.controls.password.value;
       }
-      this.user.pipe(first(), flatMap(u => this.userService.patchApiUserWithId(u.id, usr)))
-      .subscribe((r: UserDetails) => {
+      this.authenticationService.updateUser(usr).pipe(first()).subscribe(
+          (r: UserDetails) => {
             this.snackBar.open(`Save successful!`, null, {duration: 5000});
             this.toggleEdit();
-            this.authenticationService.refresh();
           },
           (error) => {
             this.snackBar.open(`Save failed: ${error.error.description}!`, null, {duration: 5000});
-          });
+          }
+      );
     }
   }
 
   public reset() {
     this.toggleEdit();
-    // TODO reset form components
   }
 
   isEditing() {

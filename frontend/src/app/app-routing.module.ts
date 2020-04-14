@@ -2,7 +2,7 @@ import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {CompetitionBuilderComponent} from './competition/competition-builder/competition-builder.component';
 import {CompetitionListComponent} from './competition/competition-list/competition-list.component';
-import {LoginComponent} from './login-component/login.component';
+import {LoginComponent} from './user/login/login.component';
 import {AuthenticationGuard} from './services/session/authentication.guard';
 import {UserDetails} from '../../openapi';
 import {AdminRunListComponent} from './run/admin-run-list.component';

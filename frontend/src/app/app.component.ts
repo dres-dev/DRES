@@ -1,11 +1,11 @@
 import {Component} from '@angular/core';
-import {SessionService} from './services/session/session.service';
 import {Router} from '@angular/router';
 import {AuthenticationService} from './services/session/authentication.sevice';
 import {UserDetails} from '../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {map} from 'rxjs/operators';
 import RoleEnum = UserDetails.RoleEnum;
+import {Observable} from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -16,25 +16,25 @@ export class AppComponent {
   title = 'dres-frontend';
 
 
-  constructor(public authenticationService: AuthenticationService,
-              public sessionService: SessionService,
-              private router: Router,
-              private snackBar: MatSnackBar) {
+
+  user: Observable<UserDetails>;
+  isAdmin: Observable<boolean>;
+  loggedIn: Observable<boolean>;
+
+  constructor(private authenticationService: AuthenticationService, private router: Router, private snackBar: MatSnackBar) {
+    this.user = this.authenticationService.user;
+    this.loggedIn = this.authenticationService.isLoggedIn;
+    this.isAdmin = this.authenticationService.user.pipe(map(u => u?.role === RoleEnum.ADMIN));
   }
 
   public logout() {
     this.authenticationService.logout().subscribe(() => {
       this.snackBar.open(`Logout Successful!`, null, {duration: 5000});
-      console.log(`Logout happened. Username: {}`, this.sessionService.getUsername());
       this.router.navigate(['/']);
     });
   }
 
   profile() {
     this.router.navigate(['/user']);
-  }
-
-  isAdmin() {
-    return this.sessionService.getRole().pipe(map(r => r === RoleEnum.ADMIN));
   }
 }

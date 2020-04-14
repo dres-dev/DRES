@@ -1,5 +1,7 @@
-import {Injectable} from '@angular/core';
-import {UserDetails} from '../../../../openapi';
+import {Inject, Injectable} from '@angular/core';
+import {UserDetails, UserService} from '../../../../openapi';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {first, map} from 'rxjs/operators';
 import RoleEnum = UserDetails.RoleEnum;
 
 /**
@@ -9,10 +11,9 @@ import RoleEnum = UserDetails.RoleEnum;
 @Injectable()
 export class SessionService {
 
-  // TODO (loris.sauter, 12.4.) Shouldn't userDetails be a 'cached observable' -- i.e. get() to get the actual value, but update when changed (i.e. user profile edited)
 
   /** UserDetails created during login. */
-  private userDetails: UserDetails = null;
+  private userDetails: BehaviorSubject<UserDetails> = new BehaviorSubject<UserDetails>(null);
 
   constructor() {
   }
@@ -23,21 +24,30 @@ export class SessionService {
    * @param user The user to start the session with.
    */
   public start(user: UserDetails) {
-    if (this.userDetails == null) {
-      this.userDetails = user;
-      console.log(`Successfully logged in '${this.userDetails.username}'.`);
+    if (this.userDetails.value == null) {
+      this.userDetails.next(user);
+      console.log(`Successfully logged in '${this.userDetails.value.username}'.`);
     } else {
-      console.log(`The user '${this.userDetails.username}' is already logged in. Logout before startin new session.`);
+      console.log(`The user '${this.userDetails.value.username}' is already logged in. Logout before startin new session.`);
     }
+  }
+
+  get currentUser() {
+    return this.userDetails.asObservable();
+  }
+
+  public refresh(userDetails: UserDetails) {
+    this.userDetails.next(userDetails);
+
   }
 
   /**
    * Ends the current session.
    */
   public end() {
-    if (this.userDetails != null) {
-      console.log(`Successfully logged out '${this.userDetails.username}'.`);
-      this.userDetails = null;
+    if (this.userDetails.value != null) {
+      console.log(`Successfully logged out '${this.userDetails.value.username}'.`);
+      this.userDetails.next(null);
     } else {
       console.log(`Session cannot be ended. No user is currently logged in.`);
     }
@@ -46,21 +56,21 @@ export class SessionService {
   /**
    * Returns the current login state.
    */
-  public isLoggedIn(): boolean {
-    return this.userDetails != null;
+  public isLoggedIn(): Observable<boolean> {
+    return this.userDetails.pipe(map(u => u != null));
   }
 
   /**
    * Returns the username of the current user.
    */
-  public getUsername(): string {
-    return this.userDetails?.username;
+  public getUsername(): Observable<string> {
+    return this.userDetails.pipe(map(u => u?.username));
   }
 
   /**
    * Returns the role of the current user.
    */
-  public getRole(): RoleEnum {
-    return this.userDetails?.role;
+  public getRole(): Observable<RoleEnum> {
+    return this.userDetails.pipe(map(u => u?.role));
   }
 }

@@ -41,7 +41,6 @@ export class AdminUserCreateOrEditDialogComponent {
 
   public create(): void {
     if (this.form.valid) {
-      console.log(`Role: ${this.form.controls.role.value}`);
       this.dialogRef.close(
           {
             username: this.form.controls.username.value,

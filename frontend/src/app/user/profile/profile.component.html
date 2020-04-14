@@ -21,7 +21,7 @@
       <p>
         <mat-form-field>
             <mat-label>User Name: </mat-label>
-          <input type="text" matInput placeholder="Username" formControlName="username">
+          <input type="text" matInput placeholder="Username" formControlName="username" [value]="(user | async)?.username">
         </mat-form-field>
       </p>
       <p *ngIf="this.editing">

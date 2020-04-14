@@ -11,25 +11,25 @@
         <mat-icon>access_time</mat-icon>
     </button>
 
-    <button *ngIf="isAdmin()" mat-icon-button aria-label="User Management" matTooltip="User Management" routerLink="/user/list">
+    <button *ngIf="isAdmin() | async" mat-icon-button aria-label="User Management" matTooltip="User Management" routerLink="/user/list">
         <mat-icon>people</mat-icon>
     </button>
 
     <div class="spacer-flex"></div>
 
-    <div *ngIf="!sessionService.isLoggedIn()">
+    <div *ngIf="!(sessionService.isLoggedIn() | async)">
         <button mat-button routerLink="/login">
             Login
         </button>
     </div>
-    <div *ngIf="sessionService.isLoggedIn()">
+    <div *ngIf="sessionService.isLoggedIn() | async">
         <mat-menu #userMenu="matMenu" (close)="authenticationService.logout()">
             <button mat-menu-item (click)="profile()">User Profile</button>
             <button mat-menu-item (click)="logout()">Logout</button>
         </mat-menu>
         <button mat-button [matMenuTriggerFor]="userMenu">
             <mat-icon>person</mat-icon>
-            {{sessionService.getUsername()}}
+            {{sessionService.getUsername() | async}}
         </button>
     </div>
 

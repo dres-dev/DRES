@@ -45,6 +45,7 @@ export class AdminUserListComponent implements AfterViewInit {
     dialogRef.afterClosed().pipe(
         filter(r => r != null),
         flatMap((u: UserRequest) => {
+          console.debug(`Edit Result: ${u}`);
           return this.userService.patchApiUserWithId(user.id, u);
         })
     ).subscribe((r) => {

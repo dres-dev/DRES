@@ -1,2 +1,2 @@
-<app-admin-run-list *ngIf="currentRole=='ADMIN'"></app-admin-run-list>
-<app-viewer-run-list  *ngIf="currentRole=='VIEWER'"></app-viewer-run-list>
+<app-admin-run-list *ngIf="(currentRole | async )=='ADMIN'"></app-admin-run-list>
+<app-viewer-run-list *ngIf="(currentRole | async)=='VIEWER'"></app-viewer-run-list>

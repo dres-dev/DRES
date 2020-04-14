@@ -155,12 +155,17 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
     }
 
     override fun abortTask() = this.stateLock.write {
-        if (this.status != RunManagerStatus.PREPARING_TASK && this.status != RunManagerStatus.RUNNING_TASK) throw IllegalStateException("SynchronizedRunManager is in status ${this.status}. Tasks can therefore not be aborted.")
+        if (!(this.status == RunManagerStatus.PREPARING_TASK || this.status == RunManagerStatus.RUNNING_TASK)) {
+            throw IllegalStateException("SynchronizedRunManager is in status ${this.status}. Tasks can therefore not be aborted.")
+        }
 
-        /**  End TaskRun. */
-        this.run.currentTask?.end()
-        this.dao.update(this.run)
+        /**  End TaskRun and persist. */
+        if (this.status == RunManagerStatus.RUNNING_TASK) {
+            this.run.currentTask?.end()
+            this.dao.update(this.run)
+        }
 
+        /** Update state. */
         this.status = RunManagerStatus.ACTIVE
         this.ackCounter = -1
         this.executor.broadcastWsMessage(this.runId, ServerMessage(this.runId, ServerMessageType.TASK_END))

@@ -3,6 +3,8 @@ package dres.utilities
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffmpeg.UrlInput
 import com.github.kokorin.jaffree.ffmpeg.UrlOutput
+import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
+import java.io.File
 import java.nio.file.Path
 
 object FFmpegUtil {
@@ -32,6 +34,18 @@ object FFmpegUtil {
                 .addArguments("-tune", "zerolatency")
                 .addArguments("-preset", "slow")
                 .execute()
+    }
+
+    fun prepareMediaSegmentTask(description: MediaSegmentTaskDescription, collectionBasePath: String, cacheLocation: File) {
+
+        cacheLocation.mkdirs()
+
+        val input = File(File(collectionBasePath), description.item.location).toPath()
+        val output = File(cacheLocation, description.cacheItemName()).toPath()
+        val range = TimeUtil.toMilliseconds(description.temporalRange)
+
+        extractSegment(input, "${range.first / 1000}", "${range.second / 1000}", output)
+
     }
 
 

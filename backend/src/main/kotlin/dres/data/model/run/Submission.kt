@@ -4,7 +4,6 @@ import dres.data.model.basics.TemporalPoint
 import dres.data.model.basics.TemporalRange
 import dres.data.model.basics.TemporalUnit
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 
 /**
  * A [Submission] as received by a competition participant.
@@ -20,9 +19,9 @@ data class Submission(val team: Int, val tool: Int, val timestamp: Long, val col
 ) {
     var status: SubmissionStatus = SubmissionStatus.INDETERMINATE
 
-    @Transient
-    var taskRun: CompetitionRun.TaskRun? = null
-    internal set
+    //@Transient
+    //var taskRun: CompetitionRun.TaskRun? = null
+    //internal set
 
     fun temporalRange(): TemporalRange {
         if (start == null && end == null) {

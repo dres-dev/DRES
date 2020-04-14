@@ -12,4 +12,10 @@ import dres.data.model.basics.TemporalRange
 interface MediaSegmentTaskDescription : MediaItemTaskDescription {
     override val item: MediaItem.VideoItem
     val temporalRange: TemporalRange
+
+    /**
+     * Returns the file name of the segment, used for pre-computing
+     */
+    fun cacheItemName(): String
+
 }

@@ -3,7 +3,7 @@ import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {Team, UserDetails, UserService} from '../../../../openapi';
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
-import {first, map, shareReplay, tap} from 'rxjs/operators';
+import {map, shareReplay} from 'rxjs/operators';
 import {Observable} from 'rxjs';
 
 

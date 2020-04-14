@@ -5,7 +5,7 @@ import {BehaviorSubject, Observable} from 'rxjs';
 import RoleEnum = UserRequest.RoleEnum;
 
 /**
- * This service class is used to facilitate login and logout thorugh the UserService API.
+ * This service class is used to facilitate login and logout through the UserService API.
  */
 @Injectable({
     providedIn: 'root'

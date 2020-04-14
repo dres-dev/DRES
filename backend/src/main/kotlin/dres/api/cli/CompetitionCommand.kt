@@ -8,12 +8,16 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
 import dres.data.dbo.DAO
+import dres.data.model.basics.MediaCollection
 import dres.data.model.competition.CompetitionDescription
+import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
+import dres.utilities.FFmpegUtil
+import java.io.File
 
-class CompetitionCommand(val competitions: DAO<CompetitionDescription>) : NoOpCliktCommand(name = "competition") {
+class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>, internal val collections: DAO<MediaCollection>) : NoOpCliktCommand(name = "competition") {
 
     init {
-        this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand())
+        this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand(), PrepareCompetitionCommand())
     }
 
     abstract inner class AbstractCompetitionCommand(private val name: String) : CliktCommand(name = name) {
@@ -25,7 +29,7 @@ class CompetitionCommand(val competitions: DAO<CompetitionDescription>) : NoOpCl
 
     }
 
-    inner class CreateCompetitionCommand(): CliktCommand(name = "create") {
+    inner class CreateCompetitionCommand : CliktCommand(name = "create") {
         private val name: String by option("-n", "--name")
                 .required()
                 .validate { require(it.isNotEmpty()) { "Competition name must be non empty." } }
@@ -67,6 +71,42 @@ class CompetitionCommand(val competitions: DAO<CompetitionDescription>) : NoOpCl
             competition.tasks.forEach(::println)
 
             println()
+        }
+
+    }
+
+    inner class PrepareCompetitionCommand : AbstractCompetitionCommand(name = "prepare") {
+
+        private val cacheLocation = File("task-cache") //TODO make configurable
+
+        override fun run() {
+            val competition = this@CompetitionCommand.competitions[competitionId]!!
+
+
+
+            val segmentTasks = competition.tasks.filterIsInstance(MediaSegmentTaskDescription::class.java)
+
+            segmentTasks.forEach {
+                val item = it.item
+                val collection = this@CompetitionCommand.collections[item.collection]
+
+                if (collection == null) {
+                    println("ERROR: collection ${item.collection} not found")
+                    return
+                }
+
+                val videoFile = File(File(collection.basePath), item.location)
+
+                if (!videoFile.exists()) {
+                    println("ERROR: file ${videoFile.absolutePath} not found for item ${item.name}")
+                    return@forEach
+                }
+
+                println("rendering ${it.name}")
+                FFmpegUtil.prepareMediaSegmentTask(it, collection.basePath!!, cacheLocation)
+
+            }
+
         }
 
     }

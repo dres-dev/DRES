@@ -1,38 +1,21 @@
-import {Component, Inject, OnInit} from '@angular/core';
+import {Component, Inject} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {Team} from '../../../../openapi';
+import {Team, UserDetails, UserService} from '../../../../openapi';
+import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
+import {first, map, shareReplay, tap} from 'rxjs/operators';
+import {Observable} from 'rxjs';
 
 
 @Component({
     selector: 'app-competition-builder-add-team-dialog',
     templateUrl: './competition-builder-team-dialog.component.html'
 })
-export class CompetitionBuilderTeamDialogComponent implements OnInit {
+export class CompetitionBuilderTeamDialogComponent {
 
     form: FormGroup;
     logoName = '';
-
-    constructor(public dialogRef: MatDialogRef<CompetitionBuilderTeamDialogComponent>,
-                @Inject(MAT_DIALOG_DATA) public team?: Team) {
-
-        if (team) {
-            this.form = new FormGroup({
-                name: new FormControl(team?.name, [Validators.required, Validators.minLength(3)]),
-                color: new FormControl(team?.color, [Validators.required, Validators.minLength(7), Validators.maxLength(7)]),
-                logo: new FormControl(team?.logo, Validators.required)
-            });
-        } else {
-            this.form = new FormGroup({
-                name: new FormControl('', [Validators.required, Validators.minLength(3)]),
-                color: new FormControl(
-                    CompetitionBuilderTeamDialogComponent.randomColor(),
-                    [Validators.required, Validators.minLength(7), Validators.maxLength(7)]
-                ),
-                logo: new FormControl('', Validators.required)
-            });
-        }
-    }
+    availableUsers: Observable<UserDetails[]>;
 
     /**
      * Generates a random HTML color.
@@ -46,20 +29,73 @@ export class CompetitionBuilderTeamDialogComponent implements OnInit {
         return color;
     }
 
-    ngOnInit(): void {
+    constructor(public dialogRef: MatDialogRef<CompetitionBuilderTeamDialogComponent>,
+                public userService: UserService,
+                @Inject(MAT_DIALOG_DATA) public team?: Team) {
+
+        this.form = new FormGroup({
+            name: new FormControl(team?.name, [Validators.required, Validators.minLength(3)]),
+            color: new FormControl(team?.color ? team.color : CompetitionBuilderTeamDialogComponent.randomColor(), [Validators.required, Validators.minLength(7), Validators.maxLength(7)]),
+            logo: new FormControl(''),
+            logoData: new FormControl(team?.logo, Validators.required),
+            users: new FormControl(team?.users != null ? team.users : []),
+            userInput: new FormControl('')
+        });
+        this.availableUsers = this.userService.getApiUserList().pipe(
+            shareReplay(1)
+        );
     }
 
+    /**
+     * Adds the selected user to the list of users.
+     *
+     * @param event
+     */
+    public addUser(event: MatAutocompleteSelectedEvent): void {
+        this.form.get('users').value.push(event.option.value.id);
+        this.form.get('userInput').setValue(null);
+    }
+
+    /**
+     * Removes the selected user from the list of users.
+     *
+     * @param user The selected user.
+     */
+    public removeUser(user: number): void {
+        const index = this.form.get('users').value.indexOf(user);
+        if (index >= 0) {
+            this.form.get('users').value.splice(index, 1);
+        }
+    }
+
+    /**
+     * Returns the user for the given user id or null
+     *
+     * @param id User ID of the desired user.
+     */
+    public userForId(id: number): Observable<UserDetails> {
+        return this.availableUsers.pipe(
+            map(users => users.find(u => u.id === id))
+        );
+    }
+
+    /**
+     * Saves all changs in the dialog and closes it.
+     */
     public save(): void {
         if (this.form.valid) {
             this.dialogRef.close({
                 name: this.form.get('name').value,
                 color: this.form.get('color').value,
-                logo: this.form.get('logo').value,
-                users: []
+                logo: this.form.get('logoData').value,
+                users: this.form.get('users').value
             } as Team);
         }
     }
 
+    /**
+     * Closes the dialog without saving.
+     */
     public close(): void {
         this.dialogRef.close(null);
     }
@@ -75,7 +111,7 @@ export class CompetitionBuilderTeamDialogComponent implements OnInit {
         this.logoName = file.name;
         reader.readAsDataURL(file);
         reader.onload = () => {
-            this.form.get('logo').setValue(reader.result);
+            this.form.get('logoData').setValue(reader.result);
         };
     }
 }

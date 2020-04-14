@@ -15,11 +15,26 @@
             </mat-form-field>
         </p>
 
+        <mat-form-field class="user-chip-list">
+            <mat-chip-list #chipList aria-label="Users">
+                <mat-chip *ngFor="let user of form.get('users').value" [selectable]="true" [removable]="true" (removed)="removeUser(user)">
+                    {{(userForId(user) | async)?.username}}
+                    <mat-icon matChipRemove>cancel</mat-icon>
+                </mat-chip>
+                <input placeholder="New user..." [formControl]="form.get('userInput')" [matAutocomplete]="auto" [matChipInputFor]="chipList">
+            </mat-chip-list>
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addUser($event)">
+                <mat-option *ngFor="let user of (availableUsers | async)" [value]="user">
+                    {{user.username}}
+                </mat-option>
+            </mat-autocomplete>
+        </mat-form-field>
+
         <p>
             <input hidden type="file" #logoInput formControlName="logo" (change)="processImage($event)"/>
             <button type="button" mat-button (click)="logoInput.click()">Select logo</button>
-            <span *ngIf="form.get('logo').value" style="max-height: 25px; text-align: center">
-                <img [src]="form.get('logo').value" style="height: 20px;">
+            <span *ngIf="form.get('logoData').value" style="max-height: 25px; text-align: center">
+                <img [src]="form.get('logoData').value" style="height: 20px;">
             </span>
         </p>
     </form>

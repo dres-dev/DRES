@@ -6,6 +6,7 @@ import dres.api.rest.types.run.RunInfo
 import dres.api.rest.types.run.RunState
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
+import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.competition.TaskGroup
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
@@ -13,12 +14,14 @@ import dres.run.RunExecutor
 import dres.run.RunManager
 import dres.run.score.scoreboard.ScoreOverview
 import dres.utilities.extensions.errorResponse
+import dres.utilities.extensions.streamFile
 import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import java.io.File
 
 abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRestHandler {
 
@@ -233,6 +236,8 @@ class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<
 
     override val route = "run/:runId/query"
 
+    private val cacheLocation = File("task-cache") //TODO make configurable
+
     @OpenApi(
             summary = "Returns the actual query for the current task.",
             path = "/api/run/:runId/query",
@@ -253,9 +258,18 @@ class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<
 
             val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId")
 
-
-            //TODO return the actual content for the task
-            throw ErrorStatusException(500, "not yet implemented")
+            when(task) {
+                is TaskDescriptionBase.KisVisualTaskDescription -> {
+                    ctx.streamFile(File(cacheLocation, task.cacheItemName()))
+                    return
+                }
+                is TaskDescriptionBase.KisTextualTaskDescription -> {
+                    ctx.json(task.descriptions)
+                }
+                is TaskDescriptionBase.AvsTaskDescription -> {
+                    ctx.json(task.description)
+                }
+            }
 
         }catch (e: ErrorStatusException) {
             ctx.errorResponse(e)

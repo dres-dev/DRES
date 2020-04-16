@@ -95,7 +95,6 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
     /**
      * Converts a shot number to a timestamp in milliseconds.
      *
-     * @param frame The []
      */
     private fun shotToTime(shot: String, item: MediaItem): Pair<Long,Long> {
         val segment = this.segment.find { it.mediaItemId == item.id && it.name == shot } ?: throw ErrorStatusException(400, "Shot '${item.name}.$shot' not found.")
@@ -105,7 +104,6 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
     /**
      * Converts a frame number to a timestamp in milliseconds.
      *
-     * @param frame The []
      */
     private fun frameToTime(frame: Int, item: PlayableMediaItem): Long {
         return ((frame / item.fps) * 1000.0).toLong()
@@ -114,10 +112,9 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
     /**
      * Converts a timecode to a timestamp in milliseconds.
      *
-     * @param frame The []
      */
     private fun timecodeToTime(timecode: String, item: PlayableMediaItem): Long {
-        return 0L /* TODO: Make transformation. */
+        return TimeUtil.timeCodeToMilliseconds(timecode, item.fps) ?: throw ErrorStatusException(400, "'$timecode' is not a valid time code")
     }
 
     @OpenApi(summary = "Endpoint to accept submissions",

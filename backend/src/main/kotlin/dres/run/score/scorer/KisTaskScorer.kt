@@ -3,6 +3,9 @@ package dres.run.score.scorer
 import dres.data.model.run.CompetitionRun
 import dres.data.model.run.SubmissionStatus
 import dres.run.score.interfaces.RecalculatingTaskRunScorer
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 import kotlin.math.max
 
 class KisTaskScorer : RecalculatingTaskRunScorer {
@@ -12,24 +15,19 @@ class KisTaskScorer : RecalculatingTaskRunScorer {
     private val penaltyPerWrongSubmission = 10.0
 
     private var lastScores: Map<Int, Double> = emptyMap()
+    private val lastScoresLock = ReentrantReadWriteLock()
 
-    override fun analyze(task: CompetitionRun.TaskRun): Map<Int, Double> {
+    override fun analyze(task: CompetitionRun.TaskRun): Map<Int, Double> = this.lastScoresLock.write {
 
         val taskStart = task.started ?: return emptyMap()
+        val taskDuration = max(task.task.duration * 1000L, (task.ended ?: 0) - taskStart ).toDouble() //actual duration of task, in case it was extended during competition
 
-        //actual duration of task, in case it was extended during competition
-        val taskDuration = max(task.task.duration, (task.ended ?: 0) - taskStart ).toDouble()
-
-        lastScores = task.submissions.groupBy { it.team }.map{
-
-            //explicitly enforce valid types and order
-            val sorted =  it.value.filter { it.status == SubmissionStatus.CORRECT || it.status == SubmissionStatus.WRONG }.sortedBy { it.timestamp }
-
-            val firstCorrect = sorted.indexOfFirst { it.status == SubmissionStatus.CORRECT }
-
+        this.lastScores = task.competition.competitionDescription.teams.indices.map { teamId ->
+            val submissions =  task.submissions.filter { it.team == teamId && (it.status == SubmissionStatus.CORRECT || it.status == SubmissionStatus.WRONG) }.sortedBy { it.timestamp }
+            val firstCorrect = submissions.indexOfFirst { it.status == SubmissionStatus.CORRECT }
             val score = if (firstCorrect > -1) {
                 val incorrectSubmissions = firstCorrect + 1
-                val timeFraction = (sorted[firstCorrect].timestamp - taskStart) / taskDuration
+                val timeFraction = (submissions[firstCorrect].timestamp - taskStart) / taskDuration
 
                 max(0.0,
                         maxPointsAtTaskEnd +
@@ -39,11 +37,11 @@ class KisTaskScorer : RecalculatingTaskRunScorer {
             } else {
                 0.0
             }
-            it.key to score
+            teamId to score
         }.toMap()
 
-        return lastScores
+        return this.lastScores
     }
 
-    override fun scores(): Map<Int, Double> = lastScores
+    override fun scores(): Map<Int, Double> = this.lastScoresLock.read { this.lastScores }
 }

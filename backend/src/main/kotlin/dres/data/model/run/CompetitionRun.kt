@@ -121,6 +121,10 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
         val task: TaskDescription
             get() = this@CompetitionRun.competitionDescription.tasks[this.taskId]
 
+        /** The [CompetitionRun] this [TaskRun] belongs to.*/
+        val competition: CompetitionRun
+            get() = this@CompetitionRun
+
         /** The [SubmissionFilter] used to filter [Submission]s. */
         @Transient
         val filter: SubmissionFilter = this.task.newFilter()

@@ -11,6 +11,9 @@ import dres.data.model.run.CompetitionRun
 import dres.run.RunExecutor
 import dres.run.RunManager
 import dres.run.SynchronousRunManager
+import dres.run.score.scoreboard.MaxNormalizingScoreBoard
+import dres.run.score.scoreboard.MeanAggregateScoreBoard
+import dres.run.score.scoreboard.Scoreboard
 
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
@@ -65,7 +68,7 @@ class CreateCompetitionRunAdminHandler(val runs: DAO<CompetitionRun>, val compet
         try {
             val manager = when (competitionStartMessage.type) {
                 RunType.ASYNCHRONOUS -> TODO()
-                RunType.SYNCHRONOUS -> SynchronousRunManager(competitionToStart, competitionStartMessage.name, emptyList(), RunExecutor, this.runs)
+                RunType.SYNCHRONOUS -> SynchronousRunManager(competitionToStart, competitionStartMessage.name, generateScoreBoards(competitionToStart), RunExecutor, this.runs)
             }
 
             /**... and schedule RunManager. */
@@ -75,6 +78,17 @@ class CreateCompetitionRunAdminHandler(val runs: DAO<CompetitionRun>, val compet
         } catch (e: IllegalArgumentException) {
             throw ErrorStatusException(400, e.message ?: "Invalid parameters. This is a programmers error!")
         }
+    }
+
+    private fun generateScoreBoards(competitionDescription: CompetitionDescription): List<Scoreboard> {
+
+        val groupBoards = competitionDescription.groups.map {group ->
+            MaxNormalizingScoreBoard(group.name, {task -> task.taskGroup == group})
+        }
+
+        val aggregateScoreBoard = MeanAggregateScoreBoard("average", groupBoards)
+
+        return groupBoards.plus(aggregateScoreBoard)
     }
 
     data class CompetitionStart(val competitionId: Long, val name: String, val type: RunType, val scoreboards: Array<String>)

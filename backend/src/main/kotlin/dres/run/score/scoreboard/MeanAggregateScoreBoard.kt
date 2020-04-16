@@ -1,5 +1,7 @@
 package dres.run.score.scoreboard
 
+import dres.data.model.run.CompetitionRun
+
 class MeanAggregateScoreBoard(private val name: String, private val boards: List<Scoreboard>) : Scoreboard {
 
 //    override fun taskScores(): List<Score> {
@@ -17,7 +19,7 @@ class MeanAggregateScoreBoard(private val name: String, private val boards: List
     override fun score(teamId: Int) = boards.map { it.score(teamId) }.sum() / boards.size
 
 
-    override fun update() {
+    override fun update(runs: List<CompetitionRun.TaskRun>) {
         //since calls are delegated, nothing needs to be done here
     }
 

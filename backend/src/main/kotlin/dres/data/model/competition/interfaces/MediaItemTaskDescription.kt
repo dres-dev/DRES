@@ -1,6 +1,6 @@
 package dres.data.model.competition.interfaces
 
-import dres.data.model.basics.MediaItem
+import dres.data.model.basics.media.MediaItem
 
 /**
  * A [TaskDescription] looking for a specific [MediaItem].

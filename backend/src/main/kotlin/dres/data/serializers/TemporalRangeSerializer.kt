@@ -1,6 +1,6 @@
 package dres.data.serializers
 
-import dres.data.model.basics.TemporalRange
+import dres.data.model.basics.time.TemporalRange
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer

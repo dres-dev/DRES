@@ -1,4 +1,4 @@
-package dres.data.model.basics
+package dres.data.model.basics.time
 
 /**
  * Time units used in [TemporalPoint]s and [TemporalRange]s

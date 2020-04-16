@@ -5,8 +5,8 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
-import dres.data.model.basics.MediaCollection
-import dres.data.model.basics.MediaItem
+import dres.data.model.basics.media.MediaCollection
+import dres.data.model.basics.media.MediaItem
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context

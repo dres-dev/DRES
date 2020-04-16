@@ -1,4 +1,4 @@
-package dres.data.model.basics
+package dres.data.model.basics.media
 
 import dres.data.model.Entity
 import kotlinx.serialization.Serializable

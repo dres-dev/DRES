@@ -1,6 +1,6 @@
 package dres.data.serializers
 
-import dres.data.model.basics.MediaItemSegment
+import dres.data.model.basics.media.MediaItemSegment
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer

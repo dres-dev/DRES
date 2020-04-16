@@ -1,8 +1,8 @@
 package dres.utilities
 
-import dres.data.model.basics.TemporalPoint
-import dres.data.model.basics.TemporalRange
-import dres.data.model.basics.TemporalUnit
+import dres.data.model.basics.time.TemporalPoint
+import dres.data.model.basics.time.TemporalRange
+import dres.data.model.basics.time.TemporalUnit
 
 object TimeUtil {
 

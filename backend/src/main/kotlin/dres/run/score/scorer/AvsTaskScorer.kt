@@ -1,6 +1,6 @@
 package dres.run.score.scorer
 
-import dres.data.model.basics.TemporalRange
+import dres.data.model.basics.time.TemporalRange
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.score.interfaces.IncrementalTaskRunScorer

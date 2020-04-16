@@ -1,6 +1,6 @@
 package dres.data.serializers
 
-import dres.data.model.basics.MediaItem
+import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.*
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2

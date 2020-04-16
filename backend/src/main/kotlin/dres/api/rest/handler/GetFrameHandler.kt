@@ -2,8 +2,8 @@ package dres.api.rest.handler
 
 import dres.api.rest.RestApiRole
 import dres.data.dbo.DAO
-import dres.data.model.basics.MediaCollection
-import dres.data.model.basics.MediaItem
+import dres.data.model.basics.media.MediaCollection
+import dres.data.model.basics.media.MediaItem
 import dres.utilities.FFmpegUtil
 import dres.utilities.extensions.errorResponse
 import dres.utilities.extensions.streamFile

@@ -1,4 +1,4 @@
-package dres.data.model.basics
+package dres.data.model.basics.media
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -65,17 +65,11 @@ sealed class MediaItem(val itemType: String) : Entity {
 
     @Serializable
     data class ImageItem(override var id: Long, override val name: String, override val location: String, override val collection: Long): MediaItem("image") {
-
         override fun withCollection(collection: Long): ImageItem = ImageItem(id, name, location, collection)
-
     }
 
     @Serializable
-    data class VideoItem(override var id: Long, override val name: String, override val location: String, override val collection: Long, val ms: Long, val fps: Float): MediaItem("video") {
-
-        override fun withCollection(collection: Long): VideoItem = VideoItem(id, name, location, collection, ms, fps)
-
-        fun duration(): Duration = Duration.ofMillis(ms)
-
+    data class VideoItem(override var id: Long, override val name: String, override val location: String, override val collection: Long, override val durationMs: Long, override val fps: Float): MediaItem("video"), PlayableMediaItem {
+        override fun withCollection(collection: Long): VideoItem = VideoItem(id, name, location, collection, durationMs, fps)
     }
 }

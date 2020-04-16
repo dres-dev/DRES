@@ -1,4 +1,4 @@
-package dres.data.model.basics
+package dres.data.model.basics.time
 
 import kotlinx.serialization.Serializable
 

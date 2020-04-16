@@ -6,82 +6,128 @@ import dres.api.rest.RestApiRole
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
-import dres.data.model.competition.interfaces.TaskDescription
+import dres.data.dbo.DAO
+import dres.data.model.basics.media.MediaCollection
+import dres.data.model.basics.media.MediaItem
+import dres.data.model.basics.media.MediaItemSegment
+import dres.data.model.basics.media.PlayableMediaItem
+import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.run.Submission
-import dres.run.RunExecutor
+import dres.data.model.run.SubmissionStatus
 import dres.run.RunManager
 import dres.run.RunManagerStatus
+import dres.utilities.TimeUtil
+
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 
-class SubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
+class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val segment: DAO<MediaItemSegment>): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
     override val route = "submit"
 
-    private fun userId(ctx: Context): Long = AccessManager.getUserIdforSession(ctx.req.session.id)!!
-
-    private fun getRelevantManagers(ctx: Context): List<RunManager> { //TODO there needs to be a more efficient way to do this
-        val userId = userId(ctx)
-        return RunExecutor.managers().filter { it.competitionDescription.teams.any { it.users.contains(userId) } }
+    companion object {
+        const val PARAMETER_NAME_COLLECTION = "collection"
+        const val PARAMETER_NAME_ITEM = "item"
+        const val PARAMETER_NAME_SHOT = "shot"
+        const val PARAMETER_NAME_FRAME = "frame"
+        const val PARAMETER_NAME_TIMECODE = "timecode"
     }
 
-    private fun getActiveCompetition(ctx: Context): RunManager {
-        val managers = getRelevantManagers(ctx).filter { it.status == RunManagerStatus.RUNNING_TASK }
 
+    private fun getRelevantManagers(userId: Long): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
+
+    private fun getActiveRun(userId: Long): RunManager {
+        val managers = getRelevantManagers(userId).filter { it.status == RunManagerStatus.RUNNING_TASK }
         if (managers.isEmpty()) {
-            throw ErrorStatusException(404, "No Competition with active tasks")
+            throw ErrorStatusException(404, "There is currently no eligible competition with an active task.")
         }
 
         if (managers.size > 1) {
-            throw ErrorStatusException(409, "More than one possible Competition found: ${managers.map { it.competitionDescription.name }.joinToString()}")
+            throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.competitionDescription.name }}")
         }
 
         return managers.first()
     }
 
-    private fun toSubmission(ctx: Context, currentTask: TaskDescription, submissionTime: Long): Submission {
-
+    private fun toSubmission(ctx: Context, userId: Long, runManager: RunManager, submissionTime: Long): Submission {
         val map = ctx.queryParamMap()
+        val team = runManager.competitionDescription.teams.indexOf(runManager.competitionDescription.teams.first { it.users.contains(userId) })
+        val member = userId
 
-        val team = map.getOrElse("team") { //TODO replace with team from session
-            throw ErrorStatusException(404, "Parameter 'team' is missing!'")
-        }.first().toInt()
+        val collectionParam = map[PARAMETER_NAME_COLLECTION]?.first()
+        val collectionId = when {
+            collectionParam != null -> this.collections.find { it.name == collectionParam }?.id
+            runManager.currentTask is TaskDescriptionBase.KisVisualTaskDescription -> {
+                (runManager.currentTask as TaskDescriptionBase.KisVisualTaskDescription).item.collection
+            }
+            runManager.currentTask is TaskDescriptionBase.KisTextualTaskDescription -> {
+                (runManager.currentTask as TaskDescriptionBase.KisTextualTaskDescription).item.collection
+            }
+            else -> null
+        } ?: throw ErrorStatusException(404, "Media collection '$collectionParam' could not be found.")
 
-        val member = map.get("member")?.first()?.toInt() ?: 0
+        /* Find media item. */
+        val itemParam = map[PARAMETER_NAME_ITEM]?.first() ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_ITEM' is missing but required!'")
+        val item = this.items.find {
+            it.name == itemParam && it.collection == collectionId
+        } ?:  throw ErrorStatusException(404, "Media collection '$itemParam (collection = $collectionId)' could not be found.")
 
-        val video = map.getOrElse("video") {
-            throw ErrorStatusException(404, "Parameter 'video' is missing!'")
-        }.first()
-
-        if (!map.containsKey("frame") && !map.containsKey("shot") && !map.containsKey("timecode")) {
-            throw ErrorStatusException(404, "Neither Parameter 'frame', 'shot', nor 'timecode' os present")
+        return when {
+            map.containsKey(PARAMETER_NAME_SHOT) -> {
+                val time = this.shotToTime(map[PARAMETER_NAME_FRAME]?.first()!!, item)
+                Submission(team, member, submissionTime, item, time.first, time.second)
+            }
+            map.containsKey(PARAMETER_NAME_FRAME) && (item is PlayableMediaItem) -> {
+                val time = this.frameToTime(map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull() ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number."), item)
+                Submission(team, member, submissionTime, item, time, time)
+            }
+            map.containsKey(PARAMETER_NAME_TIMECODE) && (item is PlayableMediaItem) -> {
+                val time = this.timecodeToTime(map[PARAMETER_NAME_TIMECODE]?.first()!!, item)
+                Submission(team, member, submissionTime, item, time, time)
+            }
+            else -> Submission(team, member, submissionTime, item)
         }
+    }
 
-        //TODO map frame and shot to time
-        //TODO validate
-        val time = map.getOrDefault("timecode", listOf("0")).first().toLong() * 1000
+    /**
+     * Converts a shot number to a timestamp in milliseconds.
+     *
+     * @param frame The []
+     */
+    private fun shotToTime(shot: String, item: MediaItem): Pair<Long,Long> {
+        val segment = this.segment.find { it.mediaItemId == item.id && it.name == shot } ?: throw ErrorStatusException(400, "Shot '${item.name}.$shot' not found.")
+        return TimeUtil.toMilliseconds(segment.range)
+    }
 
-        //TODO get collection information from competition?
+    /**
+     * Converts a frame number to a timestamp in milliseconds.
+     *
+     * @param frame The []
+     */
+    private fun frameToTime(frame: Int, item: PlayableMediaItem): Long {
+        return ((frame / item.fps) * 1000.0).toLong()
+    }
 
-        return Submission(team, member, submissionTime, "TODO", video, time, time)
-
-
-
+    /**
+     * Converts a timecode to a timestamp in milliseconds.
+     *
+     * @param frame The []
+     */
+    private fun timecodeToTime(timecode: String, item: PlayableMediaItem): Long {
+        return 0L /* TODO: Make transformation. */
     }
 
     @OpenApi(summary = "Endpoint to accept submissions",
             path = "/submit",
             queryParams = [
-                OpenApiParam("team", Int::class, "Team number"),
-                OpenApiParam("member", Int::class, "Team member number"),
-                OpenApiParam("video", String::class, "Video ID for VBS Submissions"),
-                OpenApiParam("image", String::class, "Image ID for LSC Submissions"),
-                OpenApiParam("frame", Int::class, "Frame number for VBS Submissions"),
-                OpenApiParam("shot", Int::class, "Shot number for VBS Submissions"),
-                OpenApiParam("timecode", String::class, "Timecode for VBS Submissions")
+                OpenApiParam(PARAMETER_NAME_COLLECTION, String::class, "Collection identifier. Optional, in which case the default collection for the run will be considered."),
+                OpenApiParam(PARAMETER_NAME_ITEM, String::class, "Identifier for the actual media object or media file."),
+                OpenApiParam(PARAMETER_NAME_FRAME, Int::class, "Frame number for media with temporal progression (e.g. video)."),
+                OpenApiParam(PARAMETER_NAME_SHOT, Int::class, "Shot number for media with temporal progression (e.g. video)."),
+                OpenApiParam(PARAMETER_NAME_TIMECODE, String::class, "Timecode for media with temporal progression (e.g. video).")
             ],
             tags = ["Submission"],
             responses = [
@@ -93,73 +139,16 @@ class SubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHandle
             ]
     )
     override fun doGet(ctx: Context): SuccessStatus {
+        val userId = AccessManager.getUserIdforSession(ctx.req.session.id) ?: throw ErrorStatusException(401, "Authorization required.")
+        val run = getActiveRun(userId)
         val time = System.currentTimeMillis()
-        val competition = getActiveCompetition(ctx)
-        competition.postSubmission(toSubmission(ctx, competition.currentTask!!, time))
-        return SuccessStatus("")
-    }
+        val result = run.postSubmission(toSubmission(ctx, userId, run, time))
 
-}
-
-
-class OpenSubmissionHandler : GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
-    override val permittedRoles = setOf(RestApiRole.ANYONE)
-    override val route = "submit/:runId"
-
-    @OpenApi(summary = "Endpoint to accept submissions",
-            path = "submit/:runId",
-            queryParams = [
-                OpenApiParam("runId", Long::class, "Run ID"),
-                OpenApiParam("team", Int::class, "Team number"),
-                OpenApiParam("member", Int::class, "Team member number"),
-                OpenApiParam("video", String::class, "Video ID for VBS Submissions"),
-                OpenApiParam("image", String::class, "Image ID for LSC Submissions"),
-                OpenApiParam("frame", Int::class, "Frame number for VBS Submissions"),
-                OpenApiParam("shot", Int::class, "Shot number for VBS Submissions"),
-                OpenApiParam("timecode", String::class, "Timecode for VBS Submissions")
-            ],
-            tags = ["Submission"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("409", [OpenApiContent(ErrorStatus::class)])
-            ]
-    )
-    private fun toSubmission(ctx: Context, currentTask: TaskDescription, submissionTime: Long): Submission {
-        val map = ctx.queryParamMap()
-        val team = map.getOrElse("team") { //TODO replace with team from session
-            throw ErrorStatusException(404, "Parameter 'team' is missing!'")
-        }.first().toInt()
-
-        val member = map.get("member")?.first()?.toInt() ?: 0
-
-        val video = map.getOrElse("video") {
-            throw ErrorStatusException(404, "Parameter 'video' is missing!'")
-        }.first()
-
-        if (!map.containsKey("frame") && !map.containsKey("shot") && !map.containsKey("timecode")) {
-            throw ErrorStatusException(404, "Neither Parameter 'frame', 'shot', nor 'timecode' os present")
+        return when (result) {
+            SubmissionStatus.CORRECT -> SuccessStatus("Submission correct!")
+            SubmissionStatus.WRONG -> SuccessStatus("Submission incorrect! Try again")
+            SubmissionStatus.INDETERMINATE -> SuccessStatus("Submission received. Waiting for verdict!")
+            SubmissionStatus.UNDECIDABLE -> SuccessStatus("Submission undecidable. Try again!")
         }
-
-        //TODO map frame and shot to time
-        //TODO validate
-        val time =  map.getOrDefault("timecode", listOf("0")).first().toLong() * 1000
-
-        //TODO get collection information from competition?
-
-        return Submission(team, member, submissionTime, "TODO", video, time, time)
-    }
-
-    override fun doGet(ctx: Context): SuccessStatus {
-        val time = System.currentTimeMillis()
-        val runId = ctx.pathParamMap().getOrElse("runId") {
-            throw ErrorStatusException(404, "Parameter 'runId' is missing!'")
-        }.toLong()
-
-        val competition = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run with ID $runId not found.")
-        competition.postSubmission(toSubmission(ctx, competition.currentTask!!, time))
-        return SuccessStatus("Submission successful")
     }
 }

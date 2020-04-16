@@ -6,19 +6,23 @@ import dres.api.rest.types.run.RunInfo
 import dres.api.rest.types.run.RunState
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
+import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.competition.TaskGroup
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.run.RunExecutor
 import dres.run.RunManager
+import dres.run.score.scoreboard.Score
 import dres.run.score.scoreboard.ScoreOverview
 import dres.utilities.extensions.errorResponse
+import dres.utilities.extensions.streamFile
 import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import java.io.File
 
 abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRestHandler {
 
@@ -173,7 +177,7 @@ class ListCompetitionScoreHandler : AbstractCompetitionRunRestHandler(), GetRest
     }
 }
 
-class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<ScoreOverview>> {
+class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<ScoreOverview> {
 
     override val route = "run/:runId/score/task"
 
@@ -181,17 +185,19 @@ class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHand
             summary = "Returns the overviews of all score boards for the current task.",
             path = "/api/run/:runId/score/task",
             tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", Long::class, "Competition run ID")],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<ScoreOverview>::class)]),
+                OpenApiResponse("200", [OpenApiContent(ScoreOverview::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): List<ScoreOverview> { //FIXME
+    override fun doGet(ctx: Context): ScoreOverview {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-        /*return run.currentTask?.scorer ?:*/ throw  ErrorStatusException(400, "Not scoreboards available. There is probably no run going on.")
+        val scores = run.currentTaskScore?.scores() ?: throw ErrorStatusException(400, "Run $runId doesn't seem to have a running task.")
+        return ScoreOverview("task", scores.map { (k,v) -> Score(k, v) })
     }
 }
 
@@ -233,6 +239,8 @@ class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<
 
     override val route = "run/:runId/query"
 
+    private val cacheLocation = File("task-cache") //TODO make configurable
+
     @OpenApi(
             summary = "Returns the actual query for the current task.",
             path = "/api/run/:runId/query",
@@ -253,9 +261,18 @@ class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<
 
             val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId")
 
-
-            //TODO return the actual content for the task
-            throw ErrorStatusException(500, "not yet implemented")
+            when(task) {
+                is TaskDescriptionBase.KisVisualTaskDescription -> {
+                    ctx.streamFile(File(cacheLocation, task.cacheItemName()))
+                    return
+                }
+                is TaskDescriptionBase.KisTextualTaskDescription -> {
+                    ctx.json(task.descriptions)
+                }
+                is TaskDescriptionBase.AvsTaskDescription -> {
+                    ctx.json(task.description)
+                }
+            }
 
         }catch (e: ErrorStatusException) {
             ctx.errorResponse(e)

@@ -1,8 +1,9 @@
 package dres.data.model.run
 
-import dres.data.model.basics.TemporalPoint
-import dres.data.model.basics.TemporalRange
-import dres.data.model.basics.TemporalUnit
+import dres.data.model.basics.media.MediaItem
+import dres.data.model.basics.time.TemporalPoint
+import dres.data.model.basics.time.TemporalRange
+import dres.data.model.basics.time.TemporalUnit
 import kotlinx.serialization.Serializable
 
 /**
@@ -13,10 +14,14 @@ import kotlinx.serialization.Serializable
  */
 
 @Serializable
-data class Submission(val team: Int, val tool: Int, val timestamp: Long, val collection: String, val item: String,
+data class Submission(val team: Int,
+                      val member: Long,
+                      val timestamp: Long,
+                      val item: MediaItem,
                       val start: Long? = null, //in ms
                       val end: Long? = null //in ms
 ) {
+
     var status: SubmissionStatus = SubmissionStatus.INDETERMINATE
 
     //@Transient
@@ -31,7 +36,8 @@ data class Submission(val team: Int, val tool: Int, val timestamp: Long, val col
         if (start != null && end != null){
             return TemporalRange(TemporalPoint(start.toDouble(), TemporalUnit.MILLISECONDS), TemporalPoint(end.toDouble(), TemporalUnit.MILLISECONDS))
         }
-        val point = TemporalPoint(start?.toDouble() ?: end!!.toDouble(), TemporalUnit.MILLISECONDS)
+        val point = TemporalPoint(start?.toDouble()
+                ?: end!!.toDouble(), TemporalUnit.MILLISECONDS)
         return TemporalRange(point, point)
     }
 }

@@ -1,9 +1,9 @@
 package dres
 
-import dres.data.model.basics.MediaItem
-import dres.data.model.basics.TemporalPoint
-import dres.data.model.basics.TemporalRange
-import dres.data.model.basics.TemporalUnit
+import dres.data.model.basics.media.MediaItem
+import dres.data.model.basics.time.TemporalPoint
+import dres.data.model.basics.time.TemporalRange
+import dres.data.model.basics.time.TemporalUnit
 import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.competition.TaskGroup
 import dres.data.model.competition.TaskType

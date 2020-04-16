@@ -1,14 +1,14 @@
 package dres.utilities
 
-import dres.data.model.basics.TemporalPoint
-import dres.data.model.basics.TemporalRange
-import dres.data.model.basics.TemporalUnit
+import dres.data.model.basics.time.TemporalPoint
+import dres.data.model.basics.time.TemporalRange
+import dres.data.model.basics.time.TemporalUnit
 
 object TimeUtil {
 
     fun toMilliseconds(point: TemporalPoint, fps: Float = 24.0f): Long {
         return when (point.unit) {
-            TemporalUnit.FRAME_NUMBER -> (point.value * fps * 1000).toLong()
+            TemporalUnit.FRAME_NUMBER -> (point.value / fps * 1000).toLong()
             TemporalUnit.SECONDS -> (point.value * 1000).toLong()
             TemporalUnit.MILLISECONDS -> point.value.toLong()
         }

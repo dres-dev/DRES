@@ -1,7 +1,7 @@
 package dres.data.serializers
 
-import dres.data.model.basics.TemporalPoint
-import dres.data.model.basics.TemporalUnit
+import dres.data.model.basics.time.TemporalPoint
+import dres.data.model.basics.time.TemporalUnit
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer

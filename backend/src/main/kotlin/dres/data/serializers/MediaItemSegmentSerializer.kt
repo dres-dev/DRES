@@ -1,6 +1,6 @@
 package dres.data.serializers
 
-import dres.data.model.basics.MediaItemSegment
+import dres.data.model.basics.media.MediaItemSegment
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer
@@ -14,8 +14,6 @@ object MediaItemSegmentSerializer: Serializer<MediaItemSegment> {
     }
 
     override fun deserialize(input: DataInput2, available: Int): MediaItemSegment {
-        return MediaItemSegment(
-                input.unpackLong(), input.unpackLong(), input.readUTF(), TemporalRangeSerializer.deserialize(input, available)
-        )
+        return MediaItemSegment(input.unpackLong(), input.unpackLong(), input.readUTF(), TemporalRangeSerializer.deserialize(input, available))
     }
 }

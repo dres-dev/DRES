@@ -1,6 +1,6 @@
 package dres.data.serializers
 
-import dres.data.model.basics.MediaItem
+import dres.data.model.basics.media.MediaItem
 
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
@@ -16,7 +16,7 @@ object MediaItemSerializer: Serializer<MediaItem> {
             out.writeUTF(value.name)
             out.writeUTF(value.location)
             out.packLong(value.collection)
-            out.packLong(value.ms)
+            out.packLong(value.durationMs)
             out.writeFloat(value.fps)
         }
         is MediaItem.ImageItem -> {

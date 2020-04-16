@@ -9,9 +9,9 @@ import com.github.ajalt.clikt.parameters.types.long
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import dres.data.dbo.DAO
-import dres.data.model.basics.MediaCollection
-import dres.data.model.basics.MediaItem
-import dres.data.model.basics.MediaItemSegment
+import dres.data.model.basics.media.MediaCollection
+import dres.data.model.basics.media.MediaItem
+import dres.data.model.basics.media.MediaItemSegment
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -154,7 +154,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                     println(existing)
                     return
                 }
-                this@MediaCollectionCommand.items.append(MediaItem.VideoItem(name = name, location = path, collection = collectionId, ms = duration, fps = fps, id = -1))
+                this@MediaCollectionCommand.items.append(MediaItem.VideoItem(name = name, location = path, collection = collectionId, durationMs = duration, fps = fps, id = -1))
                 println("item added")
             }
 
@@ -170,7 +170,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
         private fun toRow(item: MediaItem): List<String?> = when (item) {
             is MediaItem.ImageItem -> listOf(item.itemType, item.name, item.location, null, null)
-            is MediaItem.VideoItem -> listOf(item.itemType, item.name, item.location, item.duration().toString(), item.fps.toString())
+            is MediaItem.VideoItem -> listOf(item.itemType, item.name, item.location, item.duration.toString(), item.fps.toString())
         }
 
         private val header = listOf("itemType", "name", "location", "duration", "fps")

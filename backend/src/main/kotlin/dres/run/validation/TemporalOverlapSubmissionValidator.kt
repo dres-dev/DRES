@@ -26,8 +26,10 @@ class TemporalOverlapSubmissionValidator(private val task: MediaSegmentTaskDescr
             submission.status = SubmissionStatus.WRONG
         } else if (submission.start > submission.end) {
             submission.status = SubmissionStatus.WRONG
+        } else if (submission.item != task.item) {
+            submission.status = SubmissionStatus.WRONG
         } else {
-            val outer = TimeUtil.toMilliseconds(this.task.temporalRange)
+            val outer = TimeUtil.toMilliseconds(this.task.temporalRange, this.task.item.fps)
             if (outer.first <= submission.start && outer.second >= submission.end) {
                 submission.status = SubmissionStatus.CORRECT
             } else {

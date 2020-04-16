@@ -2,8 +2,8 @@ package dres.data.model.competition
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import dres.data.model.basics.MediaItem
-import dres.data.model.basics.TemporalRange
+import dres.data.model.basics.media.MediaItem
+import dres.data.model.basics.time.TemporalRange
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission

@@ -11,18 +11,15 @@
  */
 /* tslint:disable:no-unused-variable member-ordering */
 
-import { Inject, Injectable, Optional }                      from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams,
-         HttpResponse, HttpEvent, HttpParameterCodec }       from '@angular/common/http';
-import { CustomHttpParameterCodec }                          from '../encoder';
-import { Observable }                                        from 'rxjs';
+import {Inject, Injectable, Optional} from '@angular/core';
+import {HttpClient, HttpEvent, HttpHeaders, HttpParameterCodec, HttpParams, HttpResponse} from '@angular/common/http';
+import {CustomHttpParameterCodec} from '../encoder';
+import {Observable} from 'rxjs';
 
-import { ErrorStatus } from '../model/models';
-import { SuccessStatus } from '../model/models';
+import {SuccessStatus} from '../model/models';
 
-import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
-import { Configuration }                                     from '../configuration';
-
+import {BASE_PATH} from '../variables';
+import {Configuration} from '../configuration';
 
 
 @Injectable({
@@ -88,32 +85,27 @@ export class SubmissionService {
 
     /**
      * Endpoint to accept submissions
-     * @param team Team number
-     * @param video Video ID for VBS Submissions
-     * @param image Image ID for LSC Submissions
-     * @param frame Frame number for VBS Submissions
-     * @param shot Shot number for VBS Submissions
-     * @param timecode Timecode for VBS Submissions
+     * @param collection Collection identifier. Optional, in which case the default collection for the run will be considered.
+     * @param item Identifier for the actual media object or media file.
+     * @param frame Frame number for media with temporal progression (e.g. video).
+     * @param shot Shot number for media with temporal progression (e.g. video).
+     * @param timecode Timecode for media with temporal progression (e.g. video).
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getSubmit(team?: number, video?: string, image?: string, frame?: number, shot?: number, timecode?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public getSubmit(team?: number, video?: string, image?: string, frame?: number, shot?: number, timecode?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public getSubmit(team?: number, video?: string, image?: string, frame?: number, shot?: number, timecode?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public getSubmit(team?: number, video?: string, image?: string, frame?: number, shot?: number, timecode?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getSubmit(collection?: string, item?: string, frame?: number, shot?: number, timecode?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public getSubmit(collection?: string, item?: string, frame?: number, shot?: number, timecode?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public getSubmit(collection?: string, item?: string, frame?: number, shot?: number, timecode?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public getSubmit(collection?: string, item?: string, frame?: number, shot?: number, timecode?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
 
         let queryParameters = new HttpParams({encoder: this.encoder});
-        if (team !== undefined && team !== null) {
+        if (collection !== undefined && collection !== null) {
           queryParameters = this.addToHttpParams(queryParameters,
-            <any>team, 'team');
+            <any>collection, 'collection');
         }
-        if (video !== undefined && video !== null) {
+        if (item !== undefined && item !== null) {
           queryParameters = this.addToHttpParams(queryParameters,
-            <any>video, 'video');
-        }
-        if (image !== undefined && image !== null) {
-          queryParameters = this.addToHttpParams(queryParameters,
-            <any>image, 'image');
+            <any>item, 'item');
         }
         if (frame !== undefined && frame !== null) {
           queryParameters = this.addToHttpParams(queryParameters,

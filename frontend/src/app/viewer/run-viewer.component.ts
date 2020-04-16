@@ -1,15 +1,13 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {merge, Observable, Subscription} from 'rxjs';
-import {filter, first, flatMap, map, tap} from 'rxjs/operators';
+import {flatMap, map, share, shareReplay, switchMap} from 'rxjs/operators';
 import {webSocket, WebSocketSubject, WebSocketSubjectConfig} from 'rxjs/webSocket';
 import {AppConfig} from '../app.config';
 import {IWsMessage} from '../model/ws/ws-message.interface';
-import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {CompetitionRunService, RunInfo, RunState} from '../../../openapi';
-import {ServerMessageType} from '../model/ws/server-message-type.enum';
-import ServerMessageTypes = ServerMessageType.ServerMessageTypes;
 import {IWsServerMessage} from '../model/ws/ws-server-message.interface';
+import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 
 @Component({
     selector: 'app-run-viewer',
@@ -18,10 +16,13 @@ import {IWsServerMessage} from '../model/ws/ws-server-message.interface';
 })
 export class RunViewerComponent implements OnInit, OnDestroy  {
 
-    webSocket: WebSocketSubject<IWsMessage> = webSocket({
+    webSocketSubject: WebSocketSubject<IWsMessage> = webSocket({
         url: `${AppConfig.settings.endpoint.tls ? 'wss://' : 'ws://'}${AppConfig.settings.endpoint.host}:${AppConfig.settings.endpoint.port}/api/ws/run`,
     } as WebSocketSubjectConfig<IWsMessage>);
 
+
+
+    webSocket: Observable<IWsServerMessage>;
     runInfo: Observable<RunInfo>;
     runState: Observable<RunState>;
 
@@ -37,21 +38,20 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
     constructor(protected activeRoute: ActivatedRoute,
                 protected runService: CompetitionRunService) {
 
+        /* Observable for general run info. */
         this.runInfo = this.activeRoute.params.pipe(
-            flatMap(p => this.runService.getApiRunInfoWithRunid(p.runId))
+            switchMap(a => this.runService.getApiRunInfoWithRunid(a.runId)),
+            shareReplay(1)
         );
 
-        this.runState = this.activeRoute.params.pipe(
-            flatMap( p => {
-                return merge(
-                    this.runService.getApiRunStateWithRunid(p.runId),
-                    this.webSocket.pipe(
-                        map(m => m as IWsServerMessage),
-                        filter(m => ServerMessageTypes.indexOf(m.type) > -1),
-                        flatMap(() => this.runService.getApiRunStateWithRunid(p.runId))
-                    )
-                );
-            })
+        this.webSocket = this.activeRoute.params.pipe(
+            flatMap(a => this.webSocketSubject.pipe(map(m => m as IWsServerMessage))),
+            share()
+        );
+
+        this.runState = merge(this.activeRoute.params, this.webSocket).pipe(
+            switchMap((a) => this.runService.getApiRunStateWithRunid(a.runId)),
+            share()
         );
     }
 
@@ -59,8 +59,8 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
      * Registers this RunViewerComponent on view initialization and creates the WebSocket subscription.
      */
     ngOnInit(): void {
-        this.activeRoute.params.subscribe(p => {
-            this.webSocket.next({runId: p.runId, type: 'REGISTER'} as IWsClientMessage);
+        this.activeRoute.params.subscribe(a => {
+            this.webSocketSubject.next({runId: a.runId, type: 'REGISTER'} as IWsClientMessage);
         });
 
         /* Register WebSocket logger. */
@@ -73,8 +73,8 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
      * Unregisters this RunViewerComponent on view destruction and cleans the WebSocket subscription.
      */
     ngOnDestroy(): void {
-        this.activeRoute.params.subscribe(p => {
-            this.webSocket.next({runId: p.runId, type: 'UNREGISTER'} as IWsClientMessage);
+        this.activeRoute.params.subscribe(a => {
+            this.webSocketSubject.next({runId: a.runId, type: 'UNREGISTER'} as IWsClientMessage);
         });
 
         /* Unregister WebSocket logger. */

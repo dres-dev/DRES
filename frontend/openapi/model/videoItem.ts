@@ -9,15 +9,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import {MediaItem} from './mediaItem';
+import {VideoItemAllOfDuration} from './videoItemAllOfDuration';
 
 
-export interface VideoItem { 
-    id: number;
-    name: string;
-    location: string;
-    collection: number;
-    ms: number;
+export interface VideoItem extends MediaItem { 
+    durationMs: number;
     fps: number;
-    itemType: string;
+    duration?: VideoItemAllOfDuration;
 }
 

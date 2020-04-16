@@ -1,7 +1,7 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState} from '../../../openapi';
 import {interval, Observable, of, Subscription} from 'rxjs';
-import {filter, switchMap} from 'rxjs/operators';
+import {filter, share, switchMap} from 'rxjs/operators';
 import {IWsMessage} from '../model/ws/ws-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {WebSocketSubject} from 'rxjs/webSocket';
@@ -15,7 +15,8 @@ import {IWsServerMessage} from '../model/ws/ws-server-message.interface';
 export class TaskViewerComponent implements OnInit, OnDestroy {
     @Input() info: Observable<RunInfo>;
     @Input() state: Observable<RunState>;
-    @Input() webSocket: WebSocketSubject<IWsMessage>;
+    @Input() webSocket: Observable<IWsMessage>;
+    @Input() webSocketSubject: WebSocketSubject<IWsMessage>;
 
     polledState: Observable<RunState>;
 
@@ -30,7 +31,7 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
         ).subscribe(m => {
 
             /* TODO: Download, cache and play query object, wait for playback to complete, then ACK. */
-            this.webSocket.next({runId: m.runId, type: 'ACK'} as IWsClientMessage);
+            this.webSocketSubject.next({runId: m.runId, type: 'ACK'} as IWsClientMessage);
         });
 
         this.polledState = this.state.pipe(
@@ -42,7 +43,8 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
                 } else {
                     return of(s);
                 }
-            })
+            }),
+            share()
         );
     }
 

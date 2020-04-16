@@ -1,27 +1,37 @@
-.grid-container {
-  display: grid;
-  grid-gap: 10px;
-  padding: 10px;
+.grid {
+  width: 100%;
   height: 90vh;
 }
 
 .header {
-  grid-column: 1 / span 3;
-  grid-row: 1;
+  width: 100%;
+  margin-bottom: 10px;
 }
-.left {
-  grid-column: 1;
-  grid-row: 2;
+
+.body {
+  display: flex;
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
-.main {
-  grid-column: 2;
-  grid-row: 2;
-}
-.right {
-  grid-column: 3;
-  grid-row: 2;
-}
+
 .footer {
-  grid-column: 1 / span 3;
-  grid-row: 3;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.left {
+  width: 25%;
+  margin-right: auto;
+}
+
+.main {
+  width: 49%;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.right {
+  width: 25%;
+  margin-left: auto;
 }

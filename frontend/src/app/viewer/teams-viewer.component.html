@@ -1,14 +1,22 @@
 <mat-card class="flex">
-    <div *ngFor="let team of (info|async)?.teams" [style.background-color]="team.color + '44'" class="tile">
-        <p [style.text-align]="'center'">{{team.name}}</p>
-        <div [style.background-color]="team.color">
+    <div *ngFor="let team of (info|async)?.teams; let i = index" [style.background-color]="team.color + '44'" class="tile">
+        <h3 [style.text-align]="'center'">{{team.name}}</h3>
+
+        <div [style.background-color]="team.color" class="logo">
             <img src="{{team.logo}}">
-            <div>
-                <div *ngFor="let submission of (submissions | async)?.get(team)">
-                    {{1}}
-                </div>
+            <p class="score">
+                {{(score(i) | async)}}
+            </p>
+            <p class="counter">
+                <span class="CORRECT">{{(correctSubmissions(i) | async)}}</span> |
+                <span class="WRONG">{{(wrongSubmissions(i) | async)}}</span> |
+                <span class="INDETERMINATE">{{(indeterminate(i) | async)}}</span>
+            </p>
+        </div>
+        <div  class="submissions">
+            <div *ngFor="let submission of (submissionForTeam(i) | async)" [className]="'submission '+submission.status">
             </div>
         </div>
-    </div> 
+    </div>
 </mat-card>
 

@@ -1,2 +1,15 @@
-mat-card {
+.task-preview {
+  height: 30vh;
+  width: 100%;
+  background-color: black;
+  display: table;
+}
+
+p.preview-text {
+
+  font-size: 1.5em;
+
+  text-align:center;
+  vertical-align: middle;
+  display: table-cell;
 }

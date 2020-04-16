@@ -9,13 +9,14 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import {MediaItem} from './mediaItem';
 
 
 export interface Submission { 
     team: number;
+    member: number;
     timestamp: number;
-    collection: string;
-    item: string;
+    item: MediaItem;
     start?: number;
     end?: number;
     status: Submission.StatusEnum;

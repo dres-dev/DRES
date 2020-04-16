@@ -12,6 +12,7 @@ import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.run.RunExecutor
 import dres.run.RunManager
+import dres.run.score.scoreboard.Score
 import dres.run.score.scoreboard.ScoreOverview
 import dres.utilities.extensions.errorResponse
 import dres.utilities.extensions.streamFile
@@ -176,7 +177,7 @@ class ListCompetitionScoreHandler : AbstractCompetitionRunRestHandler(), GetRest
     }
 }
 
-class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<ScoreOverview>> {
+class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<ScoreOverview> {
 
     override val route = "run/:runId/score/task"
 
@@ -184,17 +185,19 @@ class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHand
             summary = "Returns the overviews of all score boards for the current task.",
             path = "/api/run/:runId/score/task",
             tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", Long::class, "Competition run ID")],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<ScoreOverview>::class)]),
+                OpenApiResponse("200", [OpenApiContent(ScoreOverview::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): List<ScoreOverview> { //FIXME
+    override fun doGet(ctx: Context): ScoreOverview {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-        /*return run.currentTask?.scorer ?:*/ throw  ErrorStatusException(400, "Not scoreboards available. There is probably no run going on.")
+        val scores = run.currentTaskScore?.scores() ?: throw ErrorStatusException(400, "Run $runId doesn't seem to have a running task.")
+        return ScoreOverview("task", scores.map { (k,v) -> Score(k, v) })
     }
 }
 

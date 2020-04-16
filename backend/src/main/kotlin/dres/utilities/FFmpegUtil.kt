@@ -9,7 +9,7 @@ import java.nio.file.Path
 
 object FFmpegUtil {
 
-    private val ffmpegBin = Path.of("ext/ffmpeg") //TODO make configurable
+    private val ffmpegBin = Path.of("ext/ffmpeg/win") //TODO detect correct os version //TODO make configurable
 
     fun extractFrame(video: Path, timecode: String, outputImage: Path) {
         FFmpeg.atPath(ffmpegBin)

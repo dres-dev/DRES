@@ -6,6 +6,7 @@ import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.http.Handler
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -18,16 +19,15 @@ object AccessManager {
             permittedRoles.isEmpty() -> handler.handle(ctx) //fallback in case no roles are set, none are required
             permittedRoles.contains(RestApiRole.ANYONE) -> handler.handle(ctx)
             rolesOfSession(ctx.sessionId()).any { it in permittedRoles } -> handler.handle(ctx)
-            else -> ctx.status(401).json("Unauthorized")
+            else -> ctx.status(401)
         }
     }
 
-    private val sessionRoleMap = mutableMapOf<String, MutableSet<Role>>()
-    private val sessionUserMap = mutableMapOf<String, Long>()
+    private val sessionRoleMap = ConcurrentHashMap<String, MutableSet<Role>>()
+    private val sessionUserMap = ConcurrentHashMap<String, Long>()
 
     /** Map keeping track of all [RunManager]s a specific user is eligible for. */
-    private val usersToRunMap = mutableMapOf<Long,MutableSet<RunManager>>()
-    private val usersToRunLock = ReentrantReadWriteLock()
+    private val usersToRunMap = ConcurrentHashMap<Long,MutableSet<RunManager>>()
 
 
     fun setUserforSession(sessionId: String, user: User){
@@ -63,7 +63,7 @@ object AccessManager {
      *
      * @param runManager The [RunManager] to register.
      */
-    fun registerRunManager(runManager: RunManager) = this.usersToRunLock.write {
+    fun registerRunManager(runManager: RunManager)  {
         runManager.competitionDescription.teams.flatMap { t -> t.users }.forEach {
             if (this.usersToRunMap.containsKey(it)) {
                 this.usersToRunMap[it]?.add(runManager)
@@ -79,7 +79,7 @@ object AccessManager {
      *
      * @param runManager The [RunManager] to deregister.
      */
-    fun deregisterRunManager(runManager: RunManager) = this.usersToRunLock.write {
+    fun deregisterRunManager(runManager: RunManager) {
         /* Remove the RunManager. */
         val idsToDrop = mutableSetOf<Long>()
         for ((k,v) in this.usersToRunMap) {
@@ -100,8 +100,8 @@ object AccessManager {
      *
      * @param userId The ID of the [User] to return [RunManager]s for.
      */
-    fun getRunManagerForUser(userId: Long): Set<RunManager> = this.usersToRunLock.read {
-        this.usersToRunMap[userId] ?: emptySet()
+    fun getRunManagerForUser(userId: Long): Set<RunManager> {
+        return this.usersToRunMap[userId] ?: emptySet()
     }
 }
 

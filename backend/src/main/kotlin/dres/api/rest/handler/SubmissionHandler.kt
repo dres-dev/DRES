@@ -7,9 +7,10 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
-import dres.data.model.basics.MediaCollection
-import dres.data.model.basics.MediaItem
-import dres.data.model.basics.MediaItemSegment
+import dres.data.model.basics.media.MediaCollection
+import dres.data.model.basics.media.MediaItem
+import dres.data.model.basics.media.MediaItemSegment
+import dres.data.model.basics.media.PlayableMediaItem
 import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
@@ -69,21 +70,21 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
         } ?: throw ErrorStatusException(404, "Media collection '$collectionParam' could not be found.")
 
         /* Find media item. */
-        val itemParam = map[PARAMETER_NAME_COLLECTION]?.first() ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_COLLECTION' is missing but required!'")
+        val itemParam = map[PARAMETER_NAME_ITEM]?.first() ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_ITEM' is missing but required!'")
         val item = this.items.find {
             it.name == itemParam && it.collection == collectionId
-        } ?:  throw ErrorStatusException(404, "Media collection '$collectionParam.$itemParam' could not be found.")
+        } ?:  throw ErrorStatusException(404, "Media collection '$itemParam (collection = $collectionId)' could not be found.")
 
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) -> {
                 val time = this.shotToTime(map[PARAMETER_NAME_FRAME]?.first()!!, item)
                 Submission(team, member, submissionTime, item, time.first, time.second)
             }
-            map.containsKey(PARAMETER_NAME_FRAME) -> {
+            map.containsKey(PARAMETER_NAME_FRAME) && (item is PlayableMediaItem) -> {
                 val time = this.frameToTime(map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull() ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number."), item)
                 Submission(team, member, submissionTime, item, time, time)
             }
-            map.containsKey(PARAMETER_NAME_TIMECODE) -> {
+            map.containsKey(PARAMETER_NAME_TIMECODE) && (item is PlayableMediaItem) -> {
                 val time = this.timecodeToTime(map[PARAMETER_NAME_TIMECODE]?.first()!!, item)
                 Submission(team, member, submissionTime, item, time, time)
             }
@@ -106,9 +107,8 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
      *
      * @param frame The []
      */
-    private fun frameToTime(frame: Int, item: MediaItem): Long {
-        val fps = 25L /* TODO: Extract from MediaItem. */
-        return (frame / fps) * 1000L
+    private fun frameToTime(frame: Int, item: PlayableMediaItem): Long {
+        return ((frame / item.fps) * 1000.0).toLong()
     }
 
     /**
@@ -116,7 +116,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
      *
      * @param frame The []
      */
-    private fun timecodeToTime(timecode: String, item: MediaItem): Long {
+    private fun timecodeToTime(timecode: String, item: PlayableMediaItem): Long {
         return 0L /* TODO: Make transformation. */
     }
 
@@ -146,7 +146,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
 
         return when (result) {
             SubmissionStatus.CORRECT -> SuccessStatus("Submission correct!")
-            SubmissionStatus.WRONG -> SuccessStatus("Submission correct! Try again")
+            SubmissionStatus.WRONG -> SuccessStatus("Submission incorrect! Try again")
             SubmissionStatus.INDETERMINATE -> SuccessStatus("Submission received. Waiting for verdict!")
             SubmissionStatus.UNDECIDABLE -> SuccessStatus("Submission undecidable. Try again!")
         }

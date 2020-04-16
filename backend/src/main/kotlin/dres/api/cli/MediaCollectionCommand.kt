@@ -23,26 +23,26 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         this.subcommands(CreateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), AddMediaItemCommand(), ExportCollectionCommand(), ImportCollectionCommand(), DeleteCollectionCommand())
     }
 
-    abstract inner class AbstractCollectionCommand(name: String) : CliktCommand(name = name) {
-        private val collectionNameInput: String? by option("-c", "--collection")
+    abstract inner class AbstractCollectionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {
+        private val collectionNameInput: String? by option("-c", "--collection", help = "Name of the Collection")
 
-        private val collectionIdInput: Long? by option("-i", "--id").convert { it.toLong() }
+        private val collectionIdInput: Long? by option("-i", "--id", help = "Id of the Collection").convert { it.toLong() }
 
         fun actualCollectionId(): Long? = this.collectionIdInput ?: this.collectionNameInput?.let {
             this@MediaCollectionCommand.collections.find { c -> c.name == it }?.id
         }
     }
 
-    inner class CreateCollectionCommand : CliktCommand(name = "create") {
+    inner class CreateCollectionCommand : CliktCommand(name = "create", help = "Creates a new Collection") {
 
-        private val name: String by option("-n", "--name")
+        private val name: String by option("-n", "--name", help = "Name of the Collection to be created")
                 .required()
                 .validate { require(!this@MediaCollectionCommand.collections.any { c -> c.name == it }) { "collection with name '$it' already exists" } }
 
-        private val description: String by option("-d", "--description")
+        private val description: String by option("-d", "--description", help = "Description of the Collection to be created")
                 .default("")
 
-        private val basePath: String by option("-p", "--path")
+        private val basePath: String by option("-p", "--path", help = "Base path of the Collection all contained Items will be specified relative to")
                 .required()
 
         override fun run() {
@@ -53,7 +53,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         }
     }
 
-    inner class ListCollectionsCommand : CliktCommand(name = "list") {
+    inner class ListCollectionsCommand : CliktCommand(name = "list", help = "Lists all Collections") {
         override fun run() {
             println("Collections:")
             this@MediaCollectionCommand.collections.forEach {
@@ -62,7 +62,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         }
     }
 
-    inner class ShowCollectionCommand : AbstractCollectionCommand("show") {
+    inner class ShowCollectionCommand : AbstractCollectionCommand("show", help = "Shows the content of a Collection") {
         override fun run() {
 
             val collectionId = this.actualCollectionId()
@@ -75,7 +75,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         }
     }
 
-    inner class DeleteCollectionCommand : AbstractCollectionCommand("delete") {
+    inner class DeleteCollectionCommand : AbstractCollectionCommand("delete", help = "Deletes a Collection") {
         override fun run() {
 
             val collectionId = this.actualCollectionId()
@@ -99,17 +99,17 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         }
     }
 
-    inner class AddMediaItemCommand : NoOpCliktCommand(name = "add") {
+    inner class AddMediaItemCommand : NoOpCliktCommand(name = "add", help = "Adds a Media Item to a Collection") {
 
         init {
             this.subcommands(AddImageCommand(), AddVideoCommand())
         }
 
 
-        inner class AddImageCommand : AbstractCollectionCommand(name = "image") {
+        inner class AddImageCommand : AbstractCollectionCommand(name = "image", help = "Adds a new Image Media Item") {
 
-            private val name: String by option("-n", "--name").required()
-            private val path: String by option("-p", "--path")
+            private val name: String by option("-n", "--name", help = "Name of the Item").required()
+            private val path: String by option("-p", "--path", help = "Path of the Item relative to the Collection base path")
                     .required()
 
             override fun run() {
@@ -132,10 +132,10 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
         }
 
-        inner class AddVideoCommand : AbstractCollectionCommand(name = "video") {
+        inner class AddVideoCommand : AbstractCollectionCommand(name = "video", help = "Adds a new Video Media Item") {
 
-            private val name: String by option("-n", "--name").required()
-            private val path: String by option("-p", "--path")
+            private val name: String by option("-n", "--name", help = "Name of the Item").required()
+            private val path: String by option("-p", "--path", help = "Path of the Item relative to the Collection base path")
                     .required()
 
             private val duration: Long by option("-d", "--duration", help = "video duration in seconds").long().required()
@@ -162,10 +162,10 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
     }
 
-    inner class ExportCollectionCommand : AbstractCollectionCommand("export") {
+    inner class ExportCollectionCommand : AbstractCollectionCommand("export", help = "Exports a Collection to a CSV file") {
 
-        private val outputStream: OutputStream by option("-f", "--file")
-                .convert { FileOutputStream(it) as OutputStream }
+        private val outputStream: OutputStream by option("-f", "--file", help = "Path of the file the Collection is to be exported to")
+                .convert { FileOutputStream(it) }
                 .default(System.out)
 
         private fun toRow(item: MediaItem): List<String?> = when (item) {
@@ -185,9 +185,9 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         }
     }
 
-    inner class ImportCollectionCommand : AbstractCollectionCommand("import") {
+    inner class ImportCollectionCommand : AbstractCollectionCommand("import", help = "Imports a Collection from a CSV file") {
 
-        private val inputFile: File by option("-f", "--file")
+        private val inputFile: File by option("-f", "--file", help = "Path of the file the Collection is to be imported from")
                 .convert { File(it) }
                 .required()
                 .validate { require(it.exists()) { "Input File not found" } }

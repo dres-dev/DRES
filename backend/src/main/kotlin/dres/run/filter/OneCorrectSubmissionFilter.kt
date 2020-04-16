@@ -9,5 +9,5 @@ class OneCorrectSubmissionPerTeamFilter(private val taskRun: CompetitionRun.Task
 }
 
 class OneCorrectSubmissionPerTeamToolFilter(private val taskRun: CompetitionRun.TaskRun) : SubmissionFilter {
-    override fun test(submission: Submission): Boolean = taskRun.submissions.none { it.status == SubmissionStatus.CORRECT && it.team == submission.team && it.tool == submission.tool }
+    override fun test(submission: Submission): Boolean = taskRun.submissions.none { it.status == SubmissionStatus.CORRECT && it.team == submission.team && it.member == submission.member }
 }

@@ -1,10 +1,14 @@
 package dres.api.rest
 
 import dres.data.model.admin.User
+import dres.run.RunManager
 import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.http.Handler
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 
 object AccessManager {
@@ -20,6 +24,11 @@ object AccessManager {
 
     private val sessionRoleMap = mutableMapOf<String, MutableSet<Role>>()
     private val sessionUserMap = mutableMapOf<String, Long>()
+
+    /** Map keeping track of all [RunManager]s a specific user is eligible for. */
+    private val usersToRunMap = mutableMapOf<Long,MutableSet<RunManager>>()
+    private val usersToRunLock = ReentrantReadWriteLock()
+
 
     fun setUserforSession(sessionId: String, user: User){
 
@@ -49,7 +58,51 @@ object AccessManager {
 
     fun getUserIdforSession(sessionId: String): Long? = sessionUserMap[sessionId]
 
+    /**
+     * Registers a [RunManager] for quick lookup of user ID to eligible [RunManager].
+     *
+     * @param runManager The [RunManager] to register.
+     */
+    fun registerRunManager(runManager: RunManager) = this.usersToRunLock.write {
+        runManager.competitionDescription.teams.flatMap { t -> t.users }.forEach {
+            if (this.usersToRunMap.containsKey(it)) {
+                this.usersToRunMap[it]?.add(runManager)
+            } else {
+                this.usersToRunMap.put(it, mutableSetOf(runManager))
+            }
+        }
 
+    }
+
+    /**
+     * Registers a [RunManager] for quick lookup of user ID to eligible [RunManager].
+     *
+     * @param runManager The [RunManager] to deregister.
+     */
+    fun deregisterRunManager(runManager: RunManager) = this.usersToRunLock.write {
+        /* Remove the RunManager. */
+        val idsToDrop = mutableSetOf<Long>()
+        for ((k,v) in this.usersToRunMap) {
+            if (v.contains(runManager)) {
+                v.remove(runManager)
+                if (v.isEmpty()) {
+                    idsToDrop.add(k)
+                }
+            }
+        }
+
+        /* Cleanup the map. */
+        idsToDrop.forEach { this.usersToRunMap.remove(it) }
+    }
+
+    /**
+     * Returns all registered [RunManager]s for the given [userId].
+     *
+     * @param userId The ID of the [User] to return [RunManager]s for.
+     */
+    fun getRunManagerForUser(userId: Long): Set<RunManager> = this.usersToRunLock.read {
+        this.usersToRunMap[userId] ?: emptySet()
+    }
 }
 
 enum class RestApiRole : Role { ANYONE, VIEWER, PARTICIPANT, JUDGE, ADMIN }

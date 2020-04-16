@@ -13,7 +13,7 @@ class AvsTaskScorer: IncrementalTaskRunScorer {
     private val correctSubmissions = mutableSetOf<Submission>()
     private val correctSubmissionsPerTeam = mutableMapOf<Int, MutableSet<Submission>>()
 
-    private val ranges = mutableMapOf<String, List<TemporalRange>>()
+    private val ranges = mutableMapOf<Long, List<TemporalRange>>()
 
     private val wrongSubmissions = mutableSetOf<Submission>()
     private val wrongSubmissionsPerTeam = mutableMapOf<Int, MutableSet<Submission>>()
@@ -36,11 +36,11 @@ class AvsTaskScorer: IncrementalTaskRunScorer {
                 addToMap(correctSubmissionsPerTeam, submission)
 
                 //update quantization
-                if (!ranges.containsKey(submission.item)){
-                    ranges[submission.item] = listOf(submission.temporalRange())
+                if (!ranges.containsKey(submission.item.id)){
+                    ranges[submission.item.id] = listOf(submission.temporalRange())
                 }else{
-                    val merged = TimeUtil.merge(ranges[submission.item]!!.plusElement(submission.temporalRange()))
-                    ranges[submission.item] = merged
+                    val merged = TimeUtil.merge(ranges[submission.item.id]!!.plusElement(submission.temporalRange()))
+                    ranges[submission.item.id] = merged
                 }
 
             }
@@ -59,7 +59,7 @@ class AvsTaskScorer: IncrementalTaskRunScorer {
     private fun countRanges(submissions: Collection<Submission>): Int {
 
         return submissions.groupBy { it.item }.map {(item, subs) ->
-            val rangesInItem = ranges[item]!!
+            val rangesInItem = ranges[item.id]!!
 
             subs.map {
                 val tr = it.temporalRange()

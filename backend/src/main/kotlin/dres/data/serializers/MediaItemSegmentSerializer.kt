@@ -14,8 +14,6 @@ object MediaItemSegmentSerializer: Serializer<MediaItemSegment> {
     }
 
     override fun deserialize(input: DataInput2, available: Int): MediaItemSegment {
-        return MediaItemSegment(
-                input.unpackLong(), input.unpackLong(), input.readUTF(), TemporalRangeSerializer.deserialize(input, available)
-        )
+        return MediaItemSegment(input.unpackLong(), input.unpackLong(), input.readUTF(), TemporalRangeSerializer.deserialize(input, available))
     }
 }

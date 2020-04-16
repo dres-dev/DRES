@@ -133,16 +133,9 @@ object RestApi {
             }
 
             path("submit") {
-                val submissionHandler = SubmissionHandler()
+                val submissionHandler = SubmissionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaSegments)
                 get(submissionHandler::get, submissionHandler.permittedRoles)
             }
-
-            path("submit/:runId") {
-                val submissionHandler = OpenSubmissionHandler()
-                get(submissionHandler::get, submissionHandler.permittedRoles)
-            }
-
-
         }.before {
             //TODO log request
         }

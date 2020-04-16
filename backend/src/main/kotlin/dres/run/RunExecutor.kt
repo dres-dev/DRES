@@ -1,5 +1,6 @@
 package dres.run
 
+import dres.api.rest.AccessManager
 import dres.api.rest.types.run.websocket.ClientMessage
 import dres.api.rest.types.run.websocket.ClientMessageType
 import dres.api.rest.types.run.websocket.ServerMessage
@@ -58,6 +59,9 @@ object RunExecutor : Consumer<WsHandler> {
                     if (k.isDone || k.isCancelled) {
                         stamp = this@RunExecutor.runManagerLock.tryConvertToWriteLock(stamp)
                         if (stamp > -1L) {
+                            /* Deregister the RunManager. */
+                            AccessManager.deregisterRunManager(this@RunExecutor.runManagers[v]!!)
+
                             /* Cleanup. */
                             this@RunExecutor.results.remove(k)
                             this@RunExecutor.runManagers.remove(v)
@@ -144,6 +148,11 @@ object RunExecutor : Consumer<WsHandler> {
         if (this.runManagers.containsKey(manager.runId)) {
             throw IllegalArgumentException("This RunExecutor already runs a RunManager with the given ID ${manager.runId}. The same RunManager cannot be executed twice!")
         }
+
+        /* Register [RunManager] with AccessManager. */
+        AccessManager.registerRunManager(manager)
+
+        /* Setup all the required data structures. */
         this.runManagers[manager.runId] = manager
         this.observingClients[manager.runId] = HashSet()
         this.results[this.executor.submit(manager)] = manager.runId /* Register future for cleanup thread. */

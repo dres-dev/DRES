@@ -164,8 +164,10 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
     inner class ExportCollectionCommand : AbstractCollectionCommand("export", help = "Exports a Collection to a CSV file") {
 
+        private fun fileOutputStream(file: String): OutputStream = FileOutputStream(file)
+
         private val outputStream: OutputStream by option("-f", "--file", help = "Path of the file the Collection is to be exported to")
-                .convert { FileOutputStream(it) }
+                .convert { fileOutputStream(it) }
                 .default(System.out)
 
         private fun toRow(item: MediaItem): List<String?> = when (item) {

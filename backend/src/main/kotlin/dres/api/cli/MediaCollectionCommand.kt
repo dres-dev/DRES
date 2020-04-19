@@ -238,11 +238,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 collectionItems.none { it.name == item.name && it.location == item.location && it.itemType == it.itemType }
             }
 
-            var i = 0
-            itemsToInsert.forEach {
-                this@MediaCollectionCommand.items.append(it)
-                print("Importing media item ${i++}/${itemsToInsert.size}...\r")
-            }
+            this@MediaCollectionCommand.items.batchAppend(itemsToInsert)
             println("Successfully imported ${itemsToInsert.size} of ${rows.size} rows")
         }
 
@@ -266,7 +262,9 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             print("loading collection information...")
             val itemIds = this@MediaCollectionCommand.items.filter { it.collection == collectionId }.map { it.name to it.id }.toMap()
             val mediaItemIds = itemIds.values.toSet()
-            val existingSegments = this@MediaCollectionCommand.segments.filter { mediaItemIds.contains(it.mediaItemId) }.map { it.mediaItemId to it.name }.toMutableSet()
+            print(".")
+            val existingSegments = this@MediaCollectionCommand.segments
+                    .filter { mediaItemIds.contains(it.mediaItemId) }.map { it.mediaItemId to it.name }.toMutableSet()
             println("done")
 
             print("reading input file...")
@@ -294,13 +292,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             println("done, generated ${segments.size} valid, non-duplicate segments")
 
             print("storing segments...")
-            var i = 0
-            segments.forEach {
-                this@MediaCollectionCommand.segments.append(it)
-                if (++i % 1000 == 0) {
-                    print(".")
-                }
-            }
+            this@MediaCollectionCommand.segments.batchAppend(segments)
             println("done")
         }
 

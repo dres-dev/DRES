@@ -12,6 +12,7 @@ import dres.data.dbo.DAO
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.media.MediaItemSegment
+import dres.data.model.basics.time.TemporalRange
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -20,7 +21,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         NoOpCliktCommand(name = "collection") {
 
     init {
-        this.subcommands(CreateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), AddMediaItemCommand(), ExportCollectionCommand(), ImportCollectionCommand(), DeleteCollectionCommand())
+        this.subcommands(CreateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), AddMediaItemCommand(), ExportCollectionCommand(), ImportCollectionCommand(), DeleteCollectionCommand(), ImportMediaSegmentsCommand())
     }
 
     abstract inner class AbstractCollectionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {
@@ -71,7 +72,16 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 return
             }
 
-            println(this@MediaCollectionCommand.items[collectionId])
+            val collectionItems = this@MediaCollectionCommand.items.filter { it.collection == collectionId }
+
+            collectionItems.forEach {
+                println(it)
+            }
+
+            println("listed ${collectionItems.size} Media Items")
+
+
+
         }
     }
 
@@ -234,6 +244,64 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 print("Importing media item ${i++}/${itemsToInsert.size}...\r")
             }
             println("Successfully imported ${itemsToInsert.size} of ${rows.size} rows")
+        }
+
+    }
+
+    inner class ImportMediaSegmentsCommand : AbstractCollectionCommand("importSegments", "Imports the Segment information for the Items in a Collection from a CSV file") {
+
+        private val inputFile: File by option("-f", "--file", help = "Path of the file the Segments are to be imported from")
+                .convert { File(it) }
+                .required()
+                .validate { require(it.exists()) { "Input File not found" } }
+
+        override fun run() {
+
+            val collectionId = this.actualCollectionId()
+            if (collectionId == null) {
+                println("Collection not found.")
+                return
+            }
+
+            print("loading collection information...")
+            val itemIds = this@MediaCollectionCommand.items.filter { it.collection == collectionId }.map { it.name to it.id }.toMap()
+            val mediaItemIds = itemIds.values.toSet()
+            val existingSegments = this@MediaCollectionCommand.segments.filter { mediaItemIds.contains(it.mediaItemId) }.map { it.mediaItemId to it.name }.toMutableSet()
+            println("done")
+
+            print("reading input file...")
+            val rows: List<Map<String, String>> = csvReader().readAllWithHeader(inputFile)
+            println("done, read ${rows.size} rows")
+
+            print("analyzing segments...")
+            val segments = rows.map {
+                val video = it["video"] ?: return@map null
+                val name = it["name"] ?: return@map null
+                val start = it["start"]?.toLong() ?: return@map null
+                val end = it["end"]?.toLong() ?: return@map null
+
+                val videoId = itemIds[video] ?: return@map null
+
+                //check for duplicates
+                val pair = videoId to name
+                if (existingSegments.contains(pair)){
+                    return@map null
+                }
+                existingSegments.add(pair)
+
+                MediaItemSegment(-1, videoId, name, TemporalRange(start, end))
+            }.filterNotNull()
+            println("done, generated ${segments.size} valid, non-duplicate segments")
+
+            print("storing segments...")
+            var i = 0
+            segments.forEach {
+                this@MediaCollectionCommand.segments.append(it)
+                if (++i % 1000 == 0) {
+                    print(".")
+                }
+            }
+            println("done")
         }
 
     }

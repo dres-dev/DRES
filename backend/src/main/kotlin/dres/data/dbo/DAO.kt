@@ -113,6 +113,20 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
     }
 
     /**
+     * Appends the given values using this [DAO]
+     *
+     * @param values An iterable of the values [T] that should be appended.
+     */
+    fun batchAppend(values: Iterable<T?>) = this.lock.write {
+        for (value in values) {
+            val next = this.autoincrement.incrementAndGet()
+            value?.id = next
+            this.data[next] = value
+        }
+        this.db.commit()
+    }
+
+    /**
      * Closes this [DAO]
      */
     override fun close() {

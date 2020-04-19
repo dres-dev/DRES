@@ -1,27 +1,36 @@
 package dres.run.validation.judged
 
+import dres.data.model.basics.media.MediaItem
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.validation.interfaces.JudgementValidator
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.HashMap
 
 /**
  * A validator class that checks, if a submission is correct based on a manual judgement by a user.
  *
  * TODO: Track these in the RunExecutor
- * TODO: add mechanism to avoid judging an already judged element
  *
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */
 class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = null): JudgementValidator { //TODO better name
 
+    /** Helper class to store submission information independent of source */
+    private data class ItemRange(val item: MediaItem, val start: Long, val end: Long){
+        constructor(submission: Submission): this(submission.item, submission.start ?: 0, submission.end ?: 0)
+    }
+
     /** Internal queue that keeps track of all the [Submission]s in need of a verdict. */
     private val queue: Queue<Submission> = LinkedList()
 
     /** Internal map of all [Submission]s that have been retrieved by a judge and are pending a verdict. */
     private val waiting = HashMap<String, Submission>()
+
+    /** Internal map of already judged [Submission]s, independent of their source. */
+    private val cache: MutableMap<ItemRange, SubmissionStatus> = ConcurrentHashMap()
 
     /** Returns the number of [Submission]s that are currently pending a judgement. */
     override val pending: Int
@@ -37,8 +46,14 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
      */
     @Synchronized
     override fun validate(submission: Submission) {
-        this.queue.offer(submission)
-        submission.status = SubmissionStatus.INDETERMINATE
+        //check cache first
+        val cachedStatus = this.cache[ItemRange(submission)]
+        if (cachedStatus != null) {
+            submission.status = cachedStatus
+        } else {
+            this.queue.offer(submission)
+            submission.status = SubmissionStatus.INDETERMINATE
+        }
     }
 
     /**
@@ -71,7 +86,15 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
         require(this.waiting.containsKey(token)) { "This JudgementValidator does not contain a submission for the token '$token'." }
         val submission = this.waiting.getValue(token)
         submission.status = verdict
-        this.callback?.invoke(submission) /* Invoke callback if any. */
+
+        //add to cache
+        this.cache[ItemRange(submission)] = verdict
+
+        /* Invoke callback if any. */
+        this.callback?.invoke(submission)
+
+        //remove from waiting map
+        this.waiting.remove(token)
     }
 
     /**

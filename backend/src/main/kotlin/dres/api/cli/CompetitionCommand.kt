@@ -20,7 +20,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
         this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand(), PrepareCompetitionCommand())
     }
 
-    abstract inner class AbstractCompetitionCommand(private val name: String) : CliktCommand(name = name) {
+    abstract inner class AbstractCompetitionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {
 
         protected val competitionId: Long by option("-c", "--competition")
                 .convert { this@CompetitionCommand.competitions.find { c -> c.name == it }?.id ?: -1 }
@@ -29,12 +29,12 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
 
     }
 
-    inner class CreateCompetitionCommand : CliktCommand(name = "create") {
-        private val name: String by option("-n", "--name")
+    inner class CreateCompetitionCommand : CliktCommand(name = "create", help = "Creates a new Competition") {
+        private val name: String by option("-n", "--name", help = "Name of the new Competition")
                 .required()
                 .validate { require(it.isNotEmpty()) { "Competition name must be non empty." } }
 
-        private val description: String by option("-d", "--description")
+        private val description: String by option("-d", "--description", help = "Description of the new Competition")
                 .required()
                 .validate {require(it.isNotEmpty()) { "Competition description must be non empty." } }
 
@@ -46,7 +46,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
     }
 
 
-    inner class ListCompetitionCommand : CliktCommand(name = "list") {
+    inner class ListCompetitionCommand : CliktCommand(name = "list", help = "Lists an overview of all Competitions") {
         override fun run() {
             println("Competitions:")
             this@CompetitionCommand.competitions.forEach {
@@ -55,7 +55,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
         }
     }
 
-    inner class ShowCompetitionCommand : AbstractCompetitionCommand(name = "show") {
+    inner class ShowCompetitionCommand : AbstractCompetitionCommand(name = "show", help = "Shows details of a Competition") {
 
         override fun run() {
             val competition = this@CompetitionCommand.competitions[competitionId]!!
@@ -75,7 +75,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
 
     }
 
-    inner class PrepareCompetitionCommand : AbstractCompetitionCommand(name = "prepare") {
+    inner class PrepareCompetitionCommand : AbstractCompetitionCommand(name = "prepare", help = "Checks the used Media Items and generates precomputed Queries") {
 
         private val cacheLocation = File("task-cache") //TODO make configurable
 

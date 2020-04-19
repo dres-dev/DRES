@@ -31,7 +31,7 @@ sealed class AuditLogEntry(val type: AuditLogEntryType): Entity{
 }
 
 @Serializable
-class CompetitionStartAuditLogEntry(override var id: Long, val competition: String, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.COMPETITION_START){
+data class CompetitionStartAuditLogEntry(override var id: Long, val competition: String, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.COMPETITION_START){
     constructor(competition: String, api: LogEventSource, user: String?): this(-1, competition, api, user)
 }
 

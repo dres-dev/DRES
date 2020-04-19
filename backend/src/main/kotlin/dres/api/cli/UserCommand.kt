@@ -9,8 +9,10 @@ import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.long
-import dres.data.dbo.DAO
-import dres.data.model.admin.*
+import dres.data.model.admin.PlainPassword
+import dres.data.model.admin.Role
+import dres.data.model.admin.User
+import dres.data.model.admin.UserName
 import dres.mgmt.admin.UserManager
 import dres.mgmt.admin.UserManager.MIN_LENGTH_PASSWORD
 import dres.mgmt.admin.UserManager.MIN_LENGTH_USERNAME
@@ -21,7 +23,7 @@ import dres.mgmt.admin.UserManager.MIN_LENGTH_USERNAME
  * @author Ralph Gasser
  * @version 1.0
  */
-class UserCommand() : NoOpCliktCommand(name = "users") {
+class UserCommand : NoOpCliktCommand(name = "users") {
 
 
     init {
@@ -31,18 +33,18 @@ class UserCommand() : NoOpCliktCommand(name = "users") {
     /**
      * [CliktCommand] to create a new [User].
      */
-    inner class CreateUserCommand : CliktCommand(name = "create") {
-        private val username: UserName by option("-u", "--username")
+    inner class CreateUserCommand : CliktCommand(name = "create", help = "Creates a new User") {
+        private val username: UserName by option("-u", "--username", help = "Username of at least $MIN_LENGTH_USERNAME characters length")
                 .convert { UserName(it) }
                 .required()
                 .validate { require(it.name.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
 
-        private val password: PlainPassword by option("-p", "--password")
+        private val password: PlainPassword by option("-p", "--password", help = "Password of at least $MIN_LENGTH_PASSWORD characters length")
                 .convert { PlainPassword(it) }
                 .required()
                 .validate { require(it.pass.length >= MIN_LENGTH_PASSWORD) { "Password for DRES password must consist of at least $MIN_LENGTH_PASSWORD characters." } }
 
-        private val role: Role by option("-r", "--role").enum<Role>().required()
+        private val role: Role by option("-r", "--role", help = "Role of the new User").enum<Role>().required()
 
         override fun run() {
             val successful = UserManager.create(username = this.username, password = this.password, role = role)
@@ -59,17 +61,17 @@ class UserCommand() : NoOpCliktCommand(name = "users") {
     /**
      * [CliktCommand] to update an existing [User].
      */
-    inner class UpdateUserCommand : CliktCommand(name = "update") {
+    inner class UpdateUserCommand : CliktCommand(name = "update", help = "Updates Password or Role of an existing User") {
         private val id: Long? by option("-i", "--id").long()
-        private val username: UserName? by option("-u", "--username")
+        private val username: UserName? by option("-u", "--username", help = "Username of the user to be updated")
                 .convert { UserName(it) }
                 .validate { require(it.name.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
 
-        private val password: PlainPassword? by option("-p", "--password")
+        private val password: PlainPassword? by option("-p", "--password", help = "New Password of at least $MIN_LENGTH_PASSWORD characters length")
                 .convert { PlainPassword(it) }
                 .validate { require(it.pass.length >= MIN_LENGTH_PASSWORD) { "Password for DRES password must consist of at least $MIN_LENGTH_PASSWORD characters." } }
 
-        private val role: Role? by option("-r", "--role").enum<Role>()
+        private val role: Role? by option("-r", "--role", help = "New user Role").enum<Role>()
 
         override fun run() {
             if (UserManager.id(id = this.id, username = this.username) == null) {
@@ -95,9 +97,9 @@ class UserCommand() : NoOpCliktCommand(name = "users") {
     /**
      * [CliktCommand] to delete a [User].
      */
-    inner class DeleteUserCommand : CliktCommand(name = "delete") {
+    inner class DeleteUserCommand : CliktCommand(name = "delete", help = "Deletes an existing User") {
         private val id: Long? by option("-i", "--id").long()
-        private val username: UserName? by option("-u", "--username")
+        private val username: UserName? by option("-u", "--username", help = "Username of the User to be deleted")
                 .convert { UserName(it) }
                 .validate { require(it.name.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
 
@@ -121,7 +123,7 @@ class UserCommand() : NoOpCliktCommand(name = "users") {
     /**
      * [CliktCommand] to list all [User]s.
      */
-    inner class ListUsers : CliktCommand(name = "list") {
+    inner class ListUsers : CliktCommand(name = "list", help = "Lists all Users") {
         override fun run() {
             println("Available users:")
             for (user in UserManager.list()) {
@@ -133,7 +135,7 @@ class UserCommand() : NoOpCliktCommand(name = "users") {
     /**
      * [CliktCommand] to list all [Role]s.
      */
-    inner class ListRoles : CliktCommand(name = "roles") {
+    inner class ListRoles : CliktCommand(name = "roles", help = "Lists all Roles") {
         override fun run() {
             println("Available roles: ${Role.values().joinToString(", ")}")
         }

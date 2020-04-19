@@ -245,7 +245,7 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
                 }
 
                 /** Update scoreboards on each iteration. */
-                this.scoreboards.forEach { it.update() }
+                this.scoreboards.forEach { it.update(this.run.runs) }
 
                 /** Sleep for 250ms. */
                 Thread.onSpinWait()
@@ -265,14 +265,14 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
                 }
 
                 /** Update scoreboards on each iteration. */
-                this.scoreboards.forEach { it.update() }
+                this.scoreboards.forEach { it.update(this.run.runs) }
 
                 /** Sleep for 100ms. */
                 Thread.sleep(100)
             }
 
             /** Update scoreboards on each iteration. */
-            this.scoreboards.forEach { it.update() }
+            this.scoreboards.forEach { it.update(this.run.runs) }
 
             /** Yield to other threads. */
             Thread.onSpinWait()

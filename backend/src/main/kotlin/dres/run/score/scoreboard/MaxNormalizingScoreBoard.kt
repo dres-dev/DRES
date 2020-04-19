@@ -3,7 +3,7 @@ package dres.run.score.scoreboard
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun
 
-class MaxNormalizingScoreBoard(private val name: String, private val run: CompetitionRun, private val taskFilter: (TaskDescription) -> Boolean, private val maxScoreNormalized: Double = 100.0) : Scoreboard {
+class MaxNormalizingScoreBoard(private val name: String, private val taskFilter: (TaskDescription) -> Boolean, private val maxScoreNormalized: Double = 100.0) : Scoreboard {
 
     private val scorePerTaskMap = mutableMapOf<TaskDescription, Map<Int, Double>>()
 
@@ -30,11 +30,11 @@ class MaxNormalizingScoreBoard(private val name: String, private val run: Compet
     override fun score(teamId: Int) = overallScoreMap()[teamId] ?: 0.0
 
 
-    override fun update() {
+    override fun update(runs: List<CompetitionRun.TaskRun>) {
 
-        val runs = run.runs.filter { it.started != null && taskFilter(it.task) }
+        val filteredRuns = runs.filter { it.started != null && taskFilter(it.task) }
 
-        val scoresPerTask = runs.map { it.task to it.scorer.scores() }
+        val scoresPerTask = filteredRuns.map { it.task to it.scorer.scores() }
 
         scorePerTaskMap.clear()
         scorePerTaskMap.putAll(scoresPerTask)

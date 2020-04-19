@@ -18,7 +18,11 @@
         </logger>
 
 
-        <Root level="info">
+        <logger name="dres" level="DEBUG">
+            <AppenderRef ref="Console"/>
+        </logger>
+
+        <Root level="INFO">
         </Root>
     </Loggers>
 </Configuration>

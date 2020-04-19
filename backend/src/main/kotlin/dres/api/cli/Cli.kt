@@ -2,7 +2,10 @@ package dres.api.cli
 
 
 import com.github.ajalt.clikt.core.NoOpCliktCommand
+import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.output.CliktHelpFormatter
+import com.github.ajalt.clikt.output.HelpFormatter
 import dres.data.dbo.DataAccessLayer
 import org.jline.builtins.Completers
 import org.jline.reader.Completer
@@ -104,6 +107,25 @@ object Cli {
         return matchList
     }
 
-    class DRESBaseCommand : NoOpCliktCommand(name = "dres")
+    class DRESBaseCommand : NoOpCliktCommand(name = "dres"){
+
+        init {
+            context { helpFormatter = CliHelpFormatter()}
+        }
+
+    }
+
+    class CliHelpFormatter : CliktHelpFormatter() {
+        override fun formatHelp(
+                prolog: String,
+                epilog: String,
+                parameters: List<HelpFormatter.ParameterHelp>,
+                programName: String
+        ) = buildString {
+            addOptions(parameters)
+            addArguments(parameters)
+            addCommands(parameters)
+        }
+    }
 
 }

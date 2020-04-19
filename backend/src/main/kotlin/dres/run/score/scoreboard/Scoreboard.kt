@@ -1,6 +1,7 @@
 package dres.run.score.scoreboard
 
 import dres.data.model.competition.Team
+import dres.data.model.run.CompetitionRun
 
 /**
  * Container for [Scoreboard].
@@ -33,7 +34,7 @@ interface Scoreboard {
     /**
      * Updates the [Scoreboard].
      */
-    fun update()
+    fun update(runs: List<CompetitionRun.TaskRun>)
 
     /**
      * Returns the name of the [Scoreboard]

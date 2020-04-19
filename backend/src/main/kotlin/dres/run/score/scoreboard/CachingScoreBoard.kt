@@ -1,5 +1,7 @@
 package dres.run.score.scoreboard
 
+import dres.data.model.run.CompetitionRun
+
 class CachingScoreBoard(private val board: Scoreboard): Scoreboard {
 
     //private var taskScores: List<Score> = board.taskScores()
@@ -17,7 +19,7 @@ class CachingScoreBoard(private val board: Scoreboard): Scoreboard {
         return taskScoreMap[teamId]!!
     }
 
-    override fun update() {
+    override fun update(runs: List<CompetitionRun.TaskRun>) {
         //taskScores = board.taskScores()
         overallScores = board.scores()
         taskScoreMap.clear()

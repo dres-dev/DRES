@@ -93,19 +93,27 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 println("Collection not found.")
                 return
             }
+            print("looking up Media Items...")
+            val itemIds = this@MediaCollectionCommand.items.filter { it.collection == collectionId }.map { it.id }
+            println("done, found ${itemIds.size} Items")
 
-            /* Delete media items belongig to the collection. */
-            val items = this@MediaCollectionCommand.items.filter { it.collection == collectionId }
-            var i = 1
-            items.forEach {
-                this@MediaCollectionCommand.items.delete(it)
-                print("Deleting media item ${i++}/${items.size}...\r")
-            }
+            print("looking up Media Item Segments...")
+            val itemIdSet = itemIds.toSet()
+            val segmentIds = this@MediaCollectionCommand.segments.filter { itemIdSet.contains(it.mediaItemId) }.map { it.id }
+            println("done, found ${segmentIds.size} Segments")
 
-            /* Delete actual collection. */
+            print("Deleting Media Item Segments...")
+            this@MediaCollectionCommand.segments.batchDelete(segmentIds)
+            println("done")
+
+            print("Deleting Media Items...")
+            this@MediaCollectionCommand.items.batchDelete(itemIds)
+            println("done")
+
+            print("Deleting Collection...")
             this@MediaCollectionCommand.collections.delete(collectionId)
+            println("done")
 
-            println("Collection with ID $collectionId and ${items.size} associated media items deleted!")
         }
     }
 

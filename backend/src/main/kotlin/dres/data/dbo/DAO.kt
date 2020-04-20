@@ -46,7 +46,7 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      * @param id The ID of the entry.
      * @return Entry [T]
      */
-    operator fun get(id: Long): T? = this.lock.optimisticRead { this.data[id] }
+    operator fun get(id: Long) = this.lock.optimisticRead { this.data[id] }
 
     /**
      * Returns true if value for given key exists and false otherwise.
@@ -182,5 +182,9 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
 
     fun find(predicate: (T) -> Boolean): T? = this.lock.optimisticRead {
         return this.data.values.find{ it != null && predicate(it) }
+    }
+
+    fun forEach(action: (T) -> Unit): Unit {
+        this.data.values.filterNotNull().forEach(action)
     }
 }

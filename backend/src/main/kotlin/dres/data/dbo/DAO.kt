@@ -179,4 +179,8 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
     fun <R> map(transform: (T) -> R): List<R> = this.lock.optimisticRead {
         return this.data.values.filterNotNull().map(transform)
     }
+
+    fun find(predicate: (T) -> Boolean): T? = this.lock.optimisticRead {
+        return this.data.values.find{ it != null && predicate(it) }
+    }
 }

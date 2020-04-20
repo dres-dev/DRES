@@ -76,6 +76,17 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      */
     fun delete(value: T) = this.delete(value.id)
 
+
+    /**
+     * Deletes all values with given ids
+     */
+    fun batchDelete(ids: Iterable<Long>) = this.lock.write {
+        for (id in ids){
+            this.data.remove(id)
+        }
+        this.db.commit()
+    }
+
     /**
      * Updates the value for the given ID with the new value [T]
      *
@@ -124,6 +135,7 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
             this.data[next] = value
         }
         this.db.commit()
+        this.data.values
     }
 
     /**
@@ -158,5 +170,13 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
             }
             throw NoSuchElementException("There is no element with ID ${this.id} for DAO '${this@DAO.name}'.")
         }
+    }
+
+    fun filter(predicate: (T) -> Boolean): List<T> = this.lock.optimisticRead {
+        return this.data.values.filterNotNull().filter(predicate)
+    }
+
+    fun <R> map(transform: (T) -> R): List<R> = this.lock.optimisticRead {
+        return this.data.values.filterNotNull().map(transform)
     }
 }

@@ -11,24 +11,17 @@ class DaoIndexer<T: Entity, K>(private val dao: DAO<T>, private val keyTransform
 
     init {
         //load DAO to index
-        update()
+        rebuild()
     }
 
     /**
      * rebuilds the index
      */
-    fun update() {
-        dao.forEach {
+    fun rebuild() {
+        val map = dao.groupBy ( keyTransform ).mapValues { it.value.map { e -> e.id }.toMutableList() }
+        index.clear()
+        index.putAll(map)
 
-            val key = keyTransform(it)
-
-            if (!index.containsKey(key)){
-                index[key] = mutableListOf(it.id)
-            } else {
-                index[key]!!.add(it.id)
-            }
-
-        }
     }
 
     operator fun get(key: K): List<T>{

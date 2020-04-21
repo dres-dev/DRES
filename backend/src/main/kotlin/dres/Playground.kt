@@ -32,40 +32,40 @@ object Playground {
 
         println(System.currentTimeMillis() - startTime)
 
-        startTime = System.currentTimeMillis()
-
-        val segment = mediaSegments.find { it.mediaItemId == item.id && it.name == shot }!!
-
-        print("finding in dao ")
-        println(System.currentTimeMillis() - startTime)
-
-        println(segment)
-
-
-        startTime = System.currentTimeMillis()
-
-        val allSegments = mediaSegments.map { it }
-
-        print("copy to list ")
-        println(System.currentTimeMillis() - startTime)
-
-        startTime = System.currentTimeMillis()
-
-        val segment2 = allSegments.find { it.mediaItemId == item.id && it.name == shot }!!
-
-        print("finding in list ")
-        println(System.currentTimeMillis() - startTime)
-
-
-        startTime = System.currentTimeMillis()
-        val allSegmentsMap = mediaSegments.map { Pair(it.mediaItemId, it.name) to it.range }.toMap()
-        print("copy to map ")
-        println(System.currentTimeMillis() - startTime)
-
-        startTime = System.currentTimeMillis()
-        val segment3 = allSegmentsMap[Pair(item.id, shot)]
-        print("lookup in map ")
-        println(System.currentTimeMillis() - startTime)
+//        startTime = System.currentTimeMillis()
+//
+//        val segment = mediaSegments.find { it.mediaItemId == item.id && it.name == shot }!!
+//
+//        print("finding in dao ")
+//        println(System.currentTimeMillis() - startTime)
+//
+//        println(segment)
+//
+//
+//        startTime = System.currentTimeMillis()
+//
+//        val allSegments = mediaSegments.map { it }
+//
+//        print("copy to list ")
+//        println(System.currentTimeMillis() - startTime)
+//
+//        startTime = System.currentTimeMillis()
+//
+//        val segment2 = allSegments.find { it.mediaItemId == item.id && it.name == shot }!!
+//
+//        print("finding in list ")
+//        println(System.currentTimeMillis() - startTime)
+//
+//
+//        startTime = System.currentTimeMillis()
+//        val allSegmentsMap = mediaSegments.map { Pair(it.mediaItemId, it.name) to it.range }.toMap()
+//        print("copy to map ")
+//        println(System.currentTimeMillis() - startTime)
+//
+//        startTime = System.currentTimeMillis()
+//        val segment3 = allSegmentsMap[Pair(item.id, shot)]
+//        print("lookup in map ")
+//        println(System.currentTimeMillis() - startTime)
 
         startTime = System.currentTimeMillis()
         val indexer = DaoIndexer(mediaSegments){Pair(it.mediaItemId, it.name)}

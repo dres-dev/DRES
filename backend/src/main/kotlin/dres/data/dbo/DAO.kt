@@ -184,7 +184,11 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
         return this.data.values.find{ it != null && predicate(it) }
     }
 
-    fun forEach(action: (T) -> Unit): Unit {
-        this.data.values.filterNotNull().forEach(action)
+    fun forEach(action: (T) -> Unit): Unit = this.lock.optimisticRead {
+        return this.data.values.filterNotNull().forEach(action)
+    }
+
+    fun <K> groupBy(keySelector: (T) -> K): Map<K, List<T>> = this.lock.optimisticRead {
+        return this.data.values.filterNotNull().groupBy(keySelector)
     }
 }

@@ -12,6 +12,7 @@ import dres.data.dbo.DAO
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.media.MediaItemSegment
+import dres.data.model.basics.time.TemporalRange
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -20,7 +21,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         NoOpCliktCommand(name = "collection") {
 
     init {
-        this.subcommands(CreateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), AddMediaItemCommand(), ExportCollectionCommand(), ImportCollectionCommand(), DeleteCollectionCommand())
+        this.subcommands(CreateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), AddMediaItemCommand(), ExportCollectionCommand(), ImportCollectionCommand(), DeleteCollectionCommand(), ImportMediaSegmentsCommand())
     }
 
     abstract inner class AbstractCollectionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {
@@ -71,7 +72,16 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 return
             }
 
-            println(this@MediaCollectionCommand.items[collectionId])
+            val collectionItems = this@MediaCollectionCommand.items.filter { it.collection == collectionId }
+
+            collectionItems.forEach {
+                println(it)
+            }
+
+            println("listed ${collectionItems.size} Media Items")
+
+
+
         }
     }
 
@@ -83,19 +93,27 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 println("Collection not found.")
                 return
             }
+            print("looking up Media Items...")
+            val itemIds = this@MediaCollectionCommand.items.filter { it.collection == collectionId }.map { it.id }
+            println("done, found ${itemIds.size} Items")
 
-            /* Delete media items belongig to the collection. */
-            val items = this@MediaCollectionCommand.items.filter { it.collection == collectionId }
-            var i = 1
-            items.forEach {
-                this@MediaCollectionCommand.items.delete(it)
-                print("Deleting media item ${i++}/${items.size}...\r")
-            }
+            print("looking up Media Item Segments...")
+            val itemIdSet = itemIds.toSet()
+            val segmentIds = this@MediaCollectionCommand.segments.filter { itemIdSet.contains(it.mediaItemId) }.map { it.id }
+            println("done, found ${segmentIds.size} Segments")
 
-            /* Delete actual collection. */
+            print("Deleting Media Item Segments...")
+            this@MediaCollectionCommand.segments.batchDelete(segmentIds)
+            println("done")
+
+            print("Deleting Media Items...")
+            this@MediaCollectionCommand.items.batchDelete(itemIds)
+            println("done")
+
+            print("Deleting Collection...")
             this@MediaCollectionCommand.collections.delete(collectionId)
+            println("done")
 
-            println("Collection with ID $collectionId and ${items.size} associated media items deleted!")
         }
     }
 
@@ -164,8 +182,10 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
     inner class ExportCollectionCommand : AbstractCollectionCommand("export", help = "Exports a Collection to a CSV file") {
 
+        private fun fileOutputStream(file: String): OutputStream = FileOutputStream(file)
+
         private val outputStream: OutputStream by option("-f", "--file", help = "Path of the file the Collection is to be exported to")
-                .convert { FileOutputStream(it) as OutputStream }
+                .convert { fileOutputStream(it) }
                 .default(System.out)
 
         private fun toRow(item: MediaItem): List<String?> = when (item) {
@@ -226,12 +246,62 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 collectionItems.none { it.name == item.name && it.location == item.location && it.itemType == it.itemType }
             }
 
-            var i = 0
-            itemsToInsert.forEach {
-                this@MediaCollectionCommand.items.append(it)
-                print("Importing media item ${i++}/${itemsToInsert.size}...\r")
-            }
+            this@MediaCollectionCommand.items.batchAppend(itemsToInsert)
             println("Successfully imported ${itemsToInsert.size} of ${rows.size} rows")
+        }
+
+    }
+
+    inner class ImportMediaSegmentsCommand : AbstractCollectionCommand("importSegments", "Imports the Segment information for the Items in a Collection from a CSV file") {
+
+        private val inputFile: File by option("-f", "--file", help = "Path of the file the Segments are to be imported from")
+                .convert { File(it) }
+                .required()
+                .validate { require(it.exists()) { "Input File not found" } }
+
+        override fun run() {
+
+            val collectionId = this.actualCollectionId()
+            if (collectionId == null) {
+                println("Collection not found.")
+                return
+            }
+
+            print("loading collection information...")
+            val itemIds = this@MediaCollectionCommand.items.filter { it.collection == collectionId }.map { it.name to it.id }.toMap()
+            val mediaItemIds = itemIds.values.toSet()
+            print(".")
+            val existingSegments = this@MediaCollectionCommand.segments
+                    .filter { mediaItemIds.contains(it.mediaItemId) }.map { it.mediaItemId to it.name }.toMutableSet()
+            println("done")
+
+            print("reading input file...")
+            val rows: List<Map<String, String>> = csvReader().readAllWithHeader(inputFile)
+            println("done, read ${rows.size} rows")
+
+            print("analyzing segments...")
+            val segments = rows.map {
+                val video = it["video"] ?: return@map null
+                val name = it["name"] ?: return@map null
+                val start = it["start"]?.toLong() ?: return@map null
+                val end = it["end"]?.toLong() ?: return@map null
+
+                val videoId = itemIds[video] ?: return@map null
+
+                //check for duplicates
+                val pair = videoId to name
+                if (existingSegments.contains(pair)){
+                    return@map null
+                }
+                existingSegments.add(pair)
+
+                MediaItemSegment(-1, videoId, name, TemporalRange(start, end))
+            }.filterNotNull()
+            println("done, generated ${segments.size} valid, non-duplicate segments")
+
+            print("storing segments...")
+            this@MediaCollectionCommand.segments.batchAppend(segments)
+            println("done")
         }
 
     }

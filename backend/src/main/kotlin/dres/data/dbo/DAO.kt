@@ -46,7 +46,7 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      * @param id The ID of the entry.
      * @return Entry [T]
      */
-    operator fun get(id: Long): T? = this.lock.optimisticRead { this.data[id] }
+    operator fun get(id: Long) = this.lock.optimisticRead { this.data[id] }
 
     /**
      * Returns true if value for given key exists and false otherwise.
@@ -75,6 +75,17 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      * @return Deleted entry [T]
      */
     fun delete(value: T) = this.delete(value.id)
+
+
+    /**
+     * Deletes all values with given ids
+     */
+    fun batchDelete(ids: Iterable<Long>) = this.lock.write {
+        for (id in ids){
+            this.data.remove(id)
+        }
+        this.db.commit()
+    }
 
     /**
      * Updates the value for the given ID with the new value [T]
@@ -113,6 +124,21 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
     }
 
     /**
+     * Appends the given values using this [DAO]
+     *
+     * @param values An iterable of the values [T] that should be appended.
+     */
+    fun batchAppend(values: Iterable<T?>) = this.lock.write {
+        for (value in values) {
+            val next = this.autoincrement.incrementAndGet()
+            value?.id = next
+            this.data[next] = value
+        }
+        this.db.commit()
+        this.data.values
+    }
+
+    /**
      * Closes this [DAO]
      */
     override fun close() {
@@ -144,5 +170,25 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
             }
             throw NoSuchElementException("There is no element with ID ${this.id} for DAO '${this@DAO.name}'.")
         }
+    }
+
+    fun filter(predicate: (T) -> Boolean): List<T> = this.lock.optimisticRead {
+        return this.data.values.filterNotNull().filter(predicate)
+    }
+
+    fun <R> map(transform: (T) -> R): List<R> = this.lock.optimisticRead {
+        return this.data.values.filterNotNull().map(transform)
+    }
+
+    fun find(predicate: (T) -> Boolean): T? = this.lock.optimisticRead {
+        return this.data.values.find{ it != null && predicate(it) }
+    }
+
+    fun forEach(action: (T) -> Unit): Unit = this.lock.optimisticRead {
+        return this.data.values.filterNotNull().forEach(action)
+    }
+
+    fun <K> groupBy(keySelector: (T) -> K): Map<K, List<T>> = this.lock.optimisticRead {
+        return this.data.values.filterNotNull().groupBy(keySelector)
     }
 }

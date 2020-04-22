@@ -21,12 +21,16 @@ import org.eclipse.jetty.server.session.DefaultSessionCache
 import org.eclipse.jetty.server.session.FileSessionDataStore
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.util.ssl.SslContextFactory
+import org.slf4j.LoggerFactory
+import org.slf4j.MarkerFactory
 import java.io.File
 
 object RestApi {
 
     private var javalin: Javalin? = null
 
+    private val logMarker = MarkerFactory.getMarker("REST")
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
     fun init(config: Config, dataAccessLayer: DataAccessLayer) {
 
@@ -137,7 +141,7 @@ object RestApi {
                 get(submissionHandler::get, submissionHandler.permittedRoles)
             }
         }.before {
-            //TODO log request
+            logger.info(logMarker, "${it.req.method} request to ${it.path()} with params (${it.queryParamMap().map { e -> "${e.key}=${e.value}" }.joinToString()}) from ${it.req.remoteAddr}")
         }
         .error(401) {
             it.json(ErrorStatus("Unauthorized request!"))

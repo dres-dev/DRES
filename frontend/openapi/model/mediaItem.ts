@@ -13,9 +13,9 @@
 
 export interface MediaItem { 
     itemType: string;
-    collection: number;
     name: string;
     location: string;
+    collection: number;
     id: number;
 }
 

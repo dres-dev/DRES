@@ -12,8 +12,8 @@
 
 
 export interface VideoItemAllOfDurationUnits { 
-    dateBased?: boolean;
-    timeBased?: boolean;
     durationEstimated?: boolean;
+    timeBased?: boolean;
+    dateBased?: boolean;
 }
 

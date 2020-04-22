@@ -10,6 +10,7 @@ import com.github.ajalt.clikt.parameters.options.validate
 import dres.data.dbo.DAO
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.CompetitionDescription
+import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.utilities.FFmpegUtil
 import java.io.File
@@ -17,7 +18,7 @@ import java.io.File
 class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>, internal val collections: DAO<MediaCollection>) : NoOpCliktCommand(name = "competition") {
 
     init {
-        this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand(), PrepareCompetitionCommand())
+        this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand(), PrepareCompetitionCommand(), DeleteCompetitionCommand())
     }
 
     abstract inner class AbstractCompetitionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {
@@ -68,7 +69,28 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
             println()
             println("Tasks:")
 
-            competition.tasks.forEach(::println)
+            competition.tasks.forEach {
+                when(it){
+                    is TaskDescriptionBase.KisVisualTaskDescription -> {
+                        println("Visual Known Item Search Task '${it.name}' (${it.taskGroup.name}, ${it.taskGroup.type})")
+                        println("Target: ${it.item.name} ${it.temporalRange.start} to ${it.temporalRange.end}")
+                        println("Task Duration: ${it.duration}")
+                    }
+                    is TaskDescriptionBase.KisTextualTaskDescription -> {
+                        println("Textual Known Item Search Task '${it.name}' (${it.taskGroup.name}, ${it.taskGroup.type})")
+                        println("Target: ${it.item.name} ${it.temporalRange.start} to ${it.temporalRange.end}")
+                        println("Task Duration: ${it.duration}")
+                        println("Query Text:")
+                        it.descriptions.forEach(::println)
+                    }
+                    is TaskDescriptionBase.AvsTaskDescription -> {
+                        println("Ad-hoc Video Search Task '${it.name}' (${it.taskGroup.name}, ${it.taskGroup.type})")
+                        println("Task Duration: ${it.duration}")
+                    }
+                    else -> println(it)
+                }
+                println()
+            }
 
             println()
         }
@@ -108,6 +130,22 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
             }
 
         }
+
+    }
+
+    inner class DeleteCompetitionCommand : AbstractCompetitionCommand(name = "delete", help = "Deletes a Competition") {
+
+        override fun run() {
+            val competition = this@CompetitionCommand.competitions.delete(competitionId)
+
+            if (competition != null){
+                println("Successfully deleted $competition")
+            } else {
+                println("Could not find competition to delete") //should not happen
+            }
+
+        }
+
 
     }
 

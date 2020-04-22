@@ -14,8 +14,8 @@ import { VideoItemAllOfDurationUnits } from './videoItemAllOfDurationUnits';
 
 export interface VideoItemAllOfDuration { 
     seconds?: number;
-    nano?: number;
     zero?: boolean;
+    nano?: number;
     negative?: boolean;
     units?: Array<VideoItemAllOfDurationUnits>;
 }

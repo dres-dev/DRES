@@ -9,7 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import {MediaItem} from './mediaItem';
+import { MediaItem } from './mediaItem';
 
 
 export interface Submission { 

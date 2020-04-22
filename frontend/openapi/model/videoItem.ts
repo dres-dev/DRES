@@ -9,13 +9,12 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import {MediaItem} from './mediaItem';
-import {VideoItemAllOfDuration} from './videoItemAllOfDuration';
+import { VideoItemAllOf } from './videoItemAllOf';
+import { MediaItem } from './mediaItem';
 
 
 export interface VideoItem extends MediaItem { 
     durationMs: number;
     fps: number;
-    duration?: VideoItemAllOfDuration;
 }
 

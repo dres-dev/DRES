@@ -1,5 +1,6 @@
 package dres.data.model.basics.media
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import java.time.Duration
 
 
@@ -15,6 +16,7 @@ interface PlayableMediaItem {
 
     /** [Duration] of the [PlayableMediaItem]. */
     val duration: Duration
+        @JsonIgnore
         get() = Duration.ofMillis(this.durationMs)
 
     /** Frame per second for this [PlayableMediaItem]. */

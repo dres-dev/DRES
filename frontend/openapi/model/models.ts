@@ -30,5 +30,3 @@ export * from './userDetails';
 export * from './userRequest';
 export * from './videoItem';
 export * from './videoItemAllOf';
-export * from './videoItemAllOfDuration';
-export * from './videoItemAllOfDurationUnits';

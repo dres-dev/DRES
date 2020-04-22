@@ -9,12 +9,10 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { VideoItemAllOfDuration } from './videoItemAllOfDuration';
 
 
 export interface VideoItemAllOf { 
     durationMs?: number;
     fps?: number;
-    duration?: VideoItemAllOfDuration;
 }
 

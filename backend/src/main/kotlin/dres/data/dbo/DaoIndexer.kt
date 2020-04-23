@@ -29,4 +29,6 @@ class DaoIndexer<T: Entity, K>(private val dao: DAO<T>, private val keyTransform
         return keys.mapNotNull { dao[it] }
     }
 
+    fun keys(): Set<K> = index.keys
+
 }

@@ -21,5 +21,5 @@ class DataAccessLayer(private val basePath: Path) {
 
     val collections = DAO(this.basePath.resolve("collections.db"), MediaCollectionSerializer)
     val mediaItems = DAO(this.basePath.resolve("mediaItems.db"), MediaItemSerializer)
-    val mediaSegments = DAO(this.basePath.resolve("mediaSegments.db"), MediaItemSegmentSerializer)
+    val mediaSegments = DAO(this.basePath.resolve("mediaSegments.db"), MediaItemSegmentListSerializer)
 }

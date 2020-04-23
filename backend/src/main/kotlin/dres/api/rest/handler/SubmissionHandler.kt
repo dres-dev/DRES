@@ -7,9 +7,10 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
+import dres.data.dbo.DaoIndexer
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
-import dres.data.model.basics.media.MediaItemSegment
+import dres.data.model.basics.media.MediaItemSegmentList
 import dres.data.model.basics.media.PlayableMediaItem
 import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.run.Submission
@@ -17,14 +18,13 @@ import dres.data.model.run.SubmissionStatus
 import dres.run.RunManager
 import dres.run.RunManagerStatus
 import dres.utilities.TimeUtil
-
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 
-class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val segment: DAO<MediaItemSegment>): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
+class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val segment: DAO<MediaItemSegmentList>): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
     override val route = "submit"
 
@@ -36,6 +36,8 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
         const val PARAMETER_NAME_TIMECODE = "timecode"
     }
 
+    /* scans entire dao content in order to build up index, could take a few seconds */
+    private val segmentIndex = DaoIndexer(segment){it.mediaItemId}
 
     private fun getRelevantManagers(userId: Long): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
@@ -97,7 +99,8 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
      *
      */
     private fun shotToTime(shot: String, item: MediaItem): Pair<Long,Long> {
-        val segment = this.segment.find { it.mediaItemId == item.id && it.name == shot } ?: throw ErrorStatusException(400, "Shot '${item.name}.$shot' not found.")
+        val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.")
+        val segment = segmentList.segments.find { it.name == shot } ?: throw ErrorStatusException(400, "Shot '${item.name}.$shot' not found.")
         return TimeUtil.toMilliseconds(segment.range)
     }
 

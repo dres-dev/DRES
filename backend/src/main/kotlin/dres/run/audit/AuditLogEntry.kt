@@ -41,23 +41,23 @@ data class CompetitionEndAuditLogEntry(override var id: Long, val competition: S
 }
 
 @Serializable
-data class TaskStartAuditLogEntry(override var id: Long, val competition: String, val taskId: Int, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.TASK_START){
-    constructor(competition: String, taskId: Int, api: LogEventSource, user: String?): this(-1, competition, taskId, api, user)
+data class TaskStartAuditLogEntry(override var id: Long, val competition: String, val taskName: String, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.TASK_START){
+    constructor(competition: String, taskName: String, api: LogEventSource, user: String?): this(-1, competition, taskName, api, user)
 }
 
 @Serializable
-data class TaskModifiedAuditLogEntry(override var id: Long, val competition: String, val taskId: Int, val modification: String, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.TASK_MODIFIED) {
-    constructor(competition: String, taskId: Int, modification: String, api: LogEventSource, user: String?): this(-1, competition, taskId, modification, api, user)
+data class TaskModifiedAuditLogEntry(override var id: Long, val competition: String, val taskName: String, val modification: String, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.TASK_MODIFIED) {
+    constructor(competition: String, taskName: String, modification: String, api: LogEventSource, user: String?): this(-1, competition, taskName, modification, api, user)
 }
 
 @Serializable
-data class TaskEndAuditLogEntry(override var id: Long, val competition: String, val taskId: Int, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.TASK_END){
-    constructor(competition: String, taskId: Int, api: LogEventSource, user: String?): this(-1, competition, taskId, api, user)
+data class TaskEndAuditLogEntry(override var id: Long, val competition: String, val taskName: String, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.TASK_END){
+    constructor(competition: String, taskName: String, api: LogEventSource, user: String?): this(-1, competition, taskName, api, user)
 }
 
 @Serializable
-data class SubmissionAuditLogEntry(override var id: Long, val competition: String, val taskId: Int, val submissionId: Long, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.SUBMISSION){
-    constructor(competition: String, taskId: Int, submissionId: Long, api: LogEventSource, user: String?): this(-1, competition, taskId, submissionId, api, user)
+data class SubmissionAuditLogEntry(override var id: Long, val competition: String, val taskName: String, val submissionSummary: String, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.SUBMISSION){
+    constructor(competition: String, taskName: String, submissionSummary: String, api: LogEventSource, user: String?): this(-1, competition, taskName, submissionSummary, api, user)
 }
 
 @Serializable

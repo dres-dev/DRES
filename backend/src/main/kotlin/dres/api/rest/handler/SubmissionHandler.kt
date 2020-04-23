@@ -17,7 +17,10 @@ import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunManager
 import dres.run.RunManagerStatus
+import dres.run.audit.AuditLogManager
+import dres.run.audit.LogEventSource
 import dres.utilities.TimeUtil
+import dres.utilities.extensions.sessionId
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
@@ -142,7 +145,10 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
         val userId = AccessManager.getUserIdforSession(ctx.req.session.id) ?: throw ErrorStatusException(401, "Authorization required.")
         val run = getActiveRun(userId)
         val time = System.currentTimeMillis()
-        val result = run.postSubmission(toSubmission(ctx, userId, run, time))
+        val submission = toSubmission(ctx, userId, run, time)
+        val result = run.postSubmission(submission)
+
+        AuditLogManager.getAuditLogger(run.name)!!.submission(run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId())
 
         return when (result) {
             SubmissionStatus.CORRECT -> SuccessStatus("Submission correct!")

@@ -7,6 +7,7 @@ import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.output.CliktHelpFormatter
 import com.github.ajalt.clikt.output.HelpFormatter
 import dres.data.dbo.DataAccessLayer
+import dres.data.model.Config
 import org.jline.builtins.Completers
 import org.jline.reader.Completer
 import org.jline.reader.LineReaderBuilder
@@ -26,9 +27,9 @@ object Cli {
     /**
      * blocking call
      */
-    fun loop(dataAccessLayer: DataAccessLayer) {
+    fun loop(dataAccessLayer: DataAccessLayer, config: Config) {
 
-        val clikt = DRESBaseCommand().subcommands(CompetitionCommand(dataAccessLayer.competitions, dataAccessLayer.collections), UserCommand(), MediaCollectionCommand(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaSegments), CompetitionRunCommand())
+        val clikt = DRESBaseCommand().subcommands(CompetitionCommand(dataAccessLayer.competitions, dataAccessLayer.collections, config.taskCacheLocation), UserCommand(), MediaCollectionCommand(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaSegments), CompetitionRunCommand())
 
         var terminal: Terminal? = null
         try {

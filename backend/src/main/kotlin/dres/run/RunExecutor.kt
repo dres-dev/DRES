@@ -184,4 +184,11 @@ object RunExecutor : Consumer<WsHandler> {
             }
         }
     }
+
+    /**
+     * Stops all runs
+     */
+    fun stop() {
+        executor.shutdown()
+    }
 }

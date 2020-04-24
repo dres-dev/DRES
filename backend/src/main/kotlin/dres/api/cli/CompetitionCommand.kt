@@ -15,11 +15,13 @@ import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.utilities.FFmpegUtil
 import java.io.File
 
-class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>, internal val collections: DAO<MediaCollection>) : NoOpCliktCommand(name = "competition") {
+class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>, internal val collections: DAO<MediaCollection>, taskCacheLocation: String) : NoOpCliktCommand(name = "competition") {
 
     init {
         this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand(), PrepareCompetitionCommand(), DeleteCompetitionCommand())
     }
+
+    private val cacheLocation = File(taskCacheLocation)
 
     abstract inner class AbstractCompetitionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {
 
@@ -87,7 +89,6 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                         println("Ad-hoc Video Search Task '${it.name}' (${it.taskGroup.name}, ${it.taskGroup.type})")
                         println("Task Duration: ${it.duration}")
                     }
-                    else -> println(it)
                 }
                 println()
             }
@@ -98,8 +99,6 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
     }
 
     inner class PrepareCompetitionCommand : AbstractCompetitionCommand(name = "prepare", help = "Checks the used Media Items and generates precomputed Queries") {
-
-        private val cacheLocation = File("task-cache") //TODO make configurable
 
         override fun run() {
             val competition = this@CompetitionCommand.competitions[competitionId]!!
@@ -125,7 +124,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                 }
 
                 println("rendering ${it.name}")
-                FFmpegUtil.prepareMediaSegmentTask(it, collection.basePath!!, cacheLocation)
+                FFmpegUtil.prepareMediaSegmentTask(it, collection.basePath, this@CompetitionCommand.cacheLocation)
 
             }
 

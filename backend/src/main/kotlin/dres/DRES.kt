@@ -5,6 +5,7 @@ import dres.api.rest.RestApi
 import dres.data.dbo.DataAccessLayer
 import dres.data.model.Config
 import dres.mgmt.admin.UserManager
+import dres.run.RunExecutor
 import java.io.File
 import java.nio.file.Paths
 
@@ -34,8 +35,8 @@ object DRES {
 
         RestApi.init(config, dataAccessLayer)
 
-        Cli.loop(dataAccessLayer) //blocks until quit command is given
+        Cli.loop(dataAccessLayer, config) //blocks until quit command is given
         RestApi.stop()
-
+        RunExecutor.stop()
     }
 }

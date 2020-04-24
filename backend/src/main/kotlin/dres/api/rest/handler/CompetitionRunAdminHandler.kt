@@ -6,7 +6,9 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
+import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.CompetitionDescription
+import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.data.model.run.CompetitionRun
 import dres.run.RunExecutor
 import dres.run.RunManager
@@ -17,12 +19,15 @@ import dres.run.audit.LogEventSource
 import dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dres.run.score.scoreboard.MeanAggregateScoreBoard
 import dres.run.score.scoreboard.Scoreboard
+import dres.utilities.FFmpegUtil
 import dres.utilities.extensions.sessionId
 
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
+import org.slf4j.LoggerFactory
+import java.io.File
 
 
 abstract class AbstractCompetitionRunAdminRestHandler : RestHandler, AccessManagedRestHandler {
@@ -39,7 +44,10 @@ abstract class AbstractCompetitionRunAdminRestHandler : RestHandler, AccessManag
 /**
  * REST handler to create a [CompetitionRun].
  */
-class CreateCompetitionRunAdminHandler(internal val runs: DAO<CompetitionRun>, private val competitions: DAO<CompetitionDescription>) : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class CreateCompetitionRunAdminHandler(internal val runs: DAO<CompetitionRun>, private val competitions: DAO<CompetitionDescription>, private val collections: DAO<MediaCollection>, taskCacheLocation: String) : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+
+    private val cacheLocation = File(taskCacheLocation)
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
     private fun competitionById(id: Long): CompetitionDescription =
             competitions[id] ?: throw ErrorStatusException(404, "Competition with ID $id not found.'")
@@ -67,6 +75,29 @@ class CreateCompetitionRunAdminHandler(internal val runs: DAO<CompetitionRun>, p
         }
 
         val competitionToStart = this.competitionById(competitionStartMessage.competitionId)
+
+        val segmentTasks = competitionToStart.tasks.filterIsInstance(MediaSegmentTaskDescription::class.java)
+
+        /* check videos */
+        segmentTasks.forEach {
+            val item = it.item
+            val collection = this.collections[item.collection]
+                    ?: throw ErrorStatusException(400, "collection ${item.collection} not found")
+
+            val videoFile = File(File(collection.basePath), item.location)
+
+            if (!videoFile.exists()) {
+                logger.error("file ${videoFile.absolutePath} not found for item ${item.name}")
+                return@forEach
+            }
+
+            val outputFile = File(cacheLocation, it.cacheItemName())
+            if(!outputFile.exists()){
+                logger.warn("query video file for task ${it.name} not found, rendering to ${outputFile.absolutePath}")
+                FFmpegUtil.prepareMediaSegmentTask(it, collection.basePath, cacheLocation)
+            }
+
+        }
 
         /* Prepare... */
         try {

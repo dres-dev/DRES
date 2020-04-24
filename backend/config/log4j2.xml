@@ -1,25 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="INFO">
+
+    <Properties>
+        <Property name="LOG_PATTERN">%%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %p %c - %msg%n</Property>
+    </Properties>
+
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %p %c - %msg%n"/>
+            <PatternLayout pattern="${LOG_PATTERN}"/>
         </Console>
-    </Appenders>
-    <Loggers>
 
+        <File name="RestRequests" fileName="logs/rest.log">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <MarkerFilter marker="REST" onMatch="ACCEPT" onMismatch="DENY"/>
+        </File>
+
+        <File name="Audit" fileName="logs/audit.log">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <MarkerFilter marker="AUDIT" onMatch="ACCEPT" onMismatch="DENY"/>
+        </File>
+
+        <File name="Libraries" fileName="logs/libraries.log">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </File>
+    </Appenders>
+
+    <Loggers>
         <logger name="org.eclipse.jetty" level="WARN">
             <AppenderRef ref="Console"/>
-        </logger>
-        <logger name="io.javalin" level="INFO">
-            <AppenderRef ref="Console"/>
-        </logger>
-        <logger name="org.jline" level="WARN">
-            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Libraries"/>
         </logger>
 
+        <logger name="io.javalin" level="INFO">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Libraries"/>
+        </logger>
+
+        <logger name="org.jline" level="WARN">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Libraries"/>
+        </logger>
 
         <logger name="dres" level="DEBUG">
             <AppenderRef ref="Console"/>
+            <AppenderRef ref="RestRequests"/>
+            <AppenderRef ref="Audit"/>
         </logger>
 
         <Root level="INFO">

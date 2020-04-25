@@ -149,7 +149,7 @@ class GetCompetitionRunStateHandler : AbstractCompetitionRunRestHandler(), GetRe
 
 class ListCompetitionScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<ScoreOverview>> {
 
-    override val route = "run/score/:runId/"
+    override val route = "run/score/:runId"
 
     @OpenApi(
             summary = "Returns the score overviews of a specific competition run.",

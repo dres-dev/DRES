@@ -12,6 +12,7 @@ import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.data.model.run.CompetitionRun
 import dres.run.RunExecutor
 import dres.run.RunManager
+import dres.run.RunManagerStatus
 import dres.run.SynchronousRunManager
 import dres.run.audit.AuditLogEntry
 import dres.run.audit.AuditLogManager
@@ -75,6 +76,13 @@ class CreateCompetitionRunAdminHandler(internal val runs: DAO<CompetitionRun>, p
         }
 
         val competitionToStart = this.competitionById(competitionStartMessage.competitionId)
+
+        /* ensure that only one synchronous run of a competition is happening at any given time */
+        if(competitionStartMessage.type == RunType.SYNCHRONOUS && RunExecutor.managers().any {
+                    it is SynchronousRunManager && it.competitionDescription == competitionToStart && it.status != RunManagerStatus.TERMINATED }
+        ){
+            throw ErrorStatusException(400, "Synchronous run of competition ${competitionToStart.name} already exists")
+        }
 
         val segmentTasks = competitionToStart.tasks.filterIsInstance(MediaSegmentTaskDescription::class.java)
 

@@ -20,11 +20,13 @@ export class AppComponent {
   user: Observable<UserDetails>;
   isAdmin: Observable<boolean>;
   loggedIn: Observable<boolean>;
+  canJudge: Observable<boolean>;
 
   constructor(private authenticationService: AuthenticationService, private router: Router, private snackBar: MatSnackBar) {
     this.user = this.authenticationService.user;
     this.loggedIn = this.authenticationService.isLoggedIn;
     this.isAdmin = this.authenticationService.user.pipe(map(u => u?.role === RoleEnum.ADMIN));
+    this.canJudge = this.authenticationService.user.pipe(map(u => u?.role === RoleEnum.ADMIN || u?.role === RoleEnum.JUDGE));
   }
 
   public logout() {

@@ -48,6 +48,9 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
     override var currentTask: TaskDescription? = null
         private set
 
+    override val currentTaskRun: CompetitionRun.TaskRun.TaskRunData?
+        get() = run.currentTask?.data
+
     /** Currently active [TaskRunScorer]. */
     override val currentTaskScore: TaskRunScorer?
         get() = this.run.currentTask?.scorer
@@ -63,7 +66,7 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
     /** The list of [Submission]s for the current [Task]. */
     override val submissions: List<Submission>?
         get() = this.stateLock.read {
-            this.run.currentTask?.submissions ?: emptyList()
+            this.run.currentTask?.data?.submissions ?: emptyList()
         }
 
     /** The pipeline for [Submission] processing. All [Submission]s undergo three steps: filter, validation and score update. */

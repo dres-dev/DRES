@@ -142,13 +142,11 @@ object RestApi {
             }
         }.before {
             logger.info(logMarker, "${it.req.method} request to ${it.path()} with params (${it.queryParamMap().map { e -> "${e.key}=${e.value}" }.joinToString()}) from ${it.req.remoteAddr}")
-        }
-        .error(401) {
+        }.error(401) {
             it.json(ErrorStatus("Unauthorized request!"))
-        }
-        .exception(Exception::class.java) { e, ctx ->
+        }.exception(Exception::class.java) { e, ctx ->
             ctx.status(500).json(ErrorStatus("Internal server error!"))
-            e.printStackTrace()
+            logger.error("Exception during hadling of request to ${ctx.path()}", e)
         }
         .start(config.httpPort)
     }

@@ -296,7 +296,7 @@ class TerminateCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
     override val route: String = "run/admin/:runId/terminate"
 
     @OpenApi(
-            summary = "Starts a competition run. This is a method for admins.",
+            summary = "Terminates a competition run. This is a method for admins.",
             path = "/api/run/admin/:runId/terminate",
             method = HttpMethod.POST,
             pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],

@@ -2,7 +2,7 @@
 <Configuration status="INFO">
 
     <Properties>
-        <Property name="LOG_PATTERN">%%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %p %c - %msg%n</Property>
+        <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %p %c - %msg%n</Property>
     </Properties>
 
     <Appenders>

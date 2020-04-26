@@ -38,8 +38,6 @@ object RestApi {
 
 
         val apiRestHandlers = listOf(
-                //misc
-                GetVersionHandler(),
 
                 //user
                 LoginHandler(dataAccessLayer.users),
@@ -140,6 +138,17 @@ object RestApi {
                 val submissionHandler = SubmissionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaSegments)
                 get(submissionHandler::get, submissionHandler.permittedRoles)
             }
+
+            path("log/query"){
+                val queryLogHandler = QueryLogHandler()
+                post(queryLogHandler::post, queryLogHandler.permittedRoles)
+            }
+
+            path("log/result"){
+                val resultLogHandler = ResultLogHandler()
+                post(resultLogHandler::post, resultLogHandler.permittedRoles)
+            }
+
         }.before {
             logger.info(logMarker, "${it.req.method} request to ${it.path()} with params (${it.queryParamMap().map { e -> "${e.key}=${e.value}" }.joinToString()}) from ${it.req.remoteAddr}")
         }.error(401) {

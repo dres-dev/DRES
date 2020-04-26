@@ -3,23 +3,21 @@
 
     </div>
     <div class="body">
-        <div>
-            SUBMISSION TO JUDGE GOES HERE
-        </div>
+        <app-judgement-media-viewer ></app-judgement-media-viewer>
         <div>
             <div class="spacer-flex"></div>
 
-<!--            <button mat-icon-button aria-label="Approve Submission" matTooltip="Approve Submission" (click)="judge('CORRECT')">-->
-<!--                <mat-icon>thumb_up</mat-icon>-->
-<!--            </button>-->
+            <button mat-icon-button aria-label="Approve Submission" matTooltip="Approve Submission" (click)="judge('CORRECT')">
+                <mat-icon>thumb_up</mat-icon>
+            </button>
 
-<!--            <button mat-icon-button aria-label="Submission Unclear" matTooltip="Submission Unclear" (click)="judge('INDETERMINATE')">-->
-<!--                <mat-icon>live_help</mat-icon>-->
-<!--            </button>-->
+            <button mat-icon-button aria-label="Submission Unclear" matTooltip="Submission Unclear" (click)="judge('INDETERMINATE')">
+                <mat-icon>live_help</mat-icon>
+            </button>
 
-<!--            <button mat-icon-button aria-label="Reject Submission" matTooltip="Reject Submission" (click)="judge('WRONG')">-->
-<!--                <mat-icon>thumb_up</mat-icon>-->
-<!--            </button>-->
+            <button mat-icon-button aria-label="Reject Submission" matTooltip="Reject Submission" (click)="judge('WRONG')">
+                <mat-icon>thumb_down</mat-icon>
+            </button>
 
             <div class="spacer-flex"></div>
         </div>

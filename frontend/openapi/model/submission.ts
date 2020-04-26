@@ -10,6 +10,7 @@
  * Do not edit the class manually.
  */
 import { MediaItem } from './mediaItem';
+import { TaskRunData } from './taskRunData';
 
 
 export interface Submission { 
@@ -20,6 +21,7 @@ export interface Submission {
     start?: number;
     end?: number;
     status: Submission.StatusEnum;
+    taskRun$backend?: TaskRunData;
 }
 export namespace Submission {
     export type StatusEnum = 'CORRECT' | 'WRONG' | 'INDETERMINATE' | 'UNDECIDABLE';

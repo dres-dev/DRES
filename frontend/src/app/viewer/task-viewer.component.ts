@@ -1,7 +1,7 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {CompetitionRunService, RunInfo, RunState} from '../../../openapi';
+import {CompetitionRunService, KisVisualTaskDescription, MediaService, RunInfo, RunState} from '../../../openapi';
 import {interval, Observable, of, Subscription} from 'rxjs';
-import {filter, share, switchMap} from 'rxjs/operators';
+import {filter, flatMap, map, share, switchMap, tap} from 'rxjs/operators';
 import {IWsMessage} from '../model/ws/ws-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {WebSocketSubject} from 'rxjs/webSocket';
@@ -17,22 +17,23 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
     @Input() state: Observable<RunState>;
     @Input() webSocket: Observable<IWsMessage>;
     @Input() webSocketSubject: WebSocketSubject<IWsMessage>;
-
+    
     polledState: Observable<RunState>;
+    mediaSource: Observable<string>;
 
-    /** Internal subscription to the WebSocket messages to handle Task Preparation. */
-    private prepareSubscription: Subscription;
-
-    constructor(protected runService: CompetitionRunService) {}
+    constructor(protected runService: CompetitionRunService, protected mediaService: MediaService) {}
 
     ngOnInit(): void {
-        this.prepareSubscription = this.webSocket.pipe(
-            filter(m => (m as IWsServerMessage).type === 'TASK_PREPARE')
-        ).subscribe(m => {
-
-            /* TODO: Download, cache and play query object, wait for playback to complete, then ACK. */
-            this.webSocketSubject.next({runId: m.runId, type: 'ACK'} as IWsClientMessage);
-        });
+        this.mediaSource = this.webSocket.pipe(
+            filter(m => (m as IWsServerMessage).type === 'TASK_PREPARE'),
+            flatMap(m => this.runService.getApiRunStateWithRunid(m.runId)),
+            map(s => s.currentTask as KisVisualTaskDescription),
+            flatMap(t => this.mediaService.getApiMediaWithCollectionWithItem('v3c1', t.item.name, 'response')),
+            map(r => window.URL.createObjectURL(r.url)),
+            tap(s => {
+                this.webSocketSubject.next({runId: 1, type: 'ACK'} as IWsClientMessage);
+            })
+        );
 
         this.polledState = this.state.pipe(
             switchMap(s => {
@@ -52,10 +53,10 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
      * Cleanup subscription.
      */
     ngOnDestroy(): void {
-        this.prepareSubscription.unsubscribe();
-        this.prepareSubscription = null;
+        //this.prepareSubscription.unsubscribe();
+        //this.prepareSubscription = null;
     }
-
+    
     public toHHMMSS(milliseconds: number): string {
         const sec_num = Math.round(milliseconds / 1000);
         const hours   = Math.floor(sec_num / 3600);

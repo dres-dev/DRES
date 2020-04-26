@@ -12,4 +12,9 @@
     <div *ngIf="(polledState | async)?.status == 'RUNNING_TASK'" class="task-preview">
         <p class="preview-text">{{toHHMMSS((polledState | async)?.timeLeft)}}</p>
     </div>
+
+
+    <video [src]="mediaSource | async">
+
+    </video>
 </mat-card>

@@ -15,6 +15,6 @@ export interface MediaCollection {
     id: number;
     name: string;
     description?: string;
-    basePath?: string;
+    basePath: string;
 }
 

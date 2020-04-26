@@ -38,8 +38,6 @@ object RestApi {
 
 
         val apiRestHandlers = listOf(
-                //misc
-                GetVersionHandler(),
 
                 //user
                 LoginHandler(dataAccessLayer.users),

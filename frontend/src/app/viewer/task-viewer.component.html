@@ -1,20 +1,24 @@
 <mat-card>
-    <h2 style="text-align: center;">{{(polledState | async)?.currentTask?.name}} ({{(polledState | async)?.status}})</h2>
+    <h2 *ngIf="(polledState | async)?.status == 'ACTIVE'" style="text-align: center;">
+        {{(currentTask | async)?.name}} (Waiting for task to start.)
+    </h2>
 
-    <div *ngIf="(polledState | async)?.status == 'ACTIVE'" class="task-preview">
-        <p class="preview-text">Waiting for task to start.</p>
-    </div>
+    <h2 *ngIf="(polledState | async)?.status == 'PREPARING_TASK'" style="text-align: center;">
+        {{(currentTask | async)?.name}} (Waiting for other participants.)
+    </h2>
+
+    <h2 *ngIf="(polledState | async)?.status == 'RUNNING_TASK'" style="text-align: center;">
+        {{(currentTask | async)?.name}} ({{toFormattedTime((polledState | async)?.timeLeft)}})
+    </h2>
 
     <div *ngIf="(polledState | async)?.status == 'PREPARING_TASK'" class="task-preview">
-        <p class="preview-text">Waiting for other participants.</p>
     </div>
 
     <div *ngIf="(polledState | async)?.status == 'RUNNING_TASK'" class="task-preview">
-        <p class="preview-text">{{toHHMMSS((polledState | async)?.timeLeft)}}</p>
+        <div *ngIf="(currentQueryObject | async).type == 'video'">
+            <video [src]="(currentQueryObject | async).url" class="video-player" autoplay loop>
+
+            </video>
+        </div>
     </div>
-
-
-    <video [src]="mediaSource | async">
-
-    </video>
 </mat-card>

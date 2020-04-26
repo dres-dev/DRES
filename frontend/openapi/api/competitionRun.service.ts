@@ -18,6 +18,7 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 import { ErrorStatus } from '../model/models';
+import { QueryDescription } from '../model/models';
 import { RunInfo } from '../model/models';
 import { RunState } from '../model/models';
 import { ScoreOverview } from '../model/models';
@@ -313,10 +314,10 @@ export class CompetitionRunService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiRunWithRunidQuery(runId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<any>;
-    public getApiRunWithRunidQuery(runId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<any>>;
-    public getApiRunWithRunidQuery(runId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<any>>;
-    public getApiRunWithRunidQuery(runId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getApiRunWithRunidQuery(runId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/octet-stream' | 'application/json'}): Observable<QueryDescription>;
+    public getApiRunWithRunidQuery(runId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/octet-stream' | 'application/json'}): Observable<HttpResponse<QueryDescription>>;
+    public getApiRunWithRunidQuery(runId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/octet-stream' | 'application/json'}): Observable<HttpEvent<QueryDescription>>;
+    public getApiRunWithRunidQuery(runId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/octet-stream' | 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
             throw new Error('Required parameter runId was null or undefined when calling getApiRunWithRunidQuery.');
         }
@@ -327,6 +328,7 @@ export class CompetitionRunService {
         if (httpHeaderAcceptSelected === undefined) {
             // to determine the Accept header
             const httpHeaderAccepts: string[] = [
+                'application/octet-stream',
                 'application/json'
             ];
             httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
@@ -341,7 +343,7 @@ export class CompetitionRunService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<any>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/query`,
+        return this.httpClient.get<QueryDescription>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/query`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

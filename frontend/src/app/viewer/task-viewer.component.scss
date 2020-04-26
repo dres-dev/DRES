@@ -1,5 +1,4 @@
 .task-preview {
-  height: 30vh;
   width: 100%;
   background-color: black;
   display: table;
@@ -12,4 +11,9 @@ p.preview-text {
   text-align:center;
   vertical-align: middle;
   display: table-cell;
+}
+
+
+.video-player {
+  width: 100%;
 }

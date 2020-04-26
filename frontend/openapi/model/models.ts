@@ -14,6 +14,7 @@ export * from './kisVisualTaskDescriptionAllOf';
 export * from './loginRequest';
 export * from './mediaCollection';
 export * from './mediaItem';
+export * from './queryDescription';
 export * from './runInfo';
 export * from './runState';
 export * from './score';

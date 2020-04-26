@@ -50,11 +50,11 @@ class QueryLogHandler : LogHandler() {
 
         val userId = AccessManager.getUserIdforSession(ctx.req.session.id) ?: throw ErrorStatusException(401, "Authorization required.")
         val run = getActiveRun(userId)
-        val time = System.currentTimeMillis()
+
 
         val queryLog = ctx.body<QueryEventLog>()
 
-        //TODO validate and store
+
 
         return SuccessStatus("Log received")
     }
@@ -79,7 +79,6 @@ class ResultLogHandler : LogHandler() {
 
         val userId = AccessManager.getUserIdforSession(ctx.req.session.id) ?: throw ErrorStatusException(401, "Authorization required.")
         val run = getActiveRun(userId)
-        val time = System.currentTimeMillis()
 
         val queryLog = ctx.body<QueryResultLog>()
 

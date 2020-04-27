@@ -1,2 +1,15 @@
-<mat-card>
+<mat-card id="chart">
+    <div *ngIf="enabled">
+
+        <apx-chart
+                [series]="series"
+                [chart]="chart"
+                [dataLabels]="dataLabels"
+                [plotOptions]="plotOptions"
+                [xaxis]="xaxis"
+        ></apx-chart>
+    </div>
+    <div *ngIf="!enabled">
+        Disabled
+    </div>
 </mat-card>

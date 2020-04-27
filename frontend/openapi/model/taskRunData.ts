@@ -9,13 +9,12 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TaskGroup } from './taskGroup';
+import { Submission } from './submission';
+import { TaskDescription } from './taskDescription';
 
 
-export interface TaskDescriptionBase { 
-    taskType: string;
-    taskGroup: TaskGroup;
-    name: string;
-    duration: number;
+export interface TaskRunData { 
+    submissions: Array<Submission>;
+    task: TaskDescription;
 }
 

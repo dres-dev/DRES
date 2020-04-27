@@ -7,6 +7,8 @@ import dres.data.model.basics.time.TemporalRange
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
+import dres.run.filter.OneCorrectSubmissionPerTeamFilter
+import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.score.scorer.KisTaskScorer
 import dres.run.validation.TemporalOverlapSubmissionValidator
@@ -36,6 +38,7 @@ sealed class TaskDescriptionBase : TaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = TemporalOverlapSubmissionValidator(this, callback)
         override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}.mp4"
+        override fun newFilter(): SubmissionFilter = OneCorrectSubmissionPerTeamFilter()
     }
 
     /**
@@ -48,6 +51,7 @@ sealed class TaskDescriptionBase : TaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = TemporalOverlapSubmissionValidator(this, callback)
         override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}.mp4"
+        override fun newFilter(): SubmissionFilter = OneCorrectSubmissionPerTeamFilter()
     }
 
     /**

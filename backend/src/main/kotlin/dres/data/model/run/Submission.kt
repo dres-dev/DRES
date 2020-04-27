@@ -1,5 +1,6 @@
 package dres.data.model.run
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.time.TemporalPoint
 import dres.data.model.basics.time.TemporalRange
@@ -24,9 +25,10 @@ data class Submission(val team: Int,
 
     var status: SubmissionStatus = SubmissionStatus.INDETERMINATE
 
-    //@Transient
-    //var taskRun: CompetitionRun.TaskRun? = null
-    //internal set
+    @Transient
+    @JsonIgnore
+    var taskRun: CompetitionRun.TaskRun.TaskRunData? = null
+    internal set
 
     fun temporalRange(): TemporalRange {
         if (start == null && end == null) {

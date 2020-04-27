@@ -28,7 +28,7 @@ class NextOpenJudgementHandler : AbstractJudgementHandler(), GetRestHandler<Judg
 
     @OpenApi(
             summary = "Gets the next open Submission to be judged.",
-            path = "/api/judge/run/:runId/next",
+            path = "/api/run/:runId/judge/next",
             tags = ["Judgement"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(JudgementRequest::class)]),
@@ -56,7 +56,7 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
 
     @OpenApi(
             summary = "Returns a Judgement.",
-            path = "/api/judge/run/:runId", method = HttpMethod.POST,
+            path = "/api/run/:runId/judge", method = HttpMethod.POST,
             requestBody = OpenApiRequestBody([OpenApiContent(Judgement::class)]),
             tags = ["Judgement"],
             responses = [

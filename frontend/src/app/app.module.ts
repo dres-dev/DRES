@@ -22,6 +22,7 @@ import {RunModule} from './run/run.module';
 import {ViewerModule} from './viewer/viewer.module';
 import {AppConfig} from './app.config';
 import {UserModule} from './user/user.module';
+import {JudgementModule} from './judgement/judgement.module';
 
 
 /**
@@ -56,7 +57,8 @@ export function initializeApp(appConfig: AppConfig) {
         UserModule,
         CompetitionModule,
         ViewerModule,
-        RunModule
+        RunModule,
+        JudgementModule
     ],
   providers: [
       AppConfig,

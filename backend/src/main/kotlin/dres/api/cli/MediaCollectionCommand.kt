@@ -12,12 +12,13 @@ import dres.data.dbo.DAO
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.media.MediaItemSegment
+import dres.data.model.basics.media.MediaItemSegmentList
 import dres.data.model.basics.time.TemporalRange
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 
-class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val segments: DAO<MediaItemSegment>) :
+class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val segments: DAO<MediaItemSegmentList>) :
         NoOpCliktCommand(name = "collection") {
 
     init {
@@ -272,7 +273,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             val mediaItemIds = itemIds.values.toSet()
             print(".")
             val existingSegments = this@MediaCollectionCommand.segments
-                    .filter { mediaItemIds.contains(it.mediaItemId) }.map { it.mediaItemId to it.name }.toMutableSet()
+                    .filter { mediaItemIds.contains(it.mediaItemId) }.flatMap { it.segments.map { s -> it.mediaItemId to s.name } }.toMutableSet()
             println("done")
 
             print("reading input file...")
@@ -295,12 +296,27 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 }
                 existingSegments.add(pair)
 
-                MediaItemSegment(-1, videoId, name, TemporalRange(start, end))
+                MediaItemSegment(videoId, name, TemporalRange(start, end))
             }.filterNotNull()
             println("done, generated ${segments.size} valid, non-duplicate segments")
 
+            val grouped = segments.groupBy { it.mediaItemId }
+            val affected = this@MediaCollectionCommand.segments.filter { grouped.keys.contains(it.mediaItemId) }
+
+            affected.forEach {
+                it.segments.addAll(grouped[it.mediaItemId] ?: emptyList())
+            }
+
+            val affectedMediaItemIds = affected.map { it.mediaItemId }.toSet()
+
+            val new = grouped.filter { !affectedMediaItemIds.contains(it.key) }.map { MediaItemSegmentList(-1, it.key, it.value.toMutableList()) }
+
+
             print("storing segments...")
-            this@MediaCollectionCommand.segments.batchAppend(segments)
+            affected.forEach {
+                this@MediaCollectionCommand.segments.update(it)
+            }
+            this@MediaCollectionCommand.segments.batchAppend(new)
             println("done")
         }
 

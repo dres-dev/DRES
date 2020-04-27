@@ -27,7 +27,8 @@ class GetMediaHandler(private val collections: DAO<MediaCollection>, private val
                 OpenApiParam("item", String::class, "MediaItem name")
             ],
             tags = ["Media"],
-            responses = [OpenApiResponse("200"), OpenApiResponse("401"), OpenApiResponse("400"), OpenApiResponse("404")]
+            responses = [OpenApiResponse("200"), OpenApiResponse("401"), OpenApiResponse("400"), OpenApiResponse("404")],
+            ignore = true
     )
     override fun get(ctx: Context) {
 

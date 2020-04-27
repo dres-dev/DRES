@@ -8,6 +8,7 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.competition.TaskGroup
+import dres.data.model.competition.TaskType
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.run.RunExecutor
@@ -15,14 +16,21 @@ import dres.run.RunManager
 import dres.run.score.scoreboard.Score
 import dres.run.score.scoreboard.ScoreOverview
 import dres.utilities.extensions.errorResponse
-import dres.utilities.extensions.streamFile
 import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import kotlinx.serialization.ImplicitReflectionSerializer
+import kotlinx.serialization.UnstableDefault
+import kotlinx.serialization.json.Json
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.util.*
+
 
 abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRestHandler {
 
@@ -31,14 +39,6 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
     private fun userId(ctx: Context): Long = AccessManager.getUserIdforSession(ctx.req.session.id)!!
 
     private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.req.session.id).contains(RestApiRole.ADMIN)
-
-//    /**
-//     * returns the runs visible to the current user
-//     */
-//    fun getRuns(ctx: Context): List<CompetitionRun> {
-//        val userId = userId(ctx)
-//        return runs.filter { it.competition.teams.any { it.users.contains(userId) } }
-//    }
 
     fun getRelevantManagers(ctx: Context): List<RunManager> {
         if (isAdmin(ctx)){
@@ -157,7 +157,7 @@ class GetCompetitionRunStateHandler : AbstractCompetitionRunRestHandler(), GetRe
 
 class ListCompetitionScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<ScoreOverview>> {
 
-    override val route = "run/score/:runId/"
+    override val route = "run/score/:runId"
 
     @OpenApi(
             summary = "Returns the score overviews of a specific competition run.",
@@ -235,60 +235,57 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
     }
 }
 
-class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<Any> {
+/**
+ * TODO: Handling of [QueryDescription] needs some beautification.
+ */
+class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<QueryDescription> {
 
     override val route = "run/:runId/query"
 
     private val cacheLocation = File("task-cache") //TODO make configurable
-
     @OpenApi(
             summary = "Returns the actual query for the current task.",
             path = "/api/run/:runId/query",
             tags = ["Competition Run"],
             pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
             responses = [
-                OpenApiResponse("200"),
+                OpenApiResponse("200", [OpenApiContent(QueryDescription::class, false, "application/octet-stream")]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun get(ctx: Context) {
-
-        try {
-            val runId = runId(ctx)
-
-            val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-
-            val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId")
-
-            when(task) {
-                is TaskDescriptionBase.KisVisualTaskDescription -> {
-                    ctx.streamFile(File(cacheLocation, task.cacheItemName()))
-                    return
-                }
-                is TaskDescriptionBase.KisTextualTaskDescription -> {
-                    ctx.json(task.descriptions)
-                }
-                is TaskDescriptionBase.AvsTaskDescription -> {
-                    ctx.json(task.description)
+    override fun doGet(ctx: Context): QueryDescription {
+        val runId = runId(ctx)
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId")
+        return when(task) {
+            is TaskDescriptionBase.KisVisualTaskDescription -> {
+                val file = File(this.cacheLocation, task.cacheItemName())
+                try {
+                    return FileInputStream(file).use { imageInFile ->
+                        val fileData = ByteArray(file.length().toInt())
+                        imageInFile.read(fileData)
+                        QueryDescription(task.name, TaskType.KIS_VISUAL, QueryDescriptionContentType.BINARY, Base64.getEncoder().encodeToString(fileData))
+                    }
+                } catch (e: FileNotFoundException) {
+                    throw ErrorStatusException(404, "Query object cache file not found!")
+                } catch (ioe: IOException) {
+                    throw ErrorStatusException(500, "Exception when reading query object cache file.")
                 }
             }
-
-        }catch (e: ErrorStatusException) {
-            ctx.errorResponse(e)
+            is TaskDescriptionBase.KisTextualTaskDescription -> QueryDescription(task.name, TaskType.KIS_TEXTUAL, QueryDescriptionContentType.TEXT, task.descriptions.joinToString(";"))
+            is TaskDescriptionBase.AvsTaskDescription -> QueryDescription(task.name, TaskType.KIS_TEXTUAL, QueryDescriptionContentType.TEXT, task.description)
+            else -> throw ErrorStatusException(500, "Exception when reading query object cache file.")
         }
-
     }
-
-    /* UNUSED */
-    override fun doGet(ctx: Context) = ""
 }
 
-
+data class QueryDescription(val taskName: String, val taskType: TaskType, val contentType: QueryDescriptionContentType, val payload: String)
+enum class QueryDescriptionContentType() {
+    BINARY, TEXT
+}
 class CurrentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<Submission>> {
-
     override val route = "run/:runId/task/submissions" //TODO add a second handler with a time parameter to only get 'new' submissions
-
     @OpenApi(
             summary = "Returns the submissions to the current task.",
             path = "/api/run/:runId/task/submissions",
@@ -303,7 +300,7 @@ class CurrentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
     override fun doGet(ctx: Context): List<Submission> {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-        return run.submissions ?: throw  ErrorStatusException(400, "Not submissions available. There is probably no run going on.")
+        return run.submissions ?: throw ErrorStatusException(400, "Not submissions available. There is probably no run going on.")
     }
 }
 

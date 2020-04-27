@@ -114,12 +114,11 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
         private val position: Int
             get() = this@CompetitionRun.runs.indexOf(this)
 
-        /** List of [Submission]s* registered for this [TaskRun]. */
-        val submissions: List<Submission> = mutableListOf()
+        /** Exposable data of this [TaskRun] */
+        val data: TaskRunData = TaskRunData()
 
-        /** The [Task] referenced by this [TaskRun]. */
         val task: TaskDescription
-            get() = this@CompetitionRun.competitionDescription.tasks[this.taskId]
+            get() = data.task
 
         /** The [CompetitionRun] this [TaskRun] belongs to.*/
         val competition: CompetitionRun
@@ -127,15 +126,15 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
 
         /** The [SubmissionFilter] used to filter [Submission]s. */
         @Transient
-        val filter: SubmissionFilter = this.task.newFilter()
+        val filter: SubmissionFilter = this.data.task.newFilter()
 
         /** The [TaskRunScorer] used to update score for this [TaskRun]. */
         @Transient
-        val scorer: TaskRunScorer = this.task.newScorer()
+        val scorer: TaskRunScorer = this.data.task.newScorer()
 
         /** The [SubmissionValidator] used to validate [Submission]s. */
         @Transient
-        val validator: SubmissionValidator = this.task.newValidator {
+        val validator: SubmissionValidator = this.data.task.newValidator {
 
             when(this.scorer){
                 is IncrementalTaskRunScorer -> this.scorer.update(it)
@@ -166,9 +165,12 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
          */
         override fun end() {
             if (!this.isRunning) {
-                throw IllegalStateException("Task run '${this@CompetitionRun.name}.${this.position}' is currently not running.")
+                val end = System.currentTimeMillis()
+                this.started = end
+                this.ended = end
+            } else {
+                this.ended = System.currentTimeMillis()
             }
-            this.ended = System.currentTimeMillis()
         }
 
         /**
@@ -189,8 +191,21 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
             }
 
             /* Process Submission. */
-            (this.submissions as MutableList).add(submission)
+            (this.data.submissions as MutableList).add(submission)
             this.validator.validate(submission)
         }
+
+        @Serializable
+        inner class TaskRunData {
+
+            /** List of [Submission]s* registered for this [TaskRun]. */
+            val submissions: List<Submission> = mutableListOf()
+
+            /** The [TaskDescription] referenced by this [TaskRun]. */
+            val task: TaskDescription
+                get() = this@CompetitionRun.competitionDescription.tasks[this@TaskRun.taskId]
+
+        }
+
     }
 }

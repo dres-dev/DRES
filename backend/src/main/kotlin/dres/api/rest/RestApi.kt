@@ -38,8 +38,6 @@ object RestApi {
 
 
         val apiRestHandlers = listOf(
-                //misc
-                GetVersionHandler(),
 
                 //user
                 LoginHandler(dataAccessLayer.users),
@@ -83,8 +81,8 @@ object RestApi {
                 CurrentSubmissionInfoHandler(),
 
                 //Competition run admin
-                CreateCompetitionRunAdminHandler(dataAccessLayer.runs, dataAccessLayer.competitions),
-                StartCompetitionRunAdminHandler(),
+                CreateCompetitionRunAdminHandler(dataAccessLayer.runs, dataAccessLayer.competitions, dataAccessLayer.collections, config.taskCacheLocation),
+                StartCompetitionRunAdminHandler(dataAccessLayer.audit),
                 NextTaskCompetitionRunAdminHandler(),
                 PreviousTaskCompetitionRunAdminHandler(),
                 StartTaskCompetitionRunAdminHandler(),
@@ -140,15 +138,24 @@ object RestApi {
                 val submissionHandler = SubmissionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaSegments)
                 get(submissionHandler::get, submissionHandler.permittedRoles)
             }
+
+            path("log/query"){
+                val queryLogHandler = QueryLogHandler()
+                post(queryLogHandler::post, queryLogHandler.permittedRoles)
+            }
+
+            path("log/result"){
+                val resultLogHandler = ResultLogHandler()
+                post(resultLogHandler::post, resultLogHandler.permittedRoles)
+            }
+
         }.before {
             logger.info(logMarker, "${it.req.method} request to ${it.path()} with params (${it.queryParamMap().map { e -> "${e.key}=${e.value}" }.joinToString()}) from ${it.req.remoteAddr}")
-        }
-        .error(401) {
+        }.error(401) {
             it.json(ErrorStatus("Unauthorized request!"))
-        }
-        .exception(Exception::class.java) { e, ctx ->
+        }.exception(Exception::class.java) { e, ctx ->
             ctx.status(500).json(ErrorStatus("Internal server error!"))
-            e.printStackTrace()
+            logger.error("Exception during hadling of request to ${ctx.path()}", e)
         }
         .start(config.httpPort)
     }

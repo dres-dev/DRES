@@ -18,8 +18,8 @@ object CompetitionRunSerializer: Serializer<CompetitionRun> {
             out.writeInt(taskRun.taskId)
             out.writeLong(taskRun.started ?: -1)
             out.writeLong(taskRun.ended ?: -1)
-            out.writeInt(taskRun.submissions.size)
-            for (submission in taskRun.submissions) {
+            out.writeInt(taskRun.data.submissions.size)
+            for (submission in taskRun.data.submissions) {
                 SubmissionSerializer.serialize(out, submission)
             }
         }
@@ -30,7 +30,7 @@ object CompetitionRunSerializer: Serializer<CompetitionRun> {
         for (i in 0 until input.readInt()) {
             val taskRun = run.TaskRun(input.readInt(), input.readLong(), input.readLong())
             for (j in 0 until input.readInt()) {
-                (taskRun.submissions as MutableList<Submission>).add(SubmissionSerializer.deserialize(input,available))
+                (taskRun.data.submissions as MutableList<Submission>).add(SubmissionSerializer.deserialize(input,available))
             }
             (run.runs as MutableList<CompetitionRun.TaskRun>).add(taskRun)
         }

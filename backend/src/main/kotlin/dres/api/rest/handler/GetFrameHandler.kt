@@ -36,7 +36,8 @@ class GetFrameHandler(private val collections: DAO<MediaCollection>, private val
                 OpenApiParam("time", String::class, "time code")
             ],
             tags = ["Media"],
-            responses = [OpenApiResponse("200", [OpenApiContent(type = "image/png")]), OpenApiResponse("401"), OpenApiResponse("400")]
+            responses = [OpenApiResponse("200", [OpenApiContent(type = "image/png")]), OpenApiResponse("401"), OpenApiResponse("400")],
+            ignore = true
             )
     override fun get(ctx: Context) {
 

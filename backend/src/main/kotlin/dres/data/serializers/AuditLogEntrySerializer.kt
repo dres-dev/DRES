@@ -27,14 +27,14 @@ object AuditLogEntrySerializer: Serializer<AuditLogEntry> {
             AuditLogEntryType.TASK_START -> {
                 val taskStart = value as TaskStartAuditLogEntry
                 out.writeUTF(taskStart.competition)
-                out.packInt(taskStart.taskId)
+                out.writeUTF(taskStart.taskName)
                 out.packInt(taskStart.api.ordinal)
                 out.writeUTF(taskStart.user ?: "")
             }
             AuditLogEntryType.TASK_MODIFIED -> {
                 val taskmod = value as TaskModifiedAuditLogEntry
                 out.writeUTF(taskmod.competition)
-                out.packInt(taskmod.taskId)
+                out.writeUTF(taskmod.taskName)
                 out.writeUTF(taskmod.modification)
                 out.packInt(taskmod.api.ordinal)
                 out.writeUTF(taskmod.user ?: "")
@@ -42,15 +42,15 @@ object AuditLogEntrySerializer: Serializer<AuditLogEntry> {
             AuditLogEntryType.TASK_END -> {
                 val taskend = value as TaskEndAuditLogEntry
                 out.writeUTF(taskend.competition)
-                out.packInt(taskend.taskId)
+                out.writeUTF(taskend.taskName)
                 out.packInt(taskend.api.ordinal)
                 out.writeUTF(taskend.user ?: "")
             }
             AuditLogEntryType.SUBMISSION -> {
                 val submission = value as SubmissionAuditLogEntry
                 out.writeUTF(submission.competition)
-                out.packInt(submission.taskId)
-                out.packLong(submission.submissionId)
+                out.writeUTF(submission.taskName)
+                out.writeUTF(submission.submissionSummary)
                 out.packInt(submission.api.ordinal)
                 out.writeUTF(submission.user ?: "")
             }
@@ -71,10 +71,10 @@ object AuditLogEntrySerializer: Serializer<AuditLogEntry> {
         return when(type){
             AuditLogEntryType.COMPETITION_START -> CompetitionStartAuditLogEntry(id, input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
             AuditLogEntryType.COMPETITION_END -> CompetitionEndAuditLogEntry(id, input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
-            AuditLogEntryType.TASK_START -> TaskStartAuditLogEntry(id, input.readUTF(), input.unpackInt(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
-            AuditLogEntryType.TASK_MODIFIED -> TaskModifiedAuditLogEntry(id, input.readUTF(), input.unpackInt(), input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
-            AuditLogEntryType.TASK_END -> TaskEndAuditLogEntry(id, input.readUTF(), input.unpackInt(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
-            AuditLogEntryType.SUBMISSION -> SubmissionAuditLogEntry(id, input.readUTF(), input.unpackInt(), input.unpackLong(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
+            AuditLogEntryType.TASK_START -> TaskStartAuditLogEntry(id, input.readUTF(), input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
+            AuditLogEntryType.TASK_MODIFIED -> TaskModifiedAuditLogEntry(id, input.readUTF(), input.readUTF(), input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
+            AuditLogEntryType.TASK_END -> TaskEndAuditLogEntry(id, input.readUTF(), input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
+            AuditLogEntryType.SUBMISSION -> SubmissionAuditLogEntry(id, input.readUTF(), input.readUTF(), input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
             AuditLogEntryType.JUDGEMENT -> JudgementAuditLogEntry(id, input.readUTF(), input.unpackLong(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
         }
     }

@@ -9,13 +9,16 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { QueryDescription } from './queryDescription';
+import { VideoQueryDescriptionAllOf } from './videoQueryDescriptionAllOf';
 
 
-export interface MediaItem { 
-    itemType: string;
-    name: string;
-    location: string;
-    collection: number;
-    id: number;
+export interface VideoQueryDescription extends QueryDescription { 
+    taskName: string;
+    video: string;
+    contentType: string;
 }
+export namespace VideoQueryDescription {
+}
+
 

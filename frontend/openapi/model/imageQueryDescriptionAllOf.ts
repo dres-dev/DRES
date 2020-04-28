@@ -11,11 +11,9 @@
  */
 
 
-export interface MediaItem { 
-    itemType: string;
-    name: string;
-    location: string;
-    collection: number;
-    id: number;
+export interface ImageQueryDescriptionAllOf { 
+    taskName?: string;
+    image?: string;
+    contentType?: string;
 }
 

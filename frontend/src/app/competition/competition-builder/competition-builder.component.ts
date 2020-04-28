@@ -1,14 +1,12 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {filter} from 'rxjs/operators';
-import {CompetitionDescription, CompetitionService, TaskDescription, TaskDescriptionBase, TaskGroup, Team} from '../../../../openapi';
+import {CompetitionDescription, CompetitionService, TaskDescriptionBase, TaskGroup, Team} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
-import { Subscription} from 'rxjs';
+import {Subscription} from 'rxjs';
 import {MatDialog} from '@angular/material/dialog';
-import {
-  CompetitionBuilderTeamDialogComponent,
-} from './competition-builder-team-dialog.component';
+import {CompetitionBuilderTeamDialogComponent,} from './competition-builder-team-dialog.component';
 import {CompetitionBuilderTaskDialogComponent, CompetitionBuilderTaskDialogData} from './competition-builder-task-dialog.component';
 import {CompetitionBuilderTaskGroupDialogComponent} from './competition-builder-task-group.component';
 

@@ -14,6 +14,6 @@ import dres.run.RunManagerStatus
  * @version 1.0
  */
 data class RunState(val id: Long, val status: RunManagerStatus, val currentTask: TaskDescription?, val timeLeft: Long) {
-    constructor(run: RunManager) : this(run.runId, run.status, run.currentTask, run.timeLeft())
+    constructor(run: RunManager) : this(run.runId, run.status, run.currentTask, run.timeLeft() / 1000)
 }
 

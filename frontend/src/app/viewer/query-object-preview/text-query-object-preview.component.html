@@ -1,0 +1,8 @@
+<div class="query-text-container">
+    <p class="query-text" [style.font-size]="fontSize+'em'">
+        <span *ngFor="let item of (queryObject | async).text">
+            <span *ngIf="item.showAfter < (timeElapsed | async)">{{item.text}}&nbsp;</span>
+        </span>
+    </p>
+</div>
+

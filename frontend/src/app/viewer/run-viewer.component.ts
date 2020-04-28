@@ -20,8 +20,6 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         url: `${AppConfig.settings.endpoint.tls ? 'wss://' : 'ws://'}${AppConfig.settings.endpoint.host}:${AppConfig.settings.endpoint.port}/api/ws/run`,
     } as WebSocketSubjectConfig<IWsMessage>);
 
-
-
     webSocket: Observable<IWsServerMessage>;
     runInfo: Observable<RunInfo>;
     runState: Observable<RunState>;
@@ -38,20 +36,22 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
     constructor(protected activeRoute: ActivatedRoute,
                 protected runService: CompetitionRunService) {
 
-        /* Observable for general run info. */
+        /* Basic observable for general run info; this information is static and does not change over the course of a run. */
         this.runInfo = this.activeRoute.params.pipe(
             switchMap(a => this.runService.getApiRunInfoWithRunid(a.runId)),
             shareReplay(1)
         );
 
+        /* Basic observable for web socket messages received from the DRES server. */
         this.webSocket = this.activeRoute.params.pipe(
             flatMap(a => this.webSocketSubject.pipe(map(m => m as IWsServerMessage))),
             share()
         );
 
+        /* Basic observable for run state info; this information is dynamic and does is subject to change over the course of a run. */
         this.runState = merge(this.activeRoute.params, this.webSocket).pipe(
             switchMap((a) => this.runService.getApiRunStateWithRunid(a.runId)),
-            share()
+            shareReplay(1)
         );
     }
 

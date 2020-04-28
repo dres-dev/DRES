@@ -14,8 +14,6 @@ export class ScoreboardViewerComponent implements OnInit, AfterViewInit {
     @Input() info: Observable<RunInfo>;
     @Input() state: Observable<RunState>;
 
-    @Input() enabled: boolean;
-
     @ViewChild('chart') chartComponent: ChartComponent;
     public series: ApexAxisChartSeries;
     public chart: ApexChart;
@@ -29,21 +27,14 @@ export class ScoreboardViewerComponent implements OnInit, AfterViewInit {
     scores: Observable<ScoreOverview>;
     private prevScores: ScoreOverview;
 
-    public constructor(public runService: CompetitionRunService, public competitionService: CompetitionService) {
-
-    }
+    public constructor(
+        public runService: CompetitionRunService) {}
 
     ngOnInit(): void {
-        if (!this.enabled) {
-            return;
-        }
         this.setupChart();
     }
 
     ngAfterViewInit(): void {
-        if (!this.enabled) {
-            return;
-        }
 
         /* Get the teams */
         this.teams = this.info.pipe(
@@ -70,15 +61,13 @@ export class ScoreboardViewerComponent implements OnInit, AfterViewInit {
         this.scores = interval(1000).pipe(
             withLatestFrom(this.state),
             switchMap(([_, state]) => {
-                console.log('Regular update of score');
                 return this.runService.getApiRunScoreWithRunidTask(state.id);
             }));
 
         /* Subscribe to changes of the scores, in order to update them */
         this.scores.subscribe(value => {
             /* Check whether score has changed */
-            if(this.hasChanged(value)){
-                console.log('Score updated, updating the chart');
+            if (this.hasChanged(value)) {
                 this.updateChart(value);
                 this.prevScores = value;
             }
@@ -87,7 +76,7 @@ export class ScoreboardViewerComponent implements OnInit, AfterViewInit {
 
     private hasChanged(score: ScoreOverview) {
         let out = true; // initially there is no prevScores, so yes, it has changed
-        if (this.prevScores) {
+        if (this.prevScores !== undefined) {
             out = false;
             score.scores.forEach((s, i) => {
                 if (s.score !== this.prevScores.scores[i].score) {
@@ -136,7 +125,13 @@ export class ScoreboardViewerComponent implements OnInit, AfterViewInit {
                 horizontal: true,
             }
         };
-        // TODO Bar respects color of team (how to?)
+        /* Apparently, this is required to not throw an error during init of chart*/
+        this.xaxis = {
+            type: 'category',
+            categories: ['']
+        };
+        this.series = [{data: [0]}];
+        // TODO Bar respects color of team
         // TODO Context menu: Apply look and feel of application
         // TODO tooltip / hoverthingy: disable that one, it does not help
     }

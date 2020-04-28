@@ -1,6 +1,6 @@
-<mat-card id="chart">
-    <div *ngIf="enabled">
-
+<mat-card>
+    <mat-card-title>Task Scores</mat-card-title>
+    <mat-card-content id="chart">
         <apx-chart
                 [series]="series"
                 [chart]="chart"
@@ -9,8 +9,5 @@
                 [xaxis]="xaxis"
                 [yaxis]="yaxis"
         ></apx-chart>
-    </div>
-    <div *ngIf="!enabled">
-        Disabled
-    </div>
+    </mat-card-content>
 </mat-card>

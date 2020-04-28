@@ -1,4 +1,4 @@
-import {combineLatest, Observable, timer} from 'rxjs';
+import {combineLatest, merge, Observable, Subject, timer} from 'rxjs';
 import {CompetitionRunAdminService, CompetitionRunService, RunState} from '../../../openapi';
 import {flatMap, map} from 'rxjs/operators';
 import {Router} from '@angular/router';
@@ -19,7 +19,7 @@ export class AbstractRunListComponent {
     displayedColumns = ['actions', 'id', 'name', 'status', 'currentTask', 'timeLeft', 'description', 'teamCount'];
     runs: Observable<RunInfoWithState[]>;
     updateInterval = 5000; /* TODO: Make configurable. */
-
+    update = new Subject();
     constructor(protected runService: CompetitionRunService,
                 protected runAdminService: CompetitionRunAdminService,
                 protected router: Router) {
@@ -29,7 +29,7 @@ export class AbstractRunListComponent {
          * state whenever a manual update is triggered.
          */
         const query = combineLatest([this.runService.getApiRunInfo(), this.runService.getApiRunState()]);
-        this.runs = timer(0, this.updateInterval).pipe(
+        this.runs = merge(timer(0, this.updateInterval), this.update).pipe(
             flatMap(t => query),
             map(([info, state]) => {
                 return info.map(i => {
@@ -41,7 +41,7 @@ export class AbstractRunListComponent {
                         teams: i.teams.length,
                         status: s.status,
                         currentTask: s.currentTask?.name,
-                        timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft / 1000)}s` : 'n/a'
+                        timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a'
                     } as RunInfoWithState;
                 });
             })

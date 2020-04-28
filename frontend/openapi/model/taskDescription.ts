@@ -13,8 +13,8 @@ import { TaskGroup } from './taskGroup';
 
 
 export interface TaskDescription { 
+    duration: number;
     taskGroup: TaskGroup;
     name: string;
-    duration: number;
 }
 

@@ -179,11 +179,11 @@ class ListCompetitionScoreHandler : AbstractCompetitionRunRestHandler(), GetRest
 
 class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<ScoreOverview> {
 
-    override val route = "run/:runId/score/task"
+    override val route = "run/score/:runId/task"
 
     @OpenApi(
             summary = "Returns the overviews of all score boards for the current task.",
-            path = "/api/run/:runId/score/task",
+            path = "/api/run/score/:runId/task",
             tags = ["Competition Run"],
             pathParams = [OpenApiParam("runId", Long::class, "Competition run ID")],
             responses = [
@@ -206,6 +206,7 @@ data class TaskInfo(val name: String, val taskGroup: TaskGroup, val duration: Lo
         fun of(task: TaskDescription): TaskInfo = TaskInfo(task.name, task.taskGroup, task.duration)
     }
 }
+
 
 class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<TaskInfo> {
 

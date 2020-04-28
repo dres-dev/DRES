@@ -9,13 +9,14 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TaskGroup } from './taskGroup';
+import { QueryEvent } from './queryEvent';
 
 
-export interface TaskDescriptionBase { 
-    taskType: string;
-    duration: number;
-    taskGroup: TaskGroup;
-    name: string;
+export interface QueryEventLog { 
+    team: number;
+    member: number;
+    timestamp: number;
+    events: Array<QueryEvent>;
+    serverTimeStamp: number;
 }
 

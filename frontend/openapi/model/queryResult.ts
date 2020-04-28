@@ -9,13 +9,12 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TaskGroup } from './taskGroup';
 
 
-export interface TaskDescriptionBase { 
-    taskType: string;
-    duration: number;
-    taskGroup: TaskGroup;
-    name: string;
+export interface QueryResult { 
+    video: string;
+    shot: number;
+    score?: number;
+    rank?: number;
 }
 

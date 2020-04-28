@@ -13,5 +13,4 @@ export class ViewerRunListComponent extends AbstractRunListComponent {
                 router: Router) {
         super(runService, runAdminService, router);
     }
-
 }

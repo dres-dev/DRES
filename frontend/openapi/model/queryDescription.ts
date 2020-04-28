@@ -12,22 +12,14 @@
 
 
 export interface QueryDescription { 
-    taskName: string;
-    taskType: QueryDescription.TaskTypeEnum;
-    contentType: QueryDescription.ContentTypeEnum;
-    payload: string;
+    type: QueryDescription.TypeEnum;
 }
 export namespace QueryDescription {
-    export type TaskTypeEnum = 'KIS_VISUAL' | 'KIS_TEXTUAL' | 'AVS';
-    export const TaskTypeEnum = {
-        KISVISUAL: 'KIS_VISUAL' as TaskTypeEnum,
-        KISTEXTUAL: 'KIS_TEXTUAL' as TaskTypeEnum,
-        AVS: 'AVS' as TaskTypeEnum
-    };
-    export type ContentTypeEnum = 'BINARY' | 'TEXT';
-    export const ContentTypeEnum = {
-        BINARY: 'BINARY' as ContentTypeEnum,
-        TEXT: 'TEXT' as ContentTypeEnum
+    export type TypeEnum = 'VIDEO' | 'IMAGE' | 'TEXT';
+    export const TypeEnum = {
+        VIDEO: 'VIDEO' as TypeEnum,
+        IMAGE: 'IMAGE' as TypeEnum,
+        TEXT: 'TEXT' as TypeEnum
     };
 }
 

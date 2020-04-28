@@ -6,6 +6,7 @@ import dres.api.rest.types.run.RunInfo
 import dres.api.rest.types.run.RunState
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
+import dres.data.model.competition.QueryDescription
 import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.competition.TaskGroup
 import dres.data.model.competition.TaskType
@@ -15,16 +16,12 @@ import dres.run.RunExecutor
 import dres.run.RunManager
 import dres.run.score.scoreboard.Score
 import dres.run.score.scoreboard.ScoreOverview
-import dres.utilities.extensions.errorResponse
 import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
-import kotlinx.serialization.ImplicitReflectionSerializer
-import kotlinx.serialization.UnstableDefault
-import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -236,7 +233,7 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
 }
 
 /**
- * TODO: Handling of [QueryDescription] needs some beautification.
+ *
  */
 class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<QueryDescription> {
 
@@ -249,7 +246,7 @@ class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<
             tags = ["Competition Run"],
             pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(QueryDescription::class, false, "application/octet-stream")]),
+                OpenApiResponse("200", [OpenApiContent(QueryDescription::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
@@ -258,14 +255,14 @@ class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId")
-        return when(task) {
+        return when(task) { /* TODO: This could actually be a function of the TaskDescription?!. */
             is TaskDescriptionBase.KisVisualTaskDescription -> {
                 val file = File(this.cacheLocation, task.cacheItemName())
                 try {
                     return FileInputStream(file).use { imageInFile ->
                         val fileData = ByteArray(file.length().toInt())
                         imageInFile.read(fileData)
-                        QueryDescription(task.name, TaskType.KIS_VISUAL, QueryDescriptionContentType.BINARY, Base64.getEncoder().encodeToString(fileData))
+                        QueryDescription.VideoQueryDescription(task.name, Base64.getEncoder().encodeToString(fileData), "video/mp4")
                     }
                 } catch (e: FileNotFoundException) {
                     throw ErrorStatusException(404, "Query object cache file not found!")
@@ -273,17 +270,18 @@ class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<
                     throw ErrorStatusException(500, "Exception when reading query object cache file.")
                 }
             }
-            is TaskDescriptionBase.KisTextualTaskDescription -> QueryDescription(task.name, TaskType.KIS_TEXTUAL, QueryDescriptionContentType.TEXT, task.descriptions.joinToString(";"))
-            is TaskDescriptionBase.AvsTaskDescription -> QueryDescription(task.name, TaskType.KIS_TEXTUAL, QueryDescriptionContentType.TEXT, task.description)
+            is TaskDescriptionBase.KisTextualTaskDescription -> {
+                QueryDescription.TextQueryDescription(task.name, task.descriptions.mapIndexed { i, s -> QueryDescription.TextQueryDescription.TextualDescription(i * task.delay, s) })
+            }
+            is TaskDescriptionBase.AvsTaskDescription -> {
+                QueryDescription.TextQueryDescription(task.name, listOf(QueryDescription.TextQueryDescription.TextualDescription(0, task.description)))
+            }
             else -> throw ErrorStatusException(500, "Exception when reading query object cache file.")
         }
     }
 }
 
-data class QueryDescription(val taskName: String, val taskType: TaskType, val contentType: QueryDescriptionContentType, val payload: String)
-enum class QueryDescriptionContentType() {
-    BINARY, TEXT
-}
+
 class CurrentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<Submission>> {
     override val route = "run/:runId/task/submissions" //TODO add a second handler with a time parameter to only get 'new' submissions
     @OpenApi(

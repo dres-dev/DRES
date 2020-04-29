@@ -1,6 +1,6 @@
 {
   "name": "@dres-openapi/api",
-  "version": "1.0-SNAPSHOT.202004281106",
+  "version": "1.0-SNAPSHOT.202004292059",
   "description": "OpenAPI client for @dres-openapi/api",
   "author": "OpenAPI-Generator Contributors",
   "keywords": [

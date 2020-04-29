@@ -43,7 +43,7 @@
             </mat-form-field>
             <mat-form-field style="width: 20%;">
                 <select matNativeControl [formControl]="form.get('time_unit')">
-                    <option *ngFor="let unit of units" value="unit">{{unit}}</option>
+                    <option *ngFor="let unit of units" [value]="unit">{{unit}}</option>
                 </select>
             </mat-form-field>
         </p>

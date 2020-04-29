@@ -1,7 +1,7 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {CompetitionRunService, QueryDescription, RunInfo, RunState, TaskDescription} from '../../../openapi';
-import {BehaviorSubject, combineLatest, interval, Observable, Subscription} from 'rxjs';
-import {filter, flatMap, map, shareReplay, switchMap} from 'rxjs/operators';
+import {BehaviorSubject, combineLatest, interval, Observable, of, Subscription} from 'rxjs';
+import {catchError, filter, flatMap, map, switchMap} from 'rxjs/operators';
 import {IWsMessage} from '../model/ws/ws-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {WebSocketSubject} from 'rxjs/webSocket';
@@ -41,7 +41,6 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
         /* Observable for the current task. */
         this.currentTaskSubscription = this.state.pipe(
             filter(s =>  (this.currentTask.value == null || this.currentTask.value.name !== s.currentTask.name)),
-            shareReplay(1)
         ).subscribe(s => {
             this.currentTask.next(s.currentTask);
         });
@@ -50,7 +49,10 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
         this.currentQueryObjectSubscription = this.currentTask.pipe(
             flatMap(task => this.info.pipe(map(i => i.id))),
             flatMap(id => this.runService.getApiRunWithRunidQuery(id)),
-            shareReplay(1)
+            catchError(e => {
+                console.log('Warning: Could not load query object due to error: ' + e);
+                return of(null);
+            })
         ).subscribe(s => {
             this.currentQueryObject.next(s);
         });

@@ -19,6 +19,8 @@ import {TaskViewerComponent} from './task-viewer.component';
 import {TeamsViewerComponent} from './teams-viewer.component';
 import {ScoreboardViewerComponent} from './scoreboard-viewer.component';
 import {QueryObjectPreviewModule} from './query-object-preview/query-object-preview.module';
+import {NgApexchartsModule} from 'ng-apexcharts';
+import { CompetitionScoreboardViewerComponent } from './competition-scoreboard-viewer/competition-scoreboard-viewer.component';
 
 @NgModule({
     imports: [
@@ -38,11 +40,11 @@ import {QueryObjectPreviewModule} from './query-object-preview/query-object-prev
         CompetitionBuilderModule,
         MatSelectModule,
         MatCardModule,
-
-        QueryObjectPreviewModule
+        QueryObjectPreviewModule,
+        NgApexchartsModule
     ],
     exports:      [ RunViewerComponent ],
-    declarations: [ RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, ScoreboardViewerComponent ],
+    declarations: [ RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, ScoreboardViewerComponent, CompetitionScoreboardViewerComponent ],
     providers:    [ ]
 })
 export class ViewerModule { }

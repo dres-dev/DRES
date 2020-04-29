@@ -30,7 +30,7 @@ export class TeamsViewerComponent implements AfterViewInit {
         );
 
         this.scores = this.state.pipe(
-            switchMap(s => this.runService.getApiRunWithRunidScoreTask(s.id)),
+            switchMap(s => this.runService.getApiRunScoreWithRunidTask(s.id)),
             catchError(err => []),
             shareReplay(1)
         );

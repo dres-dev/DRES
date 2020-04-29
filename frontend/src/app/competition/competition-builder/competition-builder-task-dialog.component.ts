@@ -29,7 +29,7 @@ export class CompetitionBuilderTaskDialogComponent {
 
 
     form: FormGroup;
-    units = ['FRAME_NUMBER', 'MILLISECONDS', 'TIMECODE'];
+    units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
     mediaCollectionSource: Observable<MediaCollection[]>;
     mediaItemSource: Observable<MediaItem[]>;
 

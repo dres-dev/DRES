@@ -11,11 +11,10 @@
  */
 
 
-export interface MediaItem { 
-    itemType: string;
-    collection: number;
-    name: string;
-    location: string;
-    id: number;
+export interface QueryResult { 
+    video: string;
+    shot: number;
+    score?: number;
+    rank?: number;
 }
 

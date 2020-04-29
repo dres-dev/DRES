@@ -17,6 +17,10 @@ import { HttpClient, HttpHeaders, HttpParams,
 import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
+import { ErrorStatus } from '../model/models';
+import { QueryEventLog } from '../model/models';
+import { QueryResultLog } from '../model/models';
+import { SuccessStatus } from '../model/models';
 
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
 import { Configuration }                                     from '../configuration';
@@ -26,7 +30,7 @@ import { Configuration }                                     from '../configurat
 @Injectable({
   providedIn: 'root'
 })
-export class MediaService {
+export class LogService {
 
     protected basePath = 'http://localhost';
     public defaultHeaders = new HttpHeaders();
@@ -85,26 +89,15 @@ export class MediaService {
     }
 
     /**
-     * returns a image from a collection item
-     * @param collection Collection name
-     * @param item MediaItem name
-     * @param time time code
+     * Accepts query logs from participants
+     * @param queryEventLog 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiFrameWithCollectionWithItemWithTime(collection: string, item: string, time: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'image/png'}): Observable<object>;
-    public getApiFrameWithCollectionWithItemWithTime(collection: string, item: string, time: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'image/png'}): Observable<HttpResponse<object>>;
-    public getApiFrameWithCollectionWithItemWithTime(collection: string, item: string, time: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'image/png'}): Observable<HttpEvent<object>>;
-    public getApiFrameWithCollectionWithItemWithTime(collection: string, item: string, time: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'image/png'}): Observable<any> {
-        if (collection === null || collection === undefined) {
-            throw new Error('Required parameter collection was null or undefined when calling getApiFrameWithCollectionWithItemWithTime.');
-        }
-        if (item === null || item === undefined) {
-            throw new Error('Required parameter item was null or undefined when calling getApiFrameWithCollectionWithItemWithTime.');
-        }
-        if (time === null || time === undefined) {
-            throw new Error('Required parameter time was null or undefined when calling getApiFrameWithCollectionWithItemWithTime.');
-        }
+    public postLogQuery(queryEventLog?: QueryEventLog, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postLogQuery(queryEventLog?: QueryEventLog, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postLogQuery(queryEventLog?: QueryEventLog, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postLogQuery(queryEventLog?: QueryEventLog, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
 
         let headers = this.defaultHeaders;
 
@@ -112,7 +105,7 @@ export class MediaService {
         if (httpHeaderAcceptSelected === undefined) {
             // to determine the Accept header
             const httpHeaderAccepts: string[] = [
-                'image/png'
+                'application/json'
             ];
             httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
         }
@@ -121,12 +114,22 @@ export class MediaService {
         }
 
 
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            headers = headers.set('Content-Type', httpContentTypeSelected);
+        }
+
         let responseType: 'text' | 'json' = 'json';
         if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
             responseType = 'text';
         }
 
-        return this.httpClient.get<object>(`${this.configuration.basePath}/api/frame/${encodeURIComponent(String(collection))}/${encodeURIComponent(String(item))}/${encodeURIComponent(String(time))}`,
+        return this.httpClient.post<SuccessStatus>(`${this.configuration.basePath}/log/query`,
+            queryEventLog,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
@@ -138,22 +141,15 @@ export class MediaService {
     }
 
     /**
-     * Returns a collection item
-     * @param collection Collection name
-     * @param item MediaItem name
+     * Accepts result logs from participants
+     * @param queryResultLog 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiMediaWithCollectionWithItem(collection: string, item: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'video/mp4'}): Observable<object>;
-    public getApiMediaWithCollectionWithItem(collection: string, item: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'video/mp4'}): Observable<HttpResponse<object>>;
-    public getApiMediaWithCollectionWithItem(collection: string, item: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'video/mp4'}): Observable<HttpEvent<object>>;
-    public getApiMediaWithCollectionWithItem(collection: string, item: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'video/mp4'}): Observable<any> {
-        if (collection === null || collection === undefined) {
-            throw new Error('Required parameter collection was null or undefined when calling getApiMediaWithCollectionWithItem.');
-        }
-        if (item === null || item === undefined) {
-            throw new Error('Required parameter item was null or undefined when calling getApiMediaWithCollectionWithItem.');
-        }
+    public postLogResult(queryResultLog?: QueryResultLog, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postLogResult(queryResultLog?: QueryResultLog, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postLogResult(queryResultLog?: QueryResultLog, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postLogResult(queryResultLog?: QueryResultLog, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
 
         let headers = this.defaultHeaders;
 
@@ -161,7 +157,7 @@ export class MediaService {
         if (httpHeaderAcceptSelected === undefined) {
             // to determine the Accept header
             const httpHeaderAccepts: string[] = [
-                'video/mp4'
+                'application/json'
             ];
             httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
         }
@@ -170,12 +166,22 @@ export class MediaService {
         }
 
 
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            headers = headers.set('Content-Type', httpContentTypeSelected);
+        }
+
         let responseType: 'text' | 'json' = 'json';
         if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
             responseType = 'text';
         }
 
-        return this.httpClient.get<object>(`${this.configuration.basePath}/api/media/${encodeURIComponent(String(collection))}/${encodeURIComponent(String(item))}`,
+        return this.httpClient.post<SuccessStatus>(`${this.configuration.basePath}/log/result`,
+            queryResultLog,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

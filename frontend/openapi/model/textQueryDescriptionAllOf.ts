@@ -9,13 +9,11 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { TextualDescription } from './textualDescription';
 
 
-export interface MediaItem { 
-    itemType: string;
-    collection: number;
-    name: string;
-    location: string;
-    id: number;
+export interface TextQueryDescriptionAllOf { 
+    taskName?: string;
+    text?: Array<TextualDescription>;
 }
 

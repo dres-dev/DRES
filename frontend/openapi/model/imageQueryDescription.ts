@@ -9,14 +9,16 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { VideoItemAllOfDurationUnits } from './videoItemAllOfDurationUnits';
+import { QueryDescription } from './queryDescription';
+import { ImageQueryDescriptionAllOf } from './imageQueryDescriptionAllOf';
 
 
-export interface VideoItemAllOfDuration { 
-    seconds?: number;
-    zero?: boolean;
-    nano?: number;
-    negative?: boolean;
-    units?: Array<VideoItemAllOfDurationUnits>;
+export interface ImageQueryDescription extends QueryDescription { 
+    taskName: string;
+    image: string;
+    contentType: string;
 }
+export namespace ImageQueryDescription {
+}
+
 

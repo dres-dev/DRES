@@ -9,11 +9,14 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { QueryEvent } from './queryEvent';
 
 
-export interface VideoItemAllOfDurationUnits { 
-    durationEstimated?: boolean;
-    timeBased?: boolean;
-    dateBased?: boolean;
+export interface QueryEventLog { 
+    team: number;
+    member: number;
+    timestamp: number;
+    events: Array<QueryEvent>;
+    serverTimeStamp: number;
 }
 

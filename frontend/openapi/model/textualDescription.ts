@@ -11,11 +11,8 @@
  */
 
 
-export interface MediaItem { 
-    itemType: string;
-    collection: number;
-    name: string;
-    location: string;
-    id: number;
+export interface TextualDescription { 
+    showAfter: number;
+    text: string;
 }
 

@@ -98,6 +98,7 @@ object RestApi {
             it.server { setupHttpServer(config) }
             it.registerPlugin(getConfiguredOpenApiPlugin())
             it.defaultContentType = "application/json"
+            it.prefer405over404 = true
             it.sessionHandler(::fileSessionHandler)
             it.accessManager(AccessManager::manage)
 

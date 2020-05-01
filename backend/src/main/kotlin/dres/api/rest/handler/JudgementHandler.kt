@@ -4,6 +4,8 @@ import dres.api.rest.RestApiRole
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
+import dres.data.dbo.DAO
+import dres.data.model.basics.media.MediaCollection
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor
 import io.javalin.core.security.Role
@@ -19,11 +21,11 @@ abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler 
     }.toLong()
 }
 
-data class Judgement(val token: String, val verdict: SubmissionStatus)
+data class Judgement(val token: String, val validator: String, val verdict: SubmissionStatus)
 
-data class JudgementRequest(val token: String, val collection: String, val item: String, val startTime: String?, val endTime: String?)
+data class JudgementRequest(val token: String, val validator: String, val collection: String, val item: String, val startTime: String?, val endTime: String?)
 
-class NextOpenJudgementHandler : AbstractJudgementHandler(), GetRestHandler<JudgementRequest> {
+class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : AbstractJudgementHandler(), GetRestHandler<JudgementRequest> {
     override val route = "run/:runId/judge/next"
 
     @OpenApi(
@@ -45,8 +47,9 @@ class NextOpenJudgementHandler : AbstractJudgementHandler(), GetRestHandler<Judg
         val validator = run.judgementValidators.find { it.hasOpen } ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement")
         val next = validator.next(ctx.req.session.id) ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement")
 
-        return JudgementRequest(validator.id + "-" + next.first, next.second.item.collection.toString() /* FIXME: collection name */, next.second.item.name, next.second.start?.toString(), next.second.end?.toString())
+        val collection = this.collections[next.second.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.second.item.collection}")
 
+        return JudgementRequest(next.first, validator.id, collection.name, next.second.item.name, next.second.start?.toString(), next.second.end?.toString())
     }
 }
 
@@ -74,10 +77,9 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
 
-        val validatorId = judgement.token.substringBefore('-')
-        val validator = run.judgementValidators.find { it.id == validatorId } ?: throw ErrorStatusException(404, "no matching task found with validator $validatorId")
+        val validator = run.judgementValidators.find { it.id == judgement.validator } ?: throw ErrorStatusException(404, "no matching task found with validator ${judgement.validator}")
 
-        validator.judge(judgement.token.substringAfter('-'), judgement.verdict)
+        validator.judge(judgement.token, judgement.verdict)
 
         return SuccessStatus("Verdict received and accepted. Thanks!")
     }

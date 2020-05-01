@@ -42,6 +42,8 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
     /* scans entire dao content in order to build up index, could take a few seconds */
     private val segmentIndex = DaoIndexer(segment){it.mediaItemId}
 
+    private val itemIndex = DaoIndexer(items){it.name}
+
     private fun getRelevantManagers(userId: Long): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
     private fun getActiveRun(userId: Long): RunManager {
@@ -76,9 +78,8 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
 
         /* Find media item. */
         val itemParam = map[PARAMETER_NAME_ITEM]?.first() ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_ITEM' is missing but required!'")
-        val item = this.items.find {
-            it.name == itemParam && it.collection == collectionId
-        } ?:  throw ErrorStatusException(404, "Media collection '$itemParam (collection = $collectionId)' could not be found.")
+        val item = this.itemIndex[itemParam].find { it.collection == collectionId } ?:
+            throw ErrorStatusException(404, "Media collection '$itemParam (collection = $collectionId)' could not be found.")
 
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) -> {

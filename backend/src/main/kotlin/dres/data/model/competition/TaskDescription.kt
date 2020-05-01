@@ -7,6 +7,7 @@ import dres.data.model.basics.time.TemporalRange
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
+import dres.run.filter.DuplicateSubmissionFilter
 import dres.run.filter.OneCorrectSubmissionPerTeamFilter
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
@@ -63,5 +64,6 @@ sealed class TaskDescriptionBase : TaskDescription {
     class AvsTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, val description: String) : TaskDescriptionBase(), TaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = BasicJudgementValidator(callback)
+        override fun newFilter(): SubmissionFilter = DuplicateSubmissionFilter()
     }
 }

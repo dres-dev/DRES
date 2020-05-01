@@ -82,7 +82,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
 
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) -> {
-                val time = this.shotToTime(map[PARAMETER_NAME_FRAME]?.first()!!, item)
+                val time = this.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item)
                 Submission(team, member, submissionTime, item, time.first, time.second)
             }
             map.containsKey(PARAMETER_NAME_FRAME) && (item is PlayableMediaItem) -> {
@@ -101,7 +101,6 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
 
     /**
      * Converts a shot number to a timestamp in milliseconds.
-     *
      */
     private fun shotToTime(shot: String, item: MediaItem): Pair<Long,Long> {
         val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.")
@@ -111,7 +110,6 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
 
     /**
      * Converts a frame number to a timestamp in milliseconds.
-     *
      */
     private fun frameToTime(frame: Int, item: PlayableMediaItem): Long {
         return ((frame / item.fps) * 1000.0).toLong()
@@ -119,7 +117,6 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
 
     /**
      * Converts a timecode to a timestamp in milliseconds.
-     *
      */
     private fun timecodeToTime(timecode: String, item: PlayableMediaItem): Long {
         return TimeUtil.timeCodeToMilliseconds(timecode, item.fps) ?: throw ErrorStatusException(400, "'$timecode' is not a valid time code")

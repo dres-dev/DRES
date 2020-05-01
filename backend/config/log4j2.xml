@@ -8,6 +8,7 @@
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="${LOG_PATTERN}"/>
+            <MarkerFilter marker="REST" onMatch="DENY" onMismatch="ACCEPT"/>
         </Console>
 
         <File name="RestRequests" fileName="logs/rest.log">

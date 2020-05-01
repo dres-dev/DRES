@@ -41,13 +41,12 @@ class NextOpenJudgementHandler : AbstractJudgementHandler(), GetRestHandler<Judg
     override fun doGet(ctx: Context): JudgementRequest {
         val runId = this.runId(ctx)
         val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-        //val next = run.judgementValidator.next(ctx.req.session.id)
 
-        //if (next != null) {
-        //    return JudgementRequest(next.first, next.second.collection, next.second.item, next.second.start?.toString(), next.second.end?.toString())
-        //} else {
-           throw ErrorStatusException(202, "No element left.")
-        //}
+        val validator = run.judgementValidators.find { it.hasOpen } ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement")
+        val next = validator.next(ctx.req.session.id) ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement")
+
+        return JudgementRequest(validator.id + "-" + next.first, next.second.item.collection.toString() /* FIXME: collection name */, next.second.item.name, next.second.start?.toString(), next.second.end?.toString())
+
     }
 }
 
@@ -68,18 +67,18 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = this.runId(ctx)
+        val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         val judgement = try {
             ctx.bodyAsClass(Judgement::class.java)
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
 
-        val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-        //try {
-        //    run.judgementValidator.judge(judgement.token, judgement.verdict)
-        //    return SuccessStatus("Verdict received and accepted. Thanks!")
-        //} catch (e: IllegalArgumentException) {
-            throw ErrorStatusException(404, "")
-       // }
+        val validatorId = judgement.token.substringBefore('-')
+        val validator = run.judgementValidators.find { it.id == validatorId } ?: throw ErrorStatusException(404, "no matching task found with validator $validatorId")
+
+        validator.judge(judgement.token.substringAfter('-'), judgement.verdict)
+
+        return SuccessStatus("Verdict received and accepted. Thanks!")
     }
 }

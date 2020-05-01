@@ -11,8 +11,17 @@ import dres.data.model.run.SubmissionStatus
  * @version 1.0
  */
 interface JudgementValidator : SubmissionValidator {
-    /** Returns the number of [Submission]s that are currently pending a judgement. */
+    /** unique id to identify the [JudgementValidator]*/
+    val id: String
+
+    /** The number of [Submission]s that are currently pending a judgement. */
     val pending: Int
+
+    /** The number of [Submission]s which have not yet been presented to a judge */
+    val open: Int
+
+    val hasOpen: Boolean
+        get() = open > 0
 
     /**
      * Enqueues a [Submission] with the internal judgment queue and updates its [SubmissionStatus]

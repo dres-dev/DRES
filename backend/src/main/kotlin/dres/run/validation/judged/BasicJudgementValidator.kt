@@ -6,6 +6,7 @@ import dres.data.model.run.SubmissionStatus
 import dres.run.validation.interfaces.JudgementValidator
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.collections.HashMap
 
 /**
@@ -17,6 +18,12 @@ import kotlin.collections.HashMap
  * @version 1.0
  */
 class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = null): JudgementValidator { //TODO better name
+
+    companion object {
+        private val counter = AtomicInteger()
+    }
+
+    override val id = "bjv${counter.incrementAndGet()}"
 
     /** Helper class to store submission information independent of source */
     private data class ItemRange(val item: MediaItem, val start: Long, val end: Long){
@@ -36,6 +43,14 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
     override val pending: Int
         @Synchronized
         get() = this.queue.size + this.waiting.size
+
+    override val open: Int
+        @Synchronized
+        get() = this.queue.size
+
+    override val hasOpen: Boolean
+        @Synchronized
+        get() = this.queue.isNotEmpty()
 
     /**
      * Enqueues a [Submission] with the internal judgment queue and updates its [SubmissionStatus]
@@ -84,7 +99,7 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
     @Synchronized
     override fun judge(token: String, verdict: SubmissionStatus) {
         require(this.waiting.containsKey(token)) { "This JudgementValidator does not contain a submission for the token '$token'." }
-        val submission = this.waiting.getValue(token)
+        val submission = this.waiting[token] ?: return //submission with token not found TODO: this should be logged
         submission.status = verdict
 
         //add to cache

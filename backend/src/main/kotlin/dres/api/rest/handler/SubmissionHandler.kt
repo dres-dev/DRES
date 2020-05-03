@@ -26,6 +26,7 @@ import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import java.lang.IllegalArgumentException
 
 class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val segment: DAO<MediaItemSegmentList>): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
@@ -138,6 +139,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
             tags = ["Submission"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("208", [OpenApiContent(SuccessStatus::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
@@ -149,7 +151,11 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
         val run = getActiveRun(userId)
         val time = System.currentTimeMillis()
         val submission = toSubmission(ctx, userId, run, time)
-        val result = run.postSubmission(submission)
+        val result = try {
+            run.postSubmission(submission)
+        } catch (e: IllegalArgumentException) { //is only thrown by submission filter TODO: nicer exception type
+            throw ErrorStatusException(208, "Submission rejected")
+        }
 
         AuditLogManager.getAuditLogger(run.name)!!.submission(run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId())
 

@@ -11,10 +11,6 @@
         <mat-icon>access_time</mat-icon>
     </button>
 
-    <button *ngIf="canJudge | async" mat-icon-button aria-label="Judge Submissions" matTooltip="Judge Submissions" routerLink="/judge">
-        <mat-icon>gavel</mat-icon>
-    </button>
-
     <button *ngIf="isAdmin | async" mat-icon-button aria-label="User Management" matTooltip="User Management" routerLink="/user/list">
         <mat-icon>people</mat-icon>
     </button>

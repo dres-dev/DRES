@@ -39,7 +39,7 @@ const routes: Routes = [
     data: {roles: [RoleEnum.ADMIN, RoleEnum.VIEWER, RoleEnum.PARTICIPANT]}
   },
   {
-    path: 'judge',
+    path: 'judge/:runId',
     component: JudgementViewerComponent,
     canActivate: [AuthenticationGuard],
     data: {roles: [RoleEnum.ADMIN, RoleEnum.JUDGE]}

@@ -55,4 +55,8 @@ export class AbstractRunListComponent {
     public navigateToViewer(runId: number) {
         this.router.navigate(['/run/viewer', runId]);
     }
+
+    public navigateToJudgement(runId: number) {
+        this.router.navigate(['/judge', runId]);
+    }
 }

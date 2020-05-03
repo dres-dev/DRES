@@ -12,6 +12,10 @@
                     <mat-icon>visibility</mat-icon>
                 </button>
 
+                <button mat-icon-button aria-label="Go to judgement viewer." matTooltip="Go to judgement viewer." (click)="navigateToJudgement(row.id)">
+                    <mat-icon>gavel</mat-icon>
+                </button>
+
                 <button *ngIf="row.status == 'CREATED'" mat-icon-button aria-label="Start the competition run." matTooltip="Start the competition run." (click)="start(row.id)">
                     <mat-icon>play_arrow</mat-icon>
                 </button>

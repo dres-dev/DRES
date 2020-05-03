@@ -13,7 +13,7 @@
             </mat-form-field>
         </p>
 
-        <div *ngIf="form.get('mediaItemId')">
+        <div *ngIf="form.get('mediaCollection')">
             <p>
                 <mat-form-field style="width: 40%;">
                     <mat-select placeholder="Media Collection" formControlName="mediaCollection">
@@ -22,7 +22,7 @@
                         </mat-option>
                     </mat-select>
                 </mat-form-field>
-                <mat-form-field style="width: 55%;" *ngIf="(form.get('mediaCollection').value || form.get('mediaItemId').value)">
+                <mat-form-field style="width: 55%;" *ngIf="(form.get('mediaItemId') && (form.get('mediaCollection').value || form.get('mediaItemId').value))">
                     <input type="text" matInput placeholder="Media item" formControlName="mediaItemId" [matAutocomplete]="autoGroup">
                     <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">
                         <mat-option *ngFor="let mediaItem of (mediaItemSource | async)" [value]="mediaItem" >

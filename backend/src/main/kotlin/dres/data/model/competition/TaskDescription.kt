@@ -61,7 +61,7 @@ sealed class TaskDescriptionBase : TaskDescription {
      * @param description Textual task description presented to the user.
      */
     @Serializable
-    class AvsTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, val description: String) : TaskDescriptionBase(), TaskDescription {
+    class AvsTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, val description: String, val defaultCollection: Long) : TaskDescriptionBase(), TaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = BasicJudgementValidator(callback)
         override fun newFilter(): SubmissionFilter = DuplicateSubmissionFilter()

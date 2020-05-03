@@ -13,6 +13,7 @@
 
 export interface Judgement { 
     token: string;
+    validator: string;
     verdict: Judgement.VerdictEnum;
 }
 export namespace Judgement {

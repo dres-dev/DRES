@@ -73,6 +73,9 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
             runManager.currentTask is TaskDescriptionBase.KisTextualTaskDescription -> {
                 (runManager.currentTask as TaskDescriptionBase.KisTextualTaskDescription).item.collection
             }
+            runManager.currentTask is TaskDescriptionBase.AvsTaskDescription -> {
+                (runManager.currentTask as TaskDescriptionBase.AvsTaskDescription).defaultCollection
+            }
             else -> null
         } ?: throw ErrorStatusException(404, "Media collection '$collectionParam' could not be found.")
 

@@ -2,6 +2,7 @@ package dres.run.score.scoreboard
 
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun
+import kotlin.math.max
 
 class MaxNormalizingScoreBoard(private val name: String, private val taskFilter: (TaskDescription) -> Boolean, private val maxScoreNormalized: Double = 100.0) : Scoreboard {
 
@@ -16,7 +17,7 @@ class MaxNormalizingScoreBoard(private val name: String, private val taskFilter:
                     it.value.map { i -> i.value }.sum()
                 }
 
-        val maxScore = scoreSums.values.max() ?: return emptyMap()
+        val maxScore = max(1.0, scoreSums.values.max() ?: return emptyMap())
 
         return scoreSums.mapValues { it.value * maxScoreNormalized / maxScore }
     }

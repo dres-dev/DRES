@@ -13,5 +13,6 @@
 
 export interface AvsTaskDescriptionAllOf { 
     description?: string;
+    defaultCollection?: number;
 }
 

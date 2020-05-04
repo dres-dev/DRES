@@ -13,6 +13,7 @@
 
 export interface JudgementRequest { 
     token: string;
+    validator: string;
     collection: string;
     item: string;
     startTime?: string;

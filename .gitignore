@@ -259,3 +259,4 @@ gradle-app.setting
 .idea/
 node_modules/
 backend/cache
+backend/task-cache

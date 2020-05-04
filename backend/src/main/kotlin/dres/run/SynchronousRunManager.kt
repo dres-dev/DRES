@@ -13,6 +13,7 @@ import dres.data.model.run.SubmissionStatus
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.score.scoreboard.Scoreboard
+import dres.run.validation.interfaces.JudgementValidator
 import dres.run.validation.interfaces.SubmissionValidator
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -62,6 +63,9 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
             return field
         }
         private set
+
+    override val judgementValidators: List<JudgementValidator>
+        get() = this.run.runs.mapNotNull { if (it.hasStarted && it.validator is JudgementValidator) it.validator else null }
 
     /** The list of [Submission]s for the current [Task]. */
     override val submissions: List<Submission>?

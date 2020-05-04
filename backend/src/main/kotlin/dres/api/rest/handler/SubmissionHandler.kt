@@ -26,6 +26,7 @@ import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import java.lang.IllegalArgumentException
 
 class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val segment: DAO<MediaItemSegmentList>): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
@@ -41,6 +42,8 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
 
     /* scans entire dao content in order to build up index, could take a few seconds */
     private val segmentIndex = DaoIndexer(segment){it.mediaItemId}
+
+    private val itemIndex = DaoIndexer(items){it.name}
 
     private fun getRelevantManagers(userId: Long): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
@@ -71,18 +74,20 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
             runManager.currentTask is TaskDescriptionBase.KisTextualTaskDescription -> {
                 (runManager.currentTask as TaskDescriptionBase.KisTextualTaskDescription).item.collection
             }
+            runManager.currentTask is TaskDescriptionBase.AvsTaskDescription -> {
+                (runManager.currentTask as TaskDescriptionBase.AvsTaskDescription).defaultCollection
+            }
             else -> null
         } ?: throw ErrorStatusException(404, "Media collection '$collectionParam' could not be found.")
 
         /* Find media item. */
         val itemParam = map[PARAMETER_NAME_ITEM]?.first() ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_ITEM' is missing but required!'")
-        val item = this.items.find {
-            it.name == itemParam && it.collection == collectionId
-        } ?:  throw ErrorStatusException(404, "Media collection '$itemParam (collection = $collectionId)' could not be found.")
+        val item = this.itemIndex[itemParam].find { it.collection == collectionId } ?:
+            throw ErrorStatusException(404, "Media collection '$itemParam (collection = $collectionId)' could not be found.")
 
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) -> {
-                val time = this.shotToTime(map[PARAMETER_NAME_FRAME]?.first()!!, item)
+                val time = this.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item)
                 Submission(team, member, submissionTime, item, time.first, time.second)
             }
             map.containsKey(PARAMETER_NAME_FRAME) && (item is PlayableMediaItem) -> {
@@ -101,7 +106,6 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
 
     /**
      * Converts a shot number to a timestamp in milliseconds.
-     *
      */
     private fun shotToTime(shot: String, item: MediaItem): Pair<Long,Long> {
         val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.")
@@ -111,7 +115,6 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
 
     /**
      * Converts a frame number to a timestamp in milliseconds.
-     *
      */
     private fun frameToTime(frame: Int, item: PlayableMediaItem): Long {
         return ((frame / item.fps) * 1000.0).toLong()
@@ -119,7 +122,6 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
 
     /**
      * Converts a timecode to a timestamp in milliseconds.
-     *
      */
     private fun timecodeToTime(timecode: String, item: PlayableMediaItem): Long {
         return TimeUtil.timeCodeToMilliseconds(timecode, item.fps) ?: throw ErrorStatusException(400, "'$timecode' is not a valid time code")
@@ -137,6 +139,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
             tags = ["Submission"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("208", [OpenApiContent(SuccessStatus::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
@@ -148,7 +151,11 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
         val run = getActiveRun(userId)
         val time = System.currentTimeMillis()
         val submission = toSubmission(ctx, userId, run, time)
-        val result = run.postSubmission(submission)
+        val result = try {
+            run.postSubmission(submission)
+        } catch (e: IllegalArgumentException) { //is only thrown by submission filter TODO: nicer exception type
+            throw ErrorStatusException(208, "Submission rejected")
+        }
 
         AuditLogManager.getAuditLogger(run.name)!!.submission(run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId())
 

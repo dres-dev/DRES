@@ -27,6 +27,7 @@ object TaskDescriptionSerializer: Serializer<TaskDescriptionBase> {
             }
             is TaskDescriptionBase.AvsTaskDescription -> {
                 out.writeUTF(value.description)
+                out.packLong(value.defaultCollection)
             }
         }
     }
@@ -38,7 +39,7 @@ object TaskDescriptionSerializer: Serializer<TaskDescriptionBase> {
         return when (taskGroup.type) {
             TaskType.KIS_VISUAL-> TaskDescriptionBase.KisVisualTaskDescription(name, taskGroup, duration, MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
             TaskType.KIS_TEXTUAL -> TaskDescriptionBase.KisTextualTaskDescription(name, taskGroup, duration, MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available), (0 until input.readInt()).map { input.readUTF() }, input.readInt())
-            TaskType.AVS -> TaskDescriptionBase.AvsTaskDescription(name, taskGroup, duration, input.readUTF())
+            TaskType.AVS -> TaskDescriptionBase.AvsTaskDescription(name, taskGroup, duration, input.readUTF(), input.unpackLong())
         }
     }
 }

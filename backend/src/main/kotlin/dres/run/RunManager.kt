@@ -8,6 +8,7 @@ import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.score.scoreboard.Scoreboard
+import dres.run.validation.interfaces.JudgementValidator
 
 /**
  * A managing class for [CompetitionDescription] executions or 'runs'.
@@ -42,6 +43,9 @@ interface RunManager : Runnable {
 
     /** Current [RunManagerStatus] of the [RunManager]. */
     val status: RunManagerStatus
+
+    /** [JudgementValidator]s for all tasks that use them */
+    val judgementValidators: List<JudgementValidator>
 
     /**
      * Starts this [RunManager] moving [RunManager.status] from [RunManagerStatus.CREATED] to

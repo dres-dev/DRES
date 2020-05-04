@@ -37,11 +37,11 @@ export class CompetitionBuilderTaskDialogComponent {
                 public collectionService: CollectionService,
                 @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData) {
 
+        this.mediaCollectionSource = this.collectionService.getApiCollection();
 
         switch (this.data.taskGroup.type) {
             case 'KIS_VISUAL':
                 this.form = CompetitionBuilderTaskDialogComponent.KisVisualFormControl(this.data.taskGroup, this.data.task as KisVisualTaskDescription);
-                this.mediaCollectionSource = this.collectionService.getApiCollection();
                 this.mediaItemSource = this.form.get('mediaItemId').valueChanges.pipe(
                     filter((value: string) => value.length >= 3),
                     flatMap(value => {
@@ -51,7 +51,6 @@ export class CompetitionBuilderTaskDialogComponent {
                 break;
             case 'KIS_TEXTUAL':
                 this.form = CompetitionBuilderTaskDialogComponent.KisTextualFormControl(this.data.taskGroup, this.data.task as KisTextualTaskDescription);
-                this.mediaCollectionSource = this.collectionService.getApiCollection();
                 this.mediaItemSource = this.form.get('mediaItemId').valueChanges.pipe(
                     filter((value: string) => value.length >= 3),
                     flatMap((value) => {
@@ -119,6 +118,7 @@ export class CompetitionBuilderTaskDialogComponent {
      */
     public static AvsFormControl(taskGroup: TaskGroup, task?: AvsTaskDescription) {
         const addTo = this.BasicFormControl(taskGroup, task);
+        addTo.addControl('mediaCollection', new FormControl(task?.defaultCollection));
         addTo.addControl('description', new FormControl(task?.description, Validators.minLength(1)));
         return addTo;
     }
@@ -178,6 +178,7 @@ export class CompetitionBuilderTaskDialogComponent {
                     taskType: this.data.taskGroup.type,
                     taskGroup: this.data.taskGroup,
                     duration: this.form.get('duration').value,
+                    defaultCollection: this.form.get('mediaCollection').value,
                     description: this.form.get('description').value} as AvsTaskDescription;
             case 'KIS_TEXTUAL':
                 return {

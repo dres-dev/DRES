@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {CompetitionRunService, CompetitionService, RunInfo, RunState, ScoreOverview, Team} from '../../../openapi';
+import {CompetitionRunService, RunInfo, RunState, ScoreOverview, Team} from '../../../openapi';
 import {interval, Observable} from 'rxjs';
 import {ApexAxisChartSeries, ApexChart, ApexDataLabels, ApexPlotOptions, ApexXAxis, ApexYAxis, ChartComponent} from 'ng-apexcharts';
 import {map, switchMap, withLatestFrom} from 'rxjs/operators';
@@ -28,7 +28,8 @@ export class ScoreboardViewerComponent implements OnInit, AfterViewInit {
     private prevScores: ScoreOverview;
 
     public constructor(
-        public runService: CompetitionRunService) {}
+        public runService: CompetitionRunService) {
+    }
 
     ngOnInit(): void {
         this.setupChart();

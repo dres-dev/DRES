@@ -6,14 +6,17 @@ import dres.api.rest.types.run.RunInfo
 import dres.api.rest.types.run.RunState
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
+import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.QueryDescription
 import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.competition.TaskGroup
-import dres.data.model.competition.TaskType
+import dres.data.model.competition.interfaces.HiddenResultsTaskDescription
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
+import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor
 import dres.run.RunManager
+import dres.run.RunManagerStatus
 import dres.run.score.scoreboard.Score
 import dres.run.score.scoreboard.ScoreOverview
 import io.javalin.core.security.Role
@@ -283,8 +286,8 @@ class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<
 }
 
 
-class CurrentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<Submission>> {
-    override val route = "run/:runId/task/submissions" //TODO add a second handler with a time parameter to only get 'new' submissions
+class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
+    override val route = "run/:runId/task/submissions"
     @OpenApi(
             summary = "Returns the submissions to the current task.",
             path = "/api/run/:runId/task/submissions",
@@ -296,11 +299,58 @@ class CurrentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): List<Submission> {
+    override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-        return run.submissions ?: throw ErrorStatusException(400, "Not submissions available. There is probably no run going on.")
+        val submissions = run.submissions ?: throw ErrorStatusException(400, "Not submissions available. There is probably no run going on.")
+
+        return if(run.status != RunManagerStatus.TERMINATED && run.currentTask is HiddenResultsTaskDescription){
+            submissions.map { SubmissionInfo.blind(it) }
+        } else {
+            submissions.map { SubmissionInfo(it) }
+        }
+
     }
+}
+
+class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
+    override val route = "run/:runId/task/submissions/after/:timestamp"
+    @OpenApi(
+            summary = "Returns the submissions to the current task which are newer than an indicated time.",
+            path = "/api/run/:runId/task/submissions/after/:timestamp",
+            tags = ["Competition Run"],
+            pathParams = [
+                OpenApiParam("runId", Long::class, "Competition Run ID"),
+                OpenApiParam("timestamp", Long::class, "Minimum Timestamp for returned Submissions")
+            ],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(Array<Submission>::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): List<SubmissionInfo> {
+        val runId = runId(ctx)
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val timestamp = ctx.pathParamMap().getOrDefault("timestamp", "0").toLong()
+        val submissions = run.submissions?.filter { it.timestamp >= timestamp } ?: throw ErrorStatusException(400, "Not submissions available. There is probably no run going on.")
+
+        return if(run.status != RunManagerStatus.TERMINATED && run.currentTask is HiddenResultsTaskDescription){
+            submissions.map { SubmissionInfo.blind(it) }
+        } else {
+            submissions.map { SubmissionInfo(it) }
+        }
+
+    }
+}
+
+data class SubmissionInfo(val team: Int, val member: Long, val status: SubmissionStatus, val timestamp: Long, val item: MediaItem? = null, val start: Long? = null, val end: Long? = null){
+    constructor(submission: Submission): this(submission.team, submission.member, submission.status, submission.timestamp, submission.item, submission.start, submission.end)
+
+    companion object{
+        fun blind(submission: Submission): SubmissionInfo = SubmissionInfo(submission.team, submission.member, submission.status, submission.timestamp)
+    }
+
 }
 
 

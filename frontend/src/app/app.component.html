@@ -3,9 +3,9 @@
 
     <div class="spacer-flex"></div>
 
-    <a mat-icon-button aria-label="Competition builder and overview" matTooltip="Competition builder and overview" routerLink="/competition/list">
+    <button *ngIf="isAdmin | async" mat-icon-button aria-label="Competition builder and overview" matTooltip="Competition builder and overview" routerLink="/competition/list">
         <mat-icon>build</mat-icon>
-    </a>
+    </button>
 
     <button mat-icon-button aria-label="Ongoing runs" matTooltip="Ongoing runs" routerLink="/run/list">
         <mat-icon>access_time</mat-icon>

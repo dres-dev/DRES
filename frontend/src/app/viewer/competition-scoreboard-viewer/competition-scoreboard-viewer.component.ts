@@ -80,6 +80,10 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
     }
 
     private hasChanged(scores: Array<ScoreOverview>) {
+        if (scores === undefined) {
+            console.log('[Com.Score] Cannot decide whether changed, when undefined scores given');
+            return false; // Assuming it should not be undefined
+        }
         let out = true;
         if (this.prevScores !== undefined) {
             out = JSON.stringify(this.prevScores) !== JSON.stringify(scores);

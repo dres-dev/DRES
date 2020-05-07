@@ -76,6 +76,10 @@ export class ScoreboardViewerComponent implements OnInit, AfterViewInit {
     }
 
     private hasChanged(score: ScoreOverview) {
+        if (score === undefined) {
+            console.log('[TaskScore] Cannot decide whether changed, when undefined scores given');
+            return false; // Assuming it should not be undefined
+        }
         let out = true; // initially there is no prevScores, so yes, it has changed
         if (this.prevScores !== undefined) {
             out = false;

@@ -30,13 +30,13 @@ const routes: Routes = [
     path: 'run/list',
     component: AdminRunListComponent,
     canActivate: [AuthenticationGuard],
-    data: {roles: [RoleEnum.ADMIN, RoleEnum.VIEWER, RoleEnum.PARTICIPANT]}
+    data: {roles: [RoleEnum.ADMIN, RoleEnum.VIEWER, RoleEnum.PARTICIPANT, RoleEnum.JUDGE]}
   },
   {
     path: 'run/viewer/:runId',
     component: RunViewerComponent,
     canActivate: [AuthenticationGuard],
-    data: {roles: [RoleEnum.ADMIN, RoleEnum.VIEWER, RoleEnum.PARTICIPANT]}
+    data: {roles: [RoleEnum.ADMIN, RoleEnum.VIEWER, RoleEnum.PARTICIPANT, RoleEnum.JUDGE]}
   },
   {
     path: 'judge/:runId',

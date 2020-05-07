@@ -3,9 +3,9 @@ package dres.run
 import dres.api.rest.types.run.websocket.ClientMessage
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.TaskDescription
-import dres.data.model.run.CompetitionRun
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
+import dres.data.model.run.TaskRunData
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.score.scoreboard.Scoreboard
 import dres.run.validation.interfaces.JudgementValidator
@@ -33,7 +33,7 @@ interface RunManager : Runnable {
     val currentTask: TaskDescription?
         get() = currentTaskRun?.task
 
-    val currentTaskRun: CompetitionRun.TaskRun.TaskRunData?
+    val currentTaskRun: TaskRunData?
 
     /** The [TaskRunScorer] of the current [TaskRun]. Can be null! */
     val currentTaskScore: TaskRunScorer?

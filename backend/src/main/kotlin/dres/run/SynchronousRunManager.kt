@@ -10,6 +10,7 @@ import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
+import dres.data.model.run.TaskRunData
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.score.scoreboard.Scoreboard
@@ -49,7 +50,7 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
     override var currentTask: TaskDescription? = null
         private set
 
-    override val currentTaskRun: CompetitionRun.TaskRun.TaskRunData?
+    override val currentTaskRun: TaskRunData?
         get() = run.currentTask?.data
 
     /** Currently active [TaskRunScorer]. */

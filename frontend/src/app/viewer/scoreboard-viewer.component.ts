@@ -1,8 +1,8 @@
 import {AfterViewInit, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, Team} from '../../../openapi';
-import {interval, Observable} from 'rxjs';
+import {interval, Observable, of} from 'rxjs';
 import {ApexAxisChartSeries, ApexChart, ApexDataLabels, ApexPlotOptions, ApexXAxis, ApexYAxis, ChartComponent} from 'ng-apexcharts';
-import {map, switchMap, withLatestFrom} from 'rxjs/operators';
+import {catchError, filter, map, switchMap, withLatestFrom} from 'rxjs/operators';
 
 
 @Component({
@@ -49,29 +49,22 @@ export class ScoreboardViewerComponent implements OnInit, AfterViewInit {
         });
 
         /* Get the scores */
-        // TODO This is not called?
         this.scores = this.state.pipe(
             switchMap(s => {
-                console.log('Original score get');
                 return this.runService.getApiRunScoreWithRunidTask(s.id);
-            })
+            }),
+            catchError(err => {
+               console.log(`Error: ${err}`);
+               return of(null);
+            }),
+            /* Fires only if actually scores are present */
+            filter(value => value != null)
         );
-
-        /* every second update score */
-        // TODO only when RUNNING, actively polling for scores
-        this.scores = interval(1000).pipe(
-            withLatestFrom(this.state),
-            switchMap(([_, state]) => {
-                return this.runService.getApiRunScoreWithRunidTask(state.id);
-            }));
 
         /* Subscribe to changes of the scores, in order to update them */
         this.scores.subscribe(value => {
             /* Check whether score has changed */
-            if (this.hasChanged(value)) {
-                this.updateChart(value);
-                this.prevScores = value;
-            }
+            this.updateChart(value);
         });
     }
 
@@ -117,6 +110,8 @@ export class ScoreboardViewerComponent implements OnInit, AfterViewInit {
             this.series = [{
                 data: scores.scores.map(score => Number.parseInt(score.score.toFixed(0), 10))
             }];
+        }else{
+            this.series = [];
         }
     }
 
@@ -135,7 +130,7 @@ export class ScoreboardViewerComponent implements OnInit, AfterViewInit {
             type: 'category',
             categories: ['']
         };
-        this.series = [{data: [0]}];
+        this.series = [];
         // TODO Bar respects color of team
         // TODO Context menu: Apply look and feel of application
         // TODO tooltip / hoverthingy: disable that one, it does not help

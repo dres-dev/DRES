@@ -2,11 +2,12 @@ package dres.run.score.scoreboard
 
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
 class MaxNormalizingScoreBoard(private val name: String, private val taskFilter: (TaskDescription) -> Boolean, private val maxScoreNormalized: Double = 100.0) : Scoreboard {
 
-    private val scorePerTaskMap = mutableMapOf<TaskDescription, Map<Int, Double>>()
+    private val scorePerTaskMap = ConcurrentHashMap<TaskDescription, Map<Int, Double>>()
 
 
     private fun overallScoreMap(): Map<Int, Double> {

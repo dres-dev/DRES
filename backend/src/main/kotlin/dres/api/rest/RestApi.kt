@@ -50,7 +50,7 @@ object RestApi {
                 CurrentUsersSessionIdHandler(),
 
                 //media
-                GetFrameHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+                GetPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 GetMediaHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
 
                 //collection

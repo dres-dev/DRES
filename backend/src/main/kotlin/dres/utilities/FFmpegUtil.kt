@@ -21,6 +21,16 @@ object FFmpegUtil {
         
     }") //TODO make configurable
 
+    private fun toMillisecondTimeStamp(ms: Long): String {
+        val hours = ms / (1000 * 3600)
+        val minutes = (ms % (1000 * 3600)) / (60_000)
+        val seconds = (ms % 60_000) / 1000
+        val milliseconds = ms % 1000
+
+        return "$hours:$minutes:$seconds.$milliseconds"
+    }
+
+
     fun extractFrame(video: Path, timecode: String, outputImage: Path) {
         FFmpeg.atPath(ffmpegBin)
             .addInput(UrlInput.fromPath(video))
@@ -30,6 +40,8 @@ object FFmpegUtil {
             .addArguments("-vframes", "1")
             .execute()
     }
+
+    fun extractFrame(video: Path, ms: Long, outputImage: Path) = extractFrame(video, toMillisecondTimeStamp(ms), outputImage)
 
     fun extractSegment(video: Path, startTimecode: String, endTimecode: String, outputVideo: Path) {
         FFmpeg.atPath(ffmpegBin)
@@ -57,7 +69,5 @@ object FFmpegUtil {
         extractSegment(input, "${range.first / 1000}", "${range.second / 1000}", output)
 
     }
-
-
 
 }

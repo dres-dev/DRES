@@ -18,12 +18,20 @@ export class JudgementMediaViewerComponent {
     constructor(private sanitizer: DomSanitizer, private config: AppConfig) {
     }
 
-    public judge(req: JudgementRequest) {
+  private offset = 4;
+
+  public judge(req: JudgementRequest) {
         console.log('Judge Media: Request:');
         console.log(req);
         let timeRange = '';
         if (req.startTime && req.endTime) {
-            timeRange = `#t=${req.startTime},${req.endTime}`;
+            let start = Number.parseInt(req.startTime, 10);
+            let end = Number.parseInt(req.endTime, 10);
+            if (start === end) {
+                start = start - this.offset < 0 ? 0 : start - this.offset;
+                end = end + this.offset;
+            }
+            timeRange = `#t=${start},${end}`;
         }
         // TODO How to know here what type this media item has?
         const path = `/media/${req.collection}/${req.item}${timeRange}`;

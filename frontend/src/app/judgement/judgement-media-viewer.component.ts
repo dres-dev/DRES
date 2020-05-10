@@ -1,34 +1,35 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {BehaviorSubject, Observable} from 'rxjs';
+import {Component, Input} from '@angular/core';
+import {Observable} from 'rxjs';
 import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
-import {map} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 import {JudgementRequest} from '../../../openapi';
 
 @Component({
-  selector: 'app-judgement-media-viewer',
-  templateUrl: './judgement-media-viewer.component.html',
-  styleUrls: ['./judgement-media-viewer.component.scss']
+    selector: 'app-judgement-media-viewer',
+    templateUrl: './judgement-media-viewer.component.html',
+    styleUrls: ['./judgement-media-viewer.component.scss']
 })
-export class JudgementMediaViewerComponent implements OnInit {
+export class JudgementMediaViewerComponent {
 
-  @Input() itemName: Observable<string>;
-  @Input() req: BehaviorSubject<JudgementRequest>;
+    @Input() req: Observable<JudgementRequest>;
 
-  videoUrl: Observable<SafeUrl>;
+    videoUrl: Observable<SafeUrl>;
 
-  constructor(private sanitizer: DomSanitizer) { }
+    constructor(private sanitizer: DomSanitizer, private config: AppConfig) {
+    }
 
-  ngOnInit(): void {
-    const prefix = AppConfig.settings.endpoint;
-    // prefix+'/api/media/:collection/:item' + times @ videoplayer
-    //const url = prefix + '/api/media/'+ this.req.get._collection+'/'+this.req.get.itemName
-
-    /*
-    this.videoUrl = this.itemName.pipe(map(s => {
-      return this.sanitizer.bypassSecurityTrustUrl(s);
-    }));
-    */
-  }
+    public judge(req: JudgementRequest) {
+        console.log('Judge Media: Request:');
+        console.log(req);
+        let timeRange = '';
+        if (req.startTime && req.endTime) {
+            timeRange = `#t=${req.startTime},${req.endTime}`;
+        }
+        // TODO How to know here what type this media item has?
+        const path = `/media/${req.collection}/${req.item}${timeRange}`;
+        console.log('url is: ' + path);
+        const url = this.config.resolveApiUrl(path);
+        this.videoUrl = new Observable<SafeUrl>(subscriber => subscriber.next(url));
+    }
 
 }

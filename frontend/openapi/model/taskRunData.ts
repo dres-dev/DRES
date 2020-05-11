@@ -14,7 +14,7 @@ import { TaskDescription } from './taskDescription';
 
 
 export interface TaskRunData { 
-    submissions: Array<Submission>;
     task: TaskDescription;
+    submissions: Array<Submission>;
 }
 

@@ -24,7 +24,6 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
 
     private judgementRequest: JudgementRequest;
     private runId: string;
-    private name = 'Task';
 
     constructor(
         private judgementService: JudgementService,

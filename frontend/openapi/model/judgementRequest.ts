@@ -16,6 +16,7 @@ export interface JudgementRequest {
     validator: string;
     collection: string;
     item: string;
+    taskDescription: string;
     startTime?: string;
     endTime?: string;
 }

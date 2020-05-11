@@ -22,7 +22,7 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
 
     private currentRequest: Observable<JudgementRequest>;
 
-    private judgementRequest: JudgementRequest;
+    judgementRequest: JudgementRequest;
     private runId: string;
 
     constructor(

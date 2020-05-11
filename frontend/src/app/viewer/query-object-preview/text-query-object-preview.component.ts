@@ -15,7 +15,7 @@ export class TextQueryObjectPreviewComponent implements OnInit, OnDestroy {
     currentText: Observable<string>;
 
     /** Font size in em. TODO: Make configurable. */
-    fontSize = 2.0;
+    fontSize = 2.5;
 
     ngOnInit(): void {
         this.currentText = this.timeElapsed.pipe(

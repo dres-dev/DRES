@@ -1,7 +1,7 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {CompetitionRunService, QueryDescription, RunInfo, RunState, TaskDescription} from '../../../openapi';
 import {BehaviorSubject, combineLatest, interval, Observable, of, Subscription} from 'rxjs';
-import {catchError, filter, flatMap, map, switchMap} from 'rxjs/operators';
+import {catchError, filter, flatMap, map, share, switchMap} from 'rxjs/operators';
 import {IWsMessage} from '../model/ws/ws-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {WebSocketSubject} from 'rxjs/webSocket';
@@ -69,7 +69,8 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
         /* Observable for the time left and time elapsed (for running tasks only). */
         const polledState = this.state.pipe(
             filter(s => s.status === 'RUNNING_TASK'),
-            flatMap(s => interval(1000).pipe(switchMap(t => this.runService.getApiRunStateWithRunid(s.id))))
+            flatMap(s => interval(1000).pipe(switchMap(t => this.runService.getApiRunStateWithRunid(s.id)))),
+            share()
         );
 
         this.timeLeft = polledState.pipe(map(s => s.timeLeft));

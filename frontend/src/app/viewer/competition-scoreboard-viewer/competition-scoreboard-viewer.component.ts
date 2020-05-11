@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, Team} from '../../../../openapi';
-import {interval, Observable} from 'rxjs';
+import {Observable} from 'rxjs';
 import {
     ApexAxisChartSeries,
     ApexChart,
@@ -13,7 +13,7 @@ import {
     ApexYAxis,
     ChartComponent
 } from 'ng-apexcharts';
-import {map, switchMap, withLatestFrom} from 'rxjs/operators';
+import {map, switchMap} from 'rxjs/operators';
 
 @Component({
     selector: 'app-competition-scoreboard-viewer',
@@ -65,11 +65,9 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
         });
 
         /* Regular updates of scores */
-        this.scores = interval(1000).pipe(
-            withLatestFrom(this.state),
-            switchMap(([_, state]) => {
-                return this.runService.getApiRunScoreWithRunid(state.id);
-            }));
+        this.scores = this.state.pipe(
+            switchMap(state => this.runService.getApiRunScoreWithRunid(state.id))
+        );
 
         this.scores.subscribe(value => {
             if (this.hasChanged(value)) {

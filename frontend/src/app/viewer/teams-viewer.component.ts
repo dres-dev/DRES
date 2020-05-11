@@ -1,7 +1,8 @@
 import {AfterViewInit, Component, Input} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, Submission} from '../../../openapi';
 import {Observable, of} from 'rxjs';
-import {catchError, map, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
+import {catchError, filter, map, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
+import {AppConfig} from '../app.config';
 
 @Component({
     selector: 'app-teams-viewer',
@@ -15,7 +16,7 @@ export class TeamsViewerComponent implements AfterViewInit {
     submissions: Observable<Submission[][]>;
     scores: Observable<ScoreOverview>;
 
-    constructor(protected runService: CompetitionRunService) {}
+    constructor(private runService: CompetitionRunService, private config: AppConfig) {}
 
     ngAfterViewInit(): void {
         this.submissions = this.state.pipe(
@@ -36,6 +37,16 @@ export class TeamsViewerComponent implements AfterViewInit {
         );
     }
 
+
+    /**
+     * Generates a URL for the preview image of a submission.
+     *
+     * @param submission
+     */
+    public previewForSubmission(submission: Submission): string {
+        return this.config.resolveApiUrl(`/preview/${submission.item.collection}/${submission.item.name}/${submission.start}`);
+    }
+
     /**
      *
      * @param team
@@ -53,7 +64,10 @@ export class TeamsViewerComponent implements AfterViewInit {
     }
 
     public score(team: number): Observable<string> {
-        return this.scores.pipe(map(scores => scores.scores.find(s => s.teamId === team)?.score.toFixed(0)));
+        return this.scores.pipe(
+            filter(s => s != null),
+            map(scores => scores.scores.find(s => s.teamId === team)?.score.toFixed(0))
+        );
     }
 
     public correctSubmissions(team: number): Observable<number> {

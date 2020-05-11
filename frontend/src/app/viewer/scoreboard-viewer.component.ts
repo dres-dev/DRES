@@ -1,8 +1,8 @@
 import {AfterViewInit, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, Team} from '../../../openapi';
-import {interval, Observable, of} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {ApexAxisChartSeries, ApexChart, ApexDataLabels, ApexPlotOptions, ApexXAxis, ApexYAxis, ChartComponent} from 'ng-apexcharts';
-import {catchError, filter, map, switchMap, withLatestFrom} from 'rxjs/operators';
+import {catchError, filter, map, shareReplay, switchMap} from 'rxjs/operators';
 
 
 @Component({
@@ -58,7 +58,8 @@ export class ScoreboardViewerComponent implements OnInit, AfterViewInit {
                return of(null);
             }),
             /* Fires only if actually scores are present */
-            filter(value => value != null)
+            filter(value => value != null),
+            shareReplay(1)
         );
 
         /* Subscribe to changes of the scores, in order to update them */

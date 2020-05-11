@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, Input} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, Submission} from '../../../openapi';
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {catchError, map, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
 
 @Component({
@@ -31,7 +31,7 @@ export class TeamsViewerComponent implements AfterViewInit {
 
         this.scores = this.state.pipe(
             switchMap(s => this.runService.getApiRunScoreWithRunidTask(s.id)),
-            catchError(err => []),
+            catchError(err => of(null)),
             shareReplay(1)
         );
     }

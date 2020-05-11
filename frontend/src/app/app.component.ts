@@ -4,8 +4,8 @@ import {AuthenticationService} from './services/session/authentication.sevice';
 import {UserDetails} from '../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {map} from 'rxjs/operators';
-import RoleEnum = UserDetails.RoleEnum;
 import {Observable} from 'rxjs';
+import RoleEnum = UserDetails.RoleEnum;
 
 @Component({
   selector: 'app-root',
@@ -31,12 +31,12 @@ export class AppComponent {
 
   public logout() {
     this.authenticationService.logout().subscribe(() => {
-      this.snackBar.open(`Logout Successful!`, null, {duration: 5000});
+      this.snackBar.open(`Logout successful!`, null, {duration: 5000});
       this.router.navigate(['/']);
     });
   }
 
-  profile() {
+  public profile() {
     this.router.navigate(['/user']);
   }
 }

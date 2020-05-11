@@ -1,7 +1,7 @@
 import {Inject, Injectable} from '@angular/core';
 import {LoginRequest, UserDetails, UserRequest, UserService} from '../../../../openapi';
-import {filter, flatMap, map, tap} from 'rxjs/operators';
-import {BehaviorSubject, Observable} from 'rxjs';
+import {catchError, filter, flatMap, map, tap} from 'rxjs/operators';
+import {BehaviorSubject, Observable, of} from 'rxjs';
 import RoleEnum = UserRequest.RoleEnum;
 
 /**
@@ -17,7 +17,17 @@ export class AuthenticationService {
     /**
      * Constructor
      */
-    constructor(@Inject(UserService) private userService: UserService) {}
+    constructor(@Inject(UserService) private userService: UserService) {
+        this.userService.getApiUserSession().pipe(
+            catchError(e => of(null)),
+            filter(s => s != null),
+            flatMap(s => this.userService.getApiUserInfo()),
+            filter(u => u != null)
+        ).subscribe(u => {
+            this.userDetails.next(u);
+            console.log(`Resumed session! Successfully logged in as '${this.userDetails.value.username}'.`);
+        });
+    }
 
     /**
      * Tries to login a user with the given username and password. Returns an Observable!
@@ -30,7 +40,7 @@ export class AuthenticationService {
             flatMap(() => this.userService.getApiUserInfo()),
             tap(data => {
                 this.userDetails.next(data);
-                console.log(`Successfully logged in '${this.userDetails.value.username}'.`);
+                console.log(`Successfully logged in as '${this.userDetails.value.username}'.`);
             })
         );
     }
@@ -51,13 +61,12 @@ export class AuthenticationService {
      * Tries to logout the current user. Returns an Observable!
      */
     public logout() {
-        return this.userDetails.pipe(
-            filter(u => u != null),
-            flatMap(() => this.userService.getApiLogout()),
+        return this.userService.getApiLogout().pipe(
+            catchError(e => of(null)),
             tap(() => {
                 this.userDetails.next(null);
                 console.log(`User was logged out.`);
-            })
+            }),
         );
     }
 
@@ -65,7 +74,10 @@ export class AuthenticationService {
      * Returns the current login state as Observable.
      */
     get isLoggedIn(): Observable<boolean> {
-        return this.userDetails.pipe(map(u => u != null));
+        return this.userDetails.pipe(
+            map(u => u != null),
+            catchError(e => of(false))
+        );
     }
 
     /**

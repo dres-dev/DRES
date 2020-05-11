@@ -102,7 +102,7 @@ object RestApi {
             it.prefer405over404 = true
             it.sessionHandler(::fileSessionHandler)
             it.accessManager(AccessManager::manage)
-
+            it.addStaticFiles("html")
         }.routes {
 
             path("api") {

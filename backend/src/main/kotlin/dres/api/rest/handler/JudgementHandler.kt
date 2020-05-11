@@ -6,6 +6,7 @@ import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
 import dres.data.model.basics.media.MediaCollection
+import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor
 import io.javalin.core.security.Role
@@ -23,7 +24,7 @@ abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler 
 
 data class Judgement(val token: String, val validator: String, val verdict: SubmissionStatus)
 
-data class JudgementRequest(val token: String, val validator: String, val collection: String, val item: String, val startTime: String?, val endTime: String?)
+data class JudgementRequest(val token: String, val validator: String, val collection: String, val item: String, val taskDescription: String, val startTime: String?, val endTime: String?)
 
 class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : AbstractJudgementHandler(), GetRestHandler<JudgementRequest> {
     override val route = "run/:runId/judge/next"
@@ -49,7 +50,13 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
 
         val collection = this.collections[next.second.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.second.item.collection}")
 
-        return JudgementRequest(next.first, validator.id, collection.name, next.second.item.name, next.second.start?.toString(), next.second.end?.toString())
+        val taskDescription = if (next.second.taskRun?.task is TaskDescriptionBase.AvsTaskDescription) {
+            (next.second.taskRun?.task as TaskDescriptionBase.AvsTaskDescription).description
+        } else {
+            next.second.taskRun?.task?.name ?: "no task description available"
+        }
+
+        return JudgementRequest(next.first, validator.id, collection.name, next.second.item.name, taskDescription, next.second.start?.toString(), next.second.end?.toString())
     }
 }
 

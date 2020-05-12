@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -10,7 +10,7 @@ import {Subscription} from 'rxjs';
     templateUrl: './login.component.html',
     styleUrls: ['./login.component.scss']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
     form: FormGroup = new FormGroup({
         username: new FormControl(''),
         password: new FormControl(''),
@@ -29,6 +29,11 @@ export class LoginComponent implements OnInit {
             this.router.navigate([this.returnUrl]);
           }
         });
+    }
+
+    ngOnDestroy(): void {
+        this.authenticationServiceSubscription.unsubscribe();
+        this.authenticationServiceSubscription = null;
     }
 
     public submit() {

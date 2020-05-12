@@ -29,7 +29,7 @@ object Cli {
      */
     fun loop(dataAccessLayer: DataAccessLayer, config: Config) {
 
-        val clikt = DRESBaseCommand().subcommands(CompetitionCommand(dataAccessLayer.competitions, dataAccessLayer.collections, config.taskCacheLocation), UserCommand(), MediaCollectionCommand(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaSegments), CompetitionRunCommand())
+        val clikt = DRESBaseCommand().subcommands(CompetitionCommand(dataAccessLayer.competitions, dataAccessLayer.collections, config.taskCacheLocation), UserCommand(), MediaCollectionCommand(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaSegments), CompetitionRunCommand(dataAccessLayer.runs))
 
         var terminal: Terminal? = null
         try {

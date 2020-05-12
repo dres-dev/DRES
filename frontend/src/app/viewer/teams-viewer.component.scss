@@ -46,9 +46,16 @@
 
 .submission {
   border-radius: 5px;
-  width: 45px;
-  height: 45px;
+  width: 60px;
+  height: 60px;
   margin: 2px
+}
+
+.submission img {
+  width: 56px;
+  height: 56px;
+  margin: 2px;
+  object-fit: contain;
 }
 
 .score {

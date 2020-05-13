@@ -10,20 +10,18 @@
  * Do not edit the class manually.
  */
 import { MediaItem } from './mediaItem';
-import { TaskRunData } from './taskRunData';
 
 
-export interface Submission { 
+export interface SubmissionInfo { 
     team: number;
     member: number;
+    status: SubmissionInfo.StatusEnum;
     timestamp: number;
-    item: MediaItem;
+    item?: MediaItem;
     start?: number;
     end?: number;
-    status: Submission.StatusEnum;
-    taskRun$backend?: TaskRunData;
 }
-export namespace Submission {
+export namespace SubmissionInfo {
     export type StatusEnum = 'CORRECT' | 'WRONG' | 'INDETERMINATE' | 'UNDECIDABLE';
     export const StatusEnum = {
         CORRECT: 'CORRECT' as StatusEnum,

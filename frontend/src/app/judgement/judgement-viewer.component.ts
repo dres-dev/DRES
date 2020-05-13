@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {interval, Observable, Subscription} from 'rxjs';
-import {Judgement, JudgementRequest, JudgementService, Submission} from '../../../openapi';
+import {Judgement, JudgementRequest, JudgementService, SubmissionInfo} from '../../../openapi';
 import {ActivatedRoute} from '@angular/router';
 import {switchMap} from 'rxjs/operators';
 import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
@@ -61,7 +61,7 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
         this.routeSubscription.unsubscribe();
     }
 
-    public judge(status: Submission.StatusEnum) {
+    public judge(status: SubmissionInfo.StatusEnum) {
         const judgement = {
             token: this.judgementRequest.token,
             validator: this.judgementRequest.validator,

@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, Input} from '@angular/core';
-import {CompetitionRunService, RunInfo, RunState, ScoreOverview, Submission} from '../../../openapi';
+import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo} from '../../../openapi';
 import {Observable, of} from 'rxjs';
 import {catchError, filter, map, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
@@ -13,7 +13,7 @@ export class TeamsViewerComponent implements AfterViewInit {
     @Input() info: Observable<RunInfo>;
     @Input() state: Observable<RunState>;
 
-    submissions: Observable<Submission[][]>;
+    submissions: Observable<SubmissionInfo[][]>;
     scores: Observable<ScoreOverview>;
 
     constructor(private runService: CompetitionRunService, private config: AppConfig) {}
@@ -43,7 +43,7 @@ export class TeamsViewerComponent implements AfterViewInit {
      *
      * @param submission
      */
-    public previewForSubmission(submission: Submission): string {
+    public previewForSubmission(submission: SubmissionInfo): string {
         return this.config.resolveApiUrl(`/preview/${submission.item.collection}/${submission.item.name}/${submission.start}`);
     }
 
@@ -51,7 +51,7 @@ export class TeamsViewerComponent implements AfterViewInit {
      *
      * @param team
      */
-    public submissionForTeam(team: number): Observable<Submission[]> {
+    public submissionForTeam(team: number): Observable<SubmissionInfo[]> {
         return this.submissions.pipe(
             map(s => {
                 if (s != null) {

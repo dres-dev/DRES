@@ -294,7 +294,7 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
             tags = ["Competition Run"],
             pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<Submission>::class)]),
+                OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
@@ -324,7 +324,7 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
                 OpenApiParam("timestamp", Long::class, "Minimum Timestamp for returned Submissions")
             ],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<Submission>::class)]),
+                OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]

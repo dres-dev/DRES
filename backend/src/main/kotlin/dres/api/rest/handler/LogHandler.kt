@@ -9,6 +9,7 @@ import dres.data.model.log.QueryEventLog
 import dres.data.model.log.QueryResultLog
 import dres.run.RunManager
 import dres.run.RunManagerStatus
+import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
@@ -48,7 +49,7 @@ class QueryLogHandler : LogHandler() {
     )
     override fun doPost(ctx: Context): SuccessStatus {
 
-        val userId = AccessManager.getUserIdforSession(ctx.req.session.id) ?: throw ErrorStatusException(401, "Authorization required.")
+        val userId = AccessManager.getUserIdforSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.")
         val run = getActiveRun(userId)
 
 
@@ -77,7 +78,7 @@ class ResultLogHandler : LogHandler() {
     )
     override fun doPost(ctx: Context): SuccessStatus {
 
-        val userId = AccessManager.getUserIdforSession(ctx.req.session.id) ?: throw ErrorStatusException(401, "Authorization required.")
+        val userId = AccessManager.getUserIdforSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.")
         val run = getActiveRun(userId)
 
         val queryLog = ctx.body<QueryResultLog>()

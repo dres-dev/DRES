@@ -9,6 +9,7 @@ import dres.data.model.admin.PlainPassword
 import dres.data.model.admin.User
 import dres.data.model.admin.UserName
 import dres.mgmt.admin.UserManager.getMatchingUser
+import dres.utilities.extensions.sessionId
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
@@ -41,7 +42,7 @@ class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler<Su
         val user = getMatchingUser(username, password)
                 ?: throw ErrorStatusException(401, "Invalid credentials. Please try again!")
 
-        AccessManager.setUserforSession(ctx.req.session.id, user)
+        AccessManager.setUserforSession(ctx.sessionId(), user)
         return SuccessStatus("Login of '${user.username}' successful!")
 
     }

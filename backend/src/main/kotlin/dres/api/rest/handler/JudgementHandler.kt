@@ -9,6 +9,7 @@ import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor
+import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -46,7 +47,7 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
         val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
 
         val validator = run.judgementValidators.find { it.hasOpen } ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement")
-        val next = validator.next(ctx.req.session.id) ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement")
+        val next = validator.next(ctx.sessionId()) ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement")
 
         val collection = this.collections[next.second.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.second.item.collection}")
 

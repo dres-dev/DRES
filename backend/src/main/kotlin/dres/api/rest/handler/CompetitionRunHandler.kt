@@ -19,6 +19,7 @@ import dres.run.RunManager
 import dres.run.RunManagerStatus
 import dres.run.score.scoreboard.Score
 import dres.run.score.scoreboard.ScoreOverview
+import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
@@ -36,9 +37,9 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.VIEWER)
 
-    private fun userId(ctx: Context): Long = AccessManager.getUserIdforSession(ctx.req.session.id)!!
+    private fun userId(ctx: Context): Long = AccessManager.getUserIdforSession(ctx.sessionId())!!
 
-    private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.req.session.id).contains(RestApiRole.ADMIN)
+    private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
 
     fun getRelevantManagers(ctx: Context): List<RunManager> {
         if (isAdmin(ctx)){

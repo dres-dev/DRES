@@ -39,7 +39,7 @@ sealed class TaskDescriptionBase : TaskDescription {
     data class KisVisualTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange) : TaskDescriptionBase(), MediaSegmentTaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = TemporalOverlapSubmissionValidator(this, callback)
-        override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}.mp4"
+        override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}-${temporalRange.start.value}-${temporalRange.end.value}.mp4"
         override fun newFilter(): SubmissionFilter = OneCorrectSubmissionPerTeamFilter()
     }
 
@@ -52,7 +52,7 @@ sealed class TaskDescriptionBase : TaskDescription {
     class KisTextualTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange, val descriptions: List<String>, val delay: Int = 30) : TaskDescriptionBase(), MediaSegmentTaskDescription, HiddenResultsTaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = TemporalOverlapSubmissionValidator(this, callback)
-        override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}.mp4"
+        override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}-${temporalRange.start.value}-${temporalRange.end.value}.mp4"
         override fun newFilter(): SubmissionFilter = OneCorrectSubmissionPerTeamFilter()
     }
 

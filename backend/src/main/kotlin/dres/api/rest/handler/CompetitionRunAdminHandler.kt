@@ -126,7 +126,7 @@ class CreateCompetitionRunAdminHandler(internal val runs: DAO<CompetitionRun>, p
     private fun generateScoreBoards(competitionDescription: CompetitionDescription): List<Scoreboard> {
 
         val groupBoards = competitionDescription.groups.map {group ->
-            MaxNormalizingScoreBoard(group.name, {task -> task.taskGroup == group})
+            MaxNormalizingScoreBoard(group.name, {task -> task.taskGroup == group}, group.name)
         }
 
         val aggregateScoreBoard = MeanAggregateScoreBoard("average", groupBoards)
@@ -134,7 +134,29 @@ class CreateCompetitionRunAdminHandler(internal val runs: DAO<CompetitionRun>, p
         return groupBoards.plus(aggregateScoreBoard)
     }
 
-    data class CompetitionStart(val competitionId: Long, val name: String, val type: RunType, val scoreboards: Array<String>)
+    data class CompetitionStart(val competitionId: Long, val name: String, val type: RunType, val scoreboards: Array<String>) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as CompetitionStart
+
+            if (competitionId != other.competitionId) return false
+            if (name != other.name) return false
+            if (type != other.type) return false
+            if (!scoreboards.contentEquals(other.scoreboards)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = competitionId.hashCode()
+            result = 31 * result + name.hashCode()
+            result = 31 * result + type.hashCode()
+            result = 31 * result + scoreboards.contentHashCode()
+            return result
+        }
+    }
 }
 
 /**

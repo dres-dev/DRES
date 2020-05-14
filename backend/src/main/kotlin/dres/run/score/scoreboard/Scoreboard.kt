@@ -8,7 +8,7 @@ import dres.data.model.run.CompetitionRun
  */
 data class Score(val teamId: Int, val score: Double)
 
-data class ScoreOverview(val name: String, val scores: List<Score>)
+data class ScoreOverview(val name: String, val taskGroup: String?, val scores: List<Score>)
 
 /**
  * A [Scoreboard] tracks the [Score]s for different [Teams]
@@ -44,6 +44,6 @@ interface Scoreboard {
     /**
      * Returns a summary of all current scores in a [ScoreOverview]
      */
-    fun overview(): ScoreOverview = ScoreOverview(name(), scores())
+    fun overview(): ScoreOverview
 
 }

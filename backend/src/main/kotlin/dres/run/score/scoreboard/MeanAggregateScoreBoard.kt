@@ -2,7 +2,7 @@ package dres.run.score.scoreboard
 
 import dres.data.model.run.CompetitionRun
 
-class MeanAggregateScoreBoard(private val name: String, private val boards: List<Scoreboard>) : Scoreboard {
+class MeanAggregateScoreBoard(private val name: String, private val boards: List<Scoreboard>, private val taskGroupName: String? = null) : Scoreboard {
 
 //    override fun taskScores(): List<Score> {
 //        return boards.map { it.taskScores() }
@@ -24,5 +24,7 @@ class MeanAggregateScoreBoard(private val name: String, private val boards: List
     }
 
     override fun name() = name
+
+    override fun overview() = ScoreOverview(name, taskGroupName, scores())
 
 }

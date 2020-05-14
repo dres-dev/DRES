@@ -198,7 +198,7 @@ class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHand
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         val scores = run.currentTaskScore?.scores() ?: throw ErrorStatusException(400, "Run $runId doesn't seem to have a running task.")
-        return ScoreOverview("task", scores.map { (k,v) -> Score(k, v) })
+        return ScoreOverview("task", run.currentTask?.taskGroup?.name, scores.map { (k,v) -> Score(k, v) })
     }
 }
 

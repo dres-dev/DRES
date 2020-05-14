@@ -5,7 +5,7 @@ import dres.data.model.run.CompetitionRun
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
-class MaxNormalizingScoreBoard(private val name: String, private val taskFilter: (TaskDescription) -> Boolean, private val maxScoreNormalized: Double = 100.0) : Scoreboard {
+class MaxNormalizingScoreBoard(private val name: String, private val taskFilter: (TaskDescription) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 100.0) : Scoreboard {
 
     private val scorePerTaskMap = ConcurrentHashMap<TaskDescription, Map<Int, Double>>()
 
@@ -43,4 +43,6 @@ class MaxNormalizingScoreBoard(private val name: String, private val taskFilter:
     }
 
     override fun name() = name
+
+    override fun overview() = ScoreOverview(name, taskGroupName, scores())
 }

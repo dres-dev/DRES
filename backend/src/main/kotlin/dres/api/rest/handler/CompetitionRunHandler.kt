@@ -305,7 +305,7 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         val submissions = run.submissions ?: throw ErrorStatusException(400, "Not submissions available. There is probably no run going on.")
 
-        return if(run.status != RunManagerStatus.TERMINATED && run.currentTask is HiddenResultsTaskDescription){
+        return if(run.status == RunManagerStatus.RUNNING_TASK && run.currentTask is HiddenResultsTaskDescription){
             submissions.map { SubmissionInfo.blind(it) }
         } else {
             submissions.map { SubmissionInfo(it) }

@@ -3,17 +3,20 @@ package dres.api.rest.handler
 import dres.api.rest.RestApiRole
 import dres.api.rest.types.status.ErrorStatusException
 import dres.data.dbo.DAO
+import dres.data.dbo.DaoIndexer
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
 import dres.utilities.FFmpegUtil
 import dres.utilities.TimeUtil
 import dres.utilities.extensions.errorResponse
 import dres.utilities.extensions.streamFile
+import io.javalin.core.util.FileUtil
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.netty.util.internal.ResourcesUtil
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -30,6 +33,8 @@ class GetPreviewHandler(private val collections: DAO<MediaCollection>, private v
         }
     }
 
+    private val itemIndex = DaoIndexer(items){it.collection to it.name}
+
     @OpenApi(summary = "Returns a preview image from a collection item",
             path = "/api/preview/:collection/:item/:time",
             pathParams = [
@@ -45,11 +50,10 @@ class GetPreviewHandler(private val collections: DAO<MediaCollection>, private v
 
         val params = ctx.pathParamMap()
 
-
         val collectionId = params["collection"]?.toLongOrNull() ?: throw ErrorStatusException(400, "Collection ID not specified or invalid.")
         val itemName = params["item"] ?: throw ErrorStatusException(400, "Item name not specified.")
         val collection = this.collections[collectionId] ?: throw ErrorStatusException(404, "Collection $collectionId does not exist.")
-        val item = items.find { it.collection == collectionId && it.name == itemName }
+        val item = itemIndex[collectionId to itemName].firstOrNull()
         if (item == null){
             ctx.errorResponse(404, "Media item $itemName (collection = $collectionId) not found!")
             return
@@ -71,10 +75,27 @@ class GetPreviewHandler(private val collections: DAO<MediaCollection>, private v
             val time = params["time"]?.toLongOrNull() ?: throw ErrorStatusException(400, "Timestamp unspecified or invalid.")
             val imgFile = cacheDir.resolve("${time}.png")
             if (!Files.exists(imgFile)){
+                imgFile.toFile().createNewFile() //create empty file as placeholder
                 FFmpegUtil.extractFrame(Path.of(collection.basePath, item.location), time, imgFile)
             }
 
-            ctx.streamFile(imgFile)
+            //check if file is empty and return placeholder
+            if (imgFile.toFile().length() == 0L) {
+                //set header to not cache
+                ctx.header("Cache-Control", "no-cache, no-store, must-revalidate")
+                //return placeholder
+                ctx.contentType(imageMime)
+                ctx.result(
+                        this.javaClass.getResourceAsStream("/img/loading.png")
+                )
+            } else {
+                ctx.header("Cache-Control", "public, max-age=31536000")
+                ctx.streamFile(imgFile)
+            }
+
+
+
+
         }
 
     }

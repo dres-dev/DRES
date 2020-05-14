@@ -1,11 +1,10 @@
 import {AfterViewInit, Component} from '@angular/core';
-import {CompetitionOverview, CompetitionRunAdminService, CompetitionService} from '../../../../openapi';
+import {CompetitionOverview, CompetitionRunAdminService, CompetitionService, CompetitionStart} from '../../../../openapi';
 import {MatDialog} from '@angular/material/dialog';
 import {CompetitionCreateDialogComponent, CompetitionCreateDialogResult} from './competition-create-dialog.component';
-import {filter, flatMap} from 'rxjs/operators';
+import {filter, flatMap, tap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Router} from '@angular/router';
-import {CompetitionStart} from '../../../../openapi';
 import {CompetitionStartDialogComponent, CompetitionStartDialogResult} from './competition-start-dialog.component';
 
 @Component({
@@ -18,7 +17,7 @@ export class CompetitionListComponent implements AfterViewInit {
   /** */
   displayedColumns = ['actions', 'id', 'name', 'description', 'taskCount', 'teamCount'];
   competitions: CompetitionOverview[] = [];
-
+  waitingForRun = false;
 
   constructor(private competitionService: CompetitionService,
               private runAdminService: CompetitionRunAdminService,
@@ -48,6 +47,7 @@ export class CompetitionListComponent implements AfterViewInit {
       const dialogRef = this.dialog.open(CompetitionStartDialogComponent, {width: '500px'});
       dialogRef.afterClosed().pipe(
           filter(r => r != null),
+          tap(r => this.waitingForRun = true),
           flatMap((r: CompetitionStartDialogResult) => {
               return this.runAdminService.postApiRunAdminCreate(
                   {competitionId: id, name: r.name, type: r.type, scoreboards: []} as CompetitionStart
@@ -55,8 +55,10 @@ export class CompetitionListComponent implements AfterViewInit {
           })
       ).subscribe((r) => {
           this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
+          this.waitingForRun = false;
       }, (r) => {
           this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+          this.waitingForRun = false;
       });
   }
 

@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, Team} from '../../../../openapi';
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {
     ApexAxisChartSeries,
     ApexChart,
@@ -13,7 +13,7 @@ import {
     ApexYAxis,
     ChartComponent
 } from 'ng-apexcharts';
-import {map, switchMap} from 'rxjs/operators';
+import {catchError, filter, map, shareReplay, switchMap} from 'rxjs/operators';
 
 @Component({
     selector: 'app-competition-scoreboard-viewer',
@@ -25,6 +25,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
     @Input() info: Observable<RunInfo>;
     @Input() state: Observable<RunState>;
     @ViewChild('chart') chartComponent: ChartComponent;
+
     series: ApexAxisChartSeries;
     chart: ApexChart;
     dataLabels: ApexDataLabels;
@@ -64,9 +65,18 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
             this.updateChart();
         });
 
-        /* Regular updates of scores */
+        /* Get the socres */
         this.scores = this.state.pipe(
-            switchMap(state => this.runService.getApiRunScoreWithRunid(state.id))
+            switchMap(s => {
+                return this.runService.getApiRunScoreWithRunid(s.id);
+            }),
+            catchError(err => {
+                console.log(`Error: ${err}`);
+                return of(null);
+            }),
+            /* Fires only if actually scores are present */
+            filter(value => value != null),
+            shareReplay(1)
         );
 
         this.scores.subscribe(value => {
@@ -101,6 +111,8 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
             }).map(s => {
                 return {name: s.name, data: s.scores.map(sc => sc.score)};
             });
+        }else{
+            this.series = [];
         }
     }
 

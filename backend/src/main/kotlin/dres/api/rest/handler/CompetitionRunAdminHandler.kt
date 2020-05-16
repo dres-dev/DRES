@@ -6,6 +6,7 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
+import dres.data.model.Config
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
@@ -45,9 +46,9 @@ abstract class AbstractCompetitionRunAdminRestHandler : RestHandler, AccessManag
 /**
  * REST handler to create a [CompetitionRun].
  */
-class CreateCompetitionRunAdminHandler(internal val runs: DAO<CompetitionRun>, private val competitions: DAO<CompetitionDescription>, private val collections: DAO<MediaCollection>, taskCacheLocation: String) : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class CreateCompetitionRunAdminHandler(internal val runs: DAO<CompetitionRun>, private val competitions: DAO<CompetitionDescription>, private val collections: DAO<MediaCollection>, config: Config) : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
 
-    private val cacheLocation = File(taskCacheLocation)
+    private val cacheLocation = File(config.cachePath + "/tasks")
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     private fun competitionById(id: Long): CompetitionDescription =

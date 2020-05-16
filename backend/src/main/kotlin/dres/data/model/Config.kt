@@ -13,7 +13,7 @@ data class Config(
         val keystorePath: String = "keystore.jks",
         val keystorePassword: String = "password",
         val dataPath: String = "./data",
-        val taskCacheLocation: String = "task-cache") {
+        val cachePath: String = "./cache") {
 
     companion object{
         fun read(file: File): Config? {

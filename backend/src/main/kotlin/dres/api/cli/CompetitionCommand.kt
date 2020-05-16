@@ -8,6 +8,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
 import dres.data.dbo.DAO
+import dres.data.model.Config
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.TaskDescriptionBase
@@ -15,13 +16,13 @@ import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.utilities.FFmpegUtil
 import java.io.File
 
-class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>, internal val collections: DAO<MediaCollection>, taskCacheLocation: String) : NoOpCliktCommand(name = "competition") {
+class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>, internal val collections: DAO<MediaCollection>, config: Config) : NoOpCliktCommand(name = "competition") {
 
     init {
         this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand(), PrepareCompetitionCommand(), DeleteCompetitionCommand())
     }
 
-    private val cacheLocation = File(taskCacheLocation)
+    private val taskCacheLocation = File(config.cachePath + "/tasks")
 
     abstract inner class AbstractCompetitionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {
 
@@ -124,7 +125,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                 }
 
                 println("rendering ${it.name}")
-                FFmpegUtil.prepareMediaSegmentTask(it, collection.basePath, this@CompetitionCommand.cacheLocation)
+                FFmpegUtil.prepareMediaSegmentTask(it, collection.basePath, this@CompetitionCommand.taskCacheLocation)
 
             }
 

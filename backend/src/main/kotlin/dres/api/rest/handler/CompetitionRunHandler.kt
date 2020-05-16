@@ -6,6 +6,7 @@ import dres.api.rest.types.run.RunInfo
 import dres.api.rest.types.run.RunState
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
+import dres.data.model.Config
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.QueryDescription
 import dres.data.model.competition.TaskDescriptionBase
@@ -240,11 +241,11 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
 /**
  *
  */
-class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<QueryDescription> {
+class CurrentQueryHandler(config: Config) : AbstractCompetitionRunRestHandler(), GetRestHandler<QueryDescription> {
 
     override val route = "run/:runId/query"
 
-    private val cacheLocation = File("task-cache") //TODO make configurable
+    private val taskCacheLocation = File(config.cachePath + "/tasks")
     @OpenApi(
             summary = "Returns the actual query for the current task.",
             path = "/api/run/:runId/query",
@@ -262,7 +263,7 @@ class CurrentQueryHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<
         val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId")
         return when(task) { /* TODO: This could actually be a function of the TaskDescription?!. */
             is TaskDescriptionBase.KisVisualTaskDescription -> {
-                val file = File(this.cacheLocation, task.cacheItemName())
+                val file = File(this.taskCacheLocation, task.cacheItemName())
                 try {
                     return FileInputStream(file).use { imageInFile ->
                         val fileData = ByteArray(file.length().toInt())

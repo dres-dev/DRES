@@ -50,7 +50,7 @@ object RestApi {
                 CurrentUsersSessionIdHandler(),
 
                 //media
-                GetPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+                GetPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, config),
                 GetMediaHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
 
                 //collection
@@ -76,13 +76,13 @@ object RestApi {
                 GetCompetitionRunStateHandler(),
                 ListCompetitionScoreHandler(),
                 CurrentTaskScoreHandler(),
-                CurrentQueryHandler(),
+                CurrentQueryHandler(config),
                 CurrentTaskInfoHandler(),
                 SubmissionInfoHandler(),
                 RecentSubmissionInfoHandler(),
 
                 //Competition run admin
-                CreateCompetitionRunAdminHandler(dataAccessLayer.runs, dataAccessLayer.competitions, dataAccessLayer.collections, config.taskCacheLocation),
+                CreateCompetitionRunAdminHandler(dataAccessLayer.runs, dataAccessLayer.competitions, dataAccessLayer.collections, config),
                 StartCompetitionRunAdminHandler(dataAccessLayer.audit),
                 NextTaskCompetitionRunAdminHandler(),
                 PreviousTaskCompetitionRunAdminHandler(),

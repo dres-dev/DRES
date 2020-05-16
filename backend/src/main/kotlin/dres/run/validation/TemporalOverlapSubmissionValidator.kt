@@ -17,7 +17,7 @@ import dres.utilities.TimeUtil
 class TemporalOverlapSubmissionValidator(private val task: MediaSegmentTaskDescription, override val callback: ((Submission) -> Unit)? = null) : SubmissionValidator {
     /**
      * Validates a [Submission] based on the target segment and the temporal overlap of the
-     * [Submission] with the [TaskDescription]. TODO: Framenumber not currently supported
+     * [Submission] with the [TaskDescription].
      *
      * @param submission The [Submission] to validate.
      */

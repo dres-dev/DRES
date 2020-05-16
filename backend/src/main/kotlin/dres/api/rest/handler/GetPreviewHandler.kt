@@ -4,34 +4,32 @@ import dres.api.rest.RestApiRole
 import dres.api.rest.types.status.ErrorStatusException
 import dres.data.dbo.DAO
 import dres.data.dbo.DaoIndexer
+import dres.data.model.Config
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
 import dres.utilities.FFmpegUtil
-import dres.utilities.TimeUtil
 import dres.utilities.extensions.errorResponse
 import dres.utilities.extensions.streamFile
-import io.javalin.core.util.FileUtil
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
-import io.netty.util.internal.ResourcesUtil
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-class GetPreviewHandler(private val collections: DAO<MediaCollection>, private val items: DAO<MediaItem>) : GetRestHandler<Any>, AccessManagedRestHandler {
+class GetPreviewHandler(private val collections: DAO<MediaCollection>, items: DAO<MediaItem>, config: Config) : GetRestHandler<Any>, AccessManagedRestHandler {
 
-    companion object {
-        private val cacheLocation = Paths.get("cache") //TODO make configurable
-        private const val imageMime = "image/png"
 
-        init {
-            Files.createDirectories(this.cacheLocation)
-        }
+    private val cacheLocation = Paths.get(config.cachePath + "/previews")
+    private val imageMime = "image/png"
+
+    init {
+        Files.createDirectories(this.cacheLocation)
     }
+
 
     private val itemIndex = DaoIndexer(items){it.collection to it.name}
 

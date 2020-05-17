@@ -1,25 +1,32 @@
 <div class="grid">
     <div class="header">
-        <h1>Judgment for: {{judgementRequest.taskDescription}}</h1>
+        <h1>Judgment for Submission</h1>
+        <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> {{judgementRequest?.taskDescription}}</p>
     </div>
     <div class="body">
+        <span *ngIf="!isJudgmentAvailable">{{noJudgementMessage}}</span>
         <app-judgement-media-viewer id="judge-media-viewer"></app-judgement-media-viewer>
-        <div>
-            <div class="spacer-flex"></div>
+        <div *ngIf="isJudgmentAvailable" class="controls-container">
+            <div fxFlex="33" class="button-wrapper">
+                <button mat-fab color="primary" aria-label="Approve Submission" matTooltip="Approve Submission"
+                        (click)="judge('CORRECT')">
+                    <mat-icon>thumb_up</mat-icon>
+                </button>
+            </div>
+            <div fxFlex="33" class="button-wrapper">
+                <button mat-fab color="accent" aria-label="Submission Unclear" matTooltip="Submission Unclear"
+                        (click)="judge('INDETERMINATE')">
+                    <mat-icon>live_help</mat-icon>
+                </button>
 
-            <button mat-icon-button aria-label="Approve Submission" matTooltip="Approve Submission" (click)="judge('CORRECT')">
-                <mat-icon>thumb_up</mat-icon>
-            </button>
+            </div>
+            <div fxFlex="33" class="button-wrapper">
 
-            <button mat-icon-button aria-label="Submission Unclear" matTooltip="Submission Unclear" (click)="judge('INDETERMINATE')">
-                <mat-icon>live_help</mat-icon>
-            </button>
-
-            <button mat-icon-button aria-label="Reject Submission" matTooltip="Reject Submission" (click)="judge('WRONG')">
-                <mat-icon>thumb_down</mat-icon>
-            </button>
-
-            <div class="spacer-flex"></div>
+                <button mat-fab color="warn" aria-label="Reject Submission" matTooltip="Reject Submission"
+                        (click)="judge('WRONG')">
+                    <mat-icon>thumb_down</mat-icon>
+                </button>
+            </div>
         </div>
     </div>
 

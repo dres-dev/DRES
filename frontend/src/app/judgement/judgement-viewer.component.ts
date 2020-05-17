@@ -23,8 +23,8 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
     private currentRequest: Observable<JudgementRequest>;
     private runId: string;
 
-    private noJudgementMessage: string;
-    private isJudgmentAvailable = false;
+    noJudgementMessage = "";
+    isJudgmentAvailable = false;
 
     constructor(
         private judgementService: JudgementService,

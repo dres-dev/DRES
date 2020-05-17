@@ -36,9 +36,8 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
         this.routeSubscription = this.activeRoute.params.subscribe(p => {
             this.runId = p.competitionId;
         });
-        /* Get the current judgment request whenever an update occurs */ // TODO is this a reasonable approach or better polling?
+        /* Get the current judgment request whenever an update occurs */
         this.currentRequest = interval(3000).pipe(
-            /* only fire if avs task */
             switchMap(state => {
                 return this.judgementService.getApiRunWithRunidJudgeNext(this.runId.toString());
             })

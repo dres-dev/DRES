@@ -96,7 +96,7 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
             validator: this.judgementRequest.validator,
             verdict: status
         } as Judgement;
-        this.judgementService.postApiRunWithRunidJudge(this.runId, judgement);
+        this.judgementService.postApiRunWithRunidJudge(this.runId, judgement).subscribe(res => console.log(res));
         this.judgePlayer.stop();
         this.judgementRequest = null;
         this.isJudgmentAvailable = false;

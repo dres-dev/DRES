@@ -97,6 +97,8 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
 
     init {
         this.run.id = this.dao.append(this.run)
+        //lambda to send submission updates
+        this.run.updateSubmissionStatus = {this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.TASK_UPDATED))}
     }
 
     override fun start() = this.stateLock.write {

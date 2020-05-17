@@ -12,6 +12,7 @@ import dres.run.filter.DuplicateSubmissionFilter
 import dres.run.filter.OneCorrectSubmissionPerTeamFilter
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
+import dres.run.score.scorer.AvsTaskScorer
 import dres.run.score.scorer.KisTaskScorer
 import dres.run.validation.TemporalOverlapSubmissionValidator
 import dres.run.validation.judged.BasicJudgementValidator
@@ -63,7 +64,7 @@ sealed class TaskDescriptionBase : TaskDescription {
      */
     @Serializable
     class AvsTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, val description: String, val defaultCollection: Long) : TaskDescriptionBase(), TaskDescription {
-        override fun newScorer(): TaskRunScorer = KisTaskScorer()
+        override fun newScorer(): TaskRunScorer = AvsTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = BasicJudgementValidator(callback)
         override fun newFilter(): SubmissionFilter = DuplicateSubmissionFilter()
     }

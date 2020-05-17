@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, Input} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo} from '../../../openapi';
 import {Observable, of} from 'rxjs';
-import {catchError, filter, map, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
+import {catchError, filter, map, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 
 @Component({
@@ -20,20 +20,33 @@ export class TeamsViewerComponent implements AfterViewInit {
 
     ngAfterViewInit(): void {
         this.submissions = this.state.pipe(
-            switchMap(s => this.runService.getApiRunWithRunidTaskSubmissions(s.id)),
+            switchMap(st => this.runService.getApiRunWithRunidTaskSubmissions(st.id).pipe(
+                retry(3),
+                catchError((err, o) => {
+                    console.log(`[TeamsViewerComponent] Error while loading submissions: ${err?.message}.`);
+                    return of(null);
+                }),
+                filter(sb => sb != null), /* Filter null responses. */
+            )),
             withLatestFrom(this.info),
             map(([submissions, info]) => {
                 return info.teams.map((v, i) => {
                     return submissions.filter(s => s.team === i);
                 });
             }),
-            shareReplay(1)
+            shareReplay(1) /* Cache last successful loading of submission. */
         );
 
         this.scores = this.state.pipe(
-            switchMap(s => this.runService.getApiRunScoreWithRunidTask(s.id)),
-            catchError(err => of(null)),
-            shareReplay(1)
+            switchMap(st => this.runService.getApiRunScoreWithRunidTask(st.id).pipe(
+                retry(3),
+                catchError((err, o) => {
+                    console.log(`[TeamsViewerComponent] Error while loading scores: ${err?.message}.`);
+                    return of(null);
+                }),
+                filter(sc => sc != null), /* Filter null responses. */
+            )),
+            shareReplay(1) /* Cache last successful loading of score. */
         );
     }
 

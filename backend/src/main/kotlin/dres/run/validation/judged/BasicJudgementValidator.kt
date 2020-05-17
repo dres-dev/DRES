@@ -21,6 +21,7 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
 
     companion object {
         private val counter = AtomicInteger()
+        private val judgementTimeout = 30_000 //ms until a request is re-scheduled
     }
 
     override val id = "bjv${counter.incrementAndGet()}"
@@ -36,8 +37,24 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
     /** Internal map of all [Submission]s that have been retrieved by a judge and are pending a verdict. */
     private val waiting = HashMap<String, Submission>()
 
+    /** Helper structure to keep track when a request needs to be re-scheduled */
+    private val timeouts = mutableListOf<Pair<Long, String>>()
+
     /** Internal map of already judged [Submission]s, independent of their source. */
     private val cache: MutableMap<ItemRange, SubmissionStatus> = ConcurrentHashMap()
+
+    @Synchronized
+    fun checkTimeOuts() {
+        val now = System.currentTimeMillis()
+        var due = timeouts.filter { it.first <= now }
+        due.forEach {
+            val submission = waiting.remove(it.second)
+            if (submission != null) {
+                queue.offer(submission)
+            }
+        }
+        timeouts.removeAll(due)
+    }
 
     /** Returns the number of [Submission]s that are currently pending a judgement. */
     override val pending: Int
@@ -46,11 +63,17 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
 
     override val open: Int
         @Synchronized
-        get() = this.queue.size
+        get() {
+            checkTimeOuts()
+            return this.queue.size
+        }
 
     override val hasOpen: Boolean
         @Synchronized
-        get() = this.queue.isNotEmpty()
+        get(){
+            checkTimeOuts()
+            return this.queue.isNotEmpty()
+        }
 
     /**
      * Enqueues a [Submission] with the internal judgment queue and updates its [SubmissionStatus]
@@ -80,10 +103,12 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
      */
     @Synchronized
     override fun next(queue: String): Pair<String, Submission>? {
+        checkTimeOuts()
         val next = this.queue.poll()
         return if (next != null) {
             val token = UUID.randomUUID().toString()
             this.waiting[token] = next
+            this.timeouts.add((System.currentTimeMillis() + judgementTimeout) to token)
             Pair(token, next)
         } else {
             null

@@ -49,8 +49,7 @@ class AvsTaskScorer: IncrementalTaskRunScorer {
                 addToMap(wrongSubmissionsPerTeam, submission)
             }
             else -> {
-                //TODO this branch should not be reached, log in case it does
-                return
+                //ignore INDETERMINATE or UNDECIDABLE
             }
         }
 

@@ -108,7 +108,7 @@ export class CompetitionBuilderTaskDialogComponent {
         } else {
             addTo.addControl('descriptions', new FormArray([new FormControl('', [Validators.minLength(1), Validators.required])]));
         }
-        addTo.addControl('delay', new FormControl(task?.delay, [Validators.required, Validators.min(0)]));
+        addTo.addControl('delay', new FormControl(task?.delay ? task.delay : 30, [Validators.required, Validators.min(0)]));
         return addTo;
     }
 

@@ -17,8 +17,11 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
     @Input() state: Observable<RunState>;
     @Input() webSocket: Observable<IWsMessage>;
     @Input() webSocketSubject: WebSocketSubject<IWsMessage>;
-    
+
+    /** Time that is still left (only when a task is running). */
     timeLeft: Observable<number>;
+
+    /** Time that has elapsed (only when a task is running). */
     timeElapsed: Observable<number>;
 
     /** The currently active task. */
@@ -26,8 +29,7 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
     currentTaskSubscription: Subscription;
 
     /** The currently active query object. */
-    currentQueryObject = new BehaviorSubject<QueryDescription>(null);
-    currentQueryObjectSubscription: Subscription;
+    currentQueryObject: Observable<QueryDescription>;
 
     /** The currently active task. */
     taskPrepareSubscription: Subscription;
@@ -46,16 +48,16 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
         });
 
         /* Subscription for the current query object. */
-        this.currentQueryObjectSubscription = this.currentTask.pipe(
+        this.currentQueryObject = this.currentTask.pipe(
             flatMap(task => this.info.pipe(map(i => i.id))),
-            flatMap(id => this.runService.getApiRunWithRunidQuery(id)),
-            catchError(e => {
-                console.log('Warning: Could not load query object due to error: ' + e);
-                return of(null);
-            })
-        ).subscribe(s => {
-            this.currentQueryObject.next(s);
-        });
+            switchMap(id => this.runService.getApiRunWithRunidQuery(id).pipe(
+                catchError(e => {
+                    console.log('[TaskViewerComponent] Could not load current query object due to error: ' + e);
+                    return of(null);
+                }),
+                filter(q => q != null)
+            )),
+        );
 
         /* Subscription reacting to TASK_PREPARE message. */
         this.taskPrepareSubscription = combineLatest([
@@ -65,11 +67,17 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
             this.webSocketSubject.next({runId: (m as IWsServerMessage).runId, type: 'ACK'} as IWsClientMessage)
         );
 
-
         /* Observable for the time left and time elapsed (for running tasks only). */
         const polledState = this.state.pipe(
             filter(s => s.status === 'RUNNING_TASK'),
-            flatMap(s => interval(1000).pipe(switchMap(t => this.runService.getApiRunStateWithRunid(s.id)))),
+            flatMap(s => interval(1000).pipe(
+                switchMap(t => this.runService.getApiRunStateWithRunid(s.id)),
+                catchError((err, o) => {
+                    console.log(`[TaskViewerComponent] Error occurred while polling state: ${err?.message}`);
+                    return of(null);
+                }),
+                filter(p => p != null)
+            )),
             share()
         );
 
@@ -83,9 +91,6 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.currentTaskSubscription.unsubscribe();
         this.currentTaskSubscription = null;
-
-        this.currentQueryObjectSubscription.unsubscribe();
-        this.currentQueryObjectSubscription = null;
 
         this.taskPrepareSubscription.unsubscribe();
         this.taskPrepareSubscription = null;

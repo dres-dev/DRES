@@ -2,14 +2,16 @@ import {Component, Inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {
     AvsTaskDescription,
+    CollectionService,
     KisTextualTaskDescription,
     KisVisualTaskDescription,
-    TaskDescriptionBase,
-    CollectionService,
     MediaCollection,
     MediaItem,
+    TaskDescriptionBase,
     TaskGroup,
-    VideoItem, TemporalPoint, TemporalRange
+    TemporalPoint,
+    TemporalRange,
+    VideoItem
 } from '../../../../openapi';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Observable} from 'rxjs';
@@ -80,7 +82,7 @@ export class CompetitionBuilderTaskDialogComponent {
     public static KisVisualFormControl(taskGroup: TaskGroup, task?: KisVisualTaskDescription) {
         const addTo = this.BasicFormControl(taskGroup, task);
 
-        addTo.addControl('mediaCollection', new FormControl(0));
+        addTo.addControl('mediaCollection', new FormControl(task?.item.collection, [Validators.required]));
         addTo.addControl('mediaItemId', new FormControl(task?.item, [Validators.required, Validators.min(1)]));
         addTo.addControl('start', new FormControl(task?.temporalRange.start.value, [Validators.required, Validators.min(0)]));
         addTo.addControl('end', new FormControl(task?.temporalRange.end.value, [Validators.required, Validators.min(0)]));
@@ -96,7 +98,7 @@ export class CompetitionBuilderTaskDialogComponent {
      */
     public static KisTextualFormControl(taskGroup: TaskGroup, task?: KisTextualTaskDescription) {
         const addTo = this.BasicFormControl(taskGroup, task);
-        addTo.addControl('mediaCollection', new FormControl(0));
+        addTo.addControl('mediaCollection', new FormControl(task?.item.collection, [Validators.required]));
         addTo.addControl('mediaItemId', new FormControl(task?.item, [Validators.required, Validators.min(1)]));
         addTo.addControl('start', new FormControl(task?.temporalRange.start.value, [Validators.required, Validators.min(0)]));
         addTo.addControl('end', new FormControl(task?.temporalRange.end.value, [Validators.required, Validators.min(0)]));
@@ -106,7 +108,7 @@ export class CompetitionBuilderTaskDialogComponent {
         } else {
             addTo.addControl('descriptions', new FormArray([new FormControl('', [Validators.minLength(1), Validators.required])]));
         }
-        addTo.addControl('delay', new FormControl(task?.delay, [Validators.required, Validators.min(0)]));
+        addTo.addControl('delay', new FormControl(task?.delay ? task.delay : 30, [Validators.required, Validators.min(0)]));
         return addTo;
     }
 

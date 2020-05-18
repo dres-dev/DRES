@@ -19,6 +19,10 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
 
   competitionId: number;
   competition: CompetitionDescription;
+
+  displayedColumnsTeams: string[] = ['logo', 'name', 'action'];
+  displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'action'];
+
   form: FormGroup = new FormGroup({name: new FormControl(''), description: new FormControl('')});
   dirty = false;
   routeSubscription: Subscription;

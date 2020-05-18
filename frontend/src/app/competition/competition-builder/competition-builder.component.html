@@ -52,6 +52,7 @@
                 </p>
             </form>
         </div>
+
         <div style="flex-basis: 30%;">
             <div style="display: flex; align-items: center">
                 <h2>Teams</h2>
@@ -63,14 +64,23 @@
                 </button>
             </div>
 
-            <mat-list>
-                <mat-list-item [style.color]="team.color" *ngFor="let team of competition.teams">
-                    <img matListAvatar src="{{team.logo}}">
-                    <div style="display: flex" matLine>
-                        <span>{{team.name}}</span>
 
-                        <div class="spacer-flex"></div>
+            <table mat-table [dataSource]="competition.teams"  [style.width]="'100%'">
+                <ng-container matColumnDef="logo">
+                    <th mat-header-cell *matHeaderCellDef> Logo </th>
+                    <td mat-cell *matCellDef="let team" ><img matListAvatar src="{{team.logo}}" [style.width]="'90px'" alt="team logo"></td>
+                </ng-container>
 
+                <!-- Name Column -->
+                <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef> Name </th>
+                    <td mat-cell *matCellDef="let team"  [style.color]="team.color"> {{team.name}} </td>
+                </ng-container>
+
+                <!-- Action Column -->
+                <ng-container matColumnDef="action">
+                    <th mat-header-cell *matHeaderCellDef> Action </th>
+                    <td mat-cell *matCellDef="let team"  [style.color]="team.color">
                         <button mat-icon-button aria-label="Edit task." matTooltip="Edit task." (click)="editTeam(team)">
                             <mat-icon>edit</mat-icon>
                         </button>
@@ -78,9 +88,12 @@
                         <button mat-icon-button aria-label="Remove selected teams." matTooltip="Remove selected teams."  (click)="removeTeam(team)">
                             <mat-icon>remove</mat-icon>
                         </button>
-                    </div>
-                </mat-list-item>
-            </mat-list>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumnsTeams"></tr>
+                <tr mat-row *matRowDef="let team; columns: displayedColumnsTeams;"></tr>
+            </table>
         </div>
 
         <div style="flex-basis: 65%;">
@@ -101,22 +114,46 @@
 
             </div>
 
-            <mat-list>
-                <mat-list-item *ngFor="let task of competition.tasks">
-                    <div style="display: flex" matLine>
-                        <span>{{task.name}} | {{task.taskGroup.name}} ({{task.taskGroup.type}})</span>
+            <table mat-table [dataSource]="competition.tasks" [style.width]="'100%'">
+                <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef> Name </th>
+                    <td mat-cell *matCellDef="let task"> {{task.name}} </td>
+                </ng-container>
 
-                        <div class="spacer-flex"></div>
+                <!-- Name Column -->
+                <ng-container matColumnDef="group">
+                    <th mat-header-cell *matHeaderCellDef> Group </th>
+                    <td mat-cell *matCellDef="let task"> {{task.taskGroup.name}} </td>
+                </ng-container>
 
+                <!-- Weight Column -->
+                <ng-container matColumnDef="type">
+                    <th mat-header-cell *matHeaderCellDef> Type </th>
+                    <td mat-cell *matCellDef="let task"> {{task.taskType}} </td>
+                </ng-container>
+
+                <!-- Symbol Column -->
+                <ng-container matColumnDef="duration">
+                    <th mat-header-cell *matHeaderCellDef> Duration [s] </th>
+                    <td mat-cell *matCellDef="let task"> {{task.duration}} </td>
+                </ng-container>
+
+                <!-- Symbol Column -->
+                <ng-container matColumnDef="action">
+                    <th mat-header-cell *matHeaderCellDef> Action </th>
+                    <td mat-cell *matCellDef="let task">
                         <button mat-icon-button aria-label="Edit task." matTooltip="Edit task." (click)="editTask(task)">
                             <mat-icon>edit</mat-icon>
                         </button>
                         <button mat-icon-button aria-label="Remove task." matTooltip="Remove task." (click)="removeTask(task)">
                             <mat-icon>remove</mat-icon>
                         </button>
-                    </div>
-                </mat-list-item>
-            </mat-list>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumnsTasks"></tr>
+                <tr mat-row *matRowDef="let task; columns: displayedColumnsTasks;"></tr>
+            </table>
         </div>
     </div>
 </div>

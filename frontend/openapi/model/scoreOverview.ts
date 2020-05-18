@@ -14,6 +14,7 @@ import { Score } from './score';
 
 export interface ScoreOverview { 
     name: string;
+    taskGroup?: string;
     scores: Array<Score>;
 }
 

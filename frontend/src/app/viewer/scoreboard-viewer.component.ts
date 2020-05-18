@@ -4,7 +4,9 @@ import {Observable, of} from 'rxjs';
 import {ApexAxisChartSeries, ApexChart, ApexDataLabels, ApexPlotOptions, ApexXAxis, ApexYAxis, ChartComponent} from 'ng-apexcharts';
 import {catchError, filter, map, shareReplay, switchMap} from 'rxjs/operators';
 
-
+/**
+ * Obsolete
+ */
 @Component({
     selector: 'app-scoreboard-viewer',
     templateUrl: './scoreboard-viewer.component.html',

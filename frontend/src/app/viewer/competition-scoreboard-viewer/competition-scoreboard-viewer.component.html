@@ -1,5 +1,8 @@
 <mat-card>
-    <mat-card-title>Competition Scores</mat-card-title>
+    <mat-card-title>
+        <span *ngIf="competitionOverview">Competition Scores</span>
+        <span *ngIf="!competitionOverview">Scores of {{currentTaskGroup}}</span>
+    </mat-card-title>
     <mat-card-content id="chart">
         <apx-chart
         [series] = "series"

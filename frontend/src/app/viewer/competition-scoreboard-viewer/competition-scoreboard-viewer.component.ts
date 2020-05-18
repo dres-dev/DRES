@@ -15,6 +15,13 @@ import {
 } from 'ng-apexcharts';
 import {catchError, filter, map, shareReplay, switchMap} from 'rxjs/operators';
 
+
+/**
+ * Component displaying a lovely scoreboard.
+ * There are two modes:
+ * competitionOverview = true -- In this mode, a stacked bar chart over all task groups is shown
+ * competitionOverview = false -- In this mode, a bar chart of the current task group is shown
+ */
 @Component({
     selector: 'app-competition-scoreboard-viewer',
     templateUrl: './competition-scoreboard-viewer.component.html',
@@ -22,8 +29,19 @@ import {catchError, filter, map, shareReplay, switchMap} from 'rxjs/operators';
 })
 export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewInit {
 
+    /**
+     * The run info of the current run
+     */
     @Input() info: Observable<RunInfo>;
+    /**
+     * The observable for the state, which is updated through a websocket
+     */
     @Input() state: Observable<RunState>;
+    /**
+     * Whether or not to show competition overview scores.
+     * Otherwise, the current task group total is shown.
+     */
+    @Input() competitionOverview = true;
     @ViewChild('chart') chartComponent: ChartComponent;
 
     series: ApexAxisChartSeries;
@@ -37,6 +55,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
     legend: ApexLegend;
     teams: Observable<Team[]>;
     currentTeams: Team[];
+    currentTaskGroup: string;
     scores: Observable<Array<ScoreOverview>>;
 
     // TODO Make this somewhat more beautiful and configurable
@@ -59,11 +78,13 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
                 return i.teams;
             })
         );
-        /* Local ref to teams. TODO cleanup: there is a better way */
+        /* Local ref to teams.*/
         this.teams.subscribe(value => {
             this.currentTeams = value;
             this.updateChart();
         });
+
+
 
         /* Get the socres */
         this.scores = this.state.pipe(
@@ -78,40 +99,40 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
             filter(value => value != null),
             shareReplay(1)
         );
+        this.state.subscribe(state => {
+            this.currentTaskGroup = state.currentTask?.taskGroup.name;
+        });
 
         this.scores.subscribe(value => {
-            if (this.hasChanged(value)) {
-                this.updateChart(value);
-                this.prevScores = value;
-            }
+            this.updateChart(value);
         });
-    }
-
-    private hasChanged(scores: Array<ScoreOverview>) {
-        if (scores === undefined) {
-            console.log('[Com.Score] Cannot decide whether changed, when undefined scores given');
-            return false; // Assuming it should not be undefined
-        }
-        let out = true;
-        if (this.prevScores !== undefined) {
-            out = JSON.stringify(this.prevScores) !== JSON.stringify(scores);
-        }
-        return out;
     }
 
     private updateChart(scores?: Array<ScoreOverview>) {
         this.xaxis = {
             categories: this.currentTeams.map(t => t.name)
         };
-
         if (scores) {
-            /* transform scores for apex, do not include the ignores */
+            /*
+             Transformation for apex.
+             In competitionOverview = true mode, ignores are not shown
+             In competitionOverview = false mode, ONLY matching taskgroup is shown
+             */
             this.series = scores.filter(so => {
-                return this.ignoreScores.indexOf(so.name) < 0;
+                if (this.competitionOverview) {
+                    return this.ignoreScores.indexOf(so.name) < 0;
+                } else {
+                    return so.taskGroup === this.currentTaskGroup;
+                }
             }).map(s => {
-                return {name: s.name, data: s.scores.map(sc => sc.score)};
+                /* In case there is no value, specifically set 0 as score for each team*/
+                if (s.scores.length === 0) {
+                    return {name: s.name, data: this.currentTeams.map(t => 0)};
+                } else {
+                    return {name: s.name, data: s.scores.map(sc => Math.round(sc.score))};
+                }
             });
-        }else{
+        } else {
             this.series = [];
         }
     }
@@ -119,7 +140,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
     private setupChart() {
         this.chart = {
             type: 'bar',
-            stacked: true
+            stacked: this.competitionOverview // thats why the boolean is setup this way round
         };
         this.plotOptions = {
             bar: {
@@ -134,7 +155,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
         this.xaxis = {
             categories: ['']
         };
-        /* To have readable lables, see scorebaordview */
+        /* Apparently, labels still have to be colored this way, even though 'horizontal' bar is just flipped */
         this.yaxis = {
             labels: {
                 style: {

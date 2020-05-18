@@ -1,5 +1,5 @@
 import {Component, Input} from '@angular/core';
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
 import {AppConfig} from '../app.config';
 import {JudgementRequest} from '../../../openapi';
@@ -21,8 +21,6 @@ export class JudgementMediaViewerComponent {
   private offset = 4;
 
   public judge(req: JudgementRequest) {
-        console.log('Judge Media: Request:');
-        console.log(req);
         let timeRange = '';
         if (req.startTime && req.endTime) {
             let start = Number.parseInt(req.startTime, 10);
@@ -35,9 +33,11 @@ export class JudgementMediaViewerComponent {
         }
         // TODO How to know here what type this media item has?
         const path = `/media/${req.collection}/${req.item}${timeRange}`;
-        console.log('url is: ' + path);
         const url = this.config.resolveApiUrl(path);
         this.videoUrl = new Observable<SafeUrl>(subscriber => subscriber.next(url));
     }
 
+    stop() {
+        this.videoUrl = of(null);
+    }
 }

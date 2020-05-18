@@ -7,7 +7,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {FlexModule} from '@angular/flex-layout';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatVideoModule} from 'mat-video';
-
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 
 
@@ -19,7 +19,8 @@ import {MatVideoModule} from 'mat-video';
         MatButtonModule,
         FlexModule,
         MatTooltipModule,
-        MatVideoModule
+        MatVideoModule,
+        BrowserAnimationsModule
     ],
   exports: [ JudgementViewerComponent ]
 })

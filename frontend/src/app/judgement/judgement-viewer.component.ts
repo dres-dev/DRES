@@ -4,6 +4,7 @@ import {ErrorStatus, Judgement, JudgementRequest, JudgementService, SubmissionIn
 import {ActivatedRoute} from '@angular/router';
 import {catchError, filter, shareReplay, switchMap} from 'rxjs/operators';
 import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 /**
  * This component subscribes to the websocket for submissions.
@@ -23,12 +24,13 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
     private currentRequest: Observable<JudgementRequest>;
     private runId: string;
 
-    noJudgementMessage = "";
+    noJudgementMessage = '';
     isJudgmentAvailable = false;
 
     constructor(
         private judgementService: JudgementService,
-        private activeRoute: ActivatedRoute
+        private activeRoute: ActivatedRoute,
+        private snackBar: MatSnackBar
     ) {
     }
 
@@ -68,6 +70,11 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
             filter(x => x != null),
             shareReplay(1)
         );
+
+        /* Beautification */
+    }
+
+    ngAfterViewInit(): void {
         /* TODO subject thingy */
         this.currentRequest.subscribe(req => {
             console.log('[Judgem.View] Received request');
@@ -77,10 +84,6 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
             this.isJudgmentAvailable = true;
             this.judgePlayer.judge(req);
         });
-        /* Beautification */
-    }
-
-    ngAfterViewInit(): void {
     }
 
     ngOnDestroy(): void {
@@ -93,7 +96,10 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
             validator: this.judgementRequest.validator,
             verdict: status
         } as Judgement;
-        this.judgementService.postApiRunWithRunidJudge(this.runId, judgement).subscribe(res => console.log(res));
+        this.judgementService.postApiRunWithRunidJudge(this.runId, judgement)
+            .subscribe(res => {
+                this.snackBar.open(res.description, null, {duration: 5000});
+            });
         this.judgePlayer.stop();
         this.judgementRequest = null;
         this.isJudgmentAvailable = false;

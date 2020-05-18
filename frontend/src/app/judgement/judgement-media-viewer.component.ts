@@ -14,7 +14,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit {
     @ViewChild('video') videoPlayer: MatVideoComponent;
     @Input() req: Observable<JudgementRequest>;
 
-    videoUrl: Observable<string> = of('http://localhost:8080/api/media/mini/00001');
+    videoUrl: Observable<string>;
     private offset = 5;
 
     private videoTag: HTMLVideoElement;
@@ -24,7 +24,6 @@ export class JudgementMediaViewerComponent implements AfterViewInit {
 
     public judge(req: JudgementRequest) {
         console.log('[JudgeMedia] Judging: ' + JSON.stringify(req));
-        const timeRange = '';
         let startTime = 0;
         if (req.startTime) {
             startTime = Number.parseInt(req.startTime, 10) / 1000; // ms?
@@ -38,20 +37,36 @@ export class JudgementMediaViewerComponent implements AfterViewInit {
             endTime = endTime + this.offset;
         }
         // TODO How to know here what type this media item has?
-        const path = `/media/${req.collection}/${req.item}${timeRange}`;
+        const path = `/media/${req.collection}/${req.item}#t=${startTime},${endTime}`; // Should work (in chorme, directly this works)
         const url = this.config.resolveApiUrl(path);
         this.videoUrl = new Observable<string>(subscriber => subscriber.next(url));
         this.videoPlayer.time = startTime;
+        this.videoPlayer.src = url;
+        this.videoPlayer.load();
         if (endTime > 0) {
             this.videoTag.addEventListener('timeupdate', () => {
-                if(this.videoTag.currentTime > endTime){
-                    this.videoPlayer.time = startTime;
+                console.log(`[JudgeMedia] Playing@${this.videoTag.currentTime}s`);
+                if (this.videoTag.currentTime > endTime) {
+                    console.log('[JudgeMedia] Restarting video');
+                    this.videoTag.currentTime = startTime;
                 }
             });
         }
-        /*this.videoTag.play().then(r => {
-            this.videoTag.muted = false;
-        });*/
+        console.log(`[JudgeMedia] src=${JSON.stringify(this.videoPlayer.src)}, start=${startTime}, end=${endTime}`);
+        // https://developers.google.com/web/updates/2017/06/play-request-was-interrupted
+        // Not working due to 401
+        /* fetch(url)
+            .then(response => response.blob())
+            .then(blob => {
+                this.videoTag.srcObject = blob;
+                return this.videoTag.play();
+            })
+            .then(_ => {
+            })
+            .catch(e => {
+                console.log('error on playback');
+                console.log(e);
+            }); */
     }
 
     stop() {

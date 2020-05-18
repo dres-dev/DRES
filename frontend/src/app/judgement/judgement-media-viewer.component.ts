@@ -41,8 +41,10 @@ export class JudgementMediaViewerComponent implements AfterViewInit {
         const url = this.config.resolveApiUrl(path);
         this.videoUrl = new Observable<string>(subscriber => subscriber.next(url));
         this.videoPlayer.time = startTime;
+        this.videoPlayer.lastTime = endTime;
         this.videoPlayer.src = url;
         this.videoPlayer.load();
+        this.videoPlayer.playing = true;
         if (endTime > 0) {
             this.videoTag.addEventListener('timeupdate', () => {
                 console.log(`[JudgeMedia] Playing@${this.videoTag.currentTime}s`);
@@ -70,6 +72,8 @@ export class JudgementMediaViewerComponent implements AfterViewInit {
     }
 
     stop() {
+        this.videoTag.pause();
+        this.videoTag.src = '';
         this.videoUrl = of(null);
     }
 

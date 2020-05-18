@@ -18,5 +18,6 @@ enum class ServerMessageType {
     TASK_PREPARE,  /** Prepare for a task run to start. */
     TASK_START,    /** Task run started. */
     TASK_UPDATED,  /** State of task run has changed. */
-    TASK_END       /** Taks run ended. */
+    TASK_END,       /** Taks run ended. */
+    PING            /** Keep alive */
 }

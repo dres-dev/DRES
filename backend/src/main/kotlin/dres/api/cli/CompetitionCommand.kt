@@ -19,7 +19,7 @@ import java.io.File
 class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>, internal val collections: DAO<MediaCollection>, config: Config) : NoOpCliktCommand(name = "competition") {
 
     init {
-        this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand(), PrepareCompetitionCommand(), DeleteCompetitionCommand())
+        this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand(), PrepareCompetitionCommand(), DeleteCompetitionCommand(), CopyCompetitionCommand())
     }
 
     private val taskCacheLocation = File(config.cachePath + "/tasks")
@@ -146,6 +146,33 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
 
         }
 
+    }
+
+    inner class CopyCompetitionCommand : AbstractCompetitionCommand(name = "copy", help = "Copies a Competition") {
+
+        private val name: String by option("-n", "--name", help = "Name of the copied Competition")
+                .required()
+                .validate { require(it.isNotEmpty()) { "Competition name must be non empty." } }
+
+
+        override fun run() {
+
+            if (this@CompetitionCommand.competitions.any { it.name == name }){
+                println("Competition with name '$name' already exists")
+                return
+            }
+
+            val competition = this@CompetitionCommand.competitions[competitionId]!!
+            val newCompetition = competition.copy(id = -1, name = name)
+
+            this@CompetitionCommand.competitions.append(newCompetition)
+
+            println("Copied")
+            println(competition)
+            println("to")
+            println(newCompetition)
+
+        }
 
     }
 

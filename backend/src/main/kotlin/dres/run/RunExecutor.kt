@@ -4,6 +4,7 @@ import dres.api.rest.AccessManager
 import dres.api.rest.types.run.websocket.ClientMessage
 import dres.api.rest.types.run.websocket.ClientMessageType
 import dres.api.rest.types.run.websocket.ServerMessage
+import dres.api.rest.types.run.websocket.ServerMessageType
 import dres.run.validation.interfaces.JudgementValidator
 import dres.utilities.extensions.read
 import dres.utilities.extensions.write
@@ -113,6 +114,7 @@ object RunExecutor : Consumer<WsHandler> {
                         ClientMessageType.ACK -> {}
                         ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.add(it.sessionId) }
                         ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.remove(it.sessionId) }
+                        ClientMessageType.PING -> it.send(ServerMessage(message.runId, ServerMessageType.PING))
                     }
                     this.runManagers[message.runId]!!.wsMessageReceived(message) /* Forward message to RunManager. */
                 }

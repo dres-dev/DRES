@@ -14,5 +14,6 @@ data class ClientMessage(val runId: Long, val type: ClientMessageType)
 enum class ClientMessageType {
     ACK,     /** Acknowledgement of the last message received. */
     REGISTER,
-    UNREGISTER
+    UNREGISTER,
+    PING
 }

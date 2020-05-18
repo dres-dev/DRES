@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {BehaviorSubject, merge, Observable, of, Subscription} from 'rxjs';
-import {catchError, filter, flatMap, map, retry, share, shareReplay, switchMap} from 'rxjs/operators';
+import {catchError, delay, filter, flatMap, map, retry, retryWhen, share, shareReplay, switchMap, tap} from 'rxjs/operators';
 import {webSocket, WebSocketSubject, WebSocketSubjectConfig} from 'rxjs/webSocket';
 import {AppConfig} from '../app.config';
 import {IWsMessage} from '../model/ws/ws-message.interface';
@@ -60,11 +60,11 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         /* Basic observable for web socket messages received from the DRES server. */
         this.webSocket = this.activeRoute.params.pipe(
             flatMap(a => this.webSocketSubject.pipe(
+                retryWhen((err) => err.pipe(
+                    tap(e => console.error('[RunViewerComponent] An error occurred with the WebSocket communication channel. Trying to reconnect in 1 second.', e)),
+                    delay(1000)
+                )),
                 map(m => m as IWsServerMessage),
-                catchError((err, o) => {
-                    console.log(`[RunViewerComponent] An error occurred with the WebSocket communication channel: ${err?.message}.`);
-                    return of(null);
-                }),
                 filter(q => q != null)
             )),
             share()

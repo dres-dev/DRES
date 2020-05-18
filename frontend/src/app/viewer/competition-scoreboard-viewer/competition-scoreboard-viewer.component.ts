@@ -1,6 +1,6 @@
-import {AfterViewInit, Component, Input, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, Team} from '../../../../openapi';
-import {Observable, of} from 'rxjs';
+import {Observable, of, Subscription} from 'rxjs';
 import {
     ApexAxisChartSeries,
     ApexChart,
@@ -16,6 +16,7 @@ import {
 import {catchError, filter, map, shareReplay, switchMap} from 'rxjs/operators';
 
 
+
 /**
  * Component displaying a lovely scoreboard.
  * There are two modes:
@@ -27,7 +28,7 @@ import {catchError, filter, map, shareReplay, switchMap} from 'rxjs/operators';
     templateUrl: './competition-scoreboard-viewer.component.html',
     styleUrls: ['./competition-scoreboard-viewer.component.scss']
 })
-export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewInit {
+export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
     /**
      * The run info of the current run
@@ -57,6 +58,9 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
     currentTeams: Team[];
     currentTaskGroup: string;
     scores: Observable<Array<ScoreOverview>>;
+
+    private stateSub: Subscription;
+    private scoresSub: Subscription;
 
     // TODO Make this somewhat more beautiful and configurable
     private ignoreScores = ['average'];
@@ -89,7 +93,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
         /* Get the socres */
         this.scores = this.state.pipe(
             switchMap(s => {
-                return this.runService.getApiRunScoreWithRunid(s.id);
+                return this.runService.getApiRunScoreWithRunid(s.id); // TODO Error catching
             }),
             catchError(err => {
                 console.log(`Error: ${err}`);
@@ -99,13 +103,18 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
             filter(value => value != null),
             shareReplay(1)
         );
-        this.state.subscribe(state => {
+        this.stateSub = this.state.subscribe(state => {
             this.currentTaskGroup = state.currentTask?.taskGroup.name;
         });
 
         this.scores.subscribe(value => {
             this.updateChart(value);
         });
+    }
+
+    ngOnDestroy(): void {
+        this.stateSub.unsubscribe();
+        this.scoresSub.unsubscribe();
     }
 
     private updateChart(scores?: Array<ScoreOverview>) {

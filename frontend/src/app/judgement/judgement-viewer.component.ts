@@ -35,9 +35,8 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
     ngOnInit(): void {
         /* Subscription and current run id */
         this.routeSubscription = this.activeRoute.params.subscribe(p => {
-            console.log('[JudgeView] route param: ' + p.runId);
+            console.log('[Judgem.View] route param: ' + p.runId);
             this.runId = p.runId;
-            console.log('Judging for runId=' + this.runId);
         });
         /* Get the current judgment request whenever an update occurs */
         this.currentRequest = interval(this.pollingFrequency).pipe(
@@ -46,10 +45,8 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
                 if (this.runId && !this.isJudgmentAvailable) {
                     return this.judgementService.getApiRunWithRunidJudgeNext(this.runId).pipe(
                         switchMap(req => {
-                            console.log('[JV] In switch');
-                            console.log(req);
                             if (req.hasOwnProperty('status') && req.hasOwnProperty('description')) {
-                                console.log('No judgement yet');
+                                console.log('[Judgem.View] No judgement yet');
                                 const noReq = (req as unknown) as ErrorStatus; // unkown first to make TSLint happy
                                 this.noJudgementMessage = noReq.description;
                                 this.isJudgmentAvailable = false;
@@ -58,7 +55,7 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
                             return of(req as JudgementRequest);
                         }),
                         catchError(err => {
-                            console.log('Error in getJudgeNext: ');
+                            console.log('[Judgem.View] Error in getJudgeNext: ');
                             console.log(err);
                             return of(null);
                         })
@@ -73,7 +70,7 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
         );
         /* TODO subject thingy */
         this.currentRequest.subscribe(req => {
-            console.log('Received request');
+            console.log('[Judgem.View] Received request');
             console.log(req);
             // TODO handle case there is no submission to judge
             this.judgementRequest = req;

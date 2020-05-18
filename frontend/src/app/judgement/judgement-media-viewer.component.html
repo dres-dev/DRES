@@ -1,1 +1,13 @@
-<video [src]="(videoUrl | async)" class="video-player" style="width: 100%;" autoplay loop [currentTime]=""></video>
+<mat-video #video class="video-player"
+           [src]="(videoUrl | async)"
+           [autoplay]="true"
+           [preload]="true"
+           [loop]="false"
+           [muted]="false"
+           [quality]="false"
+           [download]="false"
+           [fullscreen]="false"
+           [showFrameByFrame]="true"
+           [overlay]="true"
+           color="primary" spinner="spin"  >
+</mat-video>

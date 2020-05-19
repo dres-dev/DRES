@@ -8,10 +8,10 @@ import java.io.File
 
 @Serializable
 data class Config(
-        val httpPort: Int = 80,
-        val httpsPort: Int = 443,
-        val keystorePath: String = "1uc4r0.ks",
-        val keystorePassword: String = "KeyPass",
+        val httpPort: Int = 8080,
+        val httpsPort: Int = 8443,
+        val keystorePath: String = "keystore.jks",
+        val keystorePassword: String = "password",
         val dataPath: String = "./data",
         val cachePath: String = "./cache") {
 

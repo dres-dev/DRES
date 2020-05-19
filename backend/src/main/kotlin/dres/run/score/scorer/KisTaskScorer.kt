@@ -27,7 +27,7 @@ class KisTaskScorer : RecalculatingTaskRunScorer {
             val firstCorrect = submissions.indexOfFirst { it.status == SubmissionStatus.CORRECT }
             val score = if (firstCorrect > -1) {
                 val incorrectSubmissions = firstCorrect + 1
-                val timeFraction = (submissions[firstCorrect].timestamp - taskStart) / taskDuration
+                val timeFraction = 1.0 -  (submissions[firstCorrect].timestamp - taskStart) / taskDuration
 
                 max(0.0,
                         maxPointsAtTaskEnd +

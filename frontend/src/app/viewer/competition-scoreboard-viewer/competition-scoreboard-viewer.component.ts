@@ -96,6 +96,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
             switchMap(s => {
                 return this.runService.getApiRunScoreWithRunid(s.id).pipe(
                     switchMap(res => {
+                        console.log(`ScoreWithRunId: ${JSON.stringify(res)}`);
                         return res;
                     }),
                     catchError(err => {
@@ -128,7 +129,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
     }
 
     private updateChart(scores?: Array<ScoreOverview>) {
-        console.log('Updating scores');
+        console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] Updating scores`);
         this.xaxis = {
             categories: this.currentTeams.map(t => t.name)
         };
@@ -140,6 +141,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
              In competitionOverview = false mode, ONLY matching taskgroup is shown
              */
             if (scores.length > 1) {
+                console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] Multiple Scores`);
                 this.series = scores.filter(so => {
                     if (this.competitionOverview) {
                         return this.ignoreScores.indexOf(so.name) < 0;
@@ -155,14 +157,42 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
                     }
                 });
             } else if (scores[0] !== undefined) {
+                console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] First`);
                 this.series = [{name: scores[0].name, data: scores[0].scores.map(sc => Math.round(sc.score))}];
             } else {
-                this.series = [{data: [0]}];
+                // TODO check with @ppanopticon why
+                if (scores.hasOwnProperty('name') && scores.hasOwnProperty('scores')) {
+                    const so = (scores as unknown) as ScoreOverview;
+                    if (this.competitionOverview) {
+                        console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] Overview scores`);
+                        if (this.ignoreScores.indexOf(so.name) < 0){
+
+                        }
+                    } else {
+                        console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] Taskgroup Scores`);
+                        if (so?.taskGroup === this.currentTaskGroup) { // ?. due to 'average' has taskGroup === null
+                            this.series = [{name: this.currentTaskGroup, data: so.scores.map(sc => Math.round(sc.score))}];
+                        }
+                    }
+                } else {
+                    console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] No scores`);
+                    this.setChartsToZero();
+
+                }
             }
 
         } else {
-            this.series = [];
+            this.setChartsToZero();
         }
+    }
+
+    private setChartsToZero() {
+        // TODO sensible zeros for competitionOverview
+        /*if (this.competitionOverview) {
+            this.series = [];
+        } else {*/
+        this.series = [{name: 'Empty', data: this.currentTeams.map(_ => 0)}];
+        // }
     }
 
     private setupChart() {

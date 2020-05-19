@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, Input, ViewChild} from '@angular/core';
-import {Observable, of} from 'rxjs';
+import {Observable} from 'rxjs';
 import {AppConfig} from '../app.config';
 import {JudgementRequest} from '../../../openapi';
 import {MatVideoComponent} from 'mat-video/lib/video.component';
@@ -38,23 +38,31 @@ export class JudgementMediaViewerComponent implements AfterViewInit {
         }
         // TODO How to know here what type this media item has?
         const path = `/media/${req.collection}/${req.item}#t=${startTime},${endTime}`; // Should work (in chorme, directly this works)
+        // const path = `/media/${req.collection}/${req.item}`; // Should work (in chorme, directly this works)
         const url = this.config.resolveApiUrl(path);
-        this.videoUrl = new Observable<string>(subscriber => subscriber.next(url));
-        this.videoPlayer.time = startTime;
-        this.videoPlayer.lastTime = endTime;
-        this.videoPlayer.src = url;
-        this.videoPlayer.load();
-        this.videoPlayer.playing = true;
-        if (endTime > 0) {
-            this.videoTag.addEventListener('timeupdate', () => {
-                console.log(`[JudgeMedia] Playing@${this.videoTag.currentTime}s`);
-                if (this.videoTag.currentTime > endTime) {
-                    console.log('[JudgeMedia] Restarting video');
-                    this.videoTag.currentTime = startTime;
+        this.videoUrl = new Observable<string>(subscriber => {
+            subscriber.next(url);
+            if (this.videoPlayer) {
+                // This code is not called, as videoPlayer does not exist -- yet
+                this.videoPlayer.src = url;
+
+                this.videoPlayer.time = startTime;
+                this.videoPlayer.playing = true;
+                this.videoPlayer.loop = true;
+                if (endTime > 0) {
+                    this.videoTag.addEventListener('timeupdate', () => {
+                        console.log(`[JudgeMedia] Playing@${this.videoTag.currentTime}s`);
+                        if (this.videoTag.currentTime >= endTime) {
+                            console.log('[JudgeMedia] Restarting video');
+                            this.videoPlayer.time = startTime;
+                            this.videoPlayer.playing = true;
+                        }
+                    });
                 }
-            });
-        }
-        console.log(`[JudgeMedia] src=${JSON.stringify(this.videoPlayer.src)}, start=${startTime}, end=${endTime}`);
+                console.log(`[JudgeMedia] src=${JSON.stringify(this.videoPlayer.src)}, start=${startTime}, end=${endTime}`);
+            }
+
+        });
         // https://developers.google.com/web/updates/2017/06/play-request-was-interrupted
         // Not working due to 401
         /* fetch(url)
@@ -72,12 +80,18 @@ export class JudgementMediaViewerComponent implements AfterViewInit {
     }
 
     stop() {
-        this.videoTag.pause();
-        this.videoTag.src = '';
-        this.videoUrl = of(null);
+        if (this.videoTag) {
+            this.videoTag.pause();
+        }
+        if (this.videoPlayer) {
+            this.videoPlayer.src = null;
+        }
+        this.videoUrl = undefined;
     }
 
     ngAfterViewInit(): void {
-        this.videoTag = this.videoPlayer.getVideoTag();
+        if (this.videoPlayer) {
+            this.videoTag = this.videoPlayer.getVideoTag();
+        }
     }
 }

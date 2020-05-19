@@ -57,6 +57,7 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
                             return of(req as JudgementRequest);
                         }),
                         catchError(err => {
+                            // TODO no run, then a 'severe' 404 occurs. how to handle?
                             console.log('[Judgem.View] Error in getJudgeNext: ');
                             console.log(err);
                             return of(null);

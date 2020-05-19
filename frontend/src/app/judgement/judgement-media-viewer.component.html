@@ -1,4 +1,5 @@
-<mat-video #video class="video-player"
+<mat-video *ngIf="videoUrl" #video class="video-player"
+           [src]="(videoUrl | async)"
            [autoplay]="true"
            [preload]="true"
            [loop]="true"

@@ -1,7 +1,20 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {BehaviorSubject, merge, Observable, of, Subscription} from 'rxjs';
-import {catchError, delay, filter, flatMap, map, retry, retryWhen, share, shareReplay, switchMap, tap} from 'rxjs/operators';
+import {interval, merge, Observable, of, Subscription} from 'rxjs';
+import {
+    catchError,
+    delay,
+    filter,
+    flatMap,
+    map,
+    retry,
+    retryWhen,
+    share,
+    shareReplay,
+    switchMap,
+    tap,
+    withLatestFrom
+} from 'rxjs/operators';
 import {webSocket, WebSocketSubject, WebSocketSubjectConfig} from 'rxjs/webSocket';
 import {AppConfig} from '../app.config';
 import {IWsMessage} from '../model/ws/ws-message.interface';
@@ -17,12 +30,13 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 })
 export class RunViewerComponent implements OnInit, OnDestroy  {
 
-    webSocketProvider = new BehaviorSubject(webSocket({
-        url: `${AppConfig.settings.endpoint.tls ? 'wss://' : 'ws://'}${AppConfig.settings.endpoint.host}:${AppConfig.settings.endpoint.port}/api/ws/run`
-    } as WebSocketSubjectConfig<IWsMessage>));
-
     webSocketSubject: WebSocketSubject<IWsMessage> = webSocket({
-        url: `${AppConfig.settings.endpoint.tls ? 'wss://' : 'ws://'}${AppConfig.settings.endpoint.host}:${AppConfig.settings.endpoint.port}/api/ws/run`
+        url: `${AppConfig.settings.endpoint.tls ? 'wss://' : 'ws://'}${AppConfig.settings.endpoint.host}:${AppConfig.settings.endpoint.port}/api/ws/run`,
+        closeObserver: {
+            next(closeEvent) {
+               console.log(`WebSocket connection closed!`, closeEvent);
+            }
+        }
     } as WebSocketSubjectConfig<IWsMessage>);
 
     webSocket: Observable<IWsServerMessage>;
@@ -31,6 +45,9 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
 
     /** Internal WebSocket subscription for logging purposes. */
     private logSubscription: Subscription;
+
+    /** Internal WebSocket subscription for pinging the server. */
+    private pingSubscription: Subscription;
 
     /**
      * Constructor; extracts the runId and keeps a local reference.
@@ -71,7 +88,7 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         );
 
         /* Basic observable for run state info; this information is dynamic and does is subject to change over the course of a run. */
-        this.runState = merge(this.activeRoute.params, this.webSocket).pipe(
+        this.runState = merge(this.activeRoute.params, this.webSocket.pipe(filter(m => m.type !== 'PING'))).pipe(
             switchMap((a) => this.runService.getApiRunStateWithRunid(a.runId).pipe(
                 retry(3),
                 catchError((err, o) => {
@@ -96,6 +113,12 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         this.logSubscription = this.webSocket.subscribe(m => {
             console.log(`WebSocket message received: ${m.type}`);
         });
+
+        /* Register WebSocket ping. */
+        this.pingSubscription = interval(5000).pipe(
+            withLatestFrom(this.activeRoute.params),
+            tap(([i, a]) => this.webSocketSubject.next({runId: a.runId, type: 'PING'} as IWsClientMessage))
+        ).subscribe();
     }
 
     /**
@@ -109,5 +132,9 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         /* Unregister WebSocket logger. */
         this.logSubscription.unsubscribe();
         this.logSubscription = null;
+
+        /* Unregister Ping service. */
+        this.pingSubscription.unsubscribe();
+        this.pingSubscription = null;
     }
 }

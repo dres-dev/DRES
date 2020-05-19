@@ -7,7 +7,7 @@ import {VideoQueryDescription} from '../../../../openapi';
 @Component({
     selector: 'app-video-query-object-preview',
     template: `
-        <video [src]="(videoUrl | async)" class="video-player" style="width: 100%" autoplay loop>
+        <video [src]="(videoUrl | async)" class="video-player" style="width: 100%" autoplay muted controls loop>
 
         </video>
     `

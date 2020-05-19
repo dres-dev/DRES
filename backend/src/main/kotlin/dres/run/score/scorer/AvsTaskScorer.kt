@@ -85,7 +85,7 @@ class AvsTaskScorer: IncrementalTaskRunScorer {
 
             val wrong = wrongSubmissionsPerTeam[team]?.size ?: 0
 
-            return@map team to (100.0 * correct / (correct + wrong / 2.0)) + (countRanges(correctSubmissionsPerTeam[team]!!) / allRanges)
+            return@map team to 50.0 * ((correct / (correct + wrong / 2.0)) + (countRanges(correctSubmissionsPerTeam[team]!!) / allRanges))
         }.toMap()
 
     }

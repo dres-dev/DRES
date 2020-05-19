@@ -71,27 +71,31 @@ class GetPreviewHandler(private val collections: DAO<MediaCollection>, items: DA
 
             /* Extract timestamp. */
             val time = params["time"]?.toLongOrNull() ?: throw ErrorStatusException(400, "Timestamp unspecified or invalid.")
+
+
             val imgFile = cacheDir.resolve("${time}.png")
             if (!Files.exists(imgFile)){
-                imgFile.toFile().createNewFile() //create empty file as placeholder
-                FFmpegUtil.extractFrame(Path.of(collection.basePath, item.location), time, imgFile)
-            }
-
-            //check if file is empty and return placeholder
-            if (imgFile.toFile().length() == 0L) {
-                //set header to not cache
-                ctx.header("Cache-Control", "no-cache, no-store, must-revalidate")
-                //return placeholder
-                ctx.contentType(imageMime)
-                ctx.result(
-                        this.javaClass.getResourceAsStream("/img/loading.png")
-                )
-            } else {
-                ctx.header("Cache-Control", "public, max-age=31536000")
-                ctx.streamFile(imgFile)
+                val mediaItemLocation = Path.of(collection.basePath, item.location)
+                //sanity check
+                if(time < 0 || time > item.durationMs || !Files.exists(mediaItemLocation)) {
+                    imgFile.toFile().writeBytes(
+                            this.javaClass.getResourceAsStream("/img/missing.png").readAllBytes()
+                    )
+                } else {
+                    imgFile.toFile().createNewFile() //create empty file as placeholder
+                    FFmpegUtil.extractFrame(mediaItemLocation, time, imgFile)
+                }
             }
 
 
+            var tryCounter = 0
+
+            //check if file is empty wait //TODO better solution
+            while (imgFile.toFile().length() == 0L && tryCounter++ < 100) {
+                Thread.sleep(100)
+            }
+            //ctx.header("Cache-Control", "public, max-age=31536000")
+            ctx.streamFile(imgFile)
 
 
         }

@@ -2,6 +2,7 @@
     <div class="header">
         <h1>Judgment for Submission</h1>
         <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> {{judgementRequest?.taskDescription}}</p>
+        <p *ngIf="isJudgmentAvailable">{{(judgePlayer?.videoUrl | async)}}</p>
     </div>
     <div class="body">
         <span *ngIf="!isJudgmentAvailable">{{noJudgementMessage}}</span>
@@ -15,7 +16,7 @@
             </div>
             <div fxFlex="33" class="button-wrapper">
                 <button mat-fab color="accent" aria-label="Submission Unclear" matTooltip="Submission Unclear"
-                        (click)="judge('INDETERMINATE')">
+                        (click)="judge('UNDECIDABLE')">
                     <mat-icon>live_help</mat-icon>
                 </button>
 

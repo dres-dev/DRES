@@ -1,6 +1,6 @@
-import {AfterViewInit, Component, Input, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, Team} from '../../../../openapi';
-import {Observable, of} from 'rxjs';
+import {Observable, of, Subscription} from 'rxjs';
 import {
     ApexAxisChartSeries,
     ApexChart,
@@ -9,6 +9,7 @@ import {
     ApexLegend,
     ApexPlotOptions,
     ApexStroke,
+    ApexTheme,
     ApexXAxis,
     ApexYAxis,
     ChartComponent
@@ -27,7 +28,7 @@ import {catchError, filter, map, shareReplay, switchMap} from 'rxjs/operators';
     templateUrl: './competition-scoreboard-viewer.component.html',
     styleUrls: ['./competition-scoreboard-viewer.component.scss']
 })
-export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewInit {
+export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
     /**
      * The run info of the current run
@@ -44,19 +45,24 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
     @Input() competitionOverview = true;
     @ViewChild('chart') chartComponent: ChartComponent;
 
-    series: ApexAxisChartSeries;
-    chart: ApexChart;
-    dataLabels: ApexDataLabels;
-    plotOptions: ApexPlotOptions;
-    xaxis: ApexXAxis;
-    yaxis: ApexYAxis;
-    stroke: ApexStroke;
-    fill: ApexFill;
-    legend: ApexLegend;
+    series: Partial<ApexAxisChartSeries>;
+    chart: Partial<ApexChart>;
+    dataLabels: Partial<ApexDataLabels>;
+    plotOptions: Partial<ApexPlotOptions>;
+    xaxis: Partial<ApexXAxis>;
+    yaxis: Partial<ApexYAxis>;
+    stroke: Partial<ApexStroke>;
+    fill: Partial<ApexFill>;
+    legend: Partial<ApexLegend>;
+    theme: Partial<ApexTheme>;
+
     teams: Observable<Team[]>;
     currentTeams: Team[];
     currentTaskGroup: string;
     scores: Observable<Array<ScoreOverview>>;
+
+    private stateSub: Subscription;
+    private scoresSub: Subscription;
 
     // TODO Make this somewhat more beautiful and configurable
     private ignoreScores = ['average'];
@@ -85,11 +91,19 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
         });
 
 
-
         /* Get the socres */
         this.scores = this.state.pipe(
             switchMap(s => {
-                return this.runService.getApiRunScoreWithRunid(s.id);
+                return this.runService.getApiRunScoreWithRunid(s.id).pipe(
+                    switchMap(res => {
+                        return res;
+                    }),
+                    catchError(err => {
+                        console.log('Error in Scores: ');
+                        console.log(err);
+                        return of(null);
+                    })
+                );
             }),
             catchError(err => {
                 console.log(`Error: ${err}`);
@@ -99,39 +113,53 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
             filter(value => value != null),
             shareReplay(1)
         );
-        this.state.subscribe(state => {
+        this.stateSub = this.state.subscribe(state => {
             this.currentTaskGroup = state.currentTask?.taskGroup.name;
         });
 
-        this.scores.subscribe(value => {
+        this.scoresSub = this.scores.subscribe(value => {
             this.updateChart(value);
         });
     }
 
+    ngOnDestroy(): void {
+        this.stateSub.unsubscribe();
+        this.scoresSub.unsubscribe();
+    }
+
     private updateChart(scores?: Array<ScoreOverview>) {
+        console.log('Updating scores');
         this.xaxis = {
             categories: this.currentTeams.map(t => t.name)
         };
         if (scores) {
+            console.log(scores);
             /*
              Transformation for apex.
              In competitionOverview = true mode, ignores are not shown
              In competitionOverview = false mode, ONLY matching taskgroup is shown
              */
-            this.series = scores.filter(so => {
-                if (this.competitionOverview) {
-                    return this.ignoreScores.indexOf(so.name) < 0;
-                } else {
-                    return so.taskGroup === this.currentTaskGroup;
-                }
-            }).map(s => {
-                /* In case there is no value, specifically set 0 as score for each team*/
-                if (s.scores.length === 0) {
-                    return {name: s.name, data: this.currentTeams.map(t => 0)};
-                } else {
-                    return {name: s.name, data: s.scores.map(sc => Math.round(sc.score))};
-                }
-            });
+            if (scores.length > 1) {
+                this.series = scores.filter(so => {
+                    if (this.competitionOverview) {
+                        return this.ignoreScores.indexOf(so.name) < 0;
+                    } else {
+                        return so.taskGroup === this.currentTaskGroup;
+                    }
+                }).map(s => {
+                    /* In case there is no value, specifically set 0 as score for each team*/
+                    if (s.scores.length === 0) {
+                        return {name: s.name, data: this.currentTeams.map(t => 0)};
+                    } else {
+                        return {name: s.name, data: s.scores.map(sc => Math.round(sc.score))};
+                    }
+                });
+            } else if (scores[0] !== undefined) {
+                this.series = [{name: scores[0].name, data: scores[0].scores.map(sc => Math.round(sc.score))}];
+            } else {
+                this.series = [{data: [0]}];
+            }
+
         } else {
             this.series = [];
         }
@@ -140,7 +168,13 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
     private setupChart() {
         this.chart = {
             type: 'bar',
-            stacked: this.competitionOverview // thats why the boolean is setup this way round
+            stacked: this.competitionOverview, // thats why the boolean is setup this way round
+            animations: {
+                enabled: false,
+                dynamicAnimation: {
+                    enabled: false
+                }
+            }
         };
         this.plotOptions = {
             bar: {
@@ -173,5 +207,11 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
                 colors: '#fff'
             }
         };
+        // Apparently, this is not fully supported https://github.com/apexcharts/apexcharts.js/issues/218
+        // hack: See style.css
+        this.theme = {
+            mode: 'dark'
+        };
+        this.series = [{data: [0]}];
     }
 }

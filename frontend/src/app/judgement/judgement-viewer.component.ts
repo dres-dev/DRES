@@ -1,10 +1,11 @@
 import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {interval, Observable, of, Subscription} from 'rxjs';
 import {ErrorStatus, Judgement, JudgementRequest, JudgementService, SubmissionInfo} from '../../../openapi';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {catchError, filter, shareReplay, switchMap} from 'rxjs/operators';
 import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {HttpErrorResponse} from '@angular/common/http';
 
 /**
  * This component subscribes to the websocket for submissions.
@@ -20,17 +21,20 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
     @Input() pollingFrequency = 1000;
     @ViewChild(JudgementMediaViewerComponent) judgePlayer: JudgementMediaViewerComponent;
     judgementRequest: JudgementRequest;
+    noJudgementMessage = '';
+    isJudgmentAvailable = false;
     private routeSubscription: Subscription;
     private currentRequest: Observable<JudgementRequest>;
     private runId: string;
 
-    noJudgementMessage = '';
-    isJudgmentAvailable = false;
+    private intervalRef: Observable<number>;
+    private intervalSub: Subscription;
 
     constructor(
         private judgementService: JudgementService,
         private activeRoute: ActivatedRoute,
-        private snackBar: MatSnackBar
+        private snackBar: MatSnackBar,
+        private router: Router
     ) {
     }
 
@@ -41,7 +45,12 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
             this.runId = p.runId;
         });
         /* Get the current judgment request whenever an update occurs */
-        this.currentRequest = interval(this.pollingFrequency).pipe(
+        this.intervalRef = interval(this.pollingFrequency);
+        /*this.intervalSub = this.intervalRef.subscribe(_ => {
+
+        });*/
+
+        this.currentRequest = this.intervalRef.pipe(
             switchMap(_ => {
                 /* Stop polling while judgment is ongooing */
                 if (this.runId && !this.isJudgmentAvailable) {
@@ -57,7 +66,15 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
                             return of(req as JudgementRequest);
                         }),
                         catchError(err => {
-                            // TODO no run, then a 'severe' 404 occurs. how to handle?
+                            const httperr = err as HttpErrorResponse;
+                            if (httperr) {
+                                if (httperr.status === 404) {
+                                    const snack = this.snackBar.open(`Invalid runId: ${this.runId}`, null, {duration: 2000});
+                                    snack.afterDismissed().subscribe(() => {
+                                        this.router.navigate(['/run/list']);
+                                    });
+                                }
+                            }
                             console.log('[Judgem.View] Error in getJudgeNext: ');
                             console.log(err);
                             return of(null);
@@ -89,6 +106,7 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
 
     ngOnDestroy(): void {
         this.routeSubscription.unsubscribe();
+
     }
 
     public judge(status: SubmissionInfo.StatusEnum) {

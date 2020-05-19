@@ -26,13 +26,12 @@ class KisTaskScorer : RecalculatingTaskRunScorer {
             val submissions =  task.data.submissions.filter { it.team == teamId && (it.status == SubmissionStatus.CORRECT || it.status == SubmissionStatus.WRONG) }.sortedBy { it.timestamp }
             val firstCorrect = submissions.indexOfFirst { it.status == SubmissionStatus.CORRECT }
             val score = if (firstCorrect > -1) {
-                val incorrectSubmissions = firstCorrect + 1
-                val timeFraction = 1.0 -  (submissions[firstCorrect].timestamp - taskStart) / taskDuration
+                val timeFraction = 1.0 - (submissions[firstCorrect].timestamp - taskStart) / taskDuration
 
                 max(0.0,
                         maxPointsAtTaskEnd +
                                 ((maxPointsPerTask - maxPointsAtTaskEnd) * timeFraction) -
-                                (incorrectSubmissions * penaltyPerWrongSubmission)
+                                (firstCorrect * penaltyPerWrongSubmission) //index of first correct submission is the same as number of not correct submissions
                 )
             } else {
                 0.0

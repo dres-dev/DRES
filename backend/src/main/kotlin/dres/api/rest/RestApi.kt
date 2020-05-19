@@ -103,7 +103,7 @@ object RestApi {
             it.sessionHandler(::fileSessionHandler)
             it.accessManager(AccessManager::manage)
             it.addStaticFiles("html")
-//            it.addSinglePageRoot("/", "html/index.html")
+            it.addSinglePageRoot("/", "html/index.html")
         }.routes {
 
             path("api") {

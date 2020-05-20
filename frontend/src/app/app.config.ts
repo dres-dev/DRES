@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {IConfig} from './model/config.interface';
 import {HttpClient} from '@angular/common/http';
+import {DefaultConfig} from './model/config.default';
 
 @Injectable()
 export class AppConfig {
@@ -28,13 +29,15 @@ export class AppConfig {
     }
 
     load() {
-        const jsonFile = 'config.json';
+        const jsonFile = 'config.json?random=' + Date.now();
         return new Promise<void>((resolve, reject) => {
             this.http.get(jsonFile).toPromise().then((response: IConfig) => {
                 AppConfig.settings = response as IConfig;
                 resolve();
             }).catch((response: any) => {
-                reject(`Could not load config file '${jsonFile}': ${JSON.stringify(response)}`);
+                AppConfig.settings = new DefaultConfig();
+                console.log(`Could not load config file '${jsonFile}'. Fallback to default.`);
+                resolve();
             });
         });
     }

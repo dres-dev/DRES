@@ -41,8 +41,12 @@ export class LoginComponent implements OnInit, OnDestroy {
             this.authenticationService.login(this.form.controls.username.value, this.form.controls.password.value).subscribe((r) => {
                 this.snackBar.open(`Login successful!`, null, {duration: 5000});
             },
-            (error) => {
-                this.snackBar.open(`Login failed: ${error.error.description}!`, null, {duration: 5000});
+            (err) => {
+                if (err?.error) {
+                    this.snackBar.open(`Login failed: ${err?.error?.description}!`, null, {duration: 5000});
+                } else {
+                    this.snackBar.open(`Login failed due to a connection issue!`, null, {duration: 5000});
+                }
             });
         }
     }

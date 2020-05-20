@@ -5,6 +5,6 @@ export class DefaultConfig implements IConfig {
     endpoint =  {
         host: this.url.hostname,
         port: parseInt(this.url.port, 10),
-        tls: this.url.protocol === 'https'
+        tls: this.url.protocol === 'https:'
     };
 }

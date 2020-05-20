@@ -1,11 +1,21 @@
+.header {
+  text-align: center;
+}
+
 .task-preview {
-  width: 100%;
-  display: table;
+  padding: 25px;
+  height: 30vh;
+  background-color: black;
+}
+
+p.countdown {
+  font-size: 2.5em;
+  line-height: 2.5em;
+  text-align: center;
 }
 
 p.preview-text {
-  font-size: 1.5em;
-
+  font-size: 2.5em;
   text-align:center;
   vertical-align: middle;
   display: table-cell;

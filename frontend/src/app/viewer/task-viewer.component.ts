@@ -1,7 +1,7 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {CompetitionRunService, QueryDescription, RunInfo, RunState, TaskDescription} from '../../../openapi';
-import {BehaviorSubject, combineLatest, interval, Observable, of, Subscription} from 'rxjs';
-import {catchError, filter, flatMap, map, share, switchMap} from 'rxjs/operators';
+import {BehaviorSubject, combineLatest, interval, Observable, of, Subscription, timer} from 'rxjs';
+import {catchError, filter, flatMap, map, share, switchMap, take} from 'rxjs/operators';
 import {IWsMessage} from '../model/ws/ws-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {WebSocketSubject} from 'rxjs/webSocket';
@@ -34,7 +34,16 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
     /** The currently active task. */
     taskPrepareSubscription: Subscription;
 
-    constructor(protected runService: CompetitionRunService) {}
+    /** Value of the task count down. */
+    taskCountdown = '';
+
+    /** Reference to the audio file played during countdown. */
+    taskCountDownAudio = new Audio();
+
+    constructor(protected runService: CompetitionRunService) {
+        this.taskCountDownAudio.src = './assets/audio/beep_1.ogg';
+        this.taskCountDownAudio.load();
+    }
 
     /**
      * Create a subscription for task changes.
@@ -62,10 +71,17 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
         /* Subscription reacting to TASK_PREPARE message. */
         this.taskPrepareSubscription = combineLatest([
             this.webSocket.pipe(filter(m => m.type === 'TASK_PREPARE')),
-            this.currentQueryObject
-        ]).subscribe(([m, q]) =>
-            this.webSocketSubject.next({runId: (m as IWsServerMessage).runId, type: 'ACK'} as IWsClientMessage)
-        );
+            this.currentQueryObject,
+        ]).subscribe(([m, q]) => {
+            timer(0, 1000).pipe(take(6), map((v) => 5 - v)).subscribe(
+            (count: number) => {
+                this.taskCountDownAudio.play().finally(() => this.taskCountdown = String(count));
+            },
+            (err) => {},
+            () => {
+                this.webSocketSubject.next({runId: (m as IWsServerMessage).runId, type: 'ACK'} as IWsClientMessage);
+            });
+        });
 
         /* Observable for the time left and time elapsed (for running tasks only). */
         const polledState = this.state.pipe(

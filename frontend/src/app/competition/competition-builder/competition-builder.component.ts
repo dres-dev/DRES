@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {filter} from 'rxjs/operators';
 import {CompetitionDescription, CompetitionService, TaskDescriptionBase, TaskGroup, Team} from '../../../../openapi';
@@ -9,6 +9,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {CompetitionBuilderTeamDialogComponent,} from './competition-builder-team-dialog.component';
 import {CompetitionBuilderTaskDialogComponent, CompetitionBuilderTaskDialogData} from './competition-builder-task-dialog.component';
 import {CompetitionBuilderTaskGroupDialogComponent} from './competition-builder-task-group.component';
+import {MatTable} from '@angular/material/table';
 
 @Component({
   selector: 'app-competition-builer',
@@ -19,6 +20,13 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
 
   competitionId: number;
   competition: CompetitionDescription;
+
+  @ViewChild('taskTable')
+  taskTable: MatTable<any>;
+
+
+  @ViewChild('teamTable')
+  teamTable: MatTable<any>;
 
   displayedColumnsTeams: string[] = ['logo', 'name', 'action'];
   displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'action'];
@@ -130,6 +138,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     ).subscribe((t) => {
       this.competition.tasks.push(t);
       this.dirty = true;
+      this.taskTable.renderRows();
     });
   }
 
@@ -150,6 +159,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
       ).subscribe((t) => {
         this.competition.tasks[index] = t;
         this.dirty = true;
+        this.taskTable.renderRows();
       });
     }
   }
@@ -157,6 +167,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
   public removeTask(task: TaskDescriptionBase) {
     this.competition.tasks.splice(this.competition.tasks.indexOf(task), 1);
     this.dirty = true;
+    this.taskTable.renderRows();
   }
 
   public addTeam() {
@@ -166,6 +177,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     ).subscribe((t) => {
       this.competition.teams.push(t);
       this.dirty = true;
+      this.teamTable.renderRows();
     });
   }
 
@@ -178,6 +190,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
       ).subscribe((t: Team) => {
         this.competition.teams[index] = t;
         this.dirty = true;
+        this.teamTable.renderRows();
       });
     }
   }
@@ -185,7 +198,9 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
   public removeTeam(team: Team) {
     this.competition.teams.splice(this.competition.teams.indexOf(team), 1);
     this.dirty = true;
+    this.teamTable.renderRows();
   }
+
 
   /**
    *

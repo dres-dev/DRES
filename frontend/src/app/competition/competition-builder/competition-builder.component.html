@@ -65,7 +65,7 @@
             </div>
 
 
-            <table mat-table [dataSource]="competition.teams"  [style.width]="'100%'">
+            <table #teamTable mat-table [dataSource]="competition.teams"  [style.width]="'100%'">
                 <ng-container matColumnDef="logo">
                     <th mat-header-cell *matHeaderCellDef> Logo </th>
                     <td mat-cell *matCellDef="let team" ><img matListAvatar src="{{team.logo}}" [style.width]="'90px'" alt="team logo"></td>
@@ -114,7 +114,7 @@
 
             </div>
 
-            <table mat-table [dataSource]="competition.tasks" [style.width]="'100%'">
+            <table #taskTable mat-table [dataSource]="competition.tasks" [style.width]="'100%'">
                 <ng-container matColumnDef="name">
                     <th mat-header-cell *matHeaderCellDef> Name </th>
                     <td mat-cell *matCellDef="let task"> {{task.name}} </td>

@@ -22,7 +22,7 @@ object FFmpegUtil {
         
     }") //TODO make configurable
 
-    private val semaphore = Semaphore(16) //TODO make number configurable
+    private val semaphore = Semaphore(4) //TODO make number configurable
 
     private fun toMillisecondTimeStamp(ms: Long): String {
         val hours = ms / (1000 * 3600)
@@ -43,7 +43,8 @@ object FFmpegUtil {
                     .setOverwriteOutput(true)
                     .addArguments("-ss", timecode)
                     .addArguments("-vframes", "1")
-                    .executeAsync()
+                    .addArguments("-filter:v", "scale=\"120:-1\"")
+                    .execute()
         } finally {
             semaphore.release()
         }

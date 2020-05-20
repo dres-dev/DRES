@@ -24,7 +24,6 @@ class GetPreviewHandler(private val collections: DAO<MediaCollection>, items: DA
 
 
     private val cacheLocation = Paths.get(config.cachePath + "/previews")
-    private val imageMime = "image/png"
 
     init {
         Files.createDirectories(this.cacheLocation)
@@ -73,14 +72,15 @@ class GetPreviewHandler(private val collections: DAO<MediaCollection>, items: DA
             val time = params["time"]?.toLongOrNull() ?: throw ErrorStatusException(400, "Timestamp unspecified or invalid.")
 
 
-            val imgFile = cacheDir.resolve("${time}.png")
+            val imgFile = cacheDir.resolve("${time}.jpg")
             if (!Files.exists(imgFile)){
                 val mediaItemLocation = Path.of(collection.basePath, item.location)
                 //sanity check
                 if(time < 0 || time > item.durationMs || !Files.exists(mediaItemLocation)) {
-                    imgFile.toFile().writeBytes(
-                            this.javaClass.getResourceAsStream("/img/missing.png").readAllBytes()
-                    )
+//                    imgFile.toFile().writeBytes(
+//                            this.javaClass.getResourceAsStream("/img/missing.png").readAllBytes()
+//                    )
+                    imgFile.toFile().writeText("missing")
                 } else {
                     imgFile.toFile().createNewFile() //create empty file as placeholder
                     FFmpegUtil.extractFrame(mediaItemLocation, time, imgFile)
@@ -94,8 +94,14 @@ class GetPreviewHandler(private val collections: DAO<MediaCollection>, items: DA
             while (imgFile.toFile().length() == 0L && tryCounter++ < 100) {
                 Thread.sleep(100)
             }
-            //ctx.header("Cache-Control", "public, max-age=31536000")
-            ctx.streamFile(imgFile)
+
+            //return placeholder for invalid files
+            if (imgFile.toFile().length() < 100){
+                ctx.contentType("image/png")
+                ctx.result(this.javaClass.getResourceAsStream("/img/missing.png"))
+            } else {
+                ctx.streamFile(imgFile)
+            }
 
 
         }

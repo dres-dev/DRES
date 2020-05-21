@@ -14,7 +14,6 @@ import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.swagger.v3.oas.models.info.Info
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory
-import org.eclipse.jetty.http2.HTTP2Cipher
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.session.DefaultSessionCache
@@ -104,6 +103,7 @@ object RestApi {
             it.accessManager(AccessManager::manage)
             it.addStaticFiles("html")
             it.addSinglePageRoot("/", "html/index.html")
+            it.enforceSsl = true
         }.routes {
 
             path("api") {
@@ -206,13 +206,13 @@ object RestApi {
         }
 
         val alpn = ALPNServerConnectionFactory().apply {
-            defaultProtocol = "h2"
+            defaultProtocol = "http/1.1" //"h2" //TODO HTTP/2 websocket support will only be available in Jetty 10
         }
 
         val sslContextFactory = SslContextFactory.Server().apply {
             keyStorePath = config.keystorePath
             setKeyStorePassword(config.keystorePassword)
-            cipherComparator = HTTP2Cipher.COMPARATOR
+            //cipherComparator = HTTP2Cipher.COMPARATOR
             provider = "Conscrypt"
         }
 

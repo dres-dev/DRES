@@ -16,6 +16,7 @@ import dres.run.score.interfaces.TaskRunScorer
 import dres.run.score.scoreboard.Scoreboard
 import dres.run.validation.interfaces.JudgementValidator
 import dres.run.validation.interfaces.SubmissionValidator
+import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -30,6 +31,8 @@ import kotlin.concurrent.write
  * @author Ralph Gasser
  */
 class SynchronousRunManager(competitionDescription: CompetitionDescription, name: String, override val scoreboards: List<Scoreboard>, private val executor: RunExecutor, private val dao: DAO<CompetitionRun>) : RunManager {
+
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
     /** The [CompetitionRun] capturing the state of this [SynchronousRunManager]. */
     private val run = CompetitionRun(-1, name, competitionDescription)
@@ -107,6 +110,7 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
         this.status = RunManagerStatus.ACTIVE
         this.goToTask(0)
         this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.COMPETITION_START))
+        logger.info("SynchronousRunManager ${this.runId} started")
     }
 
     override fun terminate() = this.stateLock.write {
@@ -114,6 +118,7 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
         this.run.end()
         this.status = RunManagerStatus.TERMINATED
         this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.COMPETITION_END))
+        logger.info("SynchronousRunManager ${this.runId} terminated")
     }
 
     override fun previousTask(): Boolean = this.stateLock.write {
@@ -142,6 +147,7 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
         if (index >= 0 && index < this.competitionDescription.tasks.size) {
             this.currentTask = this.competitionDescription.tasks[index]
             this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.COMPETITION_UPDATE))
+            logger.info("SynchronousRunManager ${this.runId} set to task $index")
         } else {
             throw IndexOutOfBoundsException("Index $index is out of bounds for the number of available tasks.")
         }
@@ -162,6 +168,7 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
         this.status = RunManagerStatus.PREPARING_TASK
         this.ackCounter = 0
         this.executor.broadcastWsMessage(this.runId, ServerMessage(this.runId, ServerMessageType.TASK_PREPARE))
+        logger.info("SynchronousRunManager ${this.runId} started task task ${this.currentTask}")
     }
 
     override fun abortTask() = this.stateLock.write {
@@ -179,6 +186,7 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
         this.status = RunManagerStatus.ACTIVE
         this.ackCounter = -1
         this.executor.broadcastWsMessage(this.runId, ServerMessage(this.runId, ServerMessageType.TASK_END))
+        logger.info("SynchronousRunManager ${this.runId} aborted task task ${this.currentTask}")
     }
 
     override fun timeLeft(): Long = this.stateLock.read {
@@ -245,48 +253,70 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
         while (this.status == RunManagerStatus.ACTIVE || this.status == RunManagerStatus.PREPARING_TASK || this.status == RunManagerStatus.RUNNING_TASK) {
 
             /** Handles the preparation period of the SynchronizedRunManager (status = PREPARING_TASK). */
-            while (this.status == RunManagerStatus.PREPARING_TASK) {
-                if (this.ackCounter >= this.clientCounter) {
-                    this.stateLock.write {
-                        this.run.currentTask?.start()
-                        this.status = RunManagerStatus.RUNNING_TASK
+            try {
+                while (this.status == RunManagerStatus.PREPARING_TASK) {
+                    if (this.ackCounter >= this.clientCounter) {
+                        this.stateLock.write {
+                            this.run.currentTask?.start()
+                            this.status = RunManagerStatus.RUNNING_TASK
+                        }
+                        this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.TASK_START))
+                        break
                     }
-                    this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.TASK_START))
-                    break
+
+                    /** Update scoreboards on each iteration. */
+                    this.scoreboards.forEach { it.update(this.run.runs) }
+                    logger.debug("SynchronousRunManager ${this.runId} updated scoreboards while preparing for a task")
+
+                    /** Sleep for 100ms. */
+                    Thread.sleep(100)
+
+                    Thread.onSpinWait()
                 }
-
-                /** Update scoreboards on each iteration. */
-                this.scoreboards.forEach { it.update(this.run.runs) }
-
-                /** Sleep for 250ms. */
-                Thread.onSpinWait()
+            } catch (e: Exception) {
+                logger.error("Uncaught exception during task preparation", e)
             }
 
             /** Handles the task execution period of the SynchronizedRunManager (status = RUNNING_TASK). */
-            while (this.status == RunManagerStatus.RUNNING_TASK) {
-                val timeLeft = this.timeLeft()
-                if (timeLeft <= 0) {
-                    this.stateLock.write {
-                        this.run.currentTask?.end()
-                        this.status = RunManagerStatus.ACTIVE
+            try {
+                while (this.status == RunManagerStatus.RUNNING_TASK) {
+                    val timeLeft = this.timeLeft()
+                    if (timeLeft <= 0) {
+                        this.stateLock.write {
+                            this.run.currentTask?.end()
+                            this.status = RunManagerStatus.ACTIVE
+                        }
+                        this.dao.update(this.run)
+                        this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.TASK_END))
+                        break
                     }
-                    this.dao.update(this.run)
-                    this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.TASK_END))
-                    break
+
+                    /** Update scoreboards on each iteration. */
+                    this.scoreboards.forEach { it.update(this.run.runs) }
+                    logger.debug("SynchronousRunManager ${this.runId} updated scoreboards for running task")
+
+                    /** Sleep for 100ms. */
+                    Thread.sleep(100)
                 }
-
-                /** Update scoreboards on each iteration. */
-                this.scoreboards.forEach { it.update(this.run.runs) }
-
-                /** Sleep for 100ms. */
-                Thread.sleep(100)
+            } catch (e: Exception) {
+                logger.error("Uncaught exception during task run", e)
             }
 
             /** Update scoreboards on each iteration. */
-            this.scoreboards.forEach { it.update(this.run.runs) }
+
+            try {
+                this.scoreboards.forEach { it.update(this.run.runs) }
+                logger.debug("SynchronousRunManager ${this.runId} updated scoreboards while no task was running")
+            }catch (e: Exception) {
+                logger.error("Uncaught exception during scoreboard update between tasks", e)
+            }
+
+            /** Sleep for 100ms. */
+            Thread.sleep(100)
 
             /** Yield to other threads. */
             Thread.onSpinWait()
         }
+        logger.info("SynchronousRunManager ${this.runId} reached end of run logic")
     }
 }

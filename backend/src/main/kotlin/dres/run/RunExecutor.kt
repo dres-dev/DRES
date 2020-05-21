@@ -59,6 +59,7 @@ object RunExecutor : Consumer<WsHandler> {
             try {
                 this@RunExecutor.results.forEach { (k, v) ->
                     if (k.isDone || k.isCancelled) {
+                        logger.info("RunManager $v (done = ${k.isDone}, cancelled = ${k.isCancelled}) will be removed")
                         stamp = this@RunExecutor.runManagerLock.tryConvertToWriteLock(stamp)
                         if (stamp > -1L) {
                             /* Deregister the RunManager. */

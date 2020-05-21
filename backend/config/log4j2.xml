@@ -32,12 +32,17 @@
             <AppenderRef ref="Libraries"/>
         </logger>
 
-        <logger name="io.javalin" level="INFO">
+        <logger name="io.javalin" level="WARN">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Libraries"/>
         </logger>
 
         <logger name="org.jline" level="WARN">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Libraries"/>
+        </logger>
+
+        <logger name="*" level="ERROR">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Libraries"/>
         </logger>

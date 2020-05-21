@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.time.TemporalRange
+import dres.data.model.competition.interfaces.DefinedMediaItemTaskDescription
 import dres.data.model.competition.interfaces.HiddenResultsTaskDescription
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.data.model.competition.interfaces.TaskDescription
@@ -41,7 +42,7 @@ sealed class TaskDescriptionBase : TaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = TemporalOverlapSubmissionValidator(this, callback)
         override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}-${temporalRange.start.value}-${temporalRange.end.value}.mp4"
-        override fun newFilter(): SubmissionFilter = OneCorrectSubmissionPerTeamFilter()
+        override fun newFilter(): SubmissionFilter = OneCorrectSubmissionPerTeamFilter() and DuplicateSubmissionFilter()
     }
 
     /**
@@ -54,7 +55,7 @@ sealed class TaskDescriptionBase : TaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = TemporalOverlapSubmissionValidator(this, callback)
         override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}-${temporalRange.start.value}-${temporalRange.end.value}.mp4"
-        override fun newFilter(): SubmissionFilter = OneCorrectSubmissionPerTeamFilter()
+        override fun newFilter(): SubmissionFilter = OneCorrectSubmissionPerTeamFilter() and DuplicateSubmissionFilter()
     }
 
     /**
@@ -63,7 +64,7 @@ sealed class TaskDescriptionBase : TaskDescription {
      * @param description Textual task description presented to the user.
      */
     @Serializable
-    class AvsTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, val description: String, val defaultCollection: Long) : TaskDescriptionBase(), TaskDescription {
+    class AvsTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, val description: String, val defaultCollection: Long) : TaskDescriptionBase(), TaskDescription, DefinedMediaItemTaskDescription {
         override fun newScorer(): TaskRunScorer = AvsTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = BasicJudgementValidator(callback)
         override fun newFilter(): SubmissionFilter = DuplicateSubmissionFilter()

@@ -13,6 +13,7 @@ import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.media.MediaItemSegmentList
 import dres.data.model.basics.media.PlayableMediaItem
 import dres.data.model.competition.TaskDescriptionBase
+import dres.data.model.competition.interfaces.DefinedMediaItemTaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunManager
@@ -26,7 +27,6 @@ import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
-import java.lang.IllegalArgumentException
 
 class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val segment: DAO<MediaItemSegmentList>): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
@@ -85,18 +85,22 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
         val item = this.itemIndex[itemParam].find { it.collection == collectionId } ?:
             throw ErrorStatusException(404, "Media item '$itemParam (collection = $collectionId)' could not be found.")
 
+        val mapToSegment = runManager.currentTask is DefinedMediaItemTaskDescription
+
         return when {
-            map.containsKey(PARAMETER_NAME_SHOT) -> {
+            map.containsKey(PARAMETER_NAME_SHOT) && item is MediaItem.VideoItem -> {
                 val time = this.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item)
                 Submission(team, member, submissionTime, item, time.first, time.second)
             }
             map.containsKey(PARAMETER_NAME_FRAME) && (item is PlayableMediaItem) -> {
                 val time = this.frameToTime(map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull() ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number."), item)
-                Submission(team, member, submissionTime, item, time, time)
+                val range = if(mapToSegment && item is MediaItem.VideoItem) timeToSegment(time, item) else time to time
+                Submission(team, member, submissionTime, item, range.first, range.second)
             }
             map.containsKey(PARAMETER_NAME_TIMECODE) && (item is PlayableMediaItem) -> {
                 val time = this.timecodeToTime(map[PARAMETER_NAME_TIMECODE]?.first()!!, item)
-                Submission(team, member, submissionTime, item, time, time)
+                val range = if(mapToSegment && item is MediaItem.VideoItem) timeToSegment(time, item) else time to time
+                Submission(team, member, submissionTime, item, range.first, range.second)
             }
             else -> Submission(team, member, submissionTime, item)
         }.also {
@@ -107,10 +111,10 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
     /**
      * Converts a shot number to a timestamp in milliseconds.
      */
-    private fun shotToTime(shot: String, item: MediaItem): Pair<Long,Long> {
+    private fun shotToTime(shot: String, item: MediaItem.VideoItem): Pair<Long,Long> {
         val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.")
         val segment = segmentList.segments.find { it.name == shot } ?: throw ErrorStatusException(400, "Shot '${item.name}.$shot' not found.")
-        return TimeUtil.toMilliseconds(segment.range)
+        return TimeUtil.toMilliseconds(segment.range, item.fps)
     }
 
     /**
@@ -125,6 +129,15 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
      */
     private fun timecodeToTime(timecode: String, item: PlayableMediaItem): Long {
         return TimeUtil.timeCodeToMilliseconds(timecode, item.fps) ?: throw ErrorStatusException(400, "'$timecode' is not a valid time code")
+    }
+
+    private fun timeToSegment(time: Long, item: MediaItem.VideoItem): Pair<Long,Long> {
+        val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.")
+        val segment = segmentList.segments.find {
+            val range = TimeUtil.toMilliseconds(it.range, item.fps)
+            range.first <= time && range.second >= time
+        } ?: throw ErrorStatusException(400, "Time '$time' not in range.")
+        return TimeUtil.toMilliseconds(segment.range, item.fps)
     }
 
     @OpenApi(summary = "Endpoint to accept submissions",

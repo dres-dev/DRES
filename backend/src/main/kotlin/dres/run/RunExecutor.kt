@@ -8,11 +8,10 @@ import dres.api.rest.types.run.websocket.ServerMessageType
 import dres.run.validation.interfaces.JudgementValidator
 import dres.utilities.extensions.read
 import dres.utilities.extensions.write
-
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsHandler
+import org.slf4j.LoggerFactory
 import java.util.*
-
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.locks.StampedLock
@@ -26,6 +25,8 @@ import kotlin.collections.HashMap
  * @version 1.0
  */
 object RunExecutor : Consumer<WsHandler> {
+
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
     /** Thread Pool Executor which is used to execute the [RunManager]s. */
     private val executor = Executors.newCachedThreadPool()
@@ -110,22 +111,21 @@ object RunExecutor : Consumer<WsHandler> {
             }
         }
         t.onMessage {
-            val message = try {
+            val message = try{
                 it.message(ClientMessage::class.java)
-            } catch (e: Throwable) {
-                null
+            } catch (e: Exception) {
+                logger.warn("Cannot parse WebSocket message: ${e.localizedMessage}")
+                return@onMessage
             }
-            if (message != null) {
-                this.runManagerLock.read {
-                    if (this.runManagers.containsKey(message.runId)) {
-                        when (message.type) {
-                            ClientMessageType.ACK -> {}
-                            ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.add(it.sessionId) }
-                            ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.remove(it.sessionId) }
-                            ClientMessageType.PING -> it.send(ServerMessage(message.runId, ServerMessageType.PING))
-                        }
-                        this.runManagers[message.runId]!!.wsMessageReceived(message) /* Forward message to RunManager. */
+            this.runManagerLock.read {
+                if (this.runManagers.containsKey(message.runId)) {
+                    when (message.type) {
+                        ClientMessageType.ACK -> {}
+                        ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.add(it.sessionId) }
+                        ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.remove(it.sessionId) }
+                        ClientMessageType.PING -> it.send(ServerMessage(message.runId, ServerMessageType.PING))
                     }
+                    this.runManagers[message.runId]!!.wsMessageReceived(message) /* Forward message to RunManager. */
                 }
             }
         }

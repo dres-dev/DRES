@@ -8,10 +8,10 @@ class DuplicateSubmissionFilter : SubmissionFilter {
         it.item == submission.item &&
 
         //contains a previous submission...
-        ((submission.start!! <= it.start!! && submission.end!! >= it.end!!) ||
+        /*(*/(submission.start!! <= it.start!! && submission.end!! >= it.end!!) /*||
 
 
         //or is contained by a previous submission
-        (it.start <= submission.start && it.end!! >= submission.end!!))
+        (it.start <= submission.start && it.end!! >= submission.end!!))*/
     }
 }

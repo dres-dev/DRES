@@ -76,9 +76,12 @@ object RunExecutor : Consumer<WsHandler> {
             }
             Thread.sleep(500)
         }
-    }, "run-manager-cleaner")
+    })
 
     init {
+        this.cleanerThread.priority = Thread.MIN_PRIORITY
+        this.cleanerThread.isDaemon = true
+        this.cleanerThread.name = "run-manager-cleaner"
         this.cleanerThread.start()
     }
 

@@ -18,6 +18,13 @@ export class AppConfig {
     }
 
     /**
+     * Returns the URL to the DRES WebSocket endpoint.
+     */
+    get webSocketUrl() {
+       return  `${AppConfig.settings.endpoint.tls ? 'wss://' : 'ws://'}${AppConfig.settings.endpoint.host}:${AppConfig.settings.endpoint.port}/api/ws/run`;
+    }
+
+    /**
      * Resolves the given path given the global API URL. That is, it returns the URL of the
      * form http://[host]:[port]/api/[path]
      *

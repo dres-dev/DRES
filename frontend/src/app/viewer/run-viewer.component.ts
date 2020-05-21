@@ -29,22 +29,20 @@ import {MatSnackBar} from '@angular/material/snack-bar';
     styleUrls: ['./run-viewer.component.scss']
 })
 export class RunViewerComponent implements OnInit, OnDestroy  {
+    /** The WebSocketSubject that represent the WebSocket connection to the DRES endpoint. */
+    webSocketSubject: WebSocketSubject<IWsMessage>;
 
-    webSocketSubject: WebSocketSubject<IWsMessage> = webSocket({
-        url: `${AppConfig.settings.endpoint.tls ? 'wss://' : 'ws://'}${AppConfig.settings.endpoint.host}:${AppConfig.settings.endpoint.port}/api/ws/run`,
-        closeObserver: {
-            next(closeEvent) {
-               console.log(`WebSocket connection closed!`, closeEvent);
-            }
-        }
-    } as WebSocketSubjectConfig<IWsMessage>);
-
+    /** Observable for incoming WebSocket messages. */
     webSocket: Observable<IWsServerMessage>;
-    runInfo: Observable<RunInfo>;
-    runState: Observable<RunState>;
 
-    /** Internal WebSocket subscription for logging purposes. */
-    private logSubscription: Subscription;
+    /** Observable for current run ID. */
+    runId: Observable<number>;
+
+    /** Observable for information about the current run. Usually queried once when the view is loaded. */
+    runInfo: Observable<RunInfo>;
+
+    /** Observable for information about the current run's state. Usually queried when a state change is signaled via WebSocket. */
+    runState: Observable<RunState>;
 
     /** Internal WebSocket subscription for pinging the server. */
     private pingSubscription: Subscription;
@@ -53,16 +51,39 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
      * Constructor; extracts the runId and keeps a local reference.
      *
      * @param activeRoute
+     * @param config
      * @param runService
      * @param snackBar
      */
     constructor(private activeRoute: ActivatedRoute,
+                private config: AppConfig,
                 private runService: CompetitionRunService,
                 private snackBar: MatSnackBar) {
 
+        /** Initialize basic WebSocketSubject. */
+        const wsurl = this.config.webSocketUrl
+        this.webSocketSubject = webSocket({
+            url: wsurl,
+            openObserver: {
+                next(openEvent) {
+                    console.log(`[RunViewerComponent] WebSocket connection to ${wsurl} established!`);
+                }
+            },
+            closeObserver: {
+                next(closeEvent) {
+                    console.log(`[RunViewerComponent] WebSocket connection to ${wsurl} closed!`);
+                }
+            }
+        } as WebSocketSubjectConfig<IWsMessage>);
+
+        /** Observable for the current run Id. */
+        this.runId = this.activeRoute.params.pipe(
+            map(a => a.runId)
+        );
+
         /* Basic observable for general run info; this information is static and does not change over the course of a run. */
-        this.runInfo = this.activeRoute.params.pipe(
-            switchMap(a => this.runService.getApiRunInfoWithRunid(a.runId).pipe(
+        this.runInfo = this.runId.pipe(
+            switchMap(runId => this.runService.getApiRunInfoWithRunid(runId).pipe(
                 retry(3),
                 catchError((err, o) => {
                     console.log(`[RunViewerComponent] There was an error while loading information in the current run: ${err?.message}`);
@@ -75,21 +96,30 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         );
 
         /* Basic observable for web socket messages received from the DRES server. */
-        this.webSocket = this.activeRoute.params.pipe(
-            flatMap(a => this.webSocketSubject.pipe(
+        this.webSocket = this.runId.pipe(
+            flatMap(runId => this.webSocketSubject.multiplex(
+                () => {
+                    return {runId, type: 'REGISTER'} as IWsClientMessage;
+                },
+                () => {
+                    return {runId, type: 'UNREGISTER'} as IWsClientMessage;
+                },
+                message => true
+            ).pipe(
                 retryWhen((err) => err.pipe(
                     tap(e => console.error('[RunViewerComponent] An error occurred with the WebSocket communication channel. Trying to reconnect in 1 second.', e)),
                     delay(1000)
                 )),
                 map(m => m as IWsServerMessage),
-                filter(q => q != null)
+                filter(q => q != null),
+                tap(m => console.log(`[RunViewerComponent] WebSocket message received: ${m.type}`))
             )),
             share()
         );
 
         /* Basic observable for run state info; this information is dynamic and does is subject to change over the course of a run. */
-        this.runState = merge(this.activeRoute.params, this.webSocket.pipe(filter(m => m.type !== 'PING'))).pipe(
-            switchMap((a) => this.runService.getApiRunStateWithRunid(a.runId).pipe(
+        this.runState = merge(this.runId, this.webSocket.pipe(filter(m => m.type !== 'PING'), map(m => m.runId))).pipe(
+            switchMap((runId) => this.runService.getApiRunStateWithRunid(runId).pipe(
                 retry(3),
                 catchError((err, o) => {
                     console.log(`[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`);
@@ -105,15 +135,6 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
      * Registers this RunViewerComponent on view initialization and creates the WebSocket subscription.
      */
     ngOnInit(): void {
-        this.activeRoute.params.subscribe(a => {
-            this.webSocketSubject.next({runId: a.runId, type: 'REGISTER'} as IWsClientMessage);
-        });
-
-        /* Register WebSocket logger. */
-        this.logSubscription = this.webSocket.subscribe(m => {
-            console.log(`WebSocket message received: ${m.type}`);
-        });
-
         /* Register WebSocket ping. */
         this.pingSubscription = interval(5000).pipe(
             withLatestFrom(this.activeRoute.params),
@@ -125,14 +146,6 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
      * Unregisters this RunViewerComponent on view destruction and cleans the WebSocket subscription.
      */
     ngOnDestroy(): void {
-        this.activeRoute.params.subscribe(a => {
-            this.webSocketSubject.next({runId: a.runId, type: 'UNREGISTER'} as IWsClientMessage);
-        });
-
-        /* Unregister WebSocket logger. */
-        this.logSubscription.unsubscribe();
-        this.logSubscription = null;
-
         /* Unregister Ping service. */
         this.pingSubscription.unsubscribe();
         this.pingSubscription = null;

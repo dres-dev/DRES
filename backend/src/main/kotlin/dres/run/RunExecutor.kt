@@ -75,9 +75,12 @@ object RunExecutor : Consumer<WsHandler> {
             }
             Thread.sleep(500)
         }
-    }, "run-manager-cleaner")
+    })
 
     init {
+        this.cleanerThread.priority = Thread.MIN_PRIORITY
+        this.cleanerThread.isDaemon = true
+        this.cleanerThread.name = "run-manager-cleaner"
         this.cleanerThread.start()
     }
 
@@ -107,16 +110,22 @@ object RunExecutor : Consumer<WsHandler> {
             }
         }
         t.onMessage {
-            val message = it.message(ClientMessage::class.java)
-            this.runManagerLock.read {
-                if (this.runManagers.containsKey(message.runId)) {
-                    when (message.type) {
-                        ClientMessageType.ACK -> {}
-                        ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.add(it.sessionId) }
-                        ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.remove(it.sessionId) }
-                        ClientMessageType.PING -> it.send(ServerMessage(message.runId, ServerMessageType.PING))
+            val message = try {
+                it.message(ClientMessage::class.java)
+            } catch (e: Throwable) {
+                null
+            }
+            if (message != null) {
+                this.runManagerLock.read {
+                    if (this.runManagers.containsKey(message.runId)) {
+                        when (message.type) {
+                            ClientMessageType.ACK -> {}
+                            ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.add(it.sessionId) }
+                            ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.remove(it.sessionId) }
+                            ClientMessageType.PING -> it.send(ServerMessage(message.runId, ServerMessageType.PING))
+                        }
+                        this.runManagers[message.runId]!!.wsMessageReceived(message) /* Forward message to RunManager. */
                     }
-                    this.runManagers[message.runId]!!.wsMessageReceived(message) /* Forward message to RunManager. */
                 }
             }
         }

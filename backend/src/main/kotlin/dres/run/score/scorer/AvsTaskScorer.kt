@@ -5,6 +5,9 @@ import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.score.interfaces.IncrementalTaskRunScorer
 import dres.utilities.TimeUtil
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 //TODO this implicitly assumes that all submissions are from the same task, there is no way to check this here
 //TODO this assumes that the status of a submission never changes outside of a call to update and that a submission which was validated as CORRECT or WRONG does not change
@@ -18,6 +21,8 @@ class AvsTaskScorer: IncrementalTaskRunScorer {
     private val wrongSubmissions = mutableSetOf<Submission>()
     private val wrongSubmissionsPerTeam = mutableMapOf<Int, MutableSet<Submission>>()
 
+    private val updateScoresLock = ReentrantReadWriteLock()
+
     private fun addToMap(map: MutableMap<Int, MutableSet<Submission>>, submission: Submission) {
         if (!map.containsKey(submission.team)) {
             map[submission.team] = mutableSetOf(submission)
@@ -26,7 +31,7 @@ class AvsTaskScorer: IncrementalTaskRunScorer {
         }
     }
 
-    override fun update(submission: Submission) {
+    override fun update(submission: Submission) = updateScoresLock.write{
 
         //TODO the following assumes that submissions have a start and an end, figure out what to do in case they don't
 
@@ -55,7 +60,7 @@ class AvsTaskScorer: IncrementalTaskRunScorer {
 
     }
 
-    private fun countRanges(submissions: Collection<Submission>): Int {
+    private fun countRanges(submissions: Collection<Submission>): Int  = updateScoresLock.read{
 
         return submissions.groupBy { it.item }.map {(item, subs) ->
             val rangesInItem = ranges[item.id]!!
@@ -70,7 +75,7 @@ class AvsTaskScorer: IncrementalTaskRunScorer {
     }
 
 
-    override fun scores(): Map<Int, Double> {
+    override fun scores(): Map<Int, Double> = updateScoresLock.read{
 
         val teams = correctSubmissionsPerTeam.keys.plus(wrongSubmissionsPerTeam.keys).toSet()
 

@@ -7,7 +7,10 @@ import dres.run.validation.interfaces.JudgementValidator
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.collections.HashMap
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 /**
  * A validator class that checks, if a submission is correct based on a manual judgement by a user.
@@ -21,7 +24,7 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
 
     companion object {
         private val counter = AtomicInteger()
-        private val judgementTimeout = 30_000 //ms until a request is re-scheduled
+        private const val judgementTimeout = 30_000 //ms until a request is re-scheduled
     }
 
     override val id = "bjv${counter.incrementAndGet()}"
@@ -30,6 +33,8 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
     private data class ItemRange(val item: MediaItem, val start: Long, val end: Long){
         constructor(submission: Submission): this(submission.item, submission.start ?: 0, submission.end ?: 0)
     }
+
+    private val updateLock = ReentrantReadWriteLock()
 
     /** Internal queue that keeps track of all the [Submission]s in need of a verdict. */
     private val queue: Queue<Submission> = LinkedList()
@@ -43,10 +48,9 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
     /** Internal map of already judged [Submission]s, independent of their source. */
     private val cache: MutableMap<ItemRange, SubmissionStatus> = ConcurrentHashMap()
 
-    @Synchronized
-    fun checkTimeOuts() {
+    private fun checkTimeOuts() = updateLock.write {
         val now = System.currentTimeMillis()
-        var due = timeouts.filter { it.first <= now }
+        val due = timeouts.filter { it.first <= now }
         due.forEach {
             val submission = waiting.remove(it.second)
             if (submission != null) {
@@ -58,19 +62,16 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
 
     /** Returns the number of [Submission]s that are currently pending a judgement. */
     override val pending: Int
-        @Synchronized
-        get() = this.queue.size + this.waiting.size
+        get() = updateLock.read { this.queue.size + this.waiting.size }
 
     override val open: Int
-        @Synchronized
-        get() {
+        get() = updateLock.read {
             checkTimeOuts()
             return this.queue.size
         }
 
     override val hasOpen: Boolean
-        @Synchronized
-        get(){
+        get() = updateLock.read {
             checkTimeOuts()
             return this.queue.isNotEmpty()
         }
@@ -82,14 +83,15 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
      * @param submission The [Submission] to validate.
      * @return [SubmissionStatus] of the [Submission]
      */
-    @Synchronized
-    override fun validate(submission: Submission) {
+    override fun validate(submission: Submission) = updateLock.read {
         //check cache first
         val cachedStatus = this.cache[ItemRange(submission)]
         if (cachedStatus != null) {
             submission.status = cachedStatus
         } else {
-            this.queue.offer(submission)
+            updateLock.write {
+                this.queue.offer(submission)
+            }
             submission.status = SubmissionStatus.INDETERMINATE
         }
     }
@@ -101,8 +103,7 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
      *
      * @return Optional [Pair] containing a string token and the [Submission] that should be judged.
      */
-    @Synchronized
-    override fun next(queue: String): Pair<String, Submission>? {
+    override fun next(queue: String): Pair<String, Submission>? = updateLock.write {
         checkTimeOuts()
         val next = this.queue.poll()
         return if (next != null) {
@@ -121,10 +122,9 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
      * @param token The token used to identify the [Submission].
      * @param verdict The verdict of the judge.
      */
-    @Synchronized
-    override fun judge(token: String, verdict: SubmissionStatus) {
+    override fun judge(token: String, verdict: SubmissionStatus) = updateLock.write {
         require(this.waiting.containsKey(token)) { "This JudgementValidator does not contain a submission for the token '$token'." }
-        val submission = this.waiting[token] ?: return //submission with token not found TODO: this should be logged
+        val submission = this.waiting[token] ?: return@write //submission with token not found TODO: this should be logged
         submission.status = verdict
 
         //add to cache
@@ -140,8 +140,7 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
     /**
      * Clears this [JudgementValidator] and all the associated queues and maps.
      */
-    @Synchronized
-    fun clear() {
+    fun clear()= updateLock.write {
         this.waiting.clear()
         this.queue.clear()
     }

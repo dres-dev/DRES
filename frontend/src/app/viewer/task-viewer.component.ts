@@ -1,6 +1,6 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {CompetitionRunService, QueryDescription, RunInfo, RunState, TaskDescription} from '../../../openapi';
-import {BehaviorSubject, combineLatest, interval, Observable, of, Subscription, timer} from 'rxjs';
+import {BehaviorSubject, interval, Observable, of, Subscription, timer, zip} from 'rxjs';
 import {catchError, filter, flatMap, map, share, switchMap, take} from 'rxjs/operators';
 import {IWsMessage} from '../model/ws/ws-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
@@ -69,10 +69,10 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
         );
 
         /* Subscription reacting to TASK_PREPARE message. */
-        this.taskPrepareSubscription = combineLatest([
+        this.taskPrepareSubscription = zip(
             this.webSocket.pipe(filter(m => m.type === 'TASK_PREPARE')),
             this.currentQueryObject,
-        ]).subscribe(([m, q]) => {
+        ).subscribe(([m, q]) => {
             timer(0, 1000).pipe(take(6), map((v) => 5 - v)).subscribe(
             (count: number) => {
                 this.taskCountDownAudio.play().finally(() => this.taskCountdown = String(count));

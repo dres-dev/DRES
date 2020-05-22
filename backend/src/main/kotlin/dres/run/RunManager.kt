@@ -39,7 +39,10 @@ interface RunManager : Runnable {
     val currentTaskScore: TaskRunScorer?
 
     /** The list of [Submission]s for the current [Task]. */
-    val submissions: List<Submission>?
+    val submissions: List<Submission>
+
+    /** The list of all [Submission]s, independent of the [Task]. */
+    val allSubmissions: List<Submission>
 
     /** Current [RunManagerStatus] of the [RunManager]. */
     val status: RunManagerStatus

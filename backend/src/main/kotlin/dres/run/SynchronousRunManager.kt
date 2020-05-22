@@ -72,10 +72,16 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
         get() = this.run.runs.mapNotNull { if (it.hasStarted && it.validator is JudgementValidator) it.validator else null }
 
     /** The list of [Submission]s for the current [Task]. */
-    override val submissions: List<Submission>?
+    override val submissions: List<Submission>
         get() = this.stateLock.read {
             this.run.currentTask?.data?.submissions ?: emptyList()
         }
+
+    override val allSubmissions: List<Submission>
+        get() = this.stateLock.read {
+            this.run.runs.flatMap { it.data.submissions }
+        }
+
 
     /** The pipeline for [Submission] processing. All [Submission]s undergo three steps: filter, validation and score update. */
     private val submissionPipeline: List<Triple<SubmissionFilter,SubmissionValidator, TaskRunScorer>> = LinkedList()

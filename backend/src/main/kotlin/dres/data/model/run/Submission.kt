@@ -6,6 +6,7 @@ import dres.data.model.basics.time.TemporalPoint
 import dres.data.model.basics.time.TemporalRange
 import dres.data.model.basics.time.TemporalUnit
 import kotlinx.serialization.Serializable
+import java.util.*
 
 /**
  * A [Submission] as received by a competition participant.
@@ -20,7 +21,8 @@ data class Submission(val team: Int,
                       val timestamp: Long,
                       val item: MediaItem,
                       val start: Long? = null, //in ms
-                      val end: Long? = null //in ms
+                      val end: Long? = null, //in ms
+                      val id: String = UUID.randomUUID().toString()
 ) {
 
     var status: SubmissionStatus = SubmissionStatus.INDETERMINATE

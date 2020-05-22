@@ -13,6 +13,7 @@ object SubmissionSerializer : Serializer<Submission> {
         MediaItemSerializer.serialize(out, value.item)
         out.packLong(value.start ?: -1L)
         out.packLong(value.end ?: -1L)
+        out.writeUTF(value.id)
     }
 
     override fun deserialize(input: DataInput2, available: Int): Submission = Submission(
@@ -21,6 +22,7 @@ object SubmissionSerializer : Serializer<Submission> {
         input.unpackLong(),
         MediaItemSerializer.deserialize(input, available),
         input.unpackLong().let { if (it == -1L) { null } else { it } },
-        input.unpackLong().let { if (it == -1L) { null } else { it } }
+        input.unpackLong().let { if (it == -1L) { null } else { it } },
+        input.readUTF()
     )
 }

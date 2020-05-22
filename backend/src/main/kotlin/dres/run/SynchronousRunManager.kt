@@ -102,12 +102,15 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
 
     /** A flag indicating whether the [Scoreboard]s need an update. */
     @Volatile
-    private var scoreboardUpdateRequired = false
+    private var scoreboardUpdateRequired = true
 
     init {
         this.run.id = this.dao.append(this.run)
         //lambda to send submission updates
-        this.run.updateSubmissionStatus = {this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.TASK_UPDATED))}
+        this.run.updateSubmissionStatus = {
+            this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.TASK_UPDATED))
+            scoreboardUpdateRequired = true
+        }
     }
 
     override fun start() = this.stateLock.write {
@@ -125,10 +128,12 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
         this.status = RunManagerStatus.TERMINATED
         this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.COMPETITION_END))
         logger.info("SynchronousRunManager ${this.runId} terminated")
+        scoreboardUpdateRequired = true
     }
 
     override fun previousTask(): Boolean = this.stateLock.write {
         val newIndex = this.competitionDescription.tasks.indexOf(this.currentTask) - 1
+        scoreboardUpdateRequired = true
         return try {
             this.goToTask(newIndex)
             true
@@ -140,6 +145,7 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
     override fun nextTask(): Boolean = this.stateLock.write {
         check(this.status == RunManagerStatus.ACTIVE) { "SynchronizedRunManager is in status ${this.status}. Tasks can therefore not be changed." }
         val newIndex = this.competitionDescription.tasks.indexOf(this.currentTask) + 1
+        scoreboardUpdateRequired = true
         return try {
             this.goToTask(newIndex)
             true
@@ -157,6 +163,7 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
         } else {
             throw IndexOutOfBoundsException("Index $index is out of bounds for the number of available tasks.")
         }
+        scoreboardUpdateRequired = true
     }
 
     override fun startTask() = this.stateLock.write {
@@ -169,6 +176,8 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
 
         /* Update competition run. */
         this.dao.update(this.run)
+
+        scoreboardUpdateRequired = true
 
         /* Update status. */
         this.status = RunManagerStatus.PREPARING_TASK
@@ -187,6 +196,8 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
             this.run.currentTask?.end()
             this.dao.update(this.run)
         }
+
+        scoreboardUpdateRequired = true
 
         /** Update state. */
         this.status = RunManagerStatus.ACTIVE
@@ -236,6 +247,8 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
         /* Register submission. */
         this.run.currentTask!!.addSubmission(sub)
 
+        scoreboardUpdateRequired = true
+
         /* Inform clients about update. */
         this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.TASK_UPDATED))
         return sub.status
@@ -271,8 +284,11 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
                     }
 
                     /** Update scoreboards on each iteration. */
-                    this.scoreboards.forEach { it.update(this.run.runs) }
-                    logger.debug("SynchronousRunManager ${this.runId} updated scoreboards while preparing for a task")
+                    if (scoreboardUpdateRequired) {
+                        this.scoreboards.forEach { it.update(this.run.runs) }
+                        scoreboardUpdateRequired = false
+                        logger.debug("SynchronousRunManager ${this.runId} updated scoreboards while preparing for a task")
+                    }
 
                     /** Sleep for 100ms. */
                     Thread.sleep(100)
@@ -298,8 +314,11 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
                     }
 
                     /** Update scoreboards on each iteration. */
-                    this.scoreboards.forEach { it.update(this.run.runs) }
-                    logger.debug("SynchronousRunManager ${this.runId} updated scoreboards for running task")
+                    if (scoreboardUpdateRequired) {
+                        this.scoreboards.forEach { it.update(this.run.runs) }
+                        scoreboardUpdateRequired = false
+                        logger.debug("SynchronousRunManager ${this.runId} updated scoreboards for running task")
+                    }
 
                     /** Sleep for 100ms. */
                     Thread.sleep(100)
@@ -310,11 +329,14 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
 
             /** Update scoreboards on each iteration. */
 
-            try {
-                this.scoreboards.forEach { it.update(this.run.runs) }
-                logger.debug("SynchronousRunManager ${this.runId} updated scoreboards while no task was running")
-            }catch (e: Exception) {
-                logger.error("Uncaught exception during scoreboard update between tasks", e)
+            if (scoreboardUpdateRequired) {
+                try {
+                    this.scoreboards.forEach { it.update(this.run.runs) }
+                    scoreboardUpdateRequired = false
+                    logger.debug("SynchronousRunManager ${this.runId} updated scoreboards while no task was running")
+                } catch (e: Exception) {
+                    logger.error("Uncaught exception during scoreboard update between tasks", e)
+                }
             }
 
             /** Sleep for 100ms. */

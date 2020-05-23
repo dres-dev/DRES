@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 data class ErrorStatusException(val statusCode: Int, val status: String) : Exception(status) {
 
     companion object {
-        private val logger = LoggerFactory.getLogger(this.javaClass)
+        private val logger = LoggerFactory.getLogger(this::class.java)
     }
 
     init {

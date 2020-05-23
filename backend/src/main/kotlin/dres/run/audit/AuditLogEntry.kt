@@ -1,6 +1,7 @@
 package dres.run.audit
 
 import dres.data.model.Entity
+import dres.data.model.run.SubmissionStatus
 import kotlinx.serialization.Serializable
 
 enum class AuditLogEntryType {
@@ -11,7 +12,9 @@ enum class AuditLogEntryType {
     TASK_MODIFIED,
     TASK_END,
     SUBMISSION,
-    JUDGEMENT
+    JUDGEMENT,
+    LOGIN,
+    LOGOUT
 
 }
 
@@ -61,7 +64,16 @@ data class SubmissionAuditLogEntry(override var id: Long, val competition: Strin
 }
 
 @Serializable
-data class JudgementAuditLogEntry(override var id: Long, val competition: String, val judgementId: Long, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.JUDGEMENT) {
-    constructor(competition: String, judgementId: Long, api: LogEventSource, user: String?): this(-1, competition, judgementId, api, user)
+data class JudgementAuditLogEntry(override var id: Long, val competition: String, val validator: String, val token: String, val verdict: SubmissionStatus, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.JUDGEMENT) {
+    constructor(competition: String, validator: String, token: String, verdict: SubmissionStatus, api: LogEventSource, user: String?): this(-1, competition, validator, token, verdict, api, user)
 }
 
+@Serializable
+data class LoginAuditLogEntry(override var id: Long, val user: String, val session: String, val api: LogEventSource) : AuditLogEntry(AuditLogEntryType.LOGIN) {
+    constructor(user: String, session: String, api: LogEventSource): this(-1, user, session, api)
+}
+
+@Serializable
+data class LogoutAuditLogEntry(override var id: Long, val session: String, val api: LogEventSource) : AuditLogEntry(AuditLogEntryType.LOGOUT) {
+    constructor(session: String, api: LogEventSource): this(-1, session, api)
+}

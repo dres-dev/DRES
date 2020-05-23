@@ -7,9 +7,6 @@ import io.javalin.core.security.Role
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.concurrent.read
-import kotlin.concurrent.write
 
 
 object AccessManager {
@@ -30,7 +27,7 @@ object AccessManager {
     private val usersToRunMap = ConcurrentHashMap<Long,MutableSet<RunManager>>()
 
 
-    fun setUserforSession(sessionId: String, user: User){
+    fun setUserForSession(sessionId: String, user: User){
 
         if (!sessionRoleMap.containsKey(sessionId)){
             sessionRoleMap[sessionId] = mutableSetOf()
@@ -56,7 +53,7 @@ object AccessManager {
 
     fun rolesOfSession(sessionId: String): Set<Role> = sessionRoleMap[sessionId] ?: emptySet()
 
-    fun getUserIdforSession(sessionId: String): Long? = sessionUserMap[sessionId]
+    fun getUserIdForSession(sessionId: String): Long? = sessionUserMap[sessionId]
 
     /**
      * Registers a [RunManager] for quick lookup of user ID to eligible [RunManager].

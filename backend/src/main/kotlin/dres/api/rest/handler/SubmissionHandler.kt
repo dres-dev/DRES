@@ -160,7 +160,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
             ]
     )
     override fun doGet(ctx: Context): SuccessStatus {
-        val userId = AccessManager.getUserIdforSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.")
+        val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.")
         val run = getActiveRun(userId)
         val time = System.currentTimeMillis()
         val submission = toSubmission(ctx, userId, run, time)

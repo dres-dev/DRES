@@ -49,7 +49,7 @@ class QueryLogHandler : LogHandler() {
     )
     override fun doPost(ctx: Context): SuccessStatus {
 
-        val userId = AccessManager.getUserIdforSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.")
+        val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.")
         val run = getActiveRun(userId)
 
 
@@ -78,7 +78,7 @@ class ResultLogHandler : LogHandler() {
     )
     override fun doPost(ctx: Context): SuccessStatus {
 
-        val userId = AccessManager.getUserIdforSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.")
+        val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.")
         val run = getActiveRun(userId)
 
         val queryLog = ctx.body<QueryResultLog>()

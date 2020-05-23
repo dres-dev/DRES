@@ -38,7 +38,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.VIEWER)
 
-    private fun userId(ctx: Context): Long = AccessManager.getUserIdforSession(ctx.sessionId())!!
+    private fun userId(ctx: Context): Long = AccessManager.getUserIdForSession(ctx.sessionId())!!
 
     private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
 
@@ -304,7 +304,7 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-        val submissions = run.submissions ?: throw ErrorStatusException(400, "Not submissions available. There is probably no run going on.")
+        val submissions = run.submissions
 
         return if(run.status != RunManagerStatus.TERMINATED){
             if(run.currentTask is HiddenResultsTaskDescription) {
@@ -339,7 +339,7 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         val timestamp = ctx.pathParamMap().getOrDefault("timestamp", "0").toLong()
-        val submissions = run.submissions?.filter { it.timestamp >= timestamp } ?: throw ErrorStatusException(400, "Not submissions available. There is probably no run going on.")
+        val submissions = run.submissions.filter { it.timestamp >= timestamp }
 
         return if(run.status != RunManagerStatus.TERMINATED){
             if(run.currentTask is HiddenResultsTaskDescription) {

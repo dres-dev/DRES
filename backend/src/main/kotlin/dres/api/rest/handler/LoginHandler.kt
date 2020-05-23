@@ -6,15 +6,17 @@ import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
 import dres.data.model.admin.PlainPassword
-import dres.data.model.admin.User
 import dres.data.model.admin.UserName
 import dres.mgmt.admin.UserManager.getMatchingUser
+import dres.run.audit.AuditLogEntry
+import dres.run.audit.AuditLogManager
+import dres.run.audit.LogEventSource
 import dres.utilities.extensions.sessionId
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
 
-class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler<SuccessStatus> {
+class LoginHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, PostRestHandler<SuccessStatus> {
 
 
     data class LoginRequest(var username: String, var password: String)
@@ -42,7 +44,8 @@ class LoginHandler(private val dao: DAO<User>) : RestHandler, PostRestHandler<Su
         val user = getMatchingUser(username, password)
                 ?: throw ErrorStatusException(401, "Invalid credentials. Please try again!")
 
-        AccessManager.setUserforSession(ctx.sessionId(), user)
+        AccessManager.setUserForSession(ctx.sessionId(), user)
+        AuditLogManager.getAuditLogger("GLOBAL", audit).login(loginRequest.username, ctx.sessionId(), LogEventSource.REST)
         return SuccessStatus("Login of '${user.username}' successful!")
 
     }

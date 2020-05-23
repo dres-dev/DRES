@@ -1,5 +1,6 @@
 package dres.data.serializers
 
+import dres.data.model.run.SubmissionStatus
 import dres.run.audit.*
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
@@ -57,9 +58,22 @@ object AuditLogEntrySerializer: Serializer<AuditLogEntry> {
             AuditLogEntryType.JUDGEMENT -> {
                 val judgement = value as JudgementAuditLogEntry
                 out.writeUTF(judgement.competition)
-                out.packLong(judgement.judgementId)
+                out.writeUTF(judgement.validator)
+                out.writeUTF(judgement.token)
+                out.packInt(judgement.verdict.ordinal)
                 out.packInt(judgement.api.ordinal)
                 out.writeUTF(judgement.user ?: "")
+            }
+            AuditLogEntryType.LOGIN -> {
+                val login = value as LoginAuditLogEntry
+                out.writeUTF(login.user)
+                out.writeUTF(login.session)
+                out.packInt(login.api.ordinal)
+            }
+            AuditLogEntryType.LOGOUT -> {
+                val logout = value as LogoutAuditLogEntry
+                out.writeUTF(logout.session)
+                out.packInt(logout.api.ordinal)
             }
         }
     }
@@ -67,15 +81,16 @@ object AuditLogEntrySerializer: Serializer<AuditLogEntry> {
     override fun deserialize(input: DataInput2, available: Int): AuditLogEntry {
         val id = input.unpackLong()
         val timestamp = input.unpackLong()//out.packLong(value.timestamp)
-        val type = AuditLogEntryType.values()[input.unpackInt()]
-        return when(type){
+        return when(AuditLogEntryType.values()[input.unpackInt()]){
             AuditLogEntryType.COMPETITION_START -> CompetitionStartAuditLogEntry(id, input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
             AuditLogEntryType.COMPETITION_END -> CompetitionEndAuditLogEntry(id, input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
             AuditLogEntryType.TASK_START -> TaskStartAuditLogEntry(id, input.readUTF(), input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
             AuditLogEntryType.TASK_MODIFIED -> TaskModifiedAuditLogEntry(id, input.readUTF(), input.readUTF(), input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
             AuditLogEntryType.TASK_END -> TaskEndAuditLogEntry(id, input.readUTF(), input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
             AuditLogEntryType.SUBMISSION -> SubmissionAuditLogEntry(id, input.readUTF(), input.readUTF(), input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
-            AuditLogEntryType.JUDGEMENT -> JudgementAuditLogEntry(id, input.readUTF(), input.unpackLong(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
+            AuditLogEntryType.JUDGEMENT -> JudgementAuditLogEntry(id, input.readUTF(), input.readUTF(), input.readUTF(), SubmissionStatus.values()[input.unpackInt()], LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
+            AuditLogEntryType.LOGIN -> LoginAuditLogEntry(id, input.readUTF(), input.readUTF(), LogEventSource.values()[input.unpackInt()]).also { it.timestamp = timestamp }
+            AuditLogEntryType.LOGOUT -> LogoutAuditLogEntry(id, input.readUTF(), LogEventSource.values()[input.unpackInt()]).also { it.timestamp = timestamp }
         }
     }
 }

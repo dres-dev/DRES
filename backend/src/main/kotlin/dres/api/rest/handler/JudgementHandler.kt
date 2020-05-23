@@ -9,6 +9,8 @@ import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor
+import dres.run.audit.AuditLogManager
+import dres.run.audit.LogEventSource
 import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
@@ -88,6 +90,8 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
         val validator = run.judgementValidators.find { it.id == judgement.validator } ?: throw ErrorStatusException(404, "no matching task found with validator ${judgement.validator}")
 
         validator.judge(judgement.token, judgement.verdict)
+
+        AuditLogManager.getAuditLogger(run.name)!!.judgement(judgement.validator, judgement.token, judgement.verdict, LogEventSource.REST, ctx.sessionId())
 
         return SuccessStatus("Verdict received and accepted. Thanks!")
     }

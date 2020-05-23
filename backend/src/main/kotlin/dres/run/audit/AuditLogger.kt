@@ -2,6 +2,7 @@ package dres.run.audit
 
 import dres.data.dbo.DAO
 import dres.data.model.run.Submission
+import dres.data.model.run.SubmissionStatus
 import org.slf4j.LoggerFactory
 import org.slf4j.Marker
 import org.slf4j.MarkerFactory
@@ -19,17 +20,21 @@ class AuditLogger internal constructor(private val competitionRun: String, priva
         logger.info(logMarker, "Audit event in $competitionRun: $entry")
     }
 
-    fun competitionStart(api: LogEventSource, user: String?) = log(CompetitionStartAuditLogEntry(competitionRun, api, user))
+    fun competitionStart(api: LogEventSource, session: String?) = log(CompetitionStartAuditLogEntry(competitionRun, api, session))
 
-    fun competitionEnd(api: LogEventSource, user: String?) = log(CompetitionEndAuditLogEntry(competitionRun, api, user))
+    fun competitionEnd(api: LogEventSource, session: String?) = log(CompetitionEndAuditLogEntry(competitionRun, api, session))
 
-    fun taskStart(taskName: String, api: LogEventSource, user: String?) = log(TaskStartAuditLogEntry(competitionRun, taskName, api, user))
+    fun taskStart(taskName: String, api: LogEventSource, session: String?) = log(TaskStartAuditLogEntry(competitionRun, taskName, api, session))
 
-    fun taskModified(taskName: String, modification: String, api: LogEventSource, user: String?) = log(TaskModifiedAuditLogEntry(competitionRun, taskName, modification, api, user))
+    fun taskModified(taskName: String, modification: String, api: LogEventSource, session: String?) = log(TaskModifiedAuditLogEntry(competitionRun, taskName, modification, api, session))
 
-    fun taskEnd(taskName: String, api: LogEventSource, user: String?) = log(TaskEndAuditLogEntry(competitionRun, taskName, api, user))
+    fun taskEnd(taskName: String, api: LogEventSource, session: String?) = log(TaskEndAuditLogEntry(competitionRun, taskName, api, session))
 
-    fun submission(taskName: String, submission: Submission, api: LogEventSource, user: String?) = log(SubmissionAuditLogEntry(competitionRun, taskName, "[${submission.timestamp}] ${submission.team}.${submission.member}: ${submission.item} (${submission.start} - ${submission.end})", api, user))
+    fun submission(taskName: String, submission: Submission, api: LogEventSource, session: String?) = log(SubmissionAuditLogEntry(competitionRun, taskName, "[${submission.timestamp}] ${submission.team}.${submission.member}: ${submission.item} (${submission.start} - ${submission.end})", api, session))
 
-    fun judgement(judgementId: Long, api: LogEventSource, user: String?) = log(JudgementAuditLogEntry(competitionRun, judgementId, api, user))
+    fun judgement(validator: String, token: String, verdict: SubmissionStatus, api: LogEventSource, session: String?) = log(JudgementAuditLogEntry(competitionRun, validator, token, verdict, api, session))
+
+    fun login(user: String, session: String, api: LogEventSource) = log(LoginAuditLogEntry(user, session, api))
+
+    fun logout(session: String, api: LogEventSource) = log(LogoutAuditLogEntry(session, api))
 }

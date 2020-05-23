@@ -39,8 +39,8 @@ object RestApi {
         val apiRestHandlers = listOf(
 
                 //user
-                LoginHandler(dataAccessLayer.users),
-                LogoutHandler(),
+                LoginHandler(dataAccessLayer.audit),
+                LogoutHandler(dataAccessLayer.audit),
                 ListUsersHandler(),
                 CurrentUsersHandler(),
                 DeleteUsersHandler(),

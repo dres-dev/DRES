@@ -27,7 +27,7 @@ abstract class UserHandler() : RestHandler {
     }
 
     protected fun getFromSessionOrDie(ctx: Context): User {
-        return UserManager.get(id = AccessManager.getUserIdforSession(ctx.sessionId())!!)
+        return UserManager.get(id = AccessManager.getUserIdForSession(ctx.sessionId())!!)
                 ?: throw ErrorStatusException(404, "User could not be found!")
     }
 

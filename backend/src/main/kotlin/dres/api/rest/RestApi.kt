@@ -49,7 +49,8 @@ object RestApi {
                 CurrentUsersSessionIdHandler(),
 
                 //media
-                GetPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, config),
+                MediaPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, config),
+                SubmissionPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, config),
                 GetMediaHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
 
                 //collection

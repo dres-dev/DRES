@@ -17,6 +17,7 @@ export interface SubmissionInfo {
     member: number;
     status: SubmissionInfo.StatusEnum;
     timestamp: number;
+    id?: string;
     item?: MediaItem;
     start?: number;
     end?: number;

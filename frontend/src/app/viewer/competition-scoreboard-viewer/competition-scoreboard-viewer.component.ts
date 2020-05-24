@@ -14,7 +14,7 @@ import {
     ApexYAxis,
     ChartComponent
 } from 'ng-apexcharts';
-import {catchError, filter, map, shareReplay, switchMap} from 'rxjs/operators';
+import {catchError, filter, map, shareReplay, switchMap, tap} from 'rxjs/operators';
 
 
 /**
@@ -95,7 +95,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
         this.scores = this.state.pipe(
             switchMap(s => {
                 return this.runService.getApiRunScoreWithRunid(s.id).pipe(
-                    switchMap(res => {
+                    tap(res => {
                         console.log(`ScoreWithRunId: ${JSON.stringify(res)}`);
                         return res;
                     }),

@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, ViewChild} from '@angular/core';
 import {Observable} from 'rxjs';
 import {AppConfig} from '../app.config';
 import {JudgementRequest} from '../../../openapi';
@@ -11,13 +11,12 @@ import {MatVideoComponent} from 'mat-video/lib/video.component';
 })
 export class JudgementMediaViewerComponent implements AfterViewInit {
 
-    @ViewChild('video') videoPlayer: MatVideoComponent;
     @Input() req: Observable<JudgementRequest>;
+
+    @ViewChild('videoPlayer', {static: false}) video: HTMLVideoElement;
 
     videoUrl: Observable<string>;
     private offset = 5;
-
-    private videoTag: HTMLVideoElement;
 
     constructor(private config: AppConfig) {
     }
@@ -42,24 +41,23 @@ export class JudgementMediaViewerComponent implements AfterViewInit {
         const url = this.config.resolveApiUrl(path);
         this.videoUrl = new Observable<string>(subscriber => {
             subscriber.next(url);
-            if (this.videoPlayer) {
+            if (this.video) {
                 // This code is not called, as videoPlayer does not exist -- yet
-                this.videoPlayer.src = url;
+                this.video.src = url;
 
-                this.videoPlayer.time = startTime;
-                this.videoPlayer.playing = true;
-                this.videoPlayer.loop = true;
+                this.video.currentTime = startTime;
+                this.video.loop = true;
                 if (endTime > 0) {
-                    this.videoTag.addEventListener('timeupdate', () => {
-                        console.log(`[JudgeMedia] Playing@${this.videoTag.currentTime}s`);
-                        if (this.videoTag.currentTime >= endTime) {
+                    this.video.addEventListener('timeupdate', () => {
+                        console.log(`[JudgeMedia] Playing@${this.video.currentTime}s`);
+                        if (this.video.currentTime >= endTime) {
                             console.log('[JudgeMedia] Restarting video');
-                            this.videoPlayer.time = startTime;
-                            this.videoPlayer.playing = true;
+                            this.video.currentTime = startTime;
+                            this.video.play().then(r => console.log('Video playing...'));
                         }
                     });
                 }
-                console.log(`[JudgeMedia] src=${JSON.stringify(this.videoPlayer.src)}, start=${startTime}, end=${endTime}`);
+                console.log(`[JudgeMedia] src=${JSON.stringify(this.video.src)}, start=${startTime}, end=${endTime}`);
             }
 
         });
@@ -80,18 +78,12 @@ export class JudgementMediaViewerComponent implements AfterViewInit {
     }
 
     stop() {
-        if (this.videoTag) {
-            this.videoTag.pause();
-        }
-        if (this.videoPlayer) {
-            this.videoPlayer.src = null;
+        if (this.video) {
+            this.video.pause();
         }
         this.videoUrl = undefined;
     }
 
     ngAfterViewInit(): void {
-        if (this.videoPlayer) {
-            this.videoTag = this.videoPlayer.getVideoTag();
-        }
     }
 }

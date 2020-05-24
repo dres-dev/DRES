@@ -132,7 +132,8 @@ task buildFrontend(type: NpmTask){
 }
 
 task deployFrontend(type: Copy){
+    // TODO Frontend config adjustment
     dependsOn 'buildFrontend'
     from('../frontend/dist/dres-frontend')
-    into('build/resources/main/html')
+    into('src/main/resources/html')
 }

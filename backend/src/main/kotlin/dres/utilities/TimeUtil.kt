@@ -21,7 +21,7 @@ object TimeUtil {
     /**
      * merges overlapping ranges
      */
-    fun merge(ranges: List<TemporalRange>, fps: Float = 24.0f): List<TemporalRange> {
+    fun merge(ranges: List<TemporalRange>, fps: Float = 24.0f, overlap: Int = 0): List<TemporalRange> {
 
         if (ranges.isEmpty()){
             return emptyList()
@@ -38,7 +38,7 @@ object TimeUtil {
             val next = pairs[i]
 
             //if overlapping, merge
-            current = if (current.second >= next.first){
+            current = if (current.second + overlap >= next.first){
                 current.copy(second = next.second)
             } else { //else add to list and continue
                 merged.add(current)
@@ -46,6 +46,7 @@ object TimeUtil {
             }
             ++i
         }
+        merged.add(current)
 
         return merged.map { TemporalRange(it.first, it.second) }
 

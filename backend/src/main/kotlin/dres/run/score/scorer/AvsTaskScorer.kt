@@ -44,7 +44,7 @@ class AvsTaskScorer: IncrementalTaskRunScorer {
                 if (!ranges.containsKey(submission.item.id)){
                     ranges[submission.item.id] = listOf(submission.temporalRange())
                 }else{
-                    val merged = TimeUtil.merge(ranges[submission.item.id]!!.plusElement(submission.temporalRange()))
+                    val merged = TimeUtil.merge(ranges[submission.item.id]!!.plusElement(submission.temporalRange()), overlap = 1000)
                     ranges[submission.item.id] = merged
                 }
 

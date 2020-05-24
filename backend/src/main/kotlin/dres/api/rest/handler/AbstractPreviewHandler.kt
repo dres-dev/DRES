@@ -104,7 +104,7 @@ abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollecti
 class MediaPreviewHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, config: Config) : AbstractPreviewHandler(collections, items, config) {
 
     @OpenApi(summary = "Returns a preview image from a collection item",
-            path = "/api/preview/:collection/:item/:time",
+            path = "/api/preview/item/:collection/:item/:time",
             pathParams = [
                 OpenApiParam("collectionId", Long::class, "Unique ID of the collection."),
                 OpenApiParam("item", String::class, "Name of the MediaItem"),
@@ -128,7 +128,7 @@ class MediaPreviewHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
     }
 
 
-    override val route: String = "preview/:collection/:item/:time"
+    override val route: String = "preview/item/:collection/:item/:time"
 
     //not used
     override fun doGet(ctx: Context): Any = ""
@@ -139,7 +139,7 @@ class MediaPreviewHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
 class SubmissionPreviewHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, config: Config) : AbstractPreviewHandler(collections, items, config) {
 
     @OpenApi(summary = "Returns a preview image for a submission",
-            path = "/api/preview/:runId/:submissionId",
+            path = "/api/preview/submission/:runId/:submissionId",
             pathParams = [
                 OpenApiParam("runId", Long::class, "Competition Run ID"),
                 OpenApiParam("submissionId", String::class, "Subission ID")
@@ -163,7 +163,7 @@ class SubmissionPreviewHandler(collections: DAO<MediaCollection>, items: DAO<Med
 
     }
 
-    override val route: String = "preview/:runId/:submissionId"
+    override val route: String = "preview/submission/:runId/:submissionId"
 
     //not used
     override fun doGet(ctx: Context): Any = ""

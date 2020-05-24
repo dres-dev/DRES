@@ -16,6 +16,8 @@ export class TeamsViewerComponent implements AfterViewInit {
     submissions: Observable<SubmissionInfo[][]>;
     scores: Observable<ScoreOverview>;
 
+    private runId = 0;
+
     constructor(private runService: CompetitionRunService, private config: AppConfig) {}
 
     ngAfterViewInit(): void {
@@ -48,6 +50,8 @@ export class TeamsViewerComponent implements AfterViewInit {
             )),
             shareReplay(1) /* Cache last successful loading of score. */
         );
+
+        this.info.subscribe(i => this.runId = i.id);
     }
 
 
@@ -57,7 +61,8 @@ export class TeamsViewerComponent implements AfterViewInit {
      * @param submission
      */
     public previewForSubmission(submission: SubmissionInfo): string {
-        return this.config.resolveApiUrl(`/preview/${submission.item.collection}/${submission.item.name}/${submission.start}`);
+        return this.config.resolveApiUrl(`/preview/submission/${this.runId}/${submission.id}`);
+        //return this.config.resolveApiUrl(`/preview/${submission.item.collection}/${submission.item.name}/${submission.start}`);
     }
 
     /**

@@ -175,6 +175,7 @@ class ListCompetitionScoreHandler : AbstractCompetitionRunRestHandler(), GetRest
     override fun doGet(ctx: Context): List<ScoreOverview> {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        run.updateScoreboards()
         return run.scoreboards?.map { it.overview() } ?: throw  ErrorStatusException(400, "Not scoreboards available. There is probably no run going on.")
     }
 }

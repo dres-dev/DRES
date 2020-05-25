@@ -255,6 +255,17 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
     }
 
     /**
+     *
+     */
+    fun updateScoreboards() {
+        if (this.scoreboardUpdateRequired) {
+            this.scoreboards.forEach { it.update(this.run.runs) }
+            scoreboardUpdateRequired = false
+            logger.debug("SynchronousRunManager ${this.runId} updated scoreboards while preparing for a task")
+        }
+    }
+
+    /**
      * Internal method that orchestrates the internal progression of the [CompetitionRun].
      */
     override fun run() {
@@ -281,13 +292,6 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
                         }
                         this.executor.broadcastWsMessage(ServerMessage(this.runId, ServerMessageType.TASK_START))
                         break
-                    }
-
-                    /** Update scoreboards on each iteration. */
-                    if (scoreboardUpdateRequired) {
-                        this.scoreboards.forEach { it.update(this.run.runs) }
-                        scoreboardUpdateRequired = false
-                        logger.debug("SynchronousRunManager ${this.runId} updated scoreboards while preparing for a task")
                     }
 
                     /** Sleep for 100ms. */

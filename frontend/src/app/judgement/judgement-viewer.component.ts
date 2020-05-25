@@ -2,7 +2,7 @@ import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from '@an
 import {interval, Observable, of, Subscription} from 'rxjs';
 import {ErrorStatus, Judgement, JudgementRequest, JudgementService, SubmissionInfo} from '../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
-import {catchError, filter, shareReplay, switchMap} from 'rxjs/operators';
+import {catchError, filter, map, shareReplay, switchMap} from 'rxjs/operators';
 import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {HttpErrorResponse} from '@angular/common/http';
@@ -29,6 +29,7 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
 
     private intervalRef: Observable<number>;
     private intervalSub: Subscription;
+    private requestSub: Subscription;
 
     constructor(
         private judgementService: JudgementService,
@@ -40,7 +41,7 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
 
     ngOnInit(): void {
         /* Subscription and current run id */
-        this.routeSubscription = this.activeRoute.params.subscribe(p => {
+        this.activeRoute.params.subscribe(p => {
             console.log('[Judgem.View] route param: ' + p.runId);
             this.runId = p.runId;
         });
@@ -55,15 +56,15 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
                 /* Stop polling while judgment is ongooing */
                 if (this.runId && !this.isJudgmentAvailable) {
                     return this.judgementService.getApiRunWithRunidJudgeNext(this.runId).pipe(
-                        switchMap(req => {
+                        map(req => {
                             if (req.hasOwnProperty('status') && req.hasOwnProperty('description')) {
                                 console.log('[Judgem.View] No judgement yet');
                                 const noReq = (req as unknown) as ErrorStatus; // unkown first to make TSLint happy
                                 this.noJudgementMessage = noReq.description;
                                 this.isJudgmentAvailable = false;
-                                return of(null);
+                                return null;
                             }
-                            return of(req as JudgementRequest);
+                            return req as JudgementRequest;
                         }),
                         catchError(err => {
                             const httperr = err as HttpErrorResponse;
@@ -94,7 +95,7 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
 
     ngAfterViewInit(): void {
         /* TODO subject thingy */
-        this.currentRequest.subscribe(req => {
+        this.requestSub = this.currentRequest.subscribe(req => {
             console.log('[Judgem.View] Received request');
             console.log(req);
             // TODO handle case there is no submission to judge
@@ -105,8 +106,9 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
     }
 
     ngOnDestroy(): void {
-        this.routeSubscription.unsubscribe();
-
+        console.log('Destroying judge');
+        this.requestSub.unsubscribe();
+        this.requestSub = null;
     }
 
     public judge(status: SubmissionInfo.StatusEnum) {

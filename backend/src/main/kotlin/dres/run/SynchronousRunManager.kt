@@ -257,7 +257,7 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
     /**
      *
      */
-    fun updateScoreboards() {
+    override fun updateScoreboards() {
         if (this.scoreboardUpdateRequired) {
             this.scoreboards.forEach { it.update(this.run.runs) }
             scoreboardUpdateRequired = false

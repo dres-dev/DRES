@@ -1,2 +1,2 @@
-<video *ngIf="videoUrl" controls #videoPlayer class="video-player" preload="auto" [src]="videoUrl">
+<video controls #videoPlayer class="video-player" preload="auto" [src]="(videoUrl | async)" autoplay loop muted>
 </video>

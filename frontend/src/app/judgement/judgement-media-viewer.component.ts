@@ -2,7 +2,6 @@ import {AfterViewInit, Component, ElementRef, Input, ViewChild} from '@angular/c
 import {Observable} from 'rxjs';
 import {AppConfig} from '../app.config';
 import {JudgementRequest} from '../../../openapi';
-import {MatVideoComponent} from 'mat-video/lib/video.component';
 
 @Component({
     selector: 'app-judgement-media-viewer',
@@ -13,9 +12,10 @@ export class JudgementMediaViewerComponent implements AfterViewInit {
 
     @Input() req: Observable<JudgementRequest>;
 
-    @ViewChild('videoPlayer', {static: false}) video: HTMLVideoElement;
+    @ViewChild('videoPlayer', {static: false}) video: ElementRef;
 
     videoUrl: Observable<string>;
+    videoUrlDebug: Observable<string>;
     private offset = 5;
 
     constructor(private config: AppConfig) {
@@ -36,28 +36,39 @@ export class JudgementMediaViewerComponent implements AfterViewInit {
             endTime = endTime + this.offset;
         }
         // TODO How to know here what type this media item has?
-        const path = `/media/${req.collection}/${req.item}#t=${startTime},${endTime}`; // Should work (in chorme, directly this works)
-        // const path = `/media/${req.collection}/${req.item}`; // Should work (in chorme, directly this works)
+        const path1 = `/media/${req.collection}/${req.item}#t=${startTime},${endTime}`; // Should work (in chorme, directly this works)
+        const path = `/media/${req.collection}/${req.item}`; // Should work (in chorme, directly this works)
         const url = this.config.resolveApiUrl(path);
+        const debugUrl = this.config.resolveApiUrl(path1);
+        /* Debug */
+        this.videoUrlDebug = new Observable<string>(sub => {
+            sub.next(debugUrl);
+        });
+        console.log('[JudgeMedia] Url=' + url);
         this.videoUrl = new Observable<string>(subscriber => {
-            subscriber.next(url);
+            subscriber.next(debugUrl);
             if (this.video) {
                 // This code is not called, as videoPlayer does not exist -- yet
-                this.video.src = url;
-
-                this.video.currentTime = startTime;
-                this.video.loop = true;
+                // this.video.src = url;
+                console.log('[JudgeMedia] Adding loop-hook');
+                this.video.nativeElement.currentTime = startTime;
+                // this.video.loop = true;
                 if (endTime > 0) {
-                    this.video.addEventListener('timeupdate', () => {
-                        console.log(`[JudgeMedia] Playing@${this.video.currentTime}s`);
-                        if (this.video.currentTime >= endTime) {
+                    this.video.nativeElement.addEventListener('timeupdate', () => { // TODO TypeError this.video.addEventListener is not a function
+                        console.log(`[JudgeMedia] Playing@${this.video.nativeElement.currentTime}s`);
+                        if (this.video.nativeElement.currentTime >= endTime) {
                             console.log('[JudgeMedia] Restarting video');
-                            this.video.currentTime = startTime;
-                            this.video.play().then(r => console.log('Video playing...'));
+                            this.video.nativeElement.currentTime = startTime;
+                            this.video.nativeElement.play().then(r => console.log('Video playing...'));
                         }
                     });
                 }
-                console.log(`[JudgeMedia] src=${JSON.stringify(this.video.src)}, start=${startTime}, end=${endTime}`);
+                console.log(`[JudgeMedia] src=${JSON.stringify(this.video.nativeElement.src)}, start=${startTime}, end=${endTime}`);
+                this.video.nativeElement.addEventListener('loadeddata', () => { // TODO TypeError this.video.addEventListener is not a function
+                    console.log('[JudgeMedia] Loaded complete');
+                    this.video.nativeElement.currentTime = startTime;
+                    this.video.nativeElement.play().then(r => console.log('re-playing'));
+                });
             }
 
         });
@@ -79,7 +90,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit {
 
     stop() {
         if (this.video) {
-            this.video.pause();
+            this.video.nativeElement.pause();
         }
         this.videoUrl = undefined;
     }

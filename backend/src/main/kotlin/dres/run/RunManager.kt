@@ -150,6 +150,11 @@ interface RunManager : Runnable {
      */
     fun wsMessageReceived(message: ClientMessage): Boolean
 
+    /**
+     *
+     */
+    fun updateScoreboards()
+
 
     /**
      * Invoked by an external caller to post a new [Submission] for the [Task] that is currently being

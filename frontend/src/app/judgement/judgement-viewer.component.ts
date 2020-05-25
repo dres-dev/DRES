@@ -1,11 +1,11 @@
-import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {interval, Observable, of, Subscription} from 'rxjs';
-import {ErrorStatus, Judgement, JudgementRequest, JudgementService, SubmissionInfo} from '../../../openapi';
+import {Judgement, JudgementRequest, JudgementService, SubmissionInfo} from '../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
-import {catchError, filter, map, shareReplay, switchMap} from 'rxjs/operators';
+import {catchError, filter, map, switchMap, withLatestFrom} from 'rxjs/operators';
 import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {HttpErrorResponse} from '@angular/common/http';
+import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
 
 /**
  * This component subscribes to the websocket for submissions.
@@ -16,19 +16,15 @@ import {HttpErrorResponse} from '@angular/common/http';
     templateUrl: './judgement-viewer.component.html',
     styleUrls: ['./judgement-viewer.component.scss']
 })
-export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewInit {
+export class JudgementViewerComponent implements OnInit, OnDestroy {
 
     @Input() pollingFrequency = 1000;
     @ViewChild(JudgementMediaViewerComponent) judgePlayer: JudgementMediaViewerComponent;
     judgementRequest: JudgementRequest;
     noJudgementMessage = '';
     isJudgmentAvailable = false;
-    private routeSubscription: Subscription;
-    private currentRequest: Observable<JudgementRequest>;
-    private runId: string;
 
-    private intervalRef: Observable<number>;
-    private intervalSub: Subscription;
+    private runId: Observable<string>;
     private requestSub: Subscription;
 
     constructor(
@@ -41,36 +37,29 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
 
     ngOnInit(): void {
         /* Subscription and current run id */
-        this.activeRoute.params.subscribe(p => {
-            console.log('[Judgem.View] route param: ' + p.runId);
-            this.runId = p.runId;
-        });
-        /* Get the current judgment request whenever an update occurs */
-        this.intervalRef = interval(this.pollingFrequency);
-        /*this.intervalSub = this.intervalRef.subscribe(_ => {
+        this.runId = this.activeRoute.params.pipe(map(p => p.runId));
 
-        });*/
-
-        this.currentRequest = this.intervalRef.pipe(
-            switchMap(_ => {
+        /* Poll for score updates in a given interval. */
+        this.requestSub = interval(this.pollingFrequency).pipe(
+            withLatestFrom(this.runId),
+            switchMap(([i, runId]) => {
                 /* Stop polling while judgment is ongooing */
                 if (this.runId && !this.isJudgmentAvailable) {
-                    return this.judgementService.getApiRunWithRunidJudgeNext(this.runId).pipe(
-                        map(req => {
-                            if (req.hasOwnProperty('status') && req.hasOwnProperty('description')) {
-                                console.log('[Judgem.View] No judgement yet');
-                                const noReq = (req as unknown) as ErrorStatus; // unkown first to make TSLint happy
-                                this.noJudgementMessage = noReq.description;
+                    return this.judgementService.getApiRunWithRunidJudgeNext(runId, 'response').pipe(
+                        map((req: HttpResponse<JudgementRequest>) => {
+                            if (req.status === 202) {
+                                this.noJudgementMessage = 'There is currently no submission awaiting judgement.';
                                 this.isJudgmentAvailable = false;
                                 return null;
+                            } else {
+                                return req.body;
                             }
-                            return req as JudgementRequest;
                         }),
                         catchError(err => {
                             const httperr = err as HttpErrorResponse;
                             if (httperr) {
                                 if (httperr.status === 404) {
-                                    const snack = this.snackBar.open(`Invalid runId: ${this.runId}`, null, {duration: 2000});
+                                    const snack = this.snackBar.open(`Invalid runId: ${runId}`, null, {duration: 2000});
                                     snack.afterDismissed().subscribe(() => {
                                         this.router.navigate(['/run/list']);
                                     });
@@ -85,17 +74,8 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
                     return of(null);
                 }
             }),
-            /* Filter null values */
-            filter(x => x != null),
-            shareReplay(1)
-        );
-
-        /* Beautification */
-    }
-
-    ngAfterViewInit(): void {
-        /* TODO subject thingy */
-        this.requestSub = this.currentRequest.subscribe(req => {
+            filter(x => x != null)
+        ).subscribe(req => {
             console.log('[Judgem.View] Received request');
             console.log(req);
             // TODO handle case there is no submission to judge
@@ -105,22 +85,29 @@ export class JudgementViewerComponent implements OnInit, OnDestroy, AfterViewIni
         });
     }
 
+    /**
+     *
+     */
     ngOnDestroy(): void {
-        console.log('Destroying judge');
         this.requestSub.unsubscribe();
         this.requestSub = null;
     }
 
+    /**
+     *
+     * @param status
+     */
     public judge(status: SubmissionInfo.StatusEnum) {
         const judgement = {
             token: this.judgementRequest.token,
             validator: this.judgementRequest.validator,
             verdict: status
         } as Judgement;
-        this.judgementService.postApiRunWithRunidJudge(this.runId, judgement)
-            .subscribe(res => {
-                this.snackBar.open(res.description, null, {duration: 5000});
-            });
+        this.runId.pipe(
+            switchMap(runId => this.judgementService.postApiRunWithRunidJudge(runId, judgement))
+        ).subscribe(res => {
+            this.snackBar.open(res.description, null, {duration: 5000});
+        });
         this.judgePlayer.stop();
         this.judgementRequest = null;
         this.isJudgmentAvailable = false;

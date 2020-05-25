@@ -71,6 +71,8 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
     override val judgementValidators: List<JudgementValidator>
         get() = this.run.runs.mapNotNull { if (it.hasStarted && it.validator is JudgementValidator) it.validator else null }
 
+    override fun taskRunData(taskId: Int): TaskRunData? = this.run.runs.find { it.taskId == taskId }?.data
+
     /** The list of [Submission]s for the current [Task]. */
     override val submissions: List<Submission>
         get() = this.stateLock.read {

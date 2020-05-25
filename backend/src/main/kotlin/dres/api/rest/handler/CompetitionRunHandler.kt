@@ -354,6 +354,42 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
     }
 }
 
+class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
+    override val route = "run/:runId/task/submissions/task/:taskId"
+    @OpenApi(
+            summary = "Returns the submissions of a previous task.",
+            path = "/api/run/:runId/task/submissions/task/:taskId",
+            tags = ["Competition Run"],
+            pathParams = [
+                OpenApiParam("runId", Long::class, "Competition Run ID"),
+                OpenApiParam("taskId", Int::class, "Task ID")
+            ],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): List<SubmissionInfo> {
+        val runId = runId(ctx)
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+
+        val taskId = ctx.pathParamMap()["taskId"]?.toInt() ?: throw ErrorStatusException(404, "Missing task id")
+
+        val submissions = run.taskRunData(taskId)?.submissions ?: emptyList()
+
+        return if(run.currentTaskRun?.taskId == taskId && run.status == RunManagerStatus.RUNNING_TASK){
+            if(run.currentTask is HiddenResultsTaskDescription) {
+                submissions.map { SubmissionInfo.blind(it) }
+            } else {
+                submissions.map { SubmissionInfo.withId(it) }
+            }
+        } else {
+            submissions.map { SubmissionInfo(it) }
+        }
+    }
+}
+
 data class SubmissionInfo(val team: Int, val member: Long, val status: SubmissionStatus, val timestamp: Long, val id: String? = null, val item: MediaItem? = null, val start: Long? = null, val end: Long? = null){
     constructor(submission: Submission): this(submission.team, submission.member, submission.status, submission.timestamp, submission.id, submission.item, submission.start, submission.end)
 

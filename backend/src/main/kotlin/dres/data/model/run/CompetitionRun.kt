@@ -119,7 +119,7 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
             get() = this@CompetitionRun.runs.indexOf(this)
 
         /** Exposable data of this [TaskRun] */
-        val data: TaskRunData = TaskRunData(this.task)
+        val data: TaskRunData = TaskRunData(this.task, this.taskId)
 
         val task: TaskDescription
             get() = this@CompetitionRun.competitionDescription.tasks[this@TaskRun.taskId]
@@ -207,12 +207,12 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
 }
 
 @Serializable
-class TaskRunData(val task: TaskDescription) {
+class TaskRunData(val task: TaskDescription, val taskId: Int) {
 
     /** List of [Submission]s* registered for this [TaskRun]. */
     val submissions: List<Submission> = mutableListOf()
 
-    constructor(task: TaskDescription, submissions: List<Submission> = emptyList()): this(task) {
+    constructor(task: TaskDescription, taskId: Int, submissions: List<Submission> = emptyList()): this(task, taskId) {
         (this.submissions as MutableList).addAll(submissions)
     }
 

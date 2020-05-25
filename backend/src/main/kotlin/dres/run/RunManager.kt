@@ -50,6 +50,9 @@ interface RunManager : Runnable {
     /** [JudgementValidator]s for all tasks that use them */
     val judgementValidators: List<JudgementValidator>
 
+    /** [TaskRunData] for a specific task id */
+    fun taskRunData(taskId: Int): TaskRunData?
+
     /**
      * Starts this [RunManager] moving [RunManager.status] from [RunManagerStatus.CREATED] to
      * [RunManagerStatus.ACTIVE]. A [RunManager] can refuse to start.

@@ -1,6 +1,6 @@
-import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, Input, OnInit, ViewChild} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, Team} from '../../../../openapi';
-import {Observable, of, Subscription} from 'rxjs';
+import {concat, Observable, of} from 'rxjs';
 import {
     ApexAxisChartSeries,
     ApexChart,
@@ -14,7 +14,7 @@ import {
     ApexYAxis,
     ChartComponent
 } from 'ng-apexcharts';
-import {catchError, filter, map, shareReplay, switchMap, tap} from 'rxjs/operators';
+import {catchError, map, switchMap, withLatestFrom} from 'rxjs/operators';
 
 
 /**
@@ -28,7 +28,7 @@ import {catchError, filter, map, shareReplay, switchMap, tap} from 'rxjs/operato
     templateUrl: './competition-scoreboard-viewer.component.html',
     styleUrls: ['./competition-scoreboard-viewer.component.scss']
 })
-export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewInit, OnDestroy {
+export class CompetitionScoreboardViewerComponent implements OnInit {
 
     /**
      * The run info of the current run
@@ -45,203 +45,132 @@ export class CompetitionScoreboardViewerComponent implements OnInit, AfterViewIn
     @Input() competitionOverview = true;
     @ViewChild('chart') chartComponent: ChartComponent;
 
-    series: Partial<ApexAxisChartSeries>;
-    chart: Partial<ApexChart>;
-    dataLabels: Partial<ApexDataLabels>;
-    plotOptions: Partial<ApexPlotOptions>;
-    xaxis: Partial<ApexXAxis>;
-    yaxis: Partial<ApexYAxis>;
-    stroke: Partial<ApexStroke>;
-    fill: Partial<ApexFill>;
-    legend: Partial<ApexLegend>;
-    theme: Partial<ApexTheme>;
+    chart: ApexChart = {
+        type: 'bar',
+        stacked: this.competitionOverview, // thats why the boolean is setup this way round
+        animations: {
+            enabled: false,
+            dynamicAnimation: {
+                enabled: false
+            }
+        }
+    } as ApexChart;
+
+    plotOptions: ApexPlotOptions = {
+        bar: {
+            horizontal: true
+        }
+    } as ApexPlotOptions;
+
+    yaxis: ApexYAxis = {
+        labels: {
+            style: {
+                colors: '#fff'
+            }
+        }
+    } as ApexYAxis;
+
+    stroke: ApexStroke = {
+        width: 1,
+        colors: ['#fff']
+    } as ApexStroke;
+
+    fill: ApexFill = {
+        opacity: 1
+    } as ApexFill;
+
+    legend: ApexLegend =  {
+        position: 'top',
+        horizontalAlign: 'left',
+        labels: {
+            colors: '#fff'
+        }
+    } as ApexLegend;
+
+    theme: ApexTheme = {
+        mode: 'dark'
+    } as ApexTheme;
+
+    dataLabels: ApexDataLabels = {
+        enabled: false
+    } as ApexDataLabels;
+
+    xaxis: Observable<Partial<ApexXAxis>>;
+    series: Observable<Partial<ApexAxisChartSeries>>;
 
     teams: Observable<Team[]>;
-    currentTeams: Team[];
-    currentTaskGroup: string;
-    scores: Observable<Array<ScoreOverview>>;
-
-    private stateSub: Subscription;
-    private scoresSub: Subscription;
+    currentTaskGroup: Observable<string>;
 
     // TODO Make this somewhat more beautiful and configurable
     private ignoreScores = ['average'];
-    private prevScores: Array<ScoreOverview>;
 
-    constructor(
-        public runService: CompetitionRunService
-    ) {
-    }
+    constructor(public runService: CompetitionRunService) {}
 
     ngOnInit(): void {
-        this.setupChart();
-    }
+        /* Create observable from teams. */
+        this.teams = this.info.pipe(map(i => i.teams));
 
-    ngAfterViewInit(): void {
-        /* Get the teams */
-        this.teams = this.info.pipe(
-            map(i => {
-                return i.teams;
+        /* Create observable for current task group. */
+        this.currentTaskGroup = this.state.pipe(
+            map(state => state.currentTask?.taskGroup.name)
+        );
+
+        /* Create observable for x-Axis data. */
+        this.xaxis = this.teams.pipe(
+            map(team => {
+                return { categories: team.map(t => t.name) };
             })
         );
-        /* Local ref to teams.*/
-        this.teams.subscribe(value => {
-            this.currentTeams = value;
-            this.updateChart();
-        });
 
-
-        /* Get the socres */
-        this.scores = this.state.pipe(
+        /* Create observable for series. */
+        this.series = concat(
+            of([{name: 'Empty', data: []}]),
+            this.state.pipe(
             switchMap(s => {
                 return this.runService.getApiRunScoreWithRunid(s.id).pipe(
-                    tap(res => {
-                        console.log(`ScoreWithRunId: ${JSON.stringify(res)}`);
-                        return res;
-                    }),
                     catchError(err => {
-                        console.log('Error in Scores: ');
-                        console.log(err);
+                        console.log('Error when retrieving scores.', err);
                         return of(null);
                     })
                 );
             }),
-            catchError(err => {
-                console.log(`Error: ${err}`);
-                return of(null);
-            }),
-            /* Fires only if actually scores are present */
-            filter(value => value != null),
-            shareReplay(1)
-        );
-        this.stateSub = this.state.subscribe(state => {
-            this.currentTaskGroup = state.currentTask?.taskGroup.name;
-        });
-
-        this.scoresSub = this.scores.subscribe(value => {
-            this.updateChart(value);
-        });
-    }
-
-    ngOnDestroy(): void {
-        this.stateSub.unsubscribe();
-        this.scoresSub.unsubscribe();
-    }
-
-    private updateChart(scores?: Array<ScoreOverview>) {
-        console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] Updating scores`);
-        this.xaxis = {
-            categories: this.currentTeams.map(t => t.name)
-        };
-        if (scores) {
-            console.log(scores);
-            /*
-             Transformation for apex.
-             In competitionOverview = true mode, ignores are not shown
-             In competitionOverview = false mode, ONLY matching taskgroup is shown
-             */
-            if (scores.length > 1) {
-                console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] Multiple Scores`);
-                this.series = scores.filter(so => {
-                    if (this.competitionOverview) {
-                        return this.ignoreScores.indexOf(so.name) < 0;
-                    } else {
-                        return so.taskGroup === this.currentTaskGroup;
-                    }
-                }).map(s => {
-                    /* In case there is no value, specifically set 0 as score for each team*/
-                    if (s.scores.length === 0) {
-                        return {name: s.name, data: this.currentTeams.map(t => 0)};
-                    } else {
-                        return {name: s.name, data: s.scores.map(sc => Math.round(sc.score))};
-                    }
-                });
-            } else if (scores[0] !== undefined) {
-                console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] First`);
-                this.series = [{name: scores[0].name, data: scores[0].scores.map(sc => Math.round(sc.score))}];
-            } else {
-                // TODO check with @ppanopticon why
-                if (scores.hasOwnProperty('name') && scores.hasOwnProperty('scores')) {
-                    const so = (scores as unknown) as ScoreOverview;
-                    if (this.competitionOverview) {
-                        console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] Overview scores`);
-                        if (this.ignoreScores.indexOf(so.name) < 0){
-
+            withLatestFrom(this.teams, this.currentTaskGroup),
+            map(([scores, team, taskGroup]) => {
+                if (scores && scores.length > 0) {
+                    console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] Multiple Scores`);
+                    return scores.filter(so => {
+                        if (this.competitionOverview) {
+                            return this.ignoreScores.indexOf(so.name) < 0;
+                        } else {
+                            return so.taskGroup === taskGroup;
                         }
-                    } else {
-                        console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] Taskgroup Scores`);
-                        if (so?.taskGroup === this.currentTaskGroup) { // ?. due to 'average' has taskGroup === null
-                            this.series = [{name: this.currentTaskGroup, data: so.scores.map(sc => Math.round(sc.score))}];
+                    }).map(s => {
+                        /* In case there is no value, specifically set 0 as score for each team*/
+                        if (s.scores.length === 0) {
+                            return {name: s.name, data: team.map(t => 0)};
+                        } else {
+                            return {name: s.name, data: s.scores.map(sc => Math.round(sc.score))};
                         }
-                    }
+                    });
                 } else {
-                    console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] No scores`);
-                    this.setChartsToZero();
-
+                    // TODO check with @ppanopticon why
+                    if (scores.hasOwnProperty('name') && scores.hasOwnProperty('scores')) {
+                        const so = (scores as unknown) as ScoreOverview;
+                        if (this.competitionOverview) {
+                            console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] Overview scores`);
+                            if (this.ignoreScores.indexOf(so.name) < 0) { }
+                        } else {
+                            console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] Taskgroup Scores`);
+                            if (so?.taskGroup === taskGroup) { // ?. due to 'average' has taskGroup === null
+                                return [{name: taskGroup, data: so.scores.map(sc => Math.round(sc.score))}];
+                            }
+                        }
+                    } else {
+                        console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] No scores`);
+                        return [{name: 'Empty', data: team.map(_ => 0)}];
+                    }
                 }
-            }
-
-        } else {
-            this.setChartsToZero();
-        }
-    }
-
-    private setChartsToZero() {
-        // TODO sensible zeros for competitionOverview
-        /*if (this.competitionOverview) {
-            this.series = [];
-        } else {*/
-        this.series = [{name: 'Empty', data: this.currentTeams.map(_ => 0)}];
-        // }
-    }
-
-    private setupChart() {
-        this.chart = {
-            type: 'bar',
-            stacked: this.competitionOverview, // thats why the boolean is setup this way round
-            animations: {
-                enabled: false,
-                dynamicAnimation: {
-                    enabled: false
-                }
-            }
-        };
-        this.plotOptions = {
-            bar: {
-                horizontal: true
-            }
-        };
-        this.stroke = {
-            width: 1,
-            colors: ['#fff']
-        };
-        /* Apparently required to not throw errors */
-        this.xaxis = {
-            categories: ['']
-        };
-        /* Apparently, labels still have to be colored this way, even though 'horizontal' bar is just flipped */
-        this.yaxis = {
-            labels: {
-                style: {
-                    colors: '#fff'
-                }
-            }
-        };
-        this.fill = {
-            opacity: 1
-        };
-        this.legend = {
-            position: 'top',
-            horizontalAlign: 'left',
-            labels: {
-                colors: '#fff'
-            }
-        };
-        // Apparently, this is not fully supported https://github.com/apexcharts/apexcharts.js/issues/218
-        // hack: See style.css
-        this.theme = {
-            mode: 'dark'
-        };
-        this.series = [{data: [0]}];
+            })
+        ));
     }
 }

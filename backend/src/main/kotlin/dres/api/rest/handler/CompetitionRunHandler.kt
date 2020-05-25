@@ -307,7 +307,7 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         val submissions = run.submissions
 
-        return if(run.status != RunManagerStatus.TERMINATED){
+        return if(run.status == RunManagerStatus.RUNNING_TASK){
             if(run.currentTask is HiddenResultsTaskDescription) {
                 submissions.map { SubmissionInfo.blind(it) }
             } else {
@@ -342,7 +342,7 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
         val timestamp = ctx.pathParamMap().getOrDefault("timestamp", "0").toLong()
         val submissions = run.submissions.filter { it.timestamp >= timestamp }
 
-        return if(run.status != RunManagerStatus.TERMINATED){
+        return if(run.status == RunManagerStatus.RUNNING_TASK){
             if(run.currentTask is HiddenResultsTaskDescription) {
                 submissions.map { SubmissionInfo.blind(it) }
             } else {

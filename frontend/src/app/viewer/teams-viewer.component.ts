@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, Input, OnDestroy} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskDescription} from '../../../openapi';
 import {Observable, of, Subscription} from 'rxjs';
-import {catchError, filter, map, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
+import {catchError, debounceTime, filter, map, pairwise, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 
 @Component({
@@ -17,22 +17,29 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
 
     submissions: Observable<SubmissionInfo[][]>;
     scores: Observable<ScoreOverview>;
-    successSubscription: Subscription;
+
+    submissionSoundEffect: Subscription;
+    taskEndedSoundEffect: Subscription;
 
 
     /** Reference to the audio file played during countdown. */
     audio = [
-        new Audio(), /** Success. */
-        new Audio() /** Failure. */
+        new Audio(), /** Task end (Success). */
+        new Audio(), /** Task end (Failure). */
+        new Audio(), /** Correct submission. */
+        new Audio() /** Incorrect submission. */
     ];
+
     constructor(private runService: CompetitionRunService, private config: AppConfig) {
         this.audio[0].src = './assets/audio/applause.ogg';
         this.audio[0].load();
         this.audio[1].src = './assets/audio/sad_trombone.ogg';
         this.audio[1].load();
+        this.audio[2].src = './assets/audio/correct.ogg';
+        this.audio[2].load();
+        this.audio[3].src = './assets/audio/wrong.ogg';
+        this.audio[3].load();
     }
-
-
 
     ngAfterViewInit(): void {
         this.submissions = this.state.pipe(
@@ -65,8 +72,32 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
             shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading of score. */
         );
 
+        this.submissionSoundEffect = this.submissions.pipe(
+            pairwise(),
+            debounceTime(750),
+            map(([s1, s2]) => {
+                const stat1 = [
+                    s1.map(s => s.filter(ss => ss.status === 'CORRECT').length).reduce((sum, current) => sum + current, 0),
+                    s1.map(s => s.filter(ss => ss.status === 'WRONG').length).reduce((sum, current) => sum + current, 0),
+                ];
+
+                const stat2 = [
+                    s2.map(s => s.filter(ss => ss.status === 'CORRECT').length).reduce((sum, current) => sum + current, 0),
+                    s2.map(s => s.filter(ss => ss.status === 'WRONG').length).reduce((sum, current) => sum + current, 0),
+                ];
+
+                return [stat2[0] - stat1[0], stat2[1] - stat1[1]];
+            })
+        ).subscribe(delta => {
+            if (delta[0] > delta[1]) {
+                this.audio[2].play().then(r => {});
+            } else if (delta[0] < delta[1]) {
+                this.audio[3].play().then(r => {});
+            }
+        });
+
         /** Subscription for end of task (used to play sound effects). */
-        this.successSubscription = this.taskEnded.pipe(
+        this.taskEndedSoundEffect = this.taskEnded.pipe(
             withLatestFrom(this.submissions),
             map(([task, submission]) => {
                 return submission.filter(s => (s.filter(ss => ss.status === 'CORRECT').length) > 0).length > 0;
@@ -81,8 +112,11 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     }
 
     public ngOnDestroy(): void {
-        this.successSubscription.unsubscribe();
-        this.successSubscription = null;
+        this.submissionSoundEffect.unsubscribe();
+        this.submissionSoundEffect = null;
+
+        this.taskEndedSoundEffect.unsubscribe();
+        this.taskEndedSoundEffect = null;
     }
 
 

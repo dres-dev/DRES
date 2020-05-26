@@ -1,6 +1,6 @@
-import {AfterViewInit, Component, Input} from '@angular/core';
-import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo} from '../../../openapi';
-import {Observable, of} from 'rxjs';
+import {AfterViewInit, Component, Input, OnDestroy} from '@angular/core';
+import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskDescription} from '../../../openapi';
+import {Observable, of, Subscription} from 'rxjs';
 import {catchError, filter, map, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 
@@ -9,16 +9,30 @@ import {AppConfig} from '../app.config';
     templateUrl: './teams-viewer.component.html',
     styleUrls: ['./teams-viewer.component.scss']
 })
-export class TeamsViewerComponent implements AfterViewInit {
+export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
+    @Input() runId: Observable<number>;
     @Input() info: Observable<RunInfo>;
     @Input() state: Observable<RunState>;
+    @Input() taskEnded: Observable<TaskDescription>;
 
     submissions: Observable<SubmissionInfo[][]>;
     scores: Observable<ScoreOverview>;
+    successSubscription: Subscription;
 
-    private runId = 0;
 
-    constructor(private runService: CompetitionRunService, private config: AppConfig) {}
+    /** Reference to the audio file played during countdown. */
+    audio = [
+        new Audio(), /** Success. */
+        new Audio() /** Failure. */
+    ];
+    constructor(private runService: CompetitionRunService, private config: AppConfig) {
+        this.audio[0].src = './assets/audio/applause.ogg';
+        this.audio[0].load();
+        this.audio[1].src = './assets/audio/sad_trombone.ogg';
+        this.audio[1].load();
+    }
+
+
 
     ngAfterViewInit(): void {
         this.submissions = this.state.pipe(
@@ -36,7 +50,7 @@ export class TeamsViewerComponent implements AfterViewInit {
                     return submissions.filter(s => s.team === i);
                 });
             }),
-            shareReplay(1) /* Cache last successful loading of submission. */
+            shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading of submission. */
         );
 
         this.scores = this.state.pipe(
@@ -48,10 +62,27 @@ export class TeamsViewerComponent implements AfterViewInit {
                 }),
                 filter(sc => sc != null), /* Filter null responses. */
             )),
-            shareReplay(1) /* Cache last successful loading of score. */
+            shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading of score. */
         );
 
-        this.info.subscribe(i => this.runId = i.id);
+        /** Subscription for end of task (used to play sound effects). */
+        this.successSubscription = this.taskEnded.pipe(
+            withLatestFrom(this.submissions),
+            map(([task, submission]) => {
+                return submission.filter(s => (s.filter(ss => ss.status === 'CORRECT').length) > 0).length > 0;
+            })
+        ).subscribe(success => {
+            if (success) {
+                this.audio[0].play().then(r => {});
+            } else {
+                this.audio[1].play().then(r => {});
+            }
+        });
+    }
+
+    public ngOnDestroy(): void {
+        this.successSubscription.unsubscribe();
+        this.successSubscription = null;
     }
 
 
@@ -60,9 +91,8 @@ export class TeamsViewerComponent implements AfterViewInit {
      *
      * @param submission
      */
-    public previewForSubmission(submission: SubmissionInfo): string {
-        return this.config.resolveApiUrl(`/preview/submission/${this.runId}/${submission.id}`);
-        //return this.config.resolveApiUrl(`/preview/${submission.item.collection}/${submission.item.name}/${submission.start}`);
+    public previewForSubmission(submission: SubmissionInfo): Observable<string> {
+        return this.runId.pipe(map(runId => this.config.resolveApiUrl(`/preview/submission/${runId}/${submission.id}`)));
     }
 
     /**

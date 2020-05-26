@@ -15,7 +15,7 @@
         </div>
         <div class="submissions">
             <div *ngFor="let submission of (submissionForTeam(i) | async)" [className]="'submission ' + submission.status">
-                <img *ngIf="submission.id" [src]="previewForSubmission(submission)" alt="preview"/>
+                <img *ngIf="submission.id" [src]="previewForSubmission(submission) | async" alt="preview"/>
                 <p *ngIf="!submission.id">?</p>
             </div>
         </div>

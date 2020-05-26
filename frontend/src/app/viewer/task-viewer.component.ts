@@ -18,6 +18,10 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
     @Input() webSocket: Observable<IWsMessage>;
     @Input() webSocketSubject: WebSocketSubject<IWsMessage>;
 
+
+    /** Observable that fires whenever a task enters the prepare phase. Emits the task description of the task that entered that state. */
+    taskPrepare: Observable<TaskDescription>;
+
     /** Time that is still left (only when a task is running). */
     timeLeft: Observable<number>;
 
@@ -49,6 +53,7 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
      * Create a subscription for task changes.
      */
     ngOnInit(): void {
+
         /* Observable for the current task. */
         this.currentTaskSubscription = this.state.pipe(
             filter(s =>  (this.currentTask.value == null || this.currentTask.value.name !== s.currentTask.name)),

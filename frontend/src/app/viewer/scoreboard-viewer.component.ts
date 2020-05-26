@@ -61,7 +61,7 @@ export class ScoreboardViewerComponent implements OnInit, AfterViewInit {
             }),
             /* Fires only if actually scores are present */
             filter(value => value != null),
-            shareReplay(1)
+            shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading of scores. */
         );
 
         /* Subscribe to changes of the scores, in order to update them */

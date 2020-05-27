@@ -21,11 +21,12 @@
         </h2>
 
         <div *ngIf="(state | async)?.status == 'RUNNING_TASK'">
-            <app-video-query-object-preview *ngIf="(currentQueryObject | async)?.type === 'VIDEO'" [queryObject]="currentQueryObject"></app-video-query-object-preview>
+            <app-video-query-object-preview *ngIf="(currentQueryObject | async)?.type === 'VIDEO'" [queryObject]="currentQueryObject" [muted]="false"></app-video-query-object-preview>
             <app-text-query-object-preview *ngIf="(currentQueryObject | async)?.type === 'TEXT'" [queryObject]="currentQueryObject" [timeElapsed]="timeElapsed"></app-text-query-object-preview>
         </div>
 
         <div *ngIf="(state | async)?.status == 'ACTIVE' && (justEnded | async)">
+            <app-video-query-object-preview *ngIf="(currentQueryObject | async)['video']" [queryObject]="currentQueryObject" [muted]="true"></app-video-query-object-preview>
         </div>
     </div>
 </mat-card>

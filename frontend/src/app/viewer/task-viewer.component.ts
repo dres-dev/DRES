@@ -1,5 +1,12 @@
 import {AfterViewInit, Component, Input, OnDestroy} from '@angular/core';
-import {CompetitionRunService, QueryDescription, RunState, TaskDescription} from '../../../openapi';
+import {
+    CompetitionRunService,
+    ImageQueryDescription,
+    RunState,
+    TaskDescription,
+    TextQueryDescription,
+    VideoQueryDescription
+} from '../../../openapi';
 import {combineLatest, interval, Observable, of, Subscription, timer, zip} from 'rxjs';
 import {catchError, filter, finalize, flatMap, map, share, shareReplay, switchMap, take, tap} from 'rxjs/operators';
 import {IWsMessage} from '../model/ws/ws-message.interface';
@@ -31,7 +38,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     justEnded: Observable<boolean>;
 
     /** Observable that returns and caches the current query object. */
-    currentQueryObject: Observable<QueryDescription>;
+    currentQueryObject: Observable<VideoQueryDescription | TextQueryDescription | ImageQueryDescription>;
 
     /** The currently active task. */
     taskPrepareSubscription: Subscription;

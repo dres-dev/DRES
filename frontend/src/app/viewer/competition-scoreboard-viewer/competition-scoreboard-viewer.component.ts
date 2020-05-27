@@ -92,7 +92,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
     } as ApexTheme;
 
     dataLabels: ApexDataLabels = {
-        enabled: false
+        enabled: true
     } as ApexDataLabels;
 
     xaxis: Observable<Partial<ApexXAxis>>;

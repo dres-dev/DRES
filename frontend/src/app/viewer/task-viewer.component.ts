@@ -43,7 +43,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     taskCountDownAudio = new Audio();
 
     constructor(protected runService: CompetitionRunService, protected config: AppConfig) {
-        this.taskCountDownAudio.src = './assets/audio/beep_1.ogg';
+        this.taskCountDownAudio.src = 'assets/audio/beep_1.ogg';
         this.taskCountDownAudio.load();
     }
 

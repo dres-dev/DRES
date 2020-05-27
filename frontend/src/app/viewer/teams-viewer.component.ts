@@ -37,13 +37,13 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     ];
 
     constructor(private runService: CompetitionRunService, private config: AppConfig) {
-        this.audio[0].src = './assets/audio/applause.ogg';
+        this.audio[0].src = 'assets/audio/applause.ogg';
         this.audio[0].load();
-        this.audio[1].src = './assets/audio/sad_trombone.ogg';
+        this.audio[1].src = 'assets/audio/sad_trombone.ogg';
         this.audio[1].load();
-        this.audio[2].src = './assets/audio/correct.ogg';
+        this.audio[2].src = 'assets/audio/correct.ogg';
         this.audio[2].load();
-        this.audio[3].src = './assets/audio/wrong.ogg';
+        this.audio[3].src = 'assets/audio/wrong.ogg';
         this.audio[3].load();
     }
 

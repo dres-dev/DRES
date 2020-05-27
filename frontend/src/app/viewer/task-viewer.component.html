@@ -1,7 +1,11 @@
 <mat-card>
     <div class="task-preview">
-        <h2 *ngIf="(state | async)?.status == 'ACTIVE'" class="header">
+        <h2 *ngIf="(state | async)?.status == 'ACTIVE' && !(justEnded | async)" class="header">
             {{(currentTask | async)?.name}} (Waiting for host to start task)
+        </h2>
+
+        <h2 *ngIf="(state | async)?.status == 'ACTIVE' && (justEnded | async)" class="header">
+            {{(currentTask | async)?.name}} (Task complete)
         </h2>
 
         <h2 *ngIf="(state | async)?.status == 'PREPARING_TASK'" class="header">
@@ -19,6 +23,9 @@
         <div *ngIf="(state | async)?.status == 'RUNNING_TASK'">
             <app-video-query-object-preview *ngIf="(currentQueryObject | async)?.type === 'VIDEO'" [queryObject]="currentQueryObject"></app-video-query-object-preview>
             <app-text-query-object-preview *ngIf="(currentQueryObject | async)?.type === 'TEXT'" [queryObject]="currentQueryObject" [timeElapsed]="timeElapsed"></app-text-query-object-preview>
+        </div>
+
+        <div *ngIf="(state | async)?.status == 'ACTIVE' && (justEnded | async)">
         </div>
     </div>
 </mat-card>

@@ -227,7 +227,7 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
                 }
             }
             ClientMessageType.REGISTER -> this.clientCounter += 1
-            ClientMessageType.UNREGISTER -> this.clientCounter -= 1
+            ClientMessageType.UNREGISTER -> this.clientCounter = (this.clientCounter - 1).coerceAtLeast(0)
             ClientMessageType.PING -> {} //handled in [RunExecutor]
         }
         return true

@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, Input, OnDestroy} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskDescription} from '../../../openapi';
-import {Observable, of, Subscription} from 'rxjs';
+import {combineLatest, Observable, of, Subscription} from 'rxjs';
 import {catchError, debounceTime, filter, map, pairwise, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 
@@ -15,12 +15,18 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     @Input() state: Observable<RunState>;
     @Input() taskEnded: Observable<TaskDescription>;
 
+
+    /** Observable that returns true if summary for current task should be displayed and false otherwise! */
+    displaySummary: Observable<boolean>;
+
+    /** Observable that tracks all the submissions per team. */
     submissions: Observable<SubmissionInfo[][]>;
+
+    /** Observable that tracks the current score per team. */
     scores: Observable<ScoreOverview>;
 
     submissionSoundEffect: Subscription;
     taskEndedSoundEffect: Subscription;
-
 
     /** Reference to the audio file played during countdown. */
     audio = [
@@ -42,6 +48,15 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     }
 
     ngAfterViewInit(): void {
+
+        /* Observable that returns true if task has ended and hasn't changed in the meanwhile! */
+        this.displaySummary = combineLatest([this.state, this.taskEnded]).pipe(
+            map(([s, t2]) => {
+                return s.status === 'RUNNING_TASK' || s.currentTask.name === t2.name;
+            })
+        );
+
+        /* Observable that tracks all the submissions per team. */
         this.submissions = this.state.pipe(
             switchMap(st => this.runService.getApiRunWithRunidTaskSubmissions(st.id).pipe(
                 retry(3),
@@ -60,6 +75,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
             shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading of submission. */
         );
 
+        /* Observable that tracks the current score per team. */
         this.scores = this.state.pipe(
             switchMap(st => this.runService.getApiRunScoreWithRunidTask(st.id).pipe(
                 retry(3),
@@ -74,7 +90,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
 
         this.submissionSoundEffect = this.submissions.pipe(
             pairwise(),
-            debounceTime(750),
+            debounceTime(500),
             map(([s1, s2]) => {
                 const stat1 = [
                     s1.map(s => s.filter(ss => ss.status === 'CORRECT').length).reduce((sum, current) => sum + current, 0),

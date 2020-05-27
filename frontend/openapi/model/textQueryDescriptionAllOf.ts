@@ -9,11 +9,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TextualDescription } from './textualDescription';
+import {TextualDescription} from './textualDescription';
 
 
 export interface TextQueryDescriptionAllOf { 
     taskName?: string;
     text?: Array<TextualDescription>;
+    video?: string;
+    contentType?: string;
 }
 

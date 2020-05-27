@@ -11,23 +11,15 @@
  */
 /* tslint:disable:no-unused-variable member-ordering */
 
-import { Inject, Injectable, Optional }                      from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams,
-         HttpResponse, HttpEvent, HttpParameterCodec }       from '@angular/common/http';
-import { CustomHttpParameterCodec }                          from '../encoder';
-import { Observable }                                        from 'rxjs';
+import {Inject, Injectable, Optional} from '@angular/core';
+import {HttpClient, HttpEvent, HttpHeaders, HttpParameterCodec, HttpParams, HttpResponse} from '@angular/common/http';
+import {CustomHttpParameterCodec} from '../encoder';
+import {Observable} from 'rxjs';
 
-import { ErrorStatus } from '../model/models';
-import { QueryDescription } from '../model/models';
-import { RunInfo } from '../model/models';
-import { RunState } from '../model/models';
-import { ScoreOverview } from '../model/models';
-import { SubmissionInfo } from '../model/models';
-import { TaskInfo } from '../model/models';
+import {QueryDescription, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskInfo} from '../model/models';
 
-import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
-import { Configuration }                                     from '../configuration';
-
+import {BASE_PATH} from '../variables';
+import {Configuration} from '../configuration';
 
 
 @Injectable({
@@ -527,6 +519,55 @@ export class CompetitionRunService {
         }
 
         return this.httpClient.get<Array<SubmissionInfo>>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/task/submissions/after/${encodeURIComponent(String(timestamp))}`,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Returns the submissions of a previous task.
+     * @param runId Competition Run ID
+     * @param taskId Task ID
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getApiRunWithRunidTaskSubmissionsTaskWithTaskid(runId: number, taskId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<SubmissionInfo>>;
+    public getApiRunWithRunidTaskSubmissionsTaskWithTaskid(runId: number, taskId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<SubmissionInfo>>>;
+    public getApiRunWithRunidTaskSubmissionsTaskWithTaskid(runId: number, taskId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<SubmissionInfo>>>;
+    public getApiRunWithRunidTaskSubmissionsTaskWithTaskid(runId: number, taskId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (runId === null || runId === undefined) {
+            throw new Error('Required parameter runId was null or undefined when calling getApiRunWithRunidTaskSubmissionsTaskWithTaskid.');
+        }
+        if (taskId === null || taskId === undefined) {
+            throw new Error('Required parameter taskId was null or undefined when calling getApiRunWithRunidTaskSubmissionsTaskWithTaskid.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.get<Array<SubmissionInfo>>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/task/submissions/task/${encodeURIComponent(String(taskId))}`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

@@ -9,14 +9,15 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { QueryDescription } from './queryDescription';
-import { TextualDescription } from './textualDescription';
-import { TextQueryDescriptionAllOf } from './textQueryDescriptionAllOf';
+import {QueryDescription} from './queryDescription';
+import {TextualDescription} from './textualDescription';
 
 
 export interface TextQueryDescription extends QueryDescription { 
     taskName: string;
     text: Array<TextualDescription>;
+    video?: string;
+    contentType?: string;
 }
 export namespace TextQueryDescription {
 }

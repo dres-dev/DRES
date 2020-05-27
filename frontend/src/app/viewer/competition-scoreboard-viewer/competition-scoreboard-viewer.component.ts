@@ -88,7 +88,8 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
     } as ApexLegend;
 
     theme: ApexTheme = {
-        mode: 'dark'
+        mode: 'dark',
+        palette: 'palette10'
     } as ApexTheme;
 
     dataLabels: ApexDataLabels = {
@@ -97,6 +98,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
 
     xaxis: Observable<Partial<ApexXAxis>>;
     series: Observable<Partial<ApexAxisChartSeries>>;
+    color: Observable<string[]>;
 
     teams: Observable<Team[]>;
     currentTaskGroup: Observable<string>;
@@ -109,6 +111,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
     ngOnInit(): void {
         /* Create observable from teams. */
         this.teams = this.info.pipe(map(i => i.teams));
+        this.color = this.teams.pipe(map(i => i.map(t => t.color)));
 
         /* Create observable for current task group. */
         this.currentTaskGroup = this.state.pipe(

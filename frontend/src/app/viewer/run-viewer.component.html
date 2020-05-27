@@ -7,9 +7,11 @@
         <div class="left">
             <app-competition-scoreboard-viewer [info]="runInfo" [state]="runState"></app-competition-scoreboard-viewer>
         </div>
+
         <div class="main">
             <app-task-viewer [runId]="runId" [state]="runState" [taskChanged]="taskChanged" [taskEnded]="taskEnded" [webSocket]="webSocket" [webSocketSubject]="webSocketSubject"></app-task-viewer>
         </div>
+
         <div class="right">
             <app-competition-scoreboard-viewer [competitionOverview]="false" [info]="runInfo" [state]="runState"></app-competition-scoreboard-viewer>
         </div>

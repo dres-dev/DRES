@@ -40,11 +40,14 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     taskCountdown = '';
 
     /** Reference to the audio file played during countdown. */
-    taskCountDownAudio = new Audio();
+    audio = [
+        new Audio('assets/audio/beep_1.ogg'),
+        new Audio('assets/audio/beep_2.ogg')
+    ];
 
     constructor(protected runService: CompetitionRunService, protected config: AppConfig) {
-        this.taskCountDownAudio.src = 'assets/audio/beep_1.ogg';
-        this.taskCountDownAudio.load();
+        this.audio[0].load();
+        this.audio[1].load();
     }
 
     /**
@@ -80,7 +83,11 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
                 tap(count => {
                     try {
                         this.taskCountdown = String(count);
-                        this.taskCountDownAudio.play().then(r => {});
+                        if (count > 0) {
+                            this.audio[0].play().then(r => {});
+                        } else {
+                            this.audio[1].play().then(r => {});
+                        }
                     } catch (e) {
                         console.error('[TaskViewerComponent] Failed to play sound effect.', e);
                     }

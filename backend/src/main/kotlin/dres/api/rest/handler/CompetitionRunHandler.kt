@@ -278,7 +278,19 @@ class CurrentQueryHandler(config: Config) : AbstractCompetitionRunRestHandler(),
                 }
             }
             is TaskDescriptionBase.KisTextualTaskDescription -> {
-                QueryDescription.TextQueryDescription(task.name, task.descriptions.mapIndexed { i, s -> QueryDescription.TextQueryDescription.TextualDescription(i * task.delay, s) })
+                val file = File(this.taskCacheLocation, task.cacheItemName())
+                try {
+                    return FileInputStream(file).use { imageInFile ->
+                        val fileData = ByteArray(file.length().toInt())
+                        imageInFile.read(fileData)
+                        QueryDescription.TextQueryDescription(task.name, task.descriptions.mapIndexed { i, s -> QueryDescription.TextQueryDescription.TextualDescription(i * task.delay, s) }, Base64.getEncoder().encodeToString(fileData), "video/mp4")
+                    }
+                } catch (e: FileNotFoundException) {
+                    throw ErrorStatusException(404, "Query object cache file not found!")
+                } catch (ioe: IOException) {
+                    throw ErrorStatusException(500, "Exception when reading query object cache file.")
+                }
+
             }
             is TaskDescriptionBase.AvsTaskDescription -> {
                 QueryDescription.TextQueryDescription(task.name, listOf(QueryDescription.TextQueryDescription.TextualDescription(0, task.description)))

@@ -33,8 +33,10 @@ sealed class QueryDescription(val type: QueryDescriptionType) {
      *
      * @author Ralph Gasser
      * @version 1.0
+     *
+     * TODO: just adding the video content here, so it can also be used to serve the result of a textual KIS task is not a desirable solution. This should be reworked.
      */
-    class TextQueryDescription(val taskName: String, val text: List<TextualDescription>) : QueryDescription(QueryDescriptionType.TEXT) {
+    class TextQueryDescription(val taskName: String, val text: List<TextualDescription>, val video: String? = null, val contentType: String? = null) : QueryDescription(QueryDescriptionType.TEXT) {
         class TextualDescription(val showAfter: Int, val text: String)
     }
 }

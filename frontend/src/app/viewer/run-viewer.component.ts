@@ -7,6 +7,7 @@ import {
     filter,
     flatMap,
     map,
+    pairwise,
     retry,
     retryWhen,
     share,
@@ -18,7 +19,7 @@ import {
 import {webSocket, WebSocketSubject, WebSocketSubjectConfig} from 'rxjs/webSocket';
 import {AppConfig} from '../app.config';
 import {IWsMessage} from '../model/ws/ws-message.interface';
-import {CompetitionRunService, RunInfo, RunState} from '../../../openapi';
+import {CompetitionRunService, RunInfo, RunState, TaskDescription} from '../../../openapi';
 import {IWsServerMessage} from '../model/ws/ws-server-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -44,6 +45,18 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
     /** Observable for information about the current run's state. Usually queried when a state change is signaled via WebSocket. */
     runState: Observable<RunState>;
 
+    /** Observable that fires whenever a task starts. Emits the task description of the task that just started. */
+    taskStarted: Observable<TaskDescription>;
+
+    /** Observable that fires whenever a task changes. Emits the task description of the new task. */
+    taskChanged: Observable<TaskDescription>;
+
+    /** */
+    currentQueryObject: Observable<any>
+
+    /** Observable that fires whenever a task ends. Emits the task description of the task that just ended. */
+    taskEnded: Observable<TaskDescription>;
+
     /** Internal WebSocket subscription for pinging the server. */
     private pingSubscription: Subscription;
 
@@ -61,7 +74,7 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
                 private snackBar: MatSnackBar) {
 
         /** Initialize basic WebSocketSubject. */
-        const wsurl = this.config.webSocketUrl
+        const wsurl = this.config.webSocketUrl;
         this.webSocketSubject = webSocket({
             url: wsurl,
             openObserver: {
@@ -92,7 +105,7 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
                 }),
                 filter(q => q != null)
             )),
-            shareReplay(1)
+            shareReplay({bufferSize: 1, refCount: true})
         );
 
         /* Basic observable for web socket messages received from the DRES server. */
@@ -117,7 +130,7 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
             share()
         );
 
-        /* Basic observable for run state info; this information is dynamic and does is subject to change over the course of a run. */
+        /* Basic observable for run state info; this information is dynamic and is subject to change over the course of a run. */
         this.runState = merge(this.runId, this.webSocket.pipe(filter(m => m.type !== 'PING'), map(m => m.runId))).pipe(
             switchMap((runId) => this.runService.getApiRunStateWithRunid(runId).pipe(
                 retry(3),
@@ -127,7 +140,31 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
                 }),
                 filter(q => q != null)
             )),
-            shareReplay(1)
+            shareReplay({bufferSize: 1, refCount: true})
+        );
+
+        /* Basic observable that fires when a task starts.  */
+        this.taskStarted = this.runState.pipe(
+            pairwise(),
+            filter(([s1, s2]) => s1.status === 'PREPARING_TASK' && s2.status === 'RUNNING_TASK'),
+            map(([s1, s2]) => s2.currentTask),
+            shareReplay({bufferSize: 1, refCount: true})
+        );
+
+        /* Basic observable that fires when a task ends.  */
+        this.taskEnded = this.runState.pipe(
+            pairwise(),
+            filter(([s1, s2]) => s1.status === 'RUNNING_TASK' && s2.status === 'ACTIVE'),
+            map(([s1, s2]) => s2.currentTask),
+            shareReplay({bufferSize: 1, refCount: true})
+        );
+
+        /* Observable that tracks the currently active task. */
+        this.taskChanged = merge(of(null as RunState), this.runState).pipe(
+            pairwise(),
+            filter(([s1, s2]) => s1 === null || (s1.currentTask.name !== s2.currentTask.name)),
+            map(([s1, s2]) => s2.currentTask),
+            shareReplay({bufferSize: 1, refCount: true})
         );
     }
 

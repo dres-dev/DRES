@@ -1,20 +1,30 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {CompetitionRunService, QueryDescription, RunInfo, RunState, TaskDescription} from '../../../openapi';
-import {BehaviorSubject, interval, Observable, of, Subscription, timer, zip} from 'rxjs';
-import {catchError, filter, flatMap, map, share, switchMap, take} from 'rxjs/operators';
+import {AfterViewInit, Component, Input, OnDestroy} from '@angular/core';
+import {
+    CompetitionRunService,
+    ImageQueryDescription,
+    RunState,
+    TaskDescription,
+    TextQueryDescription,
+    VideoQueryDescription
+} from '../../../openapi';
+import {combineLatest, interval, Observable, of, Subscription, timer, zip} from 'rxjs';
+import {catchError, filter, finalize, flatMap, map, share, shareReplay, switchMap, take, tap} from 'rxjs/operators';
 import {IWsMessage} from '../model/ws/ws-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {WebSocketSubject} from 'rxjs/webSocket';
 import {IWsServerMessage} from '../model/ws/ws-server-message.interface';
+import {AppConfig} from '../app.config';
 
 @Component({
     selector: 'app-task-viewer',
     templateUrl: './task-viewer.component.html',
     styleUrls: ['./task-viewer.component.scss']
 })
-export class TaskViewerComponent implements OnInit, OnDestroy {
-    @Input() info: Observable<RunInfo>;
+export class TaskViewerComponent implements AfterViewInit, OnDestroy {
+    @Input() runId: Observable<number>;
     @Input() state: Observable<RunState>;
+    @Input() taskChanged: Observable<TaskDescription>;
+    @Input() taskEnded: Observable<TaskDescription>;
     @Input() webSocket: Observable<IWsMessage>;
     @Input() webSocketSubject: WebSocketSubject<IWsMessage>;
 
@@ -24,12 +34,11 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
     /** Time that has elapsed (only when a task is running). */
     timeElapsed: Observable<number>;
 
-    /** The currently active task. */
-    currentTask = new BehaviorSubject<TaskDescription>(null);
-    currentTaskSubscription: Subscription;
+    /** Observable that returns true if task has ended and hasn't changed in the meanwhile! */
+    justEnded: Observable<boolean>;
 
-    /** The currently active query object. */
-    currentQueryObject: Observable<QueryDescription>;
+    /** Observable that returns and caches the current query object. */
+    currentQueryObject: Observable<VideoQueryDescription | TextQueryDescription | ImageQueryDescription>;
 
     /** The currently active task. */
     taskPrepareSubscription: Subscription;
@@ -38,50 +47,61 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
     taskCountdown = '';
 
     /** Reference to the audio file played during countdown. */
-    taskCountDownAudio = new Audio();
+    audio = [
+        new Audio('assets/audio/beep_1.ogg'),
+        new Audio('assets/audio/beep_2.ogg')
+    ];
 
-    constructor(protected runService: CompetitionRunService) {
-        this.taskCountDownAudio.src = './assets/audio/beep_1.ogg';
-        this.taskCountDownAudio.load();
+    constructor(protected runService: CompetitionRunService, protected config: AppConfig) {
+        this.audio[0].load();
+        this.audio[1].load();
     }
 
     /**
      * Create a subscription for task changes.
      */
-    ngOnInit(): void {
-        /* Observable for the current task. */
-        this.currentTaskSubscription = this.state.pipe(
-            filter(s =>  (this.currentTask.value == null || this.currentTask.value.name !== s.currentTask.name)),
-        ).subscribe(s => {
-            this.currentTask.next(s.currentTask);
-        });
+    ngAfterViewInit(): void {
+        /* Observable that returns true if task has ended and hasn't changed in the meanwhile! */
+        this.justEnded = combineLatest([this.taskChanged, this.taskEnded]).pipe(
+            map(([t1, t2]) => t1.name === t2.name)
+        );
 
         /* Subscription for the current query object. */
-        this.currentQueryObject = this.currentTask.pipe(
-            flatMap(task => this.info.pipe(map(i => i.id))),
+        this.currentQueryObject = this.taskChanged.pipe(
+            flatMap(task => this.runId),
             switchMap(id => this.runService.getApiRunWithRunidQuery(id).pipe(
                 catchError(e => {
-                    console.log('[TaskViewerComponent] Could not load current query object due to error: ' + e);
+                    console.error('[TaskViewerComponent] Could not load current query object due to an error.', e);
                     return of(null);
                 }),
                 filter(q => q != null)
             )),
+            shareReplay({bufferSize: 1, refCount: true})
         );
 
         /* Subscription reacting to TASK_PREPARE message. */
         this.taskPrepareSubscription = zip(
             this.webSocket.pipe(filter(m => m.type === 'TASK_PREPARE')),
             this.currentQueryObject,
-        ).subscribe(([m, q]) => {
-            timer(0, 1000).pipe(take(6), map((v) => 5 - v)).subscribe(
-            (count: number) => {
-                this.taskCountDownAudio.play().finally(() => this.taskCountdown = String(count));
-            },
-            (err) => {},
-            () => {
-                this.webSocketSubject.next({runId: (m as IWsServerMessage).runId, type: 'ACK'} as IWsClientMessage);
-            });
-        });
+        ).pipe(
+            switchMap(([m, q]) => timer(0, 1000).pipe(
+                take(6),
+                map((v) => 5 - v),
+                tap(count => {
+                    try {
+                        this.taskCountdown = String(count);
+                        if (count > 0) {
+                            this.audio[0].play().then(r => {});
+                        } else {
+                            this.audio[1].play().then(r => {});
+                        }
+                    } catch (e) {
+                        console.error('[TaskViewerComponent] Failed to play sound effect.', e);
+                    }
+                }),
+                finalize(() => this.webSocketSubject.next({runId: (m as IWsServerMessage).runId, type: 'ACK'} as IWsClientMessage))
+            ))
+        ).subscribe(() => {});
 
         /* Observable for the time left and time elapsed (for running tasks only). */
         const polledState = this.state.pipe(
@@ -97,6 +117,7 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
             share()
         );
 
+        /* */
         this.timeLeft = polledState.pipe(map(s => s.timeLeft));
         this.timeElapsed = polledState.pipe(map(s => s.currentTask?.duration - s.timeLeft));
     }
@@ -105,9 +126,6 @@ export class TaskViewerComponent implements OnInit, OnDestroy {
      * Cleanup all subscriptions.
      */
     ngOnDestroy(): void {
-        this.currentTaskSubscription.unsubscribe();
-        this.currentTaskSubscription = null;
-
         this.taskPrepareSubscription.unsubscribe();
         this.taskPrepareSubscription = null;
     }

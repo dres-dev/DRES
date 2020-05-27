@@ -1,22 +1,21 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
 import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
-import {map} from 'rxjs/operators';
+import {filter, map} from 'rxjs/operators';
 import {VideoQueryDescription} from '../../../../openapi';
 
 @Component({
     selector: 'app-video-query-object-preview',
     template: `
-        <video [src]="(videoUrl | async)" class="video-player" style="width: 100%" autoplay muted controls loop>
-
-        </video>
+        <video *ngIf="(videoUrl | async)" [src]="(videoUrl | async)" class="video-player" style="width: 100%" autoplay controls loop [muted]="muted"></video>
     `
 })
 export class VideoQueryObjectPreviewComponent implements OnInit {
 
     @Input() queryObject: Observable<VideoQueryDescription>;
-
+    @Input() muted = true;
     videoUrl: Observable<SafeUrl>;
+
 
     /**
      * Converts a Base65 encoded string into an object URL of a Blob.
@@ -38,6 +37,7 @@ export class VideoQueryObjectPreviewComponent implements OnInit {
 
     ngOnInit(): void {
         this.videoUrl = this.queryObject.pipe(
+            filter(q => q?.video != null),
             map(d => this.sanitizer.bypassSecurityTrustUrl(VideoQueryObjectPreviewComponent.base64ToUrl(d.video)))
         );
     }

@@ -74,6 +74,7 @@ object Cli {
                     is com.github.ajalt.clikt.core.NoSuchSubcommand -> println("command not found")
                     is com.github.ajalt.clikt.core.PrintHelpMessage -> println(e.command.getFormattedHelp())
                     is com.github.ajalt.clikt.core.MissingParameter -> println(e.localizedMessage)
+                    is com.github.ajalt.clikt.core.NoSuchOption -> println(e.localizedMessage)
                     else -> e.printStackTrace()
                 }
 

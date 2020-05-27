@@ -1,15 +1,15 @@
 <mat-card>
     <div class="task-preview">
         <h2 *ngIf="(state | async)?.status == 'ACTIVE' && !(justEnded | async)" class="header">
-            {{(currentTask | async)?.name}} (Waiting for host to start task)
+            {{(taskChanged | async)?.name}} (Waiting for host to start task)
         </h2>
 
         <h2 *ngIf="(state | async)?.status == 'ACTIVE' && (justEnded | async)" class="header">
-            {{(currentTask | async)?.name}} (Task complete)
+            {{(taskChanged | async)?.name}} (Task complete)
         </h2>
 
         <h2 *ngIf="(state | async)?.status == 'PREPARING_TASK'" class="header">
-            {{(currentTask | async)?.name}} (Preparing to start the task)
+            {{(taskChanged | async)?.name}} (Preparing to start the task)
         </h2>
 
         <p *ngIf="(state | async)?.status == 'PREPARING_TASK'" class="countdown">
@@ -17,7 +17,7 @@
         </p>
 
         <h2 *ngIf="(state | async)?.status == 'RUNNING_TASK'" style="text-align: center;">
-            {{(currentTask | async)?.name}} ({{toFormattedTime(timeLeft | async)}})
+            {{(taskChanged | async)?.name}} ({{toFormattedTime(timeLeft | async)}})
         </h2>
 
         <div *ngIf="(state | async)?.status == 'RUNNING_TASK'">

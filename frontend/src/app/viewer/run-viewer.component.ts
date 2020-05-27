@@ -48,6 +48,12 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
     /** Observable that fires whenever a task starts. Emits the task description of the task that just started. */
     taskStarted: Observable<TaskDescription>;
 
+    /** Observable that fires whenever a task changes. Emits the task description of the new task. */
+    taskChanged: Observable<TaskDescription>;
+
+    /** */
+    currentQueryObject: Observable<any>
+
     /** Observable that fires whenever a task ends. Emits the task description of the task that just ended. */
     taskEnded: Observable<TaskDescription>;
 
@@ -149,6 +155,14 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         this.taskEnded = this.runState.pipe(
             pairwise(),
             filter(([s1, s2]) => s1.status === 'RUNNING_TASK' && s2.status === 'ACTIVE'),
+            map(([s1, s2]) => s2.currentTask),
+            shareReplay({bufferSize: 1, refCount: true})
+        );
+
+        /* Observable that tracks the currently active task. */
+        this.taskChanged = merge(of(null as RunState), this.runState).pipe(
+            pairwise(),
+            filter(([s1, s2]) => s1 === null || (s1.currentTask.name !== s2.currentTask.name)),
             map(([s1, s2]) => s2.currentTask),
             shareReplay({bufferSize: 1, refCount: true})
         );

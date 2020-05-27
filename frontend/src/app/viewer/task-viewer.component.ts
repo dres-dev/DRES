@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, Input, OnDestroy} from '@angular/core';
 import {CompetitionRunService, QueryDescription, RunState, TaskDescription} from '../../../openapi';
 import {combineLatest, interval, Observable, of, Subscription, timer, zip} from 'rxjs';
-import {catchError, filter, finalize, flatMap, map, share, switchMap, take, tap} from 'rxjs/operators';
+import {catchError, filter, finalize, flatMap, map, share, shareReplay, switchMap, take, tap} from 'rxjs/operators';
 import {IWsMessage} from '../model/ws/ws-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {WebSocketSubject} from 'rxjs/webSocket';
@@ -16,6 +16,7 @@ import {AppConfig} from '../app.config';
 export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     @Input() runId: Observable<number>;
     @Input() state: Observable<RunState>;
+    @Input() taskChanged: Observable<TaskDescription>;
     @Input() taskEnded: Observable<TaskDescription>;
     @Input() webSocket: Observable<IWsMessage>;
     @Input() webSocketSubject: WebSocketSubject<IWsMessage>;
@@ -29,10 +30,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     /** Observable that returns true if task has ended and hasn't changed in the meanwhile! */
     justEnded: Observable<boolean>;
 
-    /** The currently active task. */
-    currentTask: Observable<TaskDescription>;
-
-    /** The currently active query object. */
+    /** Observable that returns and caches the current query object. */
     currentQueryObject: Observable<QueryDescription>;
 
     /** The currently active task. */
@@ -53,24 +51,22 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
      * Create a subscription for task changes.
      */
     ngAfterViewInit(): void {
-        /* Observable that tracks the currently active task. */
-        this.currentTask = this.state.pipe(map(s => s.currentTask));
-
         /* Observable that returns true if task has ended and hasn't changed in the meanwhile! */
-        this.justEnded = combineLatest([this.currentTask, this.taskEnded]).pipe(
+        this.justEnded = combineLatest([this.taskChanged, this.taskEnded]).pipe(
             map(([t1, t2]) => t1.name === t2.name)
         );
 
         /* Subscription for the current query object. */
-        this.currentQueryObject = this.currentTask.pipe(
+        this.currentQueryObject = this.taskChanged.pipe(
             flatMap(task => this.runId),
             switchMap(id => this.runService.getApiRunWithRunidQuery(id).pipe(
                 catchError(e => {
-                    console.error('[TaskViewerComponent] Could not load current query object due to error.', e);
+                    console.error('[TaskViewerComponent] Could not load current query object due to an error.', e);
                     return of(null);
                 }),
                 filter(q => q != null)
             )),
+            shareReplay({bufferSize: 1, refCount: true})
         );
 
         /* Subscription reacting to TASK_PREPARE message. */
@@ -118,19 +114,6 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     ngOnDestroy(): void {
         this.taskPrepareSubscription.unsubscribe();
         this.taskPrepareSubscription = null;
-    }
-
-    /**
-     * Generates a URL for the preview image of a submission.
-     *
-     * @param submission
-     */
-    public previewOnComplete(): Observable<string> {
-        return this.currentTask.pipe(map(t => {
-            if (t['item']) {
-                return this.config.resolveApiUrl(`/media/${t['item']['collection']}/${t['item']['collection']}`);
-            }
-        }));
     }
 
     public toFormattedTime(sec: number): string {

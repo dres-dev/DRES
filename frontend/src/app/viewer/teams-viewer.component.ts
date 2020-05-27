@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, Input, OnDestroy} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskDescription} from '../../../openapi';
 import {combineLatest, Observable, of, Subscription} from 'rxjs';
-import {catchError, debounceTime, filter, map, pairwise, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
+import {catchError, debounceTime, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 
 @Component({
@@ -50,9 +50,13 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     ngAfterViewInit(): void {
 
         /* Observable that returns true if task has ended and hasn't changed in the meanwhile! */
-        this.displaySummary = combineLatest([this.state, this.taskEnded]).pipe(
-            map(([s, t2]) => {
-                return s.status === 'RUNNING_TASK' || s.currentTask.name === t2.name;
+        this.displaySummary = this.state.pipe(
+            flatMap(s => {
+                if (s.status === 'RUNNING_TASK') {
+                    return of(true);
+                } else {
+                    return this.taskEnded.pipe(map(t =>  s.currentTask.name === t.name));
+                }
             })
         );
 
@@ -88,7 +92,9 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
             shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading of score. */
         );
 
-        this.submissionSoundEffect = this.submissions.pipe(
+        this.submissionSoundEffect = combineLatest([this.state, this.submissions]).pipe(
+            filter(([st, sb]) => st.status === 'RUNNING_TASK'),
+            map(([st, sb]) => sb),
             pairwise(),
             debounceTime(500),
             map(([s1, s2]) => {

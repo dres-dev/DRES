@@ -124,7 +124,7 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
             share()
         );
 
-        /* Basic observable for run state info; this information is dynamic and does is subject to change over the course of a run. */
+        /* Basic observable for run state info; this information is dynamic and is subject to change over the course of a run. */
         this.runState = merge(this.runId, this.webSocket.pipe(filter(m => m.type !== 'PING'), map(m => m.runId))).pipe(
             switchMap((runId) => this.runService.getApiRunStateWithRunid(runId).pipe(
                 retry(3),
@@ -141,14 +141,16 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         this.taskStarted = this.runState.pipe(
             pairwise(),
             filter(([s1, s2]) => s1.status === 'PREPARING_TASK' && s2.status === 'RUNNING_TASK'),
-            map(([s1, s2]) => s2.currentTask)
+            map(([s1, s2]) => s2.currentTask),
+            shareReplay({bufferSize: 1, refCount: true})
         );
 
         /* Basic observable that fires when a task ends.  */
         this.taskEnded = this.runState.pipe(
             pairwise(),
             filter(([s1, s2]) => s1.status === 'RUNNING_TASK' && s2.status === 'ACTIVE'),
-            map(([s1, s2]) => s2.currentTask)
+            map(([s1, s2]) => s2.currentTask),
+            shareReplay({bufferSize: 1, refCount: true})
         );
     }
 

@@ -30,20 +30,16 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
 
     /** Reference to the audio file played during countdown. */
     audio = [
-        new Audio(), /** Task end (Success). */
-        new Audio(), /** Task end (Failure). */
-        new Audio(), /** Correct submission. */
-        new Audio() /** Incorrect submission. */
+        new Audio('assets/audio/applause.ogg'), /** Task end (Success). */
+        new Audio('assets/audio/sad_trombone.ogg'), /** Task end (Failure). */
+        new Audio('assets/audio/correct.ogg'), /** Correct submission. */
+        new Audio('assets/audio/wrong.ogg') /** Incorrect submission. */
     ];
 
     constructor(private runService: CompetitionRunService, private config: AppConfig) {
-        this.audio[0].src = 'assets/audio/applause.ogg';
         this.audio[0].load();
-        this.audio[1].src = 'assets/audio/sad_trombone.ogg';
         this.audio[1].load();
-        this.audio[2].src = 'assets/audio/correct.ogg';
         this.audio[2].load();
-        this.audio[3].src = 'assets/audio/wrong.ogg';
         this.audio[3].load();
     }
 

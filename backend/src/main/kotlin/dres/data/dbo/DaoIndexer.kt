@@ -1,6 +1,9 @@
 package dres.data.dbo
 
 import dres.data.model.Entity
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 /**
  * Wrapper for DAO which enables index-based access
@@ -8,6 +11,8 @@ import dres.data.model.Entity
 class DaoIndexer<T: Entity, K>(private val dao: DAO<T>, private val keyTransform: (T) -> K) {
 
     private val index: MutableMap<K, MutableList<Long>> = mutableMapOf()
+
+    private val updateLock = ReentrantReadWriteLock()
 
     init {
         //load DAO to index
@@ -17,18 +22,16 @@ class DaoIndexer<T: Entity, K>(private val dao: DAO<T>, private val keyTransform
     /**
      * rebuilds the index
      */
-    fun rebuild() {
-        val map = dao.groupBy ( keyTransform ).mapValues { it.value.map { e -> e.id }.toMutableList() }
+    fun rebuild() = updateLock.write {
+        val map = dao.groupBy( keyTransform ).mapValues { it.value.map { e -> e.id }.toMutableList() }
         index.clear()
         index.putAll(map)
-
     }
 
-    operator fun get(key: K): List<T>{
-        val keys = index[key] ?: return emptyList()
-        return keys.mapNotNull { dao[it] }
+    operator fun get(key: K): List<T> = updateLock.read {
+        index[key]?.mapNotNull { dao[it] } ?: emptyList()
     }
 
-    fun keys(): Set<K> = index.keys
+    fun keys(): Set<K> = updateLock.read { index.keys }
 
 }

@@ -6,7 +6,7 @@ import dres.data.model.admin.UserName
 import dres.mgmt.admin.UserManager
 
 fun String?.toUsername(): UserName? {
-    if (this == null) {
+    if (this == null || this.isEmpty()) {
         return null
     }
     if (this.length < UserManager.MIN_LENGTH_USERNAME) {
@@ -16,11 +16,11 @@ fun String?.toUsername(): UserName? {
 }
 
 fun String?.toPlainPassword(): PlainPassword? {
-    if (this == null) {
+    if (this == null || this.isEmpty()) {
         return null
     }
     if (this.length < UserManager.MIN_LENGTH_PASSWORD) {
-        throw IndexOutOfBoundsException("Username too short. Must be at least ${UserManager.MIN_LENGTH_PASSWORD}")
+        throw IndexOutOfBoundsException("Password too short. Must be at least ${UserManager.MIN_LENGTH_PASSWORD}")
     }
     return PlainPassword(this)
 }

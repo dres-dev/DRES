@@ -2,6 +2,7 @@ package dres.api.rest.handler
 
 import dres.api.rest.RestApiRole
 import dres.data.dbo.DAO
+import dres.data.dbo.DaoIndexer
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
 import dres.utilities.extensions.errorResponse
@@ -16,6 +17,9 @@ class GetMediaHandler(private val collections: DAO<MediaCollection>, private val
 
     override val permittedRoles = setOf(RestApiRole.VIEWER)
     override val route: String = "media/:collection/:item"
+
+    private val collectionCache = DaoIndexer(collections){it.name}
+    private val itemCache = DaoIndexer(items){it.collection to it.name}
 
     //not used
     override fun doGet(ctx: Context): Any = ""
@@ -40,7 +44,7 @@ class GetMediaHandler(private val collections: DAO<MediaCollection>, private val
         }
 
         val collectionName = params["collection"]!!
-        val collection = collections.find { it.name == collectionName }
+        val collection = collectionCache[collectionName].firstOrNull() //collections.find { it.name == collectionName }
 
         if (collection == null) {
             ctx.errorResponse(404, "collection not found")
@@ -48,7 +52,7 @@ class GetMediaHandler(private val collections: DAO<MediaCollection>, private val
         }
 
         val itemName = params["item"]!!
-        val item = items.find { it.collection == collection.id && it.name == itemName }
+        val item = itemCache[collection.id to itemName].firstOrNull()//items.find { it.collection == collection.id && it.name == itemName }
 
         if (item == null) {
             ctx.errorResponse(404, "item with name $itemName found")

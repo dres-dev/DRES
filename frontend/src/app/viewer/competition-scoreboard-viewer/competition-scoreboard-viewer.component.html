@@ -10,6 +10,7 @@
             [chart]= "chart"
             [plotOptions]="plotOptions"
             [xaxis]="(xaxis | async)"
+            [colors]="(!competitionOverview ? (color | async) : undefined)"
             [yaxis]="yaxis"
             [stroke]="stroke"
             [fill]="fill"

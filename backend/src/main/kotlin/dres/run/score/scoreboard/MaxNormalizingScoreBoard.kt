@@ -24,7 +24,7 @@ class MaxNormalizingScoreBoard(private val name: String, private val taskFilter:
     }
 
     override fun scores(): List<Score> {
-        return overallScoreMap().entries.map {
+        return overallScoreMap().entries.sortedBy { it.key }.map {
             Score(it.key, it.value)
         }
     }

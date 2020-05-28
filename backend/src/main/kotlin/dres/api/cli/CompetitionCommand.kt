@@ -13,13 +13,16 @@ import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
+import dres.data.serializers.CompetitionSerializer
 import dres.utilities.FFmpegUtil
+import kotlinx.serialization.json.Json
+import org.apache.logging.log4j.core.config.json.JsonConfiguration
 import java.io.File
 
 class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>, internal val collections: DAO<MediaCollection>, config: Config) : NoOpCliktCommand(name = "competition") {
 
     init {
-        this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand(), PrepareCompetitionCommand(), DeleteCompetitionCommand(), CopyCompetitionCommand())
+        this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand(), PrepareCompetitionCommand(), DeleteCompetitionCommand(), CopyCompetitionCommand(), ExportCompetitionCommand())
     }
 
     private val taskCacheLocation = File(config.cachePath + "/tasks")
@@ -54,7 +57,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
         override fun run() {
             println("Competitions:")
             this@CompetitionCommand.competitions.forEach {
-                println("${it.name} (${it.teams.size} Teams, ${it.tasks.size} Tasks): ${it.description}")
+                println("${it.name}[${it.id}] (${it.teams.size} Teams, ${it.tasks.size} Tasks): ${it.description}")
             }
         }
     }
@@ -172,6 +175,27 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
             println("to")
             println(newCompetition)
 
+        }
+
+    }
+
+    inner class ExportCompetitionCommand : AbstractCompetitionCommand(name ="export", help="Exports a competition as JSON"){
+
+        private val destination: String by option("-d", "--destination", help="The destination file for the competition").required()
+
+        private val json = Json(kotlinx.serialization.json.JsonConfiguration.Stable)
+
+        override fun run() {
+            println("Not yet supported");
+            /*val competition = this@CompetitionCommand.competitions[competitionId]!!
+
+            val dest = File(destination)
+
+            val jsonified = json.stringify(CompetitionDescription.serializer(), competition)
+
+            dest.writeText(jsonified)
+
+            println("Successfully wrote competition '${competition.name}' to ${dest}")*/
         }
 
     }

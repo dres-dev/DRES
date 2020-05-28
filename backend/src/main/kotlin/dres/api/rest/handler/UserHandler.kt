@@ -149,7 +149,7 @@ class UpdateUsersHandler() : UserHandler(), PatchRestHandler<UserHandler.UserDet
         when{
             (caller.role == Role.ADMIN) and (caller.id != id)-> {
                 /* ADMIN -- Can edit anyone */
-                val success = UserManager.updateEntirely(id=id, user=req)
+                val success = UserManager.update(id=id, user=req)
                 if(success){
                     return UserDetails.of(UserManager.get(id=id)!!)
                 }else{

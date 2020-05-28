@@ -159,6 +159,6 @@ object UserManager {
     }
 
     fun update(id:Long?, user:UserHandler.UserRequest):Boolean{
-        return update(id=id, username = user.username.toUsername(), password = user.password.toPlainPassword(), role=null)
+        return update(id=id, username = user.username.toUsername(), password = user.password?.toPlainPassword(), role=user.role)
     }
 }

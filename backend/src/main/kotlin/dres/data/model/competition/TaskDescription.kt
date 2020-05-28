@@ -51,7 +51,7 @@ sealed class TaskDescriptionBase : TaskDescription {
      * @param item [MediaItem] the user should be looking for.
      */
     @Serializable
-    class KisTextualTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange, val descriptions: List<String>, val delay: Int = 30) : TaskDescriptionBase(), MediaSegmentTaskDescription, HiddenResultsTaskDescription {
+    data class KisTextualTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange, val descriptions: List<String>, val delay: Int = 30) : TaskDescriptionBase(), MediaSegmentTaskDescription, HiddenResultsTaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = TemporalOverlapSubmissionValidator(this, callback)
         override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}-${temporalRange.start.value}-${temporalRange.end.value}.mp4"
@@ -64,7 +64,7 @@ sealed class TaskDescriptionBase : TaskDescription {
      * @param description Textual task description presented to the user.
      */
     @Serializable
-    class AvsTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, val description: String, val defaultCollection: Long) : TaskDescriptionBase(), TaskDescription, DefinedMediaItemTaskDescription {
+    data class AvsTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, val description: String, val defaultCollection: Long) : TaskDescriptionBase(), TaskDescription, DefinedMediaItemTaskDescription {
         override fun newScorer(): TaskRunScorer = AvsTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = BasicJudgementValidator(callback)
         override fun newFilter(): SubmissionFilter = DuplicateSubmissionFilter()

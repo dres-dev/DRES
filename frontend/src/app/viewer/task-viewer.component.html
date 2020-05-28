@@ -25,7 +25,7 @@
             <app-text-query-object-preview *ngIf="(currentQueryObject | async)?.type === 'TEXT'" [queryObject]="currentQueryObject" [timeElapsed]="timeElapsed"></app-text-query-object-preview>
         </div>
 
-        <div *ngIf="(state | async)?.status == 'ACTIVE' && (justEnded | async)">
+        <div *ngIf="(state | async)?.status == 'ACTIVE' && (showSolution | async)">
             <app-video-query-object-preview *ngIf="(currentQueryObject | async)['video']" [queryObject]="currentQueryObject" [muted]="true"></app-video-query-object-preview>
         </div>
     </div>

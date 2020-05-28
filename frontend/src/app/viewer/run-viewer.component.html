@@ -9,7 +9,7 @@
         </div>
 
         <div class="main">
-            <app-task-viewer [runId]="runId" [state]="runState" [taskChanged]="taskChanged" [taskEnded]="taskEnded" [webSocket]="webSocket" [webSocketSubject]="webSocketSubject"></app-task-viewer>
+            <app-task-viewer [runId]="runId" [state]="runState" [taskChanged]="taskChanged" [taskStarted]="taskStarted" [taskEnded]="taskEnded" [webSocket]="webSocket" [webSocketSubject]="webSocketSubject"></app-task-viewer>
         </div>
 
         <div class="right">
@@ -17,7 +17,7 @@
         </div>
     </div>
     <div class="footer">
-        <app-teams-viewer [runId]="runId"[taskEnded]="taskEnded" [info]="runInfo" [state]="runState"></app-teams-viewer>
+        <app-teams-viewer [runId]="runId"  [taskChanged]="taskChanged" [taskEnded]="taskEnded" [info]="runInfo" [state]="runState"></app-teams-viewer>
     </div>
 </div>
 

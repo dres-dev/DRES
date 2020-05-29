@@ -23,6 +23,7 @@ import {ViewerModule} from './viewer/viewer.module';
 import {AppConfig} from './app.config';
 import {UserModule} from './user/user.module';
 import {JudgementModule} from './judgement/judgement.module';
+import {AccessRoleService} from './services/session/access-role.service';
 
 
 /**
@@ -62,7 +63,8 @@ export function initializeApp(appConfig: AppConfig) {
     ],
   providers: [
       AppConfig,
-      {provide: APP_INITIALIZER, useFactory: initializeApp, deps: [AppConfig], multi: true }
+      {provide: APP_INITIALIZER, useFactory: initializeApp, deps: [AppConfig], multi: true },
+      AccessRoleService
   ],
   bootstrap: [AppComponent]
 })

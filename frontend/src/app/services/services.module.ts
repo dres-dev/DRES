@@ -1,6 +1,7 @@
 import {ApiModule, Configuration} from '../../../openapi';
 import {NgModule} from '@angular/core';
 import {AppConfig} from '../app.config';
+import {AuthenticationService} from './session/authentication.sevice';
 
 @NgModule({
   imports: [ApiModule.forRoot(() => {
@@ -11,7 +12,7 @@ import {AppConfig} from '../app.config';
   })],
   exports: [ApiModule],
   declarations: [],
-  providers: []
+  providers: [AuthenticationService]
 })
 export class ServicesModule {
 }

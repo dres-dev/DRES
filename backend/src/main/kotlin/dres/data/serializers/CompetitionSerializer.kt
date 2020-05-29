@@ -22,6 +22,7 @@ object CompetitionSerializer: Serializer<CompetitionDescription> {
         for (team in value.teams) {
             TeamSerializer.serialize(out, team)
         }
+        out.writeUTF(value.uid)
     }
 
     override fun deserialize(input: DataInput2, available: Int): CompetitionDescription = CompetitionDescription(
@@ -30,6 +31,7 @@ object CompetitionSerializer: Serializer<CompetitionDescription> {
             input.readUTF(),
             (0 until input.readInt()).map { TaskGroupSerializer.deserialize(input, available) }.toMutableList(),
             (0 until input.readInt()).map { TaskDescriptionSerializer.deserialize(input, available) }.toMutableList(),
-            (0 until input.readInt()).map { TeamSerializer.deserialize(input, available) }.toMutableList()
+            (0 until input.readInt()).map { TeamSerializer.deserialize(input, available) }.toMutableList(),
+            input.readUTF()
     )
 }

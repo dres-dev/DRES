@@ -3,6 +3,7 @@ package dres.data.model.competition
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import dres.data.model.Entity
+import java.util.*
 
 
 data class CompetitionDescription @JsonCreator constructor(
@@ -11,7 +12,9 @@ data class CompetitionDescription @JsonCreator constructor(
         @JsonProperty("description") val description: String?,
         @JsonProperty("groups") val groups: MutableList<TaskGroup>,
         @JsonProperty("tasks") val tasks: MutableList<TaskDescriptionBase>,
-        @JsonProperty("teams") val teams: MutableList<Team>) : Entity {
+        @JsonProperty("teams") val teams: MutableList<Team>,
+        @JsonProperty("uid") val uid: String = UUID.randomUUID().toString()
+) : Entity {
 
     fun validate() {
         for (group in this.groups) {

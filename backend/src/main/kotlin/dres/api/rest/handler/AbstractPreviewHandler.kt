@@ -156,7 +156,7 @@ class SubmissionPreviewHandler(collections: DAO<MediaCollection>, itemIndex: Dao
 
         val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Competition Run $runId not found")
 
-        val submission = run.allSubmissions.find { it.id == submissionId } ?: throw ErrorStatusException(404, "Submission '$submissionId' not found")
+        val submission = run.allSubmissions.find { it.uid == submissionId } ?: throw ErrorStatusException(404, "Submission '$submissionId' not found")
 
         handlePreviewRequest(submission.item, submission.start, ctx)
 

@@ -20,7 +20,7 @@ data class Submission(val team: Int,
                       val item: MediaItem,
                       val start: Long? = null, //in ms
                       val end: Long? = null, //in ms
-                      val id: String = UUID.randomUUID().toString()
+                      val uid: String = UUID.randomUUID().toString()
 ) {
 
     var status: SubmissionStatus = SubmissionStatus.INDETERMINATE

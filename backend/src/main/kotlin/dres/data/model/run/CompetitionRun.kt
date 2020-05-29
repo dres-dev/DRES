@@ -20,9 +20,9 @@ import java.util.*
  * @author Ralph Gasser
  * @param 1.0
  */
-class CompetitionRun(override var id: Long, val name: String, val competitionDescription: CompetitionDescription): Run, Entity {
+class CompetitionRun(override var id: Long, val name: String, val competitionDescription: CompetitionDescription, val uid: String = UUID.randomUUID().toString()): Run, Entity {
 
-    internal constructor(id: Long, name: String, competitionDescription: CompetitionDescription, started: Long?, ended: Long?) : this(id, name, competitionDescription) {
+    internal constructor(id: Long, name: String, competitionDescription: CompetitionDescription, uid: String, started: Long?, ended: Long?) : this(id, name, competitionDescription, uid) {
         this.started = started
         this.ended = ended
     }
@@ -98,9 +98,9 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
      * @author Ralph Gasser
      */
     @JsonIgnoreProperties(value = ["competition"])
-    inner class TaskRun (val taskId: Int): Run {
+    inner class TaskRun (val taskId: Int, val uid: String = UUID.randomUUID().toString()): Run {
 
-        internal constructor(task: Int, started: Long, ended: Long): this(task) {
+        internal constructor(task: Int, uid: String, started: Long, ended: Long): this(task, uid) {
             this.started =  if (started == -1L) { null } else { started }
             this.ended = if (ended == -1L) { null } else { ended }
         }

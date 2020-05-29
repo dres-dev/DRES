@@ -19,6 +19,7 @@ import dres.run.score.scorer.AvsTaskScorer
 import dres.run.score.scorer.KisTaskScorer
 import dres.run.validation.TemporalOverlapSubmissionValidator
 import dres.run.validation.judged.BasicJudgementValidator
+import java.util.*
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "taskType")
 @JsonSubTypes(
@@ -38,6 +39,7 @@ sealed class TaskDescriptionBase : TaskDescription {
      * @param item [MediaItem] the user should be looking for.
      */
     data class KisVisualTaskDescription @JsonCreator constructor(
+            @JsonProperty("uid") val uid: String = UUID.randomUUID().toString(),
             @JsonProperty("name") override val name: String,
             @JsonProperty("taskGroup") override val taskGroup: TaskGroup,
             @JsonProperty("duration") override val duration: Long,
@@ -56,6 +58,7 @@ sealed class TaskDescriptionBase : TaskDescription {
      * @param item [MediaItem] the user should be looking for.
      */
     data class KisTextualTaskDescription @JsonCreator constructor(
+            @JsonProperty("uid") val uid: String = UUID.randomUUID().toString(),
             @JsonProperty("name") override val name: String,
             @JsonProperty("taskGroup") override val taskGroup: TaskGroup,
             @JsonProperty("duration") override val duration: Long,
@@ -76,6 +79,7 @@ sealed class TaskDescriptionBase : TaskDescription {
      * @param description Textual task description presented to the user.
      */
     data class AvsTaskDescription @JsonCreator constructor(
+            @JsonProperty("uid") val uid: String = UUID.randomUUID().toString(),
             @JsonProperty("name") override val name: String,
             @JsonProperty("taskGroup") override val taskGroup: TaskGroup,
             @JsonProperty("duration") override val duration: Long,

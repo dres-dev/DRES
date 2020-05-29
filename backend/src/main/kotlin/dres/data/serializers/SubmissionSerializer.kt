@@ -13,7 +13,7 @@ object SubmissionSerializer : Serializer<Submission> {
         MediaItemSerializer.serialize(out, value.item)
         out.packLong(value.start ?: -1L)
         out.packLong(value.end ?: -1L)
-        out.writeUTF(value.id)
+        out.writeUTF(value.uid)
     }
 
     override fun deserialize(input: DataInput2, available: Int): Submission = Submission(

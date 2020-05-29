@@ -1,5 +1,7 @@
 package dres.data.model.competition
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import dres.data.model.basics.media.MediaItem
@@ -35,7 +37,13 @@ sealed class TaskDescriptionBase : TaskDescription {
      *
      * @param item [MediaItem] the user should be looking for.
      */
-    data class KisVisualTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange) : TaskDescriptionBase(), MediaSegmentTaskDescription {
+    data class KisVisualTaskDescription @JsonCreator constructor(
+            @JsonProperty("name") override val name: String,
+            @JsonProperty("taskGroup") override val taskGroup: TaskGroup,
+            @JsonProperty("duration") override val duration: Long,
+            @JsonProperty("item") override val item: MediaItem.VideoItem,
+            @JsonProperty("temporalRange") override val temporalRange: TemporalRange)
+        : TaskDescriptionBase(), MediaSegmentTaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = TemporalOverlapSubmissionValidator(this, callback)
         override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}-${temporalRange.start.value}-${temporalRange.end.value}.mp4"
@@ -47,7 +55,15 @@ sealed class TaskDescriptionBase : TaskDescription {
      *
      * @param item [MediaItem] the user should be looking for.
      */
-    data class KisTextualTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange, val descriptions: List<String>, val delay: Int = 30) : TaskDescriptionBase(), MediaSegmentTaskDescription, HiddenResultsTaskDescription {
+    data class KisTextualTaskDescription @JsonCreator constructor(
+            @JsonProperty("name") override val name: String,
+            @JsonProperty("taskGroup") override val taskGroup: TaskGroup,
+            @JsonProperty("duration") override val duration: Long,
+            @JsonProperty("item") override val item: MediaItem.VideoItem,
+            @JsonProperty("temporalRange") override val temporalRange: TemporalRange,
+            @JsonProperty("descriptions") val descriptions: List<String>,
+            @JsonProperty("delay") val delay: Int = 30)
+        : TaskDescriptionBase(), MediaSegmentTaskDescription, HiddenResultsTaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = TemporalOverlapSubmissionValidator(this, callback)
         override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}-${temporalRange.start.value}-${temporalRange.end.value}.mp4"
@@ -59,7 +75,13 @@ sealed class TaskDescriptionBase : TaskDescription {
      *
      * @param description Textual task description presented to the user.
      */
-    data class AvsTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, val description: String, val defaultCollection: Long) : TaskDescriptionBase(), TaskDescription, DefinedMediaItemTaskDescription {
+    data class AvsTaskDescription @JsonCreator constructor(
+            @JsonProperty("name") override val name: String,
+            @JsonProperty("taskGroup") override val taskGroup: TaskGroup,
+            @JsonProperty("duration") override val duration: Long,
+            @JsonProperty("description") val description: String,
+            @JsonProperty("defaultCollection") val defaultCollection: Long)
+        : TaskDescriptionBase(), TaskDescription, DefinedMediaItemTaskDescription {
         override fun newScorer(): TaskRunScorer = AvsTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = BasicJudgementValidator(callback)
         override fun newFilter(): SubmissionFilter = DuplicateSubmissionFilter()

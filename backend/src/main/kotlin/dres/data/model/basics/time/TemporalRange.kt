@@ -1,5 +1,7 @@
 package dres.data.model.basics.time
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 import dres.utilities.TimeUtil
 
 /**
@@ -11,7 +13,10 @@ import dres.utilities.TimeUtil
  * @param start The start of the [TemporalRange]
  * @param end The end of the [TemporalRange]
  */
-data class TemporalRange(val start: TemporalPoint, val end: TemporalPoint) {
+data class TemporalRange @JsonCreator constructor(
+        @JsonProperty("start") val start: TemporalPoint,
+        @JsonProperty("end") val end: TemporalPoint
+) {
 
     constructor(startMs: Long, endMs: Long): this(TemporalPoint(startMs.toDouble(), TemporalUnit.MILLISECONDS), TemporalPoint(endMs.toDouble(), TemporalUnit.MILLISECONDS))
 

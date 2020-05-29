@@ -1,11 +1,18 @@
 package dres.data.model.competition
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 import javax.xml.bind.DatatypeConverter
 
-data class Team (val name: String, val color: String, val logo: String, val users: MutableList<Long>) {
+
+data class Team @JsonCreator constructor(
+        @JsonProperty("name") val name: String,
+        @JsonProperty("color")  val color: String,
+        @JsonProperty("logo")  val logo: String,
+        @JsonProperty("users")  val users: MutableList<Long>) {
     /**
      * Returns the logo data as [BufferedImage].
      *

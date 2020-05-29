@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
@@ -16,13 +17,14 @@ import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.utilities.FFmpegUtil
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
 class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>, internal val collections: DAO<MediaCollection>, config: Config) : NoOpCliktCommand(name = "competition") {
 
     init {
-        this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand(), PrepareCompetitionCommand(), DeleteCompetitionCommand(), CopyCompetitionCommand(), ExportCompetitionCommand())
+        this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand(), PrepareCompetitionCommand(), DeleteCompetitionCommand(), CopyCompetitionCommand(), ExportCompetitionCommand(), ImportCompetitionCommand())
     }
 
     private val taskCacheLocation = File(config.cachePath + "/tasks")
@@ -197,10 +199,37 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
 
             val path = Paths.get(this.destination)
             val mapper = ObjectMapper()
-            java.nio.file.Files.newBufferedWriter(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE).use {
+            Files.newBufferedWriter(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE).use {
                 mapper.writeValue(it, competition)
             }
-            println("Successfully wrote competition '${competition.name}' to $path.")
+            println("Successfully wrote competition '${competition.name}' (ID = ${competition.id}) to $path.")
+        }
+    }
+
+
+    /**
+     *
+     */
+    inner class ImportCompetitionCommand : CliktCommand(name ="import", help="Imports a competition description from JSON.") {
+
+        private val new: Boolean by option("-n", "--new", help="The destination file for the competition").flag("-u", "--update", default = true)
+
+        private val destination: String by option("-i", "--in", help="The destination file for the competition").required()
+
+        override fun run() {
+            val path = Paths.get(this.destination)
+            val mapper = ObjectMapper()
+            val competition = Files.newBufferedReader(path).use {
+                mapper.readValue(it, CompetitionDescription::class.java)
+            }
+
+            if (new) {
+                val id = this@CompetitionCommand.competitions.append(competition)
+                println("Successfully imported new competition '${competition.name}' (ID = $id) from $path.")
+            } else {
+                this@CompetitionCommand.competitions.update(competition)
+                println("Successfully updated competition '${competition.name}' (ID = ${competition.id}) from $path.")
+            }
         }
     }
 }

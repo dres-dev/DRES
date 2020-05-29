@@ -1,5 +1,6 @@
 package dres.api.cli
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
@@ -16,18 +17,21 @@ import dres.data.model.admin.UserName
 import dres.mgmt.admin.UserManager
 import dres.mgmt.admin.UserManager.MIN_LENGTH_PASSWORD
 import dres.mgmt.admin.UserManager.MIN_LENGTH_USERNAME
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardOpenOption
 
 /**
  * A collection of [CliktCommand]s for user management
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.1
  */
 class UserCommand : NoOpCliktCommand(name = "users") {
 
 
     init {
-        this.subcommands(CreateUserCommand(), UpdateUserCommand(), DeleteUserCommand(), ListUsers(), ListRoles())
+        this.subcommands(CreateUserCommand(), UpdateUserCommand(), DeleteUserCommand(), ListUsers(), ListRoles(), ExportUserCommand())
     }
 
     /**
@@ -97,9 +101,9 @@ class UserCommand : NoOpCliktCommand(name = "users") {
     /**
      * [CliktCommand] to delete a [User].
      */
-    inner class DeleteUserCommand : CliktCommand(name = "delete", help = "Deletes an existing User") {
-        private val id: Long? by option("-i", "--id").long()
-        private val username: UserName? by option("-u", "--username", help = "Username of the User to be deleted")
+    inner class DeleteUserCommand : CliktCommand(name = "delete", help = "Deletes an existing user.") {
+        private val id: Long? by option("-i", "--id", help = "ID of the user to be deleted.").long()
+        private val username: UserName? by option("-u", "--username", help = "Username of the user to be deleted.")
                 .convert { UserName(it) }
                 .validate { require(it.name.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
 
@@ -119,6 +123,43 @@ class UserCommand : NoOpCliktCommand(name = "users") {
             println("User with ID $delId could not be deleted because it doesn't exist!")
         }
     }
+
+    /**
+     * [CliktCommand] to export a [User].
+     */
+    inner class ExportUserCommand : CliktCommand(name = "export", help =  "Exports one or multiple user(s) as JSON.") {
+        private val id: Long? by option("-i", "--id", help = "ID of the user to be exported.").long()
+        private val username: UserName? by option("-u", "--username", help = "Username of the user to be exported.")
+                .convert { UserName(it) }
+                .validate { require(it.name.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
+        private val path: String by option("-o", "--output").required()
+        override fun run() {
+            val id = UserManager.id(id = id, username = username)
+            if (id == null) {
+                val users = UserManager.list()
+                val path = Paths.get(this.path)
+                val mapper = ObjectMapper()
+                Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {writer ->
+                    mapper.writeValue(writer, users)
+                }
+                println("Successfully wrote ${users.size} users to $path.")
+                return
+            } else {
+                val user = UserManager.get(id)
+                if (user != null) {
+                    val path = Paths.get(this.path)
+                    val mapper = ObjectMapper()
+                    Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
+                        mapper.writeValue(it, user)
+                    }
+                    println("Successfully wrote user ${user.id} to $path.")
+                } else {
+                    println("User with ID $id does not exist.")
+                }
+            }
+        }
+    }
+
 
     /**
      * [CliktCommand] to list all [User]s.

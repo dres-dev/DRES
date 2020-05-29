@@ -36,7 +36,7 @@ export class AdminUserListComponent implements AfterViewInit {
       this.refresh();
       this.snackBar.open(`Successfully created ${r.username}`, null, {duration: 5000});
     }, (err) => {
-      this.snackBar.open(`Error: ${err.description}`, null, {duration: 5000});
+      this.snackBar.open(`Error: ${err.error.description}`, null, {duration: 5000});
     });
   }
 
@@ -52,7 +52,7 @@ export class AdminUserListComponent implements AfterViewInit {
       this.refresh();
       this.snackBar.open(`Successfully updated ${r.username}`, null, {duration: 5000});
     }, (err) => {
-      this.snackBar.open(`Error: ${err.description}`, null, {duration: 5000});
+      this.snackBar.open(`Error: ${err.error.description}`, null, {duration: 5000});
     });
   }
 

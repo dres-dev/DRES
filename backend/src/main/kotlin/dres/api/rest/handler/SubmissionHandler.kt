@@ -28,7 +28,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 
-class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val segment: DAO<MediaItemSegmentList>): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
+class SubmissionHandler (val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<Long, String>>, private val segmentIndex: DaoIndexer<MediaItemSegmentList, Long>): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
     override val route = "submit"
 
@@ -40,10 +40,6 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
         const val PARAMETER_NAME_TIMECODE = "timecode"
     }
 
-    /* scans entire dao content in order to build up index, could take a few seconds */
-    private val segmentIndex = DaoIndexer(this.segment){it.mediaItemId}
-
-    private val itemIndex = DaoIndexer(this.items){it.name}
 
     private fun getRelevantManagers(userId: Long): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
@@ -82,7 +78,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
 
         /* Find media item. */
         val itemParam = map[PARAMETER_NAME_ITEM]?.first() ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_ITEM' is missing but required!'")
-        val item = this.itemIndex[itemParam].find { it.collection == collectionId } ?:
+        val item = this.itemIndex[collectionId to itemParam].firstOrNull() ?:
             throw ErrorStatusException(404, "Media item '$itemParam (collection = $collectionId)' could not be found.")
 
         val mapToSegment = runManager.currentTask is DefinedMediaItemTaskDescription

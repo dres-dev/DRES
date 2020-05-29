@@ -21,11 +21,10 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollection>, items: DAO<MediaItem>, config: Config) : GetRestHandler<Any>, AccessManagedRestHandler {
+abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<Long, String>>, config: Config) : GetRestHandler<Any>, AccessManagedRestHandler {
 
     override val permittedRoles = setOf(RestApiRole.VIEWER)
     private val cacheLocation = Paths.get(config.cachePath + "/previews")
-    private val itemIndex = DaoIndexer(items) { it.collection to it.name }
 
     protected fun handlePreviewRequest(collectionId: Long, itemName: String, time: Long?, ctx: Context) {
 
@@ -101,7 +100,7 @@ abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollecti
 
 }
 
-class MediaPreviewHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, config: Config) : AbstractPreviewHandler(collections, items, config) {
+class MediaPreviewHandler(collections: DAO<MediaCollection>, itemIndex: DaoIndexer<MediaItem, Pair<Long, String>>, config: Config) : AbstractPreviewHandler(collections, itemIndex, config) {
 
     @OpenApi(summary = "Returns a preview image from a collection item",
             path = "/api/preview/item/:collection/:item/:time",
@@ -136,7 +135,7 @@ class MediaPreviewHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
 }
 
 
-class SubmissionPreviewHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, config: Config) : AbstractPreviewHandler(collections, items, config) {
+class SubmissionPreviewHandler(collections: DAO<MediaCollection>, itemIndex: DaoIndexer<MediaItem, Pair<Long, String>>, config: Config) : AbstractPreviewHandler(collections, itemIndex, config) {
 
     @OpenApi(summary = "Returns a preview image for a submission",
             path = "/api/preview/submission/:runId/:submissionId",

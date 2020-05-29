@@ -49,9 +49,9 @@ object RestApi {
                 CurrentUsersSessionIdHandler(),
 
                 //media
-                MediaPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, config),
-                SubmissionPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, config),
-                GetMediaHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+                MediaPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
+                SubmissionPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
+                GetMediaHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, dataAccessLayer.collectionNameIndex),
 
                 //collection
                 ListCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
@@ -141,7 +141,7 @@ object RestApi {
             }
 
             path("submit") {
-                val submissionHandler = SubmissionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaSegments)
+                val submissionHandler = SubmissionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, dataAccessLayer.mediaSegmentItemIdIndex)
                 get(submissionHandler::get, submissionHandler.permittedRoles)
             }
 

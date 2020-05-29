@@ -96,3 +96,33 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
         return SuccessStatus("Verdict received and accepted. Thanks!")
     }
 }
+
+class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, AccessManagedRestHandler {
+    override val permittedRoles = setOf(RestApiRole.VIEWER)
+    override val route = "run/:runId/judge/status"
+
+
+    @OpenApi(
+            summary = "Gets the status of all judgement validators.",
+            path = "/api/run/:runId/judge/status",
+            tags = ["Judgement"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(Array<JudgementValidatorStatus>::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): List<JudgementValidatorStatus> {
+
+        val runId = ctx.pathParamMap().getOrElse("runId") {
+            throw ErrorStatusException(400, "Parameter 'runId' is missing!'")
+        }.toLong()
+
+        val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+
+        return run.judgementValidators.map { JudgementValidatorStatus(it.id, it.pending, it.open) }
+    }
+
+}
+
+data class JudgementValidatorStatus(val validator: String, val pending: Int, val open: Int)

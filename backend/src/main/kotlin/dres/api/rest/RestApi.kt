@@ -92,7 +92,8 @@ object RestApi {
                 TerminateCompetitionRunAdminHandler(),
 
                 NextOpenJudgementHandler(dataAccessLayer.collections),
-                PostJudgementHandler()
+                PostJudgementHandler(),
+                JudgementStatusHandler()
         )
 
         javalin = Javalin.create {

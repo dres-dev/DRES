@@ -17,6 +17,7 @@ import { VideoItem } from './videoItem';
 
 
 export interface KisTextualTaskDescription extends TaskDescriptionBase { 
+    uid: string;
     item: VideoItem;
     temporalRange: TemporalRange;
     descriptions: Array<string>;

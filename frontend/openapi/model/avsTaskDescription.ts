@@ -15,6 +15,7 @@ import { TaskGroup } from './taskGroup';
 
 
 export interface AvsTaskDescription extends TaskDescriptionBase { 
+    uid: string;
     description: string;
     defaultCollection: number;
 }

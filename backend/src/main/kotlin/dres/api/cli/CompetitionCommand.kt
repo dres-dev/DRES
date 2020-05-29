@@ -21,6 +21,12 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
+/**
+ * A collection of [CliktCommand]s for user management
+ *
+ * @author Luca Rossetto & Ralph Gasser
+ * @version 1.1
+ */
 class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>, internal val collections: DAO<MediaCollection>, config: Config) : NoOpCliktCommand(name = "competition") {
 
     init {
@@ -186,9 +192,9 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
     /**
      * Exports a specific competition as JSON.
      */
-    inner class ExportCompetitionCommand : AbstractCompetitionCommand(name ="export", help="Exports a competition description as JSON."){
+    inner class ExportCompetitionCommand : AbstractCompetitionCommand(name = "export", help = "Exports a competition description as JSON."){
 
-        private val destination: String by option("-o", "--out", help="The destination file for the competition").required()
+        private val destination: String by option("-o", "--out", help = "The destination file for the competition.").required()
 
         override fun run() {
             val competition = this@CompetitionCommand.competitions[this.competitionId]
@@ -208,13 +214,13 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
 
 
     /**
-     *
+     * Imports a specific competition from JSON.
      */
     inner class ImportCompetitionCommand : CliktCommand(name ="import", help="Imports a competition description from JSON.") {
 
-        private val new: Boolean by option("-n", "--new", help="The destination file for the competition").flag("-u", "--update", default = true)
+        private val new: Boolean by option("-n", "--new", help="Flag indicating whether competition should be created anew.").flag("-u", "--update", default = true)
 
-        private val destination: String by option("-i", "--in", help="The destination file for the competition").required()
+        private val destination: String by option("-i", "--in", help= "The input file for the competition.").required()
 
         override fun run() {
             val path = Paths.get(this.destination)

@@ -1,12 +1,8 @@
 package dres.data.model.competition
 
 import dres.data.model.Entity
-import dres.data.model.competition.interfaces.TaskDescription
-import kotlinx.serialization.Polymorphic
-import kotlinx.serialization.Serializable
 
-@Serializable
-data class CompetitionDescription(override var id: Long, val name: String, val description: String?, val groups: MutableList<TaskGroup>, @Polymorphic val tasks: MutableList<TaskDescriptionBase>, val teams: MutableList<Team>) : Entity {
+data class CompetitionDescription(override var id: Long, val name: String, val description: String?, val groups: MutableList<TaskGroup>, val tasks: MutableList<TaskDescriptionBase>, val teams: MutableList<Team>) : Entity {
     fun validate() {
         for (group in this.groups) {
             if (this.groups.map { it.name }.count { it == group.name } > 1) {

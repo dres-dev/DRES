@@ -1,5 +1,7 @@
 package dres.data.model.run
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import dres.data.model.Entity
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.TaskDescription
@@ -9,7 +11,6 @@ import dres.run.score.interfaces.IncrementalTaskRunScorer
 import dres.run.score.interfaces.RecalculatingTaskRunScorer
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.validation.interfaces.SubmissionValidator
-import kotlinx.serialization.Serializable
 import java.util.*
 
 /**
@@ -19,7 +20,6 @@ import java.util.*
  * @author Ralph Gasser
  * @param 1.0
  */
-@Serializable
 class CompetitionRun(override var id: Long, val name: String, val competitionDescription: CompetitionDescription): Run, Entity {
 
     internal constructor(id: Long, name: String, competitionDescription: CompetitionDescription, started: Long?, ended: Long?) : this(id, name, competitionDescription) {
@@ -44,6 +44,7 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
 
     /** Lambda to be able to send notifications about submission updates*/
     @Volatile
+    @JsonIgnore
     var updateSubmissionStatus: (() -> Unit)? = null
 
     /** List of [TaskRun]s registered for this [CompetitionRun]. */
@@ -96,7 +97,7 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
      * @version 1.0
      * @author Ralph Gasser
      */
-    @Serializable
+    @JsonIgnoreProperties(value = ["competition"])
     inner class TaskRun (val taskId: Int): Run {
 
         internal constructor(task: Int, started: Long, ended: Long): this(task) {
@@ -206,7 +207,6 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
     }
 }
 
-@Serializable
 class TaskRunData(val task: TaskDescription, val taskId: Int) {
 
     /** List of [Submission]s* registered for this [TaskRun]. */

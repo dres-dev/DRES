@@ -1,6 +1,5 @@
 package dres.api.rest.types.run.websocket
 
-import kotlinx.serialization.Serializable
 
 /**
  * Message send by the DRES server via WebSocket to inform clients about the state of the run.
@@ -8,7 +7,6 @@ import kotlinx.serialization.Serializable
  * @author Ralph Gasser
  * @version 1.0
  */
-@Serializable
 data class ServerMessage(val runId: Long, val type: ServerMessageType, val timestamp: Long = System.currentTimeMillis())
 
 enum class ServerMessageType {

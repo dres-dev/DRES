@@ -2,7 +2,6 @@ package dres.run.audit
 
 import dres.data.model.Entity
 import dres.data.model.run.SubmissionStatus
-import kotlinx.serialization.Serializable
 
 enum class AuditLogEntryType {
 
@@ -24,7 +23,6 @@ enum class LogEventSource {
     GRPC
 }
 
-@Serializable
 sealed class AuditLogEntry(val type: AuditLogEntryType): Entity{
 
     var timestamp: Long = System.currentTimeMillis()
@@ -33,47 +31,38 @@ sealed class AuditLogEntry(val type: AuditLogEntryType): Entity{
 
 }
 
-@Serializable
 data class CompetitionStartAuditLogEntry(override var id: Long, val competition: String, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.COMPETITION_START){
     constructor(competition: String, api: LogEventSource, user: String?): this(-1, competition, api, user)
 }
 
-@Serializable
 data class CompetitionEndAuditLogEntry(override var id: Long, val competition: String, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.COMPETITION_END){
     constructor(competition: String, api: LogEventSource, user: String?): this(-1, competition, api, user)
 }
 
-@Serializable
 data class TaskStartAuditLogEntry(override var id: Long, val competition: String, val taskName: String, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.TASK_START){
     constructor(competition: String, taskName: String, api: LogEventSource, user: String?): this(-1, competition, taskName, api, user)
 }
 
-@Serializable
 data class TaskModifiedAuditLogEntry(override var id: Long, val competition: String, val taskName: String, val modification: String, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.TASK_MODIFIED) {
     constructor(competition: String, taskName: String, modification: String, api: LogEventSource, user: String?): this(-1, competition, taskName, modification, api, user)
 }
 
-@Serializable
 data class TaskEndAuditLogEntry(override var id: Long, val competition: String, val taskName: String, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.TASK_END){
     constructor(competition: String, taskName: String, api: LogEventSource, user: String?): this(-1, competition, taskName, api, user)
 }
 
-@Serializable
 data class SubmissionAuditLogEntry(override var id: Long, val competition: String, val taskName: String, val submissionSummary: String, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.SUBMISSION){
     constructor(competition: String, taskName: String, submissionSummary: String, api: LogEventSource, user: String?): this(-1, competition, taskName, submissionSummary, api, user)
 }
 
-@Serializable
 data class JudgementAuditLogEntry(override var id: Long, val competition: String, val validator: String, val token: String, val verdict: SubmissionStatus, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.JUDGEMENT) {
     constructor(competition: String, validator: String, token: String, verdict: SubmissionStatus, api: LogEventSource, user: String?): this(-1, competition, validator, token, verdict, api, user)
 }
 
-@Serializable
 data class LoginAuditLogEntry(override var id: Long, val user: String, val session: String, val api: LogEventSource) : AuditLogEntry(AuditLogEntryType.LOGIN) {
     constructor(user: String, session: String, api: LogEventSource): this(-1, user, session, api)
 }
 
-@Serializable
 data class LogoutAuditLogEntry(override var id: Long, val session: String, val api: LogEventSource) : AuditLogEntry(AuditLogEntryType.LOGOUT) {
     constructor(session: String, api: LogEventSource): this(-1, session, api)
 }

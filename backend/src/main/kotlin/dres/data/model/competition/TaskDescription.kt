@@ -17,9 +17,7 @@ import dres.run.score.scorer.AvsTaskScorer
 import dres.run.score.scorer.KisTaskScorer
 import dres.run.validation.TemporalOverlapSubmissionValidator
 import dres.run.validation.judged.BasicJudgementValidator
-import kotlinx.serialization.Serializable
 
-@Serializable
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "taskType")
 @JsonSubTypes(
         JsonSubTypes.Type(value = TaskDescriptionBase.KisVisualTaskDescription::class, name = "KIS_VISUAL"),
@@ -37,7 +35,6 @@ sealed class TaskDescriptionBase : TaskDescription {
      *
      * @param item [MediaItem] the user should be looking for.
      */
-    @Serializable
     data class KisVisualTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange) : TaskDescriptionBase(), MediaSegmentTaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = TemporalOverlapSubmissionValidator(this, callback)
@@ -47,10 +44,9 @@ sealed class TaskDescriptionBase : TaskDescription {
 
     /**
      * Describes a textual Known Item Search (KIS) [Task]
-     *x
+     *
      * @param item [MediaItem] the user should be looking for.
      */
-    @Serializable
     data class KisTextualTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange, val descriptions: List<String>, val delay: Int = 30) : TaskDescriptionBase(), MediaSegmentTaskDescription, HiddenResultsTaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = TemporalOverlapSubmissionValidator(this, callback)
@@ -63,7 +59,6 @@ sealed class TaskDescriptionBase : TaskDescription {
      *
      * @param description Textual task description presented to the user.
      */
-    @Serializable
     data class AvsTaskDescription(override val name: String, override val taskGroup: TaskGroup, override val duration: Long, val description: String, val defaultCollection: Long) : TaskDescriptionBase(), TaskDescription, DefinedMediaItemTaskDescription {
         override fun newScorer(): TaskRunScorer = AvsTaskScorer()
         override fun newValidator(callback: ((Submission) -> Unit)?) = BasicJudgementValidator(callback)

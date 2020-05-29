@@ -28,9 +28,12 @@ object MediaItemSerializer: Serializer<MediaItem> {
         }
     }
 
-    override fun deserialize(input: DataInput2, available: Int): MediaItem = when (input.readInt()) {
-        0 -> MediaItem.VideoItem(input.unpackLong(), input.readUTF(), input.readUTF(), input.unpackLong(), input.unpackLong(), input.readFloat())
-        1 -> MediaItem.ImageItem(input.unpackLong(), input.readUTF(), input.readUTF(), input.unpackLong())
-        else -> throw IllegalStateException("Unsupported MediaItem type detected upon deserialization.")
+    override fun deserialize(input: DataInput2, available: Int): MediaItem {
+        val i = input.readInt()
+        return when (i) {
+            0 -> MediaItem.VideoItem(input.unpackLong(), input.readUTF(), input.readUTF(), input.unpackLong(), input.unpackLong(), input.readFloat())
+            1 -> MediaItem.ImageItem(input.unpackLong(), input.readUTF(), input.readUTF(), input.unpackLong())
+            else -> throw IllegalStateException("Unsupported MediaItem $i type detected upon deserialization.")
+        }
     }
 }

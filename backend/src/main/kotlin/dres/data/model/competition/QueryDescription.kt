@@ -2,9 +2,7 @@ package dres.data.model.competition
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import kotlinx.serialization.Serializable
 
-@Serializable
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @JsonSubTypes(
         JsonSubTypes.Type(value = QueryDescription.VideoQueryDescription::class, name = "VIDEO"),

@@ -1,23 +1,23 @@
 package dres.api.cli
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
+import com.github.ajalt.clikt.parameters.types.long
 import dres.data.dbo.DAO
 import dres.data.model.Config
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
-import dres.data.serializers.CompetitionSerializer
 import dres.utilities.FFmpegUtil
-import kotlinx.serialization.json.Json
-import org.apache.logging.log4j.core.config.json.JsonConfiguration
 import java.io.File
+import java.nio.file.Paths
+import java.nio.file.StandardOpenOption
 
 class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>, internal val collections: DAO<MediaCollection>, config: Config) : NoOpCliktCommand(name = "competition") {
 
@@ -28,12 +28,14 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
     private val taskCacheLocation = File(config.cachePath + "/tasks")
 
     abstract inner class AbstractCompetitionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {
-
-        protected val competitionId: Long by option("-c", "--competition")
-                .convert { this@CompetitionCommand.competitions.find { c -> c.name == it }?.id ?: -1 }
-                .required()
-                .validate { require(it > -1) {"Competition not found"} }
-
+        private val id: Long? by option("-i", "--id").long()
+        private val competition: String? by option("-c", "--competition")
+        protected val competitionId: Long
+            get() = when {
+                this.id != null -> this.id!!
+                this.competition != null -> this@CompetitionCommand.competitions.find { c -> c.name == this.competition!! }?.id ?: -1
+                else -> 0
+            }
     }
 
     inner class CreateCompetitionCommand : CliktCommand(name = "create", help = "Creates a new Competition") {
@@ -179,25 +181,26 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
 
     }
 
-    inner class ExportCompetitionCommand : AbstractCompetitionCommand(name ="export", help="Exports a competition as JSON"){
+    /**
+     * Exports a specific competition as JSON.
+     */
+    inner class ExportCompetitionCommand : AbstractCompetitionCommand(name ="export", help="Exports a competition description as JSON."){
 
-        private val destination: String by option("-d", "--destination", help="The destination file for the competition").required()
-
-        private val json = Json(kotlinx.serialization.json.JsonConfiguration.Stable)
+        private val destination: String by option("-o", "--out", help="The destination file for the competition").required()
 
         override fun run() {
-            println("Not yet supported");
-            /*val competition = this@CompetitionCommand.competitions[competitionId]!!
+            val competition = this@CompetitionCommand.competitions[this.competitionId]
+            if (competition == null) {
+                println("Competition does not seem to exist.")
+                return
+            }
 
-            val dest = File(destination)
-
-            val jsonified = json.stringify(CompetitionDescription.serializer(), competition)
-
-            dest.writeText(jsonified)
-
-            println("Successfully wrote competition '${competition.name}' to ${dest}")*/
+            val path = Paths.get(this.destination)
+            val mapper = ObjectMapper()
+            java.nio.file.Files.newBufferedWriter(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE).use {
+                mapper.writeValue(it, competition)
+            }
+            println("Successfully wrote competition '${competition.name}' to $path.")
         }
-
     }
-
 }

@@ -47,6 +47,7 @@ object RestApi {
                 CreateUsersHandler(),
                 UpdateUsersHandler(),
                 CurrentUsersSessionIdHandler(),
+                ActiveSessionsHandler(dataAccessLayer.users),
 
                 //media
                 MediaPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),

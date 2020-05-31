@@ -4,12 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.long
 
 import dres.data.dbo.DAO
 import dres.data.model.run.CompetitionRun
+import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -18,7 +20,7 @@ import java.nio.file.StandardOpenOption
 class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktCommand(name = "runs") {
 
     init {
-        subcommands(OngoingCompetitionRunsCommand(), ListCompetitionRunsCommand(), ExportRun(), CompetitionRunsHistoryCommand())
+        subcommands(OngoingCompetitionRunsCommand(), ListCompetitionRunsCommand(), ExportRunCommand(), CompetitionRunsHistoryCommand(), ResetSubmissionStatusCommand())
     }
 
     /**
@@ -55,8 +57,8 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
     /**
      * Exports a specific competition run as JSON.
      */
-    inner class ExportRun: CliktCommand(name = "export", help = "Exports the competition run as JSON.") {
-        private val id: Long by option("-i", "--id").long().required()
+    inner class ExportRunCommand: CliktCommand(name = "export", help = "Exports the competition run as JSON.") {
+        private val id: Long by option("-r", "--run").long().required()
         private val path: String by option("-o", "--output").required()
         override fun run() {
             val run = this@CompetitionRunCommand.runs[this.id]
@@ -111,5 +113,85 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
         }
 
     }
+
+
+    inner class ResetSubmissionStatusCommand : NoOpCliktCommand(name = "resetSubmission", help = "Resets Submission Status to INDETERMINATE") {
+
+        init {
+            subcommands(ResetSingleSubmissionStatusCommand(), ResetTaskSubmissionStatusCommand(), ResetTaskGroupSubmissionStatusCommand())
+        }
+
+
+        inner class ResetSingleSubmissionStatusCommand : CliktCommand(name = "submission", help = "Resets the status of individual submissions") {
+
+            private val runId: Long by option("-r", "--run", help = "Id of the run").long().required()
+            private val ids: List<String> by option("-i", "--ids", help = "UIDs of the submissions to reset").multiple()
+
+            override fun run() {
+
+                val run = this@CompetitionRunCommand.runs[this.runId]
+                if (run == null) {
+                    println("Run does not seem to exist.")
+                    return
+                }
+
+                val submissions = run.runs.flatMap { it.data.submissions }.filter { it.uid in ids }
+                submissions.forEach { it.status = SubmissionStatus.INDETERMINATE }
+
+                this@CompetitionRunCommand.runs.update(run)
+
+                println("reset ${submissions.size} submissions")
+
+            }
+        }
+
+        inner class ResetTaskSubmissionStatusCommand : CliktCommand(name = "task", help = "Resets the status of all submissions of specified tasks") {
+
+            private val runId: Long by option("-r", "--run", help = "Id of the run").long().required()
+            private val ids: List<String> by option("-i", "--ids", help = "UIDs of the tasks to reset").multiple()
+
+            override fun run() {
+
+                val run = this@CompetitionRunCommand.runs[this.runId]
+                if (run == null) {
+                    println("Run does not seem to exist.")
+                    return
+                }
+
+                val submissions = run.runs.filter { it.uid in ids }.flatMap { it.data.submissions }
+                submissions.forEach { it.status = SubmissionStatus.INDETERMINATE }
+
+                this@CompetitionRunCommand.runs.update(run)
+
+                println("reset ${submissions.size} submissions")
+
+            }
+        }
+
+        inner class ResetTaskGroupSubmissionStatusCommand : CliktCommand(name = "taskGroup", help = "Resets the status all submissions for tasks within a task group") {
+
+            private val runId: Long by option("-r", "--run", help = "Id of the run").long().required()
+            private val taskGroup: String by option("-g", "--taskGroup", help = "Name of the Task Group to reset").required()
+
+            override fun run() {
+
+                val run = this@CompetitionRunCommand.runs[this.runId]
+                if (run == null) {
+                    println("Run does not seem to exist.")
+                    return
+                }
+
+                val submissions = run.runs.filter { it.task.taskGroup.name == taskGroup }.flatMap { it.data.submissions }
+                submissions.forEach { it.status = SubmissionStatus.INDETERMINATE }
+
+                this@CompetitionRunCommand.runs.update(run)
+
+                println("reset ${submissions.size} submissions")
+
+            }
+        }
+
+    }
+
 
 }

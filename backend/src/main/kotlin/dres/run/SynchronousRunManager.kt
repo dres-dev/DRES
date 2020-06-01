@@ -136,7 +136,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         this.run.start()
 
         /* Update status. */
-        this.status = RunManagerStatus.TERMINATED
+        this.status = RunManagerStatus.ACTIVE
 
         /* Mark DAO for update. */
         this.daoUpdatable.dirty = true
@@ -193,7 +193,10 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
             this.currentTask = this.competitionDescription.tasks[index]
 
             /* Update RunManager status. */
-            this.status == RunManagerStatus.ACTIVE
+            this.status = RunManagerStatus.ACTIVE
+
+            /* Mark scoreboards for update. */
+            this.scoreboards.dirty = true
 
             /* Enqueue WS message for sending */
             this.messageQueue.enqueue(ServerMessage(this.runId, ServerMessageType.COMPETITION_UPDATE))
@@ -202,9 +205,6 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         } else {
             throw IndexOutOfBoundsException("Index $index is out of bounds for the number of available tasks.")
         }
-
-        /* Mark scoreboards for update. */
-        this.scoreboards.dirty = true
     }
 
     override fun startTask() = this.stateLock.write {

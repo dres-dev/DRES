@@ -11,9 +11,13 @@ import dres.run.validation.interfaces.SubmissionValidator
  * Basic description of a [Task].
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.1
  */
 interface TaskDescription {
+
+    /** Internal, unique ID of this [TaskDescription]. */
+    val uid: String
+
     /** The name of the task */
     val name: String
 

@@ -9,6 +9,7 @@ import org.mapdb.Serializer
 
 object TaskDescriptionSerializer: Serializer<TaskDescriptionBase> {
     override fun serialize(out: DataOutput2, value: TaskDescriptionBase) {
+        out.writeUTF(value.uid)
         out.writeUTF(value.name)
         TaskGroupSerializer.serialize(out, value.taskGroup)
         out.packLong(value.duration)

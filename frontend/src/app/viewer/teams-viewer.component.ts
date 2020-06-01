@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, Input, OnDestroy} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskDescription} from '../../../openapi';
 import {combineLatest, Observable, of, Subscription} from 'rxjs';
-import {catchError, debounceTime, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
+import {catchError, debounceTime, filter, map, pairwise, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 
 @Component({
@@ -44,18 +44,6 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     }
 
     ngAfterViewInit(): void {
-
-        /* Observable that returns true if task has ended and hasn't changed in the meanwhile! */
-        this.displaySummary = this.state.pipe(
-            flatMap(s => {
-                if (s.status === 'RUNNING_TASK') {
-                    return of(true);
-                } else {
-                    return this.taskEnded.pipe(map(t =>  s.currentTask.name === t.name));
-                }
-            })
-        );
-
         /* Observable that tracks all the submissions per team. */
         this.submissions = this.state.pipe(
             switchMap(st => this.runService.getApiRunWithRunidTaskSubmissions(st.id).pipe(

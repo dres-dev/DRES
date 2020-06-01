@@ -9,12 +9,11 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TemporalRange } from './temporalRange';
-import { VideoItem } from './videoItem';
+import {TemporalRange} from './temporalRange';
+import {VideoItem} from './videoItem';
 
 
 export interface KisVisualTaskDescriptionAllOf { 
-    uid?: string;
     item?: VideoItem;
     temporalRange?: TemporalRange;
 }

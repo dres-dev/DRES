@@ -7,7 +7,7 @@ import {
     TextQueryDescription,
     VideoQueryDescription
 } from '../../../openapi';
-import {combineLatest, interval, merge, Observable, of, Subscription, timer, zip} from 'rxjs';
+import {interval, Observable, of, Subscription, timer, zip} from 'rxjs';
 import {catchError, filter, finalize, flatMap, map, share, shareReplay, switchMap, take, tap} from 'rxjs/operators';
 import {IWsMessage} from '../model/ws/ws-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
@@ -35,12 +35,6 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     /** Time that has elapsed (only when a task is running). */
     timeElapsed: Observable<number>;
 
-    /** Observable that returns true if task has ended and the currently active task is the same! */
-    justEnded: Observable<boolean>;
-
-    /** Observable that returns true if solution video should be displayed right after a task has ended! */
-    showSolution: Observable<boolean>;
-
     /** Observable that returns and caches the current query object. */
     currentQueryObject: Observable<VideoQueryDescription | TextQueryDescription | ImageQueryDescription>;
 
@@ -65,18 +59,6 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
      * Create a subscription for task changes.
      */
     ngAfterViewInit(): void {
-        /* Observable that returns true if task has ended and hasn't changed in the meanwhile! */
-        this.justEnded = combineLatest([this.state, this.taskEnded]).pipe(
-            map(([t1, t2]) => t1.currentTask.name === t2.name)
-        );
-
-        /* Observable that returns true if solution video should be displayed right after a task has ended! */
-        this.showSolution = merge(
-            this.taskStarted.pipe(map(p => false)),
-            this.taskChanged.pipe(map(p => false)),
-            this.taskEnded.pipe(map(p => true)),
-        );
-
         /* Subscription for the current query object. */
         this.currentQueryObject = this.taskChanged.pipe(
             flatMap(task => this.runId),

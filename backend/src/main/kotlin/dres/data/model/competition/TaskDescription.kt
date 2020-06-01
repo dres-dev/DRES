@@ -29,6 +29,7 @@ import java.util.*
 )
 sealed class TaskDescriptionBase : TaskDescription {
 
+
     /** Helper property for de/serialization. */
     val taskType: String
         get() = this.taskGroup.type.name
@@ -39,7 +40,7 @@ sealed class TaskDescriptionBase : TaskDescription {
      * @param item [MediaItem] the user should be looking for.
      */
     data class KisVisualTaskDescription @JsonCreator constructor(
-            @JsonProperty("uid") val uid: String = UUID.randomUUID().toString(),
+            @JsonProperty("uid") override val uid: String = UUID.randomUUID().toString(),
             @JsonProperty("name") override val name: String,
             @JsonProperty("taskGroup") override val taskGroup: TaskGroup,
             @JsonProperty("duration") override val duration: Long,
@@ -58,7 +59,7 @@ sealed class TaskDescriptionBase : TaskDescription {
      * @param item [MediaItem] the user should be looking for.
      */
     data class KisTextualTaskDescription @JsonCreator constructor(
-            @JsonProperty("uid") val uid: String = UUID.randomUUID().toString(),
+            @JsonProperty("uid") override val uid: String = UUID.randomUUID().toString(),
             @JsonProperty("name") override val name: String,
             @JsonProperty("taskGroup") override val taskGroup: TaskGroup,
             @JsonProperty("duration") override val duration: Long,
@@ -79,7 +80,7 @@ sealed class TaskDescriptionBase : TaskDescription {
      * @param description Textual task description presented to the user.
      */
     data class AvsTaskDescription @JsonCreator constructor(
-            @JsonProperty("uid") val uid: String = UUID.randomUUID().toString(),
+            @JsonProperty("uid") override val uid: String = UUID.randomUUID().toString(),
             @JsonProperty("name") override val name: String,
             @JsonProperty("taskGroup") override val taskGroup: TaskGroup,
             @JsonProperty("duration") override val duration: Long,

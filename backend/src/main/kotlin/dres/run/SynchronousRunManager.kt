@@ -130,7 +130,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     }
 
     override fun start() = this.stateLock.write {
-        if (this.status != RunManagerStatus.CREATED) throw IllegalStateException("SynchronizedRunManager is in status ${this.status} and cannot be started.")
+        check(this.status == RunManagerStatus.CREATED) { "SynchronizedRunManager is in status ${this.status} and cannot be started." }
 
         /* Start the run. */
         this.run.start()
@@ -148,7 +148,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     }
 
     override fun terminate() = this.stateLock.write {
-        if (this.status != RunManagerStatus.ACTIVE) throw IllegalStateException("SynchronizedRunManager is in status ${this.status} and cannot be terminated.")
+        check(this.status != RunManagerStatus.TERMINATED) { "SynchronizedRunManager is in status ${this.status} and cannot be terminated." }
 
         /* End the run. */
         this.run.end()

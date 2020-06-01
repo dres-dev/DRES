@@ -22,9 +22,9 @@ import java.util.*
  */
 class CompetitionRun(override var id: Long, val name: String, val competitionDescription: CompetitionDescription, val uid: String = UUID.randomUUID().toString()): Run, Entity {
 
-    internal constructor(id: Long, name: String, competitionDescription: CompetitionDescription, uid: String, started: Long?, ended: Long?) : this(id, name, competitionDescription, uid) {
-        this.started = started
-        this.ended = ended
+    internal constructor(id: Long, name: String, competitionDescription: CompetitionDescription, uid: String, started: Long, ended: Long) : this(id, name, competitionDescription, uid) {
+        this.started =  if (started == -1L) { null } else { started }
+        this.ended = if (ended == -1L) { null } else { ended }
     }
 
     init {

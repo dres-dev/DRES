@@ -42,11 +42,6 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
     override var ended: Long? = null
         private set
 
-    /** Lambda to be able to send notifications about submission updates*/
-    @Volatile
-    @JsonIgnore
-    var updateSubmissionStatus: (() -> Unit)? = null
-
     /** List of [TaskRun]s registered for this [CompetitionRun]. */
     val runs: List<TaskRun> = LinkedList<TaskRun>()
 
@@ -140,15 +135,11 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
         /** The [SubmissionValidator] used to validate [Submission]s. */
         @Transient
         val validator: SubmissionValidator = this.task.newValidator {
-
             when(this.scorer){
                 is IncrementalTaskRunScorer -> this.scorer.update(it)
                 is RecalculatingTaskRunScorer -> this.scorer.analyze(this)
                 else -> this.scorer.scores()
             }
-
-            updateSubmissionStatus?.let { it1 -> it1() }
-
         }
 
         init {
@@ -201,9 +192,6 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
             (this.data.submissions as MutableList).add(submission)
             this.validator.validate(submission)
         }
-
-
-
     }
 }
 

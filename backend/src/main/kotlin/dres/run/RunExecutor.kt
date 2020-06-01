@@ -22,7 +22,7 @@ import kotlin.collections.HashMap
  * The execution environment for [RunManager]s
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.1
  */
 object RunExecutor : Consumer<WsHandler> {
 
@@ -105,7 +105,7 @@ object RunExecutor : Consumer<WsHandler> {
                     for (m in runManagers.keys) {
                         if (this.observingClients[m]?.contains(it.sessionId) == true) {
                             this.observingClients[m]?.remove(it.sessionId)
-                            this.runManagers[m]?.wsMessageReceived(ClientMessage(m, ClientMessageType.UNREGISTER)) /* Send implicit unregister message associated with a disconnect. */
+                            this.runManagers[m]?.wsMessageReceived(it.sessionId, ClientMessage(m, ClientMessageType.UNREGISTER)) /* Send implicit unregister message associated with a disconnect. */
                         }
                     }
                 }
@@ -126,7 +126,7 @@ object RunExecutor : Consumer<WsHandler> {
                         ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.remove(it.sessionId) }
                         ClientMessageType.PING -> it.send(ServerMessage(message.runId, ServerMessageType.PING))
                     }
-                    this.runManagers[message.runId]!!.wsMessageReceived(message) /* Forward message to RunManager. */
+                    this.runManagers[message.runId]!!.wsMessageReceived(it.sessionId, message) /* Forward message to RunManager. */
                 }
             }
         }

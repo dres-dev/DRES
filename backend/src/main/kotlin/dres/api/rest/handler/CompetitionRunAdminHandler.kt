@@ -112,7 +112,7 @@ class CreateCompetitionRunAdminHandler(internal val runs: DAO<CompetitionRun>, p
         try {
             val manager = when (competitionStartMessage.type) {
                 RunType.ASYNCHRONOUS -> TODO()
-                RunType.SYNCHRONOUS -> SynchronousRunManager(competitionToStart, competitionStartMessage.name, generateScoreBoards(competitionToStart), RunExecutor, this.runs)
+                RunType.SYNCHRONOUS -> SynchronousRunManager(competitionToStart, competitionStartMessage.name, this.runs, generateScoreBoards(competitionToStart), RunExecutor)
             }
 
             /**... and schedule RunManager. */

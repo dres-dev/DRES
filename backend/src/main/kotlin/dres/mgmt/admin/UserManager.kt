@@ -1,6 +1,7 @@
 package dres.mgmt.admin
 
 import dres.api.rest.handler.UserHandler
+import dres.api.rest.handler.UserRequest
 import dres.data.dbo.DAO
 import dres.data.model.admin.PlainPassword
 import dres.data.model.admin.Role
@@ -148,17 +149,17 @@ object UserManager {
         return ::users.isInitialized
     }
 
-    fun create(toCreate: UserHandler.UserRequest): Boolean {
+    fun create(toCreate: UserRequest): Boolean {
         return create(UserName(toCreate.username), if(toCreate.password != null){PlainPassword(toCreate.password)}else{
             PlainPassword("")
         }, toCreate.role!!)
     }
 
-    fun updateEntirely(id:Long?, user: UserHandler.UserRequest): Boolean {
+    fun updateEntirely(id:Long?, user: UserRequest): Boolean {
         return update(id=id, username = user.username.toUsername(), password = user.password.toPlainPassword(), role = user.role)
     }
 
-    fun update(id:Long?, user:UserHandler.UserRequest):Boolean{
+    fun update(id:Long?, user:UserRequest):Boolean{
         return update(id=id, username = user.username.toUsername(), password = user.password?.toPlainPassword(), role=user.role)
     }
 }

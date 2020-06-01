@@ -51,9 +51,6 @@ abstract class UserHandler() : RestHandler {
     protected fun getCreateUserFromBody(ctx: Context): UserRequest {
         return ctx.body<UserRequest>()
     }
-
-
-
 }
 
 

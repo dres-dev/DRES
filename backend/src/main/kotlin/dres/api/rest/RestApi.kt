@@ -84,7 +84,7 @@ object RestApi {
                 PastSubmissionInfoHandler(),
 
                 //Competition run admin
-                CreateCompetitionRunAdminHandler(dataAccessLayer.runs, dataAccessLayer.competitions, dataAccessLayer.collections, config),
+                CreateCompetitionRunAdminHandler(dataAccessLayer.competitions, dataAccessLayer.collections, config),
                 StartCompetitionRunAdminHandler(dataAccessLayer.audit),
                 NextTaskCompetitionRunAdminHandler(),
                 PreviousTaskCompetitionRunAdminHandler(),

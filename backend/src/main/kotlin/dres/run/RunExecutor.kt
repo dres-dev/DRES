@@ -5,6 +5,9 @@ import dres.api.rest.types.run.websocket.ClientMessage
 import dres.api.rest.types.run.websocket.ClientMessageType
 import dres.api.rest.types.run.websocket.ServerMessage
 import dres.api.rest.types.run.websocket.ServerMessageType
+import dres.data.dbo.DAO
+import dres.data.model.admin.User
+import dres.data.model.run.CompetitionRun
 import dres.run.validation.interfaces.JudgementValidator
 import dres.utilities.extensions.read
 import dres.utilities.extensions.write
@@ -52,24 +55,44 @@ object RunExecutor : Consumer<WsHandler> {
     /** Internal array of [Future]s for cleaning after [RunManager]s. See [RunExecutor.cleanerThread]*/
     private val results = HashMap<Future<*>, Long>()
 
+    /** Instance of shared [DAO] used to access [CompetitionRun]s. */
+    lateinit var runs: DAO<CompetitionRun>
+
+    /**
+     * Initializes this [RunExecutor].
+     *
+     * @param runs The shared [DAO] used to access [CompetitionRun]s.
+     */
+    fun init(runs: DAO<CompetitionRun>) {
+        this.runs = runs
+        this.runs.filter { !it.hasEnded }.forEach {
+            val run = SynchronousRunManager(it) /* TODO: Distinction between Synchronous and Asynchronous runs. */
+            this.schedule(run)
+        }
+    }
+
     /** A thread that cleans after [RunManager] have finished. */
     private val cleanerThread = Thread(Runnable {
         while(!this@RunExecutor.executor.isShutdown) {
             var stamp = this@RunExecutor.runManagerLock.readLock()
             try {
-                this@RunExecutor.results.forEach { (k, v) ->
+                this@RunExecutor.results.entries.removeIf { entry ->
+                    val k = entry.key
+                    val v = entry.value
                     if (k.isDone || k.isCancelled) {
-                        logger.info("RunManager $v (done = ${k.isDone}, cancelled = ${k.isCancelled}) will be removed")
+                        logger.info("RunManager $v (done = ${k.isDone}, cancelled = ${k.isCancelled}) will be removed!")
                         stamp = this@RunExecutor.runManagerLock.tryConvertToWriteLock(stamp)
                         if (stamp > -1L) {
                             /* Deregister the RunManager. */
                             AccessManager.deregisterRunManager(this@RunExecutor.runManagers[v]!!)
 
                             /* Cleanup. */
-                            this@RunExecutor.results.remove(k)
                             this@RunExecutor.runManagers.remove(v)
                             this@RunExecutor.observingClients.remove(v)
                         }
+                        true
+                    } else {
+                        false
                     }
                 }
             } finally {

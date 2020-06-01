@@ -22,7 +22,6 @@ import dres.run.validation.interfaces.JudgementValidator
 import dres.run.validation.interfaces.SubmissionValidator
 import dres.utilities.ReadyLatch
 import dres.utilities.extensions.read
-import dres.utilities.extensions.write
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -109,7 +108,6 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
         get() = this.stateLock.read {
             this.run.runs.flatMap { it.data.submissions }
         }
-
 
     /** The pipeline for [Submission] processing. All [Submission]s undergo three steps: filter, validation and score update. */
     private val submissionPipeline: List<Triple<SubmissionFilter,SubmissionValidator, TaskRunScorer>> = LinkedList()
@@ -225,7 +223,7 @@ class SynchronousRunManager(competitionDescription: CompetitionDescription, name
         this.daoUpdatable.dirty = true
 
         /* Enqueue WS message for sending */
-        this.messageQueue.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_PREPARE))
+        this.messageQueue.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_END))
 
         LOGGER.info("SynchronousRunManager ${this.runId} aborted task task ${this.currentTask}")
     }

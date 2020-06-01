@@ -20,7 +20,7 @@ class MessageQueueUpdatable(val executor: RunExecutor) : Updatable {
     override fun update(status: RunManagerStatus) {
         var message: ServerMessage? = this.messageQueue.poll()
         while (message != null) {
-           this.executor.broadcastWsMessage(message)
+            this.executor.broadcastWsMessage(message)
             message = this.messageQueue.poll()
         }
     }

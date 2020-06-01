@@ -327,7 +327,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
                 this.internalStateUpdate(localStatus)
 
                 /* 4) Yield to other threads. */
-                Thread.onSpinWait()
+                Thread.sleep(10)
             } catch (e: Throwable) {
                 LOGGER.error("Uncaught exception in run loop for competition run ${this.runId}. Loop will continue to work but this error should be handled!", e)
             }

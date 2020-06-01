@@ -123,10 +123,9 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     private val stateLock = ReentrantReadWriteLock()
 
     init {
-        /* IMPORTANT: Order matters! */
-        this.updatables.add(this.scoreboards) /* 1: Update scoreboards. */
-        this.updatables.add(this.messageQueue) /* 2: Send WebSocket messages. */
-        this.updatables.add(this.daoUpdatable) /* 3: Update changes to the CompetitionRun object. */
+        this.updatables.add(this.scoreboards)
+        this.updatables.add(this.messageQueue)
+        this.updatables.add(this.daoUpdatable)
 
         /** Re-enqueue pending submissions (if any). */
         this.run.runs.forEach { run ->
@@ -315,20 +314,17 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
      * Internal method that orchestrates the internal progression of the [CompetitionRun].
      */
     override fun run() {
-        /** Wait for [SynchronousRunManager] to be started. */
-        do {
+        /** Sort list of by [Phase] in ascending order. */
+        this.updatables.sortBy { it.phase }
+
+        /** Start [SynchronousRunManager] . */
+        while (this.status != RunManagerStatus.TERMINATED) {
             try {
                 /* 1) Cache current status locally. */
                 val localStatus = this.status
 
                 /* 2)  Invoke all relevant [Updatable]s. */
-                this.updatableLock.read {
-                    this.updatables.forEach {
-                        if (it.shouldBeUpdated(localStatus)) {
-                            it.update(localStatus)
-                        }
-                    }
-                }
+                this.invokeUpdatables(localStatus)
 
                 /* 3) Process internal state updates (if necessary). */
                 this.internalStateUpdate(localStatus)
@@ -338,9 +334,25 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
             } catch (e: Throwable) {
                 LOGGER.error("Uncaught exception in run loop for competition run ${this.runId}. Loop will continue to work but this error should be handled!", e)
             }
-        } while (this.status != RunManagerStatus.TERMINATED)
+        }
+
+        /** Invoke [Updatables] one last time. */
+        this.invokeUpdatables(RunManagerStatus.TERMINATED)
 
         LOGGER.info("SynchronousRunManager ${this.runId} reached end of run logic.")
+    }
+
+    /**
+     * Invokes all [Updatable]s registered with this [SynchronousRunManager].
+     *
+     * @param status The [RunManagerStatus] for which to trigger the [Updatable]s.
+     */
+    private fun invokeUpdatables(status: RunManagerStatus) = this.updatableLock.read {
+        this.updatables.forEach {
+            if (it.shouldBeUpdated(status)) {
+                it.update(status)
+            }
+        }
     }
 
     /**

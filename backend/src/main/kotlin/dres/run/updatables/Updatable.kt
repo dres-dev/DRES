@@ -10,6 +10,10 @@ import dres.run.RunManagerStatus
  * @version 1.0
  */
 interface Updatable {
+
+    /** The [Phase] this [Updatable] belongs to. */
+    val phase: Phase
+
     /**
      * Triggers an update of this [Updatable].
      *

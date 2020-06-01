@@ -13,9 +13,11 @@ import dres.run.RunManagerStatus
  */
 class DAOUpdatable<T: Entity>(val dao: DAO<T>, val obj: T): StatefulUpdatable {
 
+    /** The [Phase] this [DAOUpdatable] belongs to. */
+    override val phase: Phase = Phase.FINALIZE
+
     @Volatile
     override var dirty: Boolean = false
-
     override fun update(status: RunManagerStatus) {
         if (this.dirty) {
             this.dao.update(this.obj)

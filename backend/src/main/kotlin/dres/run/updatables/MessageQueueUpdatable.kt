@@ -13,6 +13,9 @@ import java.util.concurrent.ConcurrentLinkedQueue
  */
 class MessageQueueUpdatable(val executor: RunExecutor) : Updatable {
 
+    /** The [Phase] this [MessageQueueUpdatable] belongs to. */
+    override val phase: Phase = Phase.FINALIZE
+
     /** Internal queue of all [ServerMessage] that are due for sending. */
     private val messageQueue = ConcurrentLinkedQueue<ServerMessage>()
 

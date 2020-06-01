@@ -18,6 +18,9 @@ class ScoreboardsUpdatable(val scoreboards: List<Scoreboard>, private val run: C
        val ELIGIBLE_STATUS = arrayOf(RunManagerStatus.ACTIVE, RunManagerStatus.RUNNING_TASK, RunManagerStatus.PREPARING_TASK)
     }
 
+    /** The [Phase] this [ScoreboardsUpdatable] belongs to. */
+    override val phase: Phase = Phase.MAIN
+
     @Volatile
     override var dirty: Boolean = false
 

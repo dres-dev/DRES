@@ -127,6 +127,13 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         this.updatables.add(this.scoreboards) /* 1: Update scoreboards. */
         this.updatables.add(this.messageQueue) /* 2: Send WebSocket messages. */
         this.updatables.add(this.daoUpdatable) /* 3: Update changes to the CompetitionRun object. */
+
+        /** Re-enqueue pending submissions (if any). */
+        this.run.runs.forEach { run ->
+            run.data.submissions.filter { it.status == SubmissionStatus.INDETERMINATE }.forEach {
+                run.validator.validate(it)
+            }
+        }
     }
 
     override fun start() = this.stateLock.write {

@@ -5,6 +5,7 @@ import {UserDetails} from '../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {map} from 'rxjs/operators';
 import {Observable} from 'rxjs';
+import {AppConfig} from './app.config';
 import RoleEnum = UserDetails.RoleEnum;
 
 @Component({
@@ -22,11 +23,18 @@ export class AppComponent {
   loggedIn: Observable<boolean>;
   canJudge: Observable<boolean>;
 
-  constructor(private authenticationService: AuthenticationService, private router: Router, private snackBar: MatSnackBar) {
+  constructor(private authenticationService: AuthenticationService, private router: Router, private snackBar: MatSnackBar, public config: AppConfig) {
     this.user = this.authenticationService.user;
     this.loggedIn = this.authenticationService.isLoggedIn;
     this.isAdmin = this.authenticationService.user.pipe(map(u => u?.role === RoleEnum.ADMIN));
     this.canJudge = this.authenticationService.user.pipe(map(u => u?.role === RoleEnum.ADMIN || u?.role === RoleEnum.JUDGE));
+  }
+
+  /**
+   *
+   */
+  public toggleMute() {
+    this.config.config.effects.mute = !this.config.config.effects.mute;
   }
 
   public logout() {

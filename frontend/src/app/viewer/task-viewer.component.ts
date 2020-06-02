@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnDestroy} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
 import {
     CompetitionRunService,
     ImageQueryDescription,
@@ -44,22 +44,16 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     /** Observable that returns and caches the current query object. */
     currentQueryObject: Observable<VideoQueryDescription | TextQueryDescription | ImageQueryDescription>;
 
-    /** The currently active task. */
-    taskPrepareSubscription: Subscription;
-
     /** Value of the task count down. */
     taskCountdown = '';
 
-    /** Reference to the audio file played during countdown. */
-    audio = [
-        new Audio('assets/audio/beep_1.ogg'),
-        new Audio('assets/audio/beep_2.ogg')
-    ];
+    /** Reference to the audio element used during countdown. */
+    @ViewChild('audio') audio: ElementRef<HTMLAudioElement>;
 
-    constructor(protected runService: CompetitionRunService, protected config: AppConfig) {
-        this.audio[0].load();
-        this.audio[1].load();
-    }
+    /** Subscriptions */
+    taskPrepareSubscription: Subscription;
+
+    constructor(protected runService: CompetitionRunService, public config: AppConfig) {}
 
     /**
      * Create a subscription for task changes.
@@ -102,9 +96,11 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
                     try {
                         this.taskCountdown = String(count);
                         if (count > 0) {
-                            this.audio[0].play().then(r => {});
+                            this.audio.nativeElement.src = 'assets/audio/beep_1.ogg';
+                            this.audio.nativeElement.play().then(r => {});
                         } else {
-                            this.audio[1].play().then(r => {});
+                            this.audio.nativeElement.src = 'assets/audio/beep_2.ogg';
+                            this.audio.nativeElement.play().then(r => {});
                         }
                     } catch (e) {
                         console.error('[TaskViewerComponent] Failed to play sound effect.', e);

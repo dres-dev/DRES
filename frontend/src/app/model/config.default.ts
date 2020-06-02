@@ -7,4 +7,7 @@ export class DefaultConfig implements IConfig {
         port: parseInt(this.url.port, 10),
         tls: this.url.protocol === 'https:'
     };
+    effects: {
+        mute: false;
+    };
 }

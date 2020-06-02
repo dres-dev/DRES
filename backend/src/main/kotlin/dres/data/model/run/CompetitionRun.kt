@@ -89,6 +89,8 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
         }
     }
 
+    override fun toString(): String = "CompetitionRun(id=$id, uid=$uid, name=${name})"
+
     /**
      * Represents a concrete instance or `run` of a [Task]. [TaskRun]s always exist within a
      * [CompetitionRun]. As a [CompetitionRun], [TaskRun]s can be started and ended and they

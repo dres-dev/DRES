@@ -60,8 +60,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
     inner class DeleteRunCommand: CliktCommand(name = "delete", help = "Deletes an existing competition run.") {
         private val id: Long by option("-r", "--run").long().required()
         override fun run() {
-            val count = RunExecutor.managers().count { it.runId == id }
-            if (count > 0) {
+            if (RunExecutor.managers().any { it.runId == id }) {
                 println("Run with ID $id could not be deleted because it is still running! Terminate it and try again.")
                 return
             }

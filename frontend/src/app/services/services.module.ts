@@ -13,5 +13,4 @@ import {AppConfig} from '../app.config';
   declarations: [],
   providers: []
 })
-export class ServicesModule {
-}
+export class ServicesModule {}

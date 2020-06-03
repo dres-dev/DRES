@@ -4,16 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.parameters.options.convert
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
-import com.github.ajalt.clikt.parameters.options.validate
+import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.long
+import dres.api.rest.handler.UserRequest
 import dres.data.model.admin.PlainPassword
 import dres.data.model.admin.Role
 import dres.data.model.admin.User
 import dres.data.model.admin.UserName
+import dres.data.model.competition.CompetitionDescription
 import dres.mgmt.admin.UserManager
 import dres.mgmt.admin.UserManager.MIN_LENGTH_PASSWORD
 import dres.mgmt.admin.UserManager.MIN_LENGTH_USERNAME
@@ -31,7 +30,7 @@ class UserCommand : NoOpCliktCommand(name = "users") {
 
 
     init {
-        this.subcommands(CreateUserCommand(), UpdateUserCommand(), DeleteUserCommand(), ListUsers(), ListRoles(), ExportUserCommand())
+        this.subcommands(CreateUserCommand(), UpdateUserCommand(), DeleteUserCommand(), ListUsers(), ListRoles(), ExportUserCommand(), ImportUserCommand())
     }
 
     /**
@@ -155,6 +154,39 @@ class UserCommand : NoOpCliktCommand(name = "users") {
                     println("Successfully wrote user ${user.id} to $path.")
                 } else {
                     println("User with ID $id does not exist.")
+                }
+            }
+        }
+    }
+
+    /**
+     * Imports a specific competition from JSON.
+     */
+    inner class ImportUserCommand: CliktCommand(name ="import", help="Imports a user description from JSON.") {
+
+        private val new: Boolean by option("-n", "--new", help="Flag indicating whether users should be created anew.").flag("-u", "--update", default = true)
+
+        private val multiple: Boolean by option("-m", "-multiple", help = "Flag indicating whether multiple users should be  imported.").flag("-s", "--single", default = true)
+
+        private val destination: String by option("-i", "--in", help= "The input file for the users.").required()
+
+        override fun run() {
+            val path = Paths.get(this.destination)
+            val mapper = ObjectMapper()
+
+            val import = Files.newBufferedReader(path).use {
+                if (this.multiple) {
+                    mapper.readValue(it, Array<User>::class.java)
+                } else {
+                    arrayOf(mapper.readValue(it, User::class.java))
+                }
+            }
+
+            import.forEach {
+                if (new) {
+                    UserManager.create(it.username, it.password, it.role)
+                } else {
+                    UserManager.update(it.id, it.username, it.password, it.role)
                 }
             }
         }

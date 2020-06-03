@@ -26,6 +26,8 @@
                 </div>
             </div>
         </div>
+
+        <audio #audio [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
     </div>
 </mat-card>
 

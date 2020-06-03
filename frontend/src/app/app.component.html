@@ -18,6 +18,13 @@
 
     <div class="spacer-flex"></div>
 
+    <div>
+        <button mat-button (click)="toggleMute()">
+            <mat-icon *ngIf="!(config.configAsObservable | async).effects.mute">volume_up</mat-icon>
+            <mat-icon *ngIf="(config.configAsObservable | async).effects.mute">volume_off</mat-icon>
+        </button>
+    </div>
+
     <div *ngIf="!(loggedIn | async)">
         <button mat-button routerLink="/login">
             Login

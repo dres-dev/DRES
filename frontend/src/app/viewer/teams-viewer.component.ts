@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnDestroy} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskDescription} from '../../../openapi';
 import {combineLatest, Observable, of, Subscription} from 'rxjs';
 import {catchError, debounceTime, filter, map, pairwise, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
@@ -25,23 +25,15 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     /** Observable that tracks the current score per team. */
     scores: Observable<ScoreOverview>;
 
+    /** Reference to the audio file played during countdown. */
+    @ViewChild('audio') audio: ElementRef<HTMLAudioElement>;
+
     submissionSoundEffect: Subscription;
     taskEndedSoundEffect: Subscription;
 
-    /** Reference to the audio file played during countdown. */
-    audio = [
-        new Audio('assets/audio/applause.ogg'), /** Task end (Success). */
-        new Audio('assets/audio/sad_trombone.ogg'), /** Task end (Failure). */
-        new Audio('assets/audio/correct.ogg'), /** Correct submission. */
-        new Audio('assets/audio/wrong.ogg') /** Incorrect submission. */
-    ];
 
-    constructor(private runService: CompetitionRunService, private config: AppConfig) {
-        this.audio[0].load();
-        this.audio[1].load();
-        this.audio[2].load();
-        this.audio[3].load();
-    }
+
+    constructor(private runService: CompetitionRunService, public config: AppConfig) {}
 
     ngAfterViewInit(): void {
         /* Observable that tracks all the submissions per team. */
@@ -96,9 +88,11 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
             })
         ).subscribe(delta => {
             if (delta[0] > delta[1]) {
-                this.audio[2].play().then(r => {});
+                this.audio.nativeElement.src = 'assets/audio/correct.ogg';
+                this.audio.nativeElement.play().then(r => {});
             } else if (delta[0] < delta[1]) {
-                this.audio[3].play().then(r => {});
+                this.audio.nativeElement.src = 'assets/audio/wrong.ogg';
+                this.audio.nativeElement.play().then(r => {});
             }
         });
 
@@ -110,9 +104,11 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
             })
         ).subscribe(success => {
             if (success) {
-                this.audio[0].play().then(r => {});
+                this.audio.nativeElement.src = 'assets/audio/applause.ogg';
+                this.audio.nativeElement.play().then(r => {});
             } else {
-                this.audio[1].play().then(r => {});
+                this.audio.nativeElement.src = 'assets/audio/sad_trombone.ogg';
+                this.audio.nativeElement.play().then(r => {});
             }
         });
     }

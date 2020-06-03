@@ -3,10 +3,7 @@ package dres.mgmt.admin
 import dres.api.rest.handler.UserHandler
 import dres.api.rest.handler.UserRequest
 import dres.data.dbo.DAO
-import dres.data.model.admin.PlainPassword
-import dres.data.model.admin.Role
-import dres.data.model.admin.User
-import dres.data.model.admin.UserName
+import dres.data.model.admin.*
 import dres.utilities.extensions.toPlainPassword
 import dres.utilities.extensions.toUsername
 
@@ -29,6 +26,21 @@ object UserManager {
         this.users = users
     }
 
+    fun create(username: UserName, password: HashedPassword, role: Role): Boolean {
+        validateInitalised()
+        if(username.length < MIN_LENGTH_USERNAME){
+            throw RuntimeException("Username is less than $MIN_LENGTH_USERNAME characters")
+        }
+        val newUser = User(username = username, password = password, role = role)
+        for (existingUser in this.users) {
+            if (existingUser in this.users) {
+                return false
+            }
+        }
+        this.users.append(newUser)
+        return true
+    }
+
     fun create(username: UserName, password: PlainPassword, role: Role): Boolean {
         validateInitalised()
         if(password.length < MIN_LENGTH_PASSWORD){
@@ -45,6 +57,20 @@ object UserManager {
         }
         users.append(newUser)
         return true
+    }
+
+    fun update(id: Long?, username: UserName?, password: HashedPassword?, role: Role?): Boolean {
+        validateInitalised()
+        val updateId = id(id, username)
+        if (updateId != null) {
+            val currentUser = users[updateId]
+            if (currentUser != null) {
+                val updatedUser = currentUser.copy(id = currentUser.id, username = username ?: currentUser.username, password = password ?: currentUser.password, role = role ?: currentUser.role)
+                users.update(updatedUser)
+                return true
+            }
+        }
+        return false
     }
 
     fun update(id: Long?, username: UserName?, password: PlainPassword?, role: Role?): Boolean {

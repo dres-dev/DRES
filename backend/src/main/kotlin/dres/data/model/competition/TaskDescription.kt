@@ -48,7 +48,7 @@ sealed class TaskDescriptionBase : TaskDescription {
             @JsonProperty("temporalRange") override val temporalRange: TemporalRange)
         : TaskDescriptionBase(), MediaSegmentTaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
-        override fun newValidator(callback: ((Submission) -> Unit)?) = TemporalOverlapSubmissionValidator(this, callback)
+        override fun newValidator() = TemporalOverlapSubmissionValidator(this)
         override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}-${temporalRange.start.value}-${temporalRange.end.value}.mp4"
         override fun newFilter(): SubmissionFilter = OneCorrectSubmissionPerTeamFilter() and DuplicateSubmissionFilter()
     }
@@ -69,7 +69,7 @@ sealed class TaskDescriptionBase : TaskDescription {
             @JsonProperty("delay") val delay: Int = 30)
         : TaskDescriptionBase(), MediaSegmentTaskDescription, HiddenResultsTaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
-        override fun newValidator(callback: ((Submission) -> Unit)?) = TemporalOverlapSubmissionValidator(this, callback)
+        override fun newValidator() = TemporalOverlapSubmissionValidator(this)
         override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}-${temporalRange.start.value}-${temporalRange.end.value}.mp4"
         override fun newFilter(): SubmissionFilter = OneCorrectSubmissionPerTeamFilter() and DuplicateSubmissionFilter()
     }
@@ -88,7 +88,7 @@ sealed class TaskDescriptionBase : TaskDescription {
             @JsonProperty("defaultCollection") val defaultCollection: Long)
         : TaskDescriptionBase(), TaskDescription, DefinedMediaItemTaskDescription {
         override fun newScorer(): TaskRunScorer = AvsTaskScorer()
-        override fun newValidator(callback: ((Submission) -> Unit)?) = BasicJudgementValidator(callback)
+        override fun newValidator() = BasicJudgementValidator()
         override fun newFilter(): SubmissionFilter = DuplicateSubmissionFilter()
     }
 }

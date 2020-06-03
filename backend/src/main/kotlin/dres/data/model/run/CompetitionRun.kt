@@ -136,13 +136,7 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
 
         /** The [SubmissionValidator] used to validate [Submission]s. */
         @Transient
-        val validator: SubmissionValidator = this.task.newValidator {
-            when(this.scorer){
-                is IncrementalTaskRunScorer -> this.scorer.update(it)
-                is RecalculatingTaskRunScorer -> this.scorer.analyze(this)
-                else -> this.scorer.scores()
-            }
-        }
+        val validator: SubmissionValidator = this.task.newValidator()
 
         init {
             if (this@CompetitionRun.competitionDescription.tasks.size < this.taskId) {

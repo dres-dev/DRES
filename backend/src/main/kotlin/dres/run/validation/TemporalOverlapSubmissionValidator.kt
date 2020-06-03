@@ -5,6 +5,7 @@ import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.validation.interfaces.SubmissionValidator
+import dres.run.validation.judged.BasicJudgementValidator
 import dres.utilities.TimeUtil
 
 /**
@@ -14,7 +15,8 @@ import dres.utilities.TimeUtil
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */
-class TemporalOverlapSubmissionValidator(private val task: MediaSegmentTaskDescription, override val callback: ((Submission) -> Unit)? = null) : SubmissionValidator {
+class TemporalOverlapSubmissionValidator(private val task: MediaSegmentTaskDescription) : SubmissionValidator {
+
     /**
      * Validates a [Submission] based on the target segment and the temporal overlap of the
      * [Submission] with the [TaskDescription].
@@ -35,8 +37,5 @@ class TemporalOverlapSubmissionValidator(private val task: MediaSegmentTaskDescr
                 }
             }
         }
-
-        /* Invoke callback if any. */
-        this.callback?.invoke(submission)
     }
 }

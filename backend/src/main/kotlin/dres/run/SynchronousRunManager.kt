@@ -12,10 +12,7 @@ import dres.data.model.run.SubmissionStatus
 import dres.data.model.run.TaskRunData
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
-import dres.run.updatables.DAOUpdatable
-import dres.run.updatables.MessageQueueUpdatable
-import dres.run.updatables.ScoreboardsUpdatable
-import dres.run.updatables.Updatable
+import dres.run.updatables.*
 import dres.run.validation.interfaces.JudgementValidator
 import dres.run.validation.interfaces.SubmissionValidator
 import dres.utilities.ReadyLatch
@@ -104,6 +101,9 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     /** The internal [ScoreboardsUpdatable] instance for this [SynchronousRunManager]. */
     override val scoreboards = ScoreboardsUpdatable(this.competitionDescription.generateDefaultScoreboards(), this.run)
 
+    /** The internal [ScoresUpdatable] instance for this [SynchronousRunManager]. */
+    private val scoresUpdateable = ScoresUpdatable(this.scoreboards)
+
     /** The internal [MessageQueueUpdatable] instance used by this [SynchronousRunManager]. */
     private val messageQueue = MessageQueueUpdatable(RunExecutor)
 
@@ -123,6 +123,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     private val stateLock = ReentrantReadWriteLock()
 
     init {
+        this.updatables.add(this.scoresUpdateable)
         this.updatables.add(this.scoreboards)
         this.updatables.add(this.messageQueue)
         this.updatables.add(this.daoUpdatable)
@@ -298,11 +299,14 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronizedRunManager is in status ${this.status} and can currently not accept submissions." }
 
         /* Register submission. */
-        this.run.currentTask!!.addSubmission(sub)
+        val task = this.run.currentTask!!
+        task.addSubmission(sub)
 
-        /* Mark scoreboards and dao for update. */
-        this.scoreboards.dirty = true
+        /* Mark dao for update. */
         this.daoUpdatable.dirty = true
+
+        /* Enqueue submission for post-processing. */
+        this.scoresUpdateable.enqueue(Pair(task, sub))
 
         /* Enqueue WS message for sending */
         this.messageQueue.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_UPDATED))

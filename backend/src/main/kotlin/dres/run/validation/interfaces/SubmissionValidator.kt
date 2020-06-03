@@ -4,15 +4,12 @@ import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 
 /**
- * A validator class that checks, if  a submission is correct.
+ * A validator class that checks, if a [Submission] is correct.
  *
  * @author Luca Rossetto & Ralph Gasser
- * @version 1.0
+ * @version 1.1
  */
 interface SubmissionValidator {
-    /** Callback function that is invoked everytime a [Submission] has been validated. */
-    val callback: ((Submission) -> Unit)?
-
     /**
      * Validates the [Submission] and updates its [SubmissionStatus].
      *

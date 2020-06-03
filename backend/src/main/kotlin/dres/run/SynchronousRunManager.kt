@@ -101,11 +101,11 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     /** The internal [ScoreboardsUpdatable] instance for this [SynchronousRunManager]. */
     override val scoreboards = ScoreboardsUpdatable(this.competitionDescription.generateDefaultScoreboards(), this.run)
 
-    /** The internal [ScoresUpdatable] instance for this [SynchronousRunManager]. */
-    private val scoresUpdateable = ScoresUpdatable(this.scoreboards)
-
     /** The internal [MessageQueueUpdatable] instance used by this [SynchronousRunManager]. */
-    private val messageQueue = MessageQueueUpdatable(RunExecutor)
+    private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
+
+    /** The internal [ScoresUpdatable] instance for this [SynchronousRunManager]. */
+    private val scoresUpdatable = ScoresUpdatable(this.runId, this.scoreboards, this.messageQueueUpdatable)
 
     /** The internal [DAOUpdatable] instance used by this [SynchronousRunManager]. */
     private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
@@ -123,9 +123,9 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     private val stateLock = ReentrantReadWriteLock()
 
     init {
-        this.updatables.add(this.scoresUpdateable)
+        this.updatables.add(this.scoresUpdatable)
         this.updatables.add(this.scoreboards)
-        this.updatables.add(this.messageQueue)
+        this.updatables.add(this.messageQueueUpdatable)
         this.updatables.add(this.daoUpdatable)
 
         /** Re-enqueue pending submissions (if any). */
@@ -149,7 +149,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         this.daoUpdatable.dirty = true
 
         /* Enqueue WS message for sending */
-        this.messageQueue.enqueue(ServerMessage(this.runId, ServerMessageType.COMPETITION_START))
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.runId, ServerMessageType.COMPETITION_START))
 
         LOGGER.info("SynchronousRunManager ${this.runId} started")
     }
@@ -167,7 +167,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         this.daoUpdatable.dirty = true
 
         /* Enqueue WS message for sending */
-        this.messageQueue.enqueue(ServerMessage(this.runId, ServerMessageType.COMPETITION_END))
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.runId, ServerMessageType.COMPETITION_END))
 
         LOGGER.info("SynchronousRunManager ${this.runId} terminated")
     }
@@ -206,7 +206,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
             this.scoreboards.dirty = true
 
             /* Enqueue WS message for sending */
-            this.messageQueue.enqueue(ServerMessage(this.runId, ServerMessageType.COMPETITION_UPDATE))
+            this.messageQueueUpdatable.enqueue(ServerMessage(this.runId, ServerMessageType.COMPETITION_UPDATE))
 
             LOGGER.info("SynchronousRunManager ${this.runId} set to task $index")
         } else {
@@ -231,7 +231,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         this.readyLatch.reset()
 
         /* Enqueue WS message for sending */
-        this.messageQueue.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_PREPARE))
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_PREPARE))
 
         LOGGER.info("SynchronousRunManager ${this.runId} started task task ${this.currentTask}")
     }
@@ -252,7 +252,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         this.daoUpdatable.dirty = true
 
         /* Enqueue WS message for sending */
-        this.messageQueue.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_END))
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_END))
 
         LOGGER.info("SynchronousRunManager ${this.runId} aborted task task ${this.currentTask}")
     }
@@ -306,10 +306,10 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         this.daoUpdatable.dirty = true
 
         /* Enqueue submission for post-processing. */
-        this.scoresUpdateable.enqueue(Pair(task, sub))
+        this.scoresUpdatable.enqueue(Pair(task, sub))
 
         /* Enqueue WS message for sending */
-        this.messageQueue.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_UPDATED))
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_UPDATED))
 
         return sub.status
     }
@@ -377,7 +377,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
             this.daoUpdatable.dirty = true
 
             /* Enqueue WS message for sending */
-            this.messageQueue.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_START))
+            this.messageQueueUpdatable.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_START))
         }
 
         /** Case 2: Facilitates internal transition from RunManagerStatus.RUNNING_TASK to RunManagerStatus.TASK_ENDED due to timeout. */
@@ -393,7 +393,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
                 this.daoUpdatable.dirty = true
 
                 /* Enqueue WS message for sending */
-                this.messageQueue.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_END))
+                this.messageQueueUpdatable.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_END))
             }
         }
     }

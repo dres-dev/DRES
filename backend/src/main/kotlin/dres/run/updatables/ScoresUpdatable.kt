@@ -1,5 +1,7 @@
 package dres.run.updatables
 
+import dres.api.rest.types.run.websocket.ServerMessage
+import dres.api.rest.types.run.websocket.ServerMessageType
 import dres.data.model.run.CompetitionRun
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
@@ -15,7 +17,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0
  */
-class ScoresUpdatable(val scoreboardsUpdatable: ScoreboardsUpdatable): Updatable {
+class ScoresUpdatable(val runId: Long, val scoreboardsUpdatable: ScoreboardsUpdatable, val messageQueueUpdatable: MessageQueueUpdatable): Updatable {
 
     companion object {
         val ELIGIBLE_STATUS = arrayOf(RunManagerStatus.ACTIVE, RunManagerStatus.RUNNING_TASK, RunManagerStatus.PREPARING_TASK, RunManagerStatus.TASK_ENDED)
@@ -49,6 +51,9 @@ class ScoresUpdatable(val scoreboardsUpdatable: ScoreboardsUpdatable): Updatable
 
             /* Since Scoreboards depend on task scores, mark respective updateable as dirty. */
             this.scoreboardsUpdatable.dirty = true
+
+            /* Enqueue WS message for sending */
+            this.messageQueueUpdatable.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_UPDATED))
         }
     }
 

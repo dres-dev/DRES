@@ -6,7 +6,6 @@ import dres.api.rest.util.MimeTypeHelper
 import io.javalin.http.Context
 import java.io.File
 import java.nio.file.Files
-import java.nio.file.OpenOption
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
@@ -32,11 +31,22 @@ fun Context.streamFile(file: File) {
 
 fun Context.streamFile(path: Path) {
     if (!Files.exists(path)){
-        throw ErrorStatusException(404, "File $path not found!")
+        this.errorResponse(404, "File $path not found!")
+        return
     }
     val mimeType = MimeTypeHelper.mimeType(path.toFile())
     this.contentType(mimeType)
     this.seekableStream(Files.newInputStream(path, StandardOpenOption.READ), mimeType)
+}
+
+fun Context.sendFile(file: File) {
+    if (!file.exists()){
+        this.errorResponse(404, "'${file.name}' not found")
+        return
+    }
+    val mimeType = MimeTypeHelper.mimeType(file)
+    this.contentType(mimeType)
+    this.result(file.inputStream())
 }
 
 fun Context.sessionId(): String = this.queryParam("session", this.req.session.id)!!

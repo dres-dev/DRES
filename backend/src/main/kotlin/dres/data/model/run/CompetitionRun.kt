@@ -64,7 +64,7 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
      */
     override fun end() {
         if (!this.isRunning) {
-            throw IllegalStateException("Competition run '$name' is not running.")
+            this.started = System.currentTimeMillis()
         }
         this.ended = System.currentTimeMillis()
     }

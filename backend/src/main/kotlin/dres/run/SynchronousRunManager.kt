@@ -244,7 +244,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         this.run.currentTask?.end()
 
         /* Update state. */
-        this.status = RunManagerStatus.ACTIVE
+        this.status = RunManagerStatus.TASK_ENDED
 
         /* Mark scoreboards and dao for update. */
         this.scoreboards.dirty = true

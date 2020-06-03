@@ -114,7 +114,7 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
                 () => {
                     return {runId, type: 'UNREGISTER'} as IWsClientMessage;
                 },
-                message => message.runId === runId
+                message => true
             ).pipe(
                 retryWhen((err) => err.pipe(
                     tap(e => console.error('[RunViewerComponent] An error occurred with the WebSocket communication channel. Trying to reconnect in 1 second.', e)),

@@ -19,7 +19,7 @@
     <div class="spacer-flex"></div>
 
     <div>
-        <button mat-button (click)="toggleMute()">
+        <button matTooltip="{{(config.configAsObservable | async).effects.mute ? 'Unmute' : 'Mute'}}" mat-button (click)="toggleMute()">
             <mat-icon *ngIf="!(config.configAsObservable | async).effects.mute">volume_up</mat-icon>
             <mat-icon *ngIf="(config.configAsObservable | async).effects.mute">volume_off</mat-icon>
         </button>

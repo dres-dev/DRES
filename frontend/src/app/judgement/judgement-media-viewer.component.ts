@@ -1,5 +1,5 @@
-import {AfterViewInit, Component, ElementRef, Input, ViewChild} from '@angular/core';
-import {Observable} from 'rxjs';
+import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Observable, Subscription} from 'rxjs';
 import {AppConfig} from '../app.config';
 import {JudgementRequest} from '../../../openapi';
 
@@ -8,11 +8,32 @@ import {JudgementRequest} from '../../../openapi';
     templateUrl: './judgement-media-viewer.component.html',
     styleUrls: ['./judgement-media-viewer.component.scss']
 })
-export class JudgementMediaViewerComponent implements AfterViewInit {
+export class JudgementMediaViewerComponent implements OnInit, OnDestroy{
 
+    /**
+     * The observable holding the currently judged request (i.e. the submission to judge)
+     */
     @Input() req: Observable<JudgementRequest>;
 
+    /**
+     * Padding to add, if the submission is too short
+     * Will be added to the start and end, i.e. the actual played length will be
+     * submission.duration + 2 * padding.
+     * Default= 2s
+     */
+    @Input() padding = 2;
+
+    /**
+     * Too short submission duration threshold (if shorten than this, the padding is added).
+     * Default: 3s
+     */
+    @Input() tooShortThreshold = 3;
+
     @ViewChild('videoPlayer', {static: false}) video: ElementRef;
+
+    private startInSeconds: Observable<number>;
+    private endInSeconds: Observable<number>;
+    private requestSub: Subscription;
 
     videoUrl: Observable<string>;
     videoUrlDebug: Observable<string>;
@@ -21,15 +42,22 @@ export class JudgementMediaViewerComponent implements AfterViewInit {
     constructor(private config: AppConfig) {
     }
 
+    ngOnInit(): void {
+        this.requestSub = this.req.subscribe(req => {
+
+        });
+    }
+
+
     public judge(req: JudgementRequest) {
         console.log('[JudgeMedia] Judging: ' + JSON.stringify(req));
         let startTime = 0;
         if (req.startTime) {
-            startTime = Number.parseInt(req.startTime, 10) / 1000; // ms?
+            startTime = Math.floor(Number.parseInt(req.startTime, 10) / 1000); // ms?
         }
         let endTime = -1;
         if (req.endTime) {
-            endTime = Number.parseInt(req.endTime, 10) / 1000;
+            endTime = Math.ceil(Number.parseInt(req.endTime, 10) / 1000);
         }
         if (startTime === endTime) {
             startTime = startTime - this.offset < 0 ? 0 : startTime - this.offset;
@@ -67,7 +95,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit {
                 this.video.nativeElement.addEventListener('loadeddata', () => { // TODO TypeError this.video.addEventListener is not a function
                     console.log('[JudgeMedia] Loaded complete');
                     this.video.nativeElement.currentTime = startTime;
-                    this.video.nativeElement.play().then(r => console.log('re-playing'));
+                    this.video.nativeElement.play().then(r => console.log('[Judgem]'));
                 });
             }
 
@@ -95,6 +123,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit {
         this.videoUrl = undefined;
     }
 
-    ngAfterViewInit(): void {
+    ngOnDestroy(): void {
     }
+
 }

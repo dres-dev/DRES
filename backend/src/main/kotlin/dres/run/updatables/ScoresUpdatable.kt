@@ -35,7 +35,7 @@ class ScoresUpdatable(val runId: Long, val scoreboardsUpdatable: ScoreboardsUpda
     override fun update(status: RunManagerStatus) {
         val scorersToUpdate = mutableSetOf<RecalculatingTaskRunScorer>()
         if (!this.list.isEmpty()) {
-            this.list.removeIf {
+            val removed = this.list.removeIf {
                 val scorer = it.first.scorer
                 if (it.second.status != SubmissionStatus.INDETERMINATE) {
                     when(scorer) {
@@ -49,11 +49,11 @@ class ScoresUpdatable(val runId: Long, val scoreboardsUpdatable: ScoreboardsUpda
                 }
             }
 
-            /* Since Scoreboards depend on task scores, mark respective updateable as dirty. */
-            this.scoreboardsUpdatable.dirty = true
-
-            /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_UPDATED))
+            /* If elements were removed, then update scoreboards and tasks. */
+            if (removed) {
+                this.scoreboardsUpdatable.dirty = true
+                this.messageQueueUpdatable.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_UPDATED))
+            }
         }
     }
 

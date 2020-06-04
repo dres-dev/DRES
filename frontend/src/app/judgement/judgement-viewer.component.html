@@ -1,11 +1,14 @@
 <div class="grid">
     <div class="header">
-        <h1>Judgment for Submission</h1>
-        <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> {{judgementRequest?.taskDescription}}</p>
+        <h1 [matBadge]="(openSubmissions  | async) !== null ? (openSubmissions | async).toString(10) : ''" matBadgeOverlap="true" >Judgment for Submission</h1>
+        <p *ngIf="isJudgmentAvailable"><strong matBadge="1" matBadgeOverlap="true" matBadgePosition="above after" [matBadgeHidden]="isNewJudgementDesc">Description:</strong> {{judgementRequest?.taskDescription}}</p>
         <p *ngIf="isJudgmentAvailable">{{(judgePlayer?.videoUrlDebug | async)}}</p>
     </div>
     <div class="body">
         <span *ngIf="!isJudgmentAvailable">{{noJudgementMessage}}</span>
+        <div class="progress-wrapper">
+            <mat-progress-bar id="progress" mode="buffer"></mat-progress-bar>
+        </div>
         <app-judgement-media-viewer id="judge-media-viewer" [req]="observableJudgementRequest"></app-judgement-media-viewer>
         <div *ngIf="isJudgmentAvailable" class="controls-container">
             <div fxFlex="33" class="button-wrapper">

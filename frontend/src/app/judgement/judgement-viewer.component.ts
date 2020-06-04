@@ -1,5 +1,5 @@
 import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {interval, Observable, of, Subscription} from 'rxjs';
+import {BehaviorSubject, interval, Observable, of, Subscription} from 'rxjs';
 import {Judgement, JudgementRequest, JudgementService, SubmissionInfo} from '../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
 import {catchError, filter, map, switchMap, withLatestFrom} from 'rxjs/operators';
@@ -20,6 +20,7 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
 
     @Input() pollingFrequency = 1000;
     @ViewChild(JudgementMediaViewerComponent) judgePlayer: JudgementMediaViewerComponent;
+    observableJudgementRequest: BehaviorSubject<JudgementRequest> = new BehaviorSubject<JudgementRequest>(null);
     judgementRequest: JudgementRequest;
     noJudgementMessage = '';
     isJudgmentAvailable = false;
@@ -78,10 +79,9 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
         ).subscribe(req => {
             console.log('[Judgem.View] Received request');
             console.log(req);
-            // TODO handle case there is no submission to judge
             this.judgementRequest = req;
+            this.observableJudgementRequest.next(req);
             this.isJudgmentAvailable = true;
-            this.judgePlayer.judge(req);
         });
     }
 
@@ -93,10 +93,6 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
         this.requestSub = null;
     }
 
-    /**
-     *
-     * @param status
-     */
     public judge(status: SubmissionInfo.StatusEnum) {
         const judgement = {
             token: this.judgementRequest.token,

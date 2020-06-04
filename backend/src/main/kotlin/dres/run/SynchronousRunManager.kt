@@ -123,10 +123,16 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     private val stateLock = ReentrantReadWriteLock()
 
     init {
+        /* Register relevant updatables. */
         this.updatables.add(this.scoresUpdatable)
         this.updatables.add(this.scoreboards)
         this.updatables.add(this.messageQueueUpdatable)
         this.updatables.add(this.daoUpdatable)
+
+        /** End ongoing runs upon intialization (in case server crashed during task execution). */
+        if (this.run.currentTask?.isRunning == true) {
+            this.run.currentTask?.end()
+        }
 
         /** Re-enqueue pending submissions (if any). */
         this.run.runs.forEach { run ->

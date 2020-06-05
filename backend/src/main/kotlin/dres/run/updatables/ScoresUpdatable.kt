@@ -33,13 +33,13 @@ class ScoresUpdatable(val runId: Long, val scoreboardsUpdatable: ScoreboardsUpda
     fun enqueue(submission: Pair<CompetitionRun.TaskRun,Submission>) = this.list.add(submission)
 
     override fun update(status: RunManagerStatus) {
-        val scorersToUpdate = mutableSetOf<RecalculatingTaskRunScorer>()
         if (!this.list.isEmpty()) {
+            val scorersToUpdate = mutableSetOf<Pair<CompetitionRun.TaskRun,RecalculatingTaskRunScorer>>()
             val removed = this.list.removeIf {
                 val scorer = it.first.scorer
                 if (it.second.status != SubmissionStatus.INDETERMINATE) {
                     when(scorer) {
-                        is RecalculatingTaskRunScorer -> scorersToUpdate.add(scorer)
+                        is RecalculatingTaskRunScorer -> scorersToUpdate.add(Pair(it.first, scorer))
                         is IncrementalTaskRunScorer -> scorer.update(it.second)
                         else -> { }
                     }
@@ -48,6 +48,9 @@ class ScoresUpdatable(val runId: Long, val scoreboardsUpdatable: ScoreboardsUpda
                     false
                 }
             }
+
+            /* Update scorers. */
+            scorersToUpdate.forEach { it.second.analyze(it.first) }
 
             /* If elements were removed, then update scoreboards and tasks. */
             if (removed) {

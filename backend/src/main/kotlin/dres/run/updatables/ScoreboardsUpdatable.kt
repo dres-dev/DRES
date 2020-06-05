@@ -15,7 +15,7 @@ import dres.run.score.scoreboard.Scoreboard
 class ScoreboardsUpdatable(val scoreboards: List<Scoreboard>, private val run: CompetitionRun): StatefulUpdatable {
 
     companion object {
-       val ELIGIBLE_STATUS = arrayOf(RunManagerStatus.ACTIVE, RunManagerStatus.RUNNING_TASK, RunManagerStatus.PREPARING_TASK)
+       val ELIGIBLE_STATUS = arrayOf(RunManagerStatus.ACTIVE, RunManagerStatus.RUNNING_TASK, RunManagerStatus.TASK_ENDED, RunManagerStatus.PREPARING_TASK)
     }
 
     /** The [Phase] this [ScoreboardsUpdatable] belongs to. */
@@ -26,9 +26,9 @@ class ScoreboardsUpdatable(val scoreboards: List<Scoreboard>, private val run: C
 
     override fun update(status: RunManagerStatus) {
         if (this.dirty) {
+            this.dirty = false
             this.scoreboards.forEach { it.update(this.run.runs) }
         }
-        this.dirty = false
     }
 
     override fun shouldBeUpdated(status: RunManagerStatus): Boolean = ELIGIBLE_STATUS.contains(status)

@@ -22,9 +22,9 @@ import java.util.*
  */
 class CompetitionRun(override var id: Long, val name: String, val competitionDescription: CompetitionDescription, val uid: String = UUID.randomUUID().toString()): Run, Entity {
 
-    internal constructor(id: Long, name: String, competitionDescription: CompetitionDescription, uid: String, started: Long?, ended: Long?) : this(id, name, competitionDescription, uid) {
-        this.started = started
-        this.ended = ended
+    internal constructor(id: Long, name: String, competitionDescription: CompetitionDescription, uid: String, started: Long, ended: Long) : this(id, name, competitionDescription, uid) {
+        this.started =  if (started == -1L) { null } else { started }
+        this.ended = if (ended == -1L) { null } else { ended }
     }
 
     init {
@@ -41,11 +41,6 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
     @Volatile
     override var ended: Long? = null
         private set
-
-    /** Lambda to be able to send notifications about submission updates*/
-    @Volatile
-    @JsonIgnore
-    var updateSubmissionStatus: (() -> Unit)? = null
 
     /** List of [TaskRun]s registered for this [CompetitionRun]. */
     val runs: List<TaskRun> = LinkedList<TaskRun>()
@@ -69,7 +64,7 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
      */
     override fun end() {
         if (!this.isRunning) {
-            throw IllegalStateException("Competition run '$name' is not running.")
+            this.started = System.currentTimeMillis()
         }
         this.ended = System.currentTimeMillis()
     }
@@ -141,17 +136,7 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
 
         /** The [SubmissionValidator] used to validate [Submission]s. */
         @Transient
-        val validator: SubmissionValidator = this.task.newValidator {
-
-            when(this.scorer){
-                is IncrementalTaskRunScorer -> this.scorer.update(it)
-                is RecalculatingTaskRunScorer -> this.scorer.analyze(this)
-                else -> this.scorer.scores()
-            }
-
-            updateSubmissionStatus?.let { it1 -> it1() }
-
-        }
+        val validator: SubmissionValidator = this.task.newValidator()
 
         init {
             if (this@CompetitionRun.competitionDescription.tasks.size < this.taskId) {
@@ -203,9 +188,6 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
             (this.data.submissions as MutableList).add(submission)
             this.validator.validate(submission)
         }
-
-
-
     }
 }
 

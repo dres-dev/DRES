@@ -51,9 +51,6 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
     /** Observable that fires whenever a task changes. Emits the task description of the new task. */
     taskChanged: Observable<TaskDescription>;
 
-    /** */
-    currentQueryObject: Observable<any>
-
     /** Observable that fires whenever a task ends. Emits the task description of the task that just ended. */
     taskEnded: Observable<TaskDescription>;
 
@@ -117,7 +114,7 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
                 () => {
                     return {runId, type: 'UNREGISTER'} as IWsClientMessage;
                 },
-                message => message.runId === runId
+                message => (message.runId == runId || message.runId === null)
             ).pipe(
                 retryWhen((err) => err.pipe(
                     tap(e => console.error('[RunViewerComponent] An error occurred with the WebSocket communication channel. Trying to reconnect in 1 second.', e)),
@@ -154,7 +151,7 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         /* Basic observable that fires when a task ends.  */
         this.taskEnded = this.runState.pipe(
             pairwise(),
-            filter(([s1, s2]) => s1.status === 'RUNNING_TASK' && s2.status === 'ACTIVE'),
+            filter(([s1, s2]) => s1.status === 'RUNNING_TASK' && s2.status === 'TASK_ENDED'),
             map(([s1, s2]) => s2.currentTask),
             shareReplay({bufferSize: 1, refCount: true})
         );

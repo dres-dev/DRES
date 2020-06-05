@@ -18,9 +18,6 @@ object DRES {
 
     @JvmStatic
     fun main(args: Array<String>) {
-
-
-
         val config = if (args.isNotEmpty()) {
             Config.read(File(args[0]))
         } else {
@@ -30,9 +27,14 @@ object DRES {
 
         /* Initialize data access layer. */
         val dataAccessLayer = DataAccessLayer(Paths.get(config.dataPath))
-        /* Initialize user manager */
+
+        /* Initialize user manager. */
         UserManager.init(dataAccessLayer.users)
 
+        /* Initialize run executor. */
+        RunExecutor.init(dataAccessLayer.runs)
+
+        /* Initialize Rest API. */
         RestApi.init(config, dataAccessLayer)
 
         Cli.loop(dataAccessLayer, config) //blocks until quit command is given

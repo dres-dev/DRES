@@ -9,7 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TaskDescription } from './taskDescription';
+import {TaskDescription} from './taskDescription';
 
 
 export interface RunState { 
@@ -19,13 +19,13 @@ export interface RunState {
     timeLeft: number;
 }
 export namespace RunState {
-    export type StatusEnum = 'CREATED' | 'ACTIVE' | 'PREPARING_TASK' | 'RUNNING_TASK' | 'FINALIZING_TASK' | 'TERMINATED';
+    export type StatusEnum = 'CREATED' | 'ACTIVE' | 'PREPARING_TASK' | 'RUNNING_TASK' | 'TASK_ENDED' | 'TERMINATED';
     export const StatusEnum = {
         CREATED: 'CREATED' as StatusEnum,
         ACTIVE: 'ACTIVE' as StatusEnum,
         PREPARINGTASK: 'PREPARING_TASK' as StatusEnum,
         RUNNINGTASK: 'RUNNING_TASK' as StatusEnum,
-        FINALIZINGTASK: 'FINALIZING_TASK' as StatusEnum,
+        TASKENDED: 'TASK_ENDED' as StatusEnum,
         TERMINATED: 'TERMINATED' as StatusEnum
     };
 }

@@ -39,10 +39,9 @@ interface TaskDescription {
      * Generates and returns a new [SubmissionValidator] for this [TaskDescription]. Depending
      * on the implementation, the returned instance is a new instance or being re-use.
      *
-     * @param callback An optional callback function that should be registered with the [SubmissionValidator].
      * @return [SubmissionValidator].
      */
-    fun newValidator(callback: ((Submission) -> Unit)? = null): SubmissionValidator
+    fun newValidator(): SubmissionValidator
 
     /**
      * Generates and returns a [SubmissionValidator] instance for this [TaskDescription]. Depending

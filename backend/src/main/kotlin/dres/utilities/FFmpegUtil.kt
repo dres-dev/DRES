@@ -1,12 +1,14 @@
 package dres.utilities
 
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
+import com.github.kokorin.jaffree.ffmpeg.FFmpegResult
 import com.github.kokorin.jaffree.ffmpeg.UrlInput
 import com.github.kokorin.jaffree.ffmpeg.UrlOutput
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import java.io.File
 import java.nio.file.Path
-import java.util.concurrent.Semaphore
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.Future
 
 object FFmpegUtil {
 
@@ -22,7 +24,47 @@ object FFmpegUtil {
         
     }") //TODO make configurable
 
-    private val semaphore = Semaphore(4) //TODO make number configurable
+    private data class FrameRequest(val video: Path, val timecode: String, val outputImage: Path)
+
+    private val frameRequestQueue = ConcurrentLinkedQueue<FrameRequest>()
+
+    private const val concurrentFrameRequests = 4
+
+    private val frameExtractionManagementThread = Thread {
+
+        val futureList = mutableListOf<Future<FFmpegResult>>()
+
+        while (true) {
+
+            try {
+                futureList.removeIf { it.isDone || it.isCancelled }
+
+                if (futureList.size < concurrentFrameRequests) {
+
+                    val request = frameRequestQueue.poll()
+
+                    if (request != null) {
+                        futureList.add(
+                                extractFrameAsync(request.video, request.timecode, request.outputImage)
+                        )
+                    }
+
+                }
+            } catch (e: Exception) {
+                //TODO ??
+            }
+
+            Thread.sleep(50)
+
+        }
+
+    }.also {
+        it.isDaemon = true
+    }
+
+    init {
+        frameExtractionManagementThread.start()
+    }
 
     private fun toMillisecondTimeStamp(ms: Long): String {
         val hours = ms / (1000 * 3600)
@@ -34,9 +76,7 @@ object FFmpegUtil {
     }
 
 
-    fun extractFrame(video: Path, timecode: String, outputImage: Path) {
-        try {
-            semaphore.acquire()
+    private fun extractFrameAsync(video: Path, timecode: String, outputImage: Path) =
             FFmpeg.atPath(ffmpegBin)
                     .addInput(UrlInput.fromPath(video))
                     .addOutput(UrlOutput.toPath(outputImage))
@@ -44,17 +84,19 @@ object FFmpegUtil {
                     .addArguments("-ss", timecode)
                     .addArguments("-vframes", "1")
                     .addArguments("-filter:v", "scale=\"120:-1\"")
-                    .execute()
-        } finally {
-            semaphore.release()
-        }
+                    .executeAsync()
+
+
+
+    fun extractFrame(video: Path, timecode: String, outputImage: Path) {
+        frameRequestQueue.add(FrameRequest(video, timecode, outputImage))
     }
 
     fun extractFrame(video: Path, ms: Long, outputImage: Path) = extractFrame(video, toMillisecondTimeStamp(ms), outputImage)
 
     fun extractSegment(video: Path, startTimecode: String, endTimecode: String, outputVideo: Path) {
         try {
-            semaphore.acquire()
+            //semaphore.acquire()
             FFmpeg.atPath(ffmpegBin)
                     .addInput(UrlInput.fromPath(video))
                     .addOutput(UrlOutput.toPath(outputVideo))
@@ -68,7 +110,7 @@ object FFmpegUtil {
                     .addArguments("-preset", "slow")
                     .execute()
         } finally {
-            semaphore.release()
+            //semaphore.release()
         }
     }
 

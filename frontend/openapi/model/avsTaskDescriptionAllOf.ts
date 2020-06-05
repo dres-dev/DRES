@@ -12,7 +12,6 @@
 
 
 export interface AvsTaskDescriptionAllOf { 
-    uid?: string;
     description?: string;
     defaultCollection?: number;
 }

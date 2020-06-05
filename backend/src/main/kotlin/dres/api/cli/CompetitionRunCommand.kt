@@ -20,7 +20,7 @@ import java.nio.file.StandardOpenOption
 class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktCommand(name = "runs") {
 
     init {
-        subcommands(OngoingCompetitionRunsCommand(), ListCompetitionRunsCommand(), ExportRunCommand(), CompetitionRunsHistoryCommand(), ResetSubmissionStatusCommand())
+        subcommands(OngoingCompetitionRunsCommand(), ListCompetitionRunsCommand(), DeleteRunCommand(), ExportRunCommand(), CompetitionRunsHistoryCommand(), ResetSubmissionStatusCommand())
     }
 
     /**
@@ -50,6 +50,26 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
         override fun run() {
             this@CompetitionRunCommand.runs.forEach {
                 println("${RunSummary(it.id, it.name, it.competitionDescription.description, it.currentTask?.task?.name)}")
+            }
+        }
+    }
+
+    /**
+     * Deletes a selected competition run for the current DRES instance.
+     */
+    inner class DeleteRunCommand: CliktCommand(name = "delete", help = "Deletes an existing competition run.") {
+        private val id: Long by option("-r", "--run").long().required()
+        override fun run() {
+            if (RunExecutor.managers().any { it.runId == id }) {
+                println("Run with ID $id could not be deleted because it is still running! Terminate it and try again.")
+                return
+            }
+
+            val deleted = this@CompetitionRunCommand.runs.delete(this.id)
+            if (deleted != null) {
+                println("Run $deleted deleted successfully!")
+            } else {
+                println("Run with ID $id could not be deleted because it doesn't exist!")
             }
         }
     }

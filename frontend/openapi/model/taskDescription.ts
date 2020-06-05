@@ -9,10 +9,11 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TaskGroup } from './taskGroup';
+import {TaskGroup} from './taskGroup';
 
 
 export interface TaskDescription { 
+    uid: string;
     name: string;
     duration: number;
     taskGroup: TaskGroup;

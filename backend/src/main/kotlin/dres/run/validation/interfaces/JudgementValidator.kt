@@ -20,6 +20,7 @@ interface JudgementValidator : SubmissionValidator {
     /** The number of [Submission]s which have not yet been presented to a judge */
     val open: Int
 
+    /** Returns true, if this [JudgementValidator] has open [Submission]s. */
     val hasOpen: Boolean
         get() = open > 0
 

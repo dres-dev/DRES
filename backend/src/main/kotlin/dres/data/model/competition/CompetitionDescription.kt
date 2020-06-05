@@ -3,6 +3,9 @@ package dres.data.model.competition
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import dres.data.model.Entity
+import dres.run.score.scoreboard.MaxNormalizingScoreBoard
+import dres.run.score.scoreboard.MeanAggregateScoreBoard
+import dres.run.score.scoreboard.Scoreboard
 import java.util.*
 
 
@@ -34,5 +37,18 @@ data class CompetitionDescription @JsonCreator constructor(
                 throw IllegalArgumentException("Duplicate team with name '${team.name}'!")
             }
         }
+    }
+
+    /**
+     * Generates and returns the default [Scoreboard] implementations for this [CompetitionDescription]
+     *
+     * @return List of [Scoreboard] implementations.
+     */
+    fun generateDefaultScoreboards(): List<Scoreboard> {
+        val groupBoards = this.groups.map {group ->
+            MaxNormalizingScoreBoard(group.name, {task -> task.taskGroup == group}, group.name)
+        }
+        val aggregateScoreBoard = MeanAggregateScoreBoard("average", groupBoards)
+        return groupBoards.plus(aggregateScoreBoard)
     }
 }

@@ -9,7 +9,7 @@ import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor
-import dres.run.audit.AuditLogManager
+import dres.run.audit.AuditLogger
 import dres.run.audit.LogEventSource
 import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
@@ -91,7 +91,7 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
 
         validator.judge(judgement.token, judgement.verdict)
 
-        AuditLogManager.getAuditLogger(run.name)!!.judgement(judgement.validator, judgement.token, judgement.verdict, LogEventSource.REST, ctx.sessionId())
+        AuditLogger.judgement(run.uid, judgement.validator, judgement.token, judgement.verdict, LogEventSource.REST, ctx.sessionId())
 
         return SuccessStatus("Verdict received and accepted. Thanks!")
     }

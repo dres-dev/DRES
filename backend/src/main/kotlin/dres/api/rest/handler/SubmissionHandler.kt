@@ -18,7 +18,7 @@ import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunManager
 import dres.run.RunManagerStatus
-import dres.run.audit.AuditLogManager
+import dres.run.audit.AuditLogger
 import dres.run.audit.LogEventSource
 import dres.utilities.TimeUtil
 import dres.utilities.extensions.sessionId
@@ -166,7 +166,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             throw ErrorStatusException(208, "Submission rejected")
         }
 
-        AuditLogManager.getAuditLogger(run.name)!!.submission(run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId())
+        AuditLogger.submission(run.uid, run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId())
 
         return when (result) {
             SubmissionStatus.CORRECT -> SuccessStatus("Submission correct!")

@@ -6,6 +6,7 @@ import dres.data.dbo.DataAccessLayer
 import dres.data.model.Config
 import dres.mgmt.admin.UserManager
 import dres.run.RunExecutor
+import dres.run.audit.AuditLogger
 import java.io.File
 import java.nio.file.Paths
 
@@ -33,6 +34,9 @@ object DRES {
 
         /* Initialize run executor. */
         RunExecutor.init(dataAccessLayer.runs)
+
+        /* Initialize audit logger */
+        AuditLogger.init(dataAccessLayer.audit)
 
         /* Initialize Rest API. */
         RestApi.init(config, dataAccessLayer)

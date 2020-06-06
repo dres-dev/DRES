@@ -15,15 +15,10 @@ import dres.run.RunExecutor
 import dres.run.RunManager
 import dres.run.RunManagerStatus
 import dres.run.SynchronousRunManager
-import dres.run.audit.AuditLogEntry
-import dres.run.audit.AuditLogManager
+import dres.run.audit.AuditLogger
 import dres.run.audit.LogEventSource
-import dres.run.score.scoreboard.MaxNormalizingScoreBoard
-import dres.run.score.scoreboard.MeanAggregateScoreBoard
-import dres.run.score.scoreboard.Scoreboard
 import dres.utilities.FFmpegUtil
 import dres.utilities.extensions.sessionId
-
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -152,7 +147,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
 /**
  * REST handler to start a [CompetitionRun].
  */
-class StartCompetitionRunAdminHandler(private val audit: DAO<AuditLogEntry>): AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class StartCompetitionRunAdminHandler(): AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/start"
 
     @OpenApi(
@@ -172,7 +167,7 @@ class StartCompetitionRunAdminHandler(private val audit: DAO<AuditLogEntry>): Ab
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         try {
             run.start()
-            AuditLogManager.getAuditLogger(run.name, audit).competitionStart(LogEventSource.REST, ctx.sessionId())
+            AuditLogger.competitionStart(run.uid, LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Run $runId was successfully started.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Run $runId could not be started because it is in the wrong state (state = ${run.status}).")
@@ -269,7 +264,7 @@ class StartTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         try {
             run.startTask()
-            AuditLogManager.getAuditLogger(run.name)!!.taskStart(run.currentTask?.name ?: "no taks", LogEventSource.REST, ctx.sessionId())
+            AuditLogger.taskStart(run.uid, run.currentTask?.name ?: "no taks", LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Task '${run.currentTask!!.name}' for run $runId was successfully started.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Task '${run.currentTask!!.name}' for run $runId could not be started because run is in the wrong state (state = ${run.status}).")
@@ -301,7 +296,7 @@ class AbortTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
         try {
             val task = run.currentTask
             run.abortTask()
-            AuditLogManager.getAuditLogger(run.name)!!.taskEnd(task?.name ?: "no taks", LogEventSource.REST, ctx.sessionId())
+            AuditLogger.taskEnd(run.uid, task?.name ?: "no taks", LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Task '${run.currentTask!!.name}' for run $runId was successfully aborted.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Task '${run.currentTask!!.name}' for run $runId could not be aborted because run is in the wrong state (state = ${run.status}).")
@@ -332,7 +327,7 @@ class TerminateCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         try {
             run.terminate()
-            AuditLogManager.getAuditLogger(run.name)?.competitionEnd(LogEventSource.REST, ctx.sessionId())
+            AuditLogger.competitionEnd(run.uid, LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Run $runId was successfully terminated.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Run $runId could not be terminated because it is in the wrong state (state = ${run.status}).")

@@ -9,7 +9,6 @@ import dres.data.model.run.TaskRunData
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.score.scoreboard.Scoreboard
 import dres.run.updatables.ScoreboardsUpdatable
-import dres.run.updatables.Updatable
 import dres.run.validation.interfaces.JudgementValidator
 
 /**
@@ -24,6 +23,8 @@ interface RunManager : Runnable {
 
     /** A name for identifying this [RunManager]. */
     val name: String
+
+    val uid: String
 
     /** The [CompetitionDescription] that is executed / run by this [RunManager]. */
     val competitionDescription: CompetitionDescription

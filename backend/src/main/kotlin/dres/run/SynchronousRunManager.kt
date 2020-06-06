@@ -51,6 +51,9 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     override val name: String
         get() = this.run.name
 
+    override val uid: String
+        get() = this.run.uid
+
     /** The [CompetitionDescription] executed by this [SynchronousRunManager]. */
     override val competitionDescription: CompetitionDescription
         get() = this.run.competitionDescription

@@ -20,12 +20,12 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
      * submission.duration + 2 * padding.
      * Default= 2s
      */
-    @Input() padding = 2;
+    @Input() padding = 3;
     /**
      * Too short submission duration threshold (if shorten than this, the padding is added).
      * Default: 3s
      */
-    @Input() tooShortThreshold = 3;
+    @Input() tooShortThreshold = 5;
     @ViewChild('videoPlayer', {static: false}) video: ElementRef;
     videoUrl: Observable<string>;
     videoUrlDebug: Observable<string>;

@@ -26,8 +26,8 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
     isJudgmentAvailable = false;
     isNewJudgementDesc = false;
 
-    openSubmissions: Observable<number>;
-    pendingSubmissions: Observable<number>;
+    openSubmissions = new BehaviorSubject(0);
+    pendingSubmissions = new BehaviorSubject(0);
 
 
     private runId: Observable<string>;
@@ -45,24 +45,35 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         /* Subscription and current run id */
         this.runId = this.activeRoute.params.pipe(map(p => p.runId));
-
-        /* Poll for score updates in a given interval. */
-        this.requestSub = interval(this.pollingFrequency).pipe(
+        /* Poll for score status in a given interval */
+        this.statusSub = interval(this.pollingFrequency).pipe(
             withLatestFrom(this.runId),
             switchMap(([i, runId]) => {
-                /* Always ask for status */
-                this.judgementService.getApiRunWithRunidJudgeStatus(runId).pipe(
+                return this.judgementService.getApiRunWithRunidJudgeStatus(runId).pipe(
                     catchError(err => {
                         console.log('Error in JudgeStatus');
                         console.log(err);
                         return of(null);
                     }),
-                    filter(x => x !== null),
-                    tap(value => {
-                        let no = 0;
-                        value.forEach(j => no += j.pending);
-                        this.openSubmissions = new Observable<number>(sub => sub.next(no));
-                    }));
+                    filter(x => x !== null));
+            }),
+            filter(x => x != null)
+        ).subscribe(value => {
+            console.log(`[Judgement] Resp: ${JSON.stringify(value)}`);
+            let pending = 0;
+            let open = 0;
+            value.forEach(j => {
+                pending += j.pending;
+                open += j.open;
+            });
+            console.log(`[Judgement] pending=${pending}, open=${open}`);
+            this.updateProgress(pending, open);
+        });
+
+        /* Poll for score updates in a given interval. */
+        this.requestSub = interval(this.pollingFrequency).pipe(
+            withLatestFrom(this.runId),
+            switchMap(([i, runId]) => {
                 /* Stop polling while judgment is ongooing */
                 if (this.runId && !this.isJudgmentAvailable) {
                     return this.judgementService.getApiRunWithRunidJudgeNext(runId, 'response').pipe(
@@ -115,6 +126,11 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.requestSub.unsubscribe();
         this.requestSub = null;
+    }
+
+    public updateProgress(pending: number, open: number) {
+        this.openSubmissions.next(Math.round((1 - (pending / (pending + open))) * 100));
+        this.pendingSubmissions.next(Math.round((1 - (open / (pending + open))) * 100));
     }
 
     public judge(status: SubmissionInfo.StatusEnum) {

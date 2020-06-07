@@ -48,7 +48,7 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
         val runId = this.runId(ctx)
         val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
 
-        val validator = run.judgementValidators.find { it.hasOpen } ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement")
+        val validator = run.judgementValidators.find { it.hasOpen } ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement", true)
         val next = validator.next(ctx.sessionId()) ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement")
 
         val collection = this.collections[next.second.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.second.item.collection}")

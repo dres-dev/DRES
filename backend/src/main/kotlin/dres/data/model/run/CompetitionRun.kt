@@ -1,14 +1,13 @@
 package dres.data.model.run
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import dres.data.model.Entity
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.TaskDescription
+import dres.data.model.log.QueryEventLog
+import dres.data.model.log.QueryResultLog
 import dres.data.model.run.CompetitionRun.TaskRun
 import dres.run.filter.SubmissionFilter
-import dres.run.score.interfaces.IncrementalTaskRunScorer
-import dres.run.score.interfaces.RecalculatingTaskRunScorer
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.validation.interfaces.SubmissionValidator
 import java.util.*
@@ -117,7 +116,7 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
             get() = this@CompetitionRun.runs.indexOf(this)
 
         /** Exposable data of this [TaskRun] */
-        val data: TaskRunData = TaskRunData(this.task, this.taskId)
+        var data: TaskRunData = TaskRunData(this.task, this.taskId)
 
         val task: TaskDescription
             get() = this@CompetitionRun.competitionDescription.tasks[this@TaskRun.taskId]
@@ -196,10 +195,47 @@ class TaskRunData(val task: TaskDescription, val taskId: Int) {
     /** List of [Submission]s* registered for this [TaskRun]. */
     val submissions: List<Submission> = mutableListOf()
 
-    constructor(task: TaskDescription, taskId: Int, submissions: List<Submission> = emptyList()): this(task, taskId) {
+    internal val userSessions = mutableMapOf<Long, String>()
+    internal val sessionQueryResultLogs = mutableMapOf<String, MutableList<QueryResultLog>>()
+    internal val sessionQueryEventLogs = mutableMapOf<String, MutableList<QueryEventLog>>()
+
+    constructor(task: TaskDescription, taskId: Int,
+                submissions: List<Submission> = emptyList(),
+                userSessions: Map<Long, String> = emptyMap(),
+                sessionQueryResultLogs: Map<String, MutableList<QueryResultLog>> = emptyMap(),
+                sessionQueryEventLogs: Map<String, MutableList<QueryEventLog>> = emptyMap()
+
+    ): this(task, taskId) {
         (this.submissions as MutableList).addAll(submissions)
+        this.userSessions.putAll(userSessions)
+        this.sessionQueryResultLogs.putAll(sessionQueryResultLogs)
+        this.sessionQueryEventLogs.putAll(sessionQueryEventLogs)
+
     }
 
-    //TODO add logging information
+    fun addQueryResultLog(userId: Long, sessionId: String, resultLog: QueryResultLog) {
+        userSessions[userId] = sessionId
+        if (!sessionQueryResultLogs.containsKey(sessionId)){
+            sessionQueryResultLogs[sessionId] = mutableListOf(resultLog)
+        } else {
+            sessionQueryResultLogs[sessionId]!!.add(resultLog)
+        }
+    }
+
+    fun addQueryEventtLog(userId: Long, sessionId: String, eventLog: QueryEventLog) {
+        userSessions[userId] = sessionId
+        if (!sessionQueryEventLogs.containsKey(sessionId)){
+            sessionQueryEventLogs[sessionId] = mutableListOf(eventLog)
+        } else {
+            sessionQueryEventLogs[sessionId]!!.add(eventLog)
+        }
+    }
+
+    internal fun merge(data: TaskRunData) {
+        (this.submissions as MutableList).addAll(data.submissions)
+        this.userSessions.putAll(data.userSessions)
+        this.sessionQueryResultLogs.putAll(data.sessionQueryResultLogs)
+        this.sessionQueryEventLogs.putAll(data.sessionQueryEventLogs)
+    }
 
 }

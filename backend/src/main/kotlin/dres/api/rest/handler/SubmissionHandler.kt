@@ -59,7 +59,6 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
     private fun toSubmission(ctx: Context, userId: Long, runManager: RunManager, submissionTime: Long): Submission {
         val map = ctx.queryParamMap()
         val team = runManager.competitionDescription.teams.indexOf(runManager.competitionDescription.teams.first { it.users.contains(userId) })
-        val member = userId
 
         val collectionParam = map[PARAMETER_NAME_COLLECTION]?.first()
         val collectionId = when {
@@ -86,19 +85,19 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) && item is MediaItem.VideoItem -> {
                 val time = this.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item)
-                Submission(team, member, submissionTime, item, time.first, time.second)
+                Submission(team, userId, submissionTime, item, time.first, time.second)
             }
             map.containsKey(PARAMETER_NAME_FRAME) && (item is PlayableMediaItem) -> {
                 val time = this.frameToTime(map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull() ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number."), item)
                 val range = if(mapToSegment && item is MediaItem.VideoItem) timeToSegment(time, item) else time to time
-                Submission(team, member, submissionTime, item, range.first, range.second)
+                Submission(team, userId, submissionTime, item, range.first, range.second)
             }
             map.containsKey(PARAMETER_NAME_TIMECODE) && (item is PlayableMediaItem) -> {
                 val time = this.timecodeToTime(map[PARAMETER_NAME_TIMECODE]?.first()!!, item)
                 val range = if(mapToSegment && item is MediaItem.VideoItem) timeToSegment(time, item) else time to time
-                Submission(team, member, submissionTime, item, range.first, range.second)
+                Submission(team, userId, submissionTime, item, range.first, range.second)
             }
-            else -> Submission(team, member, submissionTime, item)
+            else -> Submission(team, userId, submissionTime, item)
         }.also {
             it.taskRun = runManager.currentTaskRun
         }

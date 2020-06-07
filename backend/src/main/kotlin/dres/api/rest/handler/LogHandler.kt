@@ -11,6 +11,7 @@ import dres.run.RunManager
 import dres.run.RunManagerStatus
 import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
+import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
 
@@ -53,9 +54,13 @@ class QueryLogHandler : LogHandler() {
         val run = getActiveRun(userId)
 
 
-        val queryLog = ctx.body<QueryEventLog>()
+        val queryEventLog = try {
+            ctx.body<QueryEventLog>()
+        } catch (e: BadRequestResponse){
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error.")
+        }.copy(serverTimeStamp = System.currentTimeMillis())
 
-
+        run.currentTaskRun?.addQueryEventtLog(userId, ctx.sessionId(), queryEventLog)
 
         return SuccessStatus("Log received")
     }
@@ -81,9 +86,13 @@ class ResultLogHandler : LogHandler() {
         val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.")
         val run = getActiveRun(userId)
 
-        val queryLog = ctx.body<QueryResultLog>()
+        val queryResultLog = try {
+            ctx.body<QueryResultLog>()
+        } catch (e: BadRequestResponse){
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error.")
+        }.copy(serverTimeStamp = System.currentTimeMillis())
 
-        //TODO validate and store
+        run.currentTaskRun?.addQueryResultLog(userId, ctx.sessionId(), queryResultLog)
 
         return SuccessStatus("Log received")
     }

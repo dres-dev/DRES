@@ -10,10 +10,10 @@ import dres.data.model.competition.interfaces.DefinedMediaItemTaskDescription
 import dres.data.model.competition.interfaces.HiddenResultsTaskDescription
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.data.model.competition.interfaces.TaskDescription
-import dres.data.model.run.Submission
 import dres.run.filter.DuplicateSubmissionFilter
 import dres.run.filter.OneCorrectSubmissionPerTeamFilter
 import dres.run.filter.SubmissionFilter
+import dres.run.filter.TemporalSubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.score.scorer.AvsTaskScorer
 import dres.run.score.scorer.KisTaskScorer
@@ -50,7 +50,7 @@ sealed class TaskDescriptionBase : TaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator() = TemporalOverlapSubmissionValidator(this)
         override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}-${temporalRange.start.value}-${temporalRange.end.value}.mp4"
-        override fun newFilter(): SubmissionFilter = OneCorrectSubmissionPerTeamFilter() and DuplicateSubmissionFilter()
+        override fun newFilter(): SubmissionFilter = TemporalSubmissionFilter() and OneCorrectSubmissionPerTeamFilter() and DuplicateSubmissionFilter()
     }
 
     /**
@@ -71,7 +71,7 @@ sealed class TaskDescriptionBase : TaskDescription {
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator() = TemporalOverlapSubmissionValidator(this)
         override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}-${temporalRange.start.value}-${temporalRange.end.value}.mp4"
-        override fun newFilter(): SubmissionFilter = OneCorrectSubmissionPerTeamFilter() and DuplicateSubmissionFilter()
+        override fun newFilter(): SubmissionFilter = TemporalSubmissionFilter() and OneCorrectSubmissionPerTeamFilter() and DuplicateSubmissionFilter()
     }
 
     /**
@@ -89,6 +89,6 @@ sealed class TaskDescriptionBase : TaskDescription {
         : TaskDescriptionBase(), TaskDescription, DefinedMediaItemTaskDescription {
         override fun newScorer(): TaskRunScorer = AvsTaskScorer()
         override fun newValidator() = BasicJudgementValidator()
-        override fun newFilter(): SubmissionFilter = DuplicateSubmissionFilter()
+        override fun newFilter(): SubmissionFilter = TemporalSubmissionFilter() and DuplicateSubmissionFilter()
     }
 }

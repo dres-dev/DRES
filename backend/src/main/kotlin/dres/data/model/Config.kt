@@ -7,6 +7,7 @@ import java.io.File
 data class Config(
         val httpPort: Int = 8080,
         val httpsPort: Int = 8443,
+        val enableSsl: Boolean = true,
         val keystorePath: String = "keystore.jks",
         val keystorePassword: String = "password",
         val dataPath: String = "./data",

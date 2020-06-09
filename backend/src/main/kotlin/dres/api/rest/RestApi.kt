@@ -107,7 +107,7 @@ object RestApi {
             it.accessManager(AccessManager::manage)
             it.addStaticFiles("html")
             it.addSinglePageRoot("/", "html/index.html")
-            it.enforceSsl = true
+            it.enforceSsl = config.enableSsl
         }.routes {
 
             path("api") {
@@ -201,43 +201,56 @@ object RestApi {
         val httpConfig = HttpConfiguration().apply {
             sendServerVersion = false
             sendXPoweredBy = false
-            secureScheme = "https"
-            securePort = config.httpsPort
+            if (config.enableSsl) {
+                secureScheme = "https"
+                securePort = config.httpsPort
+            }
         }
 
-        val httpsConfig = HttpConfiguration(httpConfig).apply {
-            addCustomizer(SecureRequestCustomizer())
+        if (config.enableSsl) {
+            val httpsConfig = HttpConfiguration(httpConfig).apply {
+                addCustomizer(SecureRequestCustomizer())
+            }
+
+            val alpn = ALPNServerConnectionFactory().apply {
+                defaultProtocol = "http/1.1"
+            }
+
+            val sslContextFactory = SslContextFactory.Server().apply {
+                keyStorePath = config.keystorePath
+                setKeyStorePassword(config.keystorePassword)
+                //cipherComparator = HTTP2Cipher.COMPARATOR
+                provider = "Conscrypt"
+            }
+
+            val ssl = SslConnectionFactory(sslContextFactory, alpn.protocol)
+
+            val http2 = HTTP2ServerConnectionFactory(httpsConfig)
+
+            val fallback = HttpConnectionFactory(httpsConfig)
+
+
+            return Server().apply {
+                //HTTP Connector
+                addConnector(ServerConnector(server, HttpConnectionFactory(httpConfig), HTTP2ServerConnectionFactory(httpConfig)).apply {
+                    port = config.httpPort
+                })
+                // HTTPS Connector
+                addConnector(ServerConnector(server, ssl, alpn, http2, fallback).apply {
+                    port = config.httpsPort
+                })
+            }
+        } else {
+
+            return Server().apply {
+                //HTTP Connector
+                addConnector(ServerConnector(server, HttpConnectionFactory(httpConfig), HTTP2ServerConnectionFactory(httpConfig)).apply {
+                    port = config.httpPort
+                })
+
+            }
+
         }
-
-        val alpn = ALPNServerConnectionFactory().apply {
-            defaultProtocol = "http/1.1" //"h2" //TODO HTTP/2 websocket support will only be available in Jetty 10
-        }
-
-        val sslContextFactory = SslContextFactory.Server().apply {
-            keyStorePath = config.keystorePath
-            setKeyStorePassword(config.keystorePassword)
-            //cipherComparator = HTTP2Cipher.COMPARATOR
-            provider = "Conscrypt"
-        }
-
-        val ssl = SslConnectionFactory(sslContextFactory, alpn.protocol)
-
-        val http2 = HTTP2ServerConnectionFactory(httpsConfig)
-
-        val fallback = HttpConnectionFactory(httpsConfig)
-
-
-        return Server().apply {
-            //HTTP Connector
-            addConnector(ServerConnector(server, HttpConnectionFactory(httpConfig), HTTP2ServerConnectionFactory(httpConfig)).apply {
-                port = config.httpPort
-            })
-            // HTTPS Connector
-            addConnector(ServerConnector(server, ssl, alpn, http2, fallback).apply {
-                port = config.httpsPort
-            })
-        }
-
 
     }
 

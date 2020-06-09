@@ -35,6 +35,10 @@ class AvsTaskScorer: IncrementalTaskRunScorer {
 
         //TODO the following assumes that submissions have a start and an end, figure out what to do in case they don't
 
+        if (submission.start == null || submission.end == null) {
+            return@write
+        }
+
         when(submission.status){
             SubmissionStatus.CORRECT -> {
                 correctSubmissions.add(submission)

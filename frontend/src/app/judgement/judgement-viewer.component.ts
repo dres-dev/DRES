@@ -2,11 +2,11 @@ import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, interval, Observable, of, Subscription} from 'rxjs';
 import {Judgement, JudgementRequest, JudgementService, SubmissionInfo} from '../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
-import {catchError, filter, map, switchMap, tap, withLatestFrom} from 'rxjs/operators';
+import {catchError, filter, map, switchMap, withLatestFrom} from 'rxjs/operators';
 import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
-
+import { trigger, transition, state, animate, style, keyframes } from '@angular/animations';
 /**
  * This component subscribes to the websocket for submissions.
  * If the current task is an AVS task, a new submission triggers judgment.
@@ -14,14 +14,30 @@ import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
 @Component({
     selector: 'app-judgement-viewer',
     templateUrl: './judgement-viewer.component.html',
-    styleUrls: ['./judgement-viewer.component.scss']
+    styleUrls: ['./judgement-viewer.component.scss'],
+    animations: [
+        trigger('newDesc', [
+            state('known', style({backgroundColor: 'transparent'})),
+            state('fresh', style({backgroundColor: 'transparent'})),
+
+            transition('known => fresh', [
+                animate('2s', keyframes([
+                    style({backgroundColor: 'transparent', offset: 0}),
+                    style({backgroundColor: '#7b1fa2', offset: 0.2}), // TODO how to get access to primary color of theme
+                    style({backgroundColor: 'transparent', offset: 1})
+                ]))
+            ])
+        ])
+    ]
 })
 export class JudgementViewerComponent implements OnInit, OnDestroy {
+    status: 'fresh' | 'known' = 'known';
 
     @Input() pollingFrequency = 1000;
     @ViewChild(JudgementMediaViewerComponent) judgePlayer: JudgementMediaViewerComponent;
     observableJudgementRequest: BehaviorSubject<JudgementRequest> = new BehaviorSubject<JudgementRequest>(null);
     judgementRequest: JudgementRequest;
+    prevDescHash: number;
     noJudgementMessage = '';
     isJudgmentAvailable = false;
     isNewJudgementDesc = false;
@@ -107,14 +123,19 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
         ).subscribe(req => {
             console.log('[Judgem.View] Received request');
             console.log(req);
-            if (this.judgementRequest) {
-                if (this.judgementRequest.taskDescription !== (req as JudgementRequest).taskDescription) {
-                    this.isNewJudgementDesc = true;
+            if (this.prevDescHash) {
+                this.isNewJudgementDesc = this.prevDescHash !== this.hashCode(req.taskDescription);
+                console.log('new: ' + this.isNewJudgementDesc);
+                if(this.isNewJudgementDesc){
+                    this.status = 'fresh';
+                }else{
+                    this.status = 'known';
                 }
             }
             this.judgementRequest = req;
             this.observableJudgementRequest.next(req);
             this.isJudgmentAvailable = true;
+            this.prevDescHash = this.hashCode(this.judgementRequest.taskDescription);
         });
     }
 
@@ -129,8 +150,8 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
     }
 
     public updateProgress(pending: number, open: number) {
-        this.openSubmissions.next(Math.round((1 - (pending / (pending + open))) * 100));
-        this.pendingSubmissions.next(Math.round((1 - (open / (pending + open))) * 100));
+        this.openSubmissions.next(Math.round(open));
+        this.pendingSubmissions.next(Math.round(pending));
     }
 
     public judge(status: SubmissionInfo.StatusEnum) {
@@ -147,6 +168,20 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
         this.judgePlayer.stop();
         this.judgementRequest = null;
         this.isJudgmentAvailable = false;
+    }
+
+    /**
+     * Kindly provided by https://stackoverflow.com/a/7616484
+     * @param str
+     */
+    private hashCode(str: string) {
+        let hash = 0, i, chr;
+        for (i = 0; i < str.length; i++) {
+            chr = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash as number;
     }
 
 }

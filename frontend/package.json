@@ -24,10 +24,10 @@
     "@angular/platform-browser-dynamic": "~9.1.0",
     "@angular/router": "~9.1.0",
     "@openapitools/openapi-generator-cli": "^1.0.12-4.3.0",
-    "apexcharts": "^3.18.1",
+    "apexcharts": "^3.19.2",
     "hammerjs": "^2.0.8",
     "mat-video": "^2.8.1",
-    "ng-apexcharts": "^1.2.3",
+    "ng-apexcharts": "^1.3.0",
     "rxjs": "~6.5.4",
     "tslib": "^1.10.0",
     "zone.js": "~0.10.2"

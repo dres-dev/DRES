@@ -1,2 +1,3 @@
-<video controls #videoPlayer class="video-player" preload="auto" [src]="(videoUrl | async)" autoplay loop muted>
+<video #videoPlayer class="video-player" preload="auto" [src]="(videoUrl | async)" autoplay loop muted>
 </video>
+<mat-progress-bar *ngIf="(videoUrl | async)" mode="determinate" [value]="(playtimeRelative | async)"></mat-progress-bar>

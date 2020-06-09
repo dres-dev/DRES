@@ -2,7 +2,7 @@
     <div class="header">
                 <h1>Judgment for Submission</h1>
         <div class="header-container" fxLayoutAlign="space-around start">
-            <div fxFlex="75" class="header-main">
+            <div [@newDesc]="isNewJudgementDesc ? 'fresh' : 'known'" fxFlex="75" class="header-main">
                 <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> {{judgementRequest?.taskDescription}}</p>
                 <p *ngIf="isJudgmentAvailable">{{(judgePlayer?.videoUrlDebug | async)}}</p>
                 <div class="message" *ngIf="!isJudgmentAvailable">{{noJudgementMessage}}</div>

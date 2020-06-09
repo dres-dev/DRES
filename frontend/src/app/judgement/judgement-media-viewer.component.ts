@@ -29,6 +29,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
     @ViewChild('videoPlayer', {static: false}) video: ElementRef;
     videoUrl: Observable<string>;
     videoUrlDebug: Observable<string>;
+    playtimeRelative: Observable<number>;
     private startInSeconds: number;
     private endInSeconds: number;
     private requestSub: Subscription;
@@ -44,6 +45,8 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
     ngAfterViewInit(): void {
         /* Custom loop handler */
         this.video.nativeElement.addEventListener('timeupdate', () => {
+            const playtime = ((this.video.nativeElement.currentTime - this.startInSeconds) / (this.endInSeconds - this.startInSeconds)) * 100;
+            this.playtimeRelative = new Observable<number>(subscriber => subscriber.next(playtime));
             if (this.endInSeconds) {
                 if (this.video.nativeElement.currentTime >= this.endInSeconds) {
                     JudgementMediaViewerComponent.log('Rewind video');

@@ -47,7 +47,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
 
     chart: ApexChart = {
         type: 'bar',
-        stacked: this.competitionOverview, // thats why the boolean is setup this way round
+        stacked: this.competitionOverview, // that's why the boolean is setup this way
         animations: {
             enabled: false,
             dynamicAnimation: {
@@ -58,7 +58,8 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
 
     plotOptions: ApexPlotOptions = {
         bar: {
-            horizontal: true
+            horizontal: true,
+            distributed: true
         }
     } as ApexPlotOptions;
 
@@ -80,11 +81,10 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
     } as ApexFill;
 
     legend: ApexLegend =  {
+        show: this.competitionOverview,
         position: 'top',
         horizontalAlign: 'left',
-        labels: {
-            colors: '#fff'
-        }
+        showForSingleSeries: false
     } as ApexLegend;
 
     theme: ApexTheme = {
@@ -112,7 +112,6 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
         /* Create observable from teams. */
         this.teams = this.info.pipe(map(i => i.teams));
         this.color = this.teams.pipe(map(i => i.map(t => t.color)));
-
         /* Create observable for current task group. */
         this.currentTaskGroup = this.state.pipe(
             map(state => state.currentTask?.taskGroup.name)
@@ -147,6 +146,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
                             return so.taskGroup === taskGroup;
                         }
                     }).map(s => {
+
                         /* In case there is no value, specifically set 0 as score for each team*/
                         if (s.scores.length === 0) {
                             return {name: s.name, data: team.map(t => 0)};

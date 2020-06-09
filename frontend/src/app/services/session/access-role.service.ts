@@ -20,7 +20,6 @@ export class AccessRoleService {
     }
 
     public accessGranted(group: UserGroup): boolean {
-        console.log(`[UserGroupCheck] For: ${group.name}. Given: ${this.currentRole.value}`);
         return group.roles.indexOf(this.currentRole.value) > -1;
     }
 

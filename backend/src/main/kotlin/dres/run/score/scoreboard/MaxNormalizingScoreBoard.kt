@@ -1,14 +1,16 @@
 package dres.run.score.scoreboard
 
+import dres.data.model.competition.Team
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
-class MaxNormalizingScoreBoard(private val name: String, private val taskFilter: (TaskDescription) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 100.0) : Scoreboard {
+class MaxNormalizingScoreBoard(private val name: String, teams: List<Team>, private val taskFilter: (TaskDescription) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 100.0) : Scoreboard {
 
     private val scorePerTaskMap = ConcurrentHashMap<TaskDescription, Map<Int, Double>>()
 
+    private val teamIds = teams.indices.toList().sorted()
 
     private fun overallScoreMap(): Map<Int, Double> {
         val scoreSums = scorePerTaskMap.values
@@ -24,9 +26,10 @@ class MaxNormalizingScoreBoard(private val name: String, private val taskFilter:
     }
 
     override fun scores(): List<Score> {
-        return overallScoreMap().entries.sortedBy { it.key }.map {
-            Score(it.key, it.value)
-        }
+
+        val scores = overallScoreMap()
+        return teamIds.map { Score(it, scores[it] ?: 0.0) }
+
     }
 
     override fun score(teamId: Int) = overallScoreMap()[teamId] ?: 0.0

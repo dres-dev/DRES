@@ -46,7 +46,7 @@ data class CompetitionDescription @JsonCreator constructor(
      */
     fun generateDefaultScoreboards(): List<Scoreboard> {
         val groupBoards = this.groups.map {group ->
-            MaxNormalizingScoreBoard(group.name, {task -> task.taskGroup == group}, group.name)
+            MaxNormalizingScoreBoard(group.name, this.teams, {task -> task.taskGroup == group}, group.name)
         }
         val aggregateScoreBoard = MeanAggregateScoreBoard("average", groupBoards)
         return groupBoards.plus(aggregateScoreBoard)

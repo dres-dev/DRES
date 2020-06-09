@@ -9,7 +9,9 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import {TaskDescriptionBase} from './taskDescriptionBase';
+import { AvsTaskDescriptionAllOf } from './avsTaskDescriptionAllOf';
+import { TaskDescriptionBase } from './taskDescriptionBase';
+import { TaskGroup } from './taskGroup';
 
 
 export interface AvsTaskDescription extends TaskDescriptionBase { 

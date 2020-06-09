@@ -9,7 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import {TaskDescription} from './taskDescription';
+import { TaskDescription } from './taskDescription';
 
 
 export interface RunState { 

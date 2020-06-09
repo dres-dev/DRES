@@ -59,14 +59,12 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
             }),
             filter(x => x != null)
         ).subscribe(value => {
-            console.log(`[Judgement] Resp: ${JSON.stringify(value)}`);
             let pending = 0;
             let open = 0;
             value.forEach(j => {
                 pending += j.pending;
                 open += j.open;
             });
-            console.log(`[Judgement] pending=${pending}, open=${open}`);
             this.updateProgress(pending, open);
         });
 
@@ -126,6 +124,8 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.requestSub.unsubscribe();
         this.requestSub = null;
+        this.statusSub.unsubscribe();
+        this.statusSub = null;
     }
 
     public updateProgress(pending: number, open: number) {

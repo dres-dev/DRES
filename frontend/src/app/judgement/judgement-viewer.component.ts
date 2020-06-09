@@ -59,14 +59,12 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
             }),
             filter(x => x != null)
         ).subscribe(value => {
-            console.log(`[Judgement] Resp: ${JSON.stringify(value)}`);
             let pending = 0;
             let open = 0;
             value.forEach(j => {
                 pending += j.pending;
                 open += j.open;
             });
-            console.log(`[Judgement] pending=${pending}, open=${open}`);
             this.updateProgress(pending, open);
         });
 
@@ -129,8 +127,8 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
     }
 
     public updateProgress(pending: number, open: number) {
-        this.openSubmissions.next(Math.round((1 - (pending / (pending + open))) * 100));
-        this.pendingSubmissions.next(Math.round((1 - (open / (pending + open))) * 100));
+        this.openSubmissions.next(Math.round(open));
+        this.pendingSubmissions.next(Math.round(pending));
     }
 
     public judge(status: SubmissionInfo.StatusEnum) {

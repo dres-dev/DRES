@@ -1,15 +1,20 @@
 <div class="grid">
     <div class="header">
-        <h1>Judgment for Submission</h1>
-        <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> {{judgementRequest?.taskDescription}}</p>
-        <p *ngIf="isJudgmentAvailable">{{(judgePlayer?.videoUrlDebug | async)}}</p>
+                <h1>Judgment for Submission</h1>
+        <div class="header-container" fxLayoutAlign="space-around start">
+            <div fxFlex="75" class="header-main">
+                <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> {{judgementRequest?.taskDescription}}</p>
+                <p *ngIf="isJudgmentAvailable">{{(judgePlayer?.videoUrlDebug | async)}}</p>
+                <div class="message" *ngIf="!isJudgmentAvailable">{{noJudgementMessage}}</div>
+            </div>
+            <div fxFlex="25" class="header-right">
+                <strong>Pending:</strong> {{pendingSubmissions ? (pendingSubmissions | async) : 0}}<br>
+                <strong>Open: </strong> {{openSubmissions ? (openSubmissions | async) : 0}}
+            </div>
+        </div>
     </div>
     <div class="body">
-        <span *ngIf="!isJudgmentAvailable">{{noJudgementMessage}}</span>
-        <div class="progress-wrapper">
-            <mat-progress-bar id="progress" mode="buffer" [bufferValue]="(pendingSubmissions | async)"
-                              [value]="(openSubmissions | async)"></mat-progress-bar>
-        </div>
+
         <app-judgement-media-viewer id="judge-media-viewer"
                                     [req]="observableJudgementRequest"></app-judgement-media-viewer>
         <div *ngIf="isJudgmentAvailable" class="controls-container">

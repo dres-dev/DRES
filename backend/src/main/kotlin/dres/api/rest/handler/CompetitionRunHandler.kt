@@ -175,8 +175,7 @@ class ListCompetitionScoreHandler : AbstractCompetitionRunRestHandler(), GetRest
     override fun doGet(ctx: Context): List<ScoreOverview> {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-        run.updateScoreboards()
-        return run.scoreboards?.map { it.overview() } ?: throw  ErrorStatusException(400, "Not scoreboards available. There is probably no run going on.")
+        return run.scoreboards.scoreboards.map { it.overview() }
     }
 }
 
@@ -403,11 +402,11 @@ class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHa
 }
 
 data class SubmissionInfo(val team: Int, val member: Long, val status: SubmissionStatus, val timestamp: Long, val id: String? = null, val item: MediaItem? = null, val start: Long? = null, val end: Long? = null){
-    constructor(submission: Submission): this(submission.team, submission.member, submission.status, submission.timestamp, submission.id, submission.item, submission.start, submission.end)
+    constructor(submission: Submission): this(submission.team, submission.member, submission.status, submission.timestamp, submission.uid, submission.item, submission.start, submission.end)
 
     companion object{
         fun blind(submission: Submission): SubmissionInfo = SubmissionInfo(submission.team, submission.member, submission.status, submission.timestamp)
-        fun withId(submission: Submission): SubmissionInfo = SubmissionInfo(submission.team, submission.member, submission.status, submission.timestamp, submission.id)
+        fun withId(submission: Submission): SubmissionInfo = SubmissionInfo(submission.team, submission.member, submission.status, submission.timestamp, submission.uid)
     }
 
 }

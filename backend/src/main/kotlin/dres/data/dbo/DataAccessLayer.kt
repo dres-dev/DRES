@@ -20,8 +20,13 @@ class DataAccessLayer(private val basePath: Path) {
     val runs = DAO(this.basePath.resolve("runs.db"), CompetitionRunSerializer)
 
     val collections = DAO(this.basePath.resolve("collections.db"), MediaCollectionSerializer)
+    val collectionNameIndex = DaoIndexer(collections){it.name}
+
     val mediaItems = DAO(this.basePath.resolve("mediaItems.db"), MediaItemSerializer)
+    val mediaItemCollectionNameIndex = DaoIndexer(mediaItems) { it.collection to it.name }
+
     val mediaSegments = DAO(this.basePath.resolve("mediaSegments.db"), MediaItemSegmentListSerializer)
+    val mediaSegmentItemIdIndex = DaoIndexer(mediaSegments){it.mediaItemId}
 
     val audit = DAO(this.basePath.resolve("auditLog.db"), AuditLogEntrySerializer)
 }

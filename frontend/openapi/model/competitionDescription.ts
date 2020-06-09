@@ -21,5 +21,6 @@ export interface CompetitionDescription {
     groups: Array<TaskGroup>;
     tasks: Array<TaskDescriptionBase>;
     teams: Array<Team>;
+    uid: string;
 }
 

@@ -4,6 +4,7 @@ import dres.api.rest.AccessManager
 import dres.api.rest.RestApiRole
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
+import dres.data.dbo.DAO
 import dres.data.model.admin.Role
 import dres.data.model.admin.User
 import dres.data.model.admin.UserName
@@ -13,18 +14,19 @@ import dres.utilities.extensions.toSessionId
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
 
+data class SessionId(val sessionId:String)
+
+data class UserRequest(val username: String, val password: String?, val role: Role?)
+
+data class UserDetails(val id: Long, val username: String, val role: Role, val sessionId: String? = null) {
+
+    companion object {
+        fun of(user: User): UserDetails = UserDetails(user.id, user.username.name, user.role)
+        fun create(user:User, ctx:Context): UserDetails = UserDetails(user.id,user.username.name, user.role, ctx.sessionId())
+    }
+}
 
 abstract class UserHandler() : RestHandler {
-
-    data class SessionId(val sessionId:String)
-
-    data class UserDetails(val id: Long, val username: String, val role: Role, val sessionId:String?=null) {
-
-        companion object {
-            fun of(user: User): UserDetails = UserDetails(user.id, user.username.name, user.role)
-            fun create(user:User, ctx:Context): UserDetails = UserDetails(user.id,user.username.name,user.role,ctx.sessionId())
-        }
-    }
 
     protected fun getFromSessionOrDie(ctx: Context): User {
         return UserManager.get(id = AccessManager.getUserIdForSession(ctx.sessionId())!!)
@@ -49,13 +51,10 @@ abstract class UserHandler() : RestHandler {
     protected fun getCreateUserFromBody(ctx: Context): UserRequest {
         return ctx.body<UserRequest>()
     }
-
-    data class UserRequest(val username: String, val password: String?, val role: Role?)
-
 }
 
 
-class ListUsersHandler() : UserHandler(), GetRestHandler<List<UserHandler.UserDetails>>, AccessManagedRestHandler {
+class ListUsersHandler() : UserHandler(), GetRestHandler<List<UserDetails>>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Lists all available users.",
@@ -71,7 +70,7 @@ class ListUsersHandler() : UserHandler(), GetRestHandler<List<UserHandler.UserDe
     override val route = "user/list"
 }
 
-class DeleteUsersHandler() : UserHandler(), DeleteRestHandler<UserHandler.UserDetails>, AccessManagedRestHandler {
+class DeleteUsersHandler() : UserHandler(), DeleteRestHandler<UserDetails>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Deletes the specified user. Requires ADMIN privileges",
@@ -99,7 +98,7 @@ class DeleteUsersHandler() : UserHandler(), DeleteRestHandler<UserHandler.UserDe
 }
 
 
-class CreateUsersHandler() : UserHandler(), PostRestHandler<UserHandler.UserDetails>, AccessManagedRestHandler {
+class CreateUsersHandler() : UserHandler(), PostRestHandler<UserDetails>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
@@ -127,7 +126,7 @@ class CreateUsersHandler() : UserHandler(), PostRestHandler<UserHandler.UserDeta
     override val route = "user/create"
 }
 
-class UpdateUsersHandler() : UserHandler(), PatchRestHandler<UserHandler.UserDetails>, AccessManagedRestHandler {
+class UpdateUsersHandler() : UserHandler(), PatchRestHandler<UserDetails>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone",
@@ -174,7 +173,7 @@ class UpdateUsersHandler() : UserHandler(), PatchRestHandler<UserHandler.UserDet
     override val route = "user/:id"
 }
 
-class CurrentUsersHandler() : UserHandler(), GetRestHandler<UserHandler.UserDetails>, AccessManagedRestHandler {
+class CurrentUsersHandler() : UserHandler(), GetRestHandler<UserDetails>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Get information about the current user.",
@@ -195,7 +194,7 @@ class CurrentUsersHandler() : UserHandler(), GetRestHandler<UserHandler.UserDeta
 
 }
 
-class CurrentUsersSessionIdHandler(): UserHandler(), GetRestHandler<UserHandler.SessionId>, AccessManagedRestHandler {
+class CurrentUsersSessionIdHandler(): UserHandler(), GetRestHandler<SessionId>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Get current sessionId",
@@ -215,3 +214,31 @@ class CurrentUsersSessionIdHandler(): UserHandler(), GetRestHandler<UserHandler.
     override val route = "user/session"
 }
 
+class ActiveSessionsHandler(private val users : DAO<User>) : GetRestHandler<List<UserDetails>>, AccessManagedRestHandler {
+
+    override val permittedRoles = setOf(RestApiRole.ADMIN)
+    override val route = "user/allCurrentSessions"
+
+
+    @OpenApi(
+            summary = "Get details of all current user sessions",
+            path = "/api/user/allCurrentSessions",
+            tags = ["User"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(Array<UserDetails>::class)]),
+                OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): List<UserDetails> {
+
+        return AccessManager.currentSessions.map {session ->
+            val userId = AccessManager.getUserIdForSession(session) ?: return@map UserDetails(-1, "??", Role.VIEWER, session)
+            val user = users[userId] ?: return@map UserDetails(userId, "??", Role.VIEWER, session)
+            UserDetails(
+                    user.id, user.username.name, user.role, session
+            )
+        }
+
+    }
+
+}

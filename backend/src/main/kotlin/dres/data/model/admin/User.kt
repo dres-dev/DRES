@@ -1,13 +1,20 @@
 package dres.data.model.admin
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 import dres.data.model.Entity
 import org.mindrot.jbcrypt.BCrypt
 
-data class User (override var id: Long = -1, val username: UserName, val password: HashedPassword, val role: Role) : Entity {
+
+data class User @JsonCreator constructor(
+        @JsonProperty("id") override var id: Long = -1,
+        @JsonProperty("username") val username: UserName,
+        @JsonProperty("password") val password: HashedPassword,
+        @JsonProperty("role") val role: Role) : Entity {
     override fun toString(): String = "User(id=$id, username=${username.name}, role=$role)"
 }
 
-data class UserName(val name: String){
+data class  UserName @JsonCreator constructor(@JsonProperty("name") val name: String){
     val length = name.length
 }
 
@@ -39,13 +46,8 @@ class PlainPassword(internal val pass: String) : Password(pass){
 
 }
 
-class HashedPassword(private val passHash: String) : Password(passHash){
-
-    val hash
-        get() = passHash
-
+class HashedPassword @JsonCreator constructor (@JsonProperty("hash") val hash: String) : Password(hash) {
     fun check(plain: PlainPassword): Boolean {
-        return BCrypt.checkpw(plain.pass, passHash)
+        return BCrypt.checkpw(plain.pass, this.hash)
     }
-
 }

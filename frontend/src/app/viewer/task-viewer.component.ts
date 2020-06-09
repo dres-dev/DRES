@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnDestroy} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
 import {
     CompetitionRunService,
     ImageQueryDescription,
@@ -7,7 +7,7 @@ import {
     TextQueryDescription,
     VideoQueryDescription
 } from '../../../openapi';
-import {combineLatest, interval, merge, Observable, of, Subscription, timer, zip} from 'rxjs';
+import {interval, Observable, of, Subscription, timer, zip} from 'rxjs';
 import {catchError, filter, finalize, flatMap, map, share, shareReplay, switchMap, take, tap} from 'rxjs/operators';
 import {IWsMessage} from '../model/ws/ws-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
@@ -35,48 +35,24 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     /** Time that has elapsed (only when a task is running). */
     timeElapsed: Observable<number>;
 
-    /** Observable that returns true if task has ended and the currently active task is the same! */
-    justEnded: Observable<boolean>;
-
-    /** Observable that returns true if solution video should be displayed right after a task has ended! */
-    showSolution: Observable<boolean>;
-
     /** Observable that returns and caches the current query object. */
     currentQueryObject: Observable<VideoQueryDescription | TextQueryDescription | ImageQueryDescription>;
-
-    /** The currently active task. */
-    taskPrepareSubscription: Subscription;
 
     /** Value of the task count down. */
     taskCountdown = '';
 
-    /** Reference to the audio file played during countdown. */
-    audio = [
-        new Audio('assets/audio/beep_1.ogg'),
-        new Audio('assets/audio/beep_2.ogg')
-    ];
+    /** Reference to the audio element used during countdown. */
+    @ViewChild('audio') audio: ElementRef<HTMLAudioElement>;
 
-    constructor(protected runService: CompetitionRunService, protected config: AppConfig) {
-        this.audio[0].load();
-        this.audio[1].load();
-    }
+    /** Subscriptions */
+    taskPrepareSubscription: Subscription;
+
+    constructor(protected runService: CompetitionRunService, public config: AppConfig) {}
 
     /**
      * Create a subscription for task changes.
      */
     ngAfterViewInit(): void {
-        /* Observable that returns true if task has ended and hasn't changed in the meanwhile! */
-        this.justEnded = combineLatest([this.state, this.taskEnded]).pipe(
-            map(([t1, t2]) => t1.currentTask.name === t2.name)
-        );
-
-        /* Observable that returns true if solution video should be displayed right after a task has ended! */
-        this.showSolution = merge(
-            this.taskStarted.pipe(map(p => false)),
-            this.taskChanged.pipe(map(p => false)),
-            this.taskEnded.pipe(map(p => true)),
-        );
-
         /* Subscription for the current query object. */
         this.currentQueryObject = this.taskChanged.pipe(
             flatMap(task => this.runId),
@@ -102,9 +78,11 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
                     try {
                         this.taskCountdown = String(count);
                         if (count > 0) {
-                            this.audio[0].play().then(r => {});
+                            this.audio.nativeElement.src = 'assets/audio/beep_1.ogg';
+                            this.audio.nativeElement.play().then(r => {});
                         } else {
-                            this.audio[1].play().then(r => {});
+                            this.audio.nativeElement.src = 'assets/audio/beep_2.ogg';
+                            this.audio.nativeElement.play().then(r => {});
                         }
                     } catch (e) {
                         console.error('[TaskViewerComponent] Failed to play sound effect.', e);

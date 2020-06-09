@@ -1,12 +1,9 @@
 package dres.data.model
 
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
+import com.fasterxml.jackson.databind.ObjectMapper
 import java.io.File
 
-@Serializable
 data class Config(
         val httpPort: Int = 8080,
         val httpsPort: Int = 8443,
@@ -17,9 +14,9 @@ data class Config(
 
     companion object{
         fun read(file: File): Config? {
-            val json = Json(JsonConfiguration.Stable)
+            val mapper = ObjectMapper()
             return try {
-                json.parse(serializer(), file.readText())
+                mapper.readValue(file, Config::class.java)
             } catch (e: Exception) {
                 null
             }

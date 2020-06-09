@@ -4,6 +4,7 @@ import dres.data.model.basics.media.MediaItem
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.validation.interfaces.JudgementValidator
+import dres.run.validation.interfaces.SubmissionValidator
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -20,7 +21,7 @@ import kotlin.concurrent.write
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */
-class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = null): JudgementValidator { //TODO better name
+class BasicJudgementValidator(): JudgementValidator { //TODO better name
 
     companion object {
         private val counter = AtomicInteger()
@@ -129,9 +130,6 @@ class BasicJudgementValidator(override val callback: ((Submission) -> Unit)? = n
 
         //add to cache
         this.cache[ItemRange(submission)] = verdict
-
-        /* Invoke callback if any. */
-        this.callback?.invoke(submission)
 
         //remove from waiting map
         this.waiting.remove(token)

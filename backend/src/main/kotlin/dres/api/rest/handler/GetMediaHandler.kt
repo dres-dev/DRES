@@ -13,13 +13,10 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import java.io.File
 
-class GetMediaHandler(private val collections: DAO<MediaCollection>, private val items: DAO<MediaItem>) : GetRestHandler<Any>, AccessManagedRestHandler {
+class GetMediaHandler(private val collections: DAO<MediaCollection>, private val itemCache: DaoIndexer<MediaItem, Pair<Long, String>>, private val collectionCache : DaoIndexer<MediaCollection, String>) : GetRestHandler<Any>, AccessManagedRestHandler {
 
     override val permittedRoles = setOf(RestApiRole.VIEWER)
     override val route: String = "media/:collection/:item"
-
-    private val collectionCache = DaoIndexer(collections){it.name}
-    private val itemCache = DaoIndexer(items){it.collection to it.name}
 
     //not used
     override fun doGet(ctx: Context): Any = ""

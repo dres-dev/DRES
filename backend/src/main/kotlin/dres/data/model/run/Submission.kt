@@ -5,7 +5,6 @@ import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.time.TemporalPoint
 import dres.data.model.basics.time.TemporalRange
 import dres.data.model.basics.time.TemporalUnit
-import kotlinx.serialization.Serializable
 import java.util.*
 
 /**
@@ -15,14 +14,13 @@ import java.util.*
  * @version 1.0
  */
 
-@Serializable
 data class Submission(val team: Int,
                       val member: Long,
                       val timestamp: Long,
                       val item: MediaItem,
                       val start: Long? = null, //in ms
                       val end: Long? = null, //in ms
-                      val id: String = UUID.randomUUID().toString()
+                      val uid: String = UUID.randomUUID().toString()
 ) {
 
     var status: SubmissionStatus = SubmissionStatus.INDETERMINATE

@@ -3,5 +3,8 @@
     "host": "localhost",
     "port": 8080,
     "tls": false
+  },
+  "effects": {
+    "mute": false
   }
 }

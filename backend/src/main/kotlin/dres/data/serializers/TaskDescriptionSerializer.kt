@@ -1,13 +1,15 @@
 package dres.data.serializers
 
 import dres.data.model.basics.media.MediaItem
-import dres.data.model.competition.*
+import dres.data.model.competition.TaskDescriptionBase
+import dres.data.model.competition.TaskType
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer
 
 object TaskDescriptionSerializer: Serializer<TaskDescriptionBase> {
     override fun serialize(out: DataOutput2, value: TaskDescriptionBase) {
+        out.writeUTF(value.uid)
         out.writeUTF(value.name)
         TaskGroupSerializer.serialize(out, value.taskGroup)
         out.packLong(value.duration)
@@ -33,13 +35,14 @@ object TaskDescriptionSerializer: Serializer<TaskDescriptionBase> {
     }
 
     override fun deserialize(input: DataInput2, available: Int): TaskDescriptionBase {
+        val uid = input.readUTF()
         val name = input.readUTF()
         val taskGroup = TaskGroupSerializer.deserialize(input, available)
         val duration = input.unpackLong()
         return when (taskGroup.type) {
-            TaskType.KIS_VISUAL-> TaskDescriptionBase.KisVisualTaskDescription(name, taskGroup, duration, MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
-            TaskType.KIS_TEXTUAL -> TaskDescriptionBase.KisTextualTaskDescription(name, taskGroup, duration, MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available), (0 until input.readInt()).map { input.readUTF() }, input.readInt())
-            TaskType.AVS -> TaskDescriptionBase.AvsTaskDescription(name, taskGroup, duration, input.readUTF(), input.unpackLong())
+            TaskType.KIS_VISUAL-> TaskDescriptionBase.KisVisualTaskDescription(uid, name, taskGroup, duration, MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
+            TaskType.KIS_TEXTUAL -> TaskDescriptionBase.KisTextualTaskDescription(uid, name, taskGroup, duration, MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available), (0 until input.readInt()).map { input.readUTF() }, input.readInt())
+            TaskType.AVS -> TaskDescriptionBase.AvsTaskDescription(uid, name, taskGroup, duration, input.readUTF(), input.unpackLong())
         }
     }
 }

@@ -11,15 +11,23 @@
  */
 /* tslint:disable:no-unused-variable member-ordering */
 
-import {Inject, Injectable, Optional} from '@angular/core';
-import {HttpClient, HttpEvent, HttpHeaders, HttpParameterCodec, HttpParams, HttpResponse} from '@angular/common/http';
-import {CustomHttpParameterCodec} from '../encoder';
-import {Observable} from 'rxjs';
+import { Inject, Injectable, Optional }                      from '@angular/core';
+import { HttpClient, HttpHeaders, HttpParams,
+         HttpResponse, HttpEvent, HttpParameterCodec }       from '@angular/common/http';
+import { CustomHttpParameterCodec }                          from '../encoder';
+import { Observable }                                        from 'rxjs';
 
-import {QueryDescription, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskInfo} from '../model/models';
+import { ErrorStatus } from '../model/models';
+import { QueryDescription } from '../model/models';
+import { RunInfo } from '../model/models';
+import { RunState } from '../model/models';
+import { ScoreOverview } from '../model/models';
+import { SubmissionInfo } from '../model/models';
+import { TaskInfo } from '../model/models';
 
-import {BASE_PATH} from '../variables';
-import {Configuration} from '../configuration';
+import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
+import { Configuration }                                     from '../configuration';
+
 
 
 @Injectable({

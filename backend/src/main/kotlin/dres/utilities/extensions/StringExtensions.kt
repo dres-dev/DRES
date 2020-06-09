@@ -1,6 +1,6 @@
 package dres.utilities.extensions
 
-import dres.api.rest.handler.UserHandler
+import dres.api.rest.handler.SessionId
 import dres.data.model.admin.PlainPassword
 import dres.data.model.admin.UserName
 import dres.mgmt.admin.UserManager
@@ -25,6 +25,6 @@ fun String?.toPlainPassword(): PlainPassword? {
     return PlainPassword(this)
 }
 
-fun String.toSessionId(): UserHandler.SessionId {
-    return UserHandler.SessionId(this)
+fun String.toSessionId(): SessionId {
+    return SessionId(this)
 }

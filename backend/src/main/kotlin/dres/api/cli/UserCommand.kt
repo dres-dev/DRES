@@ -1,33 +1,36 @@
 package dres.api.cli
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.parameters.options.convert
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
-import com.github.ajalt.clikt.parameters.options.validate
+import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.long
+import dres.api.rest.handler.UserRequest
 import dres.data.model.admin.PlainPassword
 import dres.data.model.admin.Role
 import dres.data.model.admin.User
 import dres.data.model.admin.UserName
+import dres.data.model.competition.CompetitionDescription
 import dres.mgmt.admin.UserManager
 import dres.mgmt.admin.UserManager.MIN_LENGTH_PASSWORD
 import dres.mgmt.admin.UserManager.MIN_LENGTH_USERNAME
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardOpenOption
 
 /**
  * A collection of [CliktCommand]s for user management
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.1
  */
 class UserCommand : NoOpCliktCommand(name = "users") {
 
 
     init {
-        this.subcommands(CreateUserCommand(), UpdateUserCommand(), DeleteUserCommand(), ListUsers(), ListRoles())
+        this.subcommands(CreateUserCommand(), UpdateUserCommand(), DeleteUserCommand(), ListUsers(), ListRoles(), ExportUserCommand(), ImportUserCommand())
     }
 
     /**
@@ -97,9 +100,9 @@ class UserCommand : NoOpCliktCommand(name = "users") {
     /**
      * [CliktCommand] to delete a [User].
      */
-    inner class DeleteUserCommand : CliktCommand(name = "delete", help = "Deletes an existing User") {
-        private val id: Long? by option("-i", "--id").long()
-        private val username: UserName? by option("-u", "--username", help = "Username of the User to be deleted")
+    inner class DeleteUserCommand : CliktCommand(name = "delete", help = "Deletes an existing user.") {
+        private val id: Long? by option("-i", "--id", help = "ID of the user to be deleted.").long()
+        private val username: UserName? by option("-u", "--username", help = "Username of the user to be deleted.")
                 .convert { UserName(it) }
                 .validate { require(it.name.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
 
@@ -119,6 +122,76 @@ class UserCommand : NoOpCliktCommand(name = "users") {
             println("User with ID $delId could not be deleted because it doesn't exist!")
         }
     }
+
+    /**
+     * [CliktCommand] to export a [User].
+     */
+    inner class ExportUserCommand : CliktCommand(name = "export", help =  "Exports one or multiple user(s) as JSON.") {
+        private val id: Long? by option("-i", "--id", help = "ID of the user to be exported.").long()
+        private val username: UserName? by option("-u", "--username", help = "Username of the user to be exported.")
+                .convert { UserName(it) }
+                .validate { require(it.name.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
+        private val path: String by option("-o", "--output").required()
+        override fun run() {
+            val id = UserManager.id(id = id, username = username)
+            if (id == null) {
+                val users = UserManager.list()
+                val path = Paths.get(this.path)
+                val mapper = ObjectMapper()
+                Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {writer ->
+                    mapper.writeValue(writer, users)
+                }
+                println("Successfully wrote ${users.size} users to $path.")
+                return
+            } else {
+                val user = UserManager.get(id)
+                if (user != null) {
+                    val path = Paths.get(this.path)
+                    val mapper = ObjectMapper()
+                    Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
+                        mapper.writeValue(it, user)
+                    }
+                    println("Successfully wrote user ${user.id} to $path.")
+                } else {
+                    println("User with ID $id does not exist.")
+                }
+            }
+        }
+    }
+
+    /**
+     * Imports a specific competition from JSON.
+     */
+    inner class ImportUserCommand: CliktCommand(name ="import", help="Imports a user description from JSON.") {
+
+        private val new: Boolean by option("-n", "--new", help="Flag indicating whether users should be created anew.").flag("-u", "--update", default = true)
+
+        private val multiple: Boolean by option("-m", "-multiple", help = "Flag indicating whether multiple users should be  imported.").flag("-s", "--single", default = true)
+
+        private val destination: String by option("-i", "--in", help= "The input file for the users.").required()
+
+        override fun run() {
+            val path = Paths.get(this.destination)
+            val mapper = ObjectMapper()
+
+            val import = Files.newBufferedReader(path).use {
+                if (this.multiple) {
+                    mapper.readValue(it, Array<User>::class.java)
+                } else {
+                    arrayOf(mapper.readValue(it, User::class.java))
+                }
+            }
+
+            import.forEach {
+                if (new) {
+                    UserManager.create(it.username, it.password, it.role)
+                } else {
+                    UserManager.update(it.id, it.username, it.password, it.role)
+                }
+            }
+        }
+    }
+
 
     /**
      * [CliktCommand] to list all [User]s.

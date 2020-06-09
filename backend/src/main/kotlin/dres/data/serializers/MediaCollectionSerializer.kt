@@ -11,9 +11,10 @@ object MediaCollectionSerializer: Serializer<MediaCollection> {
         out.writeUTF(value.name)
         out.writeUTF(value.description ?: "")
         out.writeUTF(value.basePath)
+        out.writeUTF(value.uid)
     }
 
     override fun deserialize(input: DataInput2, available: Int): MediaCollection {
-        return MediaCollection(input.unpackLong(), input.readUTF(), input.readUTF(), input.readUTF())
+        return MediaCollection(input.unpackLong(), input.readUTF(), input.readUTF(), input.readUTF(), input.readUTF())
     }
 }

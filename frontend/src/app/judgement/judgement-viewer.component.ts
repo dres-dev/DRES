@@ -1,8 +1,8 @@
 import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {interval, Observable, of, Subscription} from 'rxjs';
+import {BehaviorSubject, interval, Observable, of, Subscription} from 'rxjs';
 import {Judgement, JudgementRequest, JudgementService, SubmissionInfo} from '../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
-import {catchError, filter, map, switchMap, withLatestFrom} from 'rxjs/operators';
+import {catchError, filter, map, switchMap, tap, withLatestFrom} from 'rxjs/operators';
 import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
@@ -20,12 +20,19 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
 
     @Input() pollingFrequency = 1000;
     @ViewChild(JudgementMediaViewerComponent) judgePlayer: JudgementMediaViewerComponent;
+    observableJudgementRequest: BehaviorSubject<JudgementRequest> = new BehaviorSubject<JudgementRequest>(null);
     judgementRequest: JudgementRequest;
     noJudgementMessage = '';
     isJudgmentAvailable = false;
+    isNewJudgementDesc = false;
+
+    openSubmissions = new BehaviorSubject(0);
+    pendingSubmissions = new BehaviorSubject(0);
+
 
     private runId: Observable<string>;
     private requestSub: Subscription;
+    private statusSub: Subscription;
 
     constructor(
         private judgementService: JudgementService,
@@ -38,6 +45,30 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         /* Subscription and current run id */
         this.runId = this.activeRoute.params.pipe(map(p => p.runId));
+        /* Poll for score status in a given interval */
+        this.statusSub = interval(this.pollingFrequency).pipe(
+            withLatestFrom(this.runId),
+            switchMap(([i, runId]) => {
+                return this.judgementService.getApiRunWithRunidJudgeStatus(runId).pipe(
+                    catchError(err => {
+                        console.log('Error in JudgeStatus');
+                        console.log(err);
+                        return of(null);
+                    }),
+                    filter(x => x !== null));
+            }),
+            filter(x => x != null)
+        ).subscribe(value => {
+            console.log(`[Judgement] Resp: ${JSON.stringify(value)}`);
+            let pending = 0;
+            let open = 0;
+            value.forEach(j => {
+                pending += j.pending;
+                open += j.open;
+            });
+            console.log(`[Judgement] pending=${pending}, open=${open}`);
+            this.updateProgress(pending, open);
+        });
 
         /* Poll for score updates in a given interval. */
         this.requestSub = interval(this.pollingFrequency).pipe(
@@ -78,10 +109,14 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
         ).subscribe(req => {
             console.log('[Judgem.View] Received request');
             console.log(req);
-            // TODO handle case there is no submission to judge
+            if (this.judgementRequest) {
+                if (this.judgementRequest.taskDescription !== (req as JudgementRequest).taskDescription) {
+                    this.isNewJudgementDesc = true;
+                }
+            }
             this.judgementRequest = req;
+            this.observableJudgementRequest.next(req);
             this.isJudgmentAvailable = true;
-            this.judgePlayer.judge(req);
         });
     }
 
@@ -93,10 +128,11 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
         this.requestSub = null;
     }
 
-    /**
-     *
-     * @param status
-     */
+    public updateProgress(pending: number, open: number) {
+        this.openSubmissions.next(Math.round((1 - (pending / (pending + open))) * 100));
+        this.pendingSubmissions.next(Math.round((1 - (open / (pending + open))) * 100));
+    }
+
     public judge(status: SubmissionInfo.StatusEnum) {
         const judgement = {
             token: this.judgementRequest.token,

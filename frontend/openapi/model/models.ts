@@ -9,6 +9,7 @@ export * from './imageQueryDescription';
 export * from './imageQueryDescriptionAllOf';
 export * from './judgement';
 export * from './judgementRequest';
+export * from './judgementValidatorStatus';
 export * from './kisTextualTaskDescription';
 export * from './kisTextualTaskDescriptionAllOf';
 export * from './kisVisualTaskDescription';

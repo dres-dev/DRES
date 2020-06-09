@@ -140,7 +140,6 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
             withLatestFrom(this.teams, this.currentTaskGroup),
             map(([scores, team, taskGroup]) => {
                 if (scores && scores.length > 0) {
-                    console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] Multiple Scores`);
                     return scores.filter(so => {
                         if (this.competitionOverview) {
                             return this.ignoreScores.indexOf(so.name) < 0;
@@ -160,16 +159,13 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
                     if (scores.hasOwnProperty('name') && scores.hasOwnProperty('scores')) {
                         const so = (scores as unknown) as ScoreOverview;
                         if (this.competitionOverview) {
-                            console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] Overview scores`);
                             if (this.ignoreScores.indexOf(so.name) < 0) { }
                         } else {
-                            console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] Taskgroup Scores`);
                             if (so?.taskGroup === taskGroup) { // ?. due to 'average' has taskGroup === null
                                 return [{name: taskGroup, data: so.scores.map(sc => Math.round(sc.score))}];
                             }
                         }
                     } else {
-                        console.log(`[${this.competitionOverview ? 'Competition' : 'Taskgroup'}Scoreboard] No scores`);
                         return [{name: 'Empty', data: team.map(_ => 0)}];
                     }
                 }

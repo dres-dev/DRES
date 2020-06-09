@@ -5,7 +5,7 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
 import dres.run.audit.AuditLogEntry
-import dres.run.audit.AuditLogManager
+import dres.run.audit.AuditLogger
 import dres.run.audit.LogEventSource
 import dres.utilities.extensions.sessionId
 import io.javalin.http.Context
@@ -23,7 +23,7 @@ class LogoutHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, GetRes
             ])
     override fun doGet(ctx: Context): SuccessStatus {
         AccessManager.clearUserSession(ctx.sessionId())
-        AuditLogManager.getAuditLogger("GLOBAL", audit).logout(ctx.sessionId(), LogEventSource.REST)
+        AuditLogger.logout(ctx.sessionId(), LogEventSource.REST)
         return SuccessStatus("Logged out")
 
     }

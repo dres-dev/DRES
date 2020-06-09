@@ -33,6 +33,8 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
     /** Stamped lock to mediate read/write operations through this [DAO]. */
     private val lock: StampedLock = StampedLock()
 
+    private val indexers = mutableListOf<DaoIndexer<T, *>>()
+
     /** Name of the entity accessed through this [DAO]. */
     val name = path.fileName.toString().replace(".db","")
 
@@ -65,6 +67,11 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
     fun delete(id: Long): T? = this.lock.write {
         val deleted = this.data.remove(id)
         this.db.commit()
+        if(deleted != null){
+            indexers.forEach {
+                it.delete(deleted)
+            }
+        }
         return deleted
     }
 
@@ -82,6 +89,12 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      */
     fun batchDelete(ids: Iterable<Long>) = this.lock.write {
         for (id in ids){
+            val t = data[id]
+            if(t != null){
+                indexers.forEach {
+                    it.delete(t)
+                }
+            }
             this.data.remove(id)
         }
         this.db.commit()
@@ -93,9 +106,16 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      * @param id The ID of the value that should be updated
      * @param value The new value [T]
      */
-    fun update(id: Long, value: T?) = this.lock.write {
+    fun update(id: Long, value: T) = this.lock.write {
         if (id <= this.autoincrement.get()) {
+            val old = this.data[id]
             this.data[id] = value
+            indexers.forEach {
+                if (old != null){
+                    it.delete(old)
+                }
+                it.append(value)
+            }
             this.db.commit()
         } else {
             throw IndexOutOfBoundsException("Could not update value with ID $id because such a value doesn't exist.")
@@ -115,11 +135,14 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      * @param value The value [T] that should be appended
      * @return ID of the new value.
      */
-    fun append(value: T?): Long = this.lock.write {
+    fun append(value: T): Long = this.lock.write {
         val next = this.autoincrement.incrementAndGet()
-        value?.id = next
+        value.id = next
         this.data[next] = value
         this.db.commit()
+        indexers.forEach {
+            it.append(value)
+        }
         return next
     }
 
@@ -128,11 +151,14 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      *
      * @param values An iterable of the values [T] that should be appended.
      */
-    fun batchAppend(values: Iterable<T?>) = this.lock.write {
+    fun batchAppend(values: Iterable<T>) = this.lock.write {
         for (value in values) {
             val next = this.autoincrement.incrementAndGet()
-            value?.id = next
+            value.id = next
             this.data[next] = value
+            indexers.forEach {
+                it.append(value)
+            }
         }
         this.db.commit()
         this.data.values
@@ -190,5 +216,9 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
 
     fun <K> groupBy(keySelector: (T) -> K): Map<K, List<T>> = this.lock.optimisticRead {
         return this.data.values.filterNotNull().groupBy(keySelector)
+    }
+
+    internal fun <K> addIndexer(daoIndexer: DaoIndexer<T, K>) {
+        indexers.add(daoIndexer)
     }
 }

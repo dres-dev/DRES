@@ -1,15 +1,15 @@
 package dres.data.model.run
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import dres.data.model.Entity
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.TaskDescription
+import dres.data.model.log.QueryEventLog
+import dres.data.model.log.QueryResultLog
 import dres.data.model.run.CompetitionRun.TaskRun
 import dres.run.filter.SubmissionFilter
-import dres.run.score.interfaces.IncrementalTaskRunScorer
-import dres.run.score.interfaces.RecalculatingTaskRunScorer
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.validation.interfaces.SubmissionValidator
-import kotlinx.serialization.Serializable
 import java.util.*
 
 /**
@@ -19,12 +19,11 @@ import java.util.*
  * @author Ralph Gasser
  * @param 1.0
  */
-@Serializable
-class CompetitionRun(override var id: Long, val name: String, val competitionDescription: CompetitionDescription): Run, Entity {
+class CompetitionRun(override var id: Long, val name: String, val competitionDescription: CompetitionDescription, val uid: String = UUID.randomUUID().toString()): Run, Entity {
 
-    internal constructor(id: Long, name: String, competitionDescription: CompetitionDescription, started: Long?, ended: Long?) : this(id, name, competitionDescription) {
-        this.started = started
-        this.ended = ended
+    internal constructor(id: Long, name: String, competitionDescription: CompetitionDescription, uid: String, started: Long, ended: Long) : this(id, name, competitionDescription, uid) {
+        this.started =  if (started == -1L) { null } else { started }
+        this.ended = if (ended == -1L) { null } else { ended }
     }
 
     init {
@@ -41,10 +40,6 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
     @Volatile
     override var ended: Long? = null
         private set
-
-    /** Lambda to be able to send notifications about submission updates*/
-    @Volatile
-    var updateSubmissionStatus: (() -> Unit)? = null
 
     /** List of [TaskRun]s registered for this [CompetitionRun]. */
     val runs: List<TaskRun> = LinkedList<TaskRun>()
@@ -68,7 +63,7 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
      */
     override fun end() {
         if (!this.isRunning) {
-            throw IllegalStateException("Competition run '$name' is not running.")
+            this.started = System.currentTimeMillis()
         }
         this.ended = System.currentTimeMillis()
     }
@@ -88,6 +83,8 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
         }
     }
 
+    override fun toString(): String = "CompetitionRun(id=$id, uid=$uid, name=${name})"
+
     /**
      * Represents a concrete instance or `run` of a [Task]. [TaskRun]s always exist within a
      * [CompetitionRun]. As a [CompetitionRun], [TaskRun]s can be started and ended and they
@@ -96,10 +93,10 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
      * @version 1.0
      * @author Ralph Gasser
      */
-    @Serializable
-    inner class TaskRun (val taskId: Int): Run {
+    @JsonIgnoreProperties(value = ["competition"])
+    inner class TaskRun (val taskId: Int, val uid: String = UUID.randomUUID().toString()): Run {
 
-        internal constructor(task: Int, started: Long, ended: Long): this(task) {
+        internal constructor(task: Int, uid: String, started: Long, ended: Long): this(task, uid) {
             this.started =  if (started == -1L) { null } else { started }
             this.ended = if (ended == -1L) { null } else { ended }
         }
@@ -119,7 +116,7 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
             get() = this@CompetitionRun.runs.indexOf(this)
 
         /** Exposable data of this [TaskRun] */
-        val data: TaskRunData = TaskRunData(this.task, this.taskId)
+        var data: TaskRunData = TaskRunData(this.task, this.taskId)
 
         val task: TaskDescription
             get() = this@CompetitionRun.competitionDescription.tasks[this@TaskRun.taskId]
@@ -138,17 +135,7 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
 
         /** The [SubmissionValidator] used to validate [Submission]s. */
         @Transient
-        val validator: SubmissionValidator = this.task.newValidator {
-
-            when(this.scorer){
-                is IncrementalTaskRunScorer -> this.scorer.update(it)
-                is RecalculatingTaskRunScorer -> this.scorer.analyze(this)
-                else -> this.scorer.scores()
-            }
-
-            updateSubmissionStatus?.let { it1 -> it1() }
-
-        }
+        val validator: SubmissionValidator = this.task.newValidator()
 
         init {
             if (this@CompetitionRun.competitionDescription.tasks.size < this.taskId) {
@@ -200,22 +187,55 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
             (this.data.submissions as MutableList).add(submission)
             this.validator.validate(submission)
         }
-
-
-
     }
 }
 
-@Serializable
 class TaskRunData(val task: TaskDescription, val taskId: Int) {
 
     /** List of [Submission]s* registered for this [TaskRun]. */
     val submissions: List<Submission> = mutableListOf()
 
-    constructor(task: TaskDescription, taskId: Int, submissions: List<Submission> = emptyList()): this(task, taskId) {
+    internal val userSessions = mutableMapOf<Long, String>()
+    internal val sessionQueryResultLogs = mutableMapOf<String, MutableList<QueryResultLog>>()
+    internal val sessionQueryEventLogs = mutableMapOf<String, MutableList<QueryEventLog>>()
+
+    constructor(task: TaskDescription, taskId: Int,
+                submissions: List<Submission> = emptyList(),
+                userSessions: Map<Long, String> = emptyMap(),
+                sessionQueryResultLogs: Map<String, MutableList<QueryResultLog>> = emptyMap(),
+                sessionQueryEventLogs: Map<String, MutableList<QueryEventLog>> = emptyMap()
+
+    ): this(task, taskId) {
         (this.submissions as MutableList).addAll(submissions)
+        this.userSessions.putAll(userSessions)
+        this.sessionQueryResultLogs.putAll(sessionQueryResultLogs)
+        this.sessionQueryEventLogs.putAll(sessionQueryEventLogs)
+
     }
 
-    //TODO add logging information
+    fun addQueryResultLog(userId: Long, sessionId: String, resultLog: QueryResultLog) {
+        userSessions[userId] = sessionId
+        if (!sessionQueryResultLogs.containsKey(sessionId)){
+            sessionQueryResultLogs[sessionId] = mutableListOf(resultLog)
+        } else {
+            sessionQueryResultLogs[sessionId]!!.add(resultLog)
+        }
+    }
+
+    fun addQueryEventtLog(userId: Long, sessionId: String, eventLog: QueryEventLog) {
+        userSessions[userId] = sessionId
+        if (!sessionQueryEventLogs.containsKey(sessionId)){
+            sessionQueryEventLogs[sessionId] = mutableListOf(eventLog)
+        } else {
+            sessionQueryEventLogs[sessionId]!!.add(eventLog)
+        }
+    }
+
+    internal fun merge(data: TaskRunData) {
+        (this.submissions as MutableList).addAll(data.submissions)
+        this.userSessions.putAll(data.userSessions)
+        this.sessionQueryResultLogs.putAll(data.sessionQueryResultLogs)
+        this.sessionQueryEventLogs.putAll(data.sessionQueryEventLogs)
+    }
 
 }

@@ -16,5 +16,6 @@ export interface MediaCollection {
     name: string;
     description?: string;
     basePath: string;
+    uid: string;
 }
 

@@ -47,11 +47,12 @@ object RestApi {
                 CreateUsersHandler(),
                 UpdateUsersHandler(),
                 CurrentUsersSessionIdHandler(),
+                ActiveSessionsHandler(dataAccessLayer.users),
 
                 //media
-                MediaPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, config),
-                SubmissionPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, config),
-                GetMediaHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+                MediaPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
+                SubmissionPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
+                GetMediaHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, dataAccessLayer.collectionNameIndex),
 
                 //collection
                 ListCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
@@ -83,8 +84,8 @@ object RestApi {
                 PastSubmissionInfoHandler(),
 
                 //Competition run admin
-                CreateCompetitionRunAdminHandler(dataAccessLayer.runs, dataAccessLayer.competitions, dataAccessLayer.collections, config),
-                StartCompetitionRunAdminHandler(dataAccessLayer.audit),
+                CreateCompetitionRunAdminHandler(dataAccessLayer.competitions, dataAccessLayer.collections, config),
+                StartCompetitionRunAdminHandler(),
                 NextTaskCompetitionRunAdminHandler(),
                 PreviousTaskCompetitionRunAdminHandler(),
                 StartTaskCompetitionRunAdminHandler(),
@@ -92,7 +93,8 @@ object RestApi {
                 TerminateCompetitionRunAdminHandler(),
 
                 NextOpenJudgementHandler(dataAccessLayer.collections),
-                PostJudgementHandler()
+                PostJudgementHandler(),
+                JudgementStatusHandler()
         )
 
         javalin = Javalin.create {
@@ -140,7 +142,7 @@ object RestApi {
             }
 
             path("submit") {
-                val submissionHandler = SubmissionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaSegments)
+                val submissionHandler = SubmissionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, dataAccessLayer.mediaSegmentItemIdIndex)
                 get(submissionHandler::get, submissionHandler.permittedRoles)
             }
 

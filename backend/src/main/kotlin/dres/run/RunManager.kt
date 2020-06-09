@@ -8,13 +8,14 @@ import dres.data.model.run.SubmissionStatus
 import dres.data.model.run.TaskRunData
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.score.scoreboard.Scoreboard
+import dres.run.updatables.ScoreboardsUpdatable
 import dres.run.validation.interfaces.JudgementValidator
 
 /**
  * A managing class for [CompetitionDescription] executions or 'runs'.
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.1
  */
 interface RunManager : Runnable {
     /** Unique ID for this [RunManager]. */
@@ -23,11 +24,13 @@ interface RunManager : Runnable {
     /** A name for identifying this [RunManager]. */
     val name: String
 
+    val uid: String
+
     /** The [CompetitionDescription] that is executed / run by this [RunManager]. */
     val competitionDescription: CompetitionDescription
 
-    /** The [Scoreboard] used to track the [Score] per team. */
-    val scoreboards: List<Scoreboard>?
+    /** The [ScoreboardsUpdatable] used to track the scores per team. */
+    val scoreboards: ScoreboardsUpdatable
 
     /** The [Task] that is currently being executed or waiting for execution by this [RunManager]. Can be null! */
     val currentTask: TaskDescription?
@@ -148,16 +151,11 @@ interface RunManager : Runnable {
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
+     * @param sessionId The session ID associated with the [ClientMessage]
      * @param message The [ClientMessage] that was received.
      * @return True if [ClientMessage] was processed, false otherwise
      */
-    fun wsMessageReceived(message: ClientMessage): Boolean
-
-    /**
-     *
-     */
-    fun updateScoreboards()
-
+    fun wsMessageReceived(sessionId: String, message: ClientMessage): Boolean
 
     /**
      * Invoked by an external caller to post a new [Submission] for the [Task] that is currently being

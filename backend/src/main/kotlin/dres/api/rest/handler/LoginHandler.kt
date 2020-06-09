@@ -9,7 +9,7 @@ import dres.data.model.admin.PlainPassword
 import dres.data.model.admin.UserName
 import dres.mgmt.admin.UserManager.getMatchingUser
 import dres.run.audit.AuditLogEntry
-import dres.run.audit.AuditLogManager
+import dres.run.audit.AuditLogger
 import dres.run.audit.LogEventSource
 import dres.utilities.extensions.sessionId
 import io.javalin.http.BadRequestResponse
@@ -45,7 +45,7 @@ class LoginHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, PostRes
                 ?: throw ErrorStatusException(401, "Invalid credentials. Please try again!")
 
         AccessManager.setUserForSession(ctx.sessionId(), user)
-        AuditLogManager.getAuditLogger("GLOBAL", audit).login(loginRequest.username, ctx.sessionId(), LogEventSource.REST)
+        AuditLogger.login(loginRequest.username, ctx.sessionId(), LogEventSource.REST)
         return SuccessStatus("Login of '${user.username}' successful!")
 
     }

@@ -9,7 +9,7 @@ import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor
-import dres.run.audit.AuditLogManager
+import dres.run.audit.AuditLogger
 import dres.run.audit.LogEventSource
 import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
@@ -48,7 +48,7 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
         val runId = this.runId(ctx)
         val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
 
-        val validator = run.judgementValidators.find { it.hasOpen } ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement")
+        val validator = run.judgementValidators.find { it.hasOpen } ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement", true)
         val next = validator.next(ctx.sessionId()) ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement")
 
         val collection = this.collections[next.second.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.second.item.collection}")
@@ -91,8 +91,38 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
 
         validator.judge(judgement.token, judgement.verdict)
 
-        AuditLogManager.getAuditLogger(run.name)!!.judgement(judgement.validator, judgement.token, judgement.verdict, LogEventSource.REST, ctx.sessionId())
+        AuditLogger.judgement(run.uid, judgement.validator, judgement.token, judgement.verdict, LogEventSource.REST, ctx.sessionId())
 
         return SuccessStatus("Verdict received and accepted. Thanks!")
     }
 }
+
+class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, AccessManagedRestHandler {
+    override val permittedRoles = setOf(RestApiRole.VIEWER)
+    override val route = "run/:runId/judge/status"
+
+
+    @OpenApi(
+            summary = "Gets the status of all judgement validators.",
+            path = "/api/run/:runId/judge/status",
+            tags = ["Judgement"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(Array<JudgementValidatorStatus>::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): List<JudgementValidatorStatus> {
+
+        val runId = ctx.pathParamMap().getOrElse("runId") {
+            throw ErrorStatusException(400, "Parameter 'runId' is missing!'")
+        }.toLong()
+
+        val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+
+        return run.judgementValidators.map { JudgementValidatorStatus(it.id, it.pending, it.open) }
+    }
+
+}
+
+data class JudgementValidatorStatus(val validator: String, val pending: Int, val open: Int)

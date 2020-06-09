@@ -1,6 +1,7 @@
 package dres.data.model.competition
 
-import kotlinx.serialization.Serializable
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
  * A [TaskGroup] allows the user to specify common traits among a group of [Task]s.
@@ -10,5 +11,7 @@ import kotlinx.serialization.Serializable
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */
-@Serializable
-data class TaskGroup(val name: String, val type: TaskType, val defaultTaskDuration: Long) {}
+data class TaskGroup @JsonCreator constructor(
+        @JsonProperty("name") val name: String,
+        @JsonProperty("type") val type: TaskType,
+        @JsonProperty("defaultTaskDuration") val defaultTaskDuration: Long) {}

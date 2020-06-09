@@ -14,5 +14,4 @@ import {AuthenticationService} from './session/authentication.sevice';
   declarations: [],
   providers: [AuthenticationService]
 })
-export class ServicesModule {
-}
+export class ServicesModule {}

@@ -6,7 +6,12 @@
     </div>
     <div class="body">
         <span *ngIf="!isJudgmentAvailable">{{noJudgementMessage}}</span>
-        <app-judgement-media-viewer id="judge-media-viewer"></app-judgement-media-viewer>
+        <div class="progress-wrapper">
+            <mat-progress-bar id="progress" mode="buffer" [bufferValue]="(pendingSubmissions | async)"
+                              [value]="(openSubmissions | async)"></mat-progress-bar>
+        </div>
+        <app-judgement-media-viewer id="judge-media-viewer"
+                                    [req]="observableJudgementRequest"></app-judgement-media-viewer>
         <div *ngIf="isJudgmentAvailable" class="controls-container">
             <div fxFlex="33" class="button-wrapper">
                 <button mat-fab color="primary" aria-label="Approve Submission" matTooltip="Approve Submission"

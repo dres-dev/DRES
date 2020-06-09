@@ -20,6 +20,7 @@ import { Observable }                                        from 'rxjs';
 import { ErrorStatus } from '../model/models';
 import { Judgement } from '../model/models';
 import { JudgementRequest } from '../model/models';
+import { JudgementValidatorStatus } from '../model/models';
 import { SuccessStatus } from '../model/models';
 
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
@@ -123,6 +124,51 @@ export class JudgementService {
         }
 
         return this.httpClient.get<JudgementRequest>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/judge/next`,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Gets the status of all judgement validators.
+     * @param runId 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getApiRunWithRunidJudgeStatus(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<JudgementValidatorStatus>>;
+    public getApiRunWithRunidJudgeStatus(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<JudgementValidatorStatus>>>;
+    public getApiRunWithRunidJudgeStatus(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<JudgementValidatorStatus>>>;
+    public getApiRunWithRunidJudgeStatus(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (runId === null || runId === undefined) {
+            throw new Error('Required parameter runId was null or undefined when calling getApiRunWithRunidJudgeStatus.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.get<Array<JudgementValidatorStatus>>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/judge/status`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

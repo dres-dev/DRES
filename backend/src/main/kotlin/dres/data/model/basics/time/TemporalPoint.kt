@@ -1,6 +1,7 @@
 package dres.data.model.basics.time
 
-import kotlinx.serialization.Serializable
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
  * Notion of a [TemporalPoint] within a [MediaItem] that exhibits temporal development (e.g. [VideoItem]).
@@ -11,5 +12,7 @@ import kotlinx.serialization.Serializable
  * @param value Value of the [TemporalPoint]
  * @param value Unit of the [TemporalPoint]
  */
-@Serializable
-data class TemporalPoint(val value: Double, val unit: TemporalUnit)
+data class TemporalPoint @JsonCreator constructor(
+        @JsonProperty("value") val value: Double,
+        @JsonProperty("unit") val unit: TemporalUnit
+)

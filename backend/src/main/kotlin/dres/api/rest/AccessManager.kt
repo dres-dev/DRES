@@ -26,6 +26,8 @@ object AccessManager {
     /** Map keeping track of all [RunManager]s a specific user is eligible for. */
     private val usersToRunMap = ConcurrentHashMap<Long,MutableSet<RunManager>>()
 
+    val currentSessions: Set<String>
+        get() = sessionUserMap.keys
 
     fun setUserForSession(sessionId: String, user: User){
 

@@ -1,12 +1,24 @@
 package dres.data.model.competition
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 import dres.data.model.Entity
-import dres.data.model.competition.interfaces.TaskDescription
-import kotlinx.serialization.Polymorphic
-import kotlinx.serialization.Serializable
+import dres.run.score.scoreboard.MaxNormalizingScoreBoard
+import dres.run.score.scoreboard.MeanAggregateScoreBoard
+import dres.run.score.scoreboard.Scoreboard
+import java.util.*
 
-@Serializable
-data class CompetitionDescription(override var id: Long, val name: String, val description: String?, val groups: MutableList<TaskGroup>, @Polymorphic val tasks: MutableList<TaskDescriptionBase>, val teams: MutableList<Team>) : Entity {
+
+data class CompetitionDescription @JsonCreator constructor(
+        @JsonProperty("id") override var id: Long,
+        @JsonProperty("name") val name: String,
+        @JsonProperty("description") val description: String?,
+        @JsonProperty("groups") val groups: MutableList<TaskGroup>,
+        @JsonProperty("tasks") val tasks: MutableList<TaskDescriptionBase>,
+        @JsonProperty("teams") val teams: MutableList<Team>,
+        @JsonProperty("uid") val uid: String = UUID.randomUUID().toString()
+) : Entity {
+
     fun validate() {
         for (group in this.groups) {
             if (this.groups.map { it.name }.count { it == group.name } > 1) {
@@ -25,5 +37,18 @@ data class CompetitionDescription(override var id: Long, val name: String, val d
                 throw IllegalArgumentException("Duplicate team with name '${team.name}'!")
             }
         }
+    }
+
+    /**
+     * Generates and returns the default [Scoreboard] implementations for this [CompetitionDescription]
+     *
+     * @return List of [Scoreboard] implementations.
+     */
+    fun generateDefaultScoreboards(): List<Scoreboard> {
+        val groupBoards = this.groups.map {group ->
+            MaxNormalizingScoreBoard(group.name, {task -> task.taskGroup == group}, group.name)
+        }
+        val aggregateScoreBoard = MeanAggregateScoreBoard("average", groupBoards)
+        return groupBoards.plus(aggregateScoreBoard)
     }
 }

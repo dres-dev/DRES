@@ -9,8 +9,9 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import {QueryDescription} from './queryDescription';
-import {TextualDescription} from './textualDescription';
+import { QueryDescription } from './queryDescription';
+import { TextualDescription } from './textualDescription';
+import { TextQueryDescriptionAllOf } from './textQueryDescriptionAllOf';
 
 
 export interface TextQueryDescription extends QueryDescription { 

@@ -18,7 +18,7 @@ import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunManager
 import dres.run.RunManagerStatus
-import dres.run.audit.AuditLogManager
+import dres.run.audit.AuditLogger
 import dres.run.audit.LogEventSource
 import dres.utilities.TimeUtil
 import dres.utilities.extensions.sessionId
@@ -28,7 +28,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 
-class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val segment: DAO<MediaItemSegmentList>): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
+class SubmissionHandler (val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<Long, String>>, private val segmentIndex: DaoIndexer<MediaItemSegmentList, Long>): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
     override val route = "submit"
 
@@ -40,10 +40,6 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
         const val PARAMETER_NAME_TIMECODE = "timecode"
     }
 
-    /* scans entire dao content in order to build up index, could take a few seconds */
-    private val segmentIndex = DaoIndexer(this.segment){it.mediaItemId}
-
-    private val itemIndex = DaoIndexer(this.items){it.name}
 
     private fun getRelevantManagers(userId: Long): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
@@ -63,7 +59,6 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
     private fun toSubmission(ctx: Context, userId: Long, runManager: RunManager, submissionTime: Long): Submission {
         val map = ctx.queryParamMap()
         val team = runManager.competitionDescription.teams.indexOf(runManager.competitionDescription.teams.first { it.users.contains(userId) })
-        val member = userId
 
         val collectionParam = map[PARAMETER_NAME_COLLECTION]?.first()
         val collectionId = when {
@@ -82,7 +77,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
 
         /* Find media item. */
         val itemParam = map[PARAMETER_NAME_ITEM]?.first() ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_ITEM' is missing but required!'")
-        val item = this.itemIndex[itemParam].find { it.collection == collectionId } ?:
+        val item = this.itemIndex[collectionId to itemParam].firstOrNull() ?:
             throw ErrorStatusException(404, "Media item '$itemParam (collection = $collectionId)' could not be found.")
 
         val mapToSegment = runManager.currentTask is DefinedMediaItemTaskDescription
@@ -90,19 +85,19 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) && item is MediaItem.VideoItem -> {
                 val time = this.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item)
-                Submission(team, member, submissionTime, item, time.first, time.second)
+                Submission(team, userId, submissionTime, item, time.first, time.second)
             }
             map.containsKey(PARAMETER_NAME_FRAME) && (item is PlayableMediaItem) -> {
                 val time = this.frameToTime(map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull() ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number."), item)
                 val range = if(mapToSegment && item is MediaItem.VideoItem) timeToSegment(time, item) else time to time
-                Submission(team, member, submissionTime, item, range.first, range.second)
+                Submission(team, userId, submissionTime, item, range.first, range.second)
             }
             map.containsKey(PARAMETER_NAME_TIMECODE) && (item is PlayableMediaItem) -> {
                 val time = this.timecodeToTime(map[PARAMETER_NAME_TIMECODE]?.first()!!, item)
                 val range = if(mapToSegment && item is MediaItem.VideoItem) timeToSegment(time, item) else time to time
-                Submission(team, member, submissionTime, item, range.first, range.second)
+                Submission(team, userId, submissionTime, item, range.first, range.second)
             }
-            else -> Submission(team, member, submissionTime, item)
+            else -> Submission(team, userId, submissionTime, item)
         }.also {
             it.taskRun = runManager.currentTaskRun
         }
@@ -170,7 +165,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, val items: DAO<M
             throw ErrorStatusException(208, "Submission rejected")
         }
 
-        AuditLogManager.getAuditLogger(run.name)!!.submission(run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId())
+        AuditLogger.submission(run.uid, run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId())
 
         return when (result) {
             SubmissionStatus.CORRECT -> SuccessStatus("Submission correct!")

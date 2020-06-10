@@ -41,9 +41,9 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
     private fun userId(ctx: Context): Long = AccessManager.getUserIdForSession(ctx.sessionId())!!
 
     private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
-    private fun isJudge(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.JUDGE) and !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
-    private fun isViewer(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.VIEWER) and !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
-    private fun isParticipant(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.PARTICIPANT) and !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
+    private fun isJudge(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.JUDGE) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
+    private fun isViewer(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.VIEWER) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
+    private fun isParticipant(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.PARTICIPANT) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
 
     fun getRelevantManagers(ctx: Context): List<RunManager> {
         if (isParticipant(ctx)) {

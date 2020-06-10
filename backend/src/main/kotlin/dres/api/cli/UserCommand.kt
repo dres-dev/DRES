@@ -26,7 +26,7 @@ import java.nio.file.StandardOpenOption
  * @author Ralph Gasser
  * @version 1.1
  */
-class UserCommand : NoOpCliktCommand(name = "users") {
+class UserCommand : NoOpCliktCommand(name = "user") {
 
 
     init {

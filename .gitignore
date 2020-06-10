@@ -261,3 +261,5 @@ node_modules/
 backend/cache
 backend/task-cache
 backend/src/main/resources/html
+nodejs
+npm-*

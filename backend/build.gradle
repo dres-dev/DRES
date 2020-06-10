@@ -1,6 +1,3 @@
-import org.ysb33r.gradle.nodejs.tasks.NpmPackageJsonInstall
-import org.ysb33r.gradle.nodejs.tasks.NpmTask
-
 buildscript {
     ext.kotlinVersion = '1.3.70'
 
@@ -15,7 +12,7 @@ buildscript {
     }
 }
 plugins {
-    id 'org.ysb33r.nodejs.npm'     version '0.9.3'
+    id 'com.moowork.node'     version '1.3.1'
 }
 apply plugin: 'application'
 apply plugin: 'java'
@@ -115,19 +112,26 @@ sourceSets {
     }
 }
 
-task initFrontendDev(type: NpmPackageJsonInstall){
-    npm{
-        homeDirectory = frontendLocation
-    }
+node {
+    version = '12.16.3'
+    npmVersion = '6.14.4'
+
+    download = true
+    workDir = file("${project.projectDir}/../frontend/nodejs")
+    npmWorkDir = file("${project.projectDir}/../frontend")
+    nodeModulesDir = file("${project.projectDir}/../frontend")
 }
 
+npm_install.dependsOn(npm_cache_clean)
+
 task buildFrontend(type: NpmTask){
-//    dependsOn 'initFrontendDev' // TBD
-    command 'run'
+    args = ['run', 'pbuild']
+    dependsOn 'initFrontendDev'
+    /*command 'run'
     cmdArgs 'pbuild'
     npm {
         homeDirectory = frontendLocation
-    }
+    }*/
 }
 
 task deployFrontend(type: Copy){

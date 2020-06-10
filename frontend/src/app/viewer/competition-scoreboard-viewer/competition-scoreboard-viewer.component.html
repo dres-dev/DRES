@@ -8,13 +8,13 @@
             [series] = "(series | async)"
             [dataLabels]="dataLabels"
             [chart]= "chart"
-            [plotOptions]="plotOptions"
+            [plotOptions]="competitionOverview ? plotOptions : plotOptionsAlt"
             [xaxis]="(xaxis | async)"
             [colors]="(!competitionOverview ? (color | async) : undefined)"
             [yaxis]="yaxis"
             [stroke]="stroke"
             [fill]="fill"
-            [legend]="legend"
+            [legend]="competitionOverview ? legend : legendNone"
             [theme]="theme">
         </apx-chart>
     </mat-card-content>

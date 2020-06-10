@@ -58,10 +58,16 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
 
     plotOptions: ApexPlotOptions = {
         bar: {
+            horizontal: true
+        }
+    } as ApexPlotOptions;
+
+    plotOptionsAlt: ApexPlotOptions = {
+        bar: {
             horizontal: true,
             distributed: true
         }
-    } as ApexPlotOptions;
+    }
 
     yaxis: ApexYAxis = {
         labels: {
@@ -80,12 +86,15 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
         opacity: 1
     } as ApexFill;
 
-    legend: ApexLegend =  {
-        show: this.competitionOverview,
+    legend: ApexLegend = {
         position: 'top',
         horizontalAlign: 'left',
         showForSingleSeries: false
     } as ApexLegend;
+
+    legendNone: ApexLegend = {
+        show: false
+    };
 
     theme: ApexTheme = {
         mode: 'dark',
@@ -106,7 +115,8 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
     // TODO Make this somewhat more beautiful and configurable
     private ignoreScores = ['average'];
 
-    constructor(public runService: CompetitionRunService) {}
+    constructor(public runService: CompetitionRunService) {
+    }
 
     ngOnInit(): void {
         /* Create observable from teams. */
@@ -120,7 +130,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
         /* Create observable for x-Axis data. */
         this.xaxis = this.teams.pipe(
             map(team => {
-                return { categories: team.map(t => t.name) };
+                return {categories: team.map(t => t.name)};
             })
         );
 
@@ -128,48 +138,49 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
         this.series = concat(
             of([{name: 'Empty', data: []}]),
             this.state.pipe(
-            switchMap(s => {
-                return this.runService.getApiRunScoreWithRunid(s.id).pipe(
-                    catchError(err => {
-                        console.log('Error when retrieving scores.', err);
-                        return of(null);
-                    })
-                );
-            }),
-            withLatestFrom(this.teams, this.currentTaskGroup),
-            map(([scores, team, taskGroup]) => {
-                if (scores && scores.length > 0) {
-                    return scores.filter(so => {
-                        if (this.competitionOverview) {
-                            return this.ignoreScores.indexOf(so.name) < 0;
-                        } else {
-                            return so.taskGroup === taskGroup;
-                        }
-                    }).map(s => {
-
-                        /* In case there is no value, specifically set 0 as score for each team*/
-                        if (s.scores.length === 0) {
-                            return {name: s.name, data: team.map(t => 0)};
-                        } else {
-                            return {name: s.name, data: s.scores.map(sc => Math.round(sc.score))};
-                        }
-                    });
-                } else {
-                    // TODO check with @ppanopticon why
-                    if (scores.hasOwnProperty('name') && scores.hasOwnProperty('scores')) {
-                        const so = (scores as unknown) as ScoreOverview;
-                        if (this.competitionOverview) {
-                            if (this.ignoreScores.indexOf(so.name) < 0) { }
-                        } else {
-                            if (so?.taskGroup === taskGroup) { // ?. due to 'average' has taskGroup === null
-                                return [{name: taskGroup, data: so.scores.map(sc => Math.round(sc.score))}];
+                switchMap(s => {
+                    return this.runService.getApiRunScoreWithRunid(s.id).pipe(
+                        catchError(err => {
+                            console.log('Error when retrieving scores.', err);
+                            return of(null);
+                        })
+                    );
+                }),
+                withLatestFrom(this.teams, this.currentTaskGroup),
+                map(([scores, team, taskGroup]) => {
+                    if (scores && scores.length > 0) {
+                        return scores.filter(so => {
+                            if (this.competitionOverview) {
+                                return this.ignoreScores.indexOf(so.name) < 0;
+                            } else {
+                                return so.taskGroup === taskGroup;
                             }
-                        }
+                        }).map(s => {
+
+                            /* In case there is no value, specifically set 0 as score for each team*/
+                            if (s.scores.length === 0) {
+                                return {name: s.name, data: team.map(t => 0)};
+                            } else {
+                                return {name: s.name, data: s.scores.map(sc => Math.round(sc.score))};
+                            }
+                        });
                     } else {
-                        return [{name: 'Empty', data: team.map(_ => 0)}];
+                        // TODO check with @ppanopticon why
+                        if (scores.hasOwnProperty('name') && scores.hasOwnProperty('scores')) {
+                            const so = (scores as unknown) as ScoreOverview;
+                            if (this.competitionOverview) {
+                                if (this.ignoreScores.indexOf(so.name) < 0) {
+                                }
+                            } else {
+                                if (so?.taskGroup === taskGroup) { // ?. due to 'average' has taskGroup === null
+                                    return [{name: taskGroup, data: so.scores.map(sc => Math.round(sc.score))}];
+                                }
+                            }
+                        } else {
+                            return [{name: 'Empty', data: team.map(_ => 0)}];
+                        }
                     }
-                }
-            })
-        ));
+                })
+            ));
     }
 }

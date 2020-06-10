@@ -122,11 +122,10 @@ node {
     nodeModulesDir = file("${project.projectDir}/../frontend")
 }
 
-npm_install.dependsOn(npm_cache_clean)
 
 task buildFrontend(type: NpmTask){
     args = ['run', 'pbuild']
-    dependsOn 'initFrontendDev'
+    dependsOn 'npm_install'
     /*command 'run'
     cmdArgs 'pbuild'
     npm {

@@ -1,10 +1,10 @@
 <div class="grid">
     <div class="header">
                 <h1>Judgment for Submission</h1>
-        <div class="header-container" fxLayoutAlign="space-around start">
+        <div fxLayout="row" fxLayoutAlign="space-between start" class="header-container">
             <div [@newDesc]="isNewJudgementDesc ? 'fresh' : 'known'" fxFlex="75" class="header-main">
                 <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> {{judgementRequest?.taskDescription}}</p>
-                <p *ngIf="isJudgmentAvailable">{{(judgePlayer?.videoUrlDebug | async)}}</p>
+                <p *ngIf="debug && isJudgmentAvailable">{{(judgePlayer?.videoUrlDebug | async)}}</p>
                 <div class="message" *ngIf="!isJudgmentAvailable">{{noJudgementMessage}}</div>
             </div>
             <div fxFlex="25" class="header-right">
@@ -21,24 +21,24 @@
 
         <app-judgement-media-viewer id="judge-media-viewer"
                                     [req]="observableJudgementRequest"></app-judgement-media-viewer>
-        <div *ngIf="isJudgmentAvailable" class="controls-container">
-            <div fxFlex="33" class="button-wrapper">
+        <div [@newDesc]="isNewJudgementDesc ? 'fresh' : 'known'" *ngIf="isJudgmentAvailable" class="controls-container" fxLayout="row" fxLayoutAlign="space-evenly center">
+            <div fxLayoutAlign="center" fxFlex="33" class="button-wrapper">
                 <button mat-fab color="primary" aria-label="Approve Submission" matTooltip="Approve Submission"
-                        (click)="judge('CORRECT')">
+                        (click)="judge('CORRECT')" (keydown.a)="judge('CORRECT')">
                     <mat-icon>thumb_up</mat-icon>
                 </button>
             </div>
-            <div fxFlex="33" class="button-wrapper">
+            <div fxLayoutAlign="center" fxFlex="33" class="button-wrapper">
                 <button mat-fab color="accent" aria-label="Submission Unclear" matTooltip="Submission Unclear"
-                        (click)="judge('UNDECIDABLE')">
+                        (click)="judge('UNDECIDABLE')" (keydown.u)="judge('UNDECIDABLE')">
                     <mat-icon>live_help</mat-icon>
                 </button>
 
             </div>
-            <div fxFlex="33" class="button-wrapper">
+            <div fxLayoutAlign="center" fxFlex="33" class="button-wrapper">
 
                 <button mat-fab color="warn" aria-label="Reject Submission" matTooltip="Reject Submission"
-                        (click)="judge('WRONG')">
+                        (click)="judge('WRONG')" (keydown.r)="judge('WRONG')">
                     <mat-icon>thumb_down</mat-icon>
                 </button>
             </div>

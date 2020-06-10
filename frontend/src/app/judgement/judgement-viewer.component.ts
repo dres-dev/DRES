@@ -33,6 +33,7 @@ import { trigger, transition, state, animate, style, keyframes } from '@angular/
 export class JudgementViewerComponent implements OnInit, OnDestroy {
     status: 'fresh' | 'known' = 'known';
 
+    @Input() debug = false;
     @Input() pollingFrequency = 1000;
     @ViewChild(JudgementMediaViewerComponent) judgePlayer: JudgementMediaViewerComponent;
     observableJudgementRequest: BehaviorSubject<JudgementRequest> = new BehaviorSubject<JudgementRequest>(null);

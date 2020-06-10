@@ -29,7 +29,7 @@ import kotlin.concurrent.write
  * instance and multiple viewers connected via WebSocket. Before starting a [Task], all viewer
  * instances are synchronized.
  *
- * @version 2.0
+ * @version 2.0.1
  * @author Ralph Gasser
  */
 class SynchronousRunManager(val run: CompetitionRun) : RunManager {
@@ -39,9 +39,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     /**
      * Alternative constructor from existing [CompetitionRun].
      */
-    constructor(description: CompetitionDescription, name: String) : this(CompetitionRun(-1L, name, description)) {
-        RunExecutor.runs.append(this.run)
-    }
+    constructor(description: CompetitionDescription, name: String) : this(CompetitionRun(-1L, name, description).apply { RunExecutor.runs.append(this) })
 
     /** Run ID of this [SynchronousRunManager]. */
     override val runId: Long
@@ -336,7 +334,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
                 /* 1) Cache current status locally. */
                 val localStatus = this.status
 
-                /* 2)  Invoke all relevant [Updatable]s. */
+                /* 2) Invoke all relevant [Updatable]s. */
                 this.invokeUpdatables(localStatus)
 
                 /* 3) Process internal state updates (if necessary). */

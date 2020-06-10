@@ -8,7 +8,7 @@
                 <div class="message" *ngIf="!isJudgmentAvailable">{{noJudgementMessage}}</div>
             </div>
             <div fxFlex="25" class="header-right">
-                <span matTooltip="The amount of submissions a verdict is missing">
+                <span matTooltip="The amount of submissions for which a verdict is missing">
                     <strong>Awaiting Verdict:</strong> {{pendingSubmissions ? (pendingSubmissions | async) : 0}}
                 </span><br>
                 <span matTooltip="The amount of submissions no judge has seen so far">

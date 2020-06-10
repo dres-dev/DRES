@@ -35,7 +35,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
     private requestSub: Subscription;
     private offset = 5;
 
-    constructor(private config: AppConfig) {
+    constructor(public config: AppConfig) {
     }
 
     private static log(msg: string) {

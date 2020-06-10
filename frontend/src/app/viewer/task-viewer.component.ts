@@ -95,7 +95,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
         /* Observable for the time left and time elapsed (for running tasks only). */
         const polledState = this.state.pipe(
             filter(s => s.status === 'RUNNING_TASK'),
-            flatMap(s => interval(1000).pipe(
+            switchMap(s => interval(1000).pipe(
                 switchMap(t => this.runService.getApiRunStateWithRunid(s.id)),
                 catchError((err, o) => {
                     console.log(`[TaskViewerComponent] Error occurred while polling state: ${err?.message}`);

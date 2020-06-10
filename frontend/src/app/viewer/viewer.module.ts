@@ -17,7 +17,6 @@ import {RunViewerComponent} from './run-viewer.component';
 import {MatCardModule} from '@angular/material/card';
 import {TaskViewerComponent} from './task-viewer.component';
 import {TeamsViewerComponent} from './teams-viewer.component';
-import {ScoreboardViewerComponent} from './scoreboard-viewer.component';
 import {QueryObjectPreviewModule} from './query-object-preview/query-object-preview.module';
 import {NgApexchartsModule} from 'ng-apexcharts';
 import { CompetitionScoreboardViewerComponent } from './competition-scoreboard-viewer/competition-scoreboard-viewer.component';
@@ -44,7 +43,7 @@ import { CompetitionScoreboardViewerComponent } from './competition-scoreboard-v
         NgApexchartsModule
     ],
     exports:      [ RunViewerComponent ],
-    declarations: [ RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, ScoreboardViewerComponent, CompetitionScoreboardViewerComponent ],
+    declarations: [ RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, CompetitionScoreboardViewerComponent ],
     providers:    [ ]
 })
 export class ViewerModule { }

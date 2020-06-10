@@ -41,7 +41,7 @@ class MaxNormalizingScoreBoard(private val name: String, teams: List<Team>, priv
 
         val scoresPerTask = filteredRuns.map { it.task to it.scorer.scores() }
 
-        scorePerTaskMap.clear()
+        scorePerTaskMap.clear()                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
         scorePerTaskMap.putAll(scoresPerTask)
     }
 

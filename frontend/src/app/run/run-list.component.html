@@ -1,2 +1,4 @@
-<app-admin-run-list *ngIf="(currentRole | async )=='ADMIN'"></app-admin-run-list>
-<app-viewer-run-list *ngIf="(currentRole | async)=='VIEWER'"></app-viewer-run-list>
+<app-admin-run-list *ngIf="hasAccessFor(adminGroup); else viewer"></app-admin-run-list>
+<ng-template #viewer>
+    <app-viewer-run-list></app-viewer-run-list>
+</ng-template>

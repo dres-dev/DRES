@@ -145,6 +145,8 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.requestSub.unsubscribe();
         this.requestSub = null;
+        this.statusSub.unsubscribe();
+        this.statusSub = null;
     }
 
     public updateProgress(pending: number, open: number) {

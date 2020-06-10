@@ -1,7 +1,6 @@
 <div style="display: flex">
     <div><h1>Ongoing runs</h1></div>
 </div>
-
 <div>
     <table mat-table [dataSource]="runs" style="width: 100%">
         <!-- Name Column -->
@@ -10,6 +9,10 @@
             <td mat-cell *matCellDef="let row">
                 <button mat-icon-button aria-label="Go to competition viewer." matTooltip="Go to competition viewer." (click)="navigateToViewer(row.id)">
                     <mat-icon>visibility</mat-icon>
+                </button>
+
+                <button *ngIf="hasAccessFor(judgeGroup)" mat-icon-button aria-label="Go to judgement viewer." matTooltip="Go to judgement viewer." (click)="navigateToJudgement(row.id)">
+                    <mat-icon>gavel</mat-icon>
                 </button>
             </td>
         </ng-container>

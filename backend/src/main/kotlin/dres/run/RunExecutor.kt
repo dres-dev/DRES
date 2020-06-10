@@ -6,7 +6,6 @@ import dres.api.rest.types.run.websocket.ClientMessageType
 import dres.api.rest.types.run.websocket.ServerMessage
 import dres.api.rest.types.run.websocket.ServerMessageType
 import dres.data.dbo.DAO
-import dres.data.model.admin.User
 import dres.data.model.run.CompetitionRun
 import dres.run.validation.interfaces.JudgementValidator
 import dres.utilities.extensions.read

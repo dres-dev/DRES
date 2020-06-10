@@ -5,6 +5,8 @@ import com.github.kokorin.jaffree.ffmpeg.FFmpegResult
 import com.github.kokorin.jaffree.ffmpeg.UrlInput
 import com.github.kokorin.jaffree.ffmpeg.UrlOutput
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
+import org.slf4j.LoggerFactory
+import org.slf4j.MarkerFactory
 import java.io.File
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -24,6 +26,9 @@ object FFmpegUtil {
         
     }") //TODO make configurable
 
+    private val logger = LoggerFactory.getLogger(this.javaClass)
+    private val logMarker = MarkerFactory.getMarker("FFMPEG")
+
     private data class FrameRequest(val video: Path, val timecode: String, val outputImage: Path)
 
     private val frameRequestQueue = ConcurrentLinkedQueue<FrameRequest>()
@@ -32,12 +37,21 @@ object FFmpegUtil {
 
     private val frameExtractionManagementThread = Thread {
 
-        val futureList = mutableListOf<Future<FFmpegResult>>()
+        val futureList = mutableListOf<Pair<FrameRequest, Future<FFmpegResult>>>()
 
         while (true) {
 
             try {
-                futureList.removeIf { it.isDone || it.isCancelled }
+                futureList.removeIf {
+                    val future = it.second
+                    if (future.isDone || future.isCancelled) {
+
+                        logger.info("Frame request for ${it.first.video} @ ${it.first.timecode} ${if (future.isDone) "done" else "cancelled"}")
+                        return@removeIf true
+
+                    }
+                    return@removeIf false
+                }
 
                 if (futureList.size < concurrentFrameRequests) {
 
@@ -45,8 +59,9 @@ object FFmpegUtil {
 
                     if (request != null) {
                         futureList.add(
-                                extractFrameAsync(request.video, request.timecode, request.outputImage)
+                                request to extractFrameAsync(request.video, request.timecode, request.outputImage)
                         )
+                        logger.info("Processing frame request for ${request.video} @ ${request.timecode}")
                     }
 
                 }
@@ -83,7 +98,8 @@ object FFmpegUtil {
                     .setOverwriteOutput(true)
                     .addArguments("-ss", timecode)
                     .addArguments("-vframes", "1")
-                    .addArguments("-filter:v", "scale=\"120:-1\"")
+                    .addArguments("-filter:v", "scale=120:-1")
+                    .setOutputListener { logger.debug(logMarker, it); true }
                     .executeAsync()
 
 
@@ -108,6 +124,7 @@ object FFmpegUtil {
                     .addArguments("-b:v", "2000k")
                     .addArguments("-tune", "zerolatency")
                     .addArguments("-preset", "slow")
+                    .setOutputListener { logger.debug(logMarker, it); true }
                     .execute()
         } finally {
             //semaphore.release()

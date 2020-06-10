@@ -37,3 +37,9 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .spacer-flex  {
   flex: 1 1 auto;
 }
+
+/* Hack for progressbar */
+
+app-judgement-media-viewer .mat-progress-bar-buffer {
+  background-color: #e1bee7!important; /* Not sure why this has to be done manually: https://material.angular.io/components/progress-bar/overview */
+}

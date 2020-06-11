@@ -1,6 +1,7 @@
 package dres.data.model.basics.time
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import dres.utilities.TimeUtil
 
@@ -27,5 +28,10 @@ data class TemporalRange @JsonCreator constructor(
     fun contains(inner: TemporalRange, outerFps: Float = 24.0f, innerFps: Float = 24.0f): Boolean =
             TimeUtil.toMilliseconds(start, outerFps) <= TimeUtil.toMilliseconds(inner.start, innerFps) &&
                     TimeUtil.toMilliseconds(end, outerFps) >= TimeUtil.toMilliseconds(inner.end, innerFps)
+
+
+    val center
+        @JsonIgnore
+        get() = (TimeUtil.toMilliseconds(end) - TimeUtil.toMilliseconds(start)) / 2
 
 }

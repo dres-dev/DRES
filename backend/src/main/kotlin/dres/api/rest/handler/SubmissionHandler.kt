@@ -27,6 +27,7 @@ import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import kotlin.math.abs
 
 class SubmissionHandler (val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<Long, String>>, private val segmentIndex: DaoIndexer<MediaItemSegmentList, Long>): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
@@ -128,10 +129,14 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
 
     private fun timeToSegment(time: Long, item: MediaItem.VideoItem): Pair<Long,Long> {
         val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.")
+        if (segmentList.segments.isEmpty()) {
+            throw ErrorStatusException(400, "No segments found for item '${item.name}'.")
+        }
         val segment = segmentList.segments.find {
             val range = TimeUtil.toMilliseconds(it.range, item.fps)
             range.first <= time && range.second >= time
-        } ?: throw ErrorStatusException(400, "Time '$time' not in range.")
+        } ?: segmentList.segments.minBy { abs(it.range.center - time) }!!
+
         return TimeUtil.toMilliseconds(segment.range, item.fps)
     }
 

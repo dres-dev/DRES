@@ -14,17 +14,7 @@ import java.util.concurrent.Future
 
 object FFmpegUtil {
 
-    private val ffmpegBin = Path.of("ext/ffmpeg/${
-    
-    System.getProperty("os.name").let { 
-        when{
-            it.contains("Windows") -> "win"
-            it.contains("Mac OS") -> "macos"
-            else -> "linux"
-        }
-    }
-        
-    }") //TODO make configurable
+    private val ffmpegBin = Path.of("ext/ffmpeg/") //TODO make configurable
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
     private val logMarker = MarkerFactory.getMarker("FFMPEG")

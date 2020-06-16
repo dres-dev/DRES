@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 buildscript {
     ext.kotlinVersion = '1.3.70'
 
@@ -13,6 +15,7 @@ buildscript {
 }
 plugins {
     id 'com.moowork.node'     version '1.3.1'
+    id 'de.undercouch.download' version '4.0.4'
 }
 apply plugin: 'application'
 apply plugin: 'java'
@@ -138,4 +141,25 @@ task deployFrontend(type: Copy){
     dependsOn 'buildFrontend'
     from('../frontend/dist/dres-frontend')
     into('src/main/resources/html')
+}
+
+
+task downloadFFMpeg(type: Download){
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        src 'https://ffmpeg.zeranoe.com/builds/win64/shared/ffmpeg-4.2.3-win64-shared.zip'
+    } else if (Os.isFamily(Os.FAMILY_MAC)) {
+        src 'https://ffmpeg.zeranoe.com/builds/macos64/shared/ffmpeg-4.2.3-macos64-shared.zip'
+    } else if (Os.isFamily(Os.FAMILY_UNIX)) {
+        src 'https://github.com/vot/ffbinaries-prebuilt/releases/download/v4.2.1/ffmpeg-4.2.1-linux-64.zip'
+    }
+    dest new File('ffmpeg.zip')
+}
+
+task setupFFMpeg(dependsOn: downloadFFMpeg, type: Copy) {
+    if (Os.isFamily(Os.FAMILY_WINDOWS) || Os.isFamily(Os.FAMILY_MAC)) {
+        from zipTree(downloadFFMpeg.dest).matching{ include '*/bin/*'}.findAll()
+    } else if (Os.isFamily(Os.FAMILY_UNIX)) {
+        from zipTree(downloadFFMpeg.dest).matching { include '**ffmpeg' }.findAll()
+    }
+    into 'ext/ffmpeg'
 }

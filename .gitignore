@@ -263,3 +263,4 @@ backend/task-cache
 backend/src/main/resources/html
 nodejs
 npm-*
+backend/ext/ffmpeg

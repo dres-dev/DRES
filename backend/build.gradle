@@ -157,9 +157,9 @@ task downloadFFMpeg(type: Download){
 
 task setupFFMpeg(dependsOn: downloadFFMpeg, type: Copy) {
     if (Os.isFamily(Os.FAMILY_WINDOWS) || Os.isFamily(Os.FAMILY_MAC)) {
-        from zipTree(downloadFFMpeg.dest).matching{ include '*/bin/*'}.findAll()
+        from zipTree(downloadFFMpeg.dest).matching{ include '*/bin/*'}
     } else if (Os.isFamily(Os.FAMILY_UNIX)) {
-        from zipTree(downloadFFMpeg.dest).matching { include '**ffmpeg' }.findAll()
+        from zipTree(downloadFFMpeg.dest).matching { include '**ffmpeg' }
     }
     into 'ext/ffmpeg'
 }

@@ -8,9 +8,7 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.data.model.Config
 import dres.data.model.basics.media.MediaItem
-import dres.data.model.competition.QueryDescription
-import dres.data.model.competition.TaskDescriptionBase
-import dres.data.model.competition.TaskGroup
+import dres.data.model.competition.*
 import dres.data.model.competition.interfaces.HiddenResultsTaskDescription
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
@@ -275,7 +273,7 @@ class CurrentQueryHandler(config: Config) : AbstractCompetitionRunRestHandler(),
                     return FileInputStream(file).use { imageInFile ->
                         val fileData = ByteArray(file.length().toInt())
                         imageInFile.read(fileData)
-                        QueryDescription.VideoQueryDescription(task.name, Base64.getEncoder().encodeToString(fileData), "video/mp4")
+                        QueryDescription(task.name, QueryContent(video = listOf(QueryContentElement(Base64.getEncoder().encodeToString(fileData), "video/mp4"))))
                     }
                 } catch (e: FileNotFoundException) {
                     throw ErrorStatusException(404, "Query object cache file not found!")
@@ -289,7 +287,10 @@ class CurrentQueryHandler(config: Config) : AbstractCompetitionRunRestHandler(),
                     return FileInputStream(file).use { imageInFile ->
                         val fileData = ByteArray(file.length().toInt())
                         imageInFile.read(fileData)
-                        QueryDescription.TextQueryDescription(task.name, task.descriptions.mapIndexed { i, s -> QueryDescription.TextQueryDescription.TextualDescription(i * task.delay, s) }, Base64.getEncoder().encodeToString(fileData), "video/mp4")
+                        QueryDescription(task.name,
+                                query = QueryContent(text = task.descriptions.mapIndexed { i, s -> QueryContentElement(s, "text/plain", i * task.delay) } ),
+                                reveal = QueryContent(video = listOf(QueryContentElement(Base64.getEncoder().encodeToString(fileData), "video/mp4")))
+                        )
                     }
                 } catch (e: FileNotFoundException) {
                     throw ErrorStatusException(404, "Query object cache file not found!")
@@ -299,7 +300,7 @@ class CurrentQueryHandler(config: Config) : AbstractCompetitionRunRestHandler(),
 
             }
             is TaskDescriptionBase.AvsTaskDescription -> {
-                QueryDescription.TextQueryDescription(task.name, listOf(QueryDescription.TextQueryDescription.TextualDescription(0, task.description)))
+                QueryDescription(task.name, QueryContent(text = listOf(QueryContentElement(task.description, "text/plain"))))
             }
             else -> throw ErrorStatusException(500, "Exception when reading query object cache file.")
         }

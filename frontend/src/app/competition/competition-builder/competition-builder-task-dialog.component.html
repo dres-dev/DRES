@@ -15,7 +15,7 @@
 
         <div *ngIf="form.get('mediaCollection')">
             <p>
-                <mat-form-field style="width: 40%;">
+                <mat-form-field style="width: 45%;">
                     <mat-select placeholder="Media Collection" formControlName="mediaCollection">
                         <mat-option *ngFor="let mediaCollection of (mediaCollectionSource | async)" [value]="mediaCollection.id" >
                             <span>{{mediaCollection.name}}</span> (ID: {{mediaCollection.id}})
@@ -30,6 +30,10 @@
                             <small>Type: {{mediaItem.itemType}}, ID: {{mediaItem.id}}</small>
                         </mat-option>
                     </mat-autocomplete>
+                    <button mat-icon-button matSuffix [attr.aria-label]="'Randomised Media Item'"
+                            [disabled]="form.get('mediaItemId').value != null"
+                            matTooltipDisabled="Cannot randomise media element of exising task" (click)="randomisedMediaItem()"
+                            matTooltip="Random Media Item from collection"><mat-icon>shuffle</mat-icon></button><!-- or 'casino' for a dice -->
                 </mat-form-field>
             </p>
         </div>

@@ -11,6 +11,7 @@ import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
+import kotlin.random.Random
 
 
 abstract class CollectionHandler(protected val collections: DAO<MediaCollection>, protected val items: DAO<MediaItem>) : RestHandler, AccessManagedRestHandler {
@@ -40,7 +41,7 @@ class ListCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaI
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context)  = this.collections.toList()
+    override fun doGet(ctx: Context) = this.collections.toList()
 
     override val route: String = "collection"
 }
@@ -90,7 +91,7 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
 
         val mediaItem = try {
             ctx.bodyAsClass(MediaItem::class.java)
-        }catch (e: BadRequestResponse){
+        } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
 
@@ -115,13 +116,12 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
 
 class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), GetRestHandler<Array<MediaItem>> {
     @OpenApi(
-            summary = "Adds a Media Item to the specified Media Collection.",
+            summary = "Lists Media Items of a Media Collection whose name start with the given fragment",
             path = "/api/collection/:collectionId/:startsWith", method = HttpMethod.GET,
             pathParams = [
                 OpenApiParam("collectionId", Long::class, "Collection ID"),
-                OpenApiParam("startsWith", String::class, "Name starts with")
+                OpenApiParam("startsWith", String::class, "Name starts with", required = false)
             ],
-            requestBody = OpenApiRequestBody([OpenApiContent(MediaItem::class)]),
             tags = ["Collection"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<MediaItem>::class)]),
@@ -134,7 +134,7 @@ class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIt
         val collection = collectionFromContext(ctx)
         val startsWith = ctx.pathParamMap()["startsWith"]
 
-        val results =  if (startsWith!= null) {
+        val results = if (!startsWith.isNullOrBlank()) {
             this.items.filter {
                 it.collection == collection.id && it.name.startsWith(startsWith)
             }.take(50).toTypedArray()
@@ -145,5 +145,33 @@ class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIt
         }
         return results
     }
+
     override val route: String = "collection/:collectionId/:startsWith"
+}
+
+class RandomMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), GetRestHandler<MediaItem> {
+    @OpenApi(
+            summary = "Gives a random Media Item for a given Media Collection.",
+            path = "/api/collection/random/:collectionId", method = HttpMethod.GET,
+            pathParams = [
+                OpenApiParam("collectionId", Long::class, "Collection ID")
+            ],
+            tags = ["Collection"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(MediaItem::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): MediaItem {
+        val collection = collectionFromContext(ctx)
+        val collectionSize = this.items.count { it.collection == collection.id }
+        val rand = Random(System.currentTimeMillis()) // TODO Decide upon seed -- time based or fixed?
+        return items.filter {
+            it.collection == collection.id
+        }[rand.nextInt(collectionSize)]
+    }
+
+    override val route: String = "collection/random/:collectionId"
 }

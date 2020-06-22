@@ -7,7 +7,7 @@ import {VideoQueryDescription} from '../../../../openapi';
 @Component({
     selector: 'app-video-query-object-preview',
     template: `
-        <video *ngIf="(videoUrl | async)" [src]="(videoUrl | async)" type="video/mp4" class="video-player" style="width: 100%" autoplay controls loop [muted]="muted"></video>
+        <video *ngIf="(videoUrl | async)" [src]="(videoUrl | async)" class="video-player" style="width: 100%" autoplay controls loop [muted]="muted"></video>
     `
 })
 export class VideoQueryObjectPreviewComponent implements OnInit {

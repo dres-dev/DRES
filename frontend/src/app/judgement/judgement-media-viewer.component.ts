@@ -90,6 +90,16 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
         this.requestSub.unsubscribe();
     }
 
+    togglePlaying() {
+        if (this.video && this.video.nativeElement) {
+            if (this.video.nativeElement.paused) {
+                this.video.nativeElement.play();
+            } else {
+                this.video.nativeElement.pause();
+            }
+        }
+    }
+
     play() {
         if (this.videoUrl && this.video && this.video.nativeElement) {
             this.video.nativeElement.play();

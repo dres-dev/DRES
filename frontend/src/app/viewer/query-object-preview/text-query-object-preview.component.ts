@@ -1,7 +1,9 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {Observable} from 'rxjs';
-import {TextQueryDescription} from '../../../../openapi';
-import {map, withLatestFrom} from 'rxjs/operators';
+import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Observable, timer} from 'rxjs';
+import {TextQueryDescription, TextualDescription} from '../../../../openapi';
+import {concatMap, delayWhen, map, take, tap, withLatestFrom} from 'rxjs/operators';
+import {AppConfig} from '../../app.config';
+import {fromArray} from 'rxjs/internal/observable/fromArray';
 
 @Component({
     selector: 'app-text-query-object-preview',
@@ -17,14 +19,27 @@ export class TextQueryObjectPreviewComponent implements OnInit, OnDestroy {
     /** Font size in em. TODO: Make configurable. */
     fontSize = 2.5;
 
+    /** Reference to the audio element played when text changes. */
+    @ViewChild('audio') audio: ElementRef<HTMLAudioElement>;
+
+    constructor(public config: AppConfig) {
+    }
+
     ngOnInit(): void {
         this.currentText = this.timeElapsed.pipe(
+            take(1),
             withLatestFrom(this.queryObject),
-            map(([time, query]) => query.text.filter(t => t.showAfter < time).pop()?.text),
+            concatMap(([time, query]) => {
+                return fromArray(query.text).pipe(
+                    delayWhen<TextualDescription>(t => timer(1000 * Math.max(0, (t.showAfter - time)))),
+                    map(t => t.text)
+                );
+            }),
+            tap(t => {
+                this.audio.nativeElement.play().then(r => {});
+            })
         );
     }
 
-    ngOnDestroy(): void {
-
-    }
+    ngOnDestroy(): void {}
 }

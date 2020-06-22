@@ -1,7 +1,7 @@
 import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {Observable, timer} from 'rxjs';
 import {TextQueryDescription, TextualDescription} from '../../../../openapi';
-import {concatMap, delayWhen, map, take, tap, withLatestFrom} from 'rxjs/operators';
+import {concatMap, delayWhen, map, take, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../../app.config';
 import {fromArray} from 'rxjs/internal/observable/fromArray';
 import {AudioPlayerUtilities} from '../../utilities/audio-player.utilities';
@@ -32,11 +32,13 @@ export class TextQueryObjectPreviewComponent implements OnInit, OnDestroy {
             concatMap(([time, query]) => {
                 return fromArray(query.text).pipe(
                     delayWhen<TextualDescription>(t => timer(1000 * Math.max(0, (t.showAfter - time)))),
-                    map(t => t.text)
+                    map((t, i) => {
+                        if (i > 0) {
+                            AudioPlayerUtilities.playOnce(this.audio.nativeElement);
+                        }
+                        return t.text;
+                    })
                 );
-            }),
-            tap(t => {
-                AudioPlayerUtilities.playOnce(this.audio.nativeElement);
             })
         );
     }

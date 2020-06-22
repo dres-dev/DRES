@@ -7,7 +7,7 @@ import {VideoQueryDescription} from '../../../../openapi';
 @Component({
     selector: 'app-video-query-object-preview',
     template: `
-        <video *ngIf="(videoUrl | async)" [src]="(videoUrl | async)" class="video-player" style="width: 100%" autoplay controls loop [muted]="muted"></video>
+        <video *ngIf="(videoUrl | async)" [src]="(videoUrl | async)" type="video/mp4" class="video-player" style="width: 100%" autoplay controls loop [muted]="muted"></video>
     `
 })
 export class VideoQueryObjectPreviewComponent implements OnInit {
@@ -21,15 +21,16 @@ export class VideoQueryObjectPreviewComponent implements OnInit {
      * Converts a Base65 encoded string into an object URL of a Blob.
      *
      * @param base64 The base64 encoded string.
+     * @param contentType The content type of the data.
      */
-    private static base64ToUrl(base64: string): string {
+    private static base64ToUrl(base64: string, contentType: string): string {
         const binary = atob(base64);
         const byteNumbers = new Array(binary.length);
         for (let i = 0; i < binary.length; i++) {
             byteNumbers[i] = binary.charCodeAt(i);
         }
         const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray]);
+        const blob = new Blob([byteArray], {type: contentType});
         return window.URL.createObjectURL(blob);
     }
 
@@ -38,7 +39,7 @@ export class VideoQueryObjectPreviewComponent implements OnInit {
     ngOnInit(): void {
         this.videoUrl = this.queryObject.pipe(
             filter(q => q?.video != null),
-            map(d => this.sanitizer.bypassSecurityTrustUrl(VideoQueryObjectPreviewComponent.base64ToUrl(d.video)))
+            map(q => this.sanitizer.bypassSecurityTrustUrl(VideoQueryObjectPreviewComponent.base64ToUrl(q.video, q.contentType)))
         );
     }
 }

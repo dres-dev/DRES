@@ -31,6 +31,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.nio.file.Files
 import java.util.*
 
 
@@ -275,7 +276,7 @@ class CurrentQueryHandler(config: Config) : AbstractCompetitionRunRestHandler(),
                     return FileInputStream(file).use { imageInFile ->
                         val fileData = ByteArray(file.length().toInt())
                         imageInFile.read(fileData)
-                        QueryDescription.VideoQueryDescription(task.name, Base64.getEncoder().encodeToString(fileData), "video/mp4")
+                        QueryDescription.VideoQueryDescription(task.name, Base64.getEncoder().encodeToString(fileData), Files.probeContentType(file.toPath()))
                     }
                 } catch (e: FileNotFoundException) {
                     throw ErrorStatusException(404, "Query object cache file not found!")

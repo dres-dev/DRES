@@ -90,6 +90,12 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
         this.requestSub.unsubscribe();
     }
 
+    play() {
+        if (this.videoUrl && this.video && this.video.nativeElement) {
+            this.video.nativeElement.play();
+        }
+    }
+
     private calculateTime(req: JudgementRequest) {
         this.startInSeconds = 0;
         /* Parse start time, given in millis */
@@ -112,5 +118,4 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
         const timeSuffix = time ? `#t=${this.startInSeconds},${this.endInSeconds}` : '';
         return this.config.resolveApiUrl(`/media/${req.collection}/${req.item}${timeSuffix}`);
     }
-
 }

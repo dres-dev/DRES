@@ -58,8 +58,8 @@ object RestApi {
                 ListCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 ShowCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 AddMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+                RandomMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems), // Must be before ListMediaItem
                 ListMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-                RandomMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
 
                 //competition
                 ListCompetitionHandler(dataAccessLayer.competitions),

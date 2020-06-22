@@ -4,6 +4,7 @@ import {TextQueryDescription, TextualDescription} from '../../../../openapi';
 import {concatMap, delayWhen, map, take, tap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../../app.config';
 import {fromArray} from 'rxjs/internal/observable/fromArray';
+import {AudioPlayerUtilities} from '../../utilities/audio-player.utilities';
 
 @Component({
     selector: 'app-text-query-object-preview',
@@ -22,8 +23,7 @@ export class TextQueryObjectPreviewComponent implements OnInit, OnDestroy {
     /** Reference to the audio element played when text changes. */
     @ViewChild('audio') audio: ElementRef<HTMLAudioElement>;
 
-    constructor(public config: AppConfig) {
-    }
+    constructor(public config: AppConfig) {}
 
     ngOnInit(): void {
         this.currentText = this.timeElapsed.pipe(
@@ -36,7 +36,7 @@ export class TextQueryObjectPreviewComponent implements OnInit, OnDestroy {
                 );
             }),
             tap(t => {
-                this.audio.nativeElement.play().then(r => {});
+                AudioPlayerUtilities.playOnce(this.audio.nativeElement);
             })
         );
     }

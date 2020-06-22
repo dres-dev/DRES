@@ -14,6 +14,7 @@ import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {WebSocketSubject} from 'rxjs/webSocket';
 import {IWsServerMessage} from '../model/ws/ws-server-message.interface';
 import {AppConfig} from '../app.config';
+import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
 
 @Component({
     selector: 'app-task-viewer',
@@ -79,11 +80,10 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
                         this.taskCountdown = String(count);
                         if (count > 0) {
                             this.audio.nativeElement.src = 'assets/audio/beep_1.ogg';
-                            this.audio.nativeElement.play().then(r => {});
                         } else {
                             this.audio.nativeElement.src = 'assets/audio/beep_2.ogg';
-                            this.audio.nativeElement.play().then(r => {});
                         }
+                        AudioPlayerUtilities.playOnce(this.audio.nativeElement);
                     } catch (e) {
                         console.error('[TaskViewerComponent] Failed to play sound effect.', e);
                     }

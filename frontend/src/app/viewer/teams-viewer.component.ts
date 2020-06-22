@@ -86,10 +86,11 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
         ).subscribe(delta => {
             if (delta[0] > delta[1]) {
                 this.audio.nativeElement.src = 'assets/audio/correct.ogg';
+                AudioPlayerUtilities.playOnce(this.audio.nativeElement);
             } else if (delta[0] < delta[1]) {
                 this.audio.nativeElement.src = 'assets/audio/wrong.ogg';
+                AudioPlayerUtilities.playOnce(this.audio.nativeElement);
             }
-            AudioPlayerUtilities.playOnce(this.audio.nativeElement);
         });
 
         /** Subscription for end of task (used to play sound effects). */

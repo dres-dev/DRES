@@ -3,5 +3,5 @@
         {{currentText | async}}
     </p>
 
-    <audio #audio [muted]="(config.configAsObservable | async).effects.mute" src="assets/audio/ding.ogg" hidden></audio>
+    <audio #audio [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
 </div>

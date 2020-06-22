@@ -34,7 +34,7 @@ export class TextQueryObjectPreviewComponent implements OnInit, OnDestroy {
                     delayWhen<TextualDescription>(t => timer(1000 * Math.max(0, (t.showAfter - time)))),
                     map((t, i) => {
                         if (i > 0) {
-                            AudioPlayerUtilities.playOnce(this.audio.nativeElement);
+                            AudioPlayerUtilities.playOnce('assets/audio/ding.ogg', this.audio.nativeElement);
                         }
                         return t.text;
                     })

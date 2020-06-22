@@ -85,11 +85,9 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
             })
         ).subscribe(delta => {
             if (delta[0] > delta[1]) {
-                this.audio.nativeElement.src = 'assets/audio/correct.ogg';
-                AudioPlayerUtilities.playOnce(this.audio.nativeElement);
+                AudioPlayerUtilities.playOnce('assets/audio/correct.ogg', this.audio.nativeElement);
             } else if (delta[0] < delta[1]) {
-                this.audio.nativeElement.src = 'assets/audio/wrong.ogg';
-                AudioPlayerUtilities.playOnce(this.audio.nativeElement);
+                AudioPlayerUtilities.playOnce('assets/audio/wrong.ogg', this.audio.nativeElement);
             }
         });
 
@@ -101,11 +99,10 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
             })
         ).subscribe(success => {
             if (success) {
-                this.audio.nativeElement.src = 'assets/audio/applause.ogg';
+                AudioPlayerUtilities.playOnce('assets/audio/applause.ogg', this.audio.nativeElement);
             } else {
-                this.audio.nativeElement.src = 'assets/audio/sad_trombone.ogg';
+                AudioPlayerUtilities.playOnce('assets/audio/sad_trombone.ogg', this.audio.nativeElement);
             }
-            AudioPlayerUtilities.playOnce(this.audio.nativeElement);
         });
     }
 

@@ -1,4 +1,4 @@
-import {Component, Inject} from '@angular/core';
+import {Component, ElementRef, Inject, ViewChild} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {
     AvsTaskDescription,
@@ -15,7 +15,8 @@ import {
 } from '../../../../openapi';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Observable} from 'rxjs';
-import {filter, flatMap} from 'rxjs/operators';
+import {filter, flatMap, tap} from 'rxjs/operators';
+import {AppConfig} from '../../app.config';
 
 
 export interface CompetitionBuilderTaskDialogData {
@@ -33,13 +34,18 @@ export class CompetitionBuilderTaskDialogComponent {
     form: FormGroup;
     units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
     mediaCollectionSource: Observable<MediaCollection[]>;
+    mediaCollections: MediaCollection[];
     mediaItemSource: Observable<MediaItem[]>;
+    showPlayer = false;
+    videoUrl: Observable<string>;
+    @ViewChild('videoPlayer', {static: false}) video: ElementRef;
 
     constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskDialogComponent>,
                 public collectionService: CollectionService,
-                @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData) {
+                @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData,
+                public config: AppConfig) {
 
-        this.mediaCollectionSource = this.collectionService.getApiCollection();
+        this.mediaCollectionSource = this.collectionService.getApiCollection().pipe(tap(x => this.mediaCollections = x));
 
         switch (this.data.taskGroup.type) {
             case 'KIS_VISUAL':
@@ -186,11 +192,52 @@ export class CompetitionBuilderTaskDialogComponent {
         this.form.get('end').setValue(end);
     }
 
+    toggleVideoPlayer() {
+        if (this.showPlayer) {
+            if (this.video && this.video.nativeElement) {
+                const player = this.video.nativeElement as HTMLVideoElement;
+                if (!player.paused) {
+                    player.pause();
+                }
+            }
+            this.videoUrl = null;
+        } else {
+            const url = this.resolvePath(this.form.get('mediaItemId').value as VideoItem);
+            this.videoUrl = new Observable<string>(sub => sub.next(url));
+        }
+        this.showPlayer = !this.showPlayer;
+    }
+
     /**
      * Handler for 'close' button.
      */
     public close(): void {
         this.dialogRef.close(null);
+    }
+
+    private resolvePath(item: VideoItem): string {
+        // units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
+        let timeSuffix = '';
+        switch (this.form.get('time_unit').value) {
+            case 'FRAME_NUMBER':
+                const start = Math.round(this.form.get('start').value / item.fps);
+                const end = Math.round(this.form.get('end').value / item.fps);
+                timeSuffix = `#t=${start},${end}`;
+                break;
+            case 'SECONDS':
+                timeSuffix = `#t=${this.form.get('start').value},${this.form.get('end').value}`;
+                break;
+            case 'MILLISECONDS':
+                timeSuffix = `#t=${Math.round(this.form.get('start').value / 1000)},${Math.round(this.form.get('end').value / 1000)}`;
+                break;
+            case 'TIMECODE':
+                console.log('Not yet supported'); // TODO make it!
+                break;
+            default:
+                console.error(`The time unit ${this.form.get('time_unit').value} is not supported`);
+        }
+        const collection = this.mediaCollections.find(x => x.id === this.form.get('mediaCollection').value).name;
+        return this.config.resolveApiUrl(`/media/${collection}/${item.name}${timeSuffix}`);
     }
 
     private rand(min: number, max: number): number {

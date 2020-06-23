@@ -95,6 +95,20 @@
             </mat-form-field>
         </p>
     </form>
+    <div>
+        <div style="width: 100%; text-align: center;">
+            <button *ngIf="showPlayer" mat-stroked-button
+                    (click)="toggleVideoPlayer()">
+                Hide video player
+            </button>
+            <button *ngIf="!showPlayer" mat-raised-button
+                    (click)="toggleVideoPlayer()">
+                Show video player
+            </button>
+        </div>
+        <video *ngIf="showPlayer" #videoPlayer style="width: 100%; padding-top: 1rem;" preload="auto" [src]="(videoUrl | async)" controls
+               [muted]="(config.configAsObservable | async).effects.mute"></video>
+    </div>
 </div>
 <div mat-dialog-actions>
     <button mat-button (click)="close()">Cancel</button>

@@ -152,7 +152,7 @@ export class CompetitionBuilderTaskDialogComponent {
         if (value) {
             return `${value.name} (${value.id})`;
         } else {
-           return '';
+            return '';
         }
     }
 
@@ -165,10 +165,25 @@ export class CompetitionBuilderTaskDialogComponent {
         }
     }
 
-    randomisedMediaItem(){
-        this.collectionService.getApiCollectionRandomWithCollectionid((this.form.get('mediaCollection') as FormControl).value as number).subscribe(value => {
-            this.form.get('mediaItemId').setValue(value);
-        });
+    randomisedMediaItem() {
+        this.collectionService.getApiCollectionRandomWithCollectionid(
+            (this.form.get('mediaCollection') as FormControl).value as number)
+            .subscribe(value => {
+                this.form.get('mediaItemId').setValue(value);
+            });
+    }
+
+    randomiseSegment() {
+        // TODO rework with #122
+        const item = this.form.get('mediaItemId').value as VideoItem;
+        const start = this.randInt(1, (item.durationMs / 1000) / 2); // always in first half
+        let end = 1;
+        do {
+            end = start + this.randInt(5, (item.durationMs / 1000)); // Arbitrary 5 seconds minimal length
+        } while (end > (item.durationMs / 1000));
+        this.form.get('time_unit').setValue('SECONDS');
+        this.form.get('start').setValue(start);
+        this.form.get('end').setValue(end);
     }
 
     /**
@@ -176,6 +191,16 @@ export class CompetitionBuilderTaskDialogComponent {
      */
     public close(): void {
         this.dialogRef.close(null);
+    }
+
+    private rand(min: number, max: number): number {
+        return Math.random() * (max - min) + min;
+    }
+
+    private randInt(min: number, max: number): number {
+        min = Math.floor(min);
+        max = Math.ceil(max);
+        return Math.round(Math.random() * (max - min + 1) + min);
     }
 
     private getTaskDescription(): TaskDescriptionBase {
@@ -187,7 +212,8 @@ export class CompetitionBuilderTaskDialogComponent {
                     taskGroup: this.data.taskGroup,
                     duration: this.form.get('duration').value,
                     defaultCollection: this.form.get('mediaCollection').value,
-                    description: this.form.get('description').value} as AvsTaskDescription;
+                    description: this.form.get('description').value
+                } as AvsTaskDescription;
             case 'KIS_TEXTUAL':
                 return {
                     name: this.form.get('name').value,

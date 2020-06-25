@@ -49,14 +49,29 @@ export class AbstractRunListComponent {
     }
 
     /**
+     * Navigates to run viewer (for viewers and guests).
      *
-     * @param runId
+     * @param runId ID of the run to navigate to.
      */
     public navigateToViewer(runId: number) {
         this.router.navigate(['/run/viewer', runId]);
     }
 
+    /**
+     * Navigates to judgment viewer (for judges).
+     *
+     * @param runId ID of the run to navigate to.
+     */
     public navigateToJudgement(runId: number) {
         this.router.navigate(['/judge', runId]);
+    }
+
+    /**
+     * Navigates to admin viewer (for admins).
+     *
+     * @param runId ID of the run to navigate to.
+     */
+    public navigateToAdmin(runId: number) {
+        this.router.navigate(['/run/admin', runId]);
     }
 }

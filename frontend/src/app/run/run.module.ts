@@ -16,6 +16,7 @@ import {MatSelectModule} from '@angular/material/select';
 import {RunListComponent} from './run-list.component';
 import {AdminRunListComponent} from './admin-run-list.component';
 import {ViewerRunListComponent} from './viewer-run-list.component';
+import {RunAdminViewComponent} from './run-admin-view.component';
 
 @NgModule({
     imports: [
@@ -35,8 +36,8 @@ import {ViewerRunListComponent} from './viewer-run-list.component';
         CompetitionBuilderModule,
         MatSelectModule
     ],
-    exports:      [ RunListComponent ],
-    declarations: [ RunListComponent, AdminRunListComponent, ViewerRunListComponent ],
+    exports:      [ RunListComponent, RunAdminViewComponent ],
+    declarations: [ RunListComponent, RunAdminViewComponent, AdminRunListComponent, ViewerRunListComponent ],
     providers:    [ ]
 })
 export class RunModule { }

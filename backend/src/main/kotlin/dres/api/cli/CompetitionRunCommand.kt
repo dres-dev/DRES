@@ -1,6 +1,7 @@
 package dres.api.cli
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
@@ -20,7 +21,7 @@ import java.nio.file.StandardOpenOption
 class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktCommand(name = "run") {
 
     init {
-        subcommands(OngoingCompetitionRunsCommand(), ListCompetitionRunsCommand(), DeleteRunCommand(), ExportRunCommand(), CompetitionRunsHistoryCommand(), ResetSubmissionStatusCommand())
+        subcommands(OngoingCompetitionRunsCommand(), ListCompetitionRunsCommand(), DeleteRunCommand(), ExportRunCommand(), CompetitionRunsHistoryCommand(), ResetSubmissionStatusCommand(), ExportLogsCommand())
     }
 
     /**
@@ -46,7 +47,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
     /**
      * Lists all competition runs (ongoing and past) for the current DRES instance.
      */
-    inner class ListCompetitionRunsCommand(): CliktCommand(name = "list", help = "Lists all (ongoing and past) competition runs.") {
+    inner class ListCompetitionRunsCommand : CliktCommand(name = "list", help = "Lists all (ongoing and past) competition runs.") {
         override fun run() {
             this@CompetitionRunCommand.runs.forEach {
                 println("${RunSummary(it.id, it.name, it.competitionDescription.description, it.currentTask?.task?.name)}")
@@ -89,8 +90,38 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
 
             val path = Paths.get(this.path)
             val mapper = ObjectMapper()
+            mapper.registerModule(KotlinModule())
             Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
                 mapper.writeValue(it, run)
+            }
+            println("Successfully wrote run ${run.id} to $path.")
+        }
+    }
+
+    /**
+     * Exports a specific competition run as JSON.
+     */
+    inner class ExportLogsCommand: CliktCommand(name = "exportLogs", help = "Exports just the interaction logs of the competition run as JSON.") {
+        private val id: Long by option("-r", "--run").long().required()
+        private val path: String by option("-o", "--output").required()
+        override fun run() {
+            val run = this@CompetitionRunCommand.runs[this.id]
+            if (run == null) {
+                println("Run does not seem to exist.")
+                return
+            }
+
+            val path = Paths.get(this.path)
+            val mapper = ObjectMapper()
+            mapper.registerModule(KotlinModule())
+
+            val resultLogs = run.runs.flatMap { it.data.sessionQueryResultLogs.values }.flatten()
+            val interactionLogs = run.runs.flatMap { it.data.sessionQueryEventLogs.values }.flatten()
+
+            Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
+                mapper.writeValue(it, resultLogs)
+                it.newLine()
+                mapper.writeValue(it, interactionLogs)
             }
             println("Successfully wrote run ${run.id} to $path.")
         }

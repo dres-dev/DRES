@@ -151,7 +151,7 @@ class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIt
 
 class RandomMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), GetRestHandler<MediaItem> {
     @OpenApi(
-            summary = "Gives a random Media Item for a given Media Collection.",
+            summary = "Gives a random Media Item within a given Media Collection.",
             path = "/api/collection/random/:collectionId", method = HttpMethod.GET,
             pathParams = [
                 OpenApiParam("collectionId", Long::class, "Collection ID")

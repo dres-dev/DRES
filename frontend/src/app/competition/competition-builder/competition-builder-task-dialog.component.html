@@ -17,32 +17,37 @@
             <p>
                 <mat-form-field style="width: 45%;">
                     <mat-select placeholder="Media Collection" formControlName="mediaCollection">
-                        <mat-option *ngFor="let mediaCollection of (mediaCollectionSource | async)" [value]="mediaCollection.id" >
+                        <mat-option *ngFor="let mediaCollection of (mediaCollectionSource | async)"
+                                    [value]="mediaCollection.id">
                             <span>{{mediaCollection.name}}</span> (ID: {{mediaCollection.id}})
                         </mat-option>
                     </mat-select>
                 </mat-form-field>
-                <mat-form-field style="width: 55%;" *ngIf="(form.get('mediaItemId') && (form.get('mediaCollection').value || form.get('mediaItemId').value))">
-                    <input type="text" matInput placeholder="Media item" formControlName="mediaItemId" [matAutocomplete]="autoGroup">
+                <mat-form-field style="width: 55%;"
+                                *ngIf="(form.get('mediaItemId') && (form.get('mediaCollection').value || form.get('mediaItemId').value))">
+                    <input type="text" matInput placeholder="Media item" formControlName="mediaItemId"
+                           [matAutocomplete]="autoGroup">
                     <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">
-                        <mat-option *ngFor="let mediaItem of (mediaItemSource | async)" [value]="mediaItem" >
+                        <mat-option *ngFor="let mediaItem of (mediaItemSource | async)" [value]="mediaItem">
                             <span>{{mediaItem.name}}</span> |
                             <small>Type: {{mediaItem.itemType}}, ID: {{mediaItem.id}}</small>
                         </mat-option>
                     </mat-autocomplete>
                     <button mat-icon-button matSuffix [attr.aria-label]="'Randomised Media Item'"
                             [disabled]="form.get('mediaItemId').value != null"
-                            matTooltipDisabled="Cannot randomise media element of exising task" (click)="randomisedMediaItem()"
-                            matTooltip="Random Media Item from collection"><mat-icon>shuffle</mat-icon></button><!-- or 'casino' for a dice -->
+                            matTooltipDisabled="Cannot randomise media element of exising task"
+                            (click)="randomisedMediaItem()"
+                            matTooltip="Random Media Item from collection">
+                        <mat-icon>shuffle</mat-icon>
+                    </button><!-- or 'casino' for a dice -->
                 </mat-form-field>
             </p>
         </div>
-
         <p *ngIf="form.get('start') && form.get('end')">
-            <mat-form-field style="width: 40%;">
+            <mat-form-field style="width: 35%;">
                 <input type="number" matInput placeholder="Segment start" [formControl]="form.get('start')"/>
             </mat-form-field>
-            <mat-form-field style="width: 40%;">
+            <mat-form-field style="width: 35%;">
                 <input type="number" matInput placeholder="Segment end" [formControl]="form.get('end')"/>
             </mat-form-field>
             <mat-form-field style="width: 20%;">
@@ -50,8 +55,15 @@
                     <option *ngFor="let unit of units" [value]="unit">{{unit}}</option>
                 </select>
             </mat-form-field>
+            <span style="width: 10%;">
+                <button mat-flat-button
+                        matTooltip="Randomise segment start and end"
+                        [disabled]="form.get('mediaItemId') == undefined || form.get('mediaItemId').value == null"
+                        (click)="randomiseSegment()">
+                    <mat-icon>shuffle</mat-icon>
+                </button>
+            </span>
         </p>
-
         <p *ngIf="form.get('description')">
             <mat-form-field style="width: 100%;">
                 <mat-label>Description</mat-label>
@@ -60,13 +72,16 @@
         </p>
 
         <p *ngIf="form.get('descriptions')">
-            <mat-form-field *ngFor="let description of form.get('descriptions')['controls']; let i=index" style="width: 100%;">
+            <mat-form-field *ngFor="let description of form.get('descriptions')['controls']; let i=index"
+                            style="width: 100%;">
                 <div style="display: flex;">
-                    <textarea type="text" matInput placeholder="Description [{{i}}]" [formControl]="description"></textarea>
+                    <textarea type="text" matInput placeholder="Description [{{i}}]"
+                              [formControl]="description"></textarea>
                     <button mat-icon-button (click)="addDescription(i+1)">
                         <mat-icon>add</mat-icon>
                     </button>
-                    <button *ngIf="form.get('descriptions')['controls'].length > 1" mat-icon-button (click)="removeDescription(i)">
+                    <button *ngIf="form.get('descriptions')['controls'].length > 1" mat-icon-button
+                            (click)="removeDescription(i)">
                         <mat-icon>remove</mat-icon>
                     </button>
                 </div>
@@ -80,6 +95,20 @@
             </mat-form-field>
         </p>
     </form>
+    <div>
+        <div style="width: 100%; text-align: center;">
+            <button *ngIf="showPlayer" mat-stroked-button
+                    (click)="toggleVideoPlayer()">
+                Hide video player
+            </button>
+            <button *ngIf="!showPlayer" mat-raised-button
+                    (click)="toggleVideoPlayer()">
+                Show video player
+            </button>
+        </div>
+        <video *ngIf="showPlayer" #videoPlayer style="width: 100%; padding-top: 1rem;" preload="auto" [src]="(videoUrl | async)" controls
+               [muted]="(config.configAsObservable | async).effects.mute"></video>
+    </div>
 </div>
 <div mat-dialog-actions>
     <button mat-button (click)="close()">Cancel</button>

@@ -1,0 +1,77 @@
+<div class="grid">
+    <div class="header">
+        <div class="left">
+        </div>
+        <div class="main">
+            <mat-card>
+                <div style="display: flex;">
+                    <div>
+                        <h1>Run {{(run | async)?.info.id}} ({{(run | async)?.info.name.trim()}})</h1>
+                    </div>
+
+                    <div class="spacer-flex">
+
+                    </div>
+                    <div>
+                        <button *ngIf="(run | async)?.state.status == 'CREATED'" mat-icon-button aria-label="Start the competition run." matTooltip="Start the competition run." (click)="start()">
+                            <mat-icon>play_arrow</mat-icon>
+                        </button>
+
+                        <button *ngIf="(run | async)?.state.status == 'ACTIVE' || (run | async)?.state.status == 'TASK_ENDED'" mat-icon-button aria-label="Previous task." matTooltip="Got to previous task." (click)="previousTask()">
+                            <mat-icon>skip_previous</mat-icon>
+                        </button>
+
+                        <button *ngIf="(run | async)?.state.status == 'ACTIVE' || (run | async)?.state.status == 'TASK_ENDED'" mat-icon-button aria-label="Next task." matTooltip="Got to next task." (click)="nextTask()">
+                            <mat-icon>skip_next</mat-icon>
+                        </button>
+
+                        <button *ngIf="(run | async)?.state.status == 'ACTIVE' || (run | async)?.state.status == 'TASK_ENDED'" mat-icon-button aria-label="Start task." matTooltip="Start task '{{(run | async)?.state.currentTask.name}}'." (click)="startTask()">
+                            <mat-icon>play_circle_outline</mat-icon>
+                        </button>
+
+                        <button *ngIf="(run | async)?.state.status == 'PREPARING_TASK' || (run | async)?.state.status == 'RUNNING_TASK'" mat-icon-button aria-label="Abort running task." matTooltip="Abort running task '{{(run | async)?.state.currentTask.name}}'." (click)="abortTask()">
+                            <mat-icon>cancel</mat-icon>
+                        </button>
+
+                        <button *ngIf="(run | async)?.state.status == 'CREATED' || (run | async)?.state.status == 'ACTIVE' || (run | async)?.state.status == 'TASK_ENDED'" mat-icon-button aria-label="Terminate competition run." matTooltip="Terminate competition run." (click)="terminate()">
+                            <mat-icon>stop</mat-icon>
+                        </button>
+                    </div>
+                </div>
+
+
+            </mat-card>
+        </div>
+
+        <div class="right">
+        </div>
+    </div>
+    <div class="body">
+        <div class="left">
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>Tasks</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+
+                    <mat-action-list>
+                        <button mat-list-item *ngFor="let task of (run | async).info.tasks; let i = index" (click)="switchTask(i)">
+                            <mat-icon *ngIf="task.name == (run | async).state.currentTask?.name">arrow_right</mat-icon>
+                            {{ task.name }}
+                        </button>
+                    </mat-action-list>
+
+                </mat-card-content>
+            </mat-card>
+        </div>
+
+        <div class="main">
+        </div>
+
+        <div class="right">
+        </div>
+    </div>
+    <div class="footer">
+    </div>
+</div>
+

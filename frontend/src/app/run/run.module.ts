@@ -17,6 +17,7 @@ import {RunListComponent} from './run-list.component';
 import {AdminRunListComponent} from './admin-run-list.component';
 import {ViewerRunListComponent} from './viewer-run-list.component';
 import {RunAdminViewComponent} from './run-admin-view.component';
+import {MatCardModule} from '@angular/material/card';
 
 @NgModule({
     imports: [
@@ -34,7 +35,8 @@ import {RunAdminViewComponent} from './run-admin-view.component';
         MatProgressSpinnerModule,
         MatMenuModule,
         CompetitionBuilderModule,
-        MatSelectModule
+        MatSelectModule,
+        MatCardModule
     ],
     exports:      [ RunListComponent, RunAdminViewComponent ],
     declarations: [ RunListComponent, RunAdminViewComponent, AdminRunListComponent, ViewerRunListComponent ],

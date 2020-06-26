@@ -270,7 +270,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         }
 
         val newDuration = this.run.currentTask!!.duration + s
-        check(newDuration > 0) { "New duration $s can not be applied because it is negative." }
+        check((newDuration * 1000L - (System.currentTimeMillis() - this.run.currentTask!!.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
         this.run.currentTask!!.duration = newDuration
         return (this.run.currentTask!!.duration * 1000L - (System.currentTimeMillis() - this.run.currentTask!!.started!!))
     }

@@ -86,6 +86,24 @@
         </div>
 
         <div class="right">
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>Teams</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+
+                    <mat-action-list>
+                        <mat-list-item *ngFor="let team of (run | async).info.teams; let i = index" [style.color]="team.color">
+                            <img matListAvatar src="{{team.logo}}" [style.width]="'90px'" alt="team logo">
+                            <h3 matLine>{{team.name}}</h3>
+                            <p matLine>
+                                {{team.users.length}} member(s)
+                            </p>
+                        </mat-list-item>
+                    </mat-action-list>
+
+                </mat-card-content>
+            </mat-card>
         </div>
     </div>
     <div class="footer">

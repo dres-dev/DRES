@@ -129,7 +129,7 @@ export class CollectionService {
     }
 
     /**
-     * Gives a random Media Item for a given Media Collection.
+     * Gives a random Media Item within a given Media Collection.
      * @param collectionId Collection ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.

@@ -9,6 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { TaskDescription } from './taskDescription';
 import { Team } from './team';
 
 
@@ -17,5 +18,6 @@ export interface RunInfo {
     name: string;
     description?: string;
     teams: Array<Team>;
+    tasks: Array<TaskDescription>;
 }
 

@@ -119,9 +119,9 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
             val interactionLogs = run.runs.flatMap { it.data.sessionQueryEventLogs.values }.flatten()
 
             Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
-                mapper.writeValue(it, resultLogs)
+                it.appendln(mapper.writeValueAsString(resultLogs))
                 it.newLine()
-                mapper.writeValue(it, interactionLogs)
+                it.appendln(mapper.writeValueAsString(interactionLogs))
             }
             println("Successfully wrote run ${run.id} to $path.")
         }

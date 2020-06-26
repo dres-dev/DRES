@@ -375,6 +375,9 @@ class TerminateCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
     }
 }
 
+/**
+ * REST handler to adjust a [CompetitionRun]'s duration.
+ */
 class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/adjust/:duration"
 
@@ -384,7 +387,7 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), 
             method = HttpMethod.POST,
             pathParams = [
                 OpenApiParam("runId", Long::class, "Competition Run ID"),
-                OpenApiParam("runId", Int::class, "Duration to add.")
+                OpenApiParam("duration", Int::class, "Duration to add.")
             ],
             tags = ["Competition Run Admin"],
             responses = [

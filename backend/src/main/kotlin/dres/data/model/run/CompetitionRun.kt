@@ -111,9 +111,9 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
         override var ended: Long? = null
             private set
 
-        /** The position of this [TaskRun] within the [CompetitionRun]. */
-        private val position: Int
-            get() = this@CompetitionRun.runs.indexOf(this)
+        /** Duration of this [TaskRun]. Defaults to the duration specified in the [TaskDescription]. */
+        @Volatile
+        var duration: Long = this@CompetitionRun.competitionDescription.tasks[this@TaskRun.taskId].duration
 
         /** Exposable data of this [TaskRun] */
         var data: TaskRunData = TaskRunData(this.task, this.taskId)
@@ -136,6 +136,11 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
         /** The [SubmissionValidator] used to validate [Submission]s. */
         @Transient
         val validator: SubmissionValidator = this.task.newValidator()
+
+        /** The position of this [TaskRun] within the [CompetitionRun]. */
+        private val position: Int
+            get() = this@CompetitionRun.runs.indexOf(this)
+
 
         init {
             if (this@CompetitionRun.competitionDescription.tasks.size < this.taskId) {

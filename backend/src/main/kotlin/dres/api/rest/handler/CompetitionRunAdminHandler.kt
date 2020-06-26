@@ -304,7 +304,7 @@ class StartTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         try {
             run.startTask()
-            AuditLogger.taskStart(run.uid, run.currentTask?.name ?: "no taks", LogEventSource.REST, ctx.sessionId())
+            AuditLogger.taskStart(run.uid, run.currentTask?.name ?: "n/a", LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Task '${run.currentTask!!.name}' for run $runId was successfully started.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Task '${run.currentTask!!.name}' for run $runId could not be started because run is in the wrong state (state = ${run.status}).")
@@ -336,7 +336,7 @@ class AbortTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
         try {
             val task = run.currentTask
             run.abortTask()
-            AuditLogger.taskEnd(run.uid, task?.name ?: "no taks", LogEventSource.REST, ctx.sessionId())
+            AuditLogger.taskEnd(run.uid, task?.name ?: "n/a", LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Task '${run.currentTask!!.name}' for run $runId was successfully aborted.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Task '${run.currentTask!!.name}' for run $runId could not be aborted because run is in the wrong state (state = ${run.status}).")
@@ -374,3 +374,40 @@ class TerminateCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
         }
     }
 }
+
+class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+    override val route: String = "run/admin/:runId/adjust/:duration"
+
+    @OpenApi(
+            summary = "Terminates a competition run. This is a method for admins.",
+            path = "/api/run/admin/:runId/adjust/:duration",
+            method = HttpMethod.POST,
+            pathParams = [
+                OpenApiParam("runId", Long::class, "Competition Run ID"),
+                OpenApiParam("runId", Int::class, "Duration to add.")
+            ],
+            tags = ["Competition Run Admin"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doPost(ctx: Context): SuccessStatus {
+        val runId = runId(ctx)
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val duration = ctx.pathParamMap().getOrElse("duration") {
+            throw ErrorStatusException(404, "Parameter 'duration' is missing!'")
+        }.toInt()
+        try {
+            run.adjustDuration(duration)
+            AuditLogger.taskModified(run.uid, run.currentTask?.name ?: "n/a","Task duration adjusted by ${duration}s.", LogEventSource.REST, ctx.sessionId())
+            return SuccessStatus("Duration for run $runId was successfully adjusted.")
+        } catch (e: IllegalStateException) {
+            throw ErrorStatusException(400, "Duration for run $runId could not be adjusted because it is in the wrong state (state = ${run.status}).")
+        } catch (e: IllegalArgumentException) {
+            throw ErrorStatusException(400, "Duration for run $runId could not be adjusted because new duration would drop bellow zero (state = ${run.status}).")
+        }
+    }
+}
+

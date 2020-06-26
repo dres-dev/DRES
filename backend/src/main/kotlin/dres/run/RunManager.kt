@@ -136,11 +136,22 @@ interface RunManager : Runnable {
     fun abortTask()
 
     /**
-     * Returns the time in milliseconds that is left until the end of the currently running [Task].
-     * Only works if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no [Task] is running,
+     * Adjusts the duration of the current [TaskRun] by the specified amount. Amount can be positive or negative.
+     *
+     * @param s The number of seconds to adjust the duration by.
+     * @return Time remaining until the task will end.
+     *
+     * @throws IllegalArgumentException If the specified correction cannot be applied.
+     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
+     */
+    fun adjustDuration(s: Int): Long
+
+    /**
+     * Returns the time in milliseconds that is left until the end of the currently running task.
+     * Only works if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no task is running,
      * this method returns -1L.
      *
-     * @return Time that has elapsed since the start of the running [Task] or -1, if no [Task] is running.
+     * @return Time remaining until the task will end or -1, if no task is running.
      */
     fun timeLeft(): Long
 

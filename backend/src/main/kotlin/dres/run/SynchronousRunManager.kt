@@ -264,9 +264,20 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         LOGGER.info("SynchronousRunManager ${this.runId} aborted task task ${this.currentTask}")
     }
 
+    override fun adjustDuration(s: Int): Long = this.stateLock.read {
+        if (this.status != RunManagerStatus.RUNNING_TASK) {
+            throw IllegalStateException("SynchronizedRunManager is in status ${this.status}. Duration of task can therefore not be adjusted.")
+        }
+
+        val newDuration = this.run.currentTask!!.duration + s
+        check(s > 0) { "New duration $s can not be applied because it is negative." }
+        this.run.currentTask!!.duration = newDuration
+        return (this.run.currentTask!!.duration * 1000L - (System.currentTimeMillis() - this.run.currentTask!!.started!!))
+    }
+
     override fun timeLeft(): Long = this.stateLock.read {
         if (this.status == RunManagerStatus.RUNNING_TASK) {
-            return (this.run.currentTask!!.task.duration * 1000L - (System.currentTimeMillis() - this.run.currentTask!!.started!!))
+            return (this.run.currentTask!!.duration * 1000L - (System.currentTimeMillis() - this.run.currentTask!!.started!!))
         } else {
             -1L
         }

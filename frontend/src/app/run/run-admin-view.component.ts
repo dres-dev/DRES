@@ -42,7 +42,7 @@ export class RunAdminViewComponent {
             switchMap(runId =>
                 combineLatest([
                     this.runService.getApiRunInfoWithRunid(runId),
-                    merge(timer(0, 5000), this.update).pipe(
+                    merge(timer(0, 1000), this.update).pipe(
                         switchMap(index => this.runService.getApiRunStateWithRunid(runId))
                     )
                 ])
@@ -129,5 +129,27 @@ export class RunAdminViewComponent {
                 this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
             }
         );
+    }
+
+    public adjustDuration(duration: number) {
+        this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidAdjustWithDuration(id, duration))).subscribe(
+            (r) => {
+                this.update.next();
+                this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
+            }, (r) => {
+                this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+            }
+        );
+    }
+
+    public toFormattedTime(sec: number): string {
+        const hours   = Math.floor(sec / 3600);
+        const minutes = Math.floor(sec / 60) % 60;
+        const seconds = sec % 60;
+
+        return [hours, minutes, seconds]
+            .map(v => v < 10 ? '0' + v : v)
+            .filter((v, i) => v !== '00' || i > 0)
+            .join(':');
     }
 }

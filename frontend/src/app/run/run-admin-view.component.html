@@ -6,7 +6,10 @@
             <mat-card>
                 <div style="display: flex;">
                     <div>
-                        <h1>Run {{(run | async)?.info.id}} ({{(run | async)?.info.name.trim()}})</h1>
+                        <h1>Run {{(run | async)?.info.id}} ({{(run | async)?.state.status}})</h1>
+                        <p><strong>Name: </strong>{{(run | async)?.info.name}}</p>
+                        <p><strong>Description: </strong>{{(run | async)?.info.description}}</p>
+                        <p *ngIf="(run | async)?.state.timeLeft > 0"><strong>Time left:</strong> {{toFormattedTime((run | async)?.state.timeLeft)}}</p>
                     </div>
 
                     <div class="spacer-flex">
@@ -33,9 +36,23 @@
                             <mat-icon>cancel</mat-icon>
                         </button>
 
+                        <button *ngIf="(run | async)?.state.status == 'RUNNING_TASK'" mat-icon-button aria-label="Adjust duration." matTooltip="Adjust duration of task '{{(run | async)?.state.currentTask.name}}'." [matMenuTriggerFor]="menu">
+                            <mat-icon>alarm_add</mat-icon>
+                        </button>
+
+                        <mat-menu #menu="matMenu">
+                            <button mat-menu-item (click)="adjustDuration(5)">+5s</button>
+                            <button mat-menu-item (click)="adjustDuration(10)">+10s</button>
+                            <button mat-menu-item (click)="adjustDuration(30)">+30s</button>
+                            <button mat-menu-item (click)="adjustDuration(-5)">-5s</button>
+                            <button mat-menu-item (click)="adjustDuration(-10)">-10s</button>
+                            <button mat-menu-item (click)="adjustDuration(-30)">-30s</button>
+                        </mat-menu>
+
                         <button *ngIf="(run | async)?.state.status == 'CREATED' || (run | async)?.state.status == 'ACTIVE' || (run | async)?.state.status == 'TASK_ENDED'" mat-icon-button aria-label="Terminate competition run." matTooltip="Terminate competition run." (click)="terminate()">
                             <mat-icon>stop</mat-icon>
                         </button>
+
                     </div>
                 </div>
 

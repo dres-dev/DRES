@@ -25,6 +25,7 @@ import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.lang.IndexOutOfBoundsException
 
 
 abstract class AbstractCompetitionRunAdminRestHandler : RestHandler, AccessManagedRestHandler {
@@ -204,6 +205,45 @@ class NextTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler
             }
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).")
+        }
+    }
+}
+
+/**
+ * REST handler to move to the next task in a [CompetitionRun].
+ */
+class SwitchTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+    override val route: String = "run/admin/:runId/task/switch/:idx"
+
+    @OpenApi(
+            summary = "Moves to the specified task. This is a method for admins.",
+            path = "/api/run/admin/:runId/task/switch/:idx",
+            method = HttpMethod.POST,
+            pathParams = [
+                OpenApiParam("runId", Long::class, "Competition run ID"),
+                OpenApiParam("idx", Int::class, "Index of the task to switch to.")
+            ],
+            tags = ["Competition Run Admin"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doPost(ctx: Context): SuccessStatus {
+        val runId = runId(ctx)
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val idx = ctx.pathParamMap().getOrElse("idx") {
+            throw ErrorStatusException(404, "Parameter 'idx' is missing!'")
+        }.toInt()
+
+        try {
+            run.goToTask(idx)
+            return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTask!!.name}'.")
+        } catch (e: IllegalStateException) {
+            throw ErrorStatusException(400, "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).")
+        } catch (e: IndexOutOfBoundsException) {
+            throw ErrorStatusException(404, "Task for run $runId could not be changed because index $idx is out of bounds for number of available tasks.")
         }
     }
 }

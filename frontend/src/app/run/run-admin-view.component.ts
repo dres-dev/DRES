@@ -39,8 +39,7 @@ export class RunAdminViewComponent {
                 private config: AppConfig,
                 private runService: CompetitionRunService,
                 private runAdminService: CompetitionRunAdminService,
-                private snackBar: MatSnackBar
-    ) {
+                private snackBar: MatSnackBar) {
         this.runId = this.activeRoute.params.pipe(map(a => a.runId));
         this.run = this.runId.pipe(
             switchMap(runId =>
@@ -152,7 +151,14 @@ export class RunAdminViewComponent {
     }
 
     public forceViewer(viewerId: string) {
-
+        this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidViewersWithVieweridForce(id, viewerId))).subscribe(
+            (r) => {
+                this.update.next();
+                this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
+            }, (r) => {
+                this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+            }
+        );
     }
 
     public toFormattedTime(sec: number): string {

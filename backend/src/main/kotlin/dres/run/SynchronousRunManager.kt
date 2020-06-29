@@ -265,9 +265,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     }
 
     override fun adjustDuration(s: Int): Long = this.stateLock.read {
-        if (this.status != RunManagerStatus.RUNNING_TASK) {
-            throw IllegalStateException("SynchronizedRunManager is in status ${this.status}. Duration of task can therefore not be adjusted.")
-        }
+        check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronizedRunManager is in status ${this.status}. Duration of task can therefore not be adjusted." }
 
         val newDuration = this.run.currentTask!!.duration + s
         check((newDuration * 1000L - (System.currentTimeMillis() - this.run.currentTask!!.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
@@ -281,6 +279,13 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         } else {
             -1L
         }
+    }
+
+    override fun viewers(): HashMap<String, Boolean> = this.readyLatch.state()
+
+    override fun overrideReadyState(viewerId: String) {
+        check(this.status == RunManagerStatus.PREPARING_TASK) { }
+        this.readyLatch.setReady(viewerId)
     }
 
     /**

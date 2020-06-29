@@ -45,3 +45,4 @@ export * from './videoItem';
 export * from './videoItemAllOf';
 export * from './videoQueryDescription';
 export * from './videoQueryDescriptionAllOf';
+export * from './viewerInfo';

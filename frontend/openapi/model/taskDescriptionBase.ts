@@ -16,7 +16,7 @@ export interface TaskDescriptionBase {
     taskType: string;
     taskGroup: TaskGroup;
     name: string;
-    uid: string;
     duration: number;
+    uid: string;
 }
 

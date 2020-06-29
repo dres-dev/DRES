@@ -1,9 +1,9 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {AppConfig} from '../app.config';
-import {CompetitionRunAdminService, CompetitionRunService, RunInfo, RunState} from '../../../openapi';
+import {CompetitionRunAdminService, CompetitionRunService, RunInfo, RunState, ViewerInfo} from '../../../openapi';
 import {combineLatest, merge, Observable, Subject, timer} from 'rxjs';
-import {map, shareReplay, switchMap} from 'rxjs/operators';
+import {flatMap, map, shareReplay, switchMap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
 
 
@@ -21,8 +21,12 @@ export class RunAdminViewComponent {
 
     runId: Observable<number>;
     run: Observable<CombinedRun>;
+    viewers: Observable<ViewerInfo[]>;
     update = new Subject();
-    x
+    displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'action'];
+
+
+
     /**
      *
      * @param activeRoute
@@ -51,6 +55,11 @@ export class RunAdminViewComponent {
                 return {info: i, state: s} as CombinedRun;
             }),
             shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading. */
+        );
+
+
+        this.viewers = this.runId.pipe(
+            flatMap(runId => timer(0, 1000).pipe(switchMap(i => this.runAdminService.getApiRunAdminWithRunidViewers(runId))))
         );
     }
 
@@ -140,6 +149,10 @@ export class RunAdminViewComponent {
                 this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
             }
         );
+    }
+
+    public forceViewer(viewerId: string) {
+
     }
 
     public toFormattedTime(sec: number): string {

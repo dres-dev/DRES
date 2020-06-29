@@ -2,6 +2,7 @@ package dres.api.rest.handler
 
 import dres.api.rest.RestApiRole
 import dres.api.rest.types.run.RunType
+import dres.api.rest.types.run.ViewerInfo
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
@@ -26,6 +27,7 @@ import io.javalin.plugin.openapi.annotations.*
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.lang.IndexOutOfBoundsException
+import java.util.HashMap
 
 
 abstract class AbstractCompetitionRunAdminRestHandler : RestHandler, AccessManagedRestHandler {
@@ -411,6 +413,31 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), 
         } catch (e: IllegalArgumentException) {
             throw ErrorStatusException(400, "Duration for run $runId could not be adjusted because new duration would drop bellow zero (state = ${run.status}).")
         }
+    }
+}
+
+/**
+ * REST handler to list all viewers for a [CompetitionRun].
+ */
+class ListViewersRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), GetRestHandler<Array<ViewerInfo>> {
+    override val route: String = "run/admin/:runId/viewers"
+
+    @OpenApi(
+            summary = "Lists all registered viewers for a competition run. This is a method for admins.",
+            path = "/api/run/admin/:runId/viewers",
+            method = HttpMethod.GET,
+            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            tags = ["Competition Run Admin"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(Array<ViewerInfo>::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): Array<ViewerInfo> {
+        val runId = runId(ctx)
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        return run.viewers().map{ ViewerInfo(it.key, it.value) }.toTypedArray()
     }
 }
 

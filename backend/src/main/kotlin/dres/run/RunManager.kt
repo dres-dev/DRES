@@ -167,8 +167,9 @@ interface RunManager : Runnable {
      * Override the ready state for a given viewer ID.
      *
      * @param viewerId The ID of the viewer that should be overridden.
+     * @return true on success, false otherwise
      */
-    fun overrideReadyState(viewerId: String)
+    fun overrideReadyState(viewerId: String): Boolean
 
     /**
      * Invoked by an external caller such in order to inform the [RunManager] that it has received a [ClientMessage].

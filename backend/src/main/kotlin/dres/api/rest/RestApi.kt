@@ -94,6 +94,7 @@ object RestApi {
                 TerminateCompetitionRunAdminHandler(),
                 AdjustDurationRunAdminHandler(),
                 ListViewersRunAdminHandler(),
+                ForceViewerRunAdminHandler(),
 
                 NextOpenJudgementHandler(dataAccessLayer.collections),
                 PostJudgementHandler(),

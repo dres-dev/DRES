@@ -18,6 +18,7 @@ import dres.run.validation.interfaces.SubmissionValidator
 import dres.utilities.ReadyLatch
 import dres.utilities.extensions.read
 import org.slf4j.LoggerFactory
+import java.lang.IllegalArgumentException
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.concurrent.locks.StampedLock
@@ -265,9 +266,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     }
 
     override fun adjustDuration(s: Int): Long = this.stateLock.read {
-        if (this.status != RunManagerStatus.RUNNING_TASK) {
-            throw IllegalStateException("SynchronizedRunManager is in status ${this.status}. Duration of task can therefore not be adjusted.")
-        }
+        check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronizedRunManager is in status ${this.status}. Duration of task can therefore not be adjusted." }
 
         val newDuration = this.run.currentTask!!.duration + s
         check((newDuration * 1000L - (System.currentTimeMillis() - this.run.currentTask!!.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
@@ -280,6 +279,29 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
             return (this.run.currentTask!!.duration * 1000L - (System.currentTimeMillis() - this.run.currentTask!!.started!!))
         } else {
             -1L
+        }
+    }
+
+    /**
+     * Lists  all WebsSocket session IDs for viewer instances currently registered to this [SynchronousRunManager].
+     *
+     * @return Map of session ID to ready state.
+     */
+    override fun viewers(): HashMap<String, Boolean> = this.readyLatch.state()
+
+    /**
+     * Can be used to manually override the READY state of a viewer. Can be used
+     * in case a viewer hangs in the PREPARING_TASK phase.
+     *
+     * @param viewerId The ID of the viewer's WebSocket session.
+     */
+    override fun overrideReadyState(viewerId: String): Boolean {
+        check(this.status == RunManagerStatus.PREPARING_TASK) { }
+        return try {
+            this.readyLatch.setReady(viewerId)
+            true
+        } catch (e: IllegalArgumentException) {
+            false
         }
     }
 

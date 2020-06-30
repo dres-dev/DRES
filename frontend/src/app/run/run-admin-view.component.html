@@ -55,8 +55,6 @@
 
                     </div>
                 </div>
-
-
             </mat-card>
         </div>
 
@@ -67,25 +65,85 @@
         <div class="left">
             <mat-card>
                 <mat-card-header>
-                    <mat-card-title>Tasks</mat-card-title>
+                    <mat-card-title>Active viewers</mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
-
                     <mat-action-list>
-                        <button mat-list-item *ngFor="let task of (run | async).info.tasks; let i = index" (click)="switchTask(i)">
-                            <mat-icon *ngIf="task.name == (run | async).state.currentTask?.name">arrow_right</mat-icon>
-                            {{ task.name }}
+                        <button mat-list-item *ngFor="let viewer of (viewers | async); let i = index" (click)="forceViewer(viewer.viewersId)">
+                            <span [style.color]="viewer.ready ? 'darkgreen' : 'darkred'">{{viewer.viewersId}}</span>
                         </button>
                     </mat-action-list>
-
                 </mat-card-content>
             </mat-card>
         </div>
 
         <div class="main">
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>Tasks</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+
+                    <table #taskTable mat-table [dataSource]="(run | async).info.tasks" [style.width]="'100%'">
+                        <ng-container matColumnDef="name">
+                            <th mat-header-cell *matHeaderCellDef> Name </th>
+                            <td mat-cell *matCellDef="let task"> {{task.name}} </td>
+                        </ng-container>
+
+                        <!-- Name Column -->
+                        <ng-container matColumnDef="group">
+                            <th mat-header-cell *matHeaderCellDef> Group </th>
+                            <td mat-cell *matCellDef="let task"> {{task.taskGroup.name}} </td>
+                        </ng-container>
+
+                        <!-- Weight Column -->
+                        <ng-container matColumnDef="type">
+                            <th mat-header-cell *matHeaderCellDef> Type </th>
+                            <td mat-cell *matCellDef="let task"> {{task.taskType}} </td>
+                        </ng-container>
+
+                        <!-- Symbol Column -->
+                        <ng-container matColumnDef="duration">
+                            <th mat-header-cell *matHeaderCellDef> Duration [s] </th>
+                            <td mat-cell *matCellDef="let task"> {{task.duration}} </td>
+                        </ng-container>
+
+                        <!-- Symbol Column -->
+                        <ng-container matColumnDef="action">
+                            <th mat-header-cell *matHeaderCellDef> GoTo </th>
+                            <td mat-cell *matCellDef="let task; let i = index">
+                                <button mat-icon-button aria-label="Switch to task." matTooltip="witch to task." (click)="switchTask(i)" *ngIf="task.name !== (run | async).state.currentTask.name">
+                                    <mat-icon>directions</mat-icon>
+                                </button>
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumnsTasks"></tr>
+                        <tr mat-row *matRowDef="let task; columns: displayedColumnsTasks;" [style.font-weight]="task.name === (run | async).state.currentTask.name ? 'bold' : ''"></tr>
+                    </table>
+                </mat-card-content>
+            </mat-card>
         </div>
 
         <div class="right">
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>Teams</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+
+                    <mat-action-list>
+                        <mat-list-item *ngFor="let team of (run | async).info.teams; let i = index" [style.color]="team.color">
+                            <img matListAvatar src="{{team.logo}}" [style.width]="'90px'" alt="team logo">
+                            <h3 matLine>{{team.name}}</h3>
+                            <p matLine>
+                                {{team.users.length}} member(s)
+                            </p>
+                        </mat-list-item>
+                    </mat-action-list>
+
+                </mat-card-content>
+            </mat-card>
         </div>
     </div>
     <div class="footer">

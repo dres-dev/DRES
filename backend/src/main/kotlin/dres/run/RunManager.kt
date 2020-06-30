@@ -10,6 +10,7 @@ import dres.run.score.interfaces.TaskRunScorer
 import dres.run.score.scoreboard.Scoreboard
 import dres.run.updatables.ScoreboardsUpdatable
 import dres.run.validation.interfaces.JudgementValidator
+import java.util.HashMap
 
 /**
  * A managing class for [CompetitionDescription] executions or 'runs'.
@@ -154,6 +155,21 @@ interface RunManager : Runnable {
      * @return Time remaining until the task will end or -1, if no task is running.
      */
     fun timeLeft(): Long
+
+    /**
+     * Returns a list of viewer IDs for this [RunManager] alongside with their respective state.
+     *
+     * @return List of viewer IDs for this [RunManager].
+     */
+    fun viewers(): HashMap<String,Boolean>
+
+    /**
+     * Override the ready state for a given viewer ID.
+     *
+     * @param viewerId The ID of the viewer that should be overridden.
+     * @return true on success, false otherwise
+     */
+    fun overrideReadyState(viewerId: String): Boolean
 
     /**
      * Invoked by an external caller such in order to inform the [RunManager] that it has received a [ClientMessage].

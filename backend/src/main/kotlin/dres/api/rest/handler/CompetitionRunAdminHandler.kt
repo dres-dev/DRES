@@ -2,6 +2,7 @@ package dres.api.rest.handler
 
 import dres.api.rest.RestApiRole
 import dres.api.rest.types.run.RunType
+import dres.api.rest.types.run.ViewerInfo
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
@@ -148,7 +149,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
 /**
  * REST handler to start a [CompetitionRun].
  */
-class StartCompetitionRunAdminHandler(): AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class StartCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/start"
 
     @OpenApi(
@@ -393,7 +394,8 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), 
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
     override fun doPost(ctx: Context): SuccessStatus {
@@ -414,3 +416,68 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), 
     }
 }
 
+/**
+ * REST handler to list all viewers for a [CompetitionRun].
+ */
+class ListViewersRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), GetRestHandler<Array<ViewerInfo>> {
+    override val route: String = "run/admin/:runId/viewers"
+
+    @OpenApi(
+            summary = "Lists all registered viewers for a competition run. This is a method for admins.",
+            path = "/api/run/admin/:runId/viewers",
+            method = HttpMethod.GET,
+            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            tags = ["Competition Run Admin"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(Array<ViewerInfo>::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): Array<ViewerInfo> {
+        val runId = runId(ctx)
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        return run.viewers().map{ ViewerInfo(it.key, it.value) }.toTypedArray()
+    }
+}
+
+/**
+ * REST handler to force the viewer state of a viewer instance registered for a [RunManager].
+ */
+class ForceViewerRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+    override val route: String = "run/admin/:runId/viewers/:viewerId/force"
+
+    @OpenApi(
+            summary = "Forces a viewer with the given viewer ID into the READY state. This is a method for admins.",
+            path = "/api/run/admin/:runId/viewers/:viewerId/force",
+            method = HttpMethod.POST,
+            pathParams = [
+                OpenApiParam("runId", Long::class, "Competition Run ID"),
+                OpenApiParam("viewerId", String::class, "Viewer ID")
+            ],
+            tags = ["Competition Run Admin"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doPost(ctx: Context): SuccessStatus {
+        val runId = runId(ctx)
+        val viewerId = ctx.pathParamMap().getOrElse("viewerId") {
+            throw ErrorStatusException(404, "Parameter 'viewerId' is missing!'")
+        }
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        try {
+            if (run.overrideReadyState(viewerId)) {
+                return SuccessStatus("State for viewer $viewerId forced successfully.")
+            } else {
+                throw ErrorStatusException(404, "Viewer $viewerId does not exist!'")
+            }
+        } catch (e: IllegalStateException) {
+            throw ErrorStatusException(400, "Viewer state for viewer $viewerId (run $runId) could not be enforced because run is in the wrong state (state = ${run.status}).")
+        }
+    }
+}

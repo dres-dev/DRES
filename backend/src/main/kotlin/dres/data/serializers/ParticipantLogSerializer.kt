@@ -8,7 +8,7 @@ import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer
 
-object QueryResultLogSerializer: Serializer<QueryResultLog> {
+object QueryResultLogSerializer : Serializer<QueryResultLog> {
 
     override fun serialize(out: DataOutput2, value: QueryResultLog) {
         out.packInt(value.team)
@@ -26,8 +26,8 @@ object QueryResultLogSerializer: Serializer<QueryResultLog> {
 
         out.writeUTF(value.resultSetAvailability)
 
-        out.packInt(value.events.size)
-        value.events.forEach { QueryResultSerializer.serialize(out, it) }
+        out.packInt(value.results.size)
+        value.results.forEach { QueryResultSerializer.serialize(out, it) }
 
         out.packLong(value.serverTimeStamp)
 
@@ -47,7 +47,7 @@ object QueryResultLogSerializer: Serializer<QueryResultLog> {
     )
 }
 
-object QueryResultSerializer: Serializer<QueryResult> {
+object QueryResultSerializer : Serializer<QueryResult> {
 
     override fun serialize(out: DataOutput2, value: QueryResult) {
         out.writeUTF(value.video)
@@ -65,7 +65,7 @@ object QueryResultSerializer: Serializer<QueryResult> {
 
 }
 
-object QueryEventLogSerializer: Serializer<QueryEventLog> {
+object QueryEventLogSerializer : Serializer<QueryEventLog> {
 
     override fun serialize(out: DataOutput2, value: QueryEventLog) {
         out.packInt(value.team)
@@ -76,32 +76,43 @@ object QueryEventLogSerializer: Serializer<QueryEventLog> {
         value.events.forEach { QueryEventSerializer.serialize(out, it) }
 
         out.packLong(value.serverTimeStamp)
+
+        out.writeUTF(value.type)
     }
 
     override fun deserialize(input: DataInput2, available: Int): QueryEventLog = QueryEventLog(
-            input.unpackInt(),
-            input.unpackLong(),
-            input.unpackLong(),
-            (0 until input.unpackInt()).map { QueryEventSerializer.deserialize(input, available) },
-            input.unpackLong()
+            team = input.unpackInt(),
+            member = input.unpackLong(),
+            timestamp = input.unpackLong(),
+            events = (0 until input.unpackInt()).map { QueryEventSerializer.deserialize(input, available) },
+            serverTimeStamp = input.unpackLong(),
+            type = input.readUTF()
     )
 
 }
 
-object QueryEventSerializer: Serializer<QueryEvent> {
+object QueryEventSerializer : Serializer<QueryEvent> {
 
     override fun serialize(out: DataOutput2, value: QueryEvent) {
         out.packLong(value.timestamp)
         out.writeUTF(value.category)
-        out.writeUTF(value.type)
-        out.writeUTF(value.value)
+        out.packInt(value.type.size)
+        value.type.forEach { out.writeUTF(it) }
+
+        if (value.value != null) {
+            out.writeUTF(value.value)
+        }
     }
 
     override fun deserialize(input: DataInput2, available: Int): QueryEvent = QueryEvent(
             input.unpackLong(),
             input.readUTF(),
-            input.readUTF(),
-            input.readUTF()
+            (0 until input.unpackInt()).map { input.readUTF() },
+            value = if (available > input.pos) {
+                input.readUTF()
+            } else {
+                null
+            }
     )
 
 

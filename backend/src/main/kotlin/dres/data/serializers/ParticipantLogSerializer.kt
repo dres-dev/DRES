@@ -101,6 +101,8 @@ object QueryEventSerializer : Serializer<QueryEvent> {
 
         if (value.value != null) {
             out.writeUTF(value.value)
+        }else{
+            out.writeUTF("")
         }
     }
 
@@ -108,11 +110,7 @@ object QueryEventSerializer : Serializer<QueryEvent> {
             input.unpackLong(),
             input.readUTF(),
             (0 until input.unpackInt()).map { input.readUTF() },
-            value = if (available > input.pos) {
-                input.readUTF()
-            } else {
-                null
-            }
+            value = input.readUTF()
     )
 
 

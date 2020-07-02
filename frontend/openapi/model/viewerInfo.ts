@@ -11,11 +11,8 @@
  */
 
 
-export interface MediaItem { 
-    itemType: string;
-    name: string;
-    location: string;
-    collection: number;
-    id: number;
+export interface ViewerInfo { 
+    viewersId: string;
+    ready: boolean;
 }
 

@@ -13,10 +13,11 @@ import { QueryEvent } from './queryEvent';
 
 
 export interface QueryEventLog { 
-    team: number;
-    member: number;
+    teamId: number;
+    memberId: number;
     timestamp: number;
     events: Array<QueryEvent>;
+    type: string;
     serverTimeStamp: number;
 }
 

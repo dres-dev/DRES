@@ -23,6 +23,7 @@ class DataAccessLayer(private val basePath: Path) {
     val collectionNameIndex = DaoIndexer(collections){it.name}
 
     val mediaItems = DAO(this.basePath.resolve("mediaItems.db"), MediaItemSerializer)
+    val mediaItemCollectionIndex = DaoIndexer(mediaItems) { it.collection }
     val mediaItemCollectionNameIndex = DaoIndexer(mediaItems) { it.collection to it.name }
 
     val mediaSegments = DAO(this.basePath.resolve("mediaSegments.db"), MediaItemSegmentListSerializer)

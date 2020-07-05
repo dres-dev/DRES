@@ -5,6 +5,7 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
+import dres.data.dbo.DaoIndexer
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
 import io.javalin.core.security.Role
@@ -114,7 +115,7 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
     override val route: String = "collection/:collectionId"
 }
 
-class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), GetRestHandler<Array<MediaItem>> {
+class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, private val collectionItems: DaoIndexer<MediaItem, Long>) : CollectionHandler(collections, items), GetRestHandler<Array<MediaItem>> {
     @OpenApi(
             summary = "Lists Media Items of a Media Collection whose name start with the given fragment",
             path = "/api/collection/:collectionId/:startsWith", method = HttpMethod.GET,
@@ -133,23 +134,26 @@ class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIt
     override fun doGet(ctx: Context): Array<MediaItem> {
         val collection = collectionFromContext(ctx)
         val startsWith = ctx.pathParamMap()["startsWith"]
+        val items = this.collectionItems[collection.id]
 
-        val results = if (!startsWith.isNullOrBlank()) {
-            this.items.filter {
+        return if (!startsWith.isNullOrBlank()) {
+            items.filter {
                 it.collection == collection.id && it.name.startsWith(startsWith)
             }.take(50).toTypedArray()
         } else {
-            this.items.filter {
+            items.filter {
                 it.collection == collection.id
             }.take(50).toTypedArray()
         }
-        return results
     }
 
     override val route: String = "collection/:collectionId/:startsWith"
 }
 
-class RandomMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), GetRestHandler<MediaItem> {
+class RandomMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, private val collectionItems: DaoIndexer<MediaItem, Long>) : CollectionHandler(collections, items), GetRestHandler<MediaItem> {
+
+    private val rand = Random(System.currentTimeMillis()) // TODO Decide upon seed -- time based or fixed?
+
     @OpenApi(
             summary = "Gives a random Media Item within a given Media Collection.",
             path = "/api/collection/random/:collectionId", method = HttpMethod.GET,
@@ -166,11 +170,11 @@ class RandomMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<Media
     )
     override fun doGet(ctx: Context): MediaItem {
         val collection = collectionFromContext(ctx)
-        val collectionSize = this.items.count { it.collection == collection.id }
-        val rand = Random(System.currentTimeMillis()) // TODO Decide upon seed -- time based or fixed?
-        return items.filter {
-            it.collection == collection.id
-        }[rand.nextInt(collectionSize)]
+        val items = this.collectionItems[collection.id]
+
+        val collectionSize = items.size
+
+        return items[rand.nextInt(collectionSize)]
     }
 
     override val route: String = "collection/random/:collectionId"

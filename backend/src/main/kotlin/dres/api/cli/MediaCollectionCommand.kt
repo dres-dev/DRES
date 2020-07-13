@@ -86,6 +86,48 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         }
     }
 
+    inner class CheckCollectionCommand : AbstractCollectionCommand("check", help = "Checks if all the files in a collection are present and accessible") {
+        override fun run() {
+
+            val collectionId = this.actualCollectionId()
+            if (collectionId == null) {
+                println("Collection not found.")
+                return
+            }
+
+            val collection = this@MediaCollectionCommand.collections[collectionId]!!
+
+            val collectionItems = this@MediaCollectionCommand.items.filter { it.collection == collectionId }
+
+            val baseFile = File(collection.basePath)
+
+            var counter = 0
+
+            collectionItems.forEach {
+
+                val file = File(baseFile, it.location)
+
+                if (file.exists()) {
+
+                    if (file.canRead()) {
+                        ++counter
+                    } else {
+                        println("item ${it.name} at ${file.absolutePath} not readable")
+                    }
+
+                } else {
+                    println("item ${it.name} at ${file.absolutePath} not found")
+                }
+
+            }
+
+            println("successfully checked $counter of ${collectionItems.size} Media Items")
+
+
+
+        }
+    }
+
     inner class DeleteCollectionCommand : AbstractCollectionCommand("delete", help = "Deletes a Collection") {
         override fun run() {
 
@@ -191,7 +233,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
         private fun toRow(item: MediaItem): List<String?> = when (item) {
             is MediaItem.ImageItem -> listOf(item.itemType, item.name, item.location, null, null)
-            is MediaItem.VideoItem -> listOf(item.itemType, item.name, item.location, item.duration.toString(), item.fps.toString())
+            is MediaItem.VideoItem -> listOf(item.itemType, item.name, item.location, item.duration.toMillis().toString(), item.fps.toString())
         }
 
         private val header = listOf("itemType", "name", "location", "duration", "fps")

@@ -22,7 +22,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         NoOpCliktCommand(name = "collection") {
 
     init {
-        this.subcommands(CreateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), AddMediaItemCommand(), ExportCollectionCommand(), ImportCollectionCommand(), DeleteCollectionCommand(), ImportMediaSegmentsCommand())
+        this.subcommands(CreateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), CheckCollectionCommand(), AddMediaItemCommand(), ExportCollectionCommand(), ImportCollectionCommand(), DeleteCollectionCommand(), ImportMediaSegmentsCommand())
     }
 
     abstract inner class AbstractCollectionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {

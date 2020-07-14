@@ -124,10 +124,10 @@ object RunExecutor : Consumer<WsHandler> {
             this@RunExecutor.clientLock.write {
                 this.connectedClients.remove(it.sessionId)
                 this.runManagerLock.read {
-                    for (m in runManagers.keys) {
-                        if (this.observingClients[m]?.contains(it.sessionId) == true) {
-                            this.observingClients[m]?.remove(it.sessionId)
-                            this.runManagers[m]?.wsMessageReceived(it.sessionId, ClientMessage(m, ClientMessageType.UNREGISTER)) /* Send implicit unregister message associated with a disconnect. */
+                    for (m in runManagers) {
+                        if (this.observingClients[m.key]?.contains(it.sessionId) == true) {
+                            this.observingClients[m.key]?.remove(it.sessionId)
+                            m.value.wsMessageReceived(it.sessionId, ClientMessage(m.key, ClientMessageType.UNREGISTER)) /* Send implicit unregister message associated with a disconnect. */
                         }
                     }
                 }

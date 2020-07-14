@@ -16,12 +16,10 @@ import dres.run.updatables.*
 import dres.run.validation.interfaces.JudgementValidator
 import dres.run.validation.interfaces.SubmissionValidator
 import dres.utilities.ReadyLatch
-import dres.utilities.extensions.read
 import org.slf4j.LoggerFactory
 import java.lang.IllegalArgumentException
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.concurrent.locks.StampedLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
@@ -57,10 +55,11 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     override val competitionDescription: CompetitionDescription
         get() = this.run.competitionDescription
 
-    /** Currently active [TaskDescription]. */
+    /** Reference to the currently active [TaskDescription]. This is part of the task navigation. */
     override var currentTask: TaskDescription = this.competitionDescription.tasks[0]
         private set
 
+    /** Reference to the currently active [TaskRunData].*/
     override val currentTaskRun: TaskRunData?
         get() = this.run.currentTask?.data
 
@@ -115,9 +114,6 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     /** List of [Updatable] held by this [SynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
 
-    /** Lock for changes to the [Updatable] list. */
-    private val updatableLock = StampedLock()
-
     /** The pipeline for [Submission] processing. All [Submission]s undergo three steps: filter, validation and score update. */
     private val submissionPipeline: List<Triple<SubmissionFilter,SubmissionValidator, TaskRunScorer>> = LinkedList()
 
@@ -125,13 +121,13 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     private val stateLock = ReentrantReadWriteLock()
 
     init {
-        /* Register relevant updatables. */
+        /* Register relevant Updatables. */
         this.updatables.add(this.scoresUpdatable)
         this.updatables.add(this.scoreboards)
         this.updatables.add(this.messageQueueUpdatable)
         this.updatables.add(this.daoUpdatable)
 
-        /** End ongoing runs upon intialization (in case server crashed during task execution). */
+        /** End ongoing runs upon initialization (in case server crashed during task execution). */
         if (this.run.currentTask?.isRunning == true) {
             this.run.currentTask?.end()
         }
@@ -230,12 +226,14 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         val pipeline = Triple(ret.task.newFilter(), ret.task.newValidator(), ret.task.newScorer())
         (this.submissionPipeline as MutableList).add(pipeline)
 
+        /* Update status. */
+        this.status = RunManagerStatus.PREPARING_TASK
+
         /* Mark scoreboards and dao for update. */
         this.scoreboards.dirty = true
         this.daoUpdatable.dirty = true
 
-        /* Update status. */
-        this.status = RunManagerStatus.PREPARING_TASK
+        /* Reset the ReadyLatch. */
         this.readyLatch.reset()
 
         /* Enqueue WS message for sending */
@@ -295,7 +293,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
      *
      * @param viewerId The ID of the viewer's WebSocket session.
      */
-    override fun overrideReadyState(viewerId: String): Boolean {
+    override fun overrideReadyState(viewerId: String): Boolean = this.stateLock.read {
         check(this.status == RunManagerStatus.PREPARING_TASK) { }
         return try {
             this.readyLatch.setReady(viewerId)
@@ -364,16 +362,16 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         /** Start [SynchronousRunManager] . */
         while (this.status != RunManagerStatus.TERMINATED) {
             try {
-                /* 1) Cache current status locally. */
-                val localStatus = this.status
+                /* Obtain lock on current state. */
+                this.stateLock.read {
+                    /* 2) Invoke all relevant [Updatable]s. */
+                    this.invokeUpdatables()
 
-                /* 2) Invoke all relevant [Updatable]s. */
-                this.invokeUpdatables(localStatus)
+                    /* 3) Process internal state updates (if necessary). */
+                    this.internalStateUpdate()
+                }
 
-                /* 3) Process internal state updates (if necessary). */
-                this.internalStateUpdate(localStatus)
-
-                /* 4) Yield to other threads. */
+                /* 3) Yield to other threads. */
                 Thread.sleep(10)
             } catch (e: Throwable) {
                 LOGGER.error("Uncaught exception in run loop for competition run ${this.runId}. Loop will continue to work but this error should be handled!", e)
@@ -381,7 +379,9 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         }
 
         /** Invoke [Updatables] one last time. */
-        this.invokeUpdatables(RunManagerStatus.TERMINATED)
+        this.stateLock.read {
+            this.invokeUpdatables()
+        }
 
         LOGGER.info("SynchronousRunManager ${this.runId} reached end of run logic.")
     }
@@ -391,10 +391,10 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
      *
      * @param status The [RunManagerStatus] for which to trigger the [Updatable]s.
      */
-    private fun invokeUpdatables(status: RunManagerStatus) = this.updatableLock.read {
+    private fun invokeUpdatables() {
         this.updatables.forEach {
-            if (it.shouldBeUpdated(status)) {
-                it.update(status)
+            if (it.shouldBeUpdated(this.status)) {
+                it.update(this.status)
             }
         }
     }
@@ -402,12 +402,10 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     /**
      * This is an internal method that facilitates internal state updates to this [SynchronousRunManager],
      * i.e., status updates that are not triggered by an outside interaction.
-     *
-     * @param status The [RunManagerStatus] for which to trigger the state update.
      */
-    private fun internalStateUpdate(status: RunManagerStatus) {
+    private fun internalStateUpdate() {
         /** Case 1: Facilitates internal transition from RunManagerStatus.PREPARING_TASK to RunManagerStatus.RUNNING_TASK. */
-        if (status == RunManagerStatus.PREPARING_TASK && this.readyLatch.allReady()) {
+        if (this.status == RunManagerStatus.PREPARING_TASK && this.readyLatch.allReady()) {
             this.stateLock.write {
                 this.run.currentTask?.start()
                 this.status = RunManagerStatus.RUNNING_TASK
@@ -421,7 +419,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         }
 
         /** Case 2: Facilitates internal transition from RunManagerStatus.RUNNING_TASK to RunManagerStatus.TASK_ENDED due to timeout. */
-        if (status == RunManagerStatus.RUNNING_TASK) {
+        if (this.status == RunManagerStatus.RUNNING_TASK) {
             val timeLeft = this.timeLeft()
             if (timeLeft <= 0) {
                 this.stateLock.write {

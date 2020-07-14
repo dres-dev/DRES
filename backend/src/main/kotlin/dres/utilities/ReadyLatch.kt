@@ -73,9 +73,7 @@ class ReadyLatch<T> {
      * Resets this [ReadyLatch] and thus moves all registered objects to unready state.
      */
     fun reset() = this.lock.write {
-        this.map.keySet().forEach {
-            this.map.put(it, false)
-        }
+        this.map.updateValues { _, _ -> false }
     }
 
     /**

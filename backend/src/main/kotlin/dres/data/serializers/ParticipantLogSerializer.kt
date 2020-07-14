@@ -18,6 +18,9 @@ object QueryResultLogSerializer : Serializer<QueryResultLog> {
         out.packInt(value.usedCategories.size)
         value.usedCategories.forEach { out.writeUTF(it) }
 
+        out.packInt(value.values.size)
+        value.values.forEach { out.writeUTF(it) }
+
         out.packInt(value.usedTypes.size)
         value.usedTypes.forEach { out.writeUTF(it) }
 
@@ -41,6 +44,7 @@ object QueryResultLogSerializer : Serializer<QueryResultLog> {
             (0 until input.unpackInt()).map { input.readUTF() },
             (0 until input.unpackInt()).map { input.readUTF() },
             (0 until input.unpackInt()).map { input.readUTF() },
+            (0 until input.unpackInt()).map { input.readUTF() },
             input.readUTF(),
             (0 until input.unpackInt()).map { QueryResultSerializer.deserialize(input, available) },
             input.unpackLong()
@@ -51,14 +55,16 @@ object QueryResultSerializer : Serializer<QueryResult> {
 
     override fun serialize(out: DataOutput2, value: QueryResult) {
         out.writeUTF(value.video)
-        out.packInt(value.shot)
+        out.packInt(value.shot ?: -1)
+        out.packInt(value.frame ?: -1)
         out.writeDouble(value.score ?: Double.NaN)
         out.packInt(value.rank ?: -1)
     }
 
     override fun deserialize(input: DataInput2, available: Int): QueryResult = QueryResult(
             input.readUTF(),
-            input.unpackInt(),
+            input.unpackInt().let { if (it >= 0) it else null },
+            input.unpackInt().let { if (it >= 0) it else null },
             input.readDouble().let { if (it.isNaN()) null else it },
             input.unpackInt().let { if (it >= 0) it else null }
     )

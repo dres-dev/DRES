@@ -20,7 +20,7 @@ abstract class LogHandler : PostRestHandler<SuccessStatus>, AccessManagedRestHan
     private fun getRelevantManagers(userId: Long): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
     protected fun getActiveRun(userId: Long): RunManager {
-        val managers = getRelevantManagers(userId).filter { it.status == RunManagerStatus.RUNNING_TASK }
+        val managers = getRelevantManagers(userId).filter { it.status != RunManagerStatus.CREATED && it.status != RunManagerStatus.TERMINATED }
         if (managers.isEmpty()) {
             throw ErrorStatusException(404, "There is currently no eligible competition with an active task.")
         }

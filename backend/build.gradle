@@ -58,7 +58,7 @@ dependencies {
     compile group: 'io.grpc', name: 'grpc-all', version: '1.20.0'
 
 	////// JLine 3
-	compile group: 'org.jline', name: 'jline', version: '3.12.1'
+	compile group: 'org.jline', name: 'jline', version: '3.15.0'
 	
 	////// Javalin
 	compile group: 'io.javalin', name: 'javalin', version: '3.8.0'

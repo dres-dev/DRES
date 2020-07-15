@@ -8,7 +8,7 @@ import {
     VideoQueryDescription
 } from '../../../openapi';
 import {combineLatest, interval, Observable, of, timer, zip} from 'rxjs';
-import {catchError, filter, flatMap, map, share, switchMap, take, tap, withLatestFrom} from 'rxjs/operators';
+import {catchError, filter, flatMap, map, share, shareReplay, switchMap, take, tap, withLatestFrom} from 'rxjs/operators';
 import {IWsMessage} from '../model/ws/ws-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {WebSocketSubject} from 'rxjs/webSocket';
@@ -62,7 +62,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
                     return of(null);
                 }),
                 filter(q => q != null)
-            ))
+            )),
+            shareReplay({bufferSize: 1, refCount: true})
         );
 
         /* Observable for the time left and time elapsed (for running tasks only). */

@@ -24,3 +24,13 @@ In case no session cookie is passed as part of the request, an additional *sessi
 
 ## Interaction Logging
 Analogously to the VBS server, the logging of interaction sequences and complete result lists is supported. The specification of the messages can be found in [this working document](https://www.overleaf.com/read/rppygxshvhrn) as well as the OpenApi specifications. The interaction/querying logs can be submittet to http(s)://{server}/log/query and the result logs can be sent to http(s)://{server}/log/result, both via POST.
+
+## Known Issues
+
+### Backend
+
+_none_
+
+### Frontend
+
+**Safari is NOT supported**

@@ -1,7 +1,6 @@
 .flex {
   display: flex;
   flex-wrap: nowrap;
-  justify-content: space-around;
 }
 
 .tile {
@@ -34,7 +33,7 @@
 .tile p {
   padding-top: 8px;
   padding-bottom: 8px;
-  margin: 0px;
+  margin: 0;
 }
 
 .submissions {

@@ -17,7 +17,6 @@ import dres.run.validation.interfaces.JudgementValidator
 import dres.run.validation.interfaces.SubmissionValidator
 import dres.utilities.ReadyLatch
 import org.slf4j.LoggerFactory
-import java.lang.IllegalArgumentException
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -394,7 +393,11 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     private fun invokeUpdatables() {
         this.updatables.forEach {
             if (it.shouldBeUpdated(this.status)) {
-                it.update(this.status)
+                try{
+                    it.update(this.status)
+                } catch (e: Throwable) {
+                    LOGGER.error("Uncaught exception while updating ${it.javaClass.simpleName} for competition run ${this.runId}. Loop will continue to work but this error should be handled!", e)
+                }
             }
         }
     }

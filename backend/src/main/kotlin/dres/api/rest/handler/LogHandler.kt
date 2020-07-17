@@ -57,10 +57,11 @@ class QueryLogHandler : LogHandler() {
         val queryEventLog = try {
             ctx.body<QueryEventLog>()
         } catch (e: BadRequestResponse){
-            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error.")
+            throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}")
         }.copy(serverTimeStamp = System.currentTimeMillis())
 
-        run.currentTaskRun?.addQueryEventtLog(userId, ctx.sessionId(), queryEventLog)
+        //TODO process logs
+
 
         return SuccessStatus("Log received")
     }
@@ -89,10 +90,10 @@ class ResultLogHandler : LogHandler() {
         val queryResultLog = try {
             ctx.body<QueryResultLog>()
         } catch (e: BadRequestResponse){
-            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error.")
+            throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}")
         }.copy(serverTimeStamp = System.currentTimeMillis())
 
-        run.currentTaskRun?.addQueryResultLog(userId, ctx.sessionId(), queryResultLog)
+        //TODO process logs
 
         return SuccessStatus("Log received")
     }

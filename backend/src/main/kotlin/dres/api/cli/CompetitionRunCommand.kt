@@ -21,7 +21,7 @@ import java.nio.file.StandardOpenOption
 class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktCommand(name = "run") {
 
     init {
-        subcommands(OngoingCompetitionRunsCommand(), ListCompetitionRunsCommand(), DeleteRunCommand(), ExportRunCommand(), CompetitionRunsHistoryCommand(), ResetSubmissionStatusCommand(), ExportLogsCommand())
+        subcommands(OngoingCompetitionRunsCommand(), ListCompetitionRunsCommand(), DeleteRunCommand(), ExportRunCommand(), CompetitionRunsHistoryCommand(), ResetSubmissionStatusCommand())
     }
 
     /**
@@ -98,34 +98,34 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
         }
     }
 
-    /**
-     * Exports a specific competition run as JSON.
-     */
-    inner class ExportLogsCommand: CliktCommand(name = "exportLogs", help = "Exports just the interaction logs of the competition run as JSON.") {
-        private val id: Long by option("-r", "--run").long().required()
-        private val path: String by option("-o", "--output").required()
-        override fun run() {
-            val run = this@CompetitionRunCommand.runs[this.id]
-            if (run == null) {
-                println("Run does not seem to exist.")
-                return
-            }
-
-            val path = Paths.get(this.path)
-            val mapper = ObjectMapper()
-            mapper.registerModule(KotlinModule())
-
-            val resultLogs = run.runs.flatMap { it.data.sessionQueryResultLogs.values }.flatten()
-            val interactionLogs = run.runs.flatMap { it.data.sessionQueryEventLogs.values }.flatten()
-
-            Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
-                it.appendln(mapper.writeValueAsString(resultLogs))
-                it.newLine()
-                it.appendln(mapper.writeValueAsString(interactionLogs))
-            }
-            println("Successfully wrote run ${run.id} to $path.")
-        }
-    }
+//    /**
+//     * Exports a specific competition run as JSON.
+//     */
+//    inner class ExportLogsCommand: CliktCommand(name = "exportLogs", help = "Exports just the interaction logs of the competition run as JSON.") {
+//        private val id: Long by option("-r", "--run").long().required()
+//        private val path: String by option("-o", "--output").required()
+//        override fun run() {
+//            val run = this@CompetitionRunCommand.runs[this.id]
+//            if (run == null) {
+//                println("Run does not seem to exist.")
+//                return
+//            }
+//
+//            val path = Paths.get(this.path)
+//            val mapper = ObjectMapper()
+//            mapper.registerModule(KotlinModule())
+//
+//            val resultLogs = run.runs.flatMap { it.data.sessionQueryResultLogs.values }.flatten()
+//            val interactionLogs = run.runs.flatMap { it.data.sessionQueryEventLogs.values }.flatten()
+//
+//            Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
+//                it.appendln(mapper.writeValueAsString(resultLogs))
+//                it.newLine()
+//                it.appendln(mapper.writeValueAsString(interactionLogs))
+//            }
+//            println("Successfully wrote run ${run.id} to $path.")
+//        }
+//    }
 
 
     inner class CompetitionRunsHistoryCommand: CliktCommand(name = "history", help = "Lists past Competition Runs") {

@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import dres.data.model.Entity
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.TaskDescription
-import dres.data.model.log.QueryEventLog
-import dres.data.model.log.QueryResultLog
 import dres.data.model.run.CompetitionRun.TaskRun
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
@@ -200,47 +198,17 @@ class TaskRunData(val task: TaskDescription, val taskId: Int) {
     /** List of [Submission]s* registered for this [TaskRun]. */
     val submissions: List<Submission> = mutableListOf()
 
-    internal val userSessions = mutableMapOf<Long, String>()
-    internal val sessionQueryResultLogs = mutableMapOf<String, MutableList<QueryResultLog>>()
-    internal val sessionQueryEventLogs = mutableMapOf<String, MutableList<QueryEventLog>>()
 
     constructor(task: TaskDescription, taskId: Int,
-                submissions: List<Submission> = emptyList(),
-                userSessions: Map<Long, String> = emptyMap(),
-                sessionQueryResultLogs: Map<String, MutableList<QueryResultLog>> = emptyMap(),
-                sessionQueryEventLogs: Map<String, MutableList<QueryEventLog>> = emptyMap()
-
+                submissions: List<Submission> = emptyList()
     ): this(task, taskId) {
         (this.submissions as MutableList).addAll(submissions)
-        this.userSessions.putAll(userSessions)
-        this.sessionQueryResultLogs.putAll(sessionQueryResultLogs)
-        this.sessionQueryEventLogs.putAll(sessionQueryEventLogs)
-
     }
 
-    fun addQueryResultLog(userId: Long, sessionId: String, resultLog: QueryResultLog) {
-        userSessions[userId] = sessionId
-        if (!sessionQueryResultLogs.containsKey(sessionId)){
-            sessionQueryResultLogs[sessionId] = mutableListOf(resultLog)
-        } else {
-            sessionQueryResultLogs[sessionId]!!.add(resultLog)
-        }
-    }
 
-    fun addQueryEventtLog(userId: Long, sessionId: String, eventLog: QueryEventLog) {
-        userSessions[userId] = sessionId
-        if (!sessionQueryEventLogs.containsKey(sessionId)){
-            sessionQueryEventLogs[sessionId] = mutableListOf(eventLog)
-        } else {
-            sessionQueryEventLogs[sessionId]!!.add(eventLog)
-        }
-    }
 
     internal fun merge(data: TaskRunData) {
         (this.submissions as MutableList).addAll(data.submissions)
-        this.userSessions.putAll(data.userSessions)
-        this.sessionQueryResultLogs.putAll(data.sessionQueryResultLogs)
-        this.sessionQueryEventLogs.putAll(data.sessionQueryEventLogs)
     }
 
 }

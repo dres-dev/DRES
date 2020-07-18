@@ -1,5 +1,6 @@
 package dres.run
 
+import dres.api.rest.RestApiRole
 import dres.api.rest.types.run.websocket.ClientMessage
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.TaskDescription
@@ -10,7 +11,7 @@ import dres.run.score.interfaces.TaskRunScorer
 import dres.run.score.scoreboard.Scoreboard
 import dres.run.updatables.ScoreboardsUpdatable
 import dres.run.validation.interfaces.JudgementValidator
-import java.util.HashMap
+import java.util.*
 
 /**
  * A managing class for [CompetitionDescription] executions or 'runs'.
@@ -56,6 +57,9 @@ interface RunManager : Runnable {
 
     /** [TaskRunData] for a specific task id */
     fun taskRunData(taskId: Int): TaskRunData?
+
+    /** determines if users with the role [RestApiRole.PARTICIPANT] have access to the task viewer */
+    val participantCanView: Boolean
 
     /**
      * Starts this [RunManager] moving [RunManager.status] from [RunManagerStatus.CREATED] to

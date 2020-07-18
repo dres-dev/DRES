@@ -13,13 +13,18 @@ import java.nio.ByteBuffer
  * @author Ralph Gasser
  * @version 1.0
  */
-class WebSocketConnection(val context: WsContext) {
-    /** ID of the HTTP session that generated this [WebSocketConnection]. */
+inline class WebSocketConnection(val context: WsContext) {
+    /** ID of the WebSocket session. */
     val sessionId
+        get() = context.sessionId
+
+    /** ID of the HTTP session that generated this [WebSocketConnection]. */
+    val httpSessionId
         get() = (this.context.session.upgradeRequest.session as Session).id
 
     /** Name of the user that generated this [WebSocketConnection]. */
-    val userName = UserManager.get(AccessManager.getUserIdForSession(this.sessionId) ?: -1L)?.username?.name ?: "UNKNOWN"
+    val userName
+        get() = UserManager.get(AccessManager.getUserIdForSession(this.sessionId) ?: -1L)?.username?.name ?: "UNKNOWN"
 
     /** IP address of the client. */
     val host

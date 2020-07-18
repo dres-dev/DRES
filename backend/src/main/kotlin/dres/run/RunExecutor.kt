@@ -22,6 +22,7 @@ import java.util.concurrent.Future
 import java.util.concurrent.locks.StampedLock
 import java.util.function.Consumer
 import kotlin.collections.HashMap
+import kotlin.collections.HashSet
 
 /**
  * The execution environment for [RunManager]s
@@ -43,10 +44,10 @@ object RunExecutor : Consumer<WsHandler> {
     private val judgementValidators = LinkedList<JudgementValidator>()
 
     /** List of [WsContext] that are currently connected. */
-    private val connectedClients = HashMap<String, WebSocketConnection>()
+    private val connectedClients = HashSet<WebSocketConnection>()
 
     /** List of session IDs that are currently observing a competition. */
-    private val observingClients = HashMap<Long,MutableSet<String>>()
+    private val observingClients = HashMap<Long,MutableSet<WebSocketConnection>>()
 
     /** Lock for accessing and changing all data structures related to WebSocket clients. */
     private val clientLock = StampedLock()
@@ -120,16 +121,17 @@ object RunExecutor : Consumer<WsHandler> {
         t.onConnect {
             /* Add WSContext to set of connected clients. */
             this@RunExecutor.clientLock.write {
-                this.connectedClients[it.sessionId] = WebSocketConnection(it)
+                this.connectedClients.add(WebSocketConnection(it))
             }
         }
         t.onClose {
             this@RunExecutor.clientLock.write {
-                this.connectedClients.remove(it.sessionId)
+                val connection = WebSocketConnection(it)
+                this.connectedClients.remove(connection)
                 this.runManagerLock.read {
                     for (m in runManagers) {
-                        if (this.observingClients[m.key]?.contains(it.sessionId) == true) {
-                            this.observingClients[m.key]?.remove(it.sessionId)
+                        if (this.observingClients[m.key]?.contains(connection) == true) {
+                            this.observingClients[m.key]?.remove(connection)
                             m.value.wsMessageReceived(it.sessionId, ClientMessage(m.key, ClientMessageType.UNREGISTER)) /* Send implicit unregister message associated with a disconnect. */
                         }
                     }
@@ -148,8 +150,8 @@ object RunExecutor : Consumer<WsHandler> {
                 if (this.runManagers.containsKey(message.runId)) {
                     when (message.type) {
                         ClientMessageType.ACK -> {}
-                        ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.add(it.sessionId) }
-                        ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.remove(it.sessionId) }
+                        ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.add(WebSocketConnection(it)) }
+                        ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.remove(WebSocketConnection(it)) }
                         ClientMessageType.PING -> it.send(ServerMessage(message.runId, ServerMessageType.PING))
                     }
                     this.runManagers[message.runId]!!.wsMessageReceived(it.sessionId, message) /* Forward message to RunManager. */
@@ -202,7 +204,7 @@ object RunExecutor : Consumer<WsHandler> {
      * @param message The [ServerMessage] that should be broadcast.
      */
     fun broadcastWsMessage(message: ServerMessage) = this.clientLock.read {
-        this.connectedClients.values.forEach {
+        this.connectedClients.forEach {
             it.send(message)
         }
     }
@@ -215,8 +217,8 @@ object RunExecutor : Consumer<WsHandler> {
      */
     fun broadcastWsMessage(runId: Long, message: ServerMessage) = this.clientLock.read {
         this.runManagerLock.read {
-            this.connectedClients.values.filter {
-                this.observingClients[runId]?.contains(it.sessionId) ?: false
+            this.connectedClients.filter {
+                this.observingClients[runId]?.contains(it) ?: false
             }.forEach {
                 it.send(message)
             }

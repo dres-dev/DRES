@@ -1,17 +1,20 @@
 package dres.run
 
 import dres.api.rest.AccessManager
+import dres.api.rest.types.WebSocketConnection
 import dres.api.rest.types.run.websocket.ClientMessage
 import dres.api.rest.types.run.websocket.ClientMessageType
 import dres.api.rest.types.run.websocket.ServerMessage
 import dres.api.rest.types.run.websocket.ServerMessageType
 import dres.data.dbo.DAO
 import dres.data.model.run.CompetitionRun
+import dres.mgmt.admin.UserManager
 import dres.run.validation.interfaces.JudgementValidator
 import dres.utilities.extensions.read
 import dres.utilities.extensions.write
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsHandler
+import org.eclipse.jetty.server.session.Session
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.Executors
@@ -40,7 +43,7 @@ object RunExecutor : Consumer<WsHandler> {
     private val judgementValidators = LinkedList<JudgementValidator>()
 
     /** List of [WsContext] that are currently connected. */
-    private val connectedClients = HashMap<String, WsContext>()
+    private val connectedClients = HashMap<String, WebSocketConnection>()
 
     /** List of session IDs that are currently observing a competition. */
     private val observingClients = HashMap<Long,MutableSet<String>>()
@@ -117,7 +120,7 @@ object RunExecutor : Consumer<WsHandler> {
         t.onConnect {
             /* Add WSContext to set of connected clients. */
             this@RunExecutor.clientLock.write {
-                this.connectedClients[it.sessionId] = it
+                this.connectedClients[it.sessionId] = WebSocketConnection(it)
             }
         }
         t.onClose {
@@ -134,12 +137,13 @@ object RunExecutor : Consumer<WsHandler> {
             }
         }
         t.onMessage {
-            val message = try{
+            val message = try {
                 it.message(ClientMessage::class.java)
             } catch (e: Exception) {
                 logger.warn("Cannot parse WebSocket message: ${e.localizedMessage}")
                 return@onMessage
             }
+            logger.debug("Received WebSocket message: $message from ${it.session.policy}")
             this.runManagerLock.read {
                 if (this.runManagers.containsKey(message.runId)) {
                     when (message.type) {

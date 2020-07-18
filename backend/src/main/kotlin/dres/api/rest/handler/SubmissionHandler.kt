@@ -20,6 +20,8 @@ import dres.run.RunManager
 import dres.run.RunManagerStatus
 import dres.run.audit.AuditLogger
 import dres.run.audit.LogEventSource
+import dres.run.eventstream.EventStreamProcessor
+import dres.run.eventstream.SubmissionEvent
 import dres.utilities.TimeUtil
 import dres.utilities.extensions.sessionId
 import io.javalin.http.Context
@@ -171,6 +173,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         }
 
         AuditLogger.submission(run.uid, run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId())
+        EventStreamProcessor.event(SubmissionEvent(ctx.sessionId(), submission))
 
         return when (result) {
             SubmissionStatus.CORRECT -> SuccessStatus("Submission correct!")

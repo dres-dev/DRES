@@ -7,6 +7,7 @@ import dres.data.model.Config
 import dres.mgmt.admin.UserManager
 import dres.run.RunExecutor
 import dres.run.audit.AuditLogger
+import dres.run.eventstream.EventStreamProcessor
 import java.io.File
 import java.nio.file.Paths
 
@@ -38,11 +39,15 @@ object DRES {
         /* Initialize audit logger */
         AuditLogger.init(dataAccessLayer.audit)
 
+        /* Initialize Event Stream Processor */
+        EventStreamProcessor.init()
+
         /* Initialize Rest API. */
         RestApi.init(config, dataAccessLayer)
 
         Cli.loop(dataAccessLayer, config) //blocks until quit command is given
         RestApi.stop()
         RunExecutor.stop()
+        EventStreamProcessor.stop()
     }
 }

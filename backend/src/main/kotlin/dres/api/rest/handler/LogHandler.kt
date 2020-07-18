@@ -9,6 +9,10 @@ import dres.data.model.log.QueryEventLog
 import dres.data.model.log.QueryResultLog
 import dres.run.RunManager
 import dres.run.RunManagerStatus
+import dres.run.eventstream.EventStreamProcessor
+import dres.run.eventstream.InvalidRequestEvent
+import dres.run.eventstream.QueryEventLogEvent
+import dres.run.eventstream.QueryResultLogEvent
 import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
@@ -57,11 +61,11 @@ class QueryLogHandler : LogHandler() {
         val queryEventLog = try {
             ctx.body<QueryEventLog>()
         } catch (e: BadRequestResponse){
+            EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionId(), run.uid, ctx.body()))
             throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}")
         }.copy(serverTimeStamp = System.currentTimeMillis())
 
-        //TODO process logs
-
+        EventStreamProcessor.event(QueryEventLogEvent(ctx.sessionId(), run.uid, queryEventLog))
 
         return SuccessStatus("Log received")
     }
@@ -90,10 +94,11 @@ class ResultLogHandler : LogHandler() {
         val queryResultLog = try {
             ctx.body<QueryResultLog>()
         } catch (e: BadRequestResponse){
+            EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionId(), run.uid, ctx.body()))
             throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}")
         }.copy(serverTimeStamp = System.currentTimeMillis())
 
-        //TODO process logs
+        EventStreamProcessor.event(QueryResultLogEvent(ctx.sessionId(), run.uid, queryResultLog))
 
         return SuccessStatus("Log received")
     }

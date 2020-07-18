@@ -1,5 +1,6 @@
 package dres.run
 
+import dres.api.rest.types.WebSocketConnection
 import dres.api.rest.types.run.websocket.ClientMessage
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.TaskDescription
@@ -157,11 +158,11 @@ interface RunManager : Runnable {
     fun timeLeft(): Long
 
     /**
-     * Returns a list of viewer IDs for this [RunManager] alongside with their respective state.
+     * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.
      *
-     * @return List of viewer IDs for this [RunManager].
+     * @return List of viewer [WebSocketConnection]s for this [RunManager].
      */
-    fun viewers(): HashMap<String,Boolean>
+    fun viewers(): HashMap<WebSocketConnection,Boolean>
 
     /**
      * Override the ready state for a given viewer ID.
@@ -178,11 +179,11 @@ interface RunManager : Runnable {
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
-     * @param sessionId The session ID associated with the [ClientMessage]
+     * @param connection The [WebSocketConnection] through which the message was received.
      * @param message The [ClientMessage] that was received.
      * @return True if [ClientMessage] was processed, false otherwise
      */
-    fun wsMessageReceived(sessionId: String, message: ClientMessage): Boolean
+    fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean
 
     /**
      * Invoked by an external caller to post a new [Submission] for the [Task] that is currently being

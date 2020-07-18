@@ -1,5 +1,6 @@
 package dres.run
 
+import dres.api.rest.types.WebSocketConnection
 import dres.api.rest.types.run.websocket.ClientMessage
 import dres.api.rest.types.run.websocket.ClientMessageType
 import dres.api.rest.types.run.websocket.ServerMessage
@@ -95,8 +96,8 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
             this.run.runs.flatMap { it.data.submissions }
         }
 
-    /** Internal data structure that tracks all WebSocket connections and their ready state (for [RunManagerStatus.PREPARING_TASK]) */
-    private val readyLatch = ReadyLatch<String>()
+    /** Internal data structure that tracks all [WebSocketConnection]s and their ready state (for [RunManagerStatus.PREPARING_TASK]) */
+    private val readyLatch = ReadyLatch<WebSocketConnection>()
 
     /** The internal [ScoreboardsUpdatable] instance for this [SynchronousRunManager]. */
     override val scoreboards = ScoreboardsUpdatable(this.competitionDescription.generateDefaultScoreboards(), this.run)
@@ -284,19 +285,23 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
      *
      * @return Map of session ID to ready state.
      */
-    override fun viewers(): HashMap<String, Boolean> = this.readyLatch.state()
+    override fun viewers(): HashMap<WebSocketConnection, Boolean> = this.readyLatch.state()
 
     /**
-     * Can be used to manually override the READY state of a viewer. Can be used
-     * in case a viewer hangs in the PREPARING_TASK phase.
+     * Can be used to manually override the READY state of a viewer. Can be used in case a viewer hangs in the PREPARING_TASK phase.
      *
      * @param viewerId The ID of the viewer's WebSocket session.
      */
     override fun overrideReadyState(viewerId: String): Boolean = this.stateLock.read {
         check(this.status == RunManagerStatus.PREPARING_TASK) { }
         return try {
-            this.readyLatch.setReady(viewerId)
-            true
+            val viewer = this.readyLatch.state().keys.find { it.sessionId == viewerId }
+            if (viewer != null) {
+                this.readyLatch.setReady(viewer)
+                true
+            } else {
+                false
+            }
         } catch (e: IllegalArgumentException) {
             false
         }
@@ -305,18 +310,18 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     /**
      * Processes WebSocket [ClientMessage] received by the [RunExecutor].
      *
-     * @param sessionId The ID of the session the [ClientMessage] was received from.
+     * @param connection The [WebSocketConnection] through which the message was received.
      * @param message The [ClientMessage] received.
      */
-    override fun wsMessageReceived(sessionId: String, message: ClientMessage): Boolean = this.stateLock.read {
+    override fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean = this.stateLock.read {
         when (message.type) {
             ClientMessageType.ACK -> {
                 if (this.status == RunManagerStatus.PREPARING_TASK) {
-                    this.readyLatch.setReady(sessionId)
+                    this.readyLatch.setReady(connection)
                 }
             }
-            ClientMessageType.REGISTER -> this.readyLatch.register(sessionId)
-            ClientMessageType.UNREGISTER -> this.readyLatch.unregister(sessionId)
+            ClientMessageType.REGISTER -> this.readyLatch.register(connection)
+            ClientMessageType.UNREGISTER -> this.readyLatch.unregister(connection)
             ClientMessageType.PING -> {} //handled in [RunExecutor]
         }
         return true

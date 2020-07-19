@@ -125,6 +125,7 @@ object RunExecutor : Consumer<WsHandler> {
             }
         }
         t.onClose {
+            val session = WebSocketConnection(it)
             this@RunExecutor.clientLock.write {
                 val connection = WebSocketConnection(it)
                 this.connectedClients.remove(connection)
@@ -132,7 +133,7 @@ object RunExecutor : Consumer<WsHandler> {
                     for (m in runManagers) {
                         if (this.observingClients[m.key]?.contains(connection) == true) {
                             this.observingClients[m.key]?.remove(connection)
-                            m.value.wsMessageReceived(it.sessionId, ClientMessage(m.key, ClientMessageType.UNREGISTER)) /* Send implicit unregister message associated with a disconnect. */
+                            m.value.wsMessageReceived(session, ClientMessage(m.key, ClientMessageType.UNREGISTER)) /* Send implicit unregister message associated with a disconnect. */
                         }
                     }
                 }
@@ -145,6 +146,7 @@ object RunExecutor : Consumer<WsHandler> {
                 logger.warn("Cannot parse WebSocket message: ${e.localizedMessage}")
                 return@onMessage
             }
+            val session = WebSocketConnection(it)
             logger.debug("Received WebSocket message: $message from ${it.session.policy}")
             this.runManagerLock.read {
                 if (this.runManagers.containsKey(message.runId)) {
@@ -154,7 +156,7 @@ object RunExecutor : Consumer<WsHandler> {
                         ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.remove(WebSocketConnection(it)) }
                         ClientMessageType.PING -> it.send(ServerMessage(message.runId, ServerMessageType.PING))
                     }
-                    this.runManagers[message.runId]!!.wsMessageReceived(it.sessionId, message) /* Forward message to RunManager. */
+                    this.runManagers[message.runId]!!.wsMessageReceived(session, message) /* Forward message to RunManager. */
                 }
             }
         }

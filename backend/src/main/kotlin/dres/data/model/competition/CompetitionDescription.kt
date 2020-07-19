@@ -3,6 +3,7 @@ package dres.data.model.competition
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import dres.data.model.Entity
+import dres.data.model.competition.interfaces.TaskDescription
 import dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dres.run.score.scoreboard.MeanAggregateScoreBoard
 import dres.run.score.scoreboard.Scoreboard
@@ -14,7 +15,7 @@ data class CompetitionDescription @JsonCreator constructor(
         @JsonProperty("name") val name: String,
         @JsonProperty("description") val description: String?,
         @JsonProperty("groups") val groups: MutableList<TaskGroup>,
-        @JsonProperty("tasks") val tasks: MutableList<TaskDescriptionBase>,
+        @JsonProperty("tasks") val tasks: MutableList<TaskDescription>,
         @JsonProperty("teams") val teams: MutableList<Team>,
         @JsonProperty("uid") val uid: String = UUID.randomUUID().toString()
 ) : Entity {

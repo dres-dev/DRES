@@ -6,7 +6,7 @@ import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
 import dres.data.model.basics.media.MediaCollection
-import dres.data.model.competition.TaskDescriptionBase
+import dres.data.model.competition.taskdescription.AvsTaskDescription
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor
 import dres.run.audit.AuditLogger
@@ -53,8 +53,8 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
 
         val collection = this.collections[next.second.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.second.item.collection}")
 
-        val taskDescription = if (next.second.taskRun?.task is TaskDescriptionBase.AvsTaskDescription) {
-            (next.second.taskRun?.task as TaskDescriptionBase.AvsTaskDescription).description
+        val taskDescription = if (next.second.taskRun?.task is AvsTaskDescription) {
+            (next.second.taskRun?.task as AvsTaskDescription).description
         } else {
             next.second.taskRun?.task?.name ?: "no task description available"
         }

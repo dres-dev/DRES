@@ -1,8 +1,13 @@
 package dres.data.model.competition.interfaces
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import dres.data.model.Config
 import dres.data.model.competition.QueryDescription
 import dres.data.model.competition.TaskGroup
+import dres.data.model.competition.taskdescription.AvsTaskDescription
+import dres.data.model.competition.taskdescription.KisTextualTaskDescription
+import dres.data.model.competition.taskdescription.KisVisualTaskDescription
 import dres.run.filter.AllSubmissionFilter
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
@@ -16,6 +21,12 @@ import java.io.IOException
  * @author Ralph Gasser
  * @version 1.1
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "taskType")
+@JsonSubTypes(
+        JsonSubTypes.Type(value = KisVisualTaskDescription::class, name = "KIS_VISUAL"),
+        JsonSubTypes.Type(value = KisTextualTaskDescription::class, name = "KIS_TEXTUAL"),
+        JsonSubTypes.Type(value = AvsTaskDescription::class, name = "AVS")
+)
 interface TaskDescription {
 
     /** Internal, unique ID of this [TaskDescription]. */
@@ -59,4 +70,8 @@ interface TaskDescription {
      * @throws IOException
      */
     fun toQueryDescription(config: Config): QueryDescription
+
+    /** Helper property for de/serialization. */
+    val taskType: String
+        get() = this.taskGroup.type.name
 }

@@ -1,24 +1,27 @@
 package dres.data.serializers
 
 import dres.data.model.basics.media.MediaItem
-import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.competition.TaskType
+import dres.data.model.competition.interfaces.TaskDescription
+import dres.data.model.competition.taskdescription.AvsTaskDescription
+import dres.data.model.competition.taskdescription.KisTextualTaskDescription
+import dres.data.model.competition.taskdescription.KisVisualTaskDescription
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer
 
-object TaskDescriptionSerializer: Serializer<TaskDescriptionBase> {
-    override fun serialize(out: DataOutput2, value: TaskDescriptionBase) {
+object TaskDescriptionSerializer: Serializer<TaskDescription> {
+    override fun serialize(out: DataOutput2, value: TaskDescription) {
         out.writeUTF(value.uid)
         out.writeUTF(value.name)
         TaskGroupSerializer.serialize(out, value.taskGroup)
         out.packLong(value.duration)
         when (value) {
-            is TaskDescriptionBase.KisVisualTaskDescription -> {
+            is KisVisualTaskDescription -> {
                 MediaItemSerializer.serialize(out, value.item)
                 TemporalRangeSerializer.serialize(out, value.temporalRange)
             }
-            is TaskDescriptionBase.KisTextualTaskDescription -> {
+            is KisTextualTaskDescription -> {
                 MediaItemSerializer.serialize(out, value.item)
                 TemporalRangeSerializer.serialize(out, value.temporalRange)
                 out.writeInt(value.descriptions.size)
@@ -27,22 +30,22 @@ object TaskDescriptionSerializer: Serializer<TaskDescriptionBase> {
                 }
                 out.writeInt(value.delay)
             }
-            is TaskDescriptionBase.AvsTaskDescription -> {
+            is AvsTaskDescription -> {
                 out.writeUTF(value.description)
                 out.packLong(value.defaultCollection)
             }
         }
     }
 
-    override fun deserialize(input: DataInput2, available: Int): TaskDescriptionBase {
+    override fun deserialize(input: DataInput2, available: Int): TaskDescription {
         val uid = input.readUTF()
         val name = input.readUTF()
         val taskGroup = TaskGroupSerializer.deserialize(input, available)
         val duration = input.unpackLong()
         return when (taskGroup.type) {
-            TaskType.KIS_VISUAL-> TaskDescriptionBase.KisVisualTaskDescription(uid, name, taskGroup, duration, MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
-            TaskType.KIS_TEXTUAL -> TaskDescriptionBase.KisTextualTaskDescription(uid, name, taskGroup, duration, MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available), (0 until input.readInt()).map { input.readUTF() }, input.readInt())
-            TaskType.AVS -> TaskDescriptionBase.AvsTaskDescription(uid, name, taskGroup, duration, input.readUTF(), input.unpackLong())
+            TaskType.KIS_VISUAL-> KisVisualTaskDescription(uid, name, taskGroup, duration, MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
+            TaskType.KIS_TEXTUAL -> KisTextualTaskDescription(uid, name, taskGroup, duration, MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available), (0 until input.readInt()).map { input.readUTF() }, input.readInt())
+            TaskType.AVS -> AvsTaskDescription(uid, name, taskGroup, duration, input.readUTF(), input.unpackLong())
         }
     }
 }

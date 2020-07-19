@@ -438,7 +438,7 @@ class ListViewersRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), Get
     override fun doGet(ctx: Context): Array<ViewerInfo> {
         val runId = runId(ctx)
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
-        return run.viewers().map{ ViewerInfo(it.key, it.value) }.toTypedArray()
+        return run.viewers().map{ ViewerInfo(it.key.sessionId, it.key.userName, it.key.host, it.value) }.toTypedArray()
     }
 }
 

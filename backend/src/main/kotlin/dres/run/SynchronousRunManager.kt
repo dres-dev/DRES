@@ -84,6 +84,9 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
 
     override fun taskRunData(taskId: Int): TaskRunData? = this.run.runs.find { it.taskId == taskId }?.data
 
+    override val participantCanView: Boolean
+        get() = true //TODO implement way to configure this
+
     /** The list of [Submission]s for the current [Task]. */
     override val submissions: List<Submission>
         get() = this.stateLock.read {

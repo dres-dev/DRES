@@ -14,6 +14,7 @@ import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.swagger.v3.oas.models.info.Info
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory
+import org.eclipse.jetty.http.HttpCookie
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.session.DefaultSessionCache
@@ -198,6 +199,8 @@ object RestApi {
                 this.storeDir = File(baseDir, "session-store").apply { mkdir() }
             }
         }
+        sameSite = HttpCookie.SameSite.NONE
+
     }
 
     private fun setupHttpServer(config: Config): Server {

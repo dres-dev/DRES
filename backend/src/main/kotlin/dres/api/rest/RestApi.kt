@@ -147,7 +147,7 @@ object RestApi {
             }
 
             path("submit") {
-                val submissionHandler = SubmissionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, dataAccessLayer.mediaSegmentItemIdIndex)
+                val submissionHandler = SubmissionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, dataAccessLayer.mediaSegmentItemIdIndex, config)
                 get(submissionHandler::get, submissionHandler.permittedRoles)
             }
 

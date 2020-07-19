@@ -14,6 +14,7 @@ import dres.run.score.interfaces.TaskRunScorer
 import dres.run.validation.interfaces.SubmissionValidator
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.io.PrintStream
 
 /**
  * Basic description of a [Task].
@@ -41,6 +42,9 @@ interface TaskDescription {
     /** The duration of the [TaskDescription] in seconds. */
     val duration: Long
 
+    /** The id of the relevant media collection for this task, if not otherwise specified */
+    val defaultMediaCollectionId: Long
+
     /**
      * Generates a new [TaskRunScorer] for this [TaskDescription]. Depending
      * on the implementation, the returned instance is a new instance or being re-use.
@@ -66,6 +70,7 @@ interface TaskDescription {
     fun newFilter(): SubmissionFilter = AllSubmissionFilter
 
     /**
+     * Generates a [QueryDescription] object to be used by a viewer
      * @throws FileNotFoundException
      * @throws IOException
      */
@@ -74,4 +79,7 @@ interface TaskDescription {
     /** Helper property for de/serialization. */
     val taskType: String
         get() = this.taskGroup.type.name
+
+    /** Prints an overview of the task to a provided stream */
+    fun printOverview(out: PrintStream)
 }

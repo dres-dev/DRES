@@ -14,9 +14,6 @@ import dres.data.model.Config
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
-import dres.data.model.competition.taskdescription.AvsTaskDescription
-import dres.data.model.competition.taskdescription.KisTextualTaskDescription
-import dres.data.model.competition.taskdescription.KisVisualTaskDescription
 import dres.utilities.FFmpegUtil
 import java.io.File
 import java.nio.file.Files
@@ -88,24 +85,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
             println("Tasks:")
 
             competition.tasks.forEach {
-                when(it){
-                    is KisVisualTaskDescription -> {
-                        println("Visual Known Item Search Task '${it.name}' (${it.taskGroup.name}, ${it.taskGroup.type})")
-                        println("Target: ${it.item.name} ${it.temporalRange.start} to ${it.temporalRange.end}")
-                        println("Task Duration: ${it.duration}")
-                    }
-                    is KisTextualTaskDescription -> {
-                        println("Textual Known Item Search Task '${it.name}' (${it.taskGroup.name}, ${it.taskGroup.type})")
-                        println("Target: ${it.item.name} ${it.temporalRange.start} to ${it.temporalRange.end}")
-                        println("Task Duration: ${it.duration}")
-                        println("Query Text:")
-                        it.descriptions.forEach(::println)
-                    }
-                    is AvsTaskDescription -> {
-                        println("Ad-hoc Video Search Task '${it.name}' (${it.taskGroup.name}, ${it.taskGroup.type})")
-                        println("Task Duration: ${it.duration}")
-                    }
-                }
+                it.printOverview(System.out)
                 println()
             }
 

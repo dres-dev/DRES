@@ -20,6 +20,7 @@ import dres.run.score.scorer.KisTaskScorer
 import dres.run.validation.TemporalOverlapSubmissionValidator
 import java.io.File
 import java.io.FileInputStream
+import java.io.PrintStream
 import java.util.*
 
 /**
@@ -45,6 +46,15 @@ data class KisVisualTaskDescription @JsonCreator constructor(
             QueryDescription(name, QueryContent(video = listOf(QueryContentElement(Base64.getEncoder().encodeToString(fileData), "video/mp4"))))
         }
     }
+
+    override fun printOverview(out: PrintStream) {
+        out.println("Visual Known Item Search Task '${name}' (${taskGroup.name}, ${taskGroup.type})")
+        out.println("Target: ${item.name} ${temporalRange.start} to ${temporalRange.end}")
+        out.println("Task Duration: ${duration}")
+    }
+
+    override val defaultMediaCollectionId: Long
+        get() = item.collection
 
     override fun newScorer(): TaskRunScorer = KisTaskScorer()
     override fun newValidator() = TemporalOverlapSubmissionValidator(this)

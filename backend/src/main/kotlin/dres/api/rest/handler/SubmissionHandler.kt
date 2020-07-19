@@ -15,9 +15,6 @@ import dres.data.model.basics.media.MediaItemSegmentList
 import dres.data.model.basics.media.PlayableMediaItem
 import dres.data.model.competition.interfaces.DefinedMediaItemTaskDescription
 import dres.data.model.competition.interfaces.HiddenResultsTaskDescription
-import dres.data.model.competition.taskdescription.AvsTaskDescription
-import dres.data.model.competition.taskdescription.KisTextualTaskDescription
-import dres.data.model.competition.taskdescription.KisVisualTaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunManager
@@ -74,16 +71,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         val collectionParam = map[PARAMETER_NAME_COLLECTION]?.first()
         val collectionId = when {
             collectionParam != null -> this.collections.find { it.name == collectionParam }?.id
-            runManager.currentTask is KisVisualTaskDescription -> {
-                (runManager.currentTask as KisVisualTaskDescription).item.collection
-            }
-            runManager.currentTask is KisTextualTaskDescription -> {
-                (runManager.currentTask as KisTextualTaskDescription).item.collection
-            }
-            runManager.currentTask is AvsTaskDescription -> {
-                (runManager.currentTask as AvsTaskDescription).defaultCollection
-            }
-            else -> null
+            else -> runManager.currentTask?.defaultMediaCollectionId
         } ?: throw ErrorStatusException(404, "Media collection '$collectionParam' could not be found.")
 
         /* Find media item. */

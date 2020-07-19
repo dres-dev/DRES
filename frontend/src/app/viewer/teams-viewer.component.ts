@@ -3,6 +3,7 @@ import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo,
 import {combineLatest, Observable, of, Subscription} from 'rxjs';
 import {catchError, debounceTime, filter, map, pairwise, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
+import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
 
 @Component({
     selector: 'app-teams-viewer',
@@ -14,10 +15,6 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     @Input() info: Observable<RunInfo>;
     @Input() state: Observable<RunState>;
     @Input() taskEnded: Observable<TaskDescription>;
-
-
-    /** Observable that returns true if summary for current task should be displayed and false otherwise! */
-    displaySummary: Observable<boolean>;
 
     /** Observable that tracks all the submissions per team. */
     submissions: Observable<SubmissionInfo[][]>;
@@ -88,11 +85,9 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
             })
         ).subscribe(delta => {
             if (delta[0] > delta[1]) {
-                this.audio.nativeElement.src = 'assets/audio/correct.ogg';
-                this.audio.nativeElement.play().then(r => {});
+                AudioPlayerUtilities.playOnce('assets/audio/correct.ogg', this.audio.nativeElement);
             } else if (delta[0] < delta[1]) {
-                this.audio.nativeElement.src = 'assets/audio/wrong.ogg';
-                this.audio.nativeElement.play().then(r => {});
+                AudioPlayerUtilities.playOnce('assets/audio/wrong.ogg', this.audio.nativeElement);
             }
         });
 
@@ -104,11 +99,9 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
             })
         ).subscribe(success => {
             if (success) {
-                this.audio.nativeElement.src = 'assets/audio/applause.ogg';
-                this.audio.nativeElement.play().then(r => {});
+                AudioPlayerUtilities.playOnce('assets/audio/applause.ogg', this.audio.nativeElement);
             } else {
-                this.audio.nativeElement.src = 'assets/audio/sad_trombone.ogg';
-                this.audio.nativeElement.play().then(r => {});
+                AudioPlayerUtilities.playOnce('assets/audio/sad_trombone.ogg', this.audio.nativeElement);
             }
         });
     }

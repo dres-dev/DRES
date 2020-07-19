@@ -20,6 +20,7 @@ import { Observable }                                        from 'rxjs';
 import { CompetitionStart } from '../model/models';
 import { ErrorStatus } from '../model/models';
 import { SuccessStatus } from '../model/models';
+import { ViewerInfo } from '../model/models';
 
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
 import { Configuration }                                     from '../configuration';
@@ -88,6 +89,51 @@ export class CompetitionRunAdminService {
     }
 
     /**
+     * Lists all registered viewers for a competition run. This is a method for admins.
+     * @param runId Competition Run ID
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getApiRunAdminWithRunidViewers(runId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<ViewerInfo>>;
+    public getApiRunAdminWithRunidViewers(runId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<ViewerInfo>>>;
+    public getApiRunAdminWithRunidViewers(runId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<ViewerInfo>>>;
+    public getApiRunAdminWithRunidViewers(runId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (runId === null || runId === undefined) {
+            throw new Error('Required parameter runId was null or undefined when calling getApiRunAdminWithRunidViewers.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.get<Array<ViewerInfo>>(`${this.configuration.basePath}/api/run/admin/${encodeURIComponent(String(runId))}/viewers`,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Creates a new competition run from an existing competition
      * @param competitionStart 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -129,6 +175,56 @@ export class CompetitionRunAdminService {
 
         return this.httpClient.post<SuccessStatus>(`${this.configuration.basePath}/api/run/admin/create`,
             competitionStart,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Terminates a competition run. This is a method for admins.
+     * @param runId Competition Run ID
+     * @param duration Duration to add.
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public postApiRunAdminWithRunidAdjustWithDuration(runId: number, duration: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiRunAdminWithRunidAdjustWithDuration(runId: number, duration: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiRunAdminWithRunidAdjustWithDuration(runId: number, duration: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiRunAdminWithRunidAdjustWithDuration(runId: number, duration: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (runId === null || runId === undefined) {
+            throw new Error('Required parameter runId was null or undefined when calling postApiRunAdminWithRunidAdjustWithDuration.');
+        }
+        if (duration === null || duration === undefined) {
+            throw new Error('Required parameter duration was null or undefined when calling postApiRunAdminWithRunidAdjustWithDuration.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.post<SuccessStatus>(`${this.configuration.basePath}/api/run/admin/${encodeURIComponent(String(runId))}/adjust/${encodeURIComponent(String(duration))}`,
+            null,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
@@ -370,6 +466,56 @@ export class CompetitionRunAdminService {
     }
 
     /**
+     * Moves to the specified task. This is a method for admins.
+     * @param runId Competition run ID
+     * @param idx Index of the task to switch to.
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public postApiRunAdminWithRunidTaskSwitchWithIdx(runId: number, idx: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiRunAdminWithRunidTaskSwitchWithIdx(runId: number, idx: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiRunAdminWithRunidTaskSwitchWithIdx(runId: number, idx: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiRunAdminWithRunidTaskSwitchWithIdx(runId: number, idx: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (runId === null || runId === undefined) {
+            throw new Error('Required parameter runId was null or undefined when calling postApiRunAdminWithRunidTaskSwitchWithIdx.');
+        }
+        if (idx === null || idx === undefined) {
+            throw new Error('Required parameter idx was null or undefined when calling postApiRunAdminWithRunidTaskSwitchWithIdx.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.post<SuccessStatus>(`${this.configuration.basePath}/api/run/admin/${encodeURIComponent(String(runId))}/task/switch/${encodeURIComponent(String(idx))}`,
+            null,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Terminates a competition run. This is a method for admins.
      * @param runId Competition Run ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -404,6 +550,56 @@ export class CompetitionRunAdminService {
         }
 
         return this.httpClient.post<SuccessStatus>(`${this.configuration.basePath}/api/run/admin/${encodeURIComponent(String(runId))}/terminate`,
+            null,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Forces a viewer with the given viewer ID into the READY state. This is a method for admins.
+     * @param runId Competition Run ID
+     * @param viewerId Viewer ID
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public postApiRunAdminWithRunidViewersWithVieweridForce(runId: number, viewerId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiRunAdminWithRunidViewersWithVieweridForce(runId: number, viewerId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiRunAdminWithRunidViewersWithVieweridForce(runId: number, viewerId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiRunAdminWithRunidViewersWithVieweridForce(runId: number, viewerId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (runId === null || runId === undefined) {
+            throw new Error('Required parameter runId was null or undefined when calling postApiRunAdminWithRunidViewersWithVieweridForce.');
+        }
+        if (viewerId === null || viewerId === undefined) {
+            throw new Error('Required parameter viewerId was null or undefined when calling postApiRunAdminWithRunidViewersWithVieweridForce.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.post<SuccessStatus>(`${this.configuration.basePath}/api/run/admin/${encodeURIComponent(String(runId))}/viewers/${encodeURIComponent(String(viewerId))}/force`,
             null,
             {
                 responseType: <any>responseType,

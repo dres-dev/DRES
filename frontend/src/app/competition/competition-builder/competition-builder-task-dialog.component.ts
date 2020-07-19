@@ -1,4 +1,4 @@
-import {Component, Inject} from '@angular/core';
+import {Component, ElementRef, Inject, ViewChild} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {
     AvsTaskDescription,
@@ -15,7 +15,8 @@ import {
 } from '../../../../openapi';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Observable} from 'rxjs';
-import {filter, flatMap} from 'rxjs/operators';
+import {filter, flatMap, tap} from 'rxjs/operators';
+import {AppConfig} from '../../app.config';
 
 
 export interface CompetitionBuilderTaskDialogData {
@@ -33,13 +34,18 @@ export class CompetitionBuilderTaskDialogComponent {
     form: FormGroup;
     units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
     mediaCollectionSource: Observable<MediaCollection[]>;
+    mediaCollections: MediaCollection[];
     mediaItemSource: Observable<MediaItem[]>;
+    showPlayer = false;
+    videoUrl: Observable<string>;
+    @ViewChild('videoPlayer', {static: false}) video: ElementRef;
 
     constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskDialogComponent>,
                 public collectionService: CollectionService,
-                @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData) {
+                @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData,
+                public config: AppConfig) {
 
-        this.mediaCollectionSource = this.collectionService.getApiCollection();
+        this.mediaCollectionSource = this.collectionService.getApiCollection().pipe(tap(x => this.mediaCollections = x));
 
         switch (this.data.taskGroup.type) {
             case 'KIS_VISUAL':
@@ -152,7 +158,7 @@ export class CompetitionBuilderTaskDialogComponent {
         if (value) {
             return `${value.name} (${value.id})`;
         } else {
-           return '';
+            return '';
         }
     }
 
@@ -165,11 +171,83 @@ export class CompetitionBuilderTaskDialogComponent {
         }
     }
 
+    randomisedMediaItem() {
+        this.collectionService.getApiCollectionRandomWithCollectionid(
+            (this.form.get('mediaCollection') as FormControl).value as number)
+            .subscribe(value => {
+                this.form.get('mediaItemId').setValue(value);
+            });
+    }
+
+    randomiseSegment() {
+        // TODO rework with #122
+        const item = this.form.get('mediaItemId').value as VideoItem;
+        const start = this.randInt(1, (item.durationMs / 1000) / 2); // always in first half
+        let end = 1;
+        do {
+            end = start + this.randInt(5, (item.durationMs / 1000)); // Arbitrary 5 seconds minimal length
+        } while (end > (item.durationMs / 1000));
+        this.form.get('time_unit').setValue('SECONDS');
+        this.form.get('start').setValue(start);
+        this.form.get('end').setValue(end);
+    }
+
+    toggleVideoPlayer() {
+        if (this.showPlayer) {
+            if (this.video && this.video.nativeElement) {
+                const player = this.video.nativeElement as HTMLVideoElement;
+                if (!player.paused) {
+                    player.pause();
+                }
+            }
+            this.videoUrl = null;
+        } else {
+            const url = this.resolvePath(this.form.get('mediaItemId').value as VideoItem);
+            this.videoUrl = new Observable<string>(sub => sub.next(url));
+        }
+        this.showPlayer = !this.showPlayer;
+    }
+
     /**
      * Handler for 'close' button.
      */
     public close(): void {
         this.dialogRef.close(null);
+    }
+
+    private resolvePath(item: VideoItem): string {
+        // units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
+        let timeSuffix = '';
+        switch (this.form.get('time_unit').value) {
+            case 'FRAME_NUMBER':
+                const start = Math.round(this.form.get('start').value / item.fps);
+                const end = Math.round(this.form.get('end').value / item.fps);
+                timeSuffix = `#t=${start},${end}`;
+                break;
+            case 'SECONDS':
+                timeSuffix = `#t=${this.form.get('start').value},${this.form.get('end').value}`;
+                break;
+            case 'MILLISECONDS':
+                timeSuffix = `#t=${Math.round(this.form.get('start').value / 1000)},${Math.round(this.form.get('end').value / 1000)}`;
+                break;
+            case 'TIMECODE':
+                console.log('Not yet supported'); // TODO make it!
+                break;
+            default:
+                console.error(`The time unit ${this.form.get('time_unit').value} is not supported`);
+        }
+        const collection = this.mediaCollections.find(x => x.id === this.form.get('mediaCollection').value).name;
+        return this.config.resolveApiUrl(`/media/${collection}/${item.name}${timeSuffix}`);
+    }
+
+    private rand(min: number, max: number): number {
+        return Math.random() * (max - min) + min;
+    }
+
+    private randInt(min: number, max: number): number {
+        min = Math.floor(min);
+        max = Math.ceil(max);
+        return Math.round(Math.random() * (max - min + 1) + min);
     }
 
     private getTaskDescription(): TaskDescriptionBase {
@@ -181,7 +259,8 @@ export class CompetitionBuilderTaskDialogComponent {
                     taskGroup: this.data.taskGroup,
                     duration: this.form.get('duration').value,
                     defaultCollection: this.form.get('mediaCollection').value,
-                    description: this.form.get('description').value} as AvsTaskDescription;
+                    description: this.form.get('description').value
+                } as AvsTaskDescription;
             case 'KIS_TEXTUAL':
                 return {
                     name: this.form.get('name').value,

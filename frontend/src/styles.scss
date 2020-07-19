@@ -5,6 +5,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 @import '@angular/material/prebuilt-themes/purple-green.css';
 
+
 /* */
 #container {
   margin-top: 100px;
@@ -39,7 +40,28 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 }
 
 /* Hack for progressbar */
-
 app-judgement-media-viewer .mat-progress-bar-buffer {
   background-color: #e1bee7!important; /* Not sure why this has to be done manually: https://material.angular.io/components/progress-bar/overview */
+}
+
+@import '~@angular/material/theming';
+@include mat-core();
+
+
+
+$primary: mat-palette($mat-purple);
+$accent: mat-palette($mat-green, A200);
+$warn: mat-palette($mat-red, 500);
+
+/* Having access to the color palette */
+.primary-color {
+  color: mat-color($primary) !important;
+}
+
+.accent-color {
+  color: mat-color($accent) !important;
+}
+
+.warn-color {
+  color: mat-color($warn) !important;
 }

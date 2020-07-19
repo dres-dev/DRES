@@ -2,7 +2,7 @@
 <div style="display: flex" class="header">
     <div>
         <h1 *ngIf="!dirty">Edit competition {{competitionId}}</h1>
-        <h1 *ngIf="dirty">Edit competition {{competitionId}} <span style="color: darkred">(unsaved changes)</span></h1>
+        <h1 *ngIf="dirty">Edit competition {{competitionId}} <span class="warn-color">(unsaved changes)</span></h1>
     </div>
 
     <div class="spacer-flex"></div>

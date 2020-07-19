@@ -14,6 +14,7 @@ import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.swagger.v3.oas.models.info.Info
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory
+import org.eclipse.jetty.http.HttpCookie
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.session.DefaultSessionCache
@@ -58,7 +59,8 @@ object RestApi {
                 ListCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 ShowCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 AddMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-                ListMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+                RandomMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionIndex), // Must be before ListMediaItem
+                ListMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionIndex),
 
                 //competition
                 ListCompetitionHandler(dataAccessLayer.competitions),
@@ -66,7 +68,6 @@ object RestApi {
                 UpdateCompetitionHandler(dataAccessLayer.competitions),
                 GetCompetitionHandler(dataAccessLayer.competitions),
                 DeleteCompetitionHandler(dataAccessLayer.competitions),
-
                 ListTeamHandler(dataAccessLayer.competitions),
                 ListTaskHandler(dataAccessLayer.competitions),
 
@@ -88,9 +89,13 @@ object RestApi {
                 StartCompetitionRunAdminHandler(),
                 NextTaskCompetitionRunAdminHandler(),
                 PreviousTaskCompetitionRunAdminHandler(),
+                SwitchTaskCompetitionRunAdminHandler(),
                 StartTaskCompetitionRunAdminHandler(),
                 AbortTaskCompetitionRunAdminHandler(),
                 TerminateCompetitionRunAdminHandler(),
+                AdjustDurationRunAdminHandler(),
+                ListViewersRunAdminHandler(),
+                ForceViewerRunAdminHandler(),
 
                 NextOpenJudgementHandler(dataAccessLayer.collections),
                 PostJudgementHandler(),
@@ -142,7 +147,7 @@ object RestApi {
             }
 
             path("submit") {
-                val submissionHandler = SubmissionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, dataAccessLayer.mediaSegmentItemIdIndex)
+                val submissionHandler = SubmissionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, dataAccessLayer.mediaSegmentItemIdIndex, config)
                 get(submissionHandler::get, submissionHandler.permittedRoles)
             }
 
@@ -194,6 +199,8 @@ object RestApi {
                 this.storeDir = File(baseDir, "session-store").apply { mkdir() }
             }
         }
+        sameSite = HttpCookie.SameSite.NONE
+
     }
 
     private fun setupHttpServer(config: Config): Server {

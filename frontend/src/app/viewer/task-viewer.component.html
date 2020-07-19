@@ -8,12 +8,12 @@
             {{(taskChanged | async)?.name}} (Task complete)
         </h2>
 
-        <h2 *ngIf="(state | async)?.status == 'PREPARING_TASK'" class="header">
+        <h2 *ngIf="preparingTask | async" class="header">
             {{(taskChanged | async)?.name}} (Preparing to start the task)
         </h2>
 
-        <p *ngIf="(state | async)?.status == 'PREPARING_TASK'" class="countdown">
-            {{taskCountdown}}
+        <p *ngIf="preparingTask | async" class="countdown">
+            {{taskCountdown | async}}
         </p>
 
         <h2 *ngIf="(state | async)?.status === 'RUNNING_TASK'" style="text-align: center;">

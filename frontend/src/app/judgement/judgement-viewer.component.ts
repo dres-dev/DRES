@@ -1,12 +1,16 @@
-import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {BehaviorSubject, interval, Observable, of, Subscription} from 'rxjs';
+import {AfterViewInit, Component, Input, OnDestroy, ViewChild} from '@angular/core';
+import {BehaviorSubject, interval, Observable, of, Subscription, timer} from 'rxjs';
 import {Judgement, JudgementRequest, JudgementService, SubmissionInfo} from '../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
 import {catchError, filter, map, switchMap, withLatestFrom} from 'rxjs/operators';
 import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
-import { trigger, transition, state, animate, style, keyframes } from '@angular/animations';
+import {animate, keyframes, state, style, transition, trigger} from '@angular/animations';
+import {MatDialog} from '@angular/material/dialog';
+import {JudgementDialogComponent} from './judgement-dialog/judgement-dialog.component';
+import {JudgementDialogContent} from './judgement-dialog/judgement-dialog-content.model';
+
 /**
  * This component subscribes to the websocket for submissions.
  * If the current task is an AVS task, a new submission triggers judgment.
@@ -30,11 +34,12 @@ import { trigger, transition, state, animate, style, keyframes } from '@angular/
         ])
     ]
 })
-export class JudgementViewerComponent implements OnInit, OnDestroy {
+export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
     status: 'fresh' | 'known' = 'known';
 
     @Input() debug = false;
     @Input() pollingFrequency = 1000;
+    @Input() timeout = 60;
     @ViewChild(JudgementMediaViewerComponent) judgePlayer: JudgementMediaViewerComponent;
     observableJudgementRequest: BehaviorSubject<JudgementRequest> = new BehaviorSubject<JudgementRequest>(null);
     judgementRequest: JudgementRequest;
@@ -50,16 +55,43 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
     private runId: Observable<string>;
     private requestSub: Subscription;
     private statusSub: Subscription;
+    private deadMansSwitchSub: Subscription;
+    private deadMansSwitchTime = 0;
 
     constructor(
         private judgementService: JudgementService,
         private activeRoute: ActivatedRoute,
         private snackBar: MatSnackBar,
-        private router: Router
+        private router: Router,
+        private dialog: MatDialog
     ) {
     }
 
-    ngOnInit(): void {
+    ngAfterViewInit(): void {
+        const dialogRef = this.dialog.open(JudgementDialogComponent, {
+            width: '400px',
+            data: {
+                title: 'Judgement Intro',
+                body: '<h3>Hello Judge</h3>\n' +
+                    '    <p>\n' +
+                    '        Once you clicked any of the button below, the judging view will open.\n' +
+                    '        Your task will be to judge, whether the shown video segment fulfills the given description or not.\n' +
+                    '        In case of doubt, you also can opt for <i>don\'t know</i>.\n' +
+                    '    </p>\n' +
+                    '    <p>\n' +
+                    '        Thank you for being a fair Judge!\n' +
+                    '    </p>'
+            } as JudgementDialogContent
+        });
+        dialogRef.afterClosed().subscribe(_ => {
+
+            this.init();
+            this.initialiseDeadMansSwitch();
+        });
+    }
+
+    init(): void {
+
         /* Subscription and current run id */
         this.runId = this.activeRoute.params.pipe(map(p => p.runId));
         /* Poll for score status in a given interval */
@@ -95,6 +127,8 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
                         map((req: HttpResponse<JudgementRequest>) => {
                             if (req.status === 202) {
                                 this.noJudgementMessage = 'There is currently no submission awaiting judgement.';
+                                /* Don't penalise if there's nothing to do*/
+                                this.deadMansSwitchTime = 0;
                                 this.isJudgmentAvailable = false;
                                 return null;
                             } else {
@@ -127,9 +161,9 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
             if (this.prevDescHash) {
                 this.isNewJudgementDesc = this.prevDescHash !== this.hashCode(req.taskDescription);
                 console.log('new: ' + this.isNewJudgementDesc);
-                if(this.isNewJudgementDesc){
+                if (this.isNewJudgementDesc) {
                     this.status = 'fresh';
-                }else{
+                } else {
                     this.status = 'known';
                 }
             }
@@ -144,10 +178,7 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
      *
      */
     ngOnDestroy(): void {
-        this.requestSub.unsubscribe();
-        this.requestSub = null;
-        this.statusSub.unsubscribe();
-        this.statusSub = null;
+        this.stopAll();
     }
 
     public updateProgress(pending: number, open: number) {
@@ -156,6 +187,7 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
     }
 
     public judge(status: SubmissionInfo.StatusEnum) {
+        this.deadMansSwitchTime = 0;
         const judgement = {
             token: this.judgementRequest.token,
             validator: this.judgementRequest.validator,
@@ -169,6 +201,49 @@ export class JudgementViewerComponent implements OnInit, OnDestroy {
         this.judgePlayer.stop();
         this.judgementRequest = null;
         this.isJudgmentAvailable = false;
+    }
+
+    private stopAll() {
+        this.requestSub.unsubscribe();
+        this.requestSub = null;
+        this.statusSub.unsubscribe();
+        this.statusSub = null;
+        this.deadMansSwitchSub.unsubscribe();
+        this.deadMansSwitchSub = null;
+        if (this.judgePlayer) {
+            this.judgePlayer.stop();
+        }
+    }
+
+
+    private initialiseDeadMansSwitch(){
+        /* Dead Man's Switch: Timeout upon no action */
+        this.deadMansSwitchSub = timer(1000, 1000).subscribe(val => {
+            /* emits the second value every second, with a single second delay in the beginning */
+            this.deadMansSwitchTime++;
+            /* If there's a timeout, display the reactivate dialog */
+            if (this.deadMansSwitchTime >= this.timeout) {
+                /* No more polling */
+                this.stopAll();
+                /* Reset time, to be safe */
+                this.deadMansSwitchTime = 0;
+                /* Show the dialog */
+                const ref = this.dialog.open(JudgementDialogComponent, {
+                    width: '400px',
+                    data: {
+                        title: 'Judgement Inactive',
+                        body: '<h3>Judgement Deactivated</h3>\n' +
+                            '<p>Jugement was deactivated due to inactivity. You can continue judging by closing this dialog.</p>'
+                    } as JudgementDialogContent
+                });
+                ref.afterClosed().subscribe(_ => {
+                    /* Apparently, the judge is back, so restart everything */
+                    this.init();
+                    this.initialiseDeadMansSwitch();
+                    this.observableJudgementRequest.next( this.judgementRequest);
+                });
+            }
+        });
     }
 
     /**

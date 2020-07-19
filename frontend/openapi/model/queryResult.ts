@@ -13,7 +13,8 @@
 
 export interface QueryResult { 
     video: string;
-    shot: number;
+    shot?: number;
+    frame?: number;
     score?: number;
     rank?: number;
 }

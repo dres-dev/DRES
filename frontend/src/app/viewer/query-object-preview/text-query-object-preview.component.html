@@ -2,5 +2,6 @@
     <p class="query-text" [style.font-size]="fontSize+'em'">
         {{currentText | async}}
     </p>
-</div>
 
+    <audio #audio [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+</div>

@@ -20,8 +20,7 @@ enum class AuditLogEntryType {
 
 enum class LogEventSource {
     REST,
-    CLI,
-    GRPC
+    CLI
 }
 
 sealed class AuditLogEntry(val type: AuditLogEntryType): Entity{

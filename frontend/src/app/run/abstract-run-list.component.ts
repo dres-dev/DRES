@@ -32,13 +32,13 @@ export class AbstractRunListComponent {
         this.runs = merge(timer(0, this.updateInterval), this.update).pipe(
             flatMap(t => query),
             map(([info, state]) => {
-                return info.map(i => {
-                    const s = state.find((_) => _.id === _.id);
+                return info.map((v, i) => {
+                    const s = state.find((_) => _.id === v.id);
                     return {
-                        id: i.id,
-                        name: i.name,
-                        description: i.description,
-                        teams: i.teams.length,
+                        id: v.id,
+                        name: v.name,
+                        description: v.description,
+                        teams: v.teams.length,
                         status: s.status,
                         currentTask: s.currentTask?.name,
                         timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a'
@@ -49,14 +49,29 @@ export class AbstractRunListComponent {
     }
 
     /**
+     * Navigates to run viewer (for viewers and guests).
      *
-     * @param runId
+     * @param runId ID of the run to navigate to.
      */
     public navigateToViewer(runId: number) {
         this.router.navigate(['/run/viewer', runId]);
     }
 
+    /**
+     * Navigates to judgment viewer (for judges).
+     *
+     * @param runId ID of the run to navigate to.
+     */
     public navigateToJudgement(runId: number) {
         this.router.navigate(['/judge', runId]);
+    }
+
+    /**
+     * Navigates to admin viewer (for admins).
+     *
+     * @param runId ID of the run to navigate to.
+     */
+    public navigateToAdmin(runId: number) {
+        this.router.navigate(['/run/admin', runId]);
     }
 }

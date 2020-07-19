@@ -50,45 +50,13 @@ object TaskRunDataSerializer {
         out.packInt(value.submissions.size)
         value.submissions.forEach { SubmissionSerializer.serialize(out, it) }
 
-        out.packInt(value.userSessions.size)
-        value.userSessions.forEach {
-            out.packLong(it.key)
-            out.writeUTF(it.value)
-        }
-
-        out.packInt(value.sessionQueryEventLogs.size)
-        value.sessionQueryEventLogs.forEach {
-            out.writeUTF(it.key)
-            out.packInt(it.value.size)
-            it.value.forEach { QueryEventLogSerializer.serialize(out, it) }
-        }
-
-        out.packInt(value.sessionQueryResultLogs.size)
-        value.sessionQueryResultLogs.forEach {
-            out.writeUTF(it.key)
-            out.packInt(it.value.size)
-            it.value.forEach { QueryResultLogSerializer.serialize(out, it) }
-        }
-
     }
 
     fun deserialize(input: DataInput2, available: Int, task: TaskDescription, taskId: Int): TaskRunData {
 
         val submissions = (0 until input.unpackInt()).map {SubmissionSerializer.deserialize(input, available)}
 
-        val userSessions = (0 until input.unpackInt()).map{input.unpackLong() to input.readUTF()}.toMap()
-
-        val sessionQueryEventLogs = (0 until input.unpackInt()).map{
-            input.readUTF() to
-                    (0 until input.unpackInt()).map{ QueryEventLogSerializer.deserialize(input, available) }.toMutableList()
-        }.toMap()
-
-        val sessionQueryResultLogs = (0 until input.unpackInt()).map{
-            input.readUTF() to
-                    (0 until input.unpackInt()).map{ QueryResultLogSerializer.deserialize(input, available) }.toMutableList()
-        }.toMap()
-
-        return TaskRunData(task, taskId, submissions, userSessions, sessionQueryResultLogs, sessionQueryEventLogs)
+        return TaskRunData(task, taskId, submissions)
     }
 
 

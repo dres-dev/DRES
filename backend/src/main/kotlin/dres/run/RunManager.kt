@@ -1,5 +1,7 @@
 package dres.run
 
+import dres.api.rest.types.WebSocketConnection
+import dres.api.rest.RestApiRole
 import dres.api.rest.types.run.websocket.ClientMessage
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.TaskDescription
@@ -10,6 +12,7 @@ import dres.run.score.interfaces.TaskRunScorer
 import dres.run.score.scoreboard.Scoreboard
 import dres.run.updatables.ScoreboardsUpdatable
 import dres.run.validation.interfaces.JudgementValidator
+import java.util.*
 
 /**
  * A managing class for [CompetitionDescription] executions or 'runs'.
@@ -55,6 +58,9 @@ interface RunManager : Runnable {
 
     /** [TaskRunData] for a specific task id */
     fun taskRunData(taskId: Int): TaskRunData?
+
+    /** determines if users with the role [RestApiRole.PARTICIPANT] have access to the task viewer */
+    val participantCanView: Boolean
 
     /**
      * Starts this [RunManager] moving [RunManager.status] from [RunManagerStatus.CREATED] to
@@ -136,13 +142,39 @@ interface RunManager : Runnable {
     fun abortTask()
 
     /**
-     * Returns the time in milliseconds that is left until the end of the currently running [Task].
-     * Only works if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no [Task] is running,
+     * Adjusts the duration of the current [TaskRun] by the specified amount. Amount can be positive or negative.
+     *
+     * @param s The number of seconds to adjust the duration by.
+     * @return Time remaining until the task will end.
+     *
+     * @throws IllegalArgumentException If the specified correction cannot be applied.
+     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
+     */
+    fun adjustDuration(s: Int): Long
+
+    /**
+     * Returns the time in milliseconds that is left until the end of the currently running task.
+     * Only works if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no task is running,
      * this method returns -1L.
      *
-     * @return Time that has elapsed since the start of the running [Task] or -1, if no [Task] is running.
+     * @return Time remaining until the task will end or -1, if no task is running.
      */
     fun timeLeft(): Long
+
+    /**
+     * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.
+     *
+     * @return List of viewer [WebSocketConnection]s for this [RunManager].
+     */
+    fun viewers(): HashMap<WebSocketConnection,Boolean>
+
+    /**
+     * Override the ready state for a given viewer ID.
+     *
+     * @param viewerId The ID of the viewer that should be overridden.
+     * @return true on success, false otherwise
+     */
+    fun overrideReadyState(viewerId: String): Boolean
 
     /**
      * Invoked by an external caller such in order to inform the [RunManager] that it has received a [ClientMessage].
@@ -151,11 +183,11 @@ interface RunManager : Runnable {
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
-     * @param sessionId The session ID associated with the [ClientMessage]
+     * @param connection The [WebSocketConnection] through which the message was received.
      * @param message The [ClientMessage] that was received.
      * @return True if [ClientMessage] was processed, false otherwise
      */
-    fun wsMessageReceived(sessionId: String, message: ClientMessage): Boolean
+    fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean
 
     /**
      * Invoked by an external caller to post a new [Submission] for the [Task] that is currently being

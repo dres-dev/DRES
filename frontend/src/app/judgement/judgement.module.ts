@@ -10,11 +10,14 @@ import {MatVideoModule} from 'mat-video';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {MatBadgeModule} from '@angular/material/badge';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
+import { JudgementDialogComponent } from './judgement-dialog/judgement-dialog.component';
+import {MatCardModule} from '@angular/material/card';
+import {MatDialogModule} from '@angular/material/dialog';
 
 
 
 @NgModule({
-  declarations: [JudgementViewerComponent, JudgementMediaViewerComponent],
+  declarations: [JudgementViewerComponent, JudgementMediaViewerComponent, JudgementDialogComponent],
     imports: [
         CommonModule,
         MatIconModule,
@@ -24,7 +27,9 @@ import {MatProgressBarModule} from '@angular/material/progress-bar';
         MatVideoModule,
         BrowserAnimationsModule,
         MatBadgeModule,
-        MatProgressBarModule
+        MatProgressBarModule,
+        MatCardModule,
+        MatDialogModule
     ],
   exports: [ JudgementViewerComponent ]
 })

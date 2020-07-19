@@ -10,6 +10,7 @@ import {ProfileComponent} from './user/profile/profile.component';
 import {AdminUserListComponent} from './user/admin-user-list/admin-user-list.component';
 import {JudgementViewerComponent} from './judgement/judgement-viewer.component';
 import {RunListComponent} from './run/run-list.component';
+import {RunAdminViewComponent} from './run/run-admin-view.component';
 import RoleEnum = UserDetails.RoleEnum;
 
 
@@ -31,6 +32,12 @@ const routes: Routes = [
         component: RunListComponent,
         canActivate: [AuthenticationGuard],
         data: {roles: [RoleEnum.ADMIN, RoleEnum.VIEWER, RoleEnum.PARTICIPANT, RoleEnum.JUDGE]}
+    },
+    {
+        path: 'run/admin/:runId',
+        component: RunAdminViewComponent,
+        canActivate: [AuthenticationGuard],
+        data: {roles: [RoleEnum.ADMIN]}
     },
     {
         path: 'run/viewer/:runId',

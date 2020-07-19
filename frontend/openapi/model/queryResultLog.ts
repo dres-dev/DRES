@@ -13,14 +13,14 @@ import { QueryResult } from './queryResult';
 
 
 export interface QueryResultLog { 
-    team: number;
-    member: number;
     timestamp: number;
+    values: Array<string>;
     usedCategories: Array<string>;
     usedTypes: Array<string>;
     sortType: Array<string>;
     resultSetAvailability: string;
-    events: Array<QueryResult>;
-    serverTimeStamp: number;
+    results: Array<QueryResult>;
+    serverTimeStamp?: number;
+    serverTimeStamp$backend: number;
 }
 

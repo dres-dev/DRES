@@ -29,6 +29,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.nio.file.Files
 import java.util.*
 
 
@@ -38,10 +39,10 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
 
     private fun userId(ctx: Context): Long = AccessManager.getUserIdForSession(ctx.sessionId())!!
 
-    private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
-    private fun isJudge(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.JUDGE) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
-    private fun isViewer(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.VIEWER) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
-    private fun isParticipant(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.PARTICIPANT) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
+    //private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
+    //private fun isJudge(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.JUDGE) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
+    //private fun isViewer(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.VIEWER) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
+    fun isParticipant(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.PARTICIPANT) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
 
     fun getRelevantManagers(ctx: Context): List<RunManager> {
         if (isParticipant(ctx)) {
@@ -114,6 +115,7 @@ class GetCompetitionRunInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
             responses = [
                 OpenApiResponse("200", [OpenApiContent(RunInfo::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
@@ -124,6 +126,11 @@ class GetCompetitionRunInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
         val run = getRun(ctx, runId)
 
         if (run != null) {
+
+            if (!run.participantCanView && isParticipant(ctx)){
+                throw ErrorStatusException(403, "Access Denied")
+            }
+
             return RunInfo(run)
         }
 
@@ -143,6 +150,7 @@ class GetCompetitionRunStateHandler : AbstractCompetitionRunRestHandler(), GetRe
             responses = [
                 OpenApiResponse("200", [OpenApiContent(RunState::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
@@ -151,6 +159,11 @@ class GetCompetitionRunStateHandler : AbstractCompetitionRunRestHandler(), GetRe
         val run = getRun(ctx, runId)
 
         if (run != null) {
+
+            if (!run.participantCanView && isParticipant(ctx)){
+                throw ErrorStatusException(403, "Access Denied")
+            }
+
             return RunState(run)
         }
         throw ErrorStatusException(404, "Run $runId not found")
@@ -227,6 +240,7 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
             responses = [
                 OpenApiResponse("200", [OpenApiContent(TaskInfo::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
@@ -235,6 +249,10 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
         val runId = runId(ctx)
 
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+
+        if (!run.participantCanView && isParticipant(ctx)){
+            throw ErrorStatusException(403, "Access Denied")
+        }
 
         val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId")
 
@@ -259,12 +277,18 @@ class CurrentQueryHandler(config: Config) : AbstractCompetitionRunRestHandler(),
             responses = [
                 OpenApiResponse("200", [OpenApiContent(QueryDescription::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
     override fun doGet(ctx: Context): QueryDescription {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+
+        if (!run.participantCanView && isParticipant(ctx)){
+            throw ErrorStatusException(403, "Access Denied")
+        }
+
         val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId")
         return when (task) { /* TODO: This could actually be a function of the TaskDescription?!. */
             is TaskDescriptionBase.KisVisualTaskDescription -> {
@@ -274,6 +298,7 @@ class CurrentQueryHandler(config: Config) : AbstractCompetitionRunRestHandler(),
                         val fileData = ByteArray(file.length().toInt())
                         imageInFile.read(fileData)
                         QueryDescription(task.name, QueryContent(video = listOf(QueryContentElement(Base64.getEncoder().encodeToString(fileData), "video/mp4"))))
+
                     }
                 } catch (e: FileNotFoundException) {
                     throw ErrorStatusException(404, "Query object cache file not found!")
@@ -318,12 +343,18 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+
+        if (!run.participantCanView && isParticipant(ctx)){
+            throw ErrorStatusException(403, "Access Denied")
+        }
+
         val submissions = run.submissions
 
         return if (run.status == RunManagerStatus.RUNNING_TASK) {
@@ -352,12 +383,18 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+
+        if (!run.participantCanView && isParticipant(ctx)){
+            throw ErrorStatusException(403, "Access Denied")
+        }
+
         val timestamp = ctx.pathParamMap().getOrDefault("timestamp", "0").toLong()
         val submissions = run.submissions.filter { it.timestamp >= timestamp }
 
@@ -386,12 +423,17 @@ class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHa
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+
+        if (!run.participantCanView && isParticipant(ctx)){
+            throw ErrorStatusException(403, "Access Denied")
+        }
 
         val taskId = ctx.pathParamMap()["taskId"]?.toInt() ?: throw ErrorStatusException(404, "Missing task id")
 

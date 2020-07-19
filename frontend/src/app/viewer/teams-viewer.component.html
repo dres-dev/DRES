@@ -1,33 +1,37 @@
-<mat-card class="flex" [style.overflow-x]="'auto'">
-    <div *ngFor="let team of (info|async)?.teams; let i = index" [style.background-color]="team.color + '44'" class="tile">
-        <h3 [style.text-align]="'center'">{{team.name}}</h3>
+<mat-card>
+    <mat-card-content>
+        <div class="flex" [style.overflow-x]="'auto'">
+            <div *ngFor="let team of (info|async)?.teams; let i = index" [style.background-color]="team.color + '44'" class="tile">
+                <h3 [style.text-align]="'center'">{{team.name}}</h3>
 
-        <div>
+                <div>
 
-        </div>
-        <div [style.background-color]="team.color" class="logo">
-            <img src="{{team.logo}}">
-        </div>
-        <div *ngIf="(state | async)?.status === 'TASK_ENDED' || (state | async)?.status === 'RUNNING_TASK'" >
-            <p class="score">
-                {{(score(i) | async)}}
-            </p>
-            
-            <p class="counter">
-                <span class="CORRECT">{{(correctSubmissions(i) | async)}}</span> |
-                <span class="WRONG">{{(wrongSubmissions(i) | async)}}</span> |
-                <span class="INDETERMINATE">{{(indeterminate(i) | async)}}</span>
-            </p>
-
-            <div class="submissions" >
-                <div *ngFor="let submission of (submissionForTeam(i) | async)" [className]="'submission ' + submission.status">
-                    <img *ngIf="submission.id" [src]="previewForSubmission(submission) | async" alt="preview"/>
-                    <p *ngIf="!submission.id">?</p>
                 </div>
+                <div [style.background-color]="team.color" class="logo">
+                    <img src="{{team.logo}}">
+                </div>
+                <div *ngIf="(state | async)?.status === 'TASK_ENDED' || (state | async)?.status === 'RUNNING_TASK'" >
+                    <p class="score">
+                        {{(score(i) | async)}}
+                    </p>
+
+                    <p class="counter">
+                        <span class="CORRECT">{{(correctSubmissions(i) | async)}}</span> |
+                        <span class="WRONG">{{(wrongSubmissions(i) | async)}}</span> |
+                        <span class="INDETERMINATE">{{(indeterminate(i) | async)}}</span>
+                    </p>
+
+                    <div class="submissions" >
+                        <div *ngFor="let submission of (submissionForTeam(i) | async)" [className]="'submission ' + submission.status">
+                            <img *ngIf="submission.id" [src]="previewForSubmission(submission) | async" alt="preview"/>
+                            <p *ngIf="!submission.id">?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <audio #audio [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
             </div>
         </div>
-
-        <audio #audio [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
-    </div>
+    </mat-card-content>
 </mat-card>
 

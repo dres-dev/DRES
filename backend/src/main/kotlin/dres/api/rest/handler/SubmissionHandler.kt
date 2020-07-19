@@ -8,18 +8,23 @@ import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
 import dres.data.dbo.DaoIndexer
+import dres.data.model.Config
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.media.MediaItemSegmentList
 import dres.data.model.basics.media.PlayableMediaItem
 import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.competition.interfaces.DefinedMediaItemTaskDescription
+import dres.data.model.competition.interfaces.HiddenResultsTaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunManager
 import dres.run.RunManagerStatus
 import dres.run.audit.AuditLogger
 import dres.run.audit.LogEventSource
+import dres.run.eventstream.EventStreamProcessor
+import dres.run.eventstream.SubmissionEvent
+import dres.utilities.FFmpegUtil
 import dres.utilities.TimeUtil
 import dres.utilities.extensions.sessionId
 import io.javalin.http.Context
@@ -27,9 +32,12 @@ import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.math.abs
 
-class SubmissionHandler (val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<Long, String>>, private val segmentIndex: DaoIndexer<MediaItemSegmentList, Long>): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
+class SubmissionHandler (val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<Long, String>>, private val segmentIndex: DaoIndexer<MediaItemSegmentList, Long>, private val config: Config): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
     override val route = "submit"
 
@@ -171,6 +179,12 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         }
 
         AuditLogger.submission(run.uid, run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId())
+        EventStreamProcessor.event(SubmissionEvent(ctx.sessionId(), submission))
+
+        if (run.currentTask is HiddenResultsTaskDescription) { //pre-generate preview
+            generatePreview(submission)
+        }
+
 
         return when (result) {
             SubmissionStatus.CORRECT -> SuccessStatus("Submission correct!")
@@ -178,5 +192,21 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             SubmissionStatus.INDETERMINATE -> SuccessStatus("Submission received. Waiting for verdict!")
             SubmissionStatus.UNDECIDABLE -> SuccessStatus("Submission undecidable. Try again!")
         }
+    }
+
+    private fun generatePreview(submission: Submission) {
+        if (submission.item !is MediaItem.VideoItem){
+            return
+        }
+        val collection = collections[submission.item.collection] ?: return
+        val cacheLocation = Paths.get(config.cachePath + "/previews")
+        val cacheDir = cacheLocation.resolve("${submission.item.collection}/${submission.item.name}")
+        val imgPath = cacheDir.resolve("${submission.start}.jpg")
+        if (Files.exists(imgPath)){
+            return
+        }
+        val mediaItemLocation = Path.of(collection.basePath, submission.item.location)
+        FFmpegUtil.extractFrame(mediaItemLocation, submission.start!!, imgPath)
+
     }
 }

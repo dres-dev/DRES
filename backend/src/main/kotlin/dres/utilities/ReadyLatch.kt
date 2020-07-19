@@ -3,13 +3,14 @@ package dres.utilities
 import dres.utilities.extensions.read
 import dres.utilities.extensions.write
 import org.eclipse.collections.impl.map.mutable.primitive.ObjectBooleanHashMap
+import java.util.HashMap
 import java.util.concurrent.locks.StampedLock
 
 /**
  * A simple latch that tracks for all object it contains whether they are ready (true) or not (false).
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.1
  */
 class ReadyLatch<T> {
 
@@ -38,6 +39,17 @@ class ReadyLatch<T> {
     }
 
     /**
+     * Returns the state of this [ReadyLatch] as a [HashMap].
+     *
+     * @return Current state of this [ReadyLatch].
+     */
+    fun state() = this.lock.read {
+        val map = HashMap<T,Boolean>()
+        this.map.forEachKeyValue { k, v -> map[k] = v}
+        map
+    }
+
+    /**
      * Sets the ready state for the given object [T] to true.
      *
      * @param o The object [T] to set the ready state for.
@@ -61,9 +73,7 @@ class ReadyLatch<T> {
      * Resets this [ReadyLatch] and thus moves all registered objects to unready state.
      */
     fun reset() = this.lock.write {
-        this.map.keySet().forEach {
-            this.map.put(it, false)
-        }
+        this.map.updateValues { _, _ -> false }
     }
 
     /**

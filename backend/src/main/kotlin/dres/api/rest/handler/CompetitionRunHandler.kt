@@ -8,7 +8,8 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.data.model.Config
 import dres.data.model.basics.media.MediaItem
-import dres.data.model.competition.*
+import dres.data.model.competition.QueryDescription
+import dres.data.model.competition.TaskGroup
 import dres.data.model.competition.interfaces.HiddenResultsTaskDescription
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
@@ -26,11 +27,8 @@ import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
-import java.nio.file.Files
-import java.util.*
 
 
 abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRestHandler {
@@ -264,7 +262,7 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
 /**
  *
  */
-class CurrentQueryHandler(config: Config) : AbstractCompetitionRunRestHandler(), GetRestHandler<QueryDescription> {
+class CurrentQueryHandler(private val config: Config) : AbstractCompetitionRunRestHandler(), GetRestHandler<QueryDescription> {
 
     override val route = "run/:runId/query"
 
@@ -290,45 +288,13 @@ class CurrentQueryHandler(config: Config) : AbstractCompetitionRunRestHandler(),
         }
 
         val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId")
-        return when (task) { /* TODO: This could actually be a function of the TaskDescription?!. */
-            is TaskDescriptionBase.KisVisualTaskDescription -> {
-                val file = File(this.taskCacheLocation, task.cacheItemName())
-                try {
-                    return FileInputStream(file).use { imageInFile ->
-                        val fileData = ByteArray(file.length().toInt())
-                        imageInFile.read(fileData)
-                        QueryDescription(task.name, QueryContent(video = listOf(QueryContentElement(Base64.getEncoder().encodeToString(fileData), "video/mp4"))))
-
-                    }
-                } catch (e: FileNotFoundException) {
-                    throw ErrorStatusException(404, "Query object cache file not found!")
-                } catch (ioe: IOException) {
-                    throw ErrorStatusException(500, "Exception when reading query object cache file.")
-                }
+        try {
+                return task.toQueryDescription(config)
+            } catch (e: FileNotFoundException) {
+                throw ErrorStatusException(404, "Query object cache file not found!")
+            } catch (ioe: IOException) {
+                throw ErrorStatusException(500, "Exception when reading query object cache file.")
             }
-            is TaskDescriptionBase.KisTextualTaskDescription -> {
-                val file = File(this.taskCacheLocation, task.cacheItemName())
-                try {
-                    return FileInputStream(file).use { imageInFile ->
-                        val fileData = ByteArray(file.length().toInt())
-                        imageInFile.read(fileData)
-                        QueryDescription(task.name,
-                                query = QueryContent(text = task.descriptions.mapIndexed { i, s -> QueryContentElement(s, "text/plain", i * task.delay) } ),
-                                reveal = QueryContent(video = listOf(QueryContentElement(Base64.getEncoder().encodeToString(fileData), "video/mp4")))
-                        )
-                    }
-                } catch (e: FileNotFoundException) {
-                    throw ErrorStatusException(404, "Query object cache file not found!")
-                } catch (ioe: IOException) {
-                    throw ErrorStatusException(500, "Exception when reading query object cache file.")
-                }
-
-            }
-            is TaskDescriptionBase.AvsTaskDescription -> {
-                QueryDescription(task.name, QueryContent(text = listOf(QueryContentElement(task.description, "text/plain"))))
-            }
-            else -> throw ErrorStatusException(500, "Exception when reading query object cache file.")
-        }
     }
 }
 

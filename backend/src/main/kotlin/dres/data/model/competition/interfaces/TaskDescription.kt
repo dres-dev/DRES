@@ -1,11 +1,14 @@
 package dres.data.model.competition.interfaces
 
+import dres.data.model.Config
+import dres.data.model.competition.QueryDescription
 import dres.data.model.competition.TaskGroup
-import dres.data.model.run.Submission
 import dres.run.filter.AllSubmissionFilter
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.validation.interfaces.SubmissionValidator
+import java.io.FileNotFoundException
+import java.io.IOException
 
 /**
  * Basic description of a [Task].
@@ -50,4 +53,10 @@ interface TaskDescription {
      * @return [SubmissionFilter]
      */
     fun newFilter(): SubmissionFilter = AllSubmissionFilter
+
+    /**
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    fun toQueryDescription(config: Config): QueryDescription
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import dres.data.model.Config
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.time.TemporalRange
 import dres.data.model.competition.interfaces.DefinedMediaItemTaskDescription
@@ -19,6 +20,8 @@ import dres.run.score.scorer.AvsTaskScorer
 import dres.run.score.scorer.KisTaskScorer
 import dres.run.validation.TemporalOverlapSubmissionValidator
 import dres.run.validation.judged.BasicJudgementValidator
+import java.io.File
+import java.io.FileInputStream
 import java.util.*
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "taskType")
@@ -34,6 +37,8 @@ sealed class TaskDescriptionBase : TaskDescription {
     val taskType: String
         get() = this.taskGroup.type.name
 
+
+
     /**
      * Describes a visual Known Item Search (KIS)
      *
@@ -47,6 +52,17 @@ sealed class TaskDescriptionBase : TaskDescription {
             @JsonProperty("item") override val item: MediaItem.VideoItem,
             @JsonProperty("temporalRange") override val temporalRange: TemporalRange)
         : TaskDescriptionBase(), MediaSegmentTaskDescription {
+        override fun toQueryDescription(config: Config): QueryDescription {
+
+            val file = File( File(config.cachePath + "/tasks"), cacheItemName())
+
+            return FileInputStream(file).use { imageInFile ->
+                val fileData = ByteArray(file.length().toInt())
+                imageInFile.read(fileData)
+                QueryDescription(name, QueryContent(video = listOf(QueryContentElement(Base64.getEncoder().encodeToString(fileData), "video/mp4"))))
+            }
+        }
+
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator() = TemporalOverlapSubmissionValidator(this)
         override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}-${temporalRange.start.value}-${temporalRange.end.value}.mp4"
@@ -68,6 +84,24 @@ sealed class TaskDescriptionBase : TaskDescription {
             @JsonProperty("descriptions") val descriptions: List<String>,
             @JsonProperty("delay") val delay: Int = 30)
         : TaskDescriptionBase(), MediaSegmentTaskDescription, HiddenResultsTaskDescription {
+
+
+        override fun toQueryDescription(config: Config): QueryDescription {
+
+            val file = File(File(config.cachePath + "/tasks"), cacheItemName())
+
+            return FileInputStream(file).use { imageInFile ->
+                val fileData = ByteArray(file.length().toInt())
+                imageInFile.read(fileData)
+                QueryDescription(name,
+                        query = QueryContent(text = descriptions.mapIndexed { i, s -> QueryContentElement(s, "text/plain", i * delay) } ),
+                        reveal = QueryContent(video = listOf(QueryContentElement(Base64.getEncoder().encodeToString(fileData), "video/mp4")))
+                )
+            }
+
+
+        }
+
         override fun newScorer(): TaskRunScorer = KisTaskScorer()
         override fun newValidator() = TemporalOverlapSubmissionValidator(this)
         override fun cacheItemName() = "${taskGroup.name}-${item.collection}-${item.id}-${temporalRange.start.value}-${temporalRange.end.value}.mp4"
@@ -87,6 +121,10 @@ sealed class TaskDescriptionBase : TaskDescription {
             @JsonProperty("description") val description: String,
             @JsonProperty("defaultCollection") val defaultCollection: Long)
         : TaskDescriptionBase(), TaskDescription, DefinedMediaItemTaskDescription {
+
+
+        override fun toQueryDescription(config: Config): QueryDescription  = QueryDescription(name, QueryContent(text = listOf(QueryContentElement(description, "text/plain"))))
+
         override fun newScorer(): TaskRunScorer = AvsTaskScorer()
         override fun newValidator() = BasicJudgementValidator()
         override fun newFilter(): SubmissionFilter = TemporalSubmissionFilter() and DuplicateSubmissionFilter()

@@ -13,6 +13,8 @@
 
 export interface ViewerInfo { 
     viewersId: string;
+    username: string;
+    host: string;
     ready: boolean;
 }
 

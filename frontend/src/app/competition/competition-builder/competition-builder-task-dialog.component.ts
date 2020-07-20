@@ -51,7 +51,7 @@ export class CompetitionBuilderTaskDialogComponent {
             case 'KIS_VISUAL':
                 this.form = CompetitionBuilderTaskDialogComponent.KisVisualFormControl(this.data.taskGroup, this.data.task as KisVisualTaskDescription);
                 this.mediaItemSource = this.form.get('mediaItemId').valueChanges.pipe(
-                    filter((value: string) => value.length >= 3),
+                    filter((value: string) => value.length >= 1),
                     flatMap(value => {
                         return this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, value);
                     })
@@ -60,7 +60,7 @@ export class CompetitionBuilderTaskDialogComponent {
             case 'KIS_TEXTUAL':
                 this.form = CompetitionBuilderTaskDialogComponent.KisTextualFormControl(this.data.taskGroup, this.data.task as KisTextualTaskDescription);
                 this.mediaItemSource = this.form.get('mediaItemId').valueChanges.pipe(
-                    filter((value: string) => value.length >= 3),
+                    filter((value: string) => value.length >= 1),
                     flatMap((value) => {
                         return this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, value);
                     })

@@ -104,7 +104,6 @@ object RestApi {
 
         javalin = Javalin.create {
             it.enableCorsForAllOrigins()
-            it.sessionHandler { setupSessionHandler() }
             it.server { setupHttpServer(config) }
             it.registerPlugin(getConfiguredOpenApiPlugin())
             it.defaultContentType = "application/json"
@@ -201,12 +200,6 @@ object RestApi {
             }
         }
         sameSite = HttpCookie.SameSite.NONE
-
-    }
-
-    private fun setupSessionHandler(): SessionHandler = SessionHandler().apply {
-        sameSite = HttpCookie.SameSite.NONE
-        isSecureRequestOnly = true
     }
 
     private fun setupHttpServer(config: Config): Server {

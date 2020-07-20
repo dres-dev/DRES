@@ -5,9 +5,9 @@ import dres.api.rest.RestApiRole
 import dres.api.rest.types.run.websocket.ClientMessage
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.TaskDescription
+import dres.data.model.run.CompetitionRun
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
-import dres.data.model.run.TaskRunData
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.score.scoreboard.Scoreboard
 import dres.run.updatables.ScoreboardsUpdatable
@@ -15,19 +15,22 @@ import dres.run.validation.interfaces.JudgementValidator
 import java.util.*
 
 /**
- * A managing class for [CompetitionDescription] executions or 'runs'.
+ * A managing class for concrete executions of [CompetitionDescription], i.e. [CompetitionRun]s.
+ *
+ * @see CompetitionRun
  *
  * @author Ralph Gasser
- * @version 1.1
+ * @version 1.3
  */
 interface RunManager : Runnable {
-    /** Unique ID for this [RunManager]. */
-    val runId: Long
+    /** Unique, public, numeric ID for this [RunManager]. */
+    val id: Long
+
+    /** Unique, internal ID for this [RunManager]. */
+    val uid: String
 
     /** A name for identifying this [RunManager]. */
     val name: String
-
-    val uid: String
 
     /** The [CompetitionDescription] that is executed / run by this [RunManager]. */
     val competitionDescription: CompetitionDescription
@@ -35,19 +38,36 @@ interface RunManager : Runnable {
     /** The [ScoreboardsUpdatable] used to track the scores per team. */
     val scoreboards: ScoreboardsUpdatable
 
-    /** The [Task] that is currently being executed or waiting for execution by this [RunManager]. Can be null! */
+    /**
+     * Reference to the currently active [TaskDescription].
+     *
+     * Part of the [RunManager]'s navigational state.
+     */
     val currentTask: TaskDescription?
         get() = currentTaskRun?.task
 
-    val currentTaskRun: TaskRunData?
+    /**
+     * Reference to the [CompetitionRun.TaskRun] that is currently being executed OR that has just ended.
+     *
+     * Part of the [RunManager]'s execution state. Can be null!
+     */
+    val currentTaskRun: CompetitionRun.TaskRun?
 
-    /** The [TaskRunScorer] of the current [TaskRun]. Can be null! */
+    /**
+     * Reference to the [TaskRunScorer] of the [CompetitionRun.TaskRun] that is currently being executed.
+     *
+     * Part of the [RunManager]'s execution state. Can be null!
+     */
     val currentTaskScore: TaskRunScorer?
 
-    /** The list of [Submission]s for the current [Task]. */
+    /**
+     * List of [Submission]s for the current [CompetitionRun.TaskRun].
+     *
+     * Part of the [RunManager]'s execution state. Can be empty!
+     */
     val submissions: List<Submission>
 
-    /** The list of all [Submission]s, independent of the [Task]. */
+    /** List of all [Submission]s for this [RunManager], irrespective of the [CompetitionRun.TaskRun] it belongs to. */
     val allSubmissions: List<Submission>
 
     /** Current [RunManagerStatus] of the [RunManager]. */
@@ -55,9 +75,6 @@ interface RunManager : Runnable {
 
     /** [JudgementValidator]s for all tasks that use them */
     val judgementValidators: List<JudgementValidator>
-
-    /** [TaskRunData] for a specific task id */
-    fun taskRunData(taskId: Int): TaskRunData?
 
     /** determines if users with the role [RestApiRole.PARTICIPANT] have access to the task viewer */
     val participantCanView: Boolean
@@ -82,7 +99,7 @@ interface RunManager : Runnable {
      *
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
-    fun terminate()
+    fun end()
 
     /**
      * Prepares this [RunManager] for the execution of previous [Task] as per order defined in [CompetitionDescription.tasks].
@@ -160,6 +177,13 @@ interface RunManager : Runnable {
      * @return Time remaining until the task will end or -1, if no task is running.
      */
     fun timeLeft(): Long
+
+    /**
+     * Returns [CompetitionRun.TaskRun]s for a specific task ID. May be empty.
+     *
+     * @param taskId The ID of the [Task] for which [CompetitionRun.TaskRun]s should be retrieved.
+     */
+    fun taskRuns(taskId: Int): List<CompetitionRun.TaskRun>
 
     /**
      * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.

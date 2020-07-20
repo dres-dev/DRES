@@ -11,16 +11,16 @@ import dres.run.validation.interfaces.SubmissionValidator
 import java.util.*
 
 /**
- * Represents a concrete instance or `run` of a [CompetitionDescription]. [CompetitionRun]s can be started
- * and ended and they can be used to create new [TaskRun]s and access the current [TaskRun].
+ * Represents a concrete [Run] of a [CompetitionDescription]. [CompetitionRun]s can be started and ended and they
+ * can be used to create new [TaskRun]s and access the current [TaskRun].
  *
  * @author Ralph Gasser
- * @param 1.0
+ * @param 1.2
  */
-class CompetitionRun(override var id: Long, val name: String, val competitionDescription: CompetitionDescription, val uid: String = UUID.randomUUID().toString()): Run, Entity {
+open class CompetitionRun(override var id: Long, val name: String, val competitionDescription: CompetitionDescription, val uid: String = UUID.randomUUID().toString()): Run, Entity {
 
     internal constructor(id: Long, name: String, competitionDescription: CompetitionDescription, uid: String, started: Long, ended: Long) : this(id, name, competitionDescription, uid) {
-        this.started =  if (started == -1L) { null } else { started }
+        this.started = if (started == -1L) { null } else { started }
         this.ended = if (ended == -1L) { null } else { ended }
     }
 
@@ -32,24 +32,24 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
     /** Timestamp of when this [CompetitionRun] was started. */
     @Volatile
     override var started: Long? = null
-        private set
+        protected set
 
     /** Timestamp of when this [TaskRun] was ended. */
     @Volatile
     override var ended: Long? = null
-        private set
+        protected set
 
     /** List of [TaskRun]s registered for this [CompetitionRun]. */
     val runs: List<TaskRun> = LinkedList<TaskRun>()
 
-    /** Returns the current [TaskRun]. */
-    val currentTask: TaskRun?
+    /** Returns the last [TaskRun]. */
+    val lastTask: TaskRun?
         get() = this.runs.lastOrNull()
 
     /**
      * Starts this [CompetitionRun].
      */
-    override fun start() {
+    open fun start() {
         if (this.hasStarted) {
             throw IllegalStateException("Competition run '$name' has already been started.")
         }
@@ -59,7 +59,7 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
     /**
      * Ends this [CompetitionRun].
      */
-    override fun end() {
+    open fun end() {
         if (!this.isRunning) {
             this.started = System.currentTimeMillis()
         }
@@ -84,11 +84,10 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
     override fun toString(): String = "CompetitionRun(id=$id, uid=$uid, name=${name})"
 
     /**
-     * Represents a concrete instance or `run` of a [Task]. [TaskRun]s always exist within a
-     * [CompetitionRun]. As a [CompetitionRun], [TaskRun]s can be started and ended and they
-     * can be used to register [Submission]s.
+     * Represents a concrete [Run] of a [Task]. [TaskRun]s always exist within a [CompetitionRun].
+     * As a [CompetitionRun], [TaskRun]s can be started and ended and they can be used to register [Submission]s.
      *
-     * @version 1.0
+     * @version 1.1
      * @author Ralph Gasser
      */
     @JsonIgnoreProperties(value = ["competition"])
@@ -113,8 +112,8 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
         @Volatile
         var duration: Long = this@CompetitionRun.competitionDescription.tasks[this@TaskRun.taskId].duration
 
-        /** Exposable data of this [TaskRun] */
-        var data: TaskRunData = TaskRunData(this.task, this.taskId)
+        /** List of [Submission]s* registered for this [TaskRun]. */
+        val submissions: List<Submission> = mutableListOf()
 
         val task: TaskDescription
             get() = this@CompetitionRun.competitionDescription.tasks[this@TaskRun.taskId]
@@ -139,7 +138,6 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
         private val position: Int
             get() = this@CompetitionRun.runs.indexOf(this)
 
-
         init {
             if (this@CompetitionRun.competitionDescription.tasks.size < this.taskId) {
                 throw IllegalArgumentException("There is no task with ID $taskId.")
@@ -147,9 +145,9 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
         }
 
         /**
-         * Starts this [CompetitionRun].
+         * Starts this [CompetitionRun.TaskRun].
          */
-        override fun start() {
+        internal fun start() {
             if (this.hasStarted) {
                 throw IllegalStateException("Task run '${this@CompetitionRun.name}.${this.position}' has already been started.")
             }
@@ -157,9 +155,9 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
         }
 
         /**
-         * Ends this [CompetitionRun].
+         * Ends this [CompetitionRun.TaskRun].
          */
-        override fun end() {
+        internal fun end() {
             if (!this.isRunning) {
                 val end = System.currentTimeMillis()
                 this.started = end
@@ -187,28 +185,8 @@ class CompetitionRun(override var id: Long, val name: String, val competitionDes
             }
 
             /* Process Submission. */
-            (this.data.submissions as MutableList).add(submission)
+            (this.submissions as MutableList).add(submission)
             this.validator.validate(submission)
         }
     }
-}
-
-class TaskRunData(val task: TaskDescription, val taskId: Int) {
-
-    /** List of [Submission]s* registered for this [TaskRun]. */
-    val submissions: List<Submission> = mutableListOf()
-
-
-    constructor(task: TaskDescription, taskId: Int,
-                submissions: List<Submission> = emptyList()
-    ): this(task, taskId) {
-        (this.submissions as MutableList).addAll(submissions)
-    }
-
-
-
-    internal fun merge(data: TaskRunData) {
-        (this.submissions as MutableList).addAll(data.submissions)
-    }
-
 }

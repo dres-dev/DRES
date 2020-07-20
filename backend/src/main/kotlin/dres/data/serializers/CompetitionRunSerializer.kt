@@ -1,8 +1,7 @@
 package dres.data.serializers
 
-import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun
-import dres.data.model.run.TaskRunData
+import dres.data.model.run.Submission
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer
@@ -21,11 +20,10 @@ object CompetitionRunSerializer: Serializer<CompetitionRun> {
             out.writeUTF(taskRun.uid)
             out.writeLong(taskRun.started ?: -1)
             out.writeLong(taskRun.ended ?: -1)
-//            out.writeInt(taskRun.data.submissions.size)
-//            for (submission in taskRun.data.submissions) {
-//                SubmissionSerializer.serialize(out, submission)
-//            }
-            TaskRunDataSerializer.serialize(out, taskRun.data)
+            out.writeInt(taskRun.submissions.size)
+            for (submission in taskRun.submissions) {
+                SubmissionSerializer.serialize(out, submission)
+            }
         }
     }
 
@@ -33,31 +31,11 @@ object CompetitionRunSerializer: Serializer<CompetitionRun> {
         val run = CompetitionRun(input.unpackLong(), input.readUTF(), CompetitionSerializer.deserialize(input, available), input.readUTF(), input.readLong(), input.readLong())
         for (i in 0 until input.readInt()) {
             val taskRun = run.TaskRun(input.readInt(), input.readUTF(), input.readLong(), input.readLong())
-            taskRun.data.merge(TaskRunDataSerializer.deserialize(input, available, taskRun.task, taskRun.taskId))
-//            for (j in 0 until input.readInt()) {
-//                (taskRun.data.submissions as MutableList<Submission>).add(SubmissionSerializer.deserialize(input,available))
-//            }
-
+            for (j in 0 until input.readInt()) {
+                (taskRun.submissions as MutableList<Submission>).add(SubmissionSerializer.deserialize(input,available))
+            }
             (run.runs as MutableList<CompetitionRun.TaskRun>).add(taskRun)
         }
         return run
     }
-}
-
-object TaskRunDataSerializer {
-
-    fun serialize(out: DataOutput2, value: TaskRunData) {
-        out.packInt(value.submissions.size)
-        value.submissions.forEach { SubmissionSerializer.serialize(out, it) }
-
-    }
-
-    fun deserialize(input: DataInput2, available: Int, task: TaskDescription, taskId: Int): TaskRunData {
-
-        val submissions = (0 until input.unpackInt()).map {SubmissionSerializer.deserialize(input, available)}
-
-        return TaskRunData(task, taskId, submissions)
-    }
-
-
 }

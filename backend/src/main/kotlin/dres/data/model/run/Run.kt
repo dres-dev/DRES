@@ -1,7 +1,7 @@
 package dres.data.model.run
 
 /**
- * A [Run] that can be started and ended.
+ * A [Run] that can be started and ended and keeps track of the points in time, these events took place.
  *
  * @author Ralph Gasser
  * @version 1.0
@@ -24,16 +24,6 @@ interface Run {
     /** Boolean indicating whether this [Run] has ended. */
     val hasEnded: Boolean
         get() = this.ended != null
-
-    /**
-     * Starts this [Run]. Can only be invoked once.
-     */
-    fun start()
-
-    /**
-     * Ends this [Run]. Can only be invoked once.
-     */
-    fun end()
 }
 
 

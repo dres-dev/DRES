@@ -8,13 +8,11 @@ import dres.api.rest.types.run.websocket.ServerMessage
 import dres.api.rest.types.run.websocket.ServerMessageType
 import dres.data.dbo.DAO
 import dres.data.model.run.CompetitionRun
-import dres.mgmt.admin.UserManager
 import dres.run.validation.interfaces.JudgementValidator
 import dres.utilities.extensions.read
 import dres.utilities.extensions.write
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsHandler
-import org.eclipse.jetty.server.session.Session
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.Executors
@@ -187,17 +185,17 @@ object RunExecutor : Consumer<WsHandler> {
      * @param manager [RunManager] to execute.
      */
     fun schedule(manager: RunManager) = this.runManagerLock.write {
-        if (this.runManagers.containsKey(manager.runId)) {
-            throw IllegalArgumentException("This RunExecutor already runs a RunManager with the given ID ${manager.runId}. The same RunManager cannot be executed twice!")
+        if (this.runManagers.containsKey(manager.id)) {
+            throw IllegalArgumentException("This RunExecutor already runs a RunManager with the given ID ${manager.id}. The same RunManager cannot be executed twice!")
         }
 
         /* Register [RunManager] with AccessManager. */
         AccessManager.registerRunManager(manager)
 
         /* Setup all the required data structures. */
-        this.runManagers[manager.runId] = manager
-        this.observingClients[manager.runId] = HashSet()
-        this.results[this.executor.submit(manager)] = manager.runId /* Register future for cleanup thread. */
+        this.runManagers[manager.id] = manager
+        this.observingClients[manager.id] = HashSet()
+        this.results[this.executor.submit(manager)] = manager.id /* Register future for cleanup thread. */
     }
 
     /**

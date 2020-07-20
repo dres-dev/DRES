@@ -27,7 +27,7 @@ data class Submission(val team: Int,
 
     @Transient
     @JsonIgnore
-    var taskRun: TaskRunData? = null
+    var taskRun: CompetitionRun.TaskRun? = null
     internal set
 
     fun temporalRange(): TemporalRange {

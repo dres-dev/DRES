@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskDescription} from '../../../openapi';
 import {BehaviorSubject, merge, Observable, of, Subscription} from 'rxjs';
-import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
+import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, tap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
 import {animate, keyframes, style, transition, trigger} from '@angular/animations';
@@ -125,6 +125,13 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
                         return 'nohighlight';
                     }
                 }); /* Zip two arrays and calculate logical OR. */
+            }),
+            tap(s => {
+                if (s.filter(e => e === 'correct').length > 0) {
+                    AudioPlayerUtilities.playOnce('assets/audio/correct.ogg', this.audio.nativeElement);
+                } else if (s.filter(e => e === 'wrong').length > 0) {
+                    AudioPlayerUtilities.playOnce('assets/audio/wrong.ogg', this.audio.nativeElement);
+                }
             })),
             this.resetHighlight.pipe(
                 flatMap(() => this.info.pipe(map(i => i.teams.map(t => 'nohighlight'))))

@@ -200,6 +200,7 @@ object RestApi {
             }
         }
         sameSite = HttpCookie.SameSite.NONE
+        sessionCookieConfig.isSecure = true
     }
 
     private fun setupHttpServer(config: Config): Server {

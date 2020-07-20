@@ -1,7 +1,8 @@
 <mat-card>
     <mat-card-content>
         <div class="flex" [style.overflow-x]="'auto'">
-            <div *ngFor="let team of (info|async)?.teams; let i = index" [style.background-color]="team.color + '44'" class="tile">
+            <div *ngFor="let team of (info|async)?.teams; let i = index" [style.background-color]="team.color + '44'" class="tile" [@highlight]="(highlight | async)[i]" (@highlight.done)="resetHighlight.next()">
+
                 <h3 [style.text-align]="'center'">{{team.name}}</h3>
 
                 <div>

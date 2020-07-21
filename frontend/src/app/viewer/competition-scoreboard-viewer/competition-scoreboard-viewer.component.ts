@@ -1,5 +1,5 @@
 import {Component, Input, OnInit, ViewChild} from '@angular/core';
-import {CompetitionRunService, RunInfo, RunState, ScoreOverview, Team} from '../../../../openapi';
+import {CompetitionRunService, RunInfo, RunState, Team} from '../../../../openapi';
 import {concat, Observable, of} from 'rxjs';
 import {
     ApexAxisChartSeries,
@@ -148,38 +148,21 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
                 }),
                 withLatestFrom(this.teams, this.currentTaskGroup),
                 map(([scores, team, taskGroup]) => {
-                    if (scores && scores.length > 0) {
-                        return scores.filter(so => {
-                            if (this.competitionOverview) {
-                                return this.ignoreScores.indexOf(so.name) < 0;
-                            } else {
-                                return so.taskGroup === taskGroup;
-                            }
-                        }).map(s => {
-
-                            /* In case there is no value, specifically set 0 as score for each team*/
-                            if (s.scores.length === 0) {
-                                return {name: s.name, data: team.map(t => 0)};
-                            } else {
-                                return {name: s.name, data: s.scores.map(sc => Math.round(sc.score))};
-                            }
-                        });
-                    } else {
-                        // TODO check with @ppanopticon why
-                        if (scores.hasOwnProperty('name') && scores.hasOwnProperty('scores')) {
-                            const so = (scores as unknown) as ScoreOverview;
-                            if (this.competitionOverview) {
-                                if (this.ignoreScores.indexOf(so.name) < 0) {
-                                }
-                            } else {
-                                if (so?.taskGroup === taskGroup) { // ?. due to 'average' has taskGroup === null
-                                    return [{name: taskGroup, data: so.scores.map(sc => Math.round(sc.score))}];
-                                }
-                            }
+                    return scores.filter(so => {
+                        if (this.competitionOverview) {
+                            return this.ignoreScores.indexOf(so.name) < 0;
                         } else {
-                            return [{name: 'Empty', data: team.map(_ => 0)}];
+                            return so.taskGroup === taskGroup;
                         }
-                    }
+                    }).map(s => {
+
+                        /* In case there is no value, specifically set 0 as score for each team*/
+                        if (s.scores.length === 0) {
+                            return {name: s.name, data: team.map(t => 0)};
+                        } else {
+                            return {name: s.name, data: s.scores.map(sc => Math.round(sc.score))};
+                        }
+                    });
                 })
             ));
     }

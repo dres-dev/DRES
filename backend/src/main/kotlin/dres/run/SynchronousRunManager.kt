@@ -153,7 +153,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
 
         /** Re-calculate all the relevant scores. */
         this.run.runs.forEach { run ->
-            this.submissions.forEach { sub ->
+            run.submissions.forEach { sub ->
                 this.scoresUpdatable.enqueue(Pair(run, sub))
             }
         }

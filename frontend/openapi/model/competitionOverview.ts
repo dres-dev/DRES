@@ -12,7 +12,7 @@
 
 
 export interface CompetitionOverview { 
-    id: number;
+    id: string;
     name: string;
     description: string;
     taskCount: number;

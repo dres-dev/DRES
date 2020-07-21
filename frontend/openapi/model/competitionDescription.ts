@@ -15,12 +15,13 @@ import { TaskGroup } from './taskGroup';
 
 
 export interface CompetitionDescription { 
-    id: number;
+    id: string;
     name: string;
     description?: string;
     groups: Array<TaskGroup>;
     tasks: Array<TaskDescriptionBase>;
     teams: Array<Team>;
     uid: string;
+    id_HSBmXqg?: string;
 }
 

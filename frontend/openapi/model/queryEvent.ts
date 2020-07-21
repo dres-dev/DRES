@@ -15,6 +15,6 @@ export interface QueryEvent {
     timestamp: number;
     category: string;
     type: Array<string>;
-    value?: string;
+    value: string;
 }
 

@@ -12,7 +12,7 @@
 
 
 export interface UserDetails { 
-    id: number;
+    id: string;
     username: string;
     role: UserDetails.RoleEnum;
     sessionId?: string;

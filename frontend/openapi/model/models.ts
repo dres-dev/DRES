@@ -39,6 +39,7 @@ export * from './temporalRange';
 export * from './textQueryDescription';
 export * from './textQueryDescriptionAllOf';
 export * from './textualDescription';
+export * from './uID';
 export * from './userDetails';
 export * from './userRequest';
 export * from './videoItem';

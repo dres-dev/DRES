@@ -132,6 +132,9 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
                 }),
                 withLatestFrom(this.teams, this.currentTaskGroup),
                 map(([scores, team, taskGroup]) => {
+                    if (scores == null) {
+                        return [{name: 'Empty', data: []}];
+                    }
                     return scores.filter(so => {
                         if (this.competitionOverview) {
                             return this.ignoreScores.indexOf(so.name) < 0;

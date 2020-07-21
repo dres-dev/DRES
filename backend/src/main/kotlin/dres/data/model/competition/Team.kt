@@ -2,6 +2,7 @@ package dres.data.model.competition
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
+import dres.data.model.UID
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
@@ -12,7 +13,7 @@ data class Team @JsonCreator constructor(
         @JsonProperty("name") val name: String,
         @JsonProperty("color")  val color: String,
         @JsonProperty("logo")  val logo: String,
-        @JsonProperty("users")  val users: MutableList<Long>) {
+        @JsonProperty("users")  val users: MutableList<UID>) {
     /**
      * Returns the logo data as [BufferedImage].
      *

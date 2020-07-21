@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import dres.data.model.UID
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.time.TemporalRange
 import dres.data.model.competition.interfaces.DefinedMediaItemTaskDescription
@@ -85,7 +86,7 @@ sealed class TaskDescriptionBase : TaskDescription {
             @JsonProperty("taskGroup") override val taskGroup: TaskGroup,
             @JsonProperty("duration") override val duration: Long,
             @JsonProperty("description") val description: String,
-            @JsonProperty("defaultCollection") val defaultCollection: Long)
+            @JsonProperty("defaultCollection") val defaultCollection: UID)
         : TaskDescriptionBase(), TaskDescription, DefinedMediaItemTaskDescription {
         override fun newScorer(): TaskRunScorer = AvsTaskScorer()
         override fun newValidator() = BasicJudgementValidator()

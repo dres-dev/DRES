@@ -2,6 +2,7 @@ package dres.data.model.run
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import dres.data.model.Entity
+import dres.data.model.UID
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun.TaskRun
@@ -17,9 +18,9 @@ import java.util.*
  * @author Ralph Gasser
  * @param 1.2
  */
-open class CompetitionRun(override var id: Long, val name: String, val competitionDescription: CompetitionDescription, val uid: String = UUID.randomUUID().toString()): Run, Entity {
+open class CompetitionRun(override var id: UID, val name: String, val competitionDescription: CompetitionDescription): Run, Entity {
 
-    internal constructor(id: Long, name: String, competitionDescription: CompetitionDescription, uid: String, started: Long, ended: Long) : this(id, name, competitionDescription, uid) {
+    internal constructor(id: UID, name: String, competitionDescription: CompetitionDescription, started: Long, ended: Long) : this(id, name, competitionDescription) {
         this.started = if (started == -1L) { null } else { started }
         this.ended = if (ended == -1L) { null } else { ended }
     }
@@ -81,7 +82,7 @@ open class CompetitionRun(override var id: Long, val name: String, val competiti
         }
     }
 
-    override fun toString(): String = "CompetitionRun(id=$id, uid=$uid, name=${name})"
+    override fun toString(): String = "CompetitionRun(id=$id, name=${name})"
 
     /**
      * Represents a concrete [Run] of a [Task]. [TaskRun]s always exist within a [CompetitionRun].

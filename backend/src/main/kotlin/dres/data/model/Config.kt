@@ -10,7 +10,7 @@ data class Config(
         val enableSsl: Boolean = true,
         val keystorePath: String = "keystore.jks",
         val keystorePassword: String = "password",
-        val dataPath: String = "./data",
+        val dataPath: String = "./data_UID",
         val cachePath: String = "./cache") {
 
     companion object{

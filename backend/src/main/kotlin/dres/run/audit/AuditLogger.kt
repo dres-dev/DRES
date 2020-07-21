@@ -1,6 +1,7 @@
 package dres.run.audit
 
 import dres.data.dbo.DAO
+import dres.data.model.UID
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import org.slf4j.LoggerFactory
@@ -24,19 +25,19 @@ object AuditLogger {
         logger.info(logMarker, "Audit event: $entry")
     }
 
-    fun competitionStart(competitionRunUid: String, api: LogEventSource, session: String?) = log(CompetitionStartAuditLogEntry(competitionRunUid, api, session))
+    fun competitionStart(competitionRunUid: UID, api: LogEventSource, session: String?) = log(CompetitionStartAuditLogEntry(competitionRunUid, api, session))
 
-    fun competitionEnd(competitionRunUid: String, api: LogEventSource, session: String?) = log(CompetitionEndAuditLogEntry(competitionRunUid, api, session))
+    fun competitionEnd(competitionRunUid: UID, api: LogEventSource, session: String?) = log(CompetitionEndAuditLogEntry(competitionRunUid, api, session))
 
-    fun taskStart(competitionRunUid: String, taskName: String, api: LogEventSource, session: String?) = log(TaskStartAuditLogEntry(competitionRunUid, taskName, api, session))
+    fun taskStart(competitionRunUid: UID, taskName: String, api: LogEventSource, session: String?) = log(TaskStartAuditLogEntry(competitionRunUid, taskName, api, session))
 
-    fun taskModified(competitionRunUid: String, taskName: String, modification: String, api: LogEventSource, session: String?) = log(TaskModifiedAuditLogEntry(competitionRunUid, taskName, modification, api, session))
+    fun taskModified(competitionRunUid: UID, taskName: String, modification: String, api: LogEventSource, session: String?) = log(TaskModifiedAuditLogEntry(competitionRunUid, taskName, modification, api, session))
 
-    fun taskEnd(competitionRunUid: String, taskName: String, api: LogEventSource, session: String?) = log(TaskEndAuditLogEntry(competitionRunUid, taskName, api, session))
+    fun taskEnd(competitionRunUid: UID, taskName: String, api: LogEventSource, session: String?) = log(TaskEndAuditLogEntry(competitionRunUid, taskName, api, session))
 
-    fun submission(competitionRunUid: String, taskName: String, submission: Submission, api: LogEventSource, session: String?) = log(SubmissionAuditLogEntry(competitionRunUid, taskName, submission, api, session))
+    fun submission(competitionRunUid: UID, taskName: String, submission: Submission, api: LogEventSource, session: String?) = log(SubmissionAuditLogEntry(competitionRunUid, taskName, submission, api, session))
 
-    fun judgement(competitionRunUid: String, validator: String, token: String, verdict: SubmissionStatus, api: LogEventSource, session: String?) = log(JudgementAuditLogEntry(competitionRunUid, validator, token, verdict, api, session))
+    fun judgement(competitionRunUid: UID, validator: String, token: String, verdict: SubmissionStatus, api: LogEventSource, session: String?) = log(JudgementAuditLogEntry(competitionRunUid, validator, token, verdict, api, session))
 
     fun login(user: String, session: String, api: LogEventSource) = log(LoginAuditLogEntry(user, session, api))
 

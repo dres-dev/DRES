@@ -8,6 +8,7 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.long
 import dres.api.rest.handler.UserRequest
+import dres.data.model.UID
 import dres.data.model.admin.PlainPassword
 import dres.data.model.admin.Role
 import dres.data.model.admin.User
@@ -16,6 +17,7 @@ import dres.data.model.competition.CompetitionDescription
 import dres.mgmt.admin.UserManager
 import dres.mgmt.admin.UserManager.MIN_LENGTH_PASSWORD
 import dres.mgmt.admin.UserManager.MIN_LENGTH_USERNAME
+import dres.utilities.extensions.UID
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
@@ -65,7 +67,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
      * [CliktCommand] to update an existing [User].
      */
     inner class UpdateUserCommand : CliktCommand(name = "update", help = "Updates Password or Role of an existing User") {
-        private val id: Long? by option("-i", "--id").long()
+        private val id: UID? by option("-i", "--id").convert { it.UID() }
         private val username: UserName? by option("-u", "--username", help = "Username of the user to be updated")
                 .convert { UserName(it) }
                 .validate { require(it.name.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
@@ -101,7 +103,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
      * [CliktCommand] to delete a [User].
      */
     inner class DeleteUserCommand : CliktCommand(name = "delete", help = "Deletes an existing user.") {
-        private val id: Long? by option("-i", "--id", help = "ID of the user to be deleted.").long()
+        private val id: UID? by option("-i", "--id", help = "ID of the user to be deleted.").convert { it.UID() }
         private val username: UserName? by option("-u", "--username", help = "Username of the user to be deleted.")
                 .convert { UserName(it) }
                 .validate { require(it.name.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
@@ -127,7 +129,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
      * [CliktCommand] to export a [User].
      */
     inner class ExportUserCommand : CliktCommand(name = "export", help =  "Exports one or multiple user(s) as JSON.") {
-        private val id: Long? by option("-i", "--id", help = "ID of the user to be exported.").long()
+        private val id: UID? by option("-i", "--id", help = "ID of the user to be exported.").convert { it.UID() }
         private val username: UserName? by option("-u", "--username", help = "Username of the user to be exported.")
                 .convert { UserName(it) }
                 .validate { require(it.name.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }

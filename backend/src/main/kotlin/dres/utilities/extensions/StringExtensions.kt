@@ -1,9 +1,11 @@
 package dres.utilities.extensions
 
 import dres.api.rest.handler.SessionId
+import dres.data.model.UID
 import dres.data.model.admin.PlainPassword
 import dres.data.model.admin.UserName
 import dres.mgmt.admin.UserManager
+import java.util.*
 
 fun String?.toUsername(): UserName? {
     if (this == null || this.isEmpty()) {
@@ -28,3 +30,5 @@ fun String?.toPlainPassword(): PlainPassword? {
 fun String.toSessionId(): SessionId {
     return SessionId(this)
 }
+
+fun String.UID(): UID = UID(UUID.fromString(this))

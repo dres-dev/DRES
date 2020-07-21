@@ -11,6 +11,7 @@ import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor
 import dres.run.audit.AuditLogger
 import dres.run.audit.LogEventSource
+import dres.utilities.extensions.UID
 import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
@@ -22,7 +23,7 @@ abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler 
 
     protected fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
         throw ErrorStatusException(400, "Parameter 'runId' is missing!'")
-    }.toLong()
+    }.UID()
 }
 
 data class Judgement(val token: String, val validator: String, val verdict: SubmissionStatus)
@@ -91,7 +92,7 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
 
         validator.judge(judgement.token, judgement.verdict)
 
-        AuditLogger.judgement(run.uid, judgement.validator, judgement.token, judgement.verdict, LogEventSource.REST, ctx.sessionId())
+        AuditLogger.judgement(run.id, judgement.validator, judgement.token, judgement.verdict, LogEventSource.REST, ctx.sessionId())
 
         return SuccessStatus("Verdict received and accepted. Thanks!")
     }
@@ -116,7 +117,7 @@ class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, A
 
         val runId = ctx.pathParamMap().getOrElse("runId") {
             throw ErrorStatusException(400, "Parameter 'runId' is missing!'")
-        }.toLong()
+        }.UID()
 
         val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
 

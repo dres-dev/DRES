@@ -1,6 +1,7 @@
 package dres.data.model.run
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import dres.data.model.UID
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.time.TemporalPoint
 import dres.data.model.basics.time.TemporalRange
@@ -15,7 +16,7 @@ import java.util.*
  */
 
 data class Submission(val team: Int,
-                      val member: Long,
+                      val member: UID,
                       val timestamp: Long,
                       val item: MediaItem,
                       val start: Long? = null, //in ms

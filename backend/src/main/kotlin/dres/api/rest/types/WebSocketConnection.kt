@@ -1,6 +1,7 @@
 package dres.api.rest.types
 
 import dres.api.rest.AccessManager
+import dres.data.model.UID
 import dres.mgmt.admin.UserManager
 import io.javalin.plugin.json.JavalinJson
 import io.javalin.websocket.WsContext
@@ -24,7 +25,7 @@ inline class WebSocketConnection(val context: WsContext) {
 
     /** Name of the user that generated this [WebSocketConnection]. */
     val userName
-        get() = UserManager.get(AccessManager.getUserIdForSession(this.httpSessionId) ?: -1L)?.username?.name ?: "UNKNOWN"
+        get() = UserManager.get(AccessManager.getUserIdForSession(this.httpSessionId) ?: UID.EMPTY)?.username?.name ?: "UNKNOWN"
 
     /** IP address of the client. */
     val host

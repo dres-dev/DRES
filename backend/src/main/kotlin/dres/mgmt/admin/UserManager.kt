@@ -3,6 +3,7 @@ package dres.mgmt.admin
 import dres.api.rest.handler.UserHandler
 import dres.api.rest.handler.UserRequest
 import dres.data.dbo.DAO
+import dres.data.model.UID
 import dres.data.model.admin.*
 import dres.utilities.extensions.toPlainPassword
 import dres.utilities.extensions.toUsername
@@ -59,7 +60,7 @@ object UserManager {
         return true
     }
 
-    fun update(id: Long?, username: UserName?, password: HashedPassword?, role: Role?): Boolean {
+    fun update(id: UID?, username: UserName?, password: HashedPassword?, role: Role?): Boolean {
         validateInitalised()
         val updateId = id(id, username)
         if (updateId != null) {
@@ -73,7 +74,7 @@ object UserManager {
         return false
     }
 
-    fun update(id: Long?, username: UserName?, password: PlainPassword?, role: Role?): Boolean {
+    fun update(id: UID?, username: UserName?, password: PlainPassword?, role: Role?): Boolean {
         validateInitalised()
         val updateId = id(id, username)
         if (updateId != null) {
@@ -88,7 +89,7 @@ object UserManager {
         return false
     }
 
-    fun delete(id: Long?, username: UserName?): Boolean {
+    fun delete(id: UID?, username: UserName?): Boolean {
         validateInitalised()
         val delId = id(id, username)
         if (delId != null && exists(delId)) {
@@ -99,25 +100,22 @@ object UserManager {
         }
     }
 
-    fun delete(id:Long?):Boolean{
+    fun delete(id:UID?):Boolean{
         return delete(id=id,username = null)
     }
 
     fun list(): List<User> {
         validateInitalised()
-        // TODO is there a more elegant way?
-        val ls = mutableListOf<User>()
-        users.forEach { ls.add(it) }
-        return ls
+        return users.toList()
     }
 
-    fun exists(id: Long?, username: UserName?): Boolean {
+    fun exists(id: UID?, username: UserName?): Boolean {
         validateInitalised()
         val searchId = id(id, username)
-        return this.users.exists(searchId ?: Long.MIN_VALUE)
+        return this.users.exists(searchId ?: UID.EMPTY)
     }
 
-    fun exists(id: Long?): Boolean {
+    fun exists(id: UID?): Boolean {
         return exists(id = id, username = null)
     }
 
@@ -125,7 +123,7 @@ object UserManager {
         return exists(id = null, username = username)
     }
 
-    fun get(id: Long?, username: UserName?): User? {
+    fun get(id: UID?, username: UserName?): User? {
         validateInitalised()
         val _id = id(id, username)
         return if (exists(id = _id)) {
@@ -135,7 +133,7 @@ object UserManager {
         }
     }
 
-    fun get(id: Long?): User? {
+    fun get(id: UID?): User? {
         return get(id = id, username = null)
     }
 
@@ -149,7 +147,7 @@ object UserManager {
      *   if the username is not null, the corresponding id
      *   null if failed
      */
-    fun id(id: Long?, username: UserName?): Long? {
+    fun id(id: UID?, username: UserName?): UID? {
         return when {
             id != null -> id
             username != null -> users.find { it.username == username }?.id
@@ -181,11 +179,11 @@ object UserManager {
         }, toCreate.role!!)
     }
 
-    fun updateEntirely(id:Long?, user: UserRequest): Boolean {
+    fun updateEntirely(id:UID?, user: UserRequest): Boolean {
         return update(id=id, username = user.username.toUsername(), password = user.password.toPlainPassword(), role = user.role)
     }
 
-    fun update(id:Long?, user:UserRequest):Boolean{
+    fun update(id:UID?, user:UserRequest):Boolean{
         return update(id=id, username = user.username.toUsername(), password = user.password?.toPlainPassword(), role=user.role)
     }
 }

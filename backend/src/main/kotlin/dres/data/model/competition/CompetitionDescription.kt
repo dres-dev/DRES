@@ -3,6 +3,7 @@ package dres.data.model.competition
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import dres.data.model.Entity
+import dres.data.model.UID
 import dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dres.run.score.scoreboard.MeanAggregateScoreBoard
 import dres.run.score.scoreboard.Scoreboard
@@ -10,7 +11,7 @@ import java.util.*
 
 
 data class CompetitionDescription @JsonCreator constructor(
-        @JsonProperty("id") override var id: Long,
+        @JsonProperty("id") override var id: UID,
         @JsonProperty("name") val name: String,
         @JsonProperty("description") val description: String?,
         @JsonProperty("groups") val groups: MutableList<TaskGroup>,

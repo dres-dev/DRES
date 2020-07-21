@@ -9,11 +9,13 @@ import com.github.ajalt.clikt.parameters.types.long
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import dres.data.dbo.DAO
+import dres.data.model.UID
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.media.MediaItemSegment
 import dres.data.model.basics.media.MediaItemSegmentList
 import dres.data.model.basics.time.TemporalRange
+import dres.utilities.extensions.UID
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -28,9 +30,9 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
     abstract inner class AbstractCollectionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {
         private val collectionNameInput: String? by option("-c", "--collection", help = "Name of the Collection")
 
-        private val collectionIdInput: Long? by option("-i", "--id", help = "Id of the Collection").convert { it.toLong() }
+        private val collectionIdInput: UID? by option("-i", "--id", help = "Id of the Collection").convert { it.UID() }
 
-        fun actualCollectionId(): Long? = this.collectionIdInput ?: this.collectionNameInput?.let {
+        fun actualCollectionId(): UID? = this.collectionIdInput ?: this.collectionNameInput?.let {
             this@MediaCollectionCommand.collections.find { c -> c.name == it }?.id
         }
     }
@@ -187,7 +189,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                     println(existing)
                     return
                 }
-                this@MediaCollectionCommand.items.append(MediaItem.ImageItem(name = name, location = path, collection = collectionId, id = -1))
+                this@MediaCollectionCommand.items.append(MediaItem.ImageItem(name = name, location = path, collection = collectionId, id = UID.EMPTY))
                 println("item added")
             }
 
@@ -215,7 +217,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                     println(existing)
                     return
                 }
-                this@MediaCollectionCommand.items.append(MediaItem.VideoItem(name = name, location = path, collection = collectionId, durationMs = duration, fps = fps, id = -1))
+                this@MediaCollectionCommand.items.append(MediaItem.VideoItem(name = name, location = path, collection = collectionId, durationMs = duration, fps = fps, id = UID.EMPTY))
                 println("item added")
             }
 
@@ -255,17 +257,17 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 .required()
                 .validate { require(it.exists()) { "Input File not found" } }
 
-        private fun fromRow(map: Map<String, String>, collectionId: Long): MediaItem? {
+        private fun fromRow(map: Map<String, String>, collectionId: UID): MediaItem? {
 
             if (!map.containsKey("itemType") || !map.containsKey("name") || !map.containsKey("location")) {
                 return null
             }
 
             return when (map.getValue("itemType")) {
-                "image" -> MediaItem.ImageItem(-1, map.getValue("name"), map.getValue("location"), collectionId)
+                "image" -> MediaItem.ImageItem(UID.EMPTY, map.getValue("name"), map.getValue("location"), collectionId)
                 "video" -> {
                     if (map.containsKey("ms") && map.containsKey("fps")) {
-                        return MediaItem.VideoItem(-1, map.getValue("name"), map.getValue("location"), collectionId, map.getValue("ms").toLong(), map.getValue("fps").toFloat())
+                        return MediaItem.VideoItem(UID.EMPTY, map.getValue("name"), map.getValue("location"), collectionId, map.getValue("ms").toLong(), map.getValue("fps").toFloat())
                     }
                     return null
                 }
@@ -351,7 +353,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
             val affectedMediaItemIds = affected.map { it.mediaItemId }.toSet()
 
-            val new = grouped.filter { !affectedMediaItemIds.contains(it.key) }.map { MediaItemSegmentList(-1, it.key, it.value.toMutableList()) }
+            val new = grouped.filter { !affectedMediaItemIds.contains(it.key) }.map { MediaItemSegmentList(UID.EMPTY, it.key, it.value.toMutableList()) }
 
 
             print("storing segments...")

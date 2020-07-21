@@ -3,11 +3,12 @@ package dres.data.model.admin
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import dres.data.model.Entity
+import dres.data.model.UID
 import org.mindrot.jbcrypt.BCrypt
 
 
 data class User @JsonCreator constructor(
-        @JsonProperty("id") override var id: Long = -1,
+        @JsonProperty("id") override var id: UID = UID.EMPTY,
         @JsonProperty("username") val username: UserName,
         @JsonProperty("password") val password: HashedPassword,
         @JsonProperty("role") val role: Role) : Entity {

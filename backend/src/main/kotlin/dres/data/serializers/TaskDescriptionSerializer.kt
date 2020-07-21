@@ -3,6 +3,8 @@ package dres.data.serializers
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.TaskDescriptionBase
 import dres.data.model.competition.TaskType
+import dres.utilities.extensions.readUID
+import dres.utilities.extensions.writeUID
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer
@@ -29,7 +31,7 @@ object TaskDescriptionSerializer: Serializer<TaskDescriptionBase> {
             }
             is TaskDescriptionBase.AvsTaskDescription -> {
                 out.writeUTF(value.description)
-                out.packLong(value.defaultCollection)
+                out.writeUID(value.defaultCollection)
             }
         }
     }
@@ -42,7 +44,7 @@ object TaskDescriptionSerializer: Serializer<TaskDescriptionBase> {
         return when (taskGroup.type) {
             TaskType.KIS_VISUAL-> TaskDescriptionBase.KisVisualTaskDescription(uid, name, taskGroup, duration, MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
             TaskType.KIS_TEXTUAL -> TaskDescriptionBase.KisTextualTaskDescription(uid, name, taskGroup, duration, MediaItemSerializer.deserialize(input, available) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available), (0 until input.readInt()).map { input.readUTF() }, input.readInt())
-            TaskType.AVS -> TaskDescriptionBase.AvsTaskDescription(uid, name, taskGroup, duration, input.readUTF(), input.unpackLong())
+            TaskType.AVS -> TaskDescriptionBase.AvsTaskDescription(uid, name, taskGroup, duration, input.readUTF(), input.readUID())
         }
     }
 }

@@ -5,9 +5,11 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
+import dres.data.model.UID
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.Team
 import dres.data.model.competition.interfaces.TaskDescription
+import dres.utilities.extensions.UID
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -17,19 +19,19 @@ abstract class CompetitionHandler(protected val competitions: DAO<CompetitionDes
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.ADMIN)
 
-    private fun competitionId(ctx: Context): Long =
+    private fun competitionId(ctx: Context): UID =
             ctx.pathParamMap().getOrElse("competitionId") {
                 throw ErrorStatusException(404, "Parameter 'competitionId' is missing!'")
-            }.toLong()
+            }.UID()
 
-    protected fun competitionById(id: Long): CompetitionDescription =
+    protected fun competitionById(id: UID): CompetitionDescription =
             competitions[id] ?: throw ErrorStatusException(404, "Competition with ID $id not found.'")
 
     protected fun competitionFromContext(ctx: Context): CompetitionDescription = competitionById(competitionId(ctx))
 
 }
 
-data class CompetitionOverview(val id: Long, val name: String, val description: String, val taskCount: Int, val teamCount: Int) {
+data class CompetitionOverview(val id: UID, val name: String, val description: String, val taskCount: Int, val teamCount: Int) {
     companion object {
         fun of(competitionDescription: CompetitionDescription): CompetitionOverview = CompetitionOverview(competitionDescription.id, competitionDescription.name, competitionDescription.description
                 ?: "", competitionDescription.tasks.size, competitionDescription.teams.size)
@@ -132,7 +134,7 @@ class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
 
-        val competition = CompetitionDescription(-1L, createRequest.name, createRequest.description, mutableListOf(), mutableListOf(), mutableListOf())
+        val competition = CompetitionDescription(UID.EMPTY, createRequest.name, createRequest.description, mutableListOf(), mutableListOf(), mutableListOf())
         val competitionId = this.competitions.append(competition)
         return SuccessStatus("Competition with ID $competitionId was created.")
     }

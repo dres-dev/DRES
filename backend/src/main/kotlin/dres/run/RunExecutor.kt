@@ -7,8 +7,10 @@ import dres.api.rest.types.run.websocket.ClientMessageType
 import dres.api.rest.types.run.websocket.ServerMessage
 import dres.api.rest.types.run.websocket.ServerMessageType
 import dres.data.dbo.DAO
+import dres.data.model.UID
 import dres.data.model.run.CompetitionRun
 import dres.run.validation.interfaces.JudgementValidator
+import dres.utilities.extensions.UID
 import dres.utilities.extensions.read
 import dres.utilities.extensions.write
 import io.javalin.websocket.WsContext
@@ -36,7 +38,7 @@ object RunExecutor : Consumer<WsHandler> {
     private val executor = Executors.newCachedThreadPool()
 
     /** List of [RunManager] executed by this [RunExecutor]. */
-    private val runManagers = HashMap<Long,RunManager>()
+    private val runManagers = HashMap<UID,RunManager>()
 
     /** List of [JudgementValidator]s registered with this [RunExecutor]. */
     private val judgementValidators = LinkedList<JudgementValidator>()
@@ -45,7 +47,7 @@ object RunExecutor : Consumer<WsHandler> {
     private val connectedClients = HashSet<WebSocketConnection>()
 
     /** List of session IDs that are currently observing a competition. */
-    private val observingClients = HashMap<Long,MutableSet<WebSocketConnection>>()
+    private val observingClients = HashMap<UID,MutableSet<WebSocketConnection>>()
 
     /** Lock for accessing and changing all data structures related to WebSocket clients. */
     private val clientLock = StampedLock()
@@ -54,7 +56,7 @@ object RunExecutor : Consumer<WsHandler> {
     private val runManagerLock = StampedLock()
 
     /** Internal array of [Future]s for cleaning after [RunManager]s. See [RunExecutor.cleanerThread]*/
-    private val results = HashMap<Future<*>, Long>()
+    private val results = HashMap<Future<*>, UID>()
 
     /** Instance of shared [DAO] used to access [CompetitionRun]s. */
     lateinit var runs: DAO<CompetitionRun>
@@ -131,7 +133,7 @@ object RunExecutor : Consumer<WsHandler> {
                     for (m in runManagers) {
                         if (this.observingClients[m.key]?.contains(connection) == true) {
                             this.observingClients[m.key]?.remove(connection)
-                            m.value.wsMessageReceived(session, ClientMessage(m.key, ClientMessageType.UNREGISTER)) /* Send implicit unregister message associated with a disconnect. */
+                            m.value.wsMessageReceived(session, ClientMessage(m.key.string, ClientMessageType.UNREGISTER)) /* Send implicit unregister message associated with a disconnect. */
                         }
                     }
                 }
@@ -147,14 +149,14 @@ object RunExecutor : Consumer<WsHandler> {
             val session = WebSocketConnection(it)
             logger.debug("Received WebSocket message: $message from ${it.session.policy}")
             this.runManagerLock.read {
-                if (this.runManagers.containsKey(message.runId)) {
+                if (this.runManagers.containsKey(message.runId.UID())) {
                     when (message.type) {
                         ClientMessageType.ACK -> {}
-                        ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.add(WebSocketConnection(it)) }
-                        ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.remove(WebSocketConnection(it)) }
+                        ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId.UID()]?.add(WebSocketConnection(it)) }
+                        ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId.UID()]?.remove(WebSocketConnection(it)) }
                         ClientMessageType.PING -> it.send(ServerMessage(message.runId, ServerMessageType.PING))
                     }
-                    this.runManagers[message.runId]!!.wsMessageReceived(session, message) /* Forward message to RunManager. */
+                    this.runManagers[message.runId.UID()]!!.wsMessageReceived(session, message) /* Forward message to RunManager. */
                 }
             }
         }
@@ -175,7 +177,7 @@ object RunExecutor : Consumer<WsHandler> {
      * @param runId The ID for which to return the [RunManager].
      * @return Optional [RunManager].
      */
-    fun managerForId(runId: Long): RunManager? = this.runManagerLock.read {
+    fun managerForId(runId: UID): RunManager? = this.runManagerLock.read {
         return this.runManagers[runId]
     }
 
@@ -215,7 +217,7 @@ object RunExecutor : Consumer<WsHandler> {
      * @param runId The run ID identifying the [RunManager] for which clients should received the message.
      * @param message The [ServerMessage] that should be broadcast.
      */
-    fun broadcastWsMessage(runId: Long, message: ServerMessage) = this.clientLock.read {
+    fun broadcastWsMessage(runId: UID, message: ServerMessage) = this.clientLock.read {
         this.runManagerLock.read {
             this.connectedClients.filter {
                 this.observingClients[runId]?.contains(it) ?: false

@@ -1,14 +1,37 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskDescription} from '../../../openapi';
-import {combineLatest, Observable, of, Subscription} from 'rxjs';
-import {catchError, debounceTime, filter, map, pairwise, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
+import {BehaviorSubject, merge, Observable, of, Subscription} from 'rxjs';
+import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, tap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
+import {animate, keyframes, style, transition, trigger} from '@angular/animations';
+
+/**
+ * Internal helper interface.
+ */
+interface SubmissionDelta {
+    correct: number[];
+    wrong: number [];
+}
 
 @Component({
     selector: 'app-teams-viewer',
     templateUrl: './teams-viewer.component.html',
-    styleUrls: ['./teams-viewer.component.scss']
+    styleUrls: ['./teams-viewer.component.scss'],
+    animations: [
+    trigger('highlight', [
+        transition('nohighlight => correct', animate('1500ms', keyframes([
+            style({backgroundColor: 'initial', offset: 0} ),
+            style({backgroundColor: 'lightgreen', offset: 0.1} ),
+            style({backgroundColor: 'initial', offset: 1} ),
+        ]))),
+        transition('nohighlight => wrong', animate('1500ms', keyframes([
+            style({backgroundColor: 'initial', offset: 0} ),
+            style({backgroundColor: 'tomato', offset: 0.1} ),
+            style({backgroundColor: 'initial', offset: 1} ),
+        ])))
+    ])
+    ]
 })
 export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     @Input() runId: Observable<number>;
@@ -22,12 +45,17 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     /** Observable that tracks the current score per team. */
     scores: Observable<ScoreOverview>;
 
+    /** Observable that tracks whether a highlight animation should be played for the given team. */
+    highlight: Observable<string[]>;
+
+    /** Behaviour subject used to reset highlight animation state. */
+    resetHighlight: BehaviorSubject<void> = new BehaviorSubject(null);
+
     /** Reference to the audio file played during countdown. */
     @ViewChild('audio') audio: ElementRef<HTMLAudioElement>;
 
-    submissionSoundEffect: Subscription;
+    /** */
     taskEndedSoundEffect: Subscription;
-
 
 
     constructor(private runService: CompetitionRunService, public config: AppConfig) {}
@@ -65,31 +93,51 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
             shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading of score. */
         );
 
-        this.submissionSoundEffect = combineLatest([this.state, this.submissions]).pipe(
-            filter(([st, sb]) => st.status === 'RUNNING_TASK'),
-            map(([st, sb]) => sb),
+        /* Observable that calculates changes to the submission per team every 250ms. */
+        const submissionDelta = this.submissions.pipe(
             pairwise(),
-            debounceTime(500),
             map(([s1, s2]) => {
-                const stat1 = [
-                    s1.map(s => s.filter(ss => ss.status === 'CORRECT').length).reduce((sum, current) => sum + current, 0),
-                    s1.map(s => s.filter(ss => ss.status === 'WRONG').length).reduce((sum, current) => sum + current, 0),
-                ];
+                const delta = {
+                    s1_correct: s1.map(s => s.filter(ss => ss.status === 'CORRECT').length),
+                    s1_wrong: s1.map(s => s.filter(ss => ss.status === 'WRONG').length),
 
-                const stat2 = [
-                    s2.map(s => s.filter(ss => ss.status === 'CORRECT').length).reduce((sum, current) => sum + current, 0),
-                    s2.map(s => s.filter(ss => ss.status === 'WRONG').length).reduce((sum, current) => sum + current, 0),
-                ];
+                    s2_correct: s2.map(s => s.filter(ss => ss.status === 'CORRECT').length),
+                    s2_wrong: s2.map(s => s.filter(ss => ss.status === 'WRONG').length)
+                };
+                return {
+                    correct: delta.s1_correct.map((s, i) => delta.s2_correct[i] - s),
+                    wrong: delta.s1_wrong.map((s, i) => delta.s2_wrong[i] - s)
+                } as SubmissionDelta;
+            }));
 
-                return [stat2[0] - stat1[0], stat2[1] - stat1[1]];
-            })
-        ).subscribe(delta => {
-            if (delta[0] > delta[1]) {
-                AudioPlayerUtilities.playOnce('assets/audio/correct.ogg', this.audio.nativeElement);
-            } else if (delta[0] < delta[1]) {
-                AudioPlayerUtilities.playOnce('assets/audio/wrong.ogg', this.audio.nativeElement);
-            }
-        });
+
+        /* Observable that indicates whether a certain team has new submissions. */
+        this.highlight = merge(submissionDelta.pipe(
+            map(delta => {
+                const correct = delta.correct.map(s => s > 0);
+                const wrong = delta.wrong.map(s => s > 0);
+                return correct.map((s, i) => {
+                    if (s === true) {
+                        return 'correct';
+                    } else if (wrong[i]) {
+                        return 'wrong';
+                    } else {
+                        return 'nohighlight';
+                    }
+                }); /* Zip two arrays and calculate logical OR. */
+            }),
+            tap(s => {
+                if (s.filter(e => e === 'correct').length > 0) {
+                    AudioPlayerUtilities.playOnce('assets/audio/correct.ogg', this.audio.nativeElement);
+                } else if (s.filter(e => e === 'wrong').length > 0) {
+                    AudioPlayerUtilities.playOnce('assets/audio/wrong.ogg', this.audio.nativeElement);
+                }
+            })),
+            this.resetHighlight.pipe(
+                flatMap(() => this.info.pipe(map(i => i.teams.map(t => 'nohighlight'))))
+            )
+        )
+        .pipe(shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading of score. */);
 
         /** Subscription for end of task (used to play sound effects). */
         this.taskEndedSoundEffect = this.taskEnded.pipe(
@@ -107,9 +155,6 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     }
 
     public ngOnDestroy(): void {
-        this.submissionSoundEffect.unsubscribe();
-        this.submissionSoundEffect = null;
-
         this.taskEndedSoundEffect.unsubscribe();
         this.taskEndedSoundEffect = null;
     }

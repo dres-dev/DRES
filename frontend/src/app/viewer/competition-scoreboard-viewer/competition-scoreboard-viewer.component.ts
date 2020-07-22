@@ -1,5 +1,5 @@
 import {Component, Input, OnInit, ViewChild} from '@angular/core';
-import {CompetitionRunService, RunInfo, RunState, ScoreOverview, Team} from '../../../../openapi';
+import {CompetitionRunService, RunInfo, RunState, Team} from '../../../../openapi';
 import {concat, Observable, of} from 'rxjs';
 import {
     ApexAxisChartSeries,
@@ -10,8 +10,6 @@ import {
     ApexPlotOptions,
     ApexStroke,
     ApexTheme,
-    ApexXAxis,
-    ApexYAxis,
     ChartComponent
 } from 'ng-apexcharts';
 import {catchError, map, switchMap, withLatestFrom} from 'rxjs/operators';
@@ -34,15 +32,18 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
      * The run info of the current run
      */
     @Input() info: Observable<RunInfo>;
+
     /**
      * The observable for the state, which is updated through a websocket
      */
     @Input() state: Observable<RunState>;
+
     /**
      * Whether or not to show competition overview scores.
      * Otherwise, the current task group total is shown.
      */
     @Input() competitionOverview = true;
+
     @ViewChild('chart') chartComponent: ChartComponent;
 
     chart: ApexChart = {
@@ -67,15 +68,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
             horizontal: true,
             distributed: true
         }
-    }
-
-    yaxis: ApexYAxis = {
-        labels: {
-            style: {
-                colors: '#fff'
-            }
-        }
-    } as ApexYAxis;
+    };
 
     stroke: ApexStroke = {
         width: 1,
@@ -105,9 +98,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
         enabled: true
     } as ApexDataLabels;
 
-    xaxis: Observable<Partial<ApexXAxis>>;
-    series: Observable<Partial<ApexAxisChartSeries>>;
-    color: Observable<string[]>;
+    series: Observable<ApexAxisChartSeries>;
 
     teams: Observable<Team[]>;
     currentTaskGroup: Observable<string>;
@@ -121,17 +112,10 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
     ngOnInit(): void {
         /* Create observable from teams. */
         this.teams = this.info.pipe(map(i => i.teams));
-        this.color = this.teams.pipe(map(i => i.map(t => t.color)));
+
         /* Create observable for current task group. */
         this.currentTaskGroup = this.state.pipe(
             map(state => state.currentTask?.taskGroup.name)
-        );
-
-        /* Create observable for x-Axis data. */
-        this.xaxis = this.teams.pipe(
-            map(team => {
-                return {categories: team.map(t => t.name)};
-            })
         );
 
         /* Create observable for series. */
@@ -148,38 +132,30 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
                 }),
                 withLatestFrom(this.teams, this.currentTaskGroup),
                 map(([scores, team, taskGroup]) => {
-                    if (scores && scores.length > 0) {
-                        return scores.filter(so => {
-                            if (this.competitionOverview) {
-                                return this.ignoreScores.indexOf(so.name) < 0;
-                            } else {
-                                return so.taskGroup === taskGroup;
-                            }
-                        }).map(s => {
-
-                            /* In case there is no value, specifically set 0 as score for each team*/
-                            if (s.scores.length === 0) {
-                                return {name: s.name, data: team.map(t => 0)};
-                            } else {
-                                return {name: s.name, data: s.scores.map(sc => Math.round(sc.score))};
-                            }
-                        });
-                    } else {
-                        // TODO check with @ppanopticon why
-                        if (scores.hasOwnProperty('name') && scores.hasOwnProperty('scores')) {
-                            const so = (scores as unknown) as ScoreOverview;
-                            if (this.competitionOverview) {
-                                if (this.ignoreScores.indexOf(so.name) < 0) {
-                                }
-                            } else {
-                                if (so?.taskGroup === taskGroup) { // ?. due to 'average' has taskGroup === null
-                                    return [{name: taskGroup, data: so.scores.map(sc => Math.round(sc.score))}];
-                                }
-                            }
-                        } else {
-                            return [{name: 'Empty', data: team.map(_ => 0)}];
-                        }
+                    if (scores == null) {
+                        return [{name: 'Empty', data: []}];
                     }
+                    return scores.filter(so => {
+                        if (this.competitionOverview) {
+                            return this.ignoreScores.indexOf(so.name) < 0;
+                        } else {
+                            return so.taskGroup === taskGroup;
+                        }
+                    }).map(s => {
+                        /* In case there is no value, specifically set 0 as score for each team*/
+                        if (s.scores.length === 0) {
+                            return {name: s.name, data: team.map(t => {
+                                return { x: t.name, y: 0, fillColor: t.color };
+                            })};
+                        } else {
+                            const combined = team.map((t, i) => {
+                                return {team: t,  score: Math.round(s.scores[i].score) };
+                            }).sort((a, b) => b.score - a.score);
+                            return {name: s.name, data: combined.map(c => {
+                              return { x: c.team.name, y: c.score, fillColor: c.team.color };
+                            })};
+                        }
+                    });
                 })
             ));
     }

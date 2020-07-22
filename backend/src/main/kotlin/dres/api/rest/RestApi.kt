@@ -108,7 +108,7 @@ object RestApi {
             it.registerPlugin(getConfiguredOpenApiPlugin())
             it.defaultContentType = "application/json"
             it.prefer405over404 = true
-            it.sessionHandler(::fileSessionHandler)
+            it.sessionHandler { fileSessionHandler(config) }
             it.accessManager(AccessManager::manage)
             it.addStaticFiles("html")
             it.addSinglePageRoot("/", "html/index.html")
@@ -192,14 +192,19 @@ object RestApi {
             }
     )
 
-    private fun fileSessionHandler() = SessionHandler().apply {
+    private fun fileSessionHandler(config: Config) = SessionHandler().apply {
         sessionCache = DefaultSessionCache(this).apply {
             sessionDataStore = FileSessionDataStore().apply {
                 val baseDir = File(".")
                 this.storeDir = File(baseDir, "session-store").apply { mkdir() }
             }
         }
-        sameSite = HttpCookie.SameSite.NONE
+
+        if (config.enableSsl) {
+            sameSite = HttpCookie.SameSite.NONE
+            sessionCookieConfig.isSecure = true
+            isSecureRequestOnly = true
+        }
 
     }
 

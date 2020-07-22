@@ -39,7 +39,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                 return
             }
             RunExecutor.managers().forEach {
-                println("${RunSummary(it.runId, it.name, it.competitionDescription.description, it.currentTask?.name)} (${it.status})")
+                println("${RunSummary(it.id, it.name, it.competitionDescription.description, it.currentTask?.name)} (${it.status})")
             }
         }
     }
@@ -50,7 +50,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
     inner class ListCompetitionRunsCommand : CliktCommand(name = "list", help = "Lists all (ongoing and past) competition runs.") {
         override fun run() {
             this@CompetitionRunCommand.runs.forEach {
-                println("${RunSummary(it.id, it.name, it.competitionDescription.description, it.currentTask?.task?.name)}")
+                println("${RunSummary(it.id, it.name, it.competitionDescription.description, it.lastTask?.task?.name)}")
             }
         }
     }
@@ -61,7 +61,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
     inner class DeleteRunCommand: CliktCommand(name = "delete", help = "Deletes an existing competition run.") {
         private val id: Long by option("-r", "--run").long().required()
         override fun run() {
-            if (RunExecutor.managers().any { it.runId == id }) {
+            if (RunExecutor.managers().any { it.id == id }) {
                 println("Run with ID $id could not be deleted because it is still running! Terminate it and try again.")
                 return
             }
@@ -151,12 +151,10 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                 println()
                 println("Evaluated Tasks:")
                 it.runs.forEach {
-                    println(it.data.task)
+                    println(it.task)
 
                     println("Submissions")
-                    it.data.submissions.forEach {
-                        println(it)
-                    }
+                    it.submissions.forEach { println(it) }
                 }
                 println()
             }
@@ -186,7 +184,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                     return
                 }
 
-                val submissions = run.runs.flatMap { it.data.submissions }.filter { it.uid in ids }
+                val submissions = run.runs.flatMap { it.submissions }.filter { it.uid in ids }
                 submissions.forEach { it.status = SubmissionStatus.INDETERMINATE }
 
                 this@CompetitionRunCommand.runs.update(run)
@@ -209,7 +207,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                     return
                 }
 
-                val submissions = run.runs.filter { it.uid in ids }.flatMap { it.data.submissions }
+                val submissions = run.runs.filter { it.uid in ids }.flatMap { it.submissions }
                 submissions.forEach { it.status = SubmissionStatus.INDETERMINATE }
 
                 this@CompetitionRunCommand.runs.update(run)
@@ -232,7 +230,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                     return
                 }
 
-                val submissions = run.runs.filter { it.task.taskGroup.name == taskGroup }.flatMap { it.data.submissions }
+                val submissions = run.runs.filter { it.task.taskGroup.name == taskGroup }.flatMap { it.submissions }
                 submissions.forEach { it.status = SubmissionStatus.INDETERMINATE }
 
                 this@CompetitionRunCommand.runs.update(run)

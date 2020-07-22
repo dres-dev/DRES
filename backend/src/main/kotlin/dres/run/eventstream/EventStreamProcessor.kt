@@ -33,7 +33,7 @@ object EventStreamProcessor {
 
         active = true
 
-        processorThread = Thread {
+        processorThread = Thread( {
 
             while (active) {
                 try {
@@ -71,8 +71,9 @@ object EventStreamProcessor {
             eventSink.flush()
             eventSink.close()
 
-        }
+        }, "EventStreamProcessorThread")
 
+        processorThread.isDaemon = true
         processorThread.start()
 
     }

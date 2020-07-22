@@ -309,7 +309,7 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
 
         /* Obtain current task run and check status. */
         return if (run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTaskRun?.task?.taskGroup?.type?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) {
+            if (run.currentTaskRun?.task?.taskType?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) {
                 run.submissions.map { SubmissionInfo.blind(it) }
             } else {
                 run.submissions.map { SubmissionInfo.withId(it) }
@@ -347,7 +347,7 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
 
         val timestamp = ctx.pathParamMap().getOrDefault("timestamp", "0").toLong()
         return if (run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTaskRun?.task?.taskGroup?.type?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) {
+            if (run.currentTaskRun?.task?.taskType?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) {
                 run.submissions.filter { it.timestamp >= timestamp }.map { SubmissionInfo.blind(it) }
             } else {
                 run.submissions.filter { it.timestamp >= timestamp }.map { SubmissionInfo.withId(it) }
@@ -386,7 +386,7 @@ class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHa
         val taskId = ctx.pathParamMap()["taskId"]?.toInt() ?: throw ErrorStatusException(404, "Missing task id")
 
         return if (run.currentTaskRun?.taskId == taskId && run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTaskRun?.task?.taskGroup?.type?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) {
+            if (run.currentTaskRun?.task?.taskType?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) {
                 run.submissions.map { SubmissionInfo.blind(it) }
             } else {
                 run.submissions.map { SubmissionInfo.withId(it) }

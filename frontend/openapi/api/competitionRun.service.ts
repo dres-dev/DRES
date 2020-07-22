@@ -223,7 +223,7 @@ export class CompetitionRunService {
     }
 
     /**
-     * Returns the overviews of all score boards for the current task.
+     * Returns the overviews of all score boards for the current task run, if it is either running or has just ended.
      * @param runId Competition run ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -354,7 +354,7 @@ export class CompetitionRunService {
     }
 
     /**
-     * Returns the actual query for the current task.
+     * Returns the query description for the current task run (i.e. the one that is currently selected).
      * @param runId Competition Run ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -399,7 +399,7 @@ export class CompetitionRunService {
     }
 
     /**
-     * Returns the information for the current task.
+     * Returns the information for the current task (i.e. the one that is currently selected).
      * @param runId Competition Run ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -444,7 +444,7 @@ export class CompetitionRunService {
     }
 
     /**
-     * Returns the submissions to the current task.
+     * Returns the submissions for the current task run, if it is either running or has just ended.
      * @param runId Competition Run ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -489,7 +489,7 @@ export class CompetitionRunService {
     }
 
     /**
-     * Returns the submissions to the current task which are newer than an indicated time.
+     * Returns the submissions for the current task that are newer than an indicated time, if it is either running or has just ended.
      * @param runId Competition Run ID
      * @param timestamp Minimum Timestamp for returned Submissions
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -538,7 +538,7 @@ export class CompetitionRunService {
     }
 
     /**
-     * Returns the submissions of a previous task.
+     * Returns the submissions of a specific task run, regardless of whether it is currently running or has ended.
      * @param runId Competition Run ID
      * @param taskId Task ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.

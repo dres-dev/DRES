@@ -11,11 +11,10 @@
  */
 
 
-export interface MediaItem { 
-    itemType: string;
-    name: string;
-    location: string;
-    collection: number;
-    id: number;
+export interface QueryContentElement { 
+    content: string;
+    contentType: string;
+    offset: number;
+    maxDuration?: number;
 }
 

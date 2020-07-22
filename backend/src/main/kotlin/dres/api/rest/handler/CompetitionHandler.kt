@@ -132,7 +132,7 @@ class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
 
-        val competition = CompetitionDescription(-1L, createRequest.name, createRequest.description, mutableListOf(), mutableListOf(), mutableListOf())
+        val competition = CompetitionDescription(-1L, createRequest.name, createRequest.description, mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf())
         val competitionId = this.competitions.append(competition)
         return SuccessStatus("Competition with ID $competitionId was created.")
     }

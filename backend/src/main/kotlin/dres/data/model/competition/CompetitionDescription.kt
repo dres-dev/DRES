@@ -13,6 +13,7 @@ data class CompetitionDescription(
         override var id: Long,
         val name: String,
         val description: String?,
+        val taskTypes: MutableList<TaskType>,
         val groups: MutableList<TaskGroup>,
         val tasks: MutableList<TaskDescription>,
         val teams: MutableList<Team>,

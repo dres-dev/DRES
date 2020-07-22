@@ -23,6 +23,8 @@ class TaskDescription(
     /** The [TaskGroup]  the [Task] belongs to */
     val taskGroup: TaskGroup,
 
+    val taskType: TaskType,
+
     /** The duration of the [TaskDescription] in seconds. */
     val duration: Long,
 
@@ -42,7 +44,7 @@ class TaskDescription(
      *
      * @return [TaskRunScorer].
      */
-    fun newScorer(): TaskRunScorer = taskGroup.type.newScorer()
+    fun newScorer(): TaskRunScorer = taskType.newScorer()
 
     /**
      * Generates and returns a new [SubmissionValidator] for this [TaskDescription]. Depending
@@ -60,7 +62,7 @@ class TaskDescription(
      *
      * @return [SubmissionFilter]
      */
-    fun newFilter(): SubmissionFilter = taskGroup.type.newFilter()
+    fun newFilter(): SubmissionFilter = taskType.newFilter()
 
     /**
      * Generates a [QueryDescription] object to be used by a viewer

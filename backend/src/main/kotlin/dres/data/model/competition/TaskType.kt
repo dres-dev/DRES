@@ -17,44 +17,44 @@ data class TaskType(
         val options: Set<Options>
 ) {
 
-    enum class Options(val description: String){
+    enum class Options{
 
-        HIDDEN_RESULTS("Do not show submissions while task is running"),
-        MAP_TO_SEGMENT("Map the time of a submission to a pre-defined segment")
-
-    }
-
-    enum class TargetType(val description: String){
-
-        SINGLE_MEDIA_ITEM("Whole Media Item"),
-        SINGLE_MEDIA_SEGMENT("Part of a Media Item"),
-        MULTIPLE_MEDIA_ITEMS("Multiple Media Items"),
-        JUDGEMENT("Judgement")
+        HIDDEN_RESULTS, //Do not show submissions while task is running
+        MAP_TO_SEGMENT //Map the time of a submission to a pre-defined segment
 
     }
 
-    enum class QueryComponentType(val description: String){
+    enum class TargetType{
 
-        IMAGE_ITEM("Image Media Item"),
-        VIDEO_ITEM_SEGMENT("Part of a Video Media Item"),
-        TEXT("Text"),
-        EXTERNAL_IMAGE("External Image"),
-        EXTERNAL_VIDEO("External Video")
-
-    }
-
-    enum class ScoringType(val description: String){
-
-        KIS("Linear Known Item Search Scoring"),
-        AVS("Ad-hoc Search Scoring")
+        SINGLE_MEDIA_ITEM, // Whole Media Item"
+        SINGLE_MEDIA_SEGMENT, //Part of a Media Item
+        MULTIPLE_MEDIA_ITEMS, //Multiple Media Items
+        JUDGEMENT //Judgement
 
     }
 
-    enum class SubmissionFilterType(val description: String, internal val filter: () -> SubmissionFilter){
+    enum class QueryComponentType{
 
-        NO_DUPLICATES("No Duplicate Submissions", ::DuplicateSubmissionFilter),
-        ONE_CORRECT_PER_TEAM("One Correct Submission per Team", ::OneCorrectSubmissionPerTeamFilter),
-        TEMPORAL_SUBMISSION("Submissions need to have a time", ::TemporalSubmissionFilter)
+        IMAGE_ITEM, //Image Media Item
+        VIDEO_ITEM_SEGMENT, //Part of a Video Media Item
+        TEXT,
+        EXTERNAL_IMAGE,
+        EXTERNAL_VIDEO
+
+    }
+
+    enum class ScoringType{
+
+        KIS,
+        AVS
+
+    }
+
+    enum class SubmissionFilterType(internal val filter: () -> SubmissionFilter){
+
+        NO_DUPLICATES( ::DuplicateSubmissionFilter),
+        ONE_CORRECT_PER_TEAM(::OneCorrectSubmissionPerTeamFilter),
+        TEMPORAL_SUBMISSION(::TemporalSubmissionFilter)
 
     }
 

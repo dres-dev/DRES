@@ -13,16 +13,6 @@
 
 export interface TaskGroup { 
     name: string;
-    type: TaskGroup.TypeEnum;
-    defaultTaskDuration: number;
+    type: string;
 }
-export namespace TaskGroup {
-    export type TypeEnum = 'KIS_VISUAL' | 'KIS_TEXTUAL' | 'AVS';
-    export const TypeEnum = {
-        KISVISUAL: 'KIS_VISUAL' as TypeEnum,
-        KISTEXTUAL: 'KIS_TEXTUAL' as TypeEnum,
-        AVS: 'AVS' as TypeEnum
-    };
-}
-
 

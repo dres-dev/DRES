@@ -118,6 +118,8 @@ open class CompetitionRun(override var id: Long, val name: String, val competiti
         val task: TaskDescription
             get() = this@CompetitionRun.competitionDescription.tasks[this@TaskRun.taskId]
 
+
+
         /** The [CompetitionRun] this [TaskRun] belongs to.*/
         val competition: CompetitionRun
             get() = this@CompetitionRun

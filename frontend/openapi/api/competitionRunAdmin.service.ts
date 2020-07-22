@@ -186,7 +186,7 @@ export class CompetitionRunAdminService {
     }
 
     /**
-     * Terminates a competition run. This is a method for admins.
+     * Adjusts the duration of a running task run. This is a method for admins.
      * @param runId Competition Run ID
      * @param duration Duration to add.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -282,7 +282,7 @@ export class CompetitionRunAdminService {
     }
 
     /**
-     * Aborts the currently running task. This is a method for admins.
+     * Aborts the currently running task run. This is a method for admins.
      * @param runId Competition Run ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -328,7 +328,7 @@ export class CompetitionRunAdminService {
     }
 
     /**
-     * Moves to the next task. This is a method for admins.
+     * Moves to and selects the next task. This is a method for admins.
      * @param runId Competition Run ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -374,7 +374,7 @@ export class CompetitionRunAdminService {
     }
 
     /**
-     * Moves to the previous task. This is a method for admins.
+     * Moves to and selects the previous task. This is a method for admins.
      * @param runId Competition Run ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -420,7 +420,7 @@ export class CompetitionRunAdminService {
     }
 
     /**
-     * Starts the current task. This is a method for admins.
+     * Starts the currently active task as a new task run. This is a method for admins.
      * @param runId Competition Run ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -466,7 +466,7 @@ export class CompetitionRunAdminService {
     }
 
     /**
-     * Moves to the specified task. This is a method for admins.
+     * Moves to and selects the specified task. This is a method for admins.
      * @param runId Competition run ID
      * @param idx Index of the task to switch to.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.

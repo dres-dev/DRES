@@ -78,7 +78,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         val item = this.itemIndex[collectionId to itemParam].firstOrNull() ?:
             throw ErrorStatusException(404, "Media item '$itemParam (collection = $collectionId)' could not be found.")
 
-        val mapToSegment = runManager.currentTask?.taskGroup?.type?.options?.contains(TaskType.Options.MAP_TO_SEGMENT) == true
+        val mapToSegment = runManager.currentTask?.taskType?.options?.contains(TaskType.Options.MAP_TO_SEGMENT) == true
 
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) && item is MediaItem.VideoItem -> {
@@ -170,7 +170,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         AuditLogger.submission(run.uid, run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId())
         EventStreamProcessor.event(SubmissionEvent(ctx.sessionId(), submission))
 
-        if (run.currentTask?.taskGroup?.type?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) { //pre-generate preview
+        if (run.currentTask?.taskType?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) { //pre-generate preview
             generatePreview(submission)
         }
 

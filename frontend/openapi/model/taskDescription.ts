@@ -9,13 +9,19 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { TaskType } from './taskType';
+import { TaskDescriptionComponent } from './taskDescriptionComponent';
 import { TaskGroup } from './taskGroup';
 
 
 export interface TaskDescription { 
-    name: string;
-    duration: number;
     uid: string;
+    name: string;
     taskGroup: TaskGroup;
+    taskType: TaskType;
+    duration: number;
+    defaultMediaCollectionId: number;
+    components: Array<TaskDescriptionComponent>;
+    target: object;
 }
 

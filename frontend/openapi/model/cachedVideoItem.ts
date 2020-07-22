@@ -9,13 +9,12 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { TemporalRange } from './temporalRange';
+import { VideoItem } from './videoItem';
 
 
-export interface MediaItem { 
-    itemType: string;
-    name: string;
-    location: string;
-    collection: number;
-    id: number;
+export interface CachedVideoItem { 
+    item: VideoItem;
+    temporalRange: TemporalRange;
 }
 

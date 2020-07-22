@@ -9,18 +9,12 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { QueryContent } from './queryContent';
 
 
 export interface QueryDescription { 
-    type: QueryDescription.TypeEnum;
+    taskName: string;
+    query: QueryContent;
+    reveal?: QueryContent;
 }
-export namespace QueryDescription {
-    export type TypeEnum = 'VIDEO' | 'IMAGE' | 'TEXT';
-    export const TypeEnum = {
-        VIDEO: 'VIDEO' as TypeEnum,
-        IMAGE: 'IMAGE' as TypeEnum,
-        TEXT: 'TEXT' as TypeEnum
-    };
-}
-
 

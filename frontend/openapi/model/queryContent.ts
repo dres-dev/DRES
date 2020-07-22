@@ -9,13 +9,14 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { QueryContentElement } from './queryContentElement';
 
 
-export interface MediaItem { 
-    itemType: string;
-    name: string;
-    location: string;
-    collection: number;
-    id: number;
+export interface QueryContent { 
+    text: Array<QueryContentElement>;
+    image: Array<QueryContentElement>;
+    audio: Array<QueryContentElement>;
+    video: Array<QueryContentElement>;
+    loop: boolean;
 }
 

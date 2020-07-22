@@ -9,7 +9,9 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TaskDescriptionBase } from './taskDescriptionBase';
+import { CachedVideoItem } from './cachedVideoItem';
+import { TaskDescription } from './taskDescription';
+import { TaskType } from './taskType';
 import { Team } from './team';
 import { TaskGroup } from './taskGroup';
 
@@ -18,9 +20,11 @@ export interface CompetitionDescription {
     id: number;
     name: string;
     description?: string;
+    taskTypes: Array<TaskType>;
     groups: Array<TaskGroup>;
-    tasks: Array<TaskDescriptionBase>;
+    tasks: Array<TaskDescription>;
     teams: Array<Team>;
     uid: string;
+    allCachedVideoItems: Array<CachedVideoItem>;
 }
 

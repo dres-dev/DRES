@@ -13,7 +13,6 @@ import dres.data.dbo.DAO
 import dres.data.model.Config
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.CompetitionDescription
-import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.utilities.FFmpegUtil
 import java.io.File
 import java.nio.file.Files
@@ -101,7 +100,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
 
 
 
-            val segmentTasks = competition.tasks.filterIsInstance(MediaSegmentTaskDescription::class.java)
+            val segmentTasks = competition.getAllCachedVideoItems()
 
             segmentTasks.forEach {
                 val item = it.item
@@ -119,7 +118,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                     return@forEach
                 }
 
-                println("rendering ${it.name}")
+                println("rendering ${it.item} at ${it.temporalRange}")
                 FFmpegUtil.prepareMediaSegmentTask(it, collection.basePath, this@CompetitionCommand.taskCacheLocation)
 
             }

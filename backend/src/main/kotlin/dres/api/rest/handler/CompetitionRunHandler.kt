@@ -10,7 +10,7 @@ import dres.data.model.Config
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.QueryDescription
 import dres.data.model.competition.TaskGroup
-import dres.data.model.competition.interfaces.HiddenResultsTaskDescription
+import dres.data.model.competition.TaskType
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
@@ -248,7 +248,7 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
     }
 }
 
-class CurrentQueryHandler(config: Config) : AbstractCompetitionRunRestHandler(), GetRestHandler<QueryDescription> {
+class CurrentQueryHandler(private val config: Config) : AbstractCompetitionRunRestHandler(), GetRestHandler<QueryDescription> {
 
     override val route = "run/:runId/query"
 
@@ -309,7 +309,7 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
 
         /* Obtain current task run and check status. */
         return if (run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTaskRun?.task is HiddenResultsTaskDescription) {
+            if (run.currentTaskRun?.task?.taskGroup?.type?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) {
                 run.submissions.map { SubmissionInfo.blind(it) }
             } else {
                 run.submissions.map { SubmissionInfo.withId(it) }
@@ -347,10 +347,10 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
 
         val timestamp = ctx.pathParamMap().getOrDefault("timestamp", "0").toLong()
         return if (run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTaskRun?.task is HiddenResultsTaskDescription) {
-                run.submissions.filter { it.timestamp >= timestamp }.map { SubmissionInfo.blind(it) } ?: emptyList()
+            if (run.currentTaskRun?.task?.taskGroup?.type?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) {
+                run.submissions.filter { it.timestamp >= timestamp }.map { SubmissionInfo.blind(it) }
             } else {
-                run.submissions.filter { it.timestamp >= timestamp }.map { SubmissionInfo.withId(it) } ?: emptyList()
+                run.submissions.filter { it.timestamp >= timestamp }.map { SubmissionInfo.withId(it) }
             }
         } else {
             run.submissions.filter { it.timestamp >= timestamp }.map { SubmissionInfo.blind(it) }
@@ -386,7 +386,7 @@ class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHa
         val taskId = ctx.pathParamMap()["taskId"]?.toInt() ?: throw ErrorStatusException(404, "Missing task id")
 
         return if (run.currentTaskRun?.taskId == taskId && run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTaskRun?.task is HiddenResultsTaskDescription) {
+            if (run.currentTaskRun?.task?.taskGroup?.type?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) {
                 run.submissions.map { SubmissionInfo.blind(it) }
             } else {
                 run.submissions.map { SubmissionInfo.withId(it) }

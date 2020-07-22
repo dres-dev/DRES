@@ -4,7 +4,7 @@ import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffmpeg.FFmpegResult
 import com.github.kokorin.jaffree.ffmpeg.UrlInput
 import com.github.kokorin.jaffree.ffmpeg.UrlOutput
-import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
+import dres.data.model.competition.CachedVideoItem
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
 import java.io.File
@@ -121,7 +121,7 @@ object FFmpegUtil {
         }
     }
 
-    fun prepareMediaSegmentTask(description: MediaSegmentTaskDescription, collectionBasePath: String, cacheLocation: File) {
+    fun prepareMediaSegmentTask(description: CachedVideoItem, collectionBasePath: String, cacheLocation: File) {
 
         cacheLocation.mkdirs()
 

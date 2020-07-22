@@ -1,7 +1,6 @@
 package dres.data.model.competition
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonProperty
+
 import dres.data.model.Entity
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.run.score.scoreboard.MaxNormalizingScoreBoard
@@ -10,14 +9,14 @@ import dres.run.score.scoreboard.Scoreboard
 import java.util.*
 
 
-data class CompetitionDescription @JsonCreator constructor(
-        @JsonProperty("id") override var id: Long,
-        @JsonProperty("name") val name: String,
-        @JsonProperty("description") val description: String?,
-        @JsonProperty("groups") val groups: MutableList<TaskGroup>,
-        @JsonProperty("tasks") val tasks: MutableList<TaskDescription>,
-        @JsonProperty("teams") val teams: MutableList<Team>,
-        @JsonProperty("uid") val uid: String = UUID.randomUUID().toString()
+data class CompetitionDescription(
+        override var id: Long,
+        val name: String,
+        val description: String?,
+        val groups: MutableList<TaskGroup>,
+        val tasks: MutableList<TaskDescription>,
+        val teams: MutableList<Team>,
+        val uid: String = UUID.randomUUID().toString()
 ) : Entity {
 
     fun validate() {
@@ -52,4 +51,8 @@ data class CompetitionDescription @JsonCreator constructor(
         val aggregateScoreBoard = MeanAggregateScoreBoard("average", groupBoards)
         return groupBoards.plus(aggregateScoreBoard)
     }
+
+    fun getAllCachedVideoItems(): List<CachedVideoItem> = tasks.flatMap { it.components }.filterIsInstance(CachedVideoItem::class.java).plus(
+            tasks.map { it.target }.filterIsInstance(CachedVideoItem::class.java)
+    )
 }

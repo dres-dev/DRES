@@ -1,49 +1,40 @@
 package dres.data.model.competition.interfaces
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
 import dres.data.model.Config
-import dres.data.model.competition.QueryDescription
-import dres.data.model.competition.TaskGroup
-import dres.data.model.competition.taskdescription.AvsTaskDescription
-import dres.data.model.competition.taskdescription.KisTextualTaskDescription
-import dres.data.model.competition.taskdescription.KisVisualTaskDescription
-import dres.run.filter.AllSubmissionFilter
+import dres.data.model.competition.*
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.validation.interfaces.SubmissionValidator
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.io.PrintStream
+import java.io.*
+import java.util.*
 
 /**
  * Basic description of a [Task].
- *
- * @author Ralph Gasser
- * @version 1.1
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "taskType")
-@JsonSubTypes(
-        JsonSubTypes.Type(value = KisVisualTaskDescription::class, name = "KIS_VISUAL"),
-        JsonSubTypes.Type(value = KisTextualTaskDescription::class, name = "KIS_TEXTUAL"),
-        JsonSubTypes.Type(value = AvsTaskDescription::class, name = "AVS")
-)
-interface TaskDescription {
+
+class TaskDescription(
 
     /** Internal, unique ID of this [TaskDescription]. */
-    val uid: String
+    val uid: String,
 
     /** The name of the task */
-    val name: String
+    val name: String,
 
     /** The [TaskGroup]  the [Task] belongs to */
-    val taskGroup: TaskGroup
+    val taskGroup: TaskGroup,
 
     /** The duration of the [TaskDescription] in seconds. */
-    val duration: Long
+    val duration: Long,
 
     /** The id of the relevant media collection for this task, if not otherwise specified */
-    val defaultMediaCollectionId: Long
+    val defaultMediaCollectionId: Long,
+
+    /** */
+    val components: List<TaskDescriptionComponent>,
+
+    /** */
+    val target: TaskDescriptionTarget
+){
 
     /**
      * Generates a new [TaskRunScorer] for this [TaskDescription]. Depending
@@ -51,7 +42,7 @@ interface TaskDescription {
      *
      * @return [TaskRunScorer].
      */
-    fun newScorer(): TaskRunScorer
+    fun newScorer(): TaskRunScorer = taskGroup.type.newScorer()
 
     /**
      * Generates and returns a new [SubmissionValidator] for this [TaskDescription]. Depending
@@ -59,7 +50,9 @@ interface TaskDescription {
      *
      * @return [SubmissionValidator].
      */
-    fun newValidator(): SubmissionValidator
+    fun newValidator(): SubmissionValidator {
+        TODO()
+    }
 
     /**
      * Generates and returns a [SubmissionValidator] instance for this [TaskDescription]. Depending
@@ -67,19 +60,42 @@ interface TaskDescription {
      *
      * @return [SubmissionFilter]
      */
-    fun newFilter(): SubmissionFilter = AllSubmissionFilter
+    fun newFilter(): SubmissionFilter = taskGroup.type.newFilter()
 
     /**
      * Generates a [QueryDescription] object to be used by a viewer
      * @throws FileNotFoundException
      * @throws IOException
      */
-    fun toQueryDescription(config: Config): QueryDescription
+    fun toQueryDescription(config: Config): QueryDescription = QueryDescription(
+            name,
+            query = componentsToQueryContent(config),
+            reveal = targetToQueryContent(config)
+    )
 
-    /** Helper property for de/serialization. */
-    val taskType: String
-        get() = this.taskGroup.type.name
+    private fun componentsToQueryContent(config: Config): QueryContent {
+        TODO()
+    }
+
+    private fun targetToQueryContent(config: Config): QueryContent = when (target) {
+        is MediaSegmentTarget -> {
+            val file = File(File(config.cachePath + "/tasks"), target.cacheItemName())
+            FileInputStream(file).use { imageInFile ->
+                val fileData = ByteArray(file.length().toInt())
+                imageInFile.read(fileData)
+                QueryContent(video = listOf(QueryContentElement(Base64.getEncoder().encodeToString(fileData), "video/mp4")))
+            }
+        }
+        else -> throw IllegalStateException("transformation from ${target::javaClass} to QueryContent not implemented")
+    }
 
     /** Prints an overview of the task to a provided stream */
-    fun printOverview(out: PrintStream)
+    fun printOverview(out: PrintStream) {
+        TODO()
+    }
+
+    /** Produces a Textual description of the content of the task if possible */
+    fun textualDescription(): String {
+        TODO()
+    }
 }

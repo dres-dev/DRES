@@ -13,8 +13,7 @@ import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.media.MediaItemSegmentList
 import dres.data.model.basics.media.PlayableMediaItem
-import dres.data.model.competition.interfaces.DefinedMediaItemTaskDescription
-import dres.data.model.competition.interfaces.HiddenResultsTaskDescription
+import dres.data.model.competition.TaskType
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunManager
@@ -79,7 +78,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         val item = this.itemIndex[collectionId to itemParam].firstOrNull() ?:
             throw ErrorStatusException(404, "Media item '$itemParam (collection = $collectionId)' could not be found.")
 
-        val mapToSegment = runManager.currentTask is DefinedMediaItemTaskDescription
+        val mapToSegment = runManager.currentTask?.taskGroup?.type?.options?.contains(TaskType.Options.MAP_TO_SEGMENT) == true
 
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) && item is MediaItem.VideoItem -> {
@@ -171,7 +170,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         AuditLogger.submission(run.uid, run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId())
         EventStreamProcessor.event(SubmissionEvent(ctx.sessionId(), submission))
 
-        if (run.currentTask is HiddenResultsTaskDescription) { //pre-generate preview
+        if (run.currentTask?.taskGroup?.type?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) { //pre-generate preview
             generatePreview(submission)
         }
 

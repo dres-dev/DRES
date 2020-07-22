@@ -6,7 +6,6 @@ import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
 import dres.data.model.basics.media.MediaCollection
-import dres.data.model.competition.interfaces.TextualTaskDescription
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor
 import dres.run.audit.AuditLogger
@@ -53,11 +52,7 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
 
         val collection = this.collections[next.second.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.second.item.collection}")
 
-        val taskDescription = if (next.second.taskRun?.task is TextualTaskDescription) {
-            (next.second.taskRun?.task as TextualTaskDescription).description
-        } else {
-            next.second.taskRun?.task?.name ?: "no task description available"
-        }
+        val taskDescription = next.second.taskRun?.task?.textualDescription() ?: next.second.taskRun?.task?.name ?: "no task description available"
 
         return JudgementRequest(next.first, validator.id, collection.name, next.second.item.name, taskDescription, next.second.start?.toString(), next.second.end?.toString())
     }

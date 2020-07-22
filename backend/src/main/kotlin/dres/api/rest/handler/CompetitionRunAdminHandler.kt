@@ -10,7 +10,6 @@ import dres.data.dbo.DAO
 import dres.data.model.Config
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.CompetitionDescription
-import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
 import dres.data.model.run.CompetitionRun
 import dres.run.RunExecutor
 import dres.run.RunManager
@@ -26,7 +25,6 @@ import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.lang.IndexOutOfBoundsException
 
 
 abstract class AbstractCompetitionRunAdminRestHandler : RestHandler, AccessManagedRestHandler {
@@ -82,7 +80,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
             throw ErrorStatusException(400, "Synchronous run of competition ${competitionToStart.name} already exists")
         }
 
-        val segmentTasks = competitionToStart.tasks.filterIsInstance(MediaSegmentTaskDescription::class.java)
+        val segmentTasks = competitionToStart.getAllCachedVideoItems()
 
         /* check videos */
         segmentTasks.forEach {
@@ -99,7 +97,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
 
             val outputFile = File(cacheLocation, it.cacheItemName())
             if(!outputFile.exists()){
-                logger.warn("query video file for task ${it.name} not found, rendering to ${outputFile.absolutePath}")
+                logger.warn("query video file for item ${it.item} not found, rendering to ${outputFile.absolutePath}")
                 FFmpegUtil.prepareMediaSegmentTask(it, collection.basePath, cacheLocation)
             }
 

@@ -7,12 +7,11 @@ import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.long
-import dres.api.rest.handler.UserRequest
+import com.jakewharton.picnic.table
 import dres.data.model.admin.PlainPassword
 import dres.data.model.admin.Role
 import dres.data.model.admin.User
 import dres.data.model.admin.UserName
-import dres.data.model.competition.CompetitionDescription
 import dres.mgmt.admin.UserManager
 import dres.mgmt.admin.UserManager.MIN_LENGTH_PASSWORD
 import dres.mgmt.admin.UserManager.MIN_LENGTH_USERNAME
@@ -126,7 +125,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to export a [User].
      */
-    inner class ExportUserCommand : CliktCommand(name = "export", help =  "Exports one or multiple user(s) as JSON.") {
+    inner class ExportUserCommand : CliktCommand(name = "export", help = "Exports one or multiple user(s) as JSON.") {
         private val id: Long? by option("-i", "--id", help = "ID of the user to be exported.").long()
         private val username: UserName? by option("-u", "--username", help = "Username of the user to be exported.")
                 .convert { UserName(it) }
@@ -138,7 +137,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
                 val users = UserManager.list()
                 val path = Paths.get(this.path)
                 val mapper = ObjectMapper()
-                Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {writer ->
+                Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use { writer ->
                     mapper.writeValue(writer, users)
                 }
                 println("Successfully wrote ${users.size} users to $path.")
@@ -162,13 +161,13 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * Imports a specific competition from JSON.
      */
-    inner class ImportUserCommand: CliktCommand(name ="import", help="Imports a user description from JSON.") {
+    inner class ImportUserCommand : CliktCommand(name = "import", help = "Imports a user description from JSON.") {
 
-        private val new: Boolean by option("-n", "--new", help="Flag indicating whether users should be created anew.").flag("-u", "--update", default = true)
+        private val new: Boolean by option("-n", "--new", help = "Flag indicating whether users should be created anew.").flag("-u", "--update", default = true)
 
         private val multiple: Boolean by option("-m", "-multiple", help = "Flag indicating whether multiple users should be  imported.").flag("-s", "--single", default = true)
 
-        private val destination: String by option("-i", "--in", help= "The input file for the users.").required()
+        private val destination: String by option("-i", "--in", help = "The input file for the users.").required()
 
         override fun run() {
             val path = Paths.get(this.destination)
@@ -197,10 +196,32 @@ class UserCommand : NoOpCliktCommand(name = "user") {
      * [CliktCommand] to list all [User]s.
      */
     inner class ListUsers : CliktCommand(name = "list", help = "Lists all Users") {
+        val plain by option("-p", "--plain", help = "Plain print: No fancy table. Might be easier if the output should be processed").flag(default = false)
         override fun run() {
-            println("Available users:")
-            for (user in UserManager.list()) {
-                println("$user")
+            val users = UserManager.list()
+            println("Available users: ${users.size}")
+            if (plain) {
+                for (user in users) {
+                    println("$user")
+                }
+            } else {
+                println(
+                        table {
+                            cellStyle {
+                                border = true
+                                paddingLeft = 1
+                                paddingRight = 1
+                            }
+                            header {
+                                row("id", "username", "role")
+                            }
+                            body {
+                                users.forEach {
+                                    row(it.id, it.username.name, it.role)
+                                }
+                            }
+                        }
+                )
             }
         }
     }

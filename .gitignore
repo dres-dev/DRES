@@ -264,3 +264,4 @@ backend/src/main/resources/html
 nodejs
 npm-*
 backend/ext/ffmpeg
+events/

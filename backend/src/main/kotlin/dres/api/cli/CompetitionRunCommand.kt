@@ -5,10 +5,12 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.long
+import com.jakewharton.picnic.table
 
 import dres.data.dbo.DAO
 import dres.data.model.run.CompetitionRun
@@ -32,14 +34,34 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
     /**
      * Lists all ongoing competitions runs for the current DRES instance.
      */
-    inner class OngoingCompetitionRunsCommand: CliktCommand(name = "ongoing", help = "Lists all ongoing competition runs.") {
+    inner class OngoingCompetitionRunsCommand : CliktCommand(name = "ongoing", help = "Lists all ongoing competition runs.") {
+        val plain by option("-p", "--plain", help = "Plain print. No fancy tables").flag(default = false)
         override fun run() {
-            if (RunExecutor.managers().isEmpty()){
+            if (RunExecutor.managers().isEmpty()) {
                 println("No runs are currently ongoing!")
                 return
             }
-            RunExecutor.managers().forEach {
-                println("${RunSummary(it.id, it.name, it.competitionDescription.description, it.currentTask?.name)} (${it.status})")
+            if (plain) {
+                RunExecutor.managers().forEach {
+                    println("${RunSummary(it.id, it.name, it.competitionDescription.description, it.currentTask?.name)} (${it.status})")
+                }
+            } else {
+                table {
+                    cellStyle {
+                        border = true
+                        paddingLeft = 1
+                        paddingRight = 1
+                    }
+                    header {
+                        row("id", "name", "description", "currentTask", "status")
+                    }
+                    body {
+                        RunExecutor.managers().forEach {
+                            row(it.id, it.name, it.competitionDescription.description, it.currentTask?.name
+                                    ?: "N/A", it.status)
+                        }
+                    }
+                }
             }
         }
     }
@@ -48,9 +70,40 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
      * Lists all competition runs (ongoing and past) for the current DRES instance.
      */
     inner class ListCompetitionRunsCommand : CliktCommand(name = "list", help = "Lists all (ongoing and past) competition runs.") {
+        val plain by option("-p", "--plain", help = "Plain print. No fancy tables").flag(default = false)
         override fun run() {
-            this@CompetitionRunCommand.runs.forEach {
-                println("${RunSummary(it.id, it.name, it.competitionDescription.description, it.lastTask?.task?.name)}")
+            if (plain) {
+                this@CompetitionRunCommand.runs.forEach {
+                    println("${RunSummary(it.id, it.name, it.competitionDescription.description, it.lastTask?.task?.name)}")
+                }
+            } else {
+                table {
+                    cellStyle {
+                        border = true
+                        paddingLeft = 1
+                        paddingRight = 1
+                    }
+                    header {
+                        row("id", "name", "description", "lastTask", "status")
+                    }
+                    body {
+                        this@CompetitionRunCommand.runs.forEach {
+                            val status = if(it.hasStarted && !it.hasEnded && !it.isRunning){
+                                "started"
+                            }else if(it.hasStarted && !it.hasEnded && it.isRunning){
+                                "running"
+                            }else if(it.hasEnded){
+                                "ended"
+                            }else if(!it.hasStarted){
+                                "idle"
+                            }else{
+                                "unkown"
+                            }
+                            row(it.id, it.name, it.competitionDescription.description, it.lastTask?.task?.name
+                                    ?: "N/A", status)
+                        }
+                    }
+                }
             }
         }
     }
@@ -58,7 +111,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
     /**
      * Deletes a selected competition run for the current DRES instance.
      */
-    inner class DeleteRunCommand: CliktCommand(name = "delete", help = "Deletes an existing competition run.") {
+    inner class DeleteRunCommand : CliktCommand(name = "delete", help = "Deletes an existing competition run.") {
         private val id: Long by option("-r", "--run").long().required()
         override fun run() {
             if (RunExecutor.managers().any { it.id == id }) {
@@ -78,7 +131,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
     /**
      * Exports a specific competition run as JSON.
      */
-    inner class ExportRunCommand: CliktCommand(name = "export", help = "Exports the competition run as JSON.") {
+    inner class ExportRunCommand : CliktCommand(name = "export", help = "Exports the competition run as JSON.") {
         private val id: Long by option("-r", "--run").long().required()
         private val path: String by option("-o", "--output").required()
         override fun run() {
@@ -128,8 +181,8 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
 //    }
 
 
-    inner class CompetitionRunsHistoryCommand: CliktCommand(name = "history", help = "Lists past Competition Runs") {
-
+    inner class CompetitionRunsHistoryCommand : CliktCommand(name = "history", help = "Lists past Competition Runs") {
+        // TODO fancification with table
 
         override fun run() {
 

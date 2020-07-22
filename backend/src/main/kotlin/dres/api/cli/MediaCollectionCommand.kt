@@ -4,10 +4,12 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.*
+import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.float
 import com.github.ajalt.clikt.parameters.types.long
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
+import com.jakewharton.picnic.table
 import dres.data.dbo.DAO
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
@@ -20,6 +22,16 @@ import java.io.OutputStream
 
 class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val segments: DAO<MediaItemSegmentList>) :
         NoOpCliktCommand(name = "collection") {
+
+    companion object {
+        enum class SortField {
+            ID,
+            NAME,
+            LOCATION,
+            DURATION,
+            FPS
+        }
+    }
 
     init {
         this.subcommands(CreateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), CheckCollectionCommand(), AddMediaItemCommand(), ExportCollectionCommand(), ImportCollectionCommand(), DeleteCollectionCommand(), ImportMediaSegmentsCommand())
@@ -56,15 +68,39 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
     }
 
     inner class ListCollectionsCommand : CliktCommand(name = "list", help = "Lists all Collections") {
+        val plain by option("-p", "--plain", help = "Plain print: No fancy table presentation for machine readable output").flag(default = false)
         override fun run() {
-            println("Collections:")
-            this@MediaCollectionCommand.collections.forEach {
-                println(it)
+            println("Availablee media collections ${this@MediaCollectionCommand.collections.toSet().size}")
+            if (plain) {
+                this@MediaCollectionCommand.collections.forEach {
+                    println(it)
+                }
+            } else {
+                println(
+                        table {
+                            cellStyle {
+                                border = true
+                                paddingLeft = 1
+                                paddingRight = 1
+                            }
+                            header {
+                                row("id", "name", "description", "basePath", "uid")
+                            }
+                            body {
+                                this@MediaCollectionCommand.collections.forEach {
+                                    row(it.id, it.name, it.description ?: "", it.basePath, it.uid)
+                                }
+                            }
+                        }
+                )
             }
         }
     }
 
     inner class ShowCollectionCommand : AbstractCollectionCommand("show", help = "Shows the content of a Collection") {
+        val sort by option("-s", "--sort", help = "Chose which sorting to use").enum<SortField>(ignoreCase = true).defaultLazy { SortField.NAME }
+        val plain by option("-p", "--plain", help = "Plain formatting. No fancy tables").flag(default = false)
+
         override fun run() {
 
             val collectionId = this.actualCollectionId()
@@ -73,14 +109,67 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 return
             }
 
-            val collectionItems = this@MediaCollectionCommand.items.filter { it.collection == collectionId }
+            val collectionItems = this@MediaCollectionCommand
+                    .items.filter { it.collection == collectionId }
+                    // First sort reversed by type (i.e. Video before Image), then by name
+                    .sortedWith(compareBy<MediaItem> { it.itemType }.reversed().thenBy {
+                        when (sort) {
+                            SortField.ID -> it.id
+                            SortField.NAME -> it.name
+                            SortField.LOCATION -> it.location
+                            /* Small hack as images do not have these properties */
+                            SortField.DURATION -> if (it is MediaItem.VideoItem) {
+                                (it as MediaItem.VideoItem).durationMs
+                            } else {
+                                it.name
+                            }
+                            SortField.FPS -> if (it is MediaItem.VideoItem) {
+                                (it as MediaItem.VideoItem).fps
+                            } else {
+                                it.name
+                            }
+                        }
+                    })
 
-            collectionItems.forEach {
-                println(it)
+            if (plain) {
+                collectionItems.forEach {
+                    println(it)
+                }
+
+            } else {
+                println(
+                        table {
+                            cellStyle {
+                                border = true
+                                paddingLeft = 1
+                                paddingRight = 1
+                            }
+                            header {
+                                row("id", "name", "location", "type", "durationMs", "fps")
+                            }
+                            body {
+                                collectionItems.forEach {
+                                    row {
+                                        cell(it.id)
+                                        cell(it.name)
+                                        cell(it.location)
+                                        if (it is MediaItem.VideoItem) {
+                                            cell(it.itemType)
+                                            cell(it.durationMs)
+                                            cell(it.fps)
+                                        } else {
+                                            cell(it.itemType) {
+                                                columnSpan = 3
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                )
             }
 
             println("listed ${collectionItems.size} Media Items")
-
 
 
         }
@@ -122,7 +211,6 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             }
 
             println("successfully checked $counter of ${collectionItems.size} Media Items")
-
 
 
         }
@@ -333,7 +421,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
                 //check for duplicates
                 val pair = videoId to name
-                if (existingSegments.contains(pair)){
+                if (existingSegments.contains(pair)) {
                     return@map null
                 }
                 existingSegments.add(pair)

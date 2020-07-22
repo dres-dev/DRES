@@ -2,7 +2,7 @@ import {Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
 import {Observable} from 'rxjs';
 import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
 import {filter, map} from 'rxjs/operators';
-import {VideoQueryDescription} from '../../../../openapi';
+//import {VideoQueryDescription} from '../../../../openapi';
 
 @Component({
     selector: 'app-video-query-object-preview',
@@ -13,7 +13,7 @@ import {VideoQueryDescription} from '../../../../openapi';
 export class VideoQueryObjectPreviewComponent implements OnInit {
 
     @Input() muteAfter = 0;
-    @Input() queryObject: Observable<VideoQueryDescription>;
+    @Input() queryObject: Observable<any> // <VideoQueryDescription>;
     @Input() muted = true;
     @ViewChild('player') player: ElementRef<HTMLVideoElement>;
     videoUrl: Observable<SafeUrl>;

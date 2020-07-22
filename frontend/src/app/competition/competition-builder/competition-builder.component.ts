@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {filter} from 'rxjs/operators';
-import {CompetitionDescription, CompetitionService, TaskDescriptionBase, TaskGroup, Team} from '../../../../openapi';
+import {CompetitionDescription, CompetitionService, TaskDescription, TaskGroup, Team} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Subscription} from 'rxjs';
@@ -10,6 +10,7 @@ import {CompetitionBuilderTeamDialogComponent,} from './competition-builder-team
 import {CompetitionBuilderTaskDialogComponent, CompetitionBuilderTaskDialogData} from './competition-builder-task-dialog.component';
 import {CompetitionBuilderTaskGroupDialogComponent} from './competition-builder-task-group.component';
 import {MatTable} from '@angular/material/table';
+import {CompetitionBuilderTaskTypeDialogComponent} from './competition-builder-task-type-dialog.component';
 
 @Component({
   selector: 'app-competition-builer',
@@ -112,6 +113,19 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     });
   }
 
+  public addTaskType() {
+    const dialogRef = this.dialog.open(
+        CompetitionBuilderTaskTypeDialogComponent,
+        {data: null, width: '750px'}
+    );
+    dialogRef.afterClosed().pipe(
+        filter(g => g != null),
+    ).subscribe((g) => {
+      this.competition.taskTypes.push(g);
+      this.dirty = true;
+    });
+  }
+
   /**
    * Removes a Task Group and all associated tasks.
    */
@@ -147,12 +161,12 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
    *
    * @param task The TaskDescription to edit.
    */
-  public editTask(task: TaskDescriptionBase) {
+  public editTask(task: TaskDescription) {
     const index = this.competition.tasks.indexOf(task);
     if (index > -1) {
       const dialogRef = this.dialog.open(
           CompetitionBuilderTaskDialogComponent,
-          {data: {taskGroup: task.taskGroup, task: task} as CompetitionBuilderTaskDialogData, width: '750px'}
+          {data: {taskGroup: task.taskGroup,/* task: task*/} as CompetitionBuilderTaskDialogData, width: '750px'}
       );
       dialogRef.afterClosed().pipe(
           filter(t => t != null),
@@ -164,7 +178,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     }
   }
 
-  public removeTask(task: TaskDescriptionBase) {
+  public removeTask(task: TaskDescription) {
     this.competition.tasks.splice(this.competition.tasks.indexOf(task), 1);
     this.dirty = true;
     this.taskTable.renderRows();

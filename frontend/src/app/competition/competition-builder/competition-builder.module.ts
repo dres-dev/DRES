@@ -18,6 +18,8 @@ import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatSelectModule} from '@angular/material/select';
 import {CompetitionBuilderTaskGroupDialogComponent} from './competition-builder-task-group.component';
 import {MatChipsModule} from '@angular/material/chips';
+import { CompetitionBuilderTaskTypeDialogComponent } from './competition-builder-task-type-dialog.component';
+import {MatCheckboxModule} from '@angular/material/checkbox';
 
 @NgModule({
     imports: [
@@ -36,10 +38,11 @@ import {MatChipsModule} from '@angular/material/chips';
         MatMenuModule,
         MatAutocompleteModule,
         MatSelectModule,
-        MatChipsModule
+        MatChipsModule,
+        MatCheckboxModule
     ],
     exports:      [ CompetitionBuilderComponent ],
-    declarations: [ CompetitionBuilderComponent, CompetitionBuilderTeamDialogComponent, CompetitionBuilderTaskDialogComponent, CompetitionBuilderTaskGroupDialogComponent ],
+    declarations: [ CompetitionBuilderComponent, CompetitionBuilderTeamDialogComponent, CompetitionBuilderTaskDialogComponent, CompetitionBuilderTaskGroupDialogComponent, CompetitionBuilderTaskTypeDialogComponent ],
     providers:    [ ]
 })
 export class CompetitionBuilderModule { }

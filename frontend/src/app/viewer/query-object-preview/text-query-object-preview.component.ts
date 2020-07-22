@@ -1,6 +1,6 @@
 import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {Observable, timer} from 'rxjs';
-import {TextQueryDescription, TextualDescription} from '../../../../openapi';
+// import {TextQueryDescription, TextualDescription} from '../../../../openapi';
 import {concatMap, delayWhen, map, take, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../../app.config';
 import {fromArray} from 'rxjs/internal/observable/fromArray';
@@ -12,7 +12,7 @@ import {AudioPlayerUtilities} from '../../utilities/audio-player.utilities';
     styleUrls: ['./text-query-object-preview.component.scss']
 })
 export class TextQueryObjectPreviewComponent implements OnInit, OnDestroy {
-    @Input() queryObject: Observable<TextQueryDescription>;
+    @Input() queryObject: Observable<any>; // <TextQueryDescription>;
     @Input() timeElapsed: Observable<number>;
 
     currentText: Observable<string>;
@@ -31,7 +31,7 @@ export class TextQueryObjectPreviewComponent implements OnInit, OnDestroy {
             withLatestFrom(this.queryObject),
             concatMap(([time, query]) => {
                 return fromArray(query.text).pipe(
-                    delayWhen<TextualDescription>(t => timer(1000 * Math.max(0, (t.showAfter - time)))),
+                    delayWhen<any>(t => timer(1000 * Math.max(0, (t.showAfter - time)))),
                     map((t, i) => {
                         if (i > 0) {
                             AudioPlayerUtilities.playOnce('assets/audio/ding.ogg', this.audio.nativeElement);

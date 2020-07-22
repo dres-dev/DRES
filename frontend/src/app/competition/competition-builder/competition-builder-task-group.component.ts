@@ -11,7 +11,7 @@ import {FormControl, FormGroup, Validators} from '@angular/forms';
 export class CompetitionBuilderTaskGroupDialogComponent {
 
     /** List of task types currently supported by the UI. */
-    readonly supportedTaskTypes = [TaskGroup.TypeEnum.AVS, TaskGroup.TypeEnum.KISTEXTUAL, TaskGroup.TypeEnum.KISVISUAL];
+    readonly supportedTaskTypes = []; // TODO read from created task groups
 
     /** FromGroup for this dialog. */
     form: FormGroup;
@@ -21,8 +21,8 @@ export class CompetitionBuilderTaskGroupDialogComponent {
 
         this.form = new FormGroup({
             name: new FormControl(data?.name, [Validators.required, Validators.minLength(3)]),
-            type: new FormControl(data?.type, [Validators.required]),
-            defaultTaskDuration: new FormControl(data?.defaultTaskDuration, [Validators.required, Validators.min(1)])
+            type: new FormControl(data?.type, [Validators.required])// ,
+            // defaultTaskDuration: new FormControl(data?.defaultTaskDuration, [Validators.required, Validators.min(1)])
         });
     }
 

@@ -1,0 +1,79 @@
+<h1 mat-dialog-title>Add task type</h1>
+<div mat-dialog-content>
+    <form [formGroup]="form">
+        <p>
+            <mat-form-field style="width: 80%">
+                <mat-label>Name</mat-label>
+                <input type="text" matInput placeholder="Name" formControlName="name"/>
+            </mat-form-field>
+
+            <mat-form-field style="width: 20%">
+                <mat-label>Duration [s]</mat-label>
+                <input type="text" matInput placeholder="Duration [s]" formControlName="defaultTaskDuration"/>
+            </mat-form-field>
+        </p>
+
+        <p>
+            <mat-form-field style="width: 100%">
+                <mat-select placeholder="Target" formControlName="type">
+                    <mat-option *ngFor="let type of targetTypes" [value]="type">
+                        {{type}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </p>
+
+
+        <section>
+            Used Task Components
+
+            <ul>
+                <li *ngFor="let type of componentTypes">
+                    <mat-checkbox  [value]="type">
+                        {{type}}
+                    </mat-checkbox>
+                </li>
+            </ul>
+        </section>
+
+
+        <p>
+            <mat-form-field style="width: 100%">
+                <mat-select placeholder="Scoring" formControlName="type">
+                    <mat-option *ngFor="let type of scoreTypes" [value]="type">
+                        {{type}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </p>
+
+        <section>
+            Submission Filter
+        <ul>
+            <li *ngFor="let type of filterTypes">
+                <mat-checkbox  [value]="type">
+                    {{type}}
+                </mat-checkbox>
+            </li>
+        </ul>
+        </section>
+
+        <section>
+            Options
+        <ul>
+            <li *ngFor="let type of options">
+                <mat-checkbox  [value]="type">
+                    {{type}}
+                </mat-checkbox>
+            </li>
+        </ul>
+        </section>
+
+    </form>
+</div>
+<div mat-dialog-actions>
+    <button mat-button (click)="close()">Cancel</button>
+    <button mat-button (click)="save()">Save</button>
+    <button mat-button>Export</button>
+    <button mat-button>Import</button>
+</div>

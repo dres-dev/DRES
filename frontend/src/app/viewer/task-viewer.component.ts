@@ -1,11 +1,11 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
 import {
     CompetitionRunService,
-    ImageQueryDescription,
+    //ImageQueryDescription,
     RunState,
     TaskDescription,
-    TextQueryDescription,
-    VideoQueryDescription
+    //TextQueryDescription,
+    //VideoQueryDescription
 } from '../../../openapi';
 import {combineLatest, interval, Observable, of, timer, zip} from 'rxjs';
 import {catchError, filter, flatMap, map, share, shareReplay, switchMap, take, tap, withLatestFrom} from 'rxjs/operators';
@@ -36,7 +36,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     timeElapsed: Observable<number>;
 
     /** Observable that returns and caches the current query object. */
-    currentQueryObject: Observable<VideoQueryDescription | TextQueryDescription | ImageQueryDescription>;
+    currentQueryObject: Observable<any>// <VideoQueryDescription | TextQueryDescription | ImageQueryDescription>;
 
     /** Value of the task count down. */
     taskCountdown: Observable<number>;

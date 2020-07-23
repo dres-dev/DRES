@@ -1,8 +1,12 @@
 import {Component, Inject} from '@angular/core';
-import {TaskGroup} from '../../../../openapi';
+import {TaskGroup, TaskType} from '../../../../openapi';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 
+export interface CompetitionBuilderTaskGroupDialogData{
+    types: TaskType[];
+    group?: TaskGroup;
+}
 
 @Component({
     selector: 'app-competition-builder-task-group-dialog',
@@ -11,27 +15,27 @@ import {FormControl, FormGroup, Validators} from '@angular/forms';
 export class CompetitionBuilderTaskGroupDialogComponent {
 
     /** List of task types currently supported by the UI. */
-    readonly supportedTaskTypes = []; // TODO read from created task groups
+    readonly supportedTaskTypes: TaskType[] = [];
 
     /** FromGroup for this dialog. */
     form: FormGroup;
 
+
     constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskGroupDialogComponent>,
-                @Inject(MAT_DIALOG_DATA) public data: TaskGroup) {
+                @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskGroupDialogData) {
 
         this.form = new FormGroup({
-            name: new FormControl(data?.name, [Validators.required, Validators.minLength(3)]),
-            type: new FormControl(data?.type, [Validators.required])// ,
-            // defaultTaskDuration: new FormControl(data?.defaultTaskDuration, [Validators.required, Validators.min(1)])
+            name: new FormControl(data?.group?.name, [Validators.required, Validators.minLength(3)]),
+            type: new FormControl(data?.group?.type, [Validators.required])// ,
         });
+        this.supportedTaskTypes = data?.types; // todo must not be null, group might be null
     }
 
     public save(): void {
         if (this.form.valid) {
             this.dialogRef.close({
                 name: this.form.get('name').value,
-                type: this.form.get('type').value,
-                defaultTaskDuration: this.form.get('defaultTaskDuration').value,
+                type: this.form.get('type').value
             } as TaskGroup);
         }
     }

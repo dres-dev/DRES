@@ -6,18 +6,13 @@
                 <mat-label>Name</mat-label>
                 <input type="text" matInput placeholder="Name" formControlName="name"/>
             </mat-form-field>
-
-            <mat-form-field style="width: 20%">
-                <mat-label>Duration [s]</mat-label>
-                <input type="text" matInput placeholder="Duration [s]" formControlName="defaultTaskDuration"/>
-            </mat-form-field>
         </p>
 
         <p>
             <mat-form-field style="width: 100%">
                 <mat-select placeholder="Type" formControlName="type">
                     <mat-option *ngFor="let type of supportedTaskTypes" [value]="type">
-                        {{type}}
+                        {{type.name}} ({{type.targetType}} | {{type.score}})
                     </mat-option>
                 </mat-select>
             </mat-form-field>

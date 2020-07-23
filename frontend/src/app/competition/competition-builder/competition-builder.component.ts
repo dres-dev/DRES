@@ -8,7 +8,10 @@ import {Subscription} from 'rxjs';
 import {MatDialog} from '@angular/material/dialog';
 import {CompetitionBuilderTeamDialogComponent,} from './competition-builder-team-dialog.component';
 import {CompetitionBuilderTaskDialogComponent, CompetitionBuilderTaskDialogData} from './competition-builder-task-dialog.component';
-import {CompetitionBuilderTaskGroupDialogComponent} from './competition-builder-task-group.component';
+import {
+  CompetitionBuilderTaskGroupDialogComponent,
+  CompetitionBuilderTaskGroupDialogData
+} from './competition-builder-task-group.component';
 import {MatTable} from '@angular/material/table';
 import {CompetitionBuilderTaskTypeDialogComponent} from './competition-builder-task-type-dialog.component';
 
@@ -106,7 +109,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     public addTaskGroup() {
         const dialogRef = this.dialog.open(
             CompetitionBuilderTaskGroupDialogComponent,
-            {data: null, width: '750px'}
+            {data: {types: this.competition.taskTypes, group: null} as CompetitionBuilderTaskGroupDialogData, width: '750px'}
         );
         dialogRef.afterClosed().pipe(
             filter(g => g != null),
@@ -141,13 +144,12 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
      * Removes a Task Group and all associated tasks.
      */
     public removeTaskGroup(group: TaskGroup) {
-        // fixme
-        /*
         this.competition.groups.splice(this.competition.groups.indexOf(group));
-        this.competition.tasks.filter(t => t.taskGroup.name === group.name).map(t => this.competition.tasks.indexOf(t)).forEach(i => {
+        // assuming taskGroup:string in task is the actual name --> late will be replaced by uuid
+        this.competition.tasks.filter(t => t.taskGroup === group.name).map(t => this.competition.tasks.indexOf(t)).forEach(i => {
           this.competition.tasks.splice(i);
         });
-        this.dirty = true;*/
+        this.dirty = true;
     }
 
     /**

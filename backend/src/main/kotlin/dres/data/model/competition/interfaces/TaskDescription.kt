@@ -1,10 +1,14 @@
 package dres.data.model.competition.interfaces
 
+import dres.api.rest.types.RestTaskDescription
+import dres.data.dbo.DAO
 import dres.data.model.Config
+import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.*
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.validation.interfaces.SubmissionValidator
+import dres.api.rest.types.TaskDescriptionTarget
 import java.io.*
 import java.util.*
 
@@ -14,27 +18,27 @@ import java.util.*
 
 class TaskDescription(
 
-    /** Internal, unique ID of this [TaskDescription]. */
-    val uid: String,
+        /** Internal, unique ID of this [TaskDescription]. */
+    val id: String,
 
-    /** The name of the task */
+        /** The name of the task */
     val name: String,
 
-    /** The [TaskGroup]  the [Task] belongs to */
+        /** The [TaskGroup]  the [Task] belongs to */
     val taskGroup: TaskGroup,
 
     val taskType: TaskType,
 
-    /** The duration of the [TaskDescription] in seconds. */
+        /** The duration of the [TaskDescription] in seconds. */
     val duration: Long,
 
-    /** The id of the relevant media collection for this task, if not otherwise specified */
+        /** The id of the relevant media collection for this task, if not otherwise specified */
     val defaultMediaCollectionId: Long,
 
-    /** */
+        /** */
     val components: List<TaskDescriptionComponent>,
 
-    /** */
+        /** */
     val target: TaskDescriptionTarget
 ){
 
@@ -101,3 +105,14 @@ class TaskDescription(
         TODO()
     }
 }
+
+fun TaskDescription(description: RestTaskDescription, taskGroups: List<TaskGroup>, taskTypes: List<TaskType>, mediaItems: DAO<MediaItem>) : TaskDescription = TaskDescription(
+        description.id,
+        description.name,
+        taskGroups.find { it.name == description.taskGroup }!!,
+        taskTypes.find { it.name == description.taskType }!!,
+        description.duration,
+        description.defaultMediaCollectionId,
+        description.components.map { TaskDescriptionComponent(it, mediaItems) },
+        TaskDescriptionTarget(description.target, mediaItems)
+)

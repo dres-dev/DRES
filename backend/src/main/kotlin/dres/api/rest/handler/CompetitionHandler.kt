@@ -7,9 +7,9 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
+import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.Team
-import dres.data.model.competition.interfaces.TaskDescription
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -142,7 +142,7 @@ class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
     override val route: String = "competition"
 }
 
-class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), PatchRestHandler<SuccessStatus> {
+class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>, val mediaItems: DAO<MediaItem>) : CompetitionHandler(competitions), PatchRestHandler<SuccessStatus> {
     @OpenApi(
             summary = "Updates an existing competition.",
             path = "/api/competition", method = HttpMethod.PATCH,
@@ -156,25 +156,25 @@ class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
             ]
     )
     override fun doPatch(ctx: Context): SuccessStatus {
-        val competition = try {
+        val restCompetitionDescription = try {
             ctx.bodyAsClass(RestCompetitionDescription::class.java)
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
 
-        //FIXME
+        val competition = CompetitionDescription(restCompetitionDescription, mediaItems)
 
-//        if (!this.competitions.exists(competition.id)) {
-//            throw ErrorStatusException(404, "Competition with ID ${competition.id} does not exist.")
-//        }
-//
-//        try {
-//            competition.validate()
-//        }catch (e: IllegalArgumentException) {
-//            throw ErrorStatusException(400, e.message!!)
-//        }
-//
-//        this.competitions.update(competition)
+        if (!this.competitions.exists(competition.id)) {
+            throw ErrorStatusException(404, "Competition with ID ${competition.id} does not exist.")
+        }
+
+        try {
+            competition.validate()
+        }catch (e: IllegalArgumentException) {
+            throw ErrorStatusException(400, e.message!!)
+        }
+
+        this.competitions.update(competition)
         return SuccessStatus("Competition with ID ${competition.id} was updated.")
     }
 

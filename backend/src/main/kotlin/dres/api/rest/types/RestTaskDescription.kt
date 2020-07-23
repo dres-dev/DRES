@@ -4,6 +4,7 @@ import dres.data.model.competition.interfaces.TaskDescription
 
 
 class RestTaskDescription(
+        val id: String,
         val name: String,
         val taskGroup: String,
         val taskType: String,
@@ -13,6 +14,7 @@ class RestTaskDescription(
         val target: RestTaskDescriptionTarget) {
 
     constructor(description: TaskDescription) : this(
+            description.id,
             description.name,
             description.taskGroup.name,
             description.taskType.name,

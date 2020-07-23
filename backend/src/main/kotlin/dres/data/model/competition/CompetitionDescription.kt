@@ -1,7 +1,10 @@
 package dres.data.model.competition
 
 
+import dres.api.rest.types.RestCompetitionDescription
+import dres.data.dbo.DAO
 import dres.data.model.Entity
+import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dres.run.score.scoreboard.MeanAggregateScoreBoard
@@ -57,3 +60,13 @@ data class CompetitionDescription(
             tasks.map { it.target }.filterIsInstance(CachedVideoItem::class.java)
     )
 }
+
+fun CompetitionDescription(description: RestCompetitionDescription, mediaItems: DAO<MediaItem>): CompetitionDescription = CompetitionDescription(
+        description.id.toLong(),
+        description.name,
+        description.description,
+        description.taskTypes.toMutableList(),
+        description.groups.toMutableList(),
+        description.tasks.map { TaskDescription(it, description.groups, description.taskTypes, mediaItems) }.toMutableList(),
+        description.teams.toMutableList()
+)

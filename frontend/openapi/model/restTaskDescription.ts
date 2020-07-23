@@ -14,6 +14,7 @@ import { RestTaskDescriptionTarget } from './restTaskDescriptionTarget';
 
 
 export interface RestTaskDescription { 
+    id: string;
     name: string;
     taskGroup: string;
     taskType: string;

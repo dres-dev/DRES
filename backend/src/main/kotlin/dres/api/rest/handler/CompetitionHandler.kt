@@ -1,6 +1,8 @@
 package dres.api.rest.handler
 
 import dres.api.rest.RestApiRole
+import dres.api.rest.types.RestCompetitionDescription
+import dres.api.rest.types.RestTaskDescription
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
@@ -52,7 +54,7 @@ class ListCompetitionHandler(competitions: DAO<CompetitionDescription>) : Compet
     override val route: String = "competition"
 }
 
-class GetCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<CompetitionDescription> {
+class GetCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<RestCompetitionDescription> {
 
     @OpenApi(
             summary = "Loads the detailed definition of a specific competition.",
@@ -60,13 +62,13 @@ class GetCompetitionHandler(competitions: DAO<CompetitionDescription>) : Competi
             pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(CompetitionDescription::class)]),
+                OpenApiResponse("200", [OpenApiContent(RestCompetitionDescription::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context) = competitionFromContext(ctx)
+    override fun doGet(ctx: Context) = RestCompetitionDescription(competitionFromContext(ctx))
 
     override val route: String = "competition/:competitionId"
 }
@@ -91,7 +93,7 @@ class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
 
 }
 
-class ListTaskHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<TaskDescription>> {
+class ListTaskHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<RestTaskDescription>> {
 
     override val route: String = "competition/:competitionId/task"
 
@@ -101,14 +103,14 @@ class ListTaskHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
             pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<TaskDescription>::class)]),
+                OpenApiResponse("200", [OpenApiContent(Array<RestTaskDescription>::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
 
-    override fun doGet(ctx: Context) = competitionFromContext(ctx).tasks
+    override fun doGet(ctx: Context) = competitionFromContext(ctx).tasks.map { RestTaskDescription(it) }
 
 }
 
@@ -144,7 +146,7 @@ class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
     @OpenApi(
             summary = "Updates an existing competition.",
             path = "/api/competition", method = HttpMethod.PATCH,
-            requestBody = OpenApiRequestBody([OpenApiContent(CompetitionDescription::class)]),
+            requestBody = OpenApiRequestBody([OpenApiContent(RestCompetitionDescription::class)]),
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -155,22 +157,24 @@ class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
     )
     override fun doPatch(ctx: Context): SuccessStatus {
         val competition = try {
-            ctx.bodyAsClass(CompetitionDescription::class.java)
+            ctx.bodyAsClass(RestCompetitionDescription::class.java)
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
 
-        if (!this.competitions.exists(competition.id)) {
-            throw ErrorStatusException(404, "Competition with ID ${competition.id} does not exist.")
-        }
+        //FIXME
 
-        try {
-            competition.validate()
-        }catch (e: IllegalArgumentException) {
-            throw ErrorStatusException(400, e.message!!)
-        }
-
-        this.competitions.update(competition)
+//        if (!this.competitions.exists(competition.id)) {
+//            throw ErrorStatusException(404, "Competition with ID ${competition.id} does not exist.")
+//        }
+//
+//        try {
+//            competition.validate()
+//        }catch (e: IllegalArgumentException) {
+//            throw ErrorStatusException(400, e.message!!)
+//        }
+//
+//        this.competitions.update(competition)
         return SuccessStatus("Competition with ID ${competition.id} was updated.")
     }
 

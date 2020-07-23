@@ -1,5 +1,3 @@
-export * from './cachedVideoItem';
-export * from './competitionDescription';
 export * from './competitionOverview';
 export * from './competitionStart';
 export * from './errorStatus';
@@ -17,6 +15,10 @@ export * from './queryEvent';
 export * from './queryEventLog';
 export * from './queryResult';
 export * from './queryResultLog';
+export * from './restCompetitionDescription';
+export * from './restTaskDescription';
+export * from './restTaskDescriptionComponent';
+export * from './restTaskDescriptionTarget';
 export * from './runInfo';
 export * from './runState';
 export * from './score';

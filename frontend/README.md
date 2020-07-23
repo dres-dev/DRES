@@ -8,6 +8,12 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
+As described in this [help](https://support.google.com/chrome/thread/26291731?hl=en), 
+developers using Chrome (version > 80) have to disable the somewhat new `Same-Site` cookie policy.
+In a new tab set both, `chrome://flags/#cookies-without-same-site-must-be-secure` and `chrome://flags/#same-site-by-default-cookies`, to _disabled_. 
+Do not forget to set them to _default_, once development has stopped.
+Alternatively one can 
+
 ## Code scaffolding
 
 Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`. 

@@ -15,7 +15,7 @@
 
         <p>
             <mat-form-field style="width: 100%">
-                <mat-select placeholder="Target" formControlName="type">
+                <mat-select placeholder="Target" formControlName="target">
                     <mat-option *ngFor="let type of targetTypes" [value]="type">
                         {{type}}
                     </mat-option>
@@ -29,7 +29,7 @@
 
             <ul>
                 <li *ngFor="let type of componentTypes">
-                    <mat-checkbox  [value]="type">
+                    <mat-checkbox  [value]="type" (change)="onCheckboxChange($event, 'components')">
                         {{type}}
                     </mat-checkbox>
                 </li>
@@ -39,7 +39,7 @@
 
         <p>
             <mat-form-field style="width: 100%">
-                <mat-select placeholder="Scoring" formControlName="type">
+                <mat-select placeholder="Scoring" formControlName="scoring">
                     <mat-option *ngFor="let type of scoreTypes" [value]="type">
                         {{type}}
                     </mat-option>
@@ -51,7 +51,7 @@
             Submission Filter
         <ul>
             <li *ngFor="let type of filterTypes">
-                <mat-checkbox  [value]="type">
+                <mat-checkbox  [value]="type" (change)="onCheckboxChange($event, 'filters')">
                     {{type}}
                 </mat-checkbox>
             </li>
@@ -62,7 +62,7 @@
             Options
         <ul>
             <li *ngFor="let type of options">
-                <mat-checkbox  [value]="type">
+                <mat-checkbox  [value]="type" (change)="onCheckboxChange($event, 'options')">
                     {{type}}
                 </mat-checkbox>
             </li>

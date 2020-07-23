@@ -29,8 +29,8 @@
 
             <ul>
                 <li *ngFor="let type of componentTypes">
-                    <mat-checkbox  [value]="type" (change)="onCheckboxChange($event, 'components')">
-                        {{type}}
+                    <mat-checkbox  [value]="type.type" (change)="onCheckboxChange($event, 'components')" [checked]="type.activated">
+                        {{type.type}}
                     </mat-checkbox>
                 </li>
             </ul>
@@ -51,8 +51,8 @@
             Submission Filter
         <ul>
             <li *ngFor="let type of filterTypes">
-                <mat-checkbox  [value]="type" (change)="onCheckboxChange($event, 'filters')">
-                    {{type}}
+                <mat-checkbox  [value]="type.type" (change)="onCheckboxChange($event, 'filters')" [checked]="type.activated">
+                    {{type.type}}
                 </mat-checkbox>
             </li>
         </ul>
@@ -62,8 +62,8 @@
             Options
         <ul>
             <li *ngFor="let type of options">
-                <mat-checkbox  [value]="type" (change)="onCheckboxChange($event, 'options')">
-                    {{type}}
+                <mat-checkbox  [value]="type.type" (change)="onCheckboxChange($event, 'options')" [checked]="type.activated">
+                    {{type.type}}
                 </mat-checkbox>
             </li>
         </ul>
@@ -74,6 +74,6 @@
 <div mat-dialog-actions>
     <button mat-button (click)="close()">Cancel</button>
     <button mat-button (click)="save()">Save</button>
-    <button mat-button>Export</button>
-    <button mat-button>Import</button>
+    <button mat-button (click)="export()">Export</button>
+    <button mat-button (click)="import()">Import</button>
 </div>

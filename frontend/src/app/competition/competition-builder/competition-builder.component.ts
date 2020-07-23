@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {filter} from 'rxjs/operators';
-import {CompetitionDescription, CompetitionService, TaskDescription, TaskGroup, Team} from '../../../../openapi';
+import {CompetitionDescription, CompetitionService, TaskDescription, TaskGroup, TaskType, Team} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Subscription} from 'rxjs';
@@ -116,7 +116,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
   public addTaskType() {
     const dialogRef = this.dialog.open(
         CompetitionBuilderTaskTypeDialogComponent,
-        {data: null, width: '750px'}
+        {data: {name: 'dummy', taskDuration: 100, components: [TaskType.ComponentsEnum.TEXT], score: TaskType.ScoreEnum.KIS, targetType: 'JUDGEMENT'} as Partial<TaskType>, width: '750px'}
     );
     dialogRef.afterClosed().pipe(
         filter(g => g != null),

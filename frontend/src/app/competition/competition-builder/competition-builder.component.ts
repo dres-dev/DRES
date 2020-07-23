@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {filter} from 'rxjs/operators';
-import {CompetitionDescription, CompetitionService, TaskDescription, TaskGroup, TaskType, Team} from '../../../../openapi';
+import {RestCompetitionDescription, CompetitionService, TaskDescription, TaskGroup, TaskType, Team} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Subscription} from 'rxjs';
@@ -20,7 +20,7 @@ import {CompetitionBuilderTaskTypeDialogComponent} from './competition-builder-t
 export class CompetitionBuilderComponent implements OnInit, OnDestroy {
 
   competitionId: number;
-  competition: CompetitionDescription;
+  competition: RestCompetitionDescription;
 
   @ViewChild('taskTable')
   taskTable: MatTable<any>;
@@ -114,9 +114,11 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
   }
 
   public addTaskType() {
+    /* Debug only */
+    const dummydata = {name: 'dummy', taskDuration: 100, components: [TaskType.ComponentsEnum.TEXT], score: TaskType.ScoreEnum.KIS, targetType: 'JUDGEMENT'} as Partial<TaskType>;
     const dialogRef = this.dialog.open(
         CompetitionBuilderTaskTypeDialogComponent,
-        {data: {name: 'dummy', taskDuration: 100, components: [TaskType.ComponentsEnum.TEXT], score: TaskType.ScoreEnum.KIS, targetType: 'JUDGEMENT'} as Partial<TaskType>, width: '750px'}
+        {data: dummydata, width: '750px'} // fixme remove debug data
     );
     dialogRef.afterClosed().pipe(
         filter(g => g != null),
@@ -130,11 +132,13 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
    * Removes a Task Group and all associated tasks.
    */
   public removeTaskGroup(group: TaskGroup) {
+    // fixme
+    /*
     this.competition.groups.splice(this.competition.groups.indexOf(group));
     this.competition.tasks.filter(t => t.taskGroup.name === group.name).map(t => this.competition.tasks.indexOf(t)).forEach(i => {
       this.competition.tasks.splice(i);
     });
-    this.dirty = true;
+    this.dirty = true;*/
   }
 
   /**
@@ -162,11 +166,13 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
    * @param task The TaskDescription to edit.
    */
   public editTask(task: TaskDescription) {
-    const index = this.competition.tasks.indexOf(task);
+    // fixme
+    // const index = this.competition.tasks.indexOf(task);
+    const index = 1;
     if (index > -1) {
       const dialogRef = this.dialog.open(
           CompetitionBuilderTaskDialogComponent,
-          {data: {taskGroup: task.taskGroup,/* task: task*/} as CompetitionBuilderTaskDialogData, width: '750px'}
+          {data: {taskGroup: task.taskGroup /*, task: task*/} as Partial<CompetitionBuilderTaskDialogData>, width: '750px'}
       );
       dialogRef.afterClosed().pipe(
           filter(t => t != null),
@@ -179,9 +185,11 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
   }
 
   public removeTask(task: TaskDescription) {
+    // fixme
+    /*
     this.competition.tasks.splice(this.competition.tasks.indexOf(task), 1);
     this.dirty = true;
-    this.taskTable.renderRows();
+    this.taskTable.renderRows();*/
   }
 
   public addTeam() {

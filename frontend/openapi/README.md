@@ -1,4 +1,4 @@
-## @dres-openapi/api@1.0-SNAPSHOT.202007231955
+## @dres-openapi/api@1.0-SNAPSHOT.202007232113
 
 ### Building
 
@@ -19,7 +19,7 @@ Navigate to the folder of your consuming project and run one of next commands.
 _published:_
 
 ```
-npm install @dres-openapi/api@1.0-SNAPSHOT.202007231955 --save
+npm install @dres-openapi/api@1.0-SNAPSHOT.202007232113 --save
 ```
 
 _without publishing (not recommended):_
@@ -87,31 +87,6 @@ export function apiConfigFactory (): Configuration => {
     imports: [ ApiModule.forRoot(apiConfigFactory) ],
     declarations: [ AppComponent ],
     providers: [],
-    bootstrap: [ AppComponent ]
-})
-export class AppModule {}
-```
-
-```
-// configuring providers with an authentication service that manages your access tokens
-import { ApiModule, Configuration } from '@dres-openapi/api';
-
-@NgModule({
-    imports: [ ApiModule ],
-    declarations: [ AppComponent ],
-    providers: [
-      {
-        provide: Configuration,
-        useFactory: (authService: AuthService) => new Configuration(
-          {
-            basePath: environment.apiUrl,
-            accessToken: authService.getAccessToken.bind(authService)
-          }
-        ),
-        deps: [AuthService],
-        multi: false
-      }
-    ],
     bootstrap: [ AppComponent ]
 })
 export class AppModule {}

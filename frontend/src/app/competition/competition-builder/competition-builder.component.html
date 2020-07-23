@@ -47,6 +47,18 @@
                     </button>
                     <mat-list style="display: inline-block;">
                         <mat-chip-list>
+                            <mat-chip
+                                    *ngFor="let taskType of competition.taskTypes"
+                                    [removable]="true" (removed)="removeTaskType(taskType)"
+                                    [matTooltip]="summariseTaskType(taskType)"
+                            >
+                                {{taskType.name}} ({{taskType.targetType}} | {{taskType.score}})
+                                <mat-icon matChipRemove>cancel</mat-icon>
+                            </mat-chip>
+                        </mat-chip-list>
+                    </mat-list>
+                    <mat-list style="display: inline-block;">
+                        <mat-chip-list>
                             <mat-chip *ngFor="let group of competition.groups"  [removable]="true" (removed)="removeTaskGroup(group)">
                                 {{group.name}}
                                 <mat-icon matChipRemove>cancel</mat-icon>

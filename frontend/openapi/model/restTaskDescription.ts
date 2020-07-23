@@ -9,19 +9,18 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TaskType } from './taskType';
-import { TaskDescriptionComponent } from './taskDescriptionComponent';
-import { TaskGroup } from './taskGroup';
+import { RestTaskDescriptionComponent } from './restTaskDescriptionComponent';
+import { RestTaskDescriptionTarget } from './restTaskDescriptionTarget';
 
 
-export interface TaskDescription { 
+export interface RestTaskDescription { 
     id: string;
     name: string;
-    taskGroup: TaskGroup;
-    taskType: TaskType;
+    taskGroup: string;
+    taskType: string;
     duration: number;
     defaultMediaCollectionId: number;
-    components: Array<TaskDescriptionComponent>;
-    target: object;
+    components: Array<RestTaskDescriptionComponent>;
+    target: RestTaskDescriptionTarget;
 }
 

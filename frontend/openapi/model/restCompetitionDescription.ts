@@ -9,14 +9,19 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { TaskType } from './taskType';
+import { Team } from './team';
 import { TaskGroup } from './taskGroup';
+import { RestTaskDescription } from './restTaskDescription';
 
 
-export interface TaskDescriptionBase { 
-    taskType: string;
+export interface RestCompetitionDescription { 
+    id: string;
     name: string;
-    duration: number;
-    uid: string;
-    taskGroup: TaskGroup;
+    description?: string;
+    taskTypes: Array<TaskType>;
+    groups: Array<TaskGroup>;
+    tasks: Array<RestTaskDescription>;
+    teams: Array<Team>;
 }
 

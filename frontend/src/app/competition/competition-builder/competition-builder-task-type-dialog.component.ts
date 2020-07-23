@@ -56,16 +56,21 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
             /* Target Type. Required */
             target: new FormControl(this.data?.targetType, [Validators.required]),
             /* Components. Required, at least one */
-            components: new FormArray(this.data?.components.map((v) => new FormControl(v))),
+            components: this.data.components ? new FormArray(this.data?.components?.map((v) => new FormControl(v)), [Validators.minLength(1)]) : new FormArray([]),
             /* Scoring. Required */
             scoring: new FormControl(this.data?.score, [Validators.required]),
             /* Submission Filters. Optional */
-            filters: this.formBuilder.array([]), // TODO deserialization: how to check it?
+            filters: this.data.filter ? new FormArray(this.data?.filter?.map((v) => new FormControl(v))) : new FormArray([]),
             /* Options. Optional */
-            options: this.formBuilder.array([]) // TODO deserialization: how to check it?
+            options: this.data.options ? new FormArray(this.data?.options?.map((v) => new FormControl(v))) : new FormArray([])
         });
     }
 
+    /**
+     * Listens for changes on a checkbox and reflects this change in the form group
+     * @param e
+     * @param name
+     */
     onCheckboxChange(e: MatCheckboxChange, name: string) {
         const arr: FormArray = this.form.get(name) as FormArray;
 
@@ -84,24 +89,24 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
     }
 
     ngOnInit(): void {
-      // Loop over all enums
+        // Loop over all enums
         this.componentTypes.forEach(ct => {
-          // if its in data, set to true to render it as checked
+            // if its in data, set to true to render it as checked
             if (this.data?.components.find(p => p === ct.type)) {
                 ct.activated = true;
             }
         });
 
         this.filterTypes.forEach(t => {
-            if (this.data?.filter.find(p => p === t.type)) {
+            if (this.data?.filter?.find(p => p === t.type)) {
                 t.activated = true;
             }
         });
 
         this.options.forEach(t => {
-          if(this.data?.options.find(p => p === t.type)){
-            t.activated = true;
-          }
+            if (this.data?.options?.find(p => p === t.type)) {
+                t.activated = true;
+            }
         });
     }
 
@@ -110,7 +115,7 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
 
     public save(): void {
         if (this.form.valid) {
-            // TODO
+            this.dialogRef.close(this.fetchFromForm());
         }
     }
 
@@ -120,10 +125,25 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
 
     public export(): void {
         // Currently on ly debug
-        console.log(JSON.stringify(this.form.value));
+        console.log(JSON.stringify(this.fetchFromForm()));
     }
 
     public import(): void {
         // TODO
+    }
+
+    /**
+     * Fetches the resulting [TaskType] from the form data
+     */
+    private fetchFromForm(): TaskType {
+        return {
+            name: this.form.get('name').value,
+            taskDuration: this.form.get('defaultTaskDuration').value,
+            targetType: this.form.get('target').value,
+            components: this.form.get('components').value,
+            score: this.form.get('scoring').value,
+            filter: this.form.get('filters').value,
+            options: this.form.get('options').value
+        } as TaskType;
     }
 }

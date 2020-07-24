@@ -1,14 +1,16 @@
 package dres.data.model.competition.interfaces
 
 import dres.api.rest.types.RestTaskDescription
+import dres.api.rest.types.TaskDescriptionTarget
 import dres.data.dbo.DAO
 import dres.data.model.Config
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.*
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
+import dres.run.validation.TemporalOverlapSubmissionValidator
 import dres.run.validation.interfaces.SubmissionValidator
-import dres.api.rest.types.TaskDescriptionTarget
+import dres.run.validation.judged.BasicJudgementValidator
 import java.io.*
 import java.util.*
 
@@ -56,8 +58,11 @@ class TaskDescription(
      *
      * @return [SubmissionValidator].
      */
-    fun newValidator(): SubmissionValidator {
-        TODO()
+    fun newValidator(): SubmissionValidator = when(taskType.targetType){
+        TaskType.TargetType.SINGLE_MEDIA_ITEM -> TODO()
+        TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionValidator(target as MediaSegmentTarget)
+        TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> TODO()
+        TaskType.TargetType.JUDGEMENT -> BasicJudgementValidator()
     }
 
     /**
@@ -97,13 +102,12 @@ class TaskDescription(
 
     /** Prints an overview of the task to a provided stream */
     fun printOverview(out: PrintStream) {
-        TODO()
+        //TODO
     }
 
     /** Produces a Textual description of the content of the task if possible */
-    fun textualDescription(): String {
-        TODO()
-    }
+    fun textualDescription(): String = components.filterIsInstance(TextTaskDescriptionComponent::class.java)
+            .maxBy { it.start ?: 0 }?.text ?: name
 }
 
 fun TaskDescription(description: RestTaskDescription, taskGroups: List<TaskGroup>, taskTypes: List<TaskType>, mediaItems: DAO<MediaItem>) : TaskDescription = TaskDescription(

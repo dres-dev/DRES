@@ -6,14 +6,14 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Subscription} from 'rxjs';
 import {MatDialog} from '@angular/material/dialog';
-import {CompetitionBuilderTeamDialogComponent,} from './competition-builder-team-dialog.component';
-import {CompetitionBuilderTaskDialogComponent, CompetitionBuilderTaskDialogData} from './competition-builder-task-dialog.component';
+import {CompetitionBuilderTeamDialogComponent,} from './competition-builder-team-dialog/competition-builder-team-dialog.component';
+import {CompetitionBuilderTaskDialogComponent, CompetitionBuilderTaskDialogData} from './competition-builder-task-dialog/competition-builder-task-dialog.component';
 import {
     CompetitionBuilderTaskGroupDialogComponent,
     CompetitionBuilderTaskGroupDialogData
-} from './competition-builder-task-group.component';
+} from './competition-builder-task-group-dialog/competition-builder-task-group.component';
 import {MatTable} from '@angular/material/table';
-import {CompetitionBuilderTaskTypeDialogComponent} from './competition-builder-task-type-dialog.component';
+import {CompetitionBuilderTaskTypeDialogComponent} from './competition-builder-task-type-dialog/competition-builder-task-type-dialog.component';
 
 @Component({
     selector: 'app-competition-builer',

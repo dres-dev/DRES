@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, Inject, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {TaskType} from '../../../../openapi';
+import {TaskType} from '../../../../../openapi';
 import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {MatCheckboxChange} from '@angular/material/checkbox';
 import TargetTypeEnum = TaskType.TargetTypeEnum;

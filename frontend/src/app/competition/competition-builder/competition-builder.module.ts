@@ -12,14 +12,16 @@ import {MatListModule} from '@angular/material/list';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatMenuModule} from '@angular/material/menu';
 import {CompetitionBuilderComponent} from './competition-builder.component';
-import {CompetitionBuilderTeamDialogComponent} from './competition-builder-team-dialog.component';
-import {CompetitionBuilderTaskDialogComponent} from './competition-builder-task-dialog.component';
+import {CompetitionBuilderTeamDialogComponent} from './competition-builder-team-dialog/competition-builder-team-dialog.component';
+import {CompetitionBuilderTaskDialogComponent} from './competition-builder-task-dialog/competition-builder-task-dialog.component';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatSelectModule} from '@angular/material/select';
-import {CompetitionBuilderTaskGroupDialogComponent} from './competition-builder-task-group.component';
+import {CompetitionBuilderTaskGroupDialogComponent} from './competition-builder-task-group-dialog/competition-builder-task-group.component';
 import {MatChipsModule} from '@angular/material/chips';
-import { CompetitionBuilderTaskTypeDialogComponent } from './competition-builder-task-type-dialog.component';
+import { CompetitionBuilderTaskTypeDialogComponent } from './competition-builder-task-type-dialog/competition-builder-task-type-dialog.component';
 import {MatCheckboxModule} from '@angular/material/checkbox';
+import { CompetitionBuilderTaskDescriptionComponentDialogComponent } from './competition-builder-task-description-component-dialog/competition-builder-task-description-component-dialog.component';
+import {CompetitionBuilderLegacyTaskDialogComponent} from './competition-builder-legacy-task-dialog/competition-builder-legacy-task-dialog.component';
 
 @NgModule({
     imports: [
@@ -42,7 +44,7 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
         MatCheckboxModule
     ],
     exports:      [ CompetitionBuilderComponent ],
-    declarations: [ CompetitionBuilderComponent, CompetitionBuilderTeamDialogComponent, CompetitionBuilderTaskDialogComponent, CompetitionBuilderTaskGroupDialogComponent, CompetitionBuilderTaskTypeDialogComponent ],
+    declarations: [ CompetitionBuilderComponent, CompetitionBuilderTeamDialogComponent, CompetitionBuilderTaskDialogComponent, CompetitionBuilderLegacyTaskDialogComponent, CompetitionBuilderTaskGroupDialogComponent, CompetitionBuilderTaskTypeDialogComponent, CompetitionBuilderTaskDescriptionComponentDialogComponent ],
     providers:    [ ]
 })
 export class CompetitionBuilderModule { }

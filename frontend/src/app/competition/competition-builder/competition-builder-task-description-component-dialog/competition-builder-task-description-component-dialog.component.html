@@ -1,0 +1,63 @@
+<h1 mat-dialog-title>Add task description component</h1>
+<div mat-dialog-content>
+    This is a {{data.type}} component.
+    <form [formGroup]="form">
+        <p>
+            <mat-form-field style="width: 40%">
+                <mat-label>Start</mat-label>
+                <input type="number" matInput placeholder="Start [s]" formControlName="start"/>
+            </mat-form-field>
+            <mat-form-field style="width: 40%">
+                <mat-label>End</mat-label>
+                <input type="number" matInput placeholder="End [s]" formControlName="end"/>
+            </mat-form-field>
+        </p>
+
+        <p *ngIf="isTextual()">
+            <mat-form-field style="width: 100%" appearance="fill">
+                <mat-label>Description</mat-label>
+                <textarea formControlName="description"></textarea>
+            </mat-form-field>
+        </p>
+
+        <p *ngIf="isImageItem()">
+            <mat-form-field style="width: 100%">
+                <!-- TODO replace with autocomplete / dropdown of available items -->
+                <mat-label>Image Item</mat-label>
+                <input matInput placeholder="Image Item" formControlName="mediaItem">
+            </mat-form-field>
+        </p>
+        <p *ngIf="isVideoItem()">
+            <mat-form-field style="width: 100%">
+                <!-- TODO replace with autocomplete / dropdown of available items -->
+                <mat-label>Video Item</mat-label>
+                <input matInput placeholder="Image Item" formControlName="mediaItem">
+            </mat-form-field>
+            <!-- TODO recycle legacy task dialog video item stuff -->
+            PLACEHOLDER
+        </p>
+
+
+        <p *ngIf="isExtImage()">
+            <mat-form-field style="width: 100%">
+                <!-- TODO implement -->
+                <mat-label>External Image</mat-label>
+                PLACEHOLDER
+            </mat-form-field>
+        </p>
+        <p *ngIf="isExtVideo()">
+            <mat-form-field style="width: 100%">
+                <!-- TODO implement -->
+                <mat-label>External Video</mat-label>
+                PLACEHOLDER
+            </mat-form-field>
+        </p>
+
+
+    </form>
+</div>
+<div mat-dialog-actions>
+    <button mat-button (click)="close()">Cancel</button>
+    <button mat-button (click)="save()">Save</button>
+    <button mat-button (click)="export()">Export</button>
+</div>

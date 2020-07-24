@@ -12,11 +12,11 @@ import {
     TemporalPoint,
     TemporalRange,
     VideoItem
-} from '../../../../openapi';
+} from '../../../../../openapi';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Observable} from 'rxjs';
 import {filter, flatMap, tap} from 'rxjs/operators';
-import {AppConfig} from '../../app.config';
+import {AppConfig} from '../../../app.config';
 
 
 export interface CompetitionBuilderTaskDialogData {

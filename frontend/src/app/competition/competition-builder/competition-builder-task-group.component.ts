@@ -35,7 +35,7 @@ export class CompetitionBuilderTaskGroupDialogComponent {
         if (this.form.valid) {
             this.dialogRef.close({
                 name: this.form.get('name').value,
-                type: this.form.get('type').value
+                type: (this.form.get('type').value as TaskType).name
             } as TaskGroup);
         }
     }

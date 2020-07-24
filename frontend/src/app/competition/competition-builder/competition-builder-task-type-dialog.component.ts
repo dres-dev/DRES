@@ -26,19 +26,23 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
 
     /** FromGroup for this dialog. */
     form: FormGroup;
-    targetTypes = Object.keys(TargetTypeEnum).sort((a, b) => a.localeCompare(b)); // sorted alphabetically
-    componentTypes = Object.keys(ComponentsEnum)
+    /**
+     * Dynamically generated list of all target types. Since TargetType is an enum, values is required as this is the "underscore sensitive" version.
+     * Object.keys() strips the underscores from the names.
+     */
+    targetTypes = Object.values(TargetTypeEnum).sort((a, b) => a.localeCompare(b)); // sorted alphabetically
+    componentTypes = Object.values(ComponentsEnum)
         .sort((a, b) => a.localeCompare(b))
         .map((v) => {
             return {type: v, activated: false} as ActivatedType<ComponentsEnum>;
         });
-    scoreTypes = Object.keys(ScoreEnum).sort((a, b) => a.localeCompare(b));
-    filterTypes = Object.keys(FilterEnum)
+    scoreTypes = Object.values(ScoreEnum).sort((a, b) => a.localeCompare(b));
+    filterTypes = Object.values(FilterEnum)
         .sort((a, b) => a.localeCompare(b))
         .map((v) => {
             return {type: v, activated: false} as ActivatedType<FilterEnum>;
         });
-    options = Object.keys(OptionsEnum)
+    options = Object.values(OptionsEnum)
         .sort((a, b) => a.localeCompare(b))
         .map((v) => {
             return {type: v, activated: false} as ActivatedType<OptionsEnum>;

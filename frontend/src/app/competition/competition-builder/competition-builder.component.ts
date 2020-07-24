@@ -9,8 +9,8 @@ import {MatDialog} from '@angular/material/dialog';
 import {CompetitionBuilderTeamDialogComponent,} from './competition-builder-team-dialog.component';
 import {CompetitionBuilderTaskDialogComponent, CompetitionBuilderTaskDialogData} from './competition-builder-task-dialog.component';
 import {
-  CompetitionBuilderTaskGroupDialogComponent,
-  CompetitionBuilderTaskGroupDialogData
+    CompetitionBuilderTaskGroupDialogComponent,
+    CompetitionBuilderTaskGroupDialogData
 } from './competition-builder-task-group.component';
 import {MatTable} from '@angular/material/table';
 import {CompetitionBuilderTaskTypeDialogComponent} from './competition-builder-task-type-dialog.component';
@@ -122,11 +122,13 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     public addTaskType() {
         /* Debug only */
         const dummydata = {
-            name: 'dummy',
-            taskDuration: 100,
+            name: 'Textual KIS',
+            taskDuration: 420,
             components: [TaskType.ComponentsEnum.TEXT],
             score: TaskType.ScoreEnum.KIS,
-            targetType: 'JUDGEMENT'
+            targetType: TaskType.TargetTypeEnum.MULTIPLEMEDIAITEMS,
+            options: [TaskType.OptionsEnum.HIDDENRESULTS],
+            filter: [TaskType.FilterEnum.NODUPLICATES, TaskType.FilterEnum.ONECORRECTPERTEAM]
         } as Partial<TaskType>;
         const dialogRef = this.dialog.open(
             CompetitionBuilderTaskTypeDialogComponent,
@@ -147,7 +149,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
         this.competition.groups.splice(this.competition.groups.indexOf(group));
         // assuming taskGroup:string in task is the actual name --> late will be replaced by uuid
         this.competition.tasks.filter(t => t.taskGroup === group.name).map(t => this.competition.tasks.indexOf(t)).forEach(i => {
-          this.competition.tasks.splice(i);
+            this.competition.tasks.splice(i);
         });
         this.dirty = true;
     }

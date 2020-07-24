@@ -1,4 +1,3 @@
-
 <div style="display: flex" class="header">
     <div>
         <h1 *ngIf="!dirty">Edit competition {{competitionId}}</h1>
@@ -8,12 +7,14 @@
     <div class="spacer-flex"></div>
 
     <div>
-        <button mat-icon-button aria-label="Save changes to competition." matTooltip="Save changes to competition." (click)="save()">
+        <button mat-icon-button aria-label="Save changes to competition." matTooltip="Save changes to competition."
+                (click)="save()">
             <mat-icon>save</mat-icon>
         </button>
     </div>
     <div>
-        <button mat-icon-button aria-label="Refresh competition (changes will be lost)." matTooltip="Refresh competition (changes will be lost)." (click)="refresh()">
+        <button mat-icon-button aria-label="Refresh competition (changes will be lost)."
+                matTooltip="Refresh competition (changes will be lost)." (click)="refresh()">
             <mat-icon>refresh</mat-icon>
         </button>
     </div>
@@ -22,7 +23,7 @@
 <div *ngIf="competition">
     <div style="display:flex; flex-wrap: wrap; width: 100%; justify-content: space-between;">
         <div style="flex-basis: 100%;">
-            <form [formGroup]="form" >
+            <form [formGroup]="form">
                 <p>
                     <mat-form-field style="width: 100%">
                         <mat-label>Name</mat-label>
@@ -36,37 +37,46 @@
                         <textarea matInput placeholder="Password" formControlName="description" required></textarea>
                     </mat-form-field>
                 </p>
-                <p>
-                    <button mat-button aria-label="Add new task type." matTooltip="Add new task type." (click)="addTaskType()">
+                <div>
+                    <button mat-button aria-label="Add new task type." matTooltip="Add new task type."
+                            (click)="addTaskType()">
                         <mat-icon>add</mat-icon>
                         Add task type
                     </button>
-                    <button mat-button aria-label="Add new task group." matTooltip="Add new task group." (click)="addTaskGroup()">
+                    <button mat-button aria-label="Add new task group." matTooltip="Add new task group."
+                            (click)="addTaskGroup()">
                         <mat-icon>add</mat-icon>
                         Add task group
                     </button>
+                <div>
+                <mat-list style="display: inline-block;">
+                    <mat-chip-list>
+                        <mat-chip
+                                *ngFor="let taskType of competition.taskTypes"
+                                [removable]="true" (removed)="removeTaskType(taskType)"
+                                [matTooltip]="summariseTaskType(taskType)"
+                        >
+                            {{taskType.name}} ({{taskType.targetType}} | {{taskType.score}})
+                            <mat-icon matChipRemove>cancel</mat-icon>
+                        </mat-chip>
+                    </mat-chip-list>
+                </mat-list>
+                </div>
+                    <p>
 
-                    <mat-list style="display: inline-block;">
-                        <mat-chip-list>
-                            <mat-chip
-                                    *ngFor="let taskType of competition.taskTypes"
-                                    [removable]="true" (removed)="removeTaskType(taskType)"
-                                    [matTooltip]="summariseTaskType(taskType)"
-                            >
-                                {{taskType.name}} ({{taskType.targetType}} | {{taskType.score}})
-                                <mat-icon matChipRemove>cancel</mat-icon>
-                            </mat-chip>
-                        </mat-chip-list>
-                    </mat-list>
-                    <mat-list style="display: inline-block;">
-                        <mat-chip-list>
-                            <mat-chip *ngFor="let group of competition.groups"  [removable]="true" (removed)="removeTaskGroup(group)">
-                                {{group.name}}
-                                <mat-icon matChipRemove>cancel</mat-icon>
-                            </mat-chip>
-                        </mat-chip-list>
-                    </mat-list>
-                </p>
+                <mat-list style="display: inline-block;">
+                    <mat-chip-list>
+                        <mat-chip *ngFor="let group of competition.groups"
+                                  [removable]="true" (removed)="removeTaskGroup(group)"
+                                  [matTooltip]="'Type: '+group.type" color="primary"
+                        >
+                            {{group.name}}
+                            <mat-icon matChipRemove>cancel</mat-icon>
+                        </mat-chip>
+                    </mat-chip-list>
+                </mat-list>
+                    </p>
+                </div>
             </form>
         </div>
 
@@ -82,27 +92,30 @@
             </div>
 
 
-            <table #teamTable mat-table [dataSource]="competition.teams"  [style.width]="'100%'">
+            <table #teamTable mat-table [dataSource]="competition.teams" [style.width]="'100%'">
                 <ng-container matColumnDef="logo">
-                    <th mat-header-cell *matHeaderCellDef> Logo </th>
-                    <td mat-cell *matCellDef="let team" ><img matListAvatar src="{{team.logo}}" [style.width]="'90px'" alt="team logo"></td>
+                    <th mat-header-cell *matHeaderCellDef> Logo</th>
+                    <td mat-cell *matCellDef="let team"><img matListAvatar src="{{team.logo}}" [style.width]="'90px'"
+                                                             alt="team logo"></td>
                 </ng-container>
 
                 <!-- Name Column -->
                 <ng-container matColumnDef="name">
-                    <th mat-header-cell *matHeaderCellDef> Name </th>
-                    <td mat-cell *matCellDef="let team"  [style.color]="team.color"> {{team.name}} </td>
+                    <th mat-header-cell *matHeaderCellDef> Name</th>
+                    <td mat-cell *matCellDef="let team" [style.color]="team.color"> {{team.name}} </td>
                 </ng-container>
 
                 <!-- Action Column -->
                 <ng-container matColumnDef="action">
-                    <th mat-header-cell *matHeaderCellDef> Action </th>
-                    <td mat-cell *matCellDef="let team"  [style.color]="team.color">
-                        <button mat-icon-button aria-label="Edit task." matTooltip="Edit task." (click)="editTeam(team)">
+                    <th mat-header-cell *matHeaderCellDef> Action</th>
+                    <td mat-cell *matCellDef="let team" [style.color]="team.color">
+                        <button mat-icon-button aria-label="Edit task." matTooltip="Edit task."
+                                (click)="editTeam(team)">
                             <mat-icon>edit</mat-icon>
                         </button>
 
-                        <button mat-icon-button aria-label="Remove selected teams." matTooltip="Remove selected teams."  (click)="removeTeam(team)">
+                        <button mat-icon-button aria-label="Remove selected teams." matTooltip="Remove selected teams."
+                                (click)="removeTeam(team)">
                             <mat-icon>remove</mat-icon>
                         </button>
                     </td>
@@ -120,7 +133,8 @@
                 <div class="spacer-flex"></div>
 
                 <mat-menu #taskMenu="matMenu">
-                    <button *ngFor="let group of competition.groups" mat-menu-item (click)="addTask(group)">{{group.name}}</button>
+                    <button *ngFor="let group of competition.groups" mat-menu-item
+                            (click)="addTask(group)">{{group.name}}</button>
                 </mat-menu>
 
                 <button mat-button aria-label="Add new task." matTooltip="Add new task." [matMenuTriggerFor]="taskMenu">
@@ -133,36 +147,38 @@
 
             <table #taskTable mat-table [dataSource]="competition.tasks" [style.width]="'100%'">
                 <ng-container matColumnDef="name">
-                    <th mat-header-cell *matHeaderCellDef> Name </th>
+                    <th mat-header-cell *matHeaderCellDef> Name</th>
                     <td mat-cell *matCellDef="let task"> {{task.name}} </td>
                 </ng-container>
 
                 <!-- Name Column -->
                 <ng-container matColumnDef="group">
-                    <th mat-header-cell *matHeaderCellDef> Group </th>
+                    <th mat-header-cell *matHeaderCellDef> Group</th>
                     <td mat-cell *matCellDef="let task"> {{task.taskGroup.name}} </td>
                 </ng-container>
 
                 <!-- Weight Column -->
                 <ng-container matColumnDef="type">
-                    <th mat-header-cell *matHeaderCellDef> Type </th>
+                    <th mat-header-cell *matHeaderCellDef> Type</th>
                     <td mat-cell *matCellDef="let task"> {{task.taskType}} </td>
                 </ng-container>
 
                 <!-- Symbol Column -->
                 <ng-container matColumnDef="duration">
-                    <th mat-header-cell *matHeaderCellDef> Duration [s] </th>
+                    <th mat-header-cell *matHeaderCellDef> Duration [s]</th>
                     <td mat-cell *matCellDef="let task"> {{task.duration}} </td>
                 </ng-container>
 
                 <!-- Symbol Column -->
                 <ng-container matColumnDef="action">
-                    <th mat-header-cell *matHeaderCellDef> Action </th>
+                    <th mat-header-cell *matHeaderCellDef> Action</th>
                     <td mat-cell *matCellDef="let task">
-                        <button mat-icon-button aria-label="Edit task." matTooltip="Edit task." (click)="editTask(task)">
+                        <button mat-icon-button aria-label="Edit task." matTooltip="Edit task."
+                                (click)="editTask(task)">
                             <mat-icon>edit</mat-icon>
                         </button>
-                        <button mat-icon-button aria-label="Remove task." matTooltip="Remove task." (click)="removeTask(task)">
+                        <button mat-icon-button aria-label="Remove task." matTooltip="Remove task."
+                                (click)="removeTask(task)">
                             <mat-icon>remove</mat-icon>
                         </button>
                     </td>

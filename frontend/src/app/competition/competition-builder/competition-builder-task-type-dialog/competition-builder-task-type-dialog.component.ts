@@ -117,24 +117,25 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
     ngAfterViewInit(): void {
     }
 
-    public save(): void {
+    save(): void {
         if (this.form.valid) {
             this.dialogRef.close(this.fetchFromForm());
         }
     }
 
-    public close(): void {
+    close(): void {
         this.dialogRef.close(null);
     }
 
-    public export(): void {
+    export(): void {
         // Currently on ly debug
         console.log(JSON.stringify(this.fetchFromForm()));
     }
 
-    public import(): void {
+    import(): void {
         // TODO
     }
+
 
     /**
      * Fetches the resulting [TaskType] from the form data

@@ -130,7 +130,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
             components: [TaskType.ComponentsEnum.TEXT],
             score: TaskType.ScoreEnum.KIS,
             targetType: TaskType.TargetTypeEnum.SINGLEMEDIASEGMENT, // traditional KIS
-            options: [TaskType.OptionsEnum.HIDDENRESULTS],
+            options: [TaskType.OptionsEnum.HIDDENRESULTS, TaskType.OptionsEnum.MAPTOSEGMENT],
             filter: [TaskType.FilterEnum.NODUPLICATES, TaskType.FilterEnum.ONECORRECTPERTEAM]
         } as Partial<TaskType>;
         const dialogRef = this.dialog.open(

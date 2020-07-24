@@ -260,6 +260,22 @@ export class CompetitionBuilderTaskDialogComponent {
         console.log(this.asJson());
     }
 
+    isTargetSingleMediaItem(){
+        return this.taskType.targetType === TaskType.TargetTypeEnum.SINGLEMEDIAITEM;
+    }
+
+    isTargetSingleMediaSegment(){
+        return this.taskType.targetType === TaskType.TargetTypeEnum.SINGLEMEDIASEGMENT;
+    }
+
+    isTargetMultipleMediaSegment(){
+        return this.taskType.targetType === TaskType.TargetTypeEnum.MULTIPLEMEDIAITEMS;
+    }
+
+    isTargetJudgment(){
+        return this.taskType.targetType === TaskType.TargetTypeEnum.JUDGEMENT;
+    }
+
     randomisedMediaItem() {
         this.collectionService.getApiCollectionRandomWithCollectionid(
             (this.form.get('mediaCollection') as FormControl).value as number)

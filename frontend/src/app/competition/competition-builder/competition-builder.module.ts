@@ -21,7 +21,7 @@ import {MatChipsModule} from '@angular/material/chips';
 import {CompetitionBuilderTaskTypeDialogComponent} from './competition-builder-task-type-dialog/competition-builder-task-type-dialog.component';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {CompetitionBuilderTaskDescriptionComponentDialogComponent} from './competition-builder-task-description-component-dialog/competition-builder-task-description-component-dialog.component';
-import {CompetitionBuilderLegacyTaskDialogComponent} from './competition-builder-legacy-task-dialog/competition-builder-legacy-task-dialog.component';
+// import {CompetitionBuilderLegacyTaskDialogComponent} from './competition-builder-legacy-task-dialog/competition-builder-legacy-task-dialog.component';
 
 @NgModule({
     imports: [
@@ -48,7 +48,7 @@ import {CompetitionBuilderLegacyTaskDialogComponent} from './competition-builder
         CompetitionBuilderComponent,
         CompetitionBuilderTeamDialogComponent,
         CompetitionBuilderTaskDialogComponent,
-        CompetitionBuilderLegacyTaskDialogComponent,
+        // CompetitionBuilderLegacyTaskDialogComponent,
         CompetitionBuilderTaskGroupDialogComponent,
         CompetitionBuilderTaskTypeDialogComponent,
         CompetitionBuilderTaskDescriptionComponentDialogComponent],

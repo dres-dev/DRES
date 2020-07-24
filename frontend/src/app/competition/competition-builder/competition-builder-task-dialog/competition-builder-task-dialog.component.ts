@@ -57,19 +57,21 @@ export class CompetitionBuilderTaskDialogComponent {
                 public config: AppConfig,
                 private dialog: MatDialog) {
 
+        this.taskType = data?.taskType;
+
         this.mediaCollectionSource = this.collectionService.getApiCollection().pipe(tap(x => this.mediaCollections = x));
 
         this.form = new FormGroup({
-            name: new FormControl(this?.data?.task.name, [Validators.required]),
+            name: new FormControl(this?.data?.task?.name, [Validators.required]),
             duration: new FormControl(this?.data.taskType.taskDuration, [Validators.required, Validators.min(1)]),
             group: new FormControl(this?.data?.taskGroup.name, [Validators.required]),
             type: new FormControl(this?.data?.taskType.name, [Validators.required]),
-            components: new FormArray(this?.data?.task.components.map((v) => new FormControl(v)), [Validators.required, Validators.minLength(1)]),
-            collection: new FormControl(this?.data?.task.defaultMediaCollectionId, [Validators.required]),
+            components: new FormArray(this?.data?.task?.components ? this?.data?.task?.components.map((v) => new FormControl(v)) : [], [Validators.required, Validators.minLength(1)]),
+            collection: new FormControl(this?.data?.task?.defaultMediaCollectionId, [Validators.required]),
         });
 
         this.form.addControl('target.type', new FormControl(this.taskType.targetType, [Validators.required]));
-        this.form.addControl('target.items', new FormArray([], [Validators.required, Validators.minLength(1)]));
+        this.form.addControl('target.items', new FormArray(this?.data?.task?.target?.mediaItems ? this?.data?.task?.target?.mediaItems.map((v) => new FormControl(v)) : [], [Validators.required, Validators.minLength(1)]));
         this.form.addControl('target.range.start', new FormControl(this?.data?.task?.target?.range?.start, [Validators.required, Validators.min(0)]));
         this.form.addControl('target.range.end', new FormControl(this?.data?.task?.target?.range?.end, [Validators.required, Validators.min(0)]));
 

@@ -11,10 +11,12 @@ data class RestTaskDescriptionComponent(
         val type: TaskType.QueryComponentType,
         /**
          * Start time in seconds of when this component is active (Task time)
+         * Must be a positive integer, including zero (0) (indicates the component is available from the start)
          */
         val start: Long? = null,
         /**
          * End time in seconds of when this component is not active anymore (Task time)
+         * Must be a postive integer, greater than [start]
          */
         val end: Long? = null,
         /**

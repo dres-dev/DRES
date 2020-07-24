@@ -1,28 +1,34 @@
 import {Component, ElementRef, Inject, ViewChild} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material/dialog';
 import {
-    // AvsTaskDescription,
     CollectionService,
-    // KisTextualTaskDescription,
-    // KisVisualTaskDescription,
     MediaCollection,
-    MediaItem, TaskDescription,
-    // TaskDescriptionBase,
+    MediaItem,
+    RestTaskDescription,
+    RestTaskDescriptionComponent,
+    RestTaskDescriptionTarget,
     TaskGroup,
-    TemporalPoint,
+    TaskType,
     TemporalRange,
     VideoItem
 } from '../../../../../openapi';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Observable} from 'rxjs';
-import {filter, flatMap, tap} from 'rxjs/operators';
+import {filter, tap} from 'rxjs/operators';
 import {AppConfig} from '../../../app.config';
+import {CompetitionBuilderTaskDescriptionComponentDialogComponent} from '../competition-builder-task-description-component-dialog/competition-builder-task-description-component-dialog.component';
 
 
+/**
+ * Its expected that the taskGroup and taskType properties are correctly given
+ * even in the case this is 'edit'!
+ */
 export interface CompetitionBuilderTaskDialogData {
     taskGroup: TaskGroup;
-    task?: TaskDescription;
+    taskType: TaskType;
+    task?: RestTaskDescription;
 }
+
 
 @Component({
     selector: 'app-competition-builder-task-dialog',
@@ -40,12 +46,37 @@ export class CompetitionBuilderTaskDialogComponent {
     videoUrl: Observable<string>;
     @ViewChild('videoPlayer', {static: false}) video: ElementRef;
 
+    /**
+     * Convenience access
+     */
+    taskType: TaskType;
+
     constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskDialogComponent>,
                 public collectionService: CollectionService,
                 @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData,
-                public config: AppConfig) {
+                public config: AppConfig,
+                private dialog: MatDialog) {
 
         this.mediaCollectionSource = this.collectionService.getApiCollection().pipe(tap(x => this.mediaCollections = x));
+
+        this.form = new FormGroup({
+            name: new FormControl(this?.data?.task.name, [Validators.required]),
+            duration: new FormControl(this?.data.taskType.taskDuration, [Validators.required, Validators.min(1)]),
+            group: new FormControl(this?.data?.taskGroup.name, [Validators.required]),
+            type: new FormControl(this?.data?.taskType.name, [Validators.required]),
+            components: new FormArray(this?.data?.task.components.map((v) => new FormControl(v)), [Validators.required, Validators.minLength(1)]),
+            collection: new FormControl(this?.data?.task.defaultMediaCollectionId, [Validators.required]),
+        });
+
+        this.form.addControl('target.type', new FormControl(this.taskType.targetType, [Validators.required]));
+        this.form.addControl('target.items', new FormArray([], [Validators.required, Validators.minLength(1)]));
+        this.form.addControl('target.range.start', new FormControl(this?.data?.task?.target?.range?.start, [Validators.required, Validators.min(0)]));
+        this.form.addControl('target.range.end', new FormControl(this?.data?.task?.target?.range?.end, [Validators.required, Validators.min(0)]));
+
+        if (this?.data?.task?.duration) {
+            /* in case of editing, default is from type */
+            this.form.get('duration').setValue(this.data.task.duration);
+        }
 
         // switch (this.data.taskGroup.type) {
         //     case 'KIS_VISUAL':
@@ -70,13 +101,6 @@ export class CompetitionBuilderTaskDialogComponent {
         //         this.form = CompetitionBuilderTaskDialogComponent.AvsFormControl(this.data.taskGroup, this.data.task as AvsTaskDescription);
         //         break;
         // }
-    }
-
-    public static BasicFormControl(taskGroup: TaskGroup, task?: TaskDescription) {
-        return new FormGroup({
-            // name: new FormControl(task?.name, Validators.required),
-            // duration: new FormControl(task?.duration ? task.duration : taskGroup?.defaultTaskDuration, [Validators.required, Validators.min(5)])
-        });
     }
 
     // /**
@@ -132,6 +156,29 @@ export class CompetitionBuilderTaskDialogComponent {
     // }
 
     /**
+     * Handler for + button for task description component. Adds said component
+     */
+    public addDescComponent() {
+        const dialogRef = this.dialog.open(
+            CompetitionBuilderTaskDescriptionComponentDialogComponent,
+            {data: {}, width: '650px'}
+        );
+        dialogRef.afterClosed().pipe(
+            filter(g => g != null)
+        ).subscribe((g: RestTaskDescriptionComponent) => {
+            (this.form.get('components') as FormArray).push(new FormControl(g));
+        });
+    }
+
+    /**
+     * Handler for (-) button for task description components. Removes said component
+     * @param index The index to remove the component at
+     */
+    public removeDescComponent(index: number) {
+        (this.form.get('components') as FormArray).removeAt(index);
+    }
+
+    /**
      * Handler for + button for task descriptions (KIS_TEXTUAL tasks only). Adds a description.
      *
      * @param index The index to add description at.
@@ -167,8 +214,48 @@ export class CompetitionBuilderTaskDialogComponent {
      */
     public save() {
         if (this.form.valid) {
-           // this.dialogRef.close(this.getTaskDescription());
+            this.dialogRef.close(this.fetchFormData());
         }
+    }
+
+    /**
+     * Fetches the form data and transforms it to the return type
+     */
+    fetchFormData(): RestTaskDescription {
+        const data = {
+            id: 'TODO:serverside-only?', // FIXME isn't this serverside only or is this a prep for UUID all the things?
+            name: this.form.get('name').value,
+            taskGroup: this.form.get('group').value,
+            taskType: this.form.get('type').value,
+            duration: this.form.get('duration').value,
+            defaultMediaCollectionId: this.form.get('collection').value,
+            components: this.form.get('components').value,
+            target: {
+                type: this.taskType.targetType,
+                mediaItems: this.form.get('target.items').value
+            } as RestTaskDescriptionTarget
+        } as RestTaskDescription;
+        if (this.form.get('target.range.start') && this.form.get('target.range.end')) {
+            data.target.range = {
+                start: this.form.get('target.range.start').value,
+                end: this.form.get('target.range.end').value
+            } as TemporalRange;
+        }
+        return data;
+    }
+
+    /**
+     * The form data as json
+     */
+    asJson(): string {
+        return JSON.stringify(this.fetchFormData());
+    }
+
+    /**
+     * Prints the JSONified form data to console
+     */
+    export() {
+        console.log(this.asJson());
     }
 
     randomisedMediaItem() {

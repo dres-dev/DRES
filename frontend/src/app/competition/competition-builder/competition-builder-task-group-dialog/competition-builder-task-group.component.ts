@@ -3,7 +3,7 @@ import {TaskGroup, TaskType} from '../../../../../openapi';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 
-export interface CompetitionBuilderTaskGroupDialogData{
+export interface CompetitionBuilderTaskGroupDialogData {
     types: TaskType[];
     group?: TaskGroup;
 }

@@ -1,25 +1,13 @@
 import {Component, ElementRef, Inject, ViewChild} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {
-    // AvsTaskDescription,
-    CollectionService,
-    // KisTextualTaskDescription,
-    // KisVisualTaskDescription,
-    MediaCollection,
-    MediaItem, TaskDescription,
-    // TaskDescriptionBase,
-    TaskGroup,
-    TemporalPoint,
-    TemporalRange,
-    VideoItem
-} from '../../../../../openapi';
+import {CollectionService, MediaCollection, MediaItem, TaskDescription, TaskGroup, VideoItem} from '../../../../../openapi';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Observable} from 'rxjs';
-import {filter, flatMap, tap} from 'rxjs/operators';
+import {tap} from 'rxjs/operators';
 import {AppConfig} from '../../../app.config';
 
 
-export interface CompetitionBuilderTaskDialogData {
+export interface CompetitionBuilderLegacyTaskDialogData {
     taskGroup: TaskGroup;
     task?: TaskDescription;
 }
@@ -42,7 +30,7 @@ export class CompetitionBuilderLegacyTaskDialogComponent {
 
     constructor(public dialogRef: MatDialogRef<CompetitionBuilderLegacyTaskDialogComponent>,
                 public collectionService: CollectionService,
-                @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData,
+                @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderLegacyTaskDialogData,
                 public config: AppConfig) {
 
         this.mediaCollectionSource = this.collectionService.getApiCollection().pipe(tap(x => this.mediaCollections = x));
@@ -167,7 +155,7 @@ export class CompetitionBuilderLegacyTaskDialogComponent {
      */
     public save() {
         if (this.form.valid) {
-           // this.dialogRef.close(this.getTaskDescription());
+            // this.dialogRef.close(this.getTaskDescription());
         }
     }
 

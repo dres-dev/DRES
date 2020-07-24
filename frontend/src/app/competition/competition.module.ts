@@ -1,5 +1,5 @@
 import {NgModule} from '@angular/core';
-import {CompetitionBuilderComponent} from './competition-builder/competition-builder.component';
+
 import {CompetitionListComponent} from './competition-list/competition-list.component';
 import {MatTableModule} from '@angular/material/table';
 import {MatIconModule} from '@angular/material/icon';

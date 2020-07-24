@@ -7,13 +7,16 @@ import {FormControl, FormGroup} from '@angular/forms';
 import {Subscription} from 'rxjs';
 import {MatDialog} from '@angular/material/dialog';
 import {CompetitionBuilderTeamDialogComponent,} from './competition-builder-team-dialog/competition-builder-team-dialog.component';
-import {CompetitionBuilderTaskDialogComponent, CompetitionBuilderTaskDialogData} from './competition-builder-task-dialog/competition-builder-task-dialog.component';
 import {
     CompetitionBuilderTaskGroupDialogComponent,
     CompetitionBuilderTaskGroupDialogData
 } from './competition-builder-task-group-dialog/competition-builder-task-group.component';
 import {MatTable} from '@angular/material/table';
 import {CompetitionBuilderTaskTypeDialogComponent} from './competition-builder-task-type-dialog/competition-builder-task-type-dialog.component';
+import {
+    CompetitionBuilderTaskDialogComponent,
+    CompetitionBuilderTaskDialogData
+} from './competition-builder-task-dialog/competition-builder-task-dialog.component';
 
 @Component({
     selector: 'app-competition-builer',
@@ -126,7 +129,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
             taskDuration: 420,
             components: [TaskType.ComponentsEnum.TEXT],
             score: TaskType.ScoreEnum.KIS,
-            targetType: TaskType.TargetTypeEnum.MULTIPLEMEDIAITEMS,
+            targetType: TaskType.TargetTypeEnum.SINGLEMEDIASEGMENT, // traditional KIS
             options: [TaskType.OptionsEnum.HIDDENRESULTS],
             filter: [TaskType.FilterEnum.NODUPLICATES, TaskType.FilterEnum.ONECORRECTPERTEAM]
         } as Partial<TaskType>;
@@ -160,9 +163,10 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
      * @param group The TaskGroup to add a description to.
      */
     public addTask(group: TaskGroup) {
+        const type = this.competition.taskTypes.find(v => v.name === group.type);
         const dialogRef = this.dialog.open(
             CompetitionBuilderTaskDialogComponent,
-            {data: {taskGroup: group, task: null} as CompetitionBuilderTaskDialogData, width: '750px'}
+            {data: {taskGroup: group, taskType: type, task: null} as CompetitionBuilderTaskDialogData, width: '750px'}
         );
         dialogRef.afterClosed().pipe(
             filter(t => t != null),
@@ -181,20 +185,20 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     public editTask(task: TaskDescription) {
         // fixme
         // const index = this.competition.tasks.indexOf(task);
-        const index = 1;
-        if (index > -1) {
-            const dialogRef = this.dialog.open(
-                CompetitionBuilderTaskDialogComponent,
-                {data: {taskGroup: task.taskGroup /*, task: task*/} as Partial<CompetitionBuilderTaskDialogData>, width: '750px'}
-            );
-            dialogRef.afterClosed().pipe(
-                filter(t => t != null),
-            ).subscribe((t) => {
-                this.competition.tasks[index] = t;
-                this.dirty = true;
-                this.taskTable.renderRows();
-            });
-        }
+        // const index = 1;
+        // if (index > -1) {
+        //     const dialogRef = this.dialog.open(
+        //         CompetitionBuilderTaskDialogComponent,
+        //         {data: {taskGroup: task.taskGroup /*, task: task*/} as Partial<CompetitionBuilderTaskDialogData>, width: '750px'}
+        //     );
+        //     dialogRef.afterClosed().pipe(
+        //         filter(t => t != null),
+        //     ).subscribe((t) => {
+        //         this.competition.tasks[index] = t;
+        //         this.dirty = true;
+        //         this.taskTable.renderRows();
+        //     });
+        // }
     }
 
     public removeTask(task: TaskDescription) {

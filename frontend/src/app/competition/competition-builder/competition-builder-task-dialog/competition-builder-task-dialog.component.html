@@ -1,5 +1,6 @@
-<h1 mat-dialog-title>Add task ({{data.taskGroup.type}})</h1>
+<h1 mat-dialog-title>Add task</h1>
 <div mat-dialog-content>
+    Add a task of type {{data.taskType.name}} for group {{data.taskGroup.name}}:
     <form [formGroup]="form">
         <p>
             <mat-form-field style="width: 50%;">
@@ -13,7 +14,7 @@
             </mat-form-field>
         </p>
 
-        <div *ngIf="form.get('mediaCollection')">
+        <div>
             <p>
                 <mat-form-field style="width: 45%;">
                     <mat-select placeholder="Media Collection" formControlName="mediaCollection">

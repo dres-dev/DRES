@@ -11,6 +11,7 @@ import com.github.ajalt.clikt.parameters.options.validate
 import com.github.ajalt.clikt.parameters.types.long
 import dres.data.dbo.DAO
 import dres.data.model.Config
+import dres.data.model.UID
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.CompetitionDescription
 import dres.utilities.FFmpegUtil
@@ -34,13 +35,13 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
     private val taskCacheLocation = File(config.cachePath + "/tasks")
 
     abstract inner class AbstractCompetitionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {
-        private val id: Long? by option("-i", "--id").long()
+        private val id: String? by option("-i", "--id")
         private val competition: String? by option("-c", "--competition")
-        protected val competitionId: Long
+        protected val competitionId: UID
             get() = when {
-                this.id != null -> this.id!!
-                this.competition != null -> this@CompetitionCommand.competitions.find { c -> c.name == this.competition!! }?.id ?: -1
-                else -> 0
+                this.id != null -> UID(this.id!!)
+                this.competition != null -> this@CompetitionCommand.competitions.find { c -> c.name == this.competition!! }?.id ?: UID.EMPTY
+                else -> UID.EMPTY
             }
     }
 
@@ -54,7 +55,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                 .validate {require(it.isNotEmpty()) { "Competition description must be non empty." } }
 
         override fun run() {
-            val newCompetition = CompetitionDescription(id = -1, name = name, description = description, taskTypes = mutableListOf(), groups = mutableListOf(), teams = mutableListOf(), tasks = mutableListOf())
+            val newCompetition = CompetitionDescription(id = UID.EMPTY, name = name, description = description, taskTypes = mutableListOf(), groups = mutableListOf(), teams = mutableListOf(), tasks = mutableListOf())
             val id = this@CompetitionCommand.competitions.append(newCompetition)
             println("New competition '$newCompetition' created with ID=$id.")
         }
@@ -157,7 +158,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
             }
 
             val competition = this@CompetitionCommand.competitions[competitionId]!!
-            val newCompetition = competition.copy(id = -1, name = name)
+            val newCompetition = competition.copy(id = UID.EMPTY, name = name)
 
             this@CompetitionCommand.competitions.append(newCompetition)
 

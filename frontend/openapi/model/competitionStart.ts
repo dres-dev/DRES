@@ -12,7 +12,7 @@
 
 
 export interface CompetitionStart { 
-    competitionId: number;
+    competitionId: string;
     name: string;
     type: CompetitionStart.TypeEnum;
     scoreboards: Array<string>;

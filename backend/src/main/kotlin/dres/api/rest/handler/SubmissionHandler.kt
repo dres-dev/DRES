@@ -9,6 +9,7 @@ import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
 import dres.data.dbo.DaoIndexer
 import dres.data.model.Config
+import dres.data.model.UID
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.media.MediaItemSegmentList
@@ -35,7 +36,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.math.abs
 
-class SubmissionHandler (val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<Long, String>>, private val segmentIndex: DaoIndexer<MediaItemSegmentList, Long>, private val config: Config): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
+class SubmissionHandler (val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, private val segmentIndex: DaoIndexer<MediaItemSegmentList, UID>, private val config: Config): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
     override val route = "submit"
 
@@ -48,9 +49,9 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
     }
 
 
-    private fun getRelevantManagers(userId: Long): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
+    private fun getRelevantManagers(userId: UID): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
-    private fun getActiveRun(userId: Long): RunManager {
+    private fun getActiveRun(userId: UID): RunManager {
         val managers = getRelevantManagers(userId).filter { it.status == RunManagerStatus.RUNNING_TASK }
         if (managers.isEmpty()) {
             throw ErrorStatusException(404, "There is currently no eligible competition with an active task.")
@@ -63,12 +64,12 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         return managers.first()
     }
 
-    private fun toSubmission(ctx: Context, userId: Long, runManager: RunManager, submissionTime: Long): Submission {
+    private fun toSubmission(ctx: Context, userId: UID, runManager: RunManager, submissionTime: Long): Submission {
         val map = ctx.queryParamMap()
         val team = runManager.competitionDescription.teams.indexOf(runManager.competitionDescription.teams.first { it.users.contains(userId) })
 
         val collectionParam = map[PARAMETER_NAME_COLLECTION]?.first()
-        val collectionId = when {
+        val collectionId: UID = when {
             collectionParam != null -> this.collections.find { it.name == collectionParam }?.id
             else -> runManager.currentTask?.defaultMediaCollectionId
         } ?: throw ErrorStatusException(404, "Media collection '$collectionParam' could not be found.")
@@ -167,7 +168,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             throw ErrorStatusException(208, "Submission rejected")
         }
 
-        AuditLogger.submission(run.uid, run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId())
+        AuditLogger.submission(run.id, run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId())
         EventStreamProcessor.event(SubmissionEvent(ctx.sessionId(), submission))
 
         if (run.currentTask?.taskType?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) { //pre-generate preview

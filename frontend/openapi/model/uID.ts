@@ -11,12 +11,7 @@
  */
 
 
-export interface MediaItem { 
-    itemType: string;
-    name: string;
-    location: string;
-    collection: string;
-    id: string;
-    id_HSBmXqg?: string;
+export interface UID { 
+    string: string;
 }
 

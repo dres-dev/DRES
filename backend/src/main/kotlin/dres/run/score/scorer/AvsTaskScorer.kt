@@ -1,5 +1,6 @@
 package dres.run.score.scorer
 
+import dres.data.model.UID
 import dres.data.model.basics.time.TemporalRange
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
@@ -16,7 +17,7 @@ class AvsTaskScorer: IncrementalTaskRunScorer {
     private val correctSubmissions = mutableSetOf<Submission>()
     private val correctSubmissionsPerTeam = mutableMapOf<Int, MutableSet<Submission>>()
 
-    private val ranges = mutableMapOf<Long, List<TemporalRange>>()
+    private val ranges = mutableMapOf<UID, List<TemporalRange>>()
 
     private val wrongSubmissions = mutableSetOf<Submission>()
     private val wrongSubmissionsPerTeam = mutableMapOf<Int, MutableSet<Submission>>()

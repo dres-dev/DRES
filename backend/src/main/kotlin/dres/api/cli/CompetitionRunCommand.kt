@@ -6,6 +6,7 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
@@ -13,9 +14,11 @@ import com.github.ajalt.clikt.parameters.types.long
 import com.jakewharton.picnic.table
 
 import dres.data.dbo.DAO
+import dres.data.model.UID
 import dres.data.model.run.CompetitionRun
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor
+import dres.utilities.extensions.UID
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
@@ -29,7 +32,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
     /**
      * Helper class that contains all information regarding a [RunManager].
      */
-    data class RunSummary(val id: Long, val name: String, val description: String?, val task: String?)
+    data class RunSummary(val id: String, val name: String, val description: String?, val task: String?)
 
     /**
      * Lists all ongoing competitions runs for the current DRES instance.
@@ -43,7 +46,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
             }
             if (plain) {
                 RunExecutor.managers().forEach {
-                    println("${RunSummary(it.id, it.name, it.competitionDescription.description, it.currentTask?.name)} (${it.status})")
+                    println("${RunSummary(it.id.string, it.name, it.competitionDescription.description, it.currentTask?.name)} (${it.status})")
                 }
             } else {
                 table {
@@ -74,7 +77,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
         override fun run() {
             if (plain) {
                 this@CompetitionRunCommand.runs.forEach {
-                    println("${RunSummary(it.id, it.name, it.competitionDescription.description, it.lastTask?.task?.name)}")
+                    println("${RunSummary(it.id.string, it.name, it.competitionDescription.description, it.lastTask?.task?.name)}")
                 }
             } else {
                 table {
@@ -111,8 +114,8 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
     /**
      * Deletes a selected competition run for the current DRES instance.
      */
-    inner class DeleteRunCommand : CliktCommand(name = "delete", help = "Deletes an existing competition run.") {
-        private val id: Long by option("-r", "--run").long().required()
+    inner class DeleteRunCommand: CliktCommand(name = "delete", help = "Deletes an existing competition run.") {
+        private val id: UID by option("-r", "--run").convert { it.UID() }.required()
         override fun run() {
             if (RunExecutor.managers().any { it.id == id }) {
                 println("Run with ID $id could not be deleted because it is still running! Terminate it and try again.")
@@ -131,8 +134,8 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
     /**
      * Exports a specific competition run as JSON.
      */
-    inner class ExportRunCommand : CliktCommand(name = "export", help = "Exports the competition run as JSON.") {
-        private val id: Long by option("-r", "--run").long().required()
+    inner class ExportRunCommand: CliktCommand(name = "export", help = "Exports the competition run as JSON.") {
+        private val id: UID by option("-r", "--run").convert { it.UID() }.required()
         private val path: String by option("-o", "--output").required()
         override fun run() {
             val run = this@CompetitionRunCommand.runs[this.id]
@@ -226,7 +229,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
 
         inner class ResetSingleSubmissionStatusCommand : CliktCommand(name = "submission", help = "Resets the status of individual submissions") {
 
-            private val runId: Long by option("-r", "--run", help = "Id of the run").long().required()
+            private val runId: UID by option("-r", "--run", help = "Id of the run").convert { it.UID() }.required()
             private val ids: List<String> by option("-i", "--ids", help = "UIDs of the submissions to reset").multiple()
 
             override fun run() {
@@ -249,7 +252,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
 
         inner class ResetTaskSubmissionStatusCommand : CliktCommand(name = "task", help = "Resets the status of all submissions of specified tasks") {
 
-            private val runId: Long by option("-r", "--run", help = "Id of the run").long().required()
+            private val runId: UID by option("-r", "--run", help = "Id of the run").convert { it.UID() }.required()
             private val ids: List<String> by option("-i", "--ids", help = "UIDs of the tasks to reset").multiple()
 
             override fun run() {
@@ -272,7 +275,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
 
         inner class ResetTaskGroupSubmissionStatusCommand : CliktCommand(name = "taskGroup", help = "Resets the status all submissions for tasks within a task group") {
 
-            private val runId: Long by option("-r", "--run", help = "Id of the run").long().required()
+            private val runId: UID by option("-r", "--run", help = "Id of the run").convert { it.UID() }.required()
             private val taskGroup: String by option("-g", "--taskGroup", help = "Name of the Task Group to reset").required()
 
             override fun run() {

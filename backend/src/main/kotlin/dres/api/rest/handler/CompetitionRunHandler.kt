@@ -7,6 +7,7 @@ import dres.api.rest.types.run.RunState
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.data.model.Config
+import dres.data.model.UID
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.QueryDescription
 import dres.data.model.competition.TaskGroup
@@ -19,6 +20,7 @@ import dres.run.RunManager
 import dres.run.RunManagerStatus
 import dres.run.score.scoreboard.Score
 import dres.run.score.scoreboard.ScoreOverview
+import dres.utilities.extensions.UID
 import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.Context
@@ -35,7 +37,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.VIEWER)
 
-    private fun userId(ctx: Context): Long = AccessManager.getUserIdForSession(ctx.sessionId())!!
+    private fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionId())!!
 
     //private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
     //private fun isJudge(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.JUDGE) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
@@ -50,7 +52,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
         return RunExecutor.managers()
     }
 
-    fun getRun(ctx: Context, runId: Long): RunManager? {
+    fun getRun(ctx: Context, runId: UID): RunManager? {
         if (isParticipant(ctx)) {
             val userId = userId(ctx)
             val run = RunExecutor.managerForId(runId) ?: return null
@@ -64,7 +66,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
 
     fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
         throw ErrorStatusException(400, "Parameter 'runId' is missing!'")
-    }.toLong()
+    }.UID()
 }
 
 class ListCompetitionRunInfosHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<RunInfo>> {
@@ -398,7 +400,7 @@ class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHa
     }
 }
 
-data class SubmissionInfo(val team: Int, val member: Long, val status: SubmissionStatus, val timestamp: Long, val id: String? = null, val item: MediaItem? = null, val start: Long? = null, val end: Long? = null) {
+data class SubmissionInfo(val team: Int, val member: UID, val status: SubmissionStatus, val timestamp: Long, val id: String? = null, val item: MediaItem? = null, val start: Long? = null, val end: Long? = null) {
     constructor(submission: Submission) : this(submission.team, submission.member, submission.status, submission.timestamp, submission.uid, submission.item, submission.start, submission.end)
 
     companion object {

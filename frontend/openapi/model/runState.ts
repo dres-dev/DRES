@@ -13,7 +13,7 @@ import { TaskDescription } from './taskDescription';
 
 
 export interface RunState { 
-    id: number;
+    id: string;
     status: RunState.StatusEnum;
     currentTask?: TaskDescription;
     timeLeft: number;

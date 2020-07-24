@@ -14,7 +14,7 @@ import { MediaItem } from './mediaItem';
 
 export interface SubmissionInfo { 
     team: number;
-    member: number;
+    member: string;
     status: SubmissionInfo.StatusEnum;
     timestamp: number;
     id?: string;

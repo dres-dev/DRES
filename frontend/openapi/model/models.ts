@@ -34,6 +34,7 @@ export * from './taskType';
 export * from './team';
 export * from './temporalPoint';
 export * from './temporalRange';
+export * from './uID';
 export * from './userDetails';
 export * from './userRequest';
 export * from './videoItem';

@@ -1,6 +1,7 @@
 package dres.data.dbo
 
 import dres.data.model.Entity
+import dres.data.model.UID
 import dres.utilities.extensions.optimisticRead
 import dres.utilities.extensions.write
 import java.util.concurrent.locks.StampedLock
@@ -10,7 +11,7 @@ import java.util.concurrent.locks.StampedLock
  */
 class DaoIndexer<T: Entity, K> internal constructor(private val dao: DAO<T>, private val keyTransform: (T) -> K) {
 
-    private val index: MutableMap<K, MutableList<Long>> = mutableMapOf()
+    private val index: MutableMap<K, MutableList<UID>> = mutableMapOf()
 
     private val lock = StampedLock()
 

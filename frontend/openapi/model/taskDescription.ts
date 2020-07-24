@@ -20,7 +20,7 @@ export interface TaskDescription {
     taskGroup: TaskGroup;
     taskType: TaskType;
     duration: number;
-    defaultMediaCollectionId: number;
+    defaultMediaCollectionId: string;
     components: Array<TaskDescriptionComponent>;
     target: object;
 }

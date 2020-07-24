@@ -6,7 +6,7 @@ package dres.api.rest.types.run.websocket
  * @author Ralph Gasser
  * @version 1.0
  */
-data class ClientMessage(val runId: Long, val type: ClientMessageType)
+data class ClientMessage(val runId: String, val type: ClientMessageType)
 
 enum class ClientMessageType {
     ACK,     /** Acknowledgement of the last message received. */

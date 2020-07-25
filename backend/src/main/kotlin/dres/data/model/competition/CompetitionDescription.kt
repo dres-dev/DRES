@@ -11,7 +11,6 @@ import dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dres.run.score.scoreboard.MeanAggregateScoreBoard
 import dres.run.score.scoreboard.Scoreboard
 import dres.utilities.extensions.UID
-import java.util.*
 
 
 data class CompetitionDescription(
@@ -69,5 +68,6 @@ fun CompetitionDescription(description: RestCompetitionDescription, mediaItems: 
         description.taskTypes.toMutableList(),
         description.groups.toMutableList(),
         description.tasks.map { TaskDescription(it, description.groups, description.taskTypes, mediaItems) }.toMutableList(),
-        description.teams.toMutableList()
+        description.teams.map{ Team(it) }.toMutableList()
+
 )

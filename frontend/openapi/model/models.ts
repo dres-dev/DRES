@@ -1,3 +1,4 @@
+export * from './competitionCreate';
 export * from './competitionOverview';
 export * from './competitionStart';
 export * from './errorStatus';

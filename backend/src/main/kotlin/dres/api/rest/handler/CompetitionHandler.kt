@@ -41,6 +41,11 @@ data class CompetitionOverview(val id: UID, val name: String, val description: S
     }
 }
 
+/**
+ * Data class for creation of competition
+ */
+data class CompetitionCreate(val name: String, val description: String)
+
 class ListCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<CompetitionOverview>> {
 
     @OpenApi(
@@ -121,7 +126,7 @@ class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
     @OpenApi(
             summary = "Creates a new competition.",
             path = "/api/competition", method = HttpMethod.POST,
-            requestBody = OpenApiRequestBody([OpenApiContent(CompetitionOverview::class)]),
+            requestBody = OpenApiRequestBody([OpenApiContent(CompetitionCreate::class)]),
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -132,7 +137,7 @@ class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val createRequest = try {
-            ctx.bodyAsClass(CompetitionOverview::class.java)
+            ctx.bodyAsClass(CompetitionCreate::class.java)
         }catch (e: BadRequestResponse){
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }

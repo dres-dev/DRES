@@ -17,6 +17,7 @@ import { HttpClient, HttpHeaders, HttpParams,
 import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
+import { CompetitionCreate } from '../model/models';
 import { CompetitionOverview } from '../model/models';
 import { ErrorStatus } from '../model/models';
 import { RestCompetitionDescription } from '../model/models';
@@ -365,14 +366,14 @@ export class CompetitionService {
 
     /**
      * Creates a new competition.
-     * @param competitionOverview 
+     * @param competitionCreate 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postApiCompetition(competitionOverview?: CompetitionOverview, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public postApiCompetition(competitionOverview?: CompetitionOverview, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public postApiCompetition(competitionOverview?: CompetitionOverview, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public postApiCompetition(competitionOverview?: CompetitionOverview, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public postApiCompetition(competitionCreate?: CompetitionCreate, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiCompetition(competitionCreate?: CompetitionCreate, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiCompetition(competitionCreate?: CompetitionCreate, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiCompetition(competitionCreate?: CompetitionCreate, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
 
         let headers = this.defaultHeaders;
 
@@ -404,7 +405,7 @@ export class CompetitionService {
         }
 
         return this.httpClient.post<SuccessStatus>(`${this.configuration.basePath}/api/competition`,
-            competitionOverview,
+            competitionCreate,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

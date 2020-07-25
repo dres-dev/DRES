@@ -11,8 +11,8 @@
  */
 
 
-export interface TaskDescriptionComponent { 
-    end?: number;
-    start?: number;
+export interface CompetitionCreate { 
+    name: string;
+    description: string;
 }
 

@@ -21,7 +21,7 @@ import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
     styleUrls: ['./task-viewer.component.scss']
 })
 export class TaskViewerComponent implements AfterViewInit, OnDestroy {
-    @Input() runId: Observable<number>;
+    @Input() runId: Observable<string>;
     @Input() state: Observable<RunState>;
     @Input() taskStarted: Observable<TaskDescription>;
     @Input() taskChanged: Observable<TaskDescription>;
@@ -36,7 +36,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     timeElapsed: Observable<number>;
 
     /** Observable that returns and caches the current query object. */
-    currentQueryObject: Observable<any>// <VideoQueryDescription | TextQueryDescription | ImageQueryDescription>;
+    currentQueryObject: Observable<any> // <VideoQueryDescription | TextQueryDescription | ImageQueryDescription>;
 
     /** Value of the task count down. */
     taskCountdown: Observable<number>;

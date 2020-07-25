@@ -347,10 +347,10 @@ export class UserService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public patchApiUserWithId(id: number, userRequest?: UserRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<UserDetails>;
-    public patchApiUserWithId(id: number, userRequest?: UserRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<UserDetails>>;
-    public patchApiUserWithId(id: number, userRequest?: UserRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<UserDetails>>;
-    public patchApiUserWithId(id: number, userRequest?: UserRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public patchApiUserWithId(id: string, userRequest?: UserRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<UserDetails>;
+    public patchApiUserWithId(id: string, userRequest?: UserRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<UserDetails>>;
+    public patchApiUserWithId(id: string, userRequest?: UserRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<UserDetails>>;
+    public patchApiUserWithId(id: string, userRequest?: UserRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (id === null || id === undefined) {
             throw new Error('Required parameter id was null or undefined when calling patchApiUserWithId.');
         }

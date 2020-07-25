@@ -43,7 +43,7 @@ export class CompetitionListComponent implements AfterViewInit {
     });
   }
 
-  public createRun(id: number) {
+  public createRun(id: string) {
       const dialogRef = this.dialog.open(CompetitionStartDialogComponent, {width: '500px'});
       dialogRef.afterClosed().pipe(
           filter(r => r != null),
@@ -62,11 +62,11 @@ export class CompetitionListComponent implements AfterViewInit {
       });
   }
 
-  public edit(competitionId: number) {
+  public edit(competitionId: string) {
     this.routerService.navigate(['/competition/builder', competitionId]);
   }
 
-  public delete(competitionId: number) {
+  public delete(competitionId: string) {
       if (confirm(`Do you really want to delete competition with ID ${competitionId}?`)) {
           this.competitionService.deleteApiCompetitionWithCompetitionid(competitionId).subscribe(
               (r) => {

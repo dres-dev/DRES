@@ -16,7 +16,7 @@ export class AdminRunListComponent extends AbstractRunListComponent{
         super(runService, runAdminService, router);
     }
 
-    public start(runId: number) {
+    public start(runId: string) {
         this.runAdminService.postApiRunAdminWithRunidStart(runId).subscribe(
             (r) => {
                 this.update.next();
@@ -27,7 +27,7 @@ export class AdminRunListComponent extends AbstractRunListComponent{
         );
     }
 
-    public terminate(runId: number) {
+    public terminate(runId: string) {
         this.runAdminService.postApiRunAdminWithRunidTerminate(runId).subscribe(
             (r) => {
                 this.update.next();
@@ -38,7 +38,7 @@ export class AdminRunListComponent extends AbstractRunListComponent{
         );
     }
 
-    public nextTask(runId: number) {
+    public nextTask(runId: string) {
         this.runAdminService.postApiRunAdminWithRunidTaskNext(runId).subscribe(
             (r) => {
                 this.update.next();
@@ -49,7 +49,7 @@ export class AdminRunListComponent extends AbstractRunListComponent{
         );
     }
 
-    public previousTask(runId: number) {
+    public previousTask(runId: string) {
         this.runAdminService.postApiRunAdminWithRunidTaskPrevious(runId).subscribe(
             (r) => {
                 this.update.next();
@@ -60,7 +60,7 @@ export class AdminRunListComponent extends AbstractRunListComponent{
         );
     }
 
-    public startTask(runId: number) {
+    public startTask(runId: string) {
         this.runAdminService.postApiRunAdminWithRunidTaskStart(runId).subscribe(
             (r) => {
                 this.update.next();
@@ -71,7 +71,7 @@ export class AdminRunListComponent extends AbstractRunListComponent{
         );
     }
 
-    public abortTask(runId: number) {
+    public abortTask(runId: string) {
         this.runAdminService.postApiRunAdminWithRunidTaskAbort(runId).subscribe(
             (r) => {
                 this.update.next();

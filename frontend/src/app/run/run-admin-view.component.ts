@@ -19,7 +19,7 @@ export interface CombinedRun {
 })
 export class RunAdminViewComponent {
 
-    runId: Observable<number>;
+    runId: Observable<string>;
     run: Observable<CombinedRun>;
     viewers: Observable<ViewerInfo[]>;
     update = new Subject();

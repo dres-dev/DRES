@@ -91,7 +91,7 @@ export class JudgementService {
 
     /**
      * Gets the next open Submission to be judged.
-     * @param runId 
+     * @param runId Run ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
@@ -136,7 +136,7 @@ export class JudgementService {
 
     /**
      * Gets the status of all judgement validators.
-     * @param runId 
+     * @param runId Run ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
@@ -181,7 +181,7 @@ export class JudgementService {
 
     /**
      * Returns a Judgement.
-     * @param runId 
+     * @param runId Run ID
      * @param judgement 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.

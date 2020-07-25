@@ -2,10 +2,11 @@ import {combineLatest, merge, Observable, Subject, timer} from 'rxjs';
 import {CompetitionRunAdminService, CompetitionRunService, RunState} from '../../../openapi';
 import {flatMap, map} from 'rxjs/operators';
 import {Router} from '@angular/router';
+import {RunInfo} from '../../../openapi/model/runInfo';
 
 
 interface RunInfoWithState {
-    id: number;
+    id: string;
     name: string;
     description?: string;
     teams: number;
@@ -53,7 +54,7 @@ export class AbstractRunListComponent {
      *
      * @param runId ID of the run to navigate to.
      */
-    public navigateToViewer(runId: number) {
+    public navigateToViewer(runId: string) {
         this.router.navigate(['/run/viewer', runId]);
     }
 
@@ -62,7 +63,7 @@ export class AbstractRunListComponent {
      *
      * @param runId ID of the run to navigate to.
      */
-    public navigateToJudgement(runId: number) {
+    public navigateToJudgement(runId: string) {
         this.router.navigate(['/judge', runId]);
     }
 
@@ -71,7 +72,7 @@ export class AbstractRunListComponent {
      *
      * @param runId ID of the run to navigate to.
      */
-    public navigateToAdmin(runId: number) {
+    public navigateToAdmin(runId: string) {
         this.router.navigate(['/run/admin', runId]);
     }
 }

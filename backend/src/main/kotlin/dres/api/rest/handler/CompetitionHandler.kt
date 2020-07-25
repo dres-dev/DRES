@@ -62,7 +62,7 @@ class GetCompetitionHandler(competitions: DAO<CompetitionDescription>) : Competi
     @OpenApi(
             summary = "Loads the detailed definition of a specific competition.",
             path = "/api/competition/:competitionId",
-            pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
+            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(RestCompetitionDescription::class)]),
@@ -83,7 +83,7 @@ class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
     @OpenApi(
             summary = "Lists the Teams of a specific competition.",
             path = "/api/competition/:competitionId/team",
-            pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
+            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<Team>::class)]),
@@ -103,7 +103,7 @@ class ListTaskHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
     @OpenApi(
             summary = "Lists the Tasks of a specific competition.",
             path = "/api/competition/:competitionId/task",
-            pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
+            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<RestTaskDescription>::class)]),
@@ -189,7 +189,7 @@ class DeleteCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
     @OpenApi(
             summary = "Deletes the competition with the given competition ID.",
             path = "/api/competition/:competitionId", method = HttpMethod.DELETE,
-            pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
+            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),

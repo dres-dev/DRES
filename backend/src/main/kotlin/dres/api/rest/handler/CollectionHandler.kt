@@ -54,7 +54,7 @@ class ShowCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaI
     @OpenApi(
             summary = "Lists all available Media Collections with basic information about their content.",
             path = "/api/collection/:collectionId",
-            pathParams = [OpenApiParam("collectionId", Long::class, "Collection ID")],
+            pathParams = [OpenApiParam("collectionId", UID::class, "Collection ID")],
             tags = ["Collection"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<MediaItem>::class)]),
@@ -78,7 +78,7 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
     @OpenApi(
             summary = "Adds a Media Item to the specified Media Collection.",
             path = "/api/collection/:collectionId", method = HttpMethod.POST,
-            pathParams = [OpenApiParam("collectionId", Long::class, "Collection ID")],
+            pathParams = [OpenApiParam("collectionId", UID::class, "Collection ID")],
             requestBody = OpenApiRequestBody([OpenApiContent(MediaItem::class)]),
             tags = ["Collection"],
             responses = [
@@ -122,7 +122,7 @@ class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIt
             summary = "Lists Media Items of a Media Collection whose name start with the given fragment",
             path = "/api/collection/:collectionId/:startsWith", method = HttpMethod.GET,
             pathParams = [
-                OpenApiParam("collectionId", Long::class, "Collection ID"),
+                OpenApiParam("collectionId", UID::class, "Collection ID"),
                 OpenApiParam("startsWith", String::class, "Name starts with", required = false)
             ],
             tags = ["Collection"],
@@ -160,7 +160,7 @@ class RandomMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<Media
             summary = "Gives a random Media Item within a given Media Collection.",
             path = "/api/collection/random/:collectionId", method = HttpMethod.GET,
             pathParams = [
-                OpenApiParam("collectionId", Long::class, "Collection ID")
+                OpenApiParam("collectionId", UID::class, "Collection ID")
             ],
             tags = ["Collection"],
             responses = [

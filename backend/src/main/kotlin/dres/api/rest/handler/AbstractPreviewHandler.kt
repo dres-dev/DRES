@@ -123,7 +123,7 @@ class MediaPreviewHandler(collections: DAO<MediaCollection>, itemIndex: DaoIndex
     @OpenApi(summary = "Returns a preview image from a collection item",
             path = "/api/preview/item/:collection/:item/:time",
             pathParams = [
-                OpenApiParam("collectionId", Long::class, "Unique ID of the collection."),
+                OpenApiParam("collectionId", UID::class, "Unique ID of the collection."),
                 OpenApiParam("item", String::class, "Name of the MediaItem"),
                 OpenApiParam("time", Long::class, "Time into the video in milliseconds (for videos only).")
             ],
@@ -162,7 +162,7 @@ class SubmissionPreviewHandler(collections: DAO<MediaCollection>, itemIndex: Dao
     @OpenApi(summary = "Returns a preview image for a submission",
             path = "/api/preview/submission/:runId/:submissionId",
             pathParams = [
-                OpenApiParam("runId", Long::class, "Competition Run ID"),
+                OpenApiParam("runId", UID::class, "Competition Run ID"),
                 OpenApiParam("submissionId", String::class, "Subission ID")
             ],
             tags = ["Media"],

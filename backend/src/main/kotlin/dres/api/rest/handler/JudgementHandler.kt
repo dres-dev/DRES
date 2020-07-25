@@ -35,6 +35,7 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
     @OpenApi(
             summary = "Gets the next open Submission to be judged.",
             path = "/api/run/:runId/judge/next",
+            pathParams = [OpenApiParam("runId", dres.data.model.UID::class, "Run ID")],
             tags = ["Judgement"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(JudgementRequest::class)]),
@@ -65,6 +66,7 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
     @OpenApi(
             summary = "Returns a Judgement.",
             path = "/api/run/:runId/judge", method = HttpMethod.POST,
+            pathParams = [OpenApiParam("runId", dres.data.model.UID::class, "Run ID")],
             requestBody = OpenApiRequestBody([OpenApiContent(Judgement::class)]),
             tags = ["Judgement"],
             responses = [
@@ -101,6 +103,7 @@ class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, A
     @OpenApi(
             summary = "Gets the status of all judgement validators.",
             path = "/api/run/:runId/judge/status",
+            pathParams = [OpenApiParam("runId", dres.data.model.UID::class, "Run ID")],
             tags = ["Judgement"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<JudgementValidatorStatus>::class)]),

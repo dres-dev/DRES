@@ -15,7 +15,7 @@ data class RestCompetitionDescription(
         val teams: MutableList<Team>
 ) {
     constructor(description: CompetitionDescription) : this(
-            description.id.toString(),
+            description.id.string,
             description.name,
             description.description,
             description.taskTypes,

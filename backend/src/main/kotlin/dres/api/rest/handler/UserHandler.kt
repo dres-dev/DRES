@@ -36,8 +36,7 @@ abstract class UserHandler() : RestHandler {
     }
 
     protected fun getIdFromPath(ctx: Context): UID {
-        val id = ctx.pathParam("id")?.UID()
-                ?: throw ErrorStatusException(400, "Path parameter 'id' invalid formatted or non-existent!")
+        val id = ctx.pathParam("id").UID()
         if(UserManager.exists(id=id)){
             return id
         }else{

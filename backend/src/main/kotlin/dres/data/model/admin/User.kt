@@ -7,11 +7,11 @@ import dres.data.model.UID
 import org.mindrot.jbcrypt.BCrypt
 
 
-data class User @JsonCreator constructor(
-        @JsonProperty("id") override var id: UID = UID.EMPTY,
-        @JsonProperty("username") val username: UserName,
-        @JsonProperty("password") val password: HashedPassword,
-        @JsonProperty("role") val role: Role) : Entity {
+data class User constructor(
+        override var id: UID = UID.EMPTY,
+        val username: UserName,
+        val password: HashedPassword,
+        val role: Role) : Entity {
     override fun toString(): String = "User(id=$id, username=${username.name}, role=$role)"
 }
 

@@ -1,4 +1,4 @@
-package dres.api.rest.types
+package dres.api.rest.types.competition
 
 import dres.data.model.competition.Team
 

@@ -34,49 +34,49 @@
                 <p>
                     <mat-form-field style="width: 100%">
                         <mat-label>Description</mat-label>
-                        <textarea matInput placeholder="Password" formControlName="description" required></textarea>
+                        <textarea matInput placeholder="Description" formControlName="description" required></textarea>
                     </mat-form-field>
                 </p>
-                <div>
+                <h2>
+                    Task types
                     <button mat-button aria-label="Add new task type." matTooltip="Add new task type."
                             (click)="addTaskType()">
                         <mat-icon>add</mat-icon>
                         Add task type
                     </button>
-                    <button mat-button aria-label="Add new task group." matTooltip="Add new task group."
-                            (click)="addTaskGroup()">
-                        <mat-icon>add</mat-icon>
-                        Add task group
-                    </button>
-                <div>
-                <mat-list style="display: inline-block;">
-                    <mat-chip-list>
-                        <mat-chip
-                                *ngFor="let taskType of competition.taskTypes"
-                                [removable]="true" (removed)="removeTaskType(taskType)"
-                                [matTooltip]="summariseTaskType(taskType)"
-                        >
-                            {{taskType.name}} ({{taskType.targetType}} | {{taskType.score}})
-                            <mat-icon matChipRemove>cancel</mat-icon>
-                        </mat-chip>
-                    </mat-chip-list>
-                </mat-list>
-                </div>
-                    <p>
 
-                <mat-list style="display: inline-block;">
-                    <mat-chip-list>
-                        <mat-chip *ngFor="let group of competition.groups"
-                                  [removable]="true" (removed)="removeTaskGroup(group)"
-                                  [matTooltip]="'Type: '+group.type" color="primary"
-                        >
-                            {{group.name}}
-                            <mat-icon matChipRemove>cancel</mat-icon>
-                        </mat-chip>
-                    </mat-chip-list>
-                </mat-list>
-                    </p>
-                </div>
+                    <mat-list style="display: inline-block;">
+                        <mat-chip-list>
+                            <mat-chip
+                                    *ngFor="let taskType of competition.taskTypes"
+                                    [removable]="true" (removed)="removeTaskType(taskType)"
+                                    [matTooltip]="summariseTaskType(taskType)"
+                            >
+                                {{taskType.name}} ({{taskType.targetType}} | {{taskType.score}})
+                                <mat-icon matChipRemove>cancel</mat-icon>
+                            </mat-chip>
+                        </mat-chip-list>
+                    </mat-list>
+                </h2>
+               <h2>
+                   Task groups
+                   <button mat-button aria-label="Add new task group." matTooltip="Add new task group."
+                           (click)="addTaskGroup()">
+                       <mat-icon>add</mat-icon>
+                       Add task group
+                   </button>
+
+                    <mat-list style="display: inline-block;">
+                        <mat-chip-list>
+                            <mat-chip *ngFor="let group of competition.groups"
+                                      [removable]="true" (removed)="removeTaskGroup(group)"
+                                      [matTooltip]="'Type: '+group.type" color="primary">
+                                {{group.name}}
+                                <mat-icon matChipRemove>cancel</mat-icon>
+                            </mat-chip>
+                        </mat-chip-list>
+                    </mat-list>
+               </h2>
             </form>
         </div>
 

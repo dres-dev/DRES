@@ -6,7 +6,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Subscription} from 'rxjs';
 import {MatDialog} from '@angular/material/dialog';
-import {CompetitionBuilderTeamDialogComponent,} from './competition-builder-team-dialog/competition-builder-team-dialog.component';
+import {CompetitionBuilderTeamDialogComponent} from './competition-builder-team-dialog/competition-builder-team-dialog.component';
 import {
     CompetitionBuilderTaskGroupDialogComponent,
     CompetitionBuilderTaskGroupDialogData
@@ -247,6 +247,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
 
     /**
      * Summarises a task type to present detailed info as tootlip
+     *
      * @param taskType
      */
     summariseTaskType(taskType: TaskType): string {

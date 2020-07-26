@@ -1,7 +1,7 @@
 package dres.data.model.competition
 
 
-import dres.api.rest.types.RestCompetitionDescription
+import dres.api.rest.types.competition.RestCompetitionDescription
 import dres.data.dbo.DAO
 import dres.data.model.Entity
 import dres.data.model.UID

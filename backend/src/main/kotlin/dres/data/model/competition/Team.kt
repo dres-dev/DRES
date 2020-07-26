@@ -1,7 +1,7 @@
 package dres.data.model.competition
 
 
-import dres.api.rest.types.RestTeam
+import dres.api.rest.types.competition.RestTeam
 import dres.data.model.UID
 import dres.utilities.extensions.UID
 import java.awt.image.BufferedImage

@@ -1,6 +1,6 @@
 package dres.data.model.competition
 
-import dres.api.rest.types.RestTaskDescriptionComponent
+import dres.api.rest.types.competition.tasks.RestTaskDescriptionComponent
 import dres.data.dbo.DAO
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.time.TemporalRange

@@ -1,8 +1,8 @@
 package dres.api.rest.handler
 
 import dres.api.rest.RestApiRole
-import dres.api.rest.types.RestCompetitionDescription
-import dres.api.rest.types.RestTaskDescription
+import dres.api.rest.types.competition.RestCompetitionDescription
+import dres.api.rest.types.competition.RestTaskDescription
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
@@ -11,7 +11,6 @@ import dres.data.model.UID
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.Team
-import dres.data.model.competition.interfaces.TaskDescription
 import dres.utilities.extensions.UID
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse

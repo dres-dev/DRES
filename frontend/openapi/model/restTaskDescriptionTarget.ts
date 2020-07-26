@@ -9,13 +9,12 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TemporalRange } from './temporalRange';
+import {RestTaskDescriptionTargetItem} from './restTaskDescriptionTargetItem';
 
 
 export interface RestTaskDescriptionTarget { 
     type: RestTaskDescriptionTarget.TypeEnum;
-    mediaItems: Array<string>;
-    range?: TemporalRange;
+    mediaItems: Array<RestTaskDescriptionTargetItem>;
 }
 export namespace RestTaskDescriptionTarget {
     export type TypeEnum = 'SINGLE_MEDIA_ITEM' | 'SINGLE_MEDIA_SEGMENT' | 'MULTIPLE_MEDIA_ITEMS' | 'JUDGEMENT';

@@ -19,7 +19,8 @@
         <div *ngFor="let target of form.get('target')['controls']; let i = index">
             <p>
                 <mat-form-field style="width: 100%;" *ngIf="target.get('mediaCollection')">
-                    <mat-select [placeholder]="(isTargetJudgment() ? 'Default ': '')+'Media Collection'" [formControl]="target.get('mediaCollection')">
+                    <mat-select [placeholder]="(isTargetJudgment() ? 'Default ': '')+'Media Collection'"
+                                [formControl]="target.get('mediaCollection')">
                         <mat-option *ngFor="let mediaCollection of (mediaCollectionSource | async)"
                                     [value]="mediaCollection.id">
                             <span>{{mediaCollection.name}}</span> (ID: {{mediaCollection.id}})
@@ -27,8 +28,10 @@
                     </mat-select>
                 </mat-form-field>
 
-                <mat-form-field style="width: 55%;" *ngIf="target.get('mediaItem') && target.get('mediaCollection').value">
-                    <input type="text" matInput placeholder="Media item" [formControl]="target.get('mediaItem')" [matAutocomplete]="autoGroup">
+                <mat-form-field style="width: 55%;"
+                                *ngIf="target.get('mediaItem') && target.get('mediaCollection').value">
+                    <input type="text" matInput placeholder="Media item" [formControl]="target.get('mediaItem')"
+                           [matAutocomplete]="autoGroup">
                     <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">
                         <mat-option *ngFor="let mediaItem of (mediaItemSource | async)" [value]="mediaItem">
                             <span>{{mediaItem.name}}</span> |
@@ -68,7 +71,26 @@
             </p>
         </div>
 
-        <h2>Query description</h2>
+        <div style="flex-basis: 65%;">
+            <div style="display: flex; align-items: center">
+                <h2>Query description</h2>
+                <div class="spacer-flex"></div>
+                <mat-menu #componentsMenu="matMenu">
+                    <button *ngFor="let compType of taskType.components" mat-menu-item (click)="addDescComponent(compType)">Add {{compType | titlecase}}</button>
+                </mat-menu>
+                <button mat-button aria-label="Add new query descirption component" matTooltip="Add new query description component" [matMenuTriggerFor]="componentsMenu">
+                    <mat-icon>add</mat-icon>
+                    Add query description component
+                </button>
+            </div>
+            <mat-list>
+                <mat-list-item *ngFor="let comp of form.get('components').value">
+                    <mat-icon matTooltip="{{comp.type | titlecase}}">{{listIconForType(comp.type)}}</mat-icon>
+                    <div mat-line>...</div>
+                    <div mat-line>TODO: Textual could be first n chars of description...</div>
+                </mat-list-item>
+            </mat-list>
+        </div>
     </form>
     <div>
         <div style="width: 100%; text-align: center;">

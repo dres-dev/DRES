@@ -18,7 +18,10 @@ import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Observable} from 'rxjs';
 import {filter, tap} from 'rxjs/operators';
 import {AppConfig} from '../../../app.config';
-import {CompetitionBuilderTaskDescriptionComponentDialogComponent} from '../competition-builder-task-description-component-dialog/competition-builder-task-description-component-dialog.component';
+import {
+    CompetitionBuilderTaskDescriptionComponentDialogComponent,
+    CompetitionBuilderTaskDescriptionComponentDialogData
+} from '../competition-builder-task-description-component-dialog/competition-builder-task-description-component-dialog.component';
 import {CompetitionFormBuilder} from './competition-form.builder';
 
 
@@ -124,10 +127,10 @@ export class CompetitionBuilderTaskDialogComponent {
     /**
      * Handler for + button for task description component. Adds said component
      */
-    public addDescComponent() {
+    public addDescComponent(componentType: TaskType.ComponentsEnum) {
         const dialogRef = this.dialog.open(
             CompetitionBuilderTaskDescriptionComponentDialogComponent,
-            {data: {}, width: '650px'}
+            {data: {type: componentType, comp: null} as CompetitionBuilderTaskDescriptionComponentDialogData, width: '650px'}
         );
         dialogRef.afterClosed().pipe(
             filter(g => g != null)
@@ -201,8 +204,8 @@ export class CompetitionBuilderTaskDialogComponent {
                     return {
                         mediaItem: t.get('mediaItem').value,
                         temporalRange: t.get('start') ? {
-                            start: { value: t.get('start'), unit: t.get('unit_time') } as TemporalPoint,
-                            end: {value: t.get('end'),  unit: t.get('unit_time')} as TemporalPoint
+                            start: {value: t.get('start'), unit: t.get('unit_time')} as TemporalPoint,
+                            end: {value: t.get('end'), unit: t.get('unit_time')} as TemporalPoint
                         } as TemporalRange : null
                     } as RestTaskDescriptionTargetItem;
                 })
@@ -225,28 +228,30 @@ export class CompetitionBuilderTaskDialogComponent {
         console.log(this.asJson());
     }
 
-    isTargetSingleMediaItem(){
+    isTargetSingleMediaItem() {
         return this.taskType.targetType === TaskType.TargetTypeEnum.SINGLEMEDIAITEM;
     }
 
-    isTargetSingleMediaSegment(){
+    isTargetSingleMediaSegment() {
         return this.taskType.targetType === TaskType.TargetTypeEnum.SINGLEMEDIASEGMENT;
     }
 
-    isTargetMultipleMediaSegment(){
+    isTargetMultipleMediaSegment() {
         return this.taskType.targetType === TaskType.TargetTypeEnum.MULTIPLEMEDIAITEMS;
     }
 
-    isTargetJudgment(){
+    isTargetJudgment() {
         return this.taskType.targetType === TaskType.TargetTypeEnum.JUDGEMENT;
     }
 
     randomisedMediaItem() {
-        this.collectionService.getApiCollectionRandomWithCollectionid(
-            (this.form.get('collection') as FormControl).value)
-            .subscribe(value => {
-                this.form.get('mediaItem').setValue(value);
-            });
+        if (this.mediaCollections && this.mediaCollections[0]) {
+            this.collectionService.getApiCollectionRandomWithCollectionid(
+                this.mediaCollections[0].id)
+                .subscribe(value => {
+                    (this.form.get('target') as FormArray).get('mediaItem').setValue(value);
+                });
+        }
     }
 
     randomiseSegment() {
@@ -321,7 +326,6 @@ export class CompetitionBuilderTaskDialogComponent {
     }
 
 
-
     private formForTarget() {
         switch (this.taskType.targetType) {
             case 'SINGLE_MEDIA_ITEM':
@@ -331,7 +335,6 @@ export class CompetitionBuilderTaskDialogComponent {
 
         }
     }
-
 
 
     // private getTaskDescription(): TaskDescriptionBase {
@@ -385,4 +388,18 @@ export class CompetitionBuilderTaskDialogComponent {
     //             } as KisVisualTaskDescription;
     //     }
     // }
+    listIconForType(comp: TaskType.ComponentsEnum) {
+        switch (comp) {
+            case 'IMAGE_ITEM':
+                return 'image';
+            case 'VIDEO_ITEM_SEGMENT':
+                return 'movie';
+            case 'TEXT':
+                return 'title';
+            case 'EXTERNAL_IMAGE':
+                return 'add_photo_alt';
+            case 'EXTERNAL_VIDEO':
+                return 'local_movies';
+        }
+    }
 }

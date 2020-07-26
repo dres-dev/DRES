@@ -15,9 +15,23 @@ export class CompetitionFormBuilder {
         return new FormGroup({
             uid:  new FormControl(this.data?.id),
             name: new FormControl(this.data?.name, [Validators.required]),
-            duration: new FormControl(this.data?.duration, [Validators.required, Validators.min(1)]),
+            duration: new FormControl(this.durationInitValue, [Validators.required, Validators.min(1)]),
+            components: new FormArray(this.data?.components ? this.data?.components?.map(v => new FormControl(v)) : [], [Validators.minLength(1)]),
             target: this.formForTarget()
         });
+    }
+
+    /**
+     * Returns the duration value to init with:
+     * either the set task duration (if this is for editing)
+     * otherwise the default value based on the tasktype default
+     */
+    private get durationInitValue(){
+        if(this?.data?.duration){
+            return this.data.duration;
+        }else{
+            return this.taskType.taskDuration;
+        }
     }
 
 

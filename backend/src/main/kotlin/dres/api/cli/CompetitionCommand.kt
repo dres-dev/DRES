@@ -8,7 +8,7 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
-import com.github.ajalt.clikt.parameters.types.long
+import com.jakewharton.picnic.table
 import dres.data.dbo.DAO
 import dres.data.model.Config
 import dres.data.model.UID
@@ -40,7 +40,8 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
         protected val competitionId: UID
             get() = when {
                 this.id != null -> UID(this.id!!)
-                this.competition != null -> this@CompetitionCommand.competitions.find { c -> c.name == this.competition!! }?.id ?: UID.EMPTY
+                this.competition != null -> this@CompetitionCommand.competitions.find { c -> c.name == this.competition!! }?.id
+                        ?: UID.EMPTY
                 else -> UID.EMPTY
             }
     }
@@ -52,7 +53,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
 
         private val description: String by option("-d", "--description", help = "Description of the new Competition")
                 .required()
-                .validate {require(it.isNotEmpty()) { "Competition description must be non empty." } }
+                .validate { require(it.isNotEmpty()) { "Competition description must be non empty." } }
 
         override fun run() {
             val newCompetition = CompetitionDescription(id = UID.EMPTY, name = name, description = description, taskTypes = mutableListOf(), groups = mutableListOf(), teams = mutableListOf(), tasks = mutableListOf())
@@ -64,22 +65,36 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
 
     inner class ListCompetitionCommand : CliktCommand(name = "list", help = "Lists an overview of all Competitions") {
         override fun run() {
-            println("Competitions:")
-            this@CompetitionCommand.competitions.forEach {
-                println("${it.name}[${it.id}] (${it.teams.size} Teams, ${it.tasks.size} Tasks): ${it.description}")
-            }
+            var no = 0
+            println(table {
+                cellStyle {
+                    border = true
+                    paddingLeft = 1
+                    paddingRight = 1
+                }
+                header {
+                    row("name", "id", "# teams", "# tasks", "description")
+                }
+                body {
+                    this@CompetitionCommand.competitions.forEach {
+                        row(it.name, it.id, it.teams.size, it.tasks.size, it.description).also { no++ }
+                    }
+                }
+            })
+            println("Listed $no competitions")
         }
     }
 
     inner class ShowCompetitionCommand : AbstractCompetitionCommand(name = "show", help = "Shows details of a Competition") {
 
         override fun run() {
+            // TODO fancification
             val competition = this@CompetitionCommand.competitions[competitionId]!!
 
             println("${competition.name}: ${competition.description}")
             println("Teams:")
 
-            competition.teams.forEach (::println)
+            competition.teams.forEach(::println)
 
             println()
             println("Tasks:")
@@ -98,7 +113,6 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
 
         override fun run() {
             val competition = this@CompetitionCommand.competitions[competitionId]!!
-
 
 
             val segmentTasks = competition.getAllCachedVideoItems()
@@ -133,7 +147,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
         override fun run() {
             val competition = this@CompetitionCommand.competitions.delete(competitionId)
 
-            if (competition != null){
+            if (competition != null) {
                 println("Successfully deleted $competition")
             } else {
                 println("Could not find competition to delete") //should not happen
@@ -152,7 +166,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
 
         override fun run() {
 
-            if (this@CompetitionCommand.competitions.any { it.name == name }){
+            if (this@CompetitionCommand.competitions.any { it.name == name }) {
                 println("Competition with name '$name' already exists")
                 return
             }
@@ -174,7 +188,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
     /**
      * Exports a specific competition as JSON.
      */
-    inner class ExportCompetitionCommand : AbstractCompetitionCommand(name = "export", help = "Exports a competition description as JSON."){
+    inner class ExportCompetitionCommand : AbstractCompetitionCommand(name = "export", help = "Exports a competition description as JSON.") {
 
         private val destination: String by option("-o", "--out", help = "The destination file for the competition.").required()
 
@@ -198,11 +212,11 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
     /**
      * Imports a specific competition from JSON.
      */
-    inner class ImportCompetitionCommand : CliktCommand(name ="import", help="Imports a competition description from JSON.") {
+    inner class ImportCompetitionCommand : CliktCommand(name = "import", help = "Imports a competition description from JSON.") {
 
-        private val new: Boolean by option("-n", "--new", help="Flag indicating whether competition should be created anew.").flag("-u", "--update", default = true)
+        private val new: Boolean by option("-n", "--new", help = "Flag indicating whether competition should be created anew.").flag("-u", "--update", default = true)
 
-        private val destination: String by option("-i", "--in", help= "The input file for the competition.").required()
+        private val destination: String by option("-i", "--in", help = "The input file for the competition.").required()
 
         override fun run() {
             val path = Paths.get(this.destination)

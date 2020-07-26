@@ -23,9 +23,6 @@ export class CompetitionFormBuilder {
 
     /**
      * Returns the target form for the given {TaskType}
-     *
-     * @param taskType Task type to generate form for.
-     * @param data The (optional) data to populate the form with.
      */
     private formForTarget() {
         switch (this.taskType.targetType) {

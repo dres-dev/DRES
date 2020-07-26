@@ -1,12 +1,8 @@
 import {Component} from '@angular/core';
 import {MatDialogRef} from '@angular/material/dialog';
 import {FormControl, FormGroup} from '@angular/forms';
+import {CompetitionCreate} from '../../../../openapi';
 
-
-export interface CompetitionCreateDialogResult {
-    name: string;
-    description: string;
-}
 
 @Component({
     selector: 'app-competition-create-dialog',
@@ -15,13 +11,15 @@ export interface CompetitionCreateDialogResult {
 export class CompetitionCreateDialogComponent {
     form: FormGroup = new FormGroup({name: new FormControl(''), description: new FormControl('')});
 
-    constructor(public dialogRef: MatDialogRef<CompetitionCreateDialogComponent>) {}
+    constructor(public dialogRef: MatDialogRef<CompetitionCreateDialogComponent>) {
+    }
 
     public create(): void {
         if (this.form.valid) {
             this.dialogRef.close({
                 name: this.form.get('name').value,
-                description: this.form.get('description').value} as CompetitionCreateDialogResult);
+                description: this.form.get('description').value
+            } as CompetitionCreate);
         }
     }
 

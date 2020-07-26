@@ -9,17 +9,17 @@ class RestTaskDescription(
         val taskGroup: String,
         val taskType: String,
         val duration: Long,
-        val defaultMediaCollectionId: Long,
+        val defaultMediaCollectionId: String,
         val components: List<RestTaskDescriptionComponent>,
         val target: RestTaskDescriptionTarget) {
 
     constructor(description: TaskDescription) : this(
-            description.id,
+            description.id.string,
             description.name,
             description.taskGroup.name,
             description.taskType.name,
             description.duration,
-            description.defaultMediaCollectionId,
+            description.defaultMediaCollectionId.string,
             description.components.map { RestTaskDescriptionComponent(it) },
             RestTaskDescriptionTarget(description.target)
     )

@@ -1,8 +1,7 @@
 package dres.api.rest.types
 
 import dres.data.model.basics.time.TemporalRange
-import dres.data.model.competition.TaskDescriptionComponent
-import dres.data.model.competition.TaskType
+import dres.data.model.competition.*
 
 data class RestTaskDescriptionComponent(
         /**
@@ -68,5 +67,11 @@ data class RestTaskDescriptionComponent(
 
 fun RestTaskDescriptionComponent(component: TaskDescriptionComponent): RestTaskDescriptionComponent {
 
-    TODO()
+        return when(component) {
+                is ImageItemTaskDescriptionComponent -> RestTaskDescriptionComponent(TaskType.QueryComponentType.IMAGE_ITEM, component.start, component.end, mediaItem = component.item.id.string)
+                is VideoItemSegmentTaskDescriptionComponent -> RestTaskDescriptionComponent(TaskType.QueryComponentType.VIDEO_ITEM_SEGMENT, component.start, component.end, mediaItem = component.item.id.string)
+                is TextTaskDescriptionComponent -> RestTaskDescriptionComponent(TaskType.QueryComponentType.TEXT, component.start, component.end, description = component.text)
+                else -> throw IllegalArgumentException("translation for ${component.javaClass.simpleName} not supported")
+        }
+
 }

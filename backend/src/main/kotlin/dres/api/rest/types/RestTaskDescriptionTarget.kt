@@ -7,6 +7,7 @@ import dres.data.model.competition.JudgementTaskDescriptionTarget
 import dres.data.model.competition.MediaSegmentTarget
 import dres.data.model.competition.TaskDescriptionTarget
 import dres.data.model.competition.TaskType
+import dres.utilities.extensions.UID
 
 data class RestTaskDescriptionTarget(
         val type: TaskType.TargetType,
@@ -26,7 +27,7 @@ fun RestTaskDescriptionTarget(target: TaskDescriptionTarget) : RestTaskDescripti
 
 fun TaskDescriptionTarget(target: RestTaskDescriptionTarget, mediaItems: DAO<MediaItem>): TaskDescriptionTarget = when(target.type){
     TaskType.TargetType.SINGLE_MEDIA_ITEM -> TODO()
-    TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> MediaSegmentTarget(mediaItems[target.mediaItems.first().toLong()]!! as MediaItem.VideoItem, target.range!!)
+    TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> MediaSegmentTarget(mediaItems[target.mediaItems.first().UID()]!! as MediaItem.VideoItem, target.range!!)
     TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> TODO()
     TaskType.TargetType.JUDGEMENT -> JudgementTaskDescriptionTarget
 }

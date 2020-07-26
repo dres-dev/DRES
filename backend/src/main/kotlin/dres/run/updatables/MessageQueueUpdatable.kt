@@ -3,6 +3,7 @@ package dres.run.updatables
 import dres.api.rest.types.run.websocket.ServerMessage
 import dres.run.RunExecutor
 import dres.run.RunManagerStatus
+import dres.utilities.extensions.UID
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
@@ -23,7 +24,7 @@ class MessageQueueUpdatable(val executor: RunExecutor) : Updatable {
     override fun update(status: RunManagerStatus) {
         var message: ServerMessage? = this.messageQueue.poll()
         while (message != null) {
-            this.executor.broadcastWsMessage(message.runId, message)
+            this.executor.broadcastWsMessage(message.runId.UID(), message)
             message = this.messageQueue.poll()
         }
     }

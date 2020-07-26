@@ -5,10 +5,12 @@ import dres.api.rest.RestApiRole
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.data.dbo.DAO
+import dres.data.model.UID
 import dres.data.model.admin.Role
 import dres.data.model.admin.User
 import dres.data.model.admin.UserName
 import dres.mgmt.admin.UserManager
+import dres.utilities.extensions.UID
 import dres.utilities.extensions.sessionId
 import dres.utilities.extensions.toSessionId
 import io.javalin.http.Context
@@ -18,7 +20,7 @@ data class SessionId(val sessionId:String)
 
 data class UserRequest(val username: String, val password: String?, val role: Role?)
 
-data class UserDetails(val id: Long, val username: String, val role: Role, val sessionId: String? = null) {
+data class UserDetails(val id: UID, val username: String, val role: Role, val sessionId: String? = null) {
 
     companion object {
         fun of(user: User): UserDetails = UserDetails(user.id, user.username.name, user.role)
@@ -33,9 +35,8 @@ abstract class UserHandler() : RestHandler {
                 ?: throw ErrorStatusException(404, "User could not be found!")
     }
 
-    protected fun getIdFromPath(ctx: Context): Long {
-        val id = ctx.pathParam("id").toLongOrNull()
-                ?: throw ErrorStatusException(400, "Path parameter 'id' invalid formatted or non-existent!")
+    protected fun getIdFromPath(ctx: Context): UID {
+        val id = ctx.pathParam("id").UID()
         if(UserManager.exists(id=id)){
             return id
         }else{
@@ -131,7 +132,7 @@ class UpdateUsersHandler() : UserHandler(), PatchRestHandler<UserDetails>, Acces
     @OpenApi(
             summary = "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone",
             path = "/api/user/:id", method = HttpMethod.PATCH,
-            pathParams = [OpenApiParam("id", Long::class, "User ID")],
+            pathParams = [OpenApiParam("id", UID::class, "User ID")],
             requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
             tags = ["User"],
             responses = [
@@ -232,7 +233,7 @@ class ActiveSessionsHandler(private val users : DAO<User>) : GetRestHandler<List
     override fun doGet(ctx: Context): List<UserDetails> {
 
         return AccessManager.currentSessions.map {session ->
-            val userId = AccessManager.getUserIdForSession(session) ?: return@map UserDetails(-1, "??", Role.VIEWER, session)
+            val userId = AccessManager.getUserIdForSession(session) ?: return@map UserDetails(UID.EMPTY, "??", Role.VIEWER, session)
             val user = users[userId] ?: return@map UserDetails(userId, "??", Role.VIEWER, session)
             UserDetails(
                     user.id, user.username.name, user.role, session

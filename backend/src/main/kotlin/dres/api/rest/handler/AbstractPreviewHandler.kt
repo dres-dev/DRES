@@ -5,14 +5,12 @@ import dres.api.rest.types.status.ErrorStatusException
 import dres.data.dbo.DAO
 import dres.data.dbo.DaoIndexer
 import dres.data.model.Config
+import dres.data.model.UID
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
 import dres.run.RunExecutor
 import dres.utilities.FFmpegUtil
-import dres.utilities.extensions.errorResponse
-import dres.utilities.extensions.isEmpty
-import dres.utilities.extensions.sendFile
-import dres.utilities.extensions.streamFile
+import dres.utilities.extensions.*
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
@@ -24,7 +22,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
 
-abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<Long, String>>, config: Config) : GetRestHandler<Any>, AccessManagedRestHandler {
+abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, config: Config) : GetRestHandler<Any>, AccessManagedRestHandler {
 
     override val permittedRoles = setOf(RestApiRole.VIEWER)
     private val cacheLocation = Paths.get(config.cachePath + "/previews")
@@ -32,7 +30,7 @@ abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollecti
     private val waitingMap = ConcurrentHashMap<Path, Long>()
     private val timeOut = 10_000
 
-    protected fun handlePreviewRequest(collectionId: Long, itemName: String, time: Long?, ctx: Context) {
+    protected fun handlePreviewRequest(collectionId: UID, itemName: String, time: Long?, ctx: Context) {
 
         val item = itemIndex[collectionId to itemName].firstOrNull()
         if (item == null) {
@@ -120,12 +118,12 @@ abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollecti
 
 }
 
-class MediaPreviewHandler(collections: DAO<MediaCollection>, itemIndex: DaoIndexer<MediaItem, Pair<Long, String>>, config: Config) : AbstractPreviewHandler(collections, itemIndex, config) {
+class MediaPreviewHandler(collections: DAO<MediaCollection>, itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, config: Config) : AbstractPreviewHandler(collections, itemIndex, config) {
 
     @OpenApi(summary = "Returns a preview image from a collection item",
             path = "/api/preview/item/:collection/:item/:time",
             pathParams = [
-                OpenApiParam("collectionId", Long::class, "Unique ID of the collection."),
+                OpenApiParam("collectionId", UID::class, "Unique ID of the collection."),
                 OpenApiParam("item", String::class, "Name of the MediaItem"),
                 OpenApiParam("time", Long::class, "Time into the video in milliseconds (for videos only).")
             ],
@@ -138,7 +136,7 @@ class MediaPreviewHandler(collections: DAO<MediaCollection>, itemIndex: DaoIndex
         try {
             val params = ctx.pathParamMap()
 
-            val collectionId = params["collection"]?.toLongOrNull()
+            val collectionId = params["collection"]?.UID()
                     ?: throw ErrorStatusException(400, "Collection ID not specified or invalid.")
             val itemName = params["item"] ?: throw ErrorStatusException(400, "Item name not specified.")
             val time = params["time"]?.toLongOrNull()
@@ -159,12 +157,12 @@ class MediaPreviewHandler(collections: DAO<MediaCollection>, itemIndex: DaoIndex
 }
 
 
-class SubmissionPreviewHandler(collections: DAO<MediaCollection>, itemIndex: DaoIndexer<MediaItem, Pair<Long, String>>, config: Config) : AbstractPreviewHandler(collections, itemIndex, config) {
+class SubmissionPreviewHandler(collections: DAO<MediaCollection>, itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, config: Config) : AbstractPreviewHandler(collections, itemIndex, config) {
 
     @OpenApi(summary = "Returns a preview image for a submission",
             path = "/api/preview/submission/:runId/:submissionId",
             pathParams = [
-                OpenApiParam("runId", Long::class, "Competition Run ID"),
+                OpenApiParam("runId", UID::class, "Competition Run ID"),
                 OpenApiParam("submissionId", String::class, "Subission ID")
             ],
             tags = ["Media"],
@@ -176,7 +174,7 @@ class SubmissionPreviewHandler(collections: DAO<MediaCollection>, itemIndex: Dao
         try {
             val params = ctx.pathParamMap()
 
-            val runId = params["runId"]?.toLongOrNull()
+            val runId = params["runId"]?.UID()
                     ?: throw ErrorStatusException(404, "Parameter 'runId' is invalid")
             val submissionId = params["submissionId"]
                     ?: throw ErrorStatusException(404, "Parameter 'submissionId' is missing")

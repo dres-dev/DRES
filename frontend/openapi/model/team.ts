@@ -9,12 +9,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { UID } from './uID';
 
 
 export interface Team { 
     name: string;
     color: string;
     logo: string;
-    users: Array<number>;
+    users: Array<UID>;
 }
 

@@ -278,7 +278,7 @@ export class CompetitionBuilderTaskDialogComponent {
 
     randomisedMediaItem() {
         this.collectionService.getApiCollectionRandomWithCollectionid(
-            (this.form.get('mediaCollection') as FormControl).value as number)
+            (this.form.get('mediaCollection') as FormControl).value)
             .subscribe(value => {
                 this.form.get('mediaItemId').setValue(value);
             });

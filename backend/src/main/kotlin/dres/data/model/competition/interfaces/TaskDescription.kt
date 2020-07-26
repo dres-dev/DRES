@@ -4,6 +4,7 @@ import dres.api.rest.types.RestTaskDescription
 import dres.api.rest.types.TaskDescriptionTarget
 import dres.data.dbo.DAO
 import dres.data.model.Config
+import dres.data.model.UID
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.*
 import dres.run.filter.SubmissionFilter
@@ -11,6 +12,7 @@ import dres.run.score.interfaces.TaskRunScorer
 import dres.run.validation.TemporalOverlapSubmissionValidator
 import dres.run.validation.interfaces.SubmissionValidator
 import dres.run.validation.judged.BasicJudgementValidator
+import dres.utilities.extensions.UID
 import java.io.*
 import java.util.*
 
@@ -21,7 +23,7 @@ import java.util.*
 class TaskDescription(
 
         /** Internal, unique ID of this [TaskDescription]. */
-    val id: String,
+    val id: UID,
 
         /** The name of the task */
     val name: String,
@@ -35,7 +37,7 @@ class TaskDescription(
     val duration: Long,
 
         /** The id of the relevant media collection for this task, if not otherwise specified */
-    val defaultMediaCollectionId: Long,
+    val defaultMediaCollectionId: UID,
 
         /** */
     val components: List<TaskDescriptionComponent>,
@@ -111,12 +113,12 @@ class TaskDescription(
 }
 
 fun TaskDescription(description: RestTaskDescription, taskGroups: List<TaskGroup>, taskTypes: List<TaskType>, mediaItems: DAO<MediaItem>) : TaskDescription = TaskDescription(
-        description.id,
+        description.id.UID(),
         description.name,
         taskGroups.find { it.name == description.taskGroup }!!,
         taskTypes.find { it.name == description.taskType }!!,
         description.duration,
-        description.defaultMediaCollectionId,
+        description.defaultMediaCollectionId.UID(),
         description.components.map { TaskDescriptionComponent(it, mediaItems) },
         TaskDescriptionTarget(description.target, mediaItems)
 )

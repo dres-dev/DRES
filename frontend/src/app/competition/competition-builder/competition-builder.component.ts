@@ -25,7 +25,7 @@ import {
 })
 export class CompetitionBuilderComponent implements OnInit, OnDestroy {
 
-    competitionId: number;
+    competitionId: string;
     competition: RestCompetitionDescription;
 
     @ViewChild('taskTable')
@@ -52,7 +52,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.routeSubscription = this.route.params.subscribe(p => {
-            this.competitionId = +(p.competitionId);
+            this.competitionId = p.competitionId;
             this.refresh();
         });
         this.changeSubscription = this.form.valueChanges.subscribe(() => {

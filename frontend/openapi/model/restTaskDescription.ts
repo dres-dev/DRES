@@ -19,7 +19,7 @@ export interface RestTaskDescription {
     taskGroup: string;
     taskType: string;
     duration: number;
-    defaultMediaCollectionId: number;
+    defaultMediaCollectionId: string;
     components: Array<RestTaskDescriptionComponent>;
     target: RestTaskDescriptionTarget;
 }

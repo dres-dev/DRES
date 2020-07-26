@@ -94,10 +94,10 @@ export class CompetitionRunAdminService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiRunAdminWithRunidViewers(runId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<ViewerInfo>>;
-    public getApiRunAdminWithRunidViewers(runId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<ViewerInfo>>>;
-    public getApiRunAdminWithRunidViewers(runId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<ViewerInfo>>>;
-    public getApiRunAdminWithRunidViewers(runId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getApiRunAdminWithRunidViewers(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<ViewerInfo>>;
+    public getApiRunAdminWithRunidViewers(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<ViewerInfo>>>;
+    public getApiRunAdminWithRunidViewers(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<ViewerInfo>>>;
+    public getApiRunAdminWithRunidViewers(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
             throw new Error('Required parameter runId was null or undefined when calling getApiRunAdminWithRunidViewers.');
         }
@@ -192,10 +192,10 @@ export class CompetitionRunAdminService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postApiRunAdminWithRunidAdjustWithDuration(runId: number, duration: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public postApiRunAdminWithRunidAdjustWithDuration(runId: number, duration: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public postApiRunAdminWithRunidAdjustWithDuration(runId: number, duration: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public postApiRunAdminWithRunidAdjustWithDuration(runId: number, duration: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public postApiRunAdminWithRunidAdjustWithDuration(runId: string, duration: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiRunAdminWithRunidAdjustWithDuration(runId: string, duration: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiRunAdminWithRunidAdjustWithDuration(runId: string, duration: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiRunAdminWithRunidAdjustWithDuration(runId: string, duration: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
             throw new Error('Required parameter runId was null or undefined when calling postApiRunAdminWithRunidAdjustWithDuration.');
         }
@@ -241,10 +241,10 @@ export class CompetitionRunAdminService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postApiRunAdminWithRunidStart(runId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public postApiRunAdminWithRunidStart(runId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public postApiRunAdminWithRunidStart(runId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public postApiRunAdminWithRunidStart(runId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public postApiRunAdminWithRunidStart(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiRunAdminWithRunidStart(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiRunAdminWithRunidStart(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiRunAdminWithRunidStart(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
             throw new Error('Required parameter runId was null or undefined when calling postApiRunAdminWithRunidStart.');
         }
@@ -287,10 +287,10 @@ export class CompetitionRunAdminService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postApiRunAdminWithRunidTaskAbort(runId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public postApiRunAdminWithRunidTaskAbort(runId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public postApiRunAdminWithRunidTaskAbort(runId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public postApiRunAdminWithRunidTaskAbort(runId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public postApiRunAdminWithRunidTaskAbort(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiRunAdminWithRunidTaskAbort(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiRunAdminWithRunidTaskAbort(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiRunAdminWithRunidTaskAbort(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
             throw new Error('Required parameter runId was null or undefined when calling postApiRunAdminWithRunidTaskAbort.');
         }
@@ -333,10 +333,10 @@ export class CompetitionRunAdminService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postApiRunAdminWithRunidTaskNext(runId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public postApiRunAdminWithRunidTaskNext(runId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public postApiRunAdminWithRunidTaskNext(runId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public postApiRunAdminWithRunidTaskNext(runId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public postApiRunAdminWithRunidTaskNext(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiRunAdminWithRunidTaskNext(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiRunAdminWithRunidTaskNext(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiRunAdminWithRunidTaskNext(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
             throw new Error('Required parameter runId was null or undefined when calling postApiRunAdminWithRunidTaskNext.');
         }
@@ -379,10 +379,10 @@ export class CompetitionRunAdminService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postApiRunAdminWithRunidTaskPrevious(runId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public postApiRunAdminWithRunidTaskPrevious(runId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public postApiRunAdminWithRunidTaskPrevious(runId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public postApiRunAdminWithRunidTaskPrevious(runId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public postApiRunAdminWithRunidTaskPrevious(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiRunAdminWithRunidTaskPrevious(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiRunAdminWithRunidTaskPrevious(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiRunAdminWithRunidTaskPrevious(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
             throw new Error('Required parameter runId was null or undefined when calling postApiRunAdminWithRunidTaskPrevious.');
         }
@@ -425,10 +425,10 @@ export class CompetitionRunAdminService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postApiRunAdminWithRunidTaskStart(runId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public postApiRunAdminWithRunidTaskStart(runId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public postApiRunAdminWithRunidTaskStart(runId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public postApiRunAdminWithRunidTaskStart(runId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public postApiRunAdminWithRunidTaskStart(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiRunAdminWithRunidTaskStart(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiRunAdminWithRunidTaskStart(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiRunAdminWithRunidTaskStart(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
             throw new Error('Required parameter runId was null or undefined when calling postApiRunAdminWithRunidTaskStart.');
         }
@@ -472,10 +472,10 @@ export class CompetitionRunAdminService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postApiRunAdminWithRunidTaskSwitchWithIdx(runId: number, idx: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public postApiRunAdminWithRunidTaskSwitchWithIdx(runId: number, idx: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public postApiRunAdminWithRunidTaskSwitchWithIdx(runId: number, idx: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public postApiRunAdminWithRunidTaskSwitchWithIdx(runId: number, idx: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public postApiRunAdminWithRunidTaskSwitchWithIdx(runId: string, idx: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiRunAdminWithRunidTaskSwitchWithIdx(runId: string, idx: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiRunAdminWithRunidTaskSwitchWithIdx(runId: string, idx: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiRunAdminWithRunidTaskSwitchWithIdx(runId: string, idx: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
             throw new Error('Required parameter runId was null or undefined when calling postApiRunAdminWithRunidTaskSwitchWithIdx.');
         }
@@ -521,10 +521,10 @@ export class CompetitionRunAdminService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postApiRunAdminWithRunidTerminate(runId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public postApiRunAdminWithRunidTerminate(runId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public postApiRunAdminWithRunidTerminate(runId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public postApiRunAdminWithRunidTerminate(runId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public postApiRunAdminWithRunidTerminate(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiRunAdminWithRunidTerminate(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiRunAdminWithRunidTerminate(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiRunAdminWithRunidTerminate(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
             throw new Error('Required parameter runId was null or undefined when calling postApiRunAdminWithRunidTerminate.');
         }
@@ -568,10 +568,10 @@ export class CompetitionRunAdminService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postApiRunAdminWithRunidViewersWithVieweridForce(runId: number, viewerId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public postApiRunAdminWithRunidViewersWithVieweridForce(runId: number, viewerId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public postApiRunAdminWithRunidViewersWithVieweridForce(runId: number, viewerId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public postApiRunAdminWithRunidViewersWithVieweridForce(runId: number, viewerId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public postApiRunAdminWithRunidViewersWithVieweridForce(runId: string, viewerId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiRunAdminWithRunidViewersWithVieweridForce(runId: string, viewerId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiRunAdminWithRunidViewersWithVieweridForce(runId: string, viewerId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiRunAdminWithRunidViewersWithVieweridForce(runId: string, viewerId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
             throw new Error('Required parameter runId was null or undefined when calling postApiRunAdminWithRunidViewersWithVieweridForce.');
         }

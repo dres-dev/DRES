@@ -7,9 +7,12 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
+import dres.data.model.UID
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.Team
+import dres.data.model.competition.interfaces.TaskDescription
+import dres.utilities.extensions.UID
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -19,24 +22,29 @@ abstract class CompetitionHandler(protected val competitions: DAO<CompetitionDes
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.ADMIN)
 
-    private fun competitionId(ctx: Context): Long =
+    private fun competitionId(ctx: Context): UID =
             ctx.pathParamMap().getOrElse("competitionId") {
                 throw ErrorStatusException(404, "Parameter 'competitionId' is missing!'")
-            }.toLong()
+            }.UID()
 
-    protected fun competitionById(id: Long): CompetitionDescription =
+    protected fun competitionById(id: UID): CompetitionDescription =
             competitions[id] ?: throw ErrorStatusException(404, "Competition with ID $id not found.'")
 
     protected fun competitionFromContext(ctx: Context): CompetitionDescription = competitionById(competitionId(ctx))
 
 }
 
-data class CompetitionOverview(val id: Long, val name: String, val description: String, val taskCount: Int, val teamCount: Int) {
+data class CompetitionOverview(val id: UID, val name: String, val description: String, val taskCount: Int, val teamCount: Int) {
     companion object {
         fun of(competitionDescription: CompetitionDescription): CompetitionOverview = CompetitionOverview(competitionDescription.id, competitionDescription.name, competitionDescription.description
                 ?: "", competitionDescription.tasks.size, competitionDescription.teams.size)
     }
 }
+
+/**
+ * Data class for creation of competition
+ */
+data class CompetitionCreate(val name: String, val description: String)
 
 class ListCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<CompetitionOverview>> {
 
@@ -59,7 +67,7 @@ class GetCompetitionHandler(competitions: DAO<CompetitionDescription>) : Competi
     @OpenApi(
             summary = "Loads the detailed definition of a specific competition.",
             path = "/api/competition/:competitionId",
-            pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
+            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(RestCompetitionDescription::class)]),
@@ -80,7 +88,7 @@ class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
     @OpenApi(
             summary = "Lists the Teams of a specific competition.",
             path = "/api/competition/:competitionId/team",
-            pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
+            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<Team>::class)]),
@@ -100,7 +108,7 @@ class ListTaskHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
     @OpenApi(
             summary = "Lists the Tasks of a specific competition.",
             path = "/api/competition/:competitionId/task",
-            pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
+            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<RestTaskDescription>::class)]),
@@ -118,7 +126,7 @@ class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
     @OpenApi(
             summary = "Creates a new competition.",
             path = "/api/competition", method = HttpMethod.POST,
-            requestBody = OpenApiRequestBody([OpenApiContent(CompetitionOverview::class)]),
+            requestBody = OpenApiRequestBody([OpenApiContent(CompetitionCreate::class)]),
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -129,12 +137,12 @@ class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val createRequest = try {
-            ctx.bodyAsClass(CompetitionOverview::class.java)
+            ctx.bodyAsClass(CompetitionCreate::class.java)
         }catch (e: BadRequestResponse){
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
 
-        val competition = CompetitionDescription(-1L, createRequest.name, createRequest.description, mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf())
+        val competition = CompetitionDescription(UID.EMPTY, createRequest.name, createRequest.description, mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf())
         val competitionId = this.competitions.append(competition)
         return SuccessStatus("Competition with ID $competitionId was created.")
     }
@@ -186,7 +194,7 @@ class DeleteCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
     @OpenApi(
             summary = "Deletes the competition with the given competition ID.",
             path = "/api/competition/:competitionId", method = HttpMethod.DELETE,
-            pathParams = [OpenApiParam("competitionId", Long::class, "Competition ID")],
+            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),

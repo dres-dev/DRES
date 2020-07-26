@@ -52,8 +52,8 @@ export class AuthenticationService {
      */
     public updateUser(user: UserRequest) {
         return this.user.pipe(
-            flatMap(u => this.userService.patchApiUserWithId(u.id, user)),
-            tap(u => this.userDetails.next(u))
+            flatMap((u: UserDetails) => this.userService.patchApiUserWithId(u.id, user)),
+            tap((u: UserDetails) => this.userDetails.next(u))
         );
     }
 

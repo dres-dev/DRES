@@ -10,6 +10,7 @@ import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor
 import dres.run.audit.AuditLogger
 import dres.run.audit.LogEventSource
+import dres.utilities.extensions.UID
 import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
@@ -21,7 +22,7 @@ abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler 
 
     protected fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
         throw ErrorStatusException(400, "Parameter 'runId' is missing!'")
-    }.toLong()
+    }.UID()
 }
 
 data class Judgement(val token: String, val validator: String, val verdict: SubmissionStatus)
@@ -34,6 +35,7 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
     @OpenApi(
             summary = "Gets the next open Submission to be judged.",
             path = "/api/run/:runId/judge/next",
+            pathParams = [OpenApiParam("runId", dres.data.model.UID::class, "Run ID")],
             tags = ["Judgement"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(JudgementRequest::class)]),
@@ -64,6 +66,7 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
     @OpenApi(
             summary = "Returns a Judgement.",
             path = "/api/run/:runId/judge", method = HttpMethod.POST,
+            pathParams = [OpenApiParam("runId", dres.data.model.UID::class, "Run ID")],
             requestBody = OpenApiRequestBody([OpenApiContent(Judgement::class)]),
             tags = ["Judgement"],
             responses = [
@@ -86,7 +89,7 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
 
         validator.judge(judgement.token, judgement.verdict)
 
-        AuditLogger.judgement(run.uid, judgement.validator, judgement.token, judgement.verdict, LogEventSource.REST, ctx.sessionId())
+        AuditLogger.judgement(run.id, judgement.validator, judgement.token, judgement.verdict, LogEventSource.REST, ctx.sessionId())
 
         return SuccessStatus("Verdict received and accepted. Thanks!")
     }
@@ -100,6 +103,7 @@ class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, A
     @OpenApi(
             summary = "Gets the status of all judgement validators.",
             path = "/api/run/:runId/judge/status",
+            pathParams = [OpenApiParam("runId", dres.data.model.UID::class, "Run ID")],
             tags = ["Judgement"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<JudgementValidatorStatus>::class)]),
@@ -111,7 +115,7 @@ class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, A
 
         val runId = ctx.pathParamMap().getOrElse("runId") {
             throw ErrorStatusException(400, "Parameter 'runId' is missing!'")
-        }.toLong()
+        }.UID()
 
         val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
 

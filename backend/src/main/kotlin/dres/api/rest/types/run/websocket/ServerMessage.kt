@@ -7,7 +7,7 @@ package dres.api.rest.types.run.websocket
  * @author Ralph Gasser
  * @version 1.0
  */
-data class ServerMessage(val runId: Long, val type: ServerMessageType, val timestamp: Long = System.currentTimeMillis())
+data class ServerMessage(val runId: String, val type: ServerMessageType, val timestamp: Long = System.currentTimeMillis())
 
 enum class ServerMessageType {
     COMPETITION_START, /* Competition run started. */

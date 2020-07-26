@@ -12,10 +12,10 @@
 
 
 export interface MediaCollection { 
-    id: number;
+    id: string;
     name: string;
     description?: string;
     basePath: string;
-    uid: string;
+    id_HSBmXqg?: string;
 }
 

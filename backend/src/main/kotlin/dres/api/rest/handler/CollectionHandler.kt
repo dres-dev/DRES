@@ -6,8 +6,10 @@ import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
 import dres.data.dbo.DaoIndexer
+import dres.data.model.UID
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
+import dres.utilities.extensions.UID
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -19,12 +21,12 @@ abstract class CollectionHandler(protected val collections: DAO<MediaCollection>
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.ADMIN)
 
-    private fun collectionId(ctx: Context): Long =
+    private fun collectionId(ctx: Context): UID =
             ctx.pathParamMap().getOrElse("collectionId") {
                 throw ErrorStatusException(404, "Parameter 'collectionId' is missing!'")
-            }.toLong()
+            }.UID()
 
-    private fun collectionById(id: Long): MediaCollection =
+    private fun collectionById(id: UID): MediaCollection =
             collections[id] ?: throw ErrorStatusException(404, "Collection with ID $id not found.'")
 
     protected fun collectionFromContext(ctx: Context): MediaCollection = collectionById(collectionId(ctx))
@@ -52,7 +54,7 @@ class ShowCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaI
     @OpenApi(
             summary = "Lists all available Media Collections with basic information about their content.",
             path = "/api/collection/:collectionId",
-            pathParams = [OpenApiParam("collectionId", Long::class, "Collection ID")],
+            pathParams = [OpenApiParam("collectionId", UID::class, "Collection ID")],
             tags = ["Collection"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<MediaItem>::class)]),
@@ -76,7 +78,7 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
     @OpenApi(
             summary = "Adds a Media Item to the specified Media Collection.",
             path = "/api/collection/:collectionId", method = HttpMethod.POST,
-            pathParams = [OpenApiParam("collectionId", Long::class, "Collection ID")],
+            pathParams = [OpenApiParam("collectionId", UID::class, "Collection ID")],
             requestBody = OpenApiRequestBody([OpenApiContent(MediaItem::class)]),
             tags = ["Collection"],
             responses = [
@@ -115,12 +117,12 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
     override val route: String = "collection/:collectionId"
 }
 
-class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, private val collectionItems: DaoIndexer<MediaItem, Long>) : CollectionHandler(collections, items), GetRestHandler<Array<MediaItem>> {
+class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, private val collectionItems: DaoIndexer<MediaItem, UID>) : CollectionHandler(collections, items), GetRestHandler<Array<MediaItem>> {
     @OpenApi(
             summary = "Lists Media Items of a Media Collection whose name start with the given fragment",
             path = "/api/collection/:collectionId/:startsWith", method = HttpMethod.GET,
             pathParams = [
-                OpenApiParam("collectionId", Long::class, "Collection ID"),
+                OpenApiParam("collectionId", UID::class, "Collection ID"),
                 OpenApiParam("startsWith", String::class, "Name starts with", required = false)
             ],
             tags = ["Collection"],
@@ -150,7 +152,7 @@ class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIt
     override val route: String = "collection/:collectionId/:startsWith"
 }
 
-class RandomMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, private val collectionItems: DaoIndexer<MediaItem, Long>) : CollectionHandler(collections, items), GetRestHandler<MediaItem> {
+class RandomMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, private val collectionItems: DaoIndexer<MediaItem, UID>) : CollectionHandler(collections, items), GetRestHandler<MediaItem> {
 
     private val rand = Random(System.currentTimeMillis()) // TODO Decide upon seed -- time based or fixed?
 
@@ -158,7 +160,7 @@ class RandomMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<Media
             summary = "Gives a random Media Item within a given Media Collection.",
             path = "/api/collection/random/:collectionId", method = HttpMethod.GET,
             pathParams = [
-                OpenApiParam("collectionId", Long::class, "Collection ID")
+                OpenApiParam("collectionId", UID::class, "Collection ID")
             ],
             tags = ["Collection"],
             responses = [

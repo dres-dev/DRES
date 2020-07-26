@@ -3,6 +3,7 @@ package dres.run
 import dres.api.rest.types.WebSocketConnection
 import dres.api.rest.RestApiRole
 import dres.api.rest.types.run.websocket.ClientMessage
+import dres.data.model.UID
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.data.model.run.CompetitionRun
@@ -24,10 +25,8 @@ import java.util.*
  */
 interface RunManager : Runnable {
     /** Unique, public, numeric ID for this [RunManager]. */
-    val id: Long
+    val id: UID
 
-    /** Unique, internal ID for this [RunManager]. */
-    val uid: String
 
     /** A name for identifying this [RunManager]. */
     val name: String

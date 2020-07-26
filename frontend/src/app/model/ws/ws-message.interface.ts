@@ -7,6 +7,6 @@ import {ClientMessageType} from './client-message-type.enum';
 import ClientMessageTypeEnum = ClientMessageType.ClientMessageTypeEnum;
 
 export interface IWsMessage {
-    runId: number;
+    runId: string;
     type: (ClientMessageTypeEnum | ServerMessageTypeEnum);
 }

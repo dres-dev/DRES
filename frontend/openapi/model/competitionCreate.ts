@@ -11,12 +11,8 @@
  */
 
 
-export interface MediaItem { 
-    itemType: string;
+export interface CompetitionCreate { 
     name: string;
-    location: string;
-    collection: string;
-    id: string;
-    id_HSBmXqg?: string;
+    description: string;
 }
 

@@ -14,7 +14,7 @@ import { Team } from './team';
 
 
 export interface RunInfo { 
-    id: number;
+    id: string;
     name: string;
     description?: string;
     teams: Array<Team>;

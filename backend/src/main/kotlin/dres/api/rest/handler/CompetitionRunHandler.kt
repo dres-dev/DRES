@@ -7,6 +7,7 @@ import dres.api.rest.types.run.RunState
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.data.model.Config
+import dres.data.model.UID
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.QueryDescription
 import dres.data.model.competition.TaskGroup
@@ -19,6 +20,7 @@ import dres.run.RunManager
 import dres.run.RunManagerStatus
 import dres.run.score.scoreboard.Score
 import dres.run.score.scoreboard.ScoreOverview
+import dres.utilities.extensions.UID
 import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.Context
@@ -35,7 +37,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.VIEWER)
 
-    private fun userId(ctx: Context): Long = AccessManager.getUserIdForSession(ctx.sessionId())!!
+    private fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionId())!!
 
     //private fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
     //private fun isJudge(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.JUDGE) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
@@ -50,7 +52,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
         return RunExecutor.managers()
     }
 
-    fun getRun(ctx: Context, runId: Long): RunManager? {
+    fun getRun(ctx: Context, runId: UID): RunManager? {
         if (isParticipant(ctx)) {
             val userId = userId(ctx)
             val run = RunExecutor.managerForId(runId) ?: return null
@@ -64,7 +66,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
 
     fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
         throw ErrorStatusException(400, "Parameter 'runId' is missing!'")
-    }.toLong()
+    }.UID()
 }
 
 class ListCompetitionRunInfosHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<RunInfo>> {
@@ -109,7 +111,7 @@ class GetCompetitionRunInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
             summary = "Returns a specific competition run.",
             path = "/api/run/info/:runId",
             tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(RunInfo::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -137,7 +139,7 @@ class GetCompetitionRunStateHandler : AbstractCompetitionRunRestHandler(), GetRe
             summary = "Returns the state of a specific competition run.",
             path = "/api/run/state/:runId",
             tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(RunState::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -166,7 +168,7 @@ class ListCompetitionScoreHandler : AbstractCompetitionRunRestHandler(), GetRest
             summary = "Returns the score overviews of a specific competition run.",
             path = "/api/run/score/:runId",
             tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<ScoreOverview>::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -188,7 +190,7 @@ class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHand
             summary = "Returns the overviews of all score boards for the current task run, if it is either running or has just ended.",
             path = "/api/run/score/:runId/task",
             tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", Long::class, "Competition run ID")],
+            pathParams = [OpenApiParam("runId", UID::class, "Competition run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(ScoreOverview::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
@@ -227,7 +229,7 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
             summary = "Returns the information for the current task (i.e. the one that is currently selected).",
             path = "/api/run/:runId/task",
             tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(TaskInfo::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -257,7 +259,7 @@ class CurrentQueryHandler(private val config: Config) : AbstractCompetitionRunRe
             summary = "Returns the query description for the current task run (i.e. the one that is currently selected).",
             path = "/api/run/:runId/query",
             tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(QueryDescription::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -291,7 +293,7 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
             summary = "Returns the submissions for the current task run, if it is either running or has just ended.",
             path = "/api/run/:runId/task/submissions",
             tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -327,7 +329,7 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
             path = "/api/run/:runId/task/submissions/after/:timestamp",
             tags = ["Competition Run"],
             pathParams = [
-                OpenApiParam("runId", Long::class, "Competition Run ID"),
+                OpenApiParam("runId", UID::class, "Competition Run ID"),
                 OpenApiParam("timestamp", Long::class, "Minimum Timestamp for returned Submissions")
             ],
             responses = [
@@ -365,8 +367,8 @@ class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHa
             path = "/api/run/:runId/task/submissions/task/:taskId",
             tags = ["Competition Run"],
             pathParams = [
-                OpenApiParam("runId", Long::class, "Competition Run ID"),
-                OpenApiParam("taskId", Int::class, "Task ID")
+                OpenApiParam("runId", UID::class, "Competition Run ID"),
+                OpenApiParam("taskId", UID::class, "Task ID")
             ],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
@@ -398,7 +400,7 @@ class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHa
     }
 }
 
-data class SubmissionInfo(val team: Int, val member: Long, val status: SubmissionStatus, val timestamp: Long, val id: String? = null, val item: MediaItem? = null, val start: Long? = null, val end: Long? = null) {
+data class SubmissionInfo(val team: Int, val member: UID, val status: SubmissionStatus, val timestamp: Long, val id: String? = null, val item: MediaItem? = null, val start: Long? = null, val end: Long? = null) {
     constructor(submission: Submission) : this(submission.team, submission.member, submission.status, submission.timestamp, submission.uid, submission.item, submission.start, submission.end)
 
     companion object {

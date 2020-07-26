@@ -8,6 +8,7 @@ import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
 import dres.data.model.Config
+import dres.data.model.UID
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.run.CompetitionRun
@@ -18,6 +19,7 @@ import dres.run.SynchronousRunManager
 import dres.run.audit.AuditLogger
 import dres.run.audit.LogEventSource
 import dres.utilities.FFmpegUtil
+import dres.utilities.extensions.UID
 import dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
@@ -31,11 +33,11 @@ abstract class AbstractCompetitionRunAdminRestHandler : RestHandler, AccessManag
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.ADMIN)
 
-    fun getRun(runId: Long): RunManager? = RunExecutor.managerForId(runId)
+    fun getRun(runId: UID): RunManager? = RunExecutor.managerForId(runId)
 
     fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
         throw ErrorStatusException(404, "Parameter 'runId' is missing!'")
-    }.toLong()
+    }.UID()
 }
 
 /**
@@ -46,7 +48,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
     private val cacheLocation = File(config.cachePath + "/tasks")
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
-    private fun competitionById(id: Long): CompetitionDescription =
+    private fun competitionById(id: UID): CompetitionDescription =
             competitions[id] ?: throw ErrorStatusException(404, "Competition with ID $id not found.'")
 
     override val route = "run/admin/create"
@@ -119,7 +121,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
         }
     }
 
-    data class CompetitionStart(val competitionId: Long, val name: String, val type: RunType, val scoreboards: Array<String>) {
+    data class CompetitionStart(val competitionId: UID, val name: String, val type: RunType, val scoreboards: Array<String>) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
@@ -154,7 +156,7 @@ class StartCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(),
             summary = "Starts a competition run. This is a method for admins.",
             path = "/api/run/admin/:runId/start",
             method = HttpMethod.POST,
-            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -167,7 +169,7 @@ class StartCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(),
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         try {
             run.start()
-            AuditLogger.competitionStart(run.uid, LogEventSource.REST, ctx.sessionId())
+            AuditLogger.competitionStart(run.id, LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Run $runId was successfully started.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Run $runId could not be started because it is in the wrong state (state = ${run.status}).")
@@ -185,7 +187,7 @@ class NextTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler
             summary = "Moves to and selects the next task. This is a method for admins.",
             path = "/api/run/admin/:runId/task/next",
             method = HttpMethod.POST,
-            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -219,7 +221,7 @@ class SwitchTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandl
             path = "/api/run/admin/:runId/task/switch/:idx",
             method = HttpMethod.POST,
             pathParams = [
-                OpenApiParam("runId", Long::class, "Competition run ID"),
+                OpenApiParam("runId", UID::class, "Competition run ID"),
                 OpenApiParam("idx", Int::class, "Index of the task to switch to.")
             ],
             tags = ["Competition Run Admin"],
@@ -257,7 +259,7 @@ class PreviousTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHan
             summary = "Moves to and selects the previous task. This is a method for admins.",
             path = "/api/run/admin/:runId/task/previous",
             method = HttpMethod.POST,
-            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -290,7 +292,7 @@ class StartTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
             summary = "Starts the currently active task as a new task run. This is a method for admins.",
             path = "/api/run/admin/:runId/task/start",
             method = HttpMethod.POST,
-            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -303,7 +305,7 @@ class StartTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         try {
             run.startTask()
-            AuditLogger.taskStart(run.uid, run.currentTask?.name ?: "n/a", LogEventSource.REST, ctx.sessionId())
+            AuditLogger.taskStart(run.id, run.currentTask?.name ?: "n/a", LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Task '${run.currentTask!!.name}' for run $runId was successfully started.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Task '${run.currentTask!!.name}' for run $runId could not be started because run is in the wrong state (state = ${run.status}).")
@@ -321,7 +323,7 @@ class AbortTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
             summary = "Aborts the currently running task run. This is a method for admins.",
             path = "/api/run/admin/:runId/task/abort",
             method = HttpMethod.POST,
-            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -335,7 +337,7 @@ class AbortTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
         try {
             val task = run.currentTask
             run.abortTask()
-            AuditLogger.taskEnd(run.uid, task?.name ?: "n/a", LogEventSource.REST, ctx.sessionId())
+            AuditLogger.taskEnd(run.id, task?.name ?: "n/a", LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Task '${run.currentTask!!.name}' for run $runId was successfully aborted.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Task '${run.currentTask!!.name}' for run $runId could not be aborted because run is in the wrong state (state = ${run.status}).")
@@ -353,7 +355,7 @@ class TerminateCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
             summary = "Terminates a competition run. This is a method for admins.",
             path = "/api/run/admin/:runId/terminate",
             method = HttpMethod.POST,
-            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -366,7 +368,7 @@ class TerminateCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
         try {
             run.end()
-            AuditLogger.competitionEnd(run.uid, LogEventSource.REST, ctx.sessionId())
+            AuditLogger.competitionEnd(run.id, LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Run $runId was successfully terminated.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Run $runId could not be terminated because it is in the wrong state (state = ${run.status}).")
@@ -385,7 +387,7 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), 
             path = "/api/run/admin/:runId/adjust/:duration",
             method = HttpMethod.POST,
             pathParams = [
-                OpenApiParam("runId", Long::class, "Competition Run ID"),
+                OpenApiParam("runId", UID::class, "Competition Run ID"),
                 OpenApiParam("duration", Int::class, "Duration to add.")
             ],
             tags = ["Competition Run Admin"],
@@ -404,7 +406,7 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), 
         }.toInt()
         try {
             run.adjustDuration(duration)
-            AuditLogger.taskModified(run.uid, run.currentTask?.name ?: "n/a","Task duration adjusted by ${duration}s.", LogEventSource.REST, ctx.sessionId())
+            AuditLogger.taskModified(run.id, run.currentTask?.name ?: "n/a","Task duration adjusted by ${duration}s.", LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Duration for run $runId was successfully adjusted.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Duration for run $runId could not be adjusted because it is in the wrong state (state = ${run.status}).")
@@ -424,7 +426,7 @@ class ListViewersRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), Get
             summary = "Lists all registered viewers for a competition run. This is a method for admins.",
             path = "/api/run/admin/:runId/viewers",
             method = HttpMethod.GET,
-            pathParams = [OpenApiParam("runId", Long::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<ViewerInfo>::class)]),
@@ -451,7 +453,7 @@ class ForceViewerRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), Pos
             path = "/api/run/admin/:runId/viewers/:viewerId/force",
             method = HttpMethod.POST,
             pathParams = [
-                OpenApiParam("runId", Long::class, "Competition Run ID"),
+                OpenApiParam("runId", UID::class, "Competition Run ID"),
                 OpenApiParam("viewerId", String::class, "Viewer ID")
             ],
             tags = ["Competition Run Admin"],

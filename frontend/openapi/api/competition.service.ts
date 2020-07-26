@@ -17,6 +17,7 @@ import { HttpClient, HttpHeaders, HttpParams,
 import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
+import { CompetitionCreate } from '../model/models';
 import { CompetitionOverview } from '../model/models';
 import { ErrorStatus } from '../model/models';
 import { RestCompetitionDescription } from '../model/models';
@@ -96,10 +97,10 @@ export class CompetitionService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public deleteApiCompetitionWithCompetitionid(competitionId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public deleteApiCompetitionWithCompetitionid(competitionId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public deleteApiCompetitionWithCompetitionid(competitionId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public deleteApiCompetitionWithCompetitionid(competitionId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public deleteApiCompetitionWithCompetitionid(competitionId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public deleteApiCompetitionWithCompetitionid(competitionId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public deleteApiCompetitionWithCompetitionid(competitionId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public deleteApiCompetitionWithCompetitionid(competitionId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (competitionId === null || competitionId === undefined) {
             throw new Error('Required parameter competitionId was null or undefined when calling deleteApiCompetitionWithCompetitionid.');
         }
@@ -182,10 +183,10 @@ export class CompetitionService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiCompetitionWithCompetitionid(competitionId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<RestCompetitionDescription>;
-    public getApiCompetitionWithCompetitionid(competitionId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<RestCompetitionDescription>>;
-    public getApiCompetitionWithCompetitionid(competitionId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<RestCompetitionDescription>>;
-    public getApiCompetitionWithCompetitionid(competitionId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getApiCompetitionWithCompetitionid(competitionId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<RestCompetitionDescription>;
+    public getApiCompetitionWithCompetitionid(competitionId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<RestCompetitionDescription>>;
+    public getApiCompetitionWithCompetitionid(competitionId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<RestCompetitionDescription>>;
+    public getApiCompetitionWithCompetitionid(competitionId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (competitionId === null || competitionId === undefined) {
             throw new Error('Required parameter competitionId was null or undefined when calling getApiCompetitionWithCompetitionid.');
         }
@@ -227,10 +228,10 @@ export class CompetitionService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiCompetitionWithCompetitionidTask(competitionId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<RestTaskDescription>>;
-    public getApiCompetitionWithCompetitionidTask(competitionId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<RestTaskDescription>>>;
-    public getApiCompetitionWithCompetitionidTask(competitionId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<RestTaskDescription>>>;
-    public getApiCompetitionWithCompetitionidTask(competitionId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getApiCompetitionWithCompetitionidTask(competitionId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<RestTaskDescription>>;
+    public getApiCompetitionWithCompetitionidTask(competitionId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<RestTaskDescription>>>;
+    public getApiCompetitionWithCompetitionidTask(competitionId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<RestTaskDescription>>>;
+    public getApiCompetitionWithCompetitionidTask(competitionId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (competitionId === null || competitionId === undefined) {
             throw new Error('Required parameter competitionId was null or undefined when calling getApiCompetitionWithCompetitionidTask.');
         }
@@ -272,10 +273,10 @@ export class CompetitionService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiCompetitionWithCompetitionidTeam(competitionId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<Team>>;
-    public getApiCompetitionWithCompetitionidTeam(competitionId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<Team>>>;
-    public getApiCompetitionWithCompetitionidTeam(competitionId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<Team>>>;
-    public getApiCompetitionWithCompetitionidTeam(competitionId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getApiCompetitionWithCompetitionidTeam(competitionId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<Team>>;
+    public getApiCompetitionWithCompetitionidTeam(competitionId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<Team>>>;
+    public getApiCompetitionWithCompetitionidTeam(competitionId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<Team>>>;
+    public getApiCompetitionWithCompetitionidTeam(competitionId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (competitionId === null || competitionId === undefined) {
             throw new Error('Required parameter competitionId was null or undefined when calling getApiCompetitionWithCompetitionidTeam.');
         }
@@ -365,14 +366,14 @@ export class CompetitionService {
 
     /**
      * Creates a new competition.
-     * @param competitionOverview 
+     * @param competitionCreate 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postApiCompetition(competitionOverview?: CompetitionOverview, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public postApiCompetition(competitionOverview?: CompetitionOverview, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public postApiCompetition(competitionOverview?: CompetitionOverview, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public postApiCompetition(competitionOverview?: CompetitionOverview, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public postApiCompetition(competitionCreate?: CompetitionCreate, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiCompetition(competitionCreate?: CompetitionCreate, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiCompetition(competitionCreate?: CompetitionCreate, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiCompetition(competitionCreate?: CompetitionCreate, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
 
         let headers = this.defaultHeaders;
 
@@ -404,7 +405,7 @@ export class CompetitionService {
         }
 
         return this.httpClient.post<SuccessStatus>(`${this.configuration.basePath}/api/competition`,
-            competitionOverview,
+            competitionCreate,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

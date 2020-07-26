@@ -5,6 +5,7 @@ import dres.api.rest.RestApiRole
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
+import dres.data.model.UID
 import dres.data.model.log.QueryEventLog
 import dres.data.model.log.QueryResultLog
 import dres.run.RunManager
@@ -21,9 +22,9 @@ import io.javalin.plugin.openapi.annotations.*
 
 abstract class LogHandler : PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
 
-    private fun getRelevantManagers(userId: Long): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
+    private fun getRelevantManagers(userId: UID): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
-    protected fun getActiveRun(userId: Long): RunManager {
+    protected fun getActiveRun(userId: UID): RunManager {
         val managers = getRelevantManagers(userId).filter { it.status != RunManagerStatus.CREATED && it.status != RunManagerStatus.TERMINATED }
         if (managers.isEmpty()) {
             throw ErrorStatusException(404, "There is currently no eligible competition with an active task.")
@@ -61,11 +62,11 @@ class QueryLogHandler : LogHandler() {
         val queryEventLog = try {
             ctx.body<QueryEventLog>()
         } catch (e: BadRequestResponse){
-            EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionId(), run.uid, ctx.body()))
+            EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionId(), run.id, ctx.body()))
             throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}")
         }.copy(serverTimeStamp = System.currentTimeMillis())
 
-        EventStreamProcessor.event(QueryEventLogEvent(ctx.sessionId(), run.uid, queryEventLog))
+        EventStreamProcessor.event(QueryEventLogEvent(ctx.sessionId(), run.id, queryEventLog))
 
         return SuccessStatus("Log received")
     }
@@ -94,11 +95,11 @@ class ResultLogHandler : LogHandler() {
         val queryResultLog = try {
             ctx.body<QueryResultLog>()
         } catch (e: BadRequestResponse){
-            EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionId(), run.uid, ctx.body()))
+            EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionId(), run.id, ctx.body()))
             throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}")
         }.copy(serverTimeStamp = System.currentTimeMillis())
 
-        EventStreamProcessor.event(QueryResultLogEvent(ctx.sessionId(), run.uid, queryResultLog))
+        EventStreamProcessor.event(QueryResultLogEvent(ctx.sessionId(), run.id, queryResultLog))
 
         return SuccessStatus("Log received")
     }

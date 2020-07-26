@@ -73,7 +73,7 @@ export class CompetitionBuilderTeamDialogComponent {
      *
      * @param id User ID of the desired user.
      */
-    public userForId(id: number): Observable<UserDetails> {
+    public userForId(id: string): Observable<UserDetails> {
         return this.availableUsers.pipe(
             map(users => users.find(u => u.id === id))
         );

@@ -4,6 +4,7 @@ import dres.api.rest.types.RestTaskDescriptionComponent
 import dres.data.dbo.DAO
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.time.TemporalRange
+import dres.utilities.extensions.UID
 import java.io.File
 
 interface TaskDescriptionComponent {
@@ -15,8 +16,8 @@ interface TaskDescriptionComponent {
 
 fun TaskDescriptionComponent(component: RestTaskDescriptionComponent, mediaItems: DAO<MediaItem>): TaskDescriptionComponent =
     when(component.type){
-        TaskType.QueryComponentType.IMAGE_ITEM -> ImageItemTaskDescriptionComponent(mediaItems[component.mediaItem!!.toLong()] as MediaItem.ImageItem, component.start, component.end)
-        TaskType.QueryComponentType.VIDEO_ITEM_SEGMENT -> VideoItemSegmentTaskDescriptionComponent(mediaItems[component.mediaItem!!.toLong()] as MediaItem.VideoItem, component.range!!, component.start, component.end)
+        TaskType.QueryComponentType.IMAGE_ITEM -> ImageItemTaskDescriptionComponent(mediaItems[component.mediaItem!!.UID()] as MediaItem.ImageItem, component.start, component.end)
+        TaskType.QueryComponentType.VIDEO_ITEM_SEGMENT -> VideoItemSegmentTaskDescriptionComponent(mediaItems[component.mediaItem!!.UID()] as MediaItem.VideoItem, component.range!!, component.start, component.end)
         TaskType.QueryComponentType.TEXT -> TextTaskDescriptionComponent(component.description ?: "", component.start, component.end)
         TaskType.QueryComponentType.EXTERNAL_IMAGE -> TODO()
         TaskType.QueryComponentType.EXTERNAL_VIDEO -> TODO()

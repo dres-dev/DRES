@@ -37,7 +37,7 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
     webSocket: Observable<IWsServerMessage>;
 
     /** Observable for current run ID. */
-    runId: Observable<number>;
+    runId: Observable<string>;
 
     /** Observable for information about the current run. Usually queried once when the view is loaded. */
     runInfo: Observable<RunInfo>;
@@ -114,7 +114,7 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
                 () => {
                     return {runId, type: 'UNREGISTER'} as IWsClientMessage;
                 },
-                message => (message.runId == runId || message.runId === null)
+                message => (message.runId === runId || message.runId === null)
             ).pipe(
                 retryWhen((err) => err.pipe(
                     tap(e => console.error('[RunViewerComponent] An error occurred with the WebSocket communication channel. Trying to reconnect in 1 second.', e)),

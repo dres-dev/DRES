@@ -2,6 +2,7 @@ package dres.run.updatables
 
 import dres.api.rest.types.run.websocket.ServerMessage
 import dres.api.rest.types.run.websocket.ServerMessageType
+import dres.data.model.UID
 import dres.data.model.run.CompetitionRun
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
@@ -17,7 +18,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.0
  */
-class ScoresUpdatable(val runId: Long, val scoreboardsUpdatable: ScoreboardsUpdatable, val messageQueueUpdatable: MessageQueueUpdatable): Updatable {
+class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdatable, val messageQueueUpdatable: MessageQueueUpdatable): Updatable {
 
     companion object {
         val ELIGIBLE_STATUS = arrayOf(RunManagerStatus.ACTIVE, RunManagerStatus.RUNNING_TASK, RunManagerStatus.PREPARING_TASK, RunManagerStatus.TASK_ENDED)
@@ -55,7 +56,7 @@ class ScoresUpdatable(val runId: Long, val scoreboardsUpdatable: ScoreboardsUpda
             /* If elements were removed, then update scoreboards and tasks. */
             if (removed) {
                 this.scoreboardsUpdatable.dirty = true
-                this.messageQueueUpdatable.enqueue(ServerMessage(this.runId, ServerMessageType.TASK_UPDATED))
+                this.messageQueueUpdatable.enqueue(ServerMessage(this.runId.string, ServerMessageType.TASK_UPDATED))
             }
         }
     }

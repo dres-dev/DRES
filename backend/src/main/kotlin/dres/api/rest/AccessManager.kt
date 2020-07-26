@@ -1,5 +1,6 @@
 package dres.api.rest
 
+import dres.data.model.UID
 import dres.data.model.admin.User
 import dres.run.RunManager
 import dres.utilities.extensions.sessionId
@@ -21,10 +22,10 @@ object AccessManager {
     }
 
     private val sessionRoleMap = ConcurrentHashMap<String, MutableSet<Role>>()
-    private val sessionUserMap = ConcurrentHashMap<String, Long>()
+    private val sessionUserMap = ConcurrentHashMap<String, UID>()
 
     /** Map keeping track of all [RunManager]s a specific user is eligible for. */
-    private val usersToRunMap = ConcurrentHashMap<Long,MutableSet<RunManager>>()
+    private val usersToRunMap = ConcurrentHashMap<UID,MutableSet<RunManager>>()
 
     val currentSessions: Set<String>
         get() = sessionUserMap.keys
@@ -55,7 +56,7 @@ object AccessManager {
 
     fun rolesOfSession(sessionId: String): Set<Role> = sessionRoleMap[sessionId] ?: emptySet()
 
-    fun getUserIdForSession(sessionId: String): Long? = sessionUserMap[sessionId]
+    fun getUserIdForSession(sessionId: String): UID? = sessionUserMap[sessionId]
 
     /**
      * Registers a [RunManager] for quick lookup of user ID to eligible [RunManager].
@@ -80,7 +81,7 @@ object AccessManager {
      */
     fun deregisterRunManager(runManager: RunManager) {
         /* Remove the RunManager. */
-        val idsToDrop = mutableSetOf<Long>()
+        val idsToDrop = mutableSetOf<UID>()
         for ((k,v) in this.usersToRunMap) {
             if (v.contains(runManager)) {
                 v.remove(runManager)
@@ -99,7 +100,7 @@ object AccessManager {
      *
      * @param userId The ID of the [User] to return [RunManager]s for.
      */
-    fun getRunManagerForUser(userId: Long): Set<RunManager> {
+    fun getRunManagerForUser(userId: UID): Set<RunManager> {
         return this.usersToRunMap[userId] ?: emptySet()
     }
 }

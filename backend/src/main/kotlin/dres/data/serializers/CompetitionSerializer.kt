@@ -1,13 +1,15 @@
 package dres.data.serializers
 
 import dres.data.model.competition.CompetitionDescription
+import dres.utilities.extensions.readUID
+import dres.utilities.extensions.writeUID
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer
 
 object CompetitionSerializer: Serializer<CompetitionDescription> {
     override fun serialize(out: DataOutput2, value: CompetitionDescription) {
-        out.packLong(value.id)
+        out.writeUID(value.id)
         out.writeUTF(value.name)
         out.writeUTF(value.description ?: "")
         out.writeInt(value.taskTypes.size)
@@ -26,17 +28,20 @@ object CompetitionSerializer: Serializer<CompetitionDescription> {
         for (team in value.teams) {
             TeamSerializer.serialize(out, team)
         }
-        out.writeUTF(value.uid)
     }
 
-    override fun deserialize(input: DataInput2, available: Int): CompetitionDescription = CompetitionDescription(
-            input.unpackLong(),
-            input.readUTF(),
-            input.readUTF(),
-            (0 until input.readInt()).map { TaskTypeSerializer.deserialize(input, available) }.toMutableList(),
-            (0 until input.readInt()).map { TaskGroupSerializer.deserialize(input, available) }.toMutableList(),
-            (0 until input.readInt()).map { TaskDescriptionSerializer.deserialize(input, available) }.toMutableList(),
-            (0 until input.readInt()).map { TeamSerializer.deserialize(input, available) }.toMutableList(),
-            input.readUTF()
-    )
+    override fun deserialize(input: DataInput2, available: Int): CompetitionDescription {
+
+        val id = input.readUID()
+        val name = input.readUTF()
+        val description = input.readUTF()
+        val taskTypes = (0 until input.readInt()).map { TaskTypeSerializer.deserialize(input, available) }.toMutableList()
+        val groups = (0 until input.readInt()).map { TaskGroupSerializer.deserialize(input, available) }.toMutableList()
+        val tasks = (0 until input.readInt()).map { TaskDescriptionSerializer.deserialize(input, groups, taskTypes) }.toMutableList()
+        val teams = (0 until input.readInt()).map { TeamSerializer.deserialize(input, available) }.toMutableList()
+
+        return CompetitionDescription(
+                id, name, description, taskTypes, groups, tasks, teams
+        )
+    }
 }

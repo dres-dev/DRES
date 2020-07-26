@@ -12,7 +12,7 @@
 
 
 export interface TaskDescriptionComponent { 
-    start?: number;
     end?: number;
+    start?: number;
 }
 

@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {filter} from 'rxjs/operators';
-import {CompetitionService, RestCompetitionDescription, RestTeam, TaskDescription, TaskGroup, TaskType, Team} from '../../../../openapi';
+import {CompetitionService, RestCompetitionDescription, RestTeam, TaskDescription, TaskGroup, TaskType} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Subscription} from 'rxjs';

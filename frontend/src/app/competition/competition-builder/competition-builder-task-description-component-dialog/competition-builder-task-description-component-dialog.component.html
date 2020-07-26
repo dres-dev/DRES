@@ -5,18 +5,18 @@
         <p>
             <mat-form-field style="width: 40%">
                 <mat-label>Start</mat-label>
-                <input type="number" matInput placeholder="Start [s]" formControlName="start"/>
+                <input type="number" matInput placeholder="Start [s]" formControl="start"/>
             </mat-form-field>
             <mat-form-field style="width: 40%">
                 <mat-label>End</mat-label>
-                <input type="number" matInput placeholder="End [s]" formControlName="end"/>
+                <input type="number" matInput placeholder="End [s]" formControl="end"/>
             </mat-form-field>
         </p>
 
         <p *ngIf="isTextual()">
             <mat-form-field style="width: 100%" appearance="fill">
                 <mat-label>Description</mat-label>
-                <textarea formControlName="description"></textarea>
+                <textarea formControl="description"></textarea>
             </mat-form-field>
         </p>
 
@@ -24,14 +24,14 @@
             <mat-form-field style="width: 100%">
                 <!-- TODO replace with autocomplete / dropdown of available items -->
                 <mat-label>Image Item</mat-label>
-                <input matInput placeholder="Image Item" formControlName="mediaItem">
+                <input matInput placeholder="Image Item" formControl="mediaItem">
             </mat-form-field>
         </p>
         <p *ngIf="isVideoItem()">
             <mat-form-field style="width: 100%">
                 <!-- TODO replace with autocomplete / dropdown of available items -->
                 <mat-label>Video Item</mat-label>
-                <input matInput placeholder="Image Item" formControlName="mediaItem">
+                <input matInput placeholder="Image Item" formControl="mediaItem">
             </mat-form-field>
             <!-- TODO recycle legacy task dialog video item stuff -->
             PLACEHOLDER

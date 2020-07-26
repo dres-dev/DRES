@@ -6,7 +6,7 @@ import {
     MediaItem,
     RestTaskDescription,
     RestTaskDescriptionComponent,
-    RestTaskDescriptionTarget,
+    RestTaskDescriptionTarget, TaskDescriptionComponent,
     TaskGroup,
     TaskType,
     TemporalRange,
@@ -16,7 +16,10 @@ import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Observable} from 'rxjs';
 import {filter, flatMap, tap} from 'rxjs/operators';
 import {AppConfig} from '../../../app.config';
-import {CompetitionBuilderTaskDescriptionComponentDialogComponent} from '../competition-builder-task-description-component-dialog/competition-builder-task-description-component-dialog.component';
+import {
+    CompetitionBuilderTaskDescriptionComponentDialogComponent,
+    CompetitionBuilderTaskDescriptionComponentDialogData
+} from '../competition-builder-task-description-component-dialog/competition-builder-task-description-component-dialog.component';
 
 
 /**
@@ -50,6 +53,7 @@ export class CompetitionBuilderTaskDialogComponent {
      * Convenience access
      */
     taskType: TaskType;
+    componentTypes = Object.keys(TaskType.ComponentsEnum).sort((a, b) => a.localeCompare(b));
 
     constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskDialogComponent>,
                 public collectionService: CollectionService,
@@ -77,14 +81,14 @@ export class CompetitionBuilderTaskDialogComponent {
                 /* Single media item (upon fetchFormData is added as single-item-array*/
                 this.form.addControl('target.mediaitem', new FormControl('', [Validators.required]));
                 if (this?.data?.task?.target?.mediaItems?.length >= 1) {
-                    this.form.get('target.mediaitem').setValue(this.data.task.target.mediaItems[0])
+                    this.form.get('target.mediaitem').setValue(this.data.task.target.mediaItems[0]);
                 }
                 break;
             case 'SINGLE_MEDIA_SEGMENT':
                 /* Single media segment (upon fetchFormData is added as single-item-array */
                 this.form.addControl('target.mediaitem', new FormControl('', [Validators.required]));
                 if (this?.data?.task?.target?.mediaItems?.length >= 1) {
-                    this.form.get('target.mediaitem').setValue(this.data.task.target.mediaItems[0])
+                    this.form.get('target.mediaitem').setValue(this.data.task.target.mediaItems[0]);
                 }
                 this.form.addControl('target.range.start', new FormControl(this?.data?.task?.target?.range?.start, [Validators.required, Validators.min(0)]));
                 this.form.addControl('target.range.end', new FormControl(this?.data?.task?.target?.range?.end, [Validators.required, Validators.min(0)]));
@@ -105,13 +109,16 @@ export class CompetitionBuilderTaskDialogComponent {
         }
         /* Autocomplete for media item. TargetType Single_* */
         // FIXME loris.sauter 26.7. @Ralph: I don't understand why this.form.get('target.mediaitem') is null here and I have to use this notation -- I didn't change the way the form is setup, or did I?
-        this.mediaItemSource = this.form.controls['target.mediaitem'].valueChanges.pipe(
-            filter((value: string) => value.length >= 1),
-            flatMap(value => {
-                return this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('collection').value, value);
-            })
-        );
+        if (this.isTargetSingleMediaItem() || this.isTargetSingleMediaSegment()) {
+            this.mediaItemSource = this.form.controls['target.mediaitem'].valueChanges.pipe(
+                filter((value: string) => value.length >= 1),
+                flatMap(value => {
+                    return this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('collection').value, value);
+                })
+            );
+        }
 
+        this.componentTypes = this.taskType.components;
 
         // switch (this.data.taskGroup.type) {
         //     case 'KIS_VISUAL':
@@ -307,6 +314,21 @@ export class CompetitionBuilderTaskDialogComponent {
         console.log(this.asJson());
     }
 
+    iconForType(value: RestTaskDescriptionComponent) {
+        switch (value.type) {
+            case 'IMAGE_ITEM':
+                return 'image';
+            case 'VIDEO_ITEM_SEGMENT':
+                return 'movie';
+            case 'TEXT':
+                return 'text_snippet';
+            case 'EXTERNAL_IMAGE':
+                return 'insert_photo';
+            case 'EXTERNAL_VIDEO':
+                return 'local_movies';
+        }
+    }
+
     isTargetSingleMediaItem() {
         return this.taskType.targetType === TaskType.TargetTypeEnum.SINGLEMEDIAITEM;
     }
@@ -358,6 +380,8 @@ export class CompetitionBuilderTaskDialogComponent {
         }
         this.showPlayer = !this.showPlayer;
     }
+
+
 
     /**
      * Handler for 'close' button.
@@ -452,4 +476,16 @@ export class CompetitionBuilderTaskDialogComponent {
     //             } as KisVisualTaskDescription;
     //     }
     // }
+
+    addComponent(type: string) {
+        const dialogRef = this.dialog.open(
+            CompetitionBuilderTaskDescriptionComponentDialogComponent,
+            {data: {type: type as TaskType.ComponentsEnum, comp: null} as CompetitionBuilderTaskDescriptionComponentDialogData, width: '750px'}
+        );
+        dialogRef.afterClosed().pipe(
+            filter(t => t != null),
+        ).subscribe((t) => {
+            (this.form.get('components') as FormArray).push(new FormControl(t));
+        });
+    }
 }

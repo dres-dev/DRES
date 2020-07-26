@@ -63,7 +63,32 @@
                 </button>
             </span>
             </p>
+            <p *ngIf="isTargetMultipleMediaSegment()">
+                <mat-card>
+                    <mat-card-content>This feature is not yet implemented.</mat-card-content>
+                </mat-card>
+            </p>
         </div>
+        <div>
+            Components:
+            <p>
+                <mat-menu #componentMenu="matMenu">
+                    <button *ngFor="let type of componentTypes" mat-menu-item
+                            (click)="addComponent(type)">{{type | titlecase}}</button>
+                </mat-menu>
+
+                <button mat-button aria-label="Add new task." matTooltip="Add new task." [matMenuTriggerFor]="componentMenu">
+                    <mat-icon>add</mat-icon>
+                    Add task
+                </button>
+            </p>
+            <mat-list>
+                <mat-list-item *ngFor="let item of form.get('components')['controls'];">
+                    <mat-icon mat-list-icon matTooltip="{{item.value.type}}">{{iconForType(item.value)}}</mat-icon>
+                </mat-list-item>
+            </mat-list>
+        </div>
+
         <p *ngIf="form.get('description')">
             <mat-form-field style="width: 100%;">
                 <mat-label>Description</mat-label>

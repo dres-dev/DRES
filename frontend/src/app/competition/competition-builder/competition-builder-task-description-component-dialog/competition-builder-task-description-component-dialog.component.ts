@@ -27,30 +27,30 @@ export class CompetitionBuilderTaskDescriptionComponentDialogComponent implement
         @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDescriptionComponentDialogData) {
         this.form = new FormGroup({
             type: new FormControl(this?.data.type),
-            start: new FormControl(this?.data?.comp.start, [Validators.required, Validators.min(0)]),
-            end: new FormControl(this?.data?.comp.end, [Validators.required, Validators.min(this.form.get('start').value)]),
+            start: new FormControl(this?.data?.comp?.start, [Validators.required, Validators.min(0)]),
+            end: new FormControl(this?.data?.comp?.end, [Validators.required, Validators.min(0)/*, Validators.min(this.form.get('start').value)*/]),
         });
         switch (this?.data.type) {
             case 'IMAGE_ITEM':
-                this.form.addControl('mediaItem', new FormControl(this?.data?.comp.mediaItem, [Validators.required]));
+                this.form.addControl('mediaItem', new FormControl(this?.data?.comp?.mediaItem, [Validators.required]));
                 break;
           case 'VIDEO_ITEM_SEGMENT':
-                this.form.addControl('mediaItem', new FormControl(this?.data?.comp.mediaItem, [Validators.required]));
-                this.form.addControl('range.start', new FormControl(this?.data?.comp.range.start, [Validators.required, Validators.min(0)]));
-                this.form.addControl('range.end', new FormControl(this?.data?.comp.range.end, [Validators.required, Validators.min(0)])); // fixme min is actually range.start
+                this.form.addControl('mediaItem', new FormControl(this?.data?.comp?.mediaItem, [Validators.required]));
+                this.form.addControl('range.start', new FormControl(this?.data?.comp?.range?.start, [Validators.required, Validators.min(0)]));
+                this.form.addControl('range.end', new FormControl(this?.data?.comp?.range?.end, [Validators.required, Validators.min(0)])); // fixme min is actually range.start
                 break;
             case 'TEXT':
-                this.form.addControl('description', new FormControl(this?.data?.comp.description, [Validators.required]));
+                this.form.addControl('description', new FormControl(this?.data?.comp?.description, [Validators.required]));
                 break;
             case 'EXTERNAL_IMAGE':
-                this.form.addControl('payload', new FormControl(this?.data?.comp.payload, [Validators.required]));
-                this.form.addControl('dataType', new FormControl(this?.data?.comp.dataType, [Validators.required]));
+                this.form.addControl('payload', new FormControl(this?.data?.comp?.payload, [Validators.required]));
+                this.form.addControl('dataType', new FormControl(this?.data?.comp?.dataType, [Validators.required]));
                 break;
             case 'EXTERNAL_VIDEO':
-                this.form.addControl('payload', new FormControl(this?.data?.comp.payload, [Validators.required]));
-                this.form.addControl('dataType', new FormControl(this?.data?.comp.dataType, [Validators.required]));
-              this.form.addControl('range.start', new FormControl(this?.data?.comp.range.start, [Validators.required, Validators.min(0)]));
-              this.form.addControl('range.end', new FormControl(this?.data?.comp.range.end, [Validators.required, Validators.min(0)])); // fixme min is actually range.start
+                this.form.addControl('payload', new FormControl(this?.data?.comp?.payload, [Validators.required]));
+                this.form.addControl('dataType', new FormControl(this?.data?.comp?.dataType, [Validators.required]));
+              this.form.addControl('range.start', new FormControl(this?.data?.comp?.range?.start, [Validators.required, Validators.min(0)]));
+              this.form.addControl('range.end', new FormControl(this?.data?.comp?.range?.end, [Validators.required, Validators.min(0)])); // fixme min is actually range.start
                 break;
 
         }

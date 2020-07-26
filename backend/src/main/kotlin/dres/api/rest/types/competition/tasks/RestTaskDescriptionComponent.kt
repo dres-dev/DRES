@@ -1,4 +1,4 @@
-package dres.api.rest.types
+package dres.api.rest.types.competition.tasks
 
 import dres.data.model.basics.time.TemporalRange
 import dres.data.model.competition.*

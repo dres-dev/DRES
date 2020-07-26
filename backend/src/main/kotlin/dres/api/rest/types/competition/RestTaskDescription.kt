@@ -1,5 +1,7 @@
-package dres.api.rest.types
+package dres.api.rest.types.competition
 
+import dres.api.rest.types.competition.tasks.RestTaskDescriptionComponent
+import dres.api.rest.types.competition.tasks.RestTaskDescriptionTarget
 import dres.data.model.competition.interfaces.TaskDescription
 
 
@@ -21,6 +23,6 @@ class RestTaskDescription(
             description.duration,
             description.defaultMediaCollectionId.string,
             description.components.map { RestTaskDescriptionComponent(it) },
-            RestTaskDescriptionTarget(description.target)
+            RestTaskDescriptionTarget.fromTarget(description.target)
     )
 }

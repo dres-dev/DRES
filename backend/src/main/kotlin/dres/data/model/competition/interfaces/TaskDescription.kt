@@ -1,7 +1,6 @@
 package dres.data.model.competition.interfaces
 
-import dres.api.rest.types.RestTaskDescription
-import dres.api.rest.types.TaskDescriptionTarget
+import dres.api.rest.types.competition.RestTaskDescription
 import dres.data.dbo.DAO
 import dres.data.model.Config
 import dres.data.model.UID
@@ -120,5 +119,5 @@ fun TaskDescription(description: RestTaskDescription, taskGroups: List<TaskGroup
         description.duration,
         description.defaultMediaCollectionId.UID(),
         description.components.map { TaskDescriptionComponent(it, mediaItems) },
-        TaskDescriptionTarget(description.target, mediaItems)
+        description.target.toTarget(mediaItems)
 )

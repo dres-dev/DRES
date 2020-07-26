@@ -10,7 +10,7 @@
  * Do not edit the class manually.
  */
 import { TaskType } from './taskType';
-import { Team } from './team';
+import { RestTeam } from './restTeam';
 import { TaskGroup } from './taskGroup';
 import { RestTaskDescription } from './restTaskDescription';
 
@@ -22,6 +22,6 @@ export interface RestCompetitionDescription {
     taskTypes: Array<TaskType>;
     groups: Array<TaskGroup>;
     tasks: Array<RestTaskDescription>;
-    teams: Array<Team>;
+    teams: Array<RestTeam>;
 }
 

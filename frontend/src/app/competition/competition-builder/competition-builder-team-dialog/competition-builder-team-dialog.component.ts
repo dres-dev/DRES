@@ -1,7 +1,7 @@
 import {Component, Inject} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {Team, UserDetails, UserService} from '../../../../../openapi';
+import {RestTeam, Team, UserDetails, UserService} from '../../../../../openapi';
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
 import {map, shareReplay} from 'rxjs/operators';
 import {Observable} from 'rxjs';
@@ -89,7 +89,7 @@ export class CompetitionBuilderTeamDialogComponent {
                 color: this.form.get('color').value,
                 logo: this.form.get('logoData').value,
                 users: this.form.get('users').value
-            } as Team);
+            } as RestTeam);
         }
     }
 

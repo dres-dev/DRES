@@ -11,8 +11,10 @@
  */
 
 
-export interface TaskDescriptionComponent { 
-    start?: number;
-    end?: number;
+export interface RestTeam { 
+    name: string;
+    color: string;
+    logo: string;
+    users: Array<string>;
 }
 

@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {filter} from 'rxjs/operators';
-import {CompetitionService, RestCompetitionDescription, TaskDescription, TaskGroup, TaskType, Team} from '../../../../openapi';
+import {CompetitionService, RestCompetitionDescription, RestTeam, TaskDescription, TaskGroup, TaskType, Team} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Subscription} from 'rxjs';
@@ -220,13 +220,13 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
         });
     }
 
-    public editTeam(team: Team) {
+    public editTeam(team: RestTeam) {
         const index = this.competition.teams.indexOf(team);
         if (index > -1) {
             const dialogRef = this.dialog.open(CompetitionBuilderTeamDialogComponent, {data: team, width: '500px'});
             dialogRef.afterClosed().pipe(
                 filter(t => t != null),
-            ).subscribe((t: Team) => {
+            ).subscribe((t: RestTeam) => {
                 this.competition.teams[index] = t;
                 this.dirty = true;
                 this.teamTable.renderRows();
@@ -234,7 +234,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
         }
     }
 
-    public removeTeam(team: Team) {
+    public removeTeam(team: RestTeam) {
         this.competition.teams.splice(this.competition.teams.indexOf(team), 1);
         this.dirty = true;
         this.teamTable.renderRows();

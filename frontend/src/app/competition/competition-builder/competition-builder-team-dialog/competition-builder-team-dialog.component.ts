@@ -1,7 +1,7 @@
 import {Component, Inject} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {RestTeam, Team, UserDetails, UserService} from '../../../../../openapi';
+import {RestTeam, UserDetails, UserService} from '../../../../../openapi';
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
 import {map, shareReplay} from 'rxjs/operators';
 import {Observable} from 'rxjs';
@@ -17,21 +17,9 @@ export class CompetitionBuilderTeamDialogComponent {
     logoName = '';
     availableUsers: Observable<UserDetails[]>;
 
-    /**
-     * Generates a random HTML color.
-     */
-    private static randomColor(): string {
-        const letters = '0123456789ABCDEF';
-        let color = '#';
-        for (let i = 0; i < 6; i++) {
-            color += letters[Math.floor(Math.random() * 16)];
-        }
-        return color;
-    }
-
     constructor(public dialogRef: MatDialogRef<CompetitionBuilderTeamDialogComponent>,
                 public userService: UserService,
-                @Inject(MAT_DIALOG_DATA) public team?: Team) {
+                @Inject(MAT_DIALOG_DATA) public team?: RestTeam) {
 
         this.form = new FormGroup({
             name: new FormControl(team?.name, [Validators.required, Validators.minLength(3)]),
@@ -44,6 +32,18 @@ export class CompetitionBuilderTeamDialogComponent {
         this.availableUsers = this.userService.getApiUserList().pipe(
             shareReplay(1)
         );
+    }
+
+    /**
+     * Generates a random HTML color.
+     */
+    private static randomColor(): string {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
     }
 
     /**

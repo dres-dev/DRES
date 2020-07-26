@@ -14,7 +14,7 @@ import {
 } from '../../../../../openapi';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Observable} from 'rxjs';
-import {filter, tap} from 'rxjs/operators';
+import {filter, flatMap, tap} from 'rxjs/operators';
 import {AppConfig} from '../../../app.config';
 import {CompetitionBuilderTaskDescriptionComponentDialogComponent} from '../competition-builder-task-description-component-dialog/competition-builder-task-description-component-dialog.component';
 
@@ -71,14 +71,47 @@ export class CompetitionBuilderTaskDialogComponent {
         });
 
         this.form.addControl('target.type', new FormControl(this.taskType.targetType, [Validators.required]));
-        this.form.addControl('target.items', new FormArray(this?.data?.task?.target?.mediaItems ? this?.data?.task?.target?.mediaItems.map((v) => new FormControl(v)) : [], [Validators.required, Validators.minLength(1)]));
-        this.form.addControl('target.range.start', new FormControl(this?.data?.task?.target?.range?.start, [Validators.required, Validators.min(0)]));
-        this.form.addControl('target.range.end', new FormControl(this?.data?.task?.target?.range?.end, [Validators.required, Validators.min(0)]));
+
+        switch (this.taskType.targetType) {
+            case 'SINGLE_MEDIA_ITEM':
+                /* Single media item (upon fetchFormData is added as single-item-array*/
+                this.form.addControl('target.mediaitem', new FormControl('', [Validators.required]));
+                if (this?.data?.task?.target?.mediaItems?.length >= 1) {
+                    this.form.get('target.mediaitem').setValue(this.data.task.target.mediaItems[0])
+                }
+                break;
+            case 'SINGLE_MEDIA_SEGMENT':
+                /* Single media segment (upon fetchFormData is added as single-item-array */
+                this.form.addControl('target.mediaitem', new FormControl('', [Validators.required]));
+                if (this?.data?.task?.target?.mediaItems?.length >= 1) {
+                    this.form.get('target.mediaitem').setValue(this.data.task.target.mediaItems[0])
+                }
+                this.form.addControl('target.range.start', new FormControl(this?.data?.task?.target?.range?.start, [Validators.required, Validators.min(0)]));
+                this.form.addControl('target.range.end', new FormControl(this?.data?.task?.target?.range?.end, [Validators.required, Validators.min(0)]));
+                break;
+            case 'MULTIPLE_MEDIA_ITEMS':
+                /* Just the items */
+                this.form.addControl('target.items', new FormArray(this?.data?.task?.target?.mediaItems ? this?.data?.task?.target?.mediaItems.map((v) => new FormControl(v)) : [], [Validators.required, Validators.minLength(1)]));
+                break;
+            case 'JUDGEMENT':
+                /* Nothing. Upon fetchFormData the target type is read from this.taskType */
+                break;
+
+        }
 
         if (this?.data?.task?.duration) {
             /* in case of editing, default is from type */
             this.form.get('duration').setValue(this.data.task.duration);
         }
+        /* Autocomplete for media item. TargetType Single_* */
+        // FIXME loris.sauter 26.7. @Ralph: I don't understand why this.form.get('target.mediaitem') is null here and I have to use this notation -- I didn't change the way the form is setup, or did I?
+        this.mediaItemSource = this.form.controls['target.mediaitem'].valueChanges.pipe(
+            filter((value: string) => value.length >= 1),
+            flatMap(value => {
+                return this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('collection').value, value);
+            })
+        );
+
 
         // switch (this.data.taskGroup.type) {
         //     case 'KIS_VISUAL':
@@ -157,6 +190,11 @@ export class CompetitionBuilderTaskDialogComponent {
     //     return addTo;
     // }
 
+    get randomMediaItemAsPromise() {
+        return this.collectionService.getApiCollectionRandomWithCollectionid(
+            (this.form.get('collection') as FormControl).value).toPromise();
+    }
+
     /**
      * Handler for + button for task description component. Adds said component
      */
@@ -233,15 +271,23 @@ export class CompetitionBuilderTaskDialogComponent {
             defaultMediaCollectionId: this.form.get('collection').value,
             components: this.form.get('components').value,
             target: {
-                type: this.taskType.targetType,
-                mediaItems: this.form.get('target.items').value
+                type: this.taskType.targetType
             } as RestTaskDescriptionTarget
         } as RestTaskDescription;
-        if (this.form.get('target.range.start') && this.form.get('target.range.end')) {
+        /* Generically: If formdata of range exists, add it */
+        if (this.form.controls['target.range.start'] && this.form.controls['target.range.end']) {
             data.target.range = {
-                start: this.form.get('target.range.start').value,
-                end: this.form.get('target.range.end').value
+                start: this.form.controls['target.range.start'].value,
+                end: this.form.controls['target.range.end'].value
             } as TemporalRange;
+        }
+        /* If formdata for mediaitemS exist (so plural), add it */
+        if (this.form.controls['target.items']) {
+            data.target.mediaItems = this.form.controls['target.items'].value;
+        }
+        /* If formdata for mediaitem exists (so singular), add it as array */
+        if (this.form.controls['target.mediaitem']) {
+            data.target.mediaItems = [this.form.controls['target.mediaitem'].value];
         }
         return data;
     }
@@ -257,44 +303,44 @@ export class CompetitionBuilderTaskDialogComponent {
      * Prints the JSONified form data to console
      */
     export() {
+        console.log(this.form);
         console.log(this.asJson());
     }
 
-    isTargetSingleMediaItem(){
+    isTargetSingleMediaItem() {
         return this.taskType.targetType === TaskType.TargetTypeEnum.SINGLEMEDIAITEM;
     }
 
-    isTargetSingleMediaSegment(){
+    isTargetSingleMediaSegment() {
         return this.taskType.targetType === TaskType.TargetTypeEnum.SINGLEMEDIASEGMENT;
     }
 
-    isTargetMultipleMediaSegment(){
+    isTargetMultipleMediaSegment() {
         return this.taskType.targetType === TaskType.TargetTypeEnum.MULTIPLEMEDIAITEMS;
     }
 
-    isTargetJudgment(){
+    isTargetJudgment() {
         return this.taskType.targetType === TaskType.TargetTypeEnum.JUDGEMENT;
     }
 
     randomisedMediaItem() {
         this.collectionService.getApiCollectionRandomWithCollectionid(
-            (this.form.get('mediaCollection') as FormControl).value)
+            (this.form.get('collection') as FormControl).value)
             .subscribe(value => {
-                this.form.get('mediaItemId').setValue(value);
+                this.form.controls['target.mediaitem'].setValue(value);
             });
     }
 
     randomiseSegment() {
         // TODO rework with #122
-        const item = this.form.get('mediaItemId').value as VideoItem;
+        const item = this.form.controls['target.mediaitem'].value as VideoItem;
         const start = this.randInt(1, (item.durationMs / 1000) / 2); // always in first half
         let end = 1;
         do {
             end = start + this.randInt(5, (item.durationMs / 1000)); // Arbitrary 5 seconds minimal length
         } while (end > (item.durationMs / 1000));
-        this.form.get('time_unit').setValue('SECONDS');
-        this.form.get('start').setValue(start);
-        this.form.get('end').setValue(end);
+        this.form.controls['target.range.start'].setValue(start);
+        this.form.controls['target.range.end'].setValue(end);
     }
 
     toggleVideoPlayer() {
@@ -341,7 +387,7 @@ export class CompetitionBuilderTaskDialogComponent {
             default:
                 console.error(`The time unit ${this.form.get('time_unit').value} is not supported`);
         }
-        const collection = this.mediaCollections.find(x => x.id === this.form.get('mediaCollection').value).name;
+        const collection = this.mediaCollections.find(x => x.id === this.form.get('collection').value).name;
         return this.config.resolveApiUrl(`/media/${collection}/${item.name}${timeSuffix}`);
     }
 

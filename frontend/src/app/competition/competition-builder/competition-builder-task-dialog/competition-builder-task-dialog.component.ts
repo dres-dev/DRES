@@ -243,15 +243,15 @@ export class CompetitionBuilderTaskDialogComponent {
 
     randomisedMediaItem() {
         this.collectionService.getApiCollectionRandomWithCollectionid(
-            (this.form.get('mediaCollection') as FormControl).value)
+            (this.form.get('collection') as FormControl).value)
             .subscribe(value => {
-                this.form.get('mediaItemId').setValue(value);
+                this.form.get('mediaItem').setValue(value);
             });
     }
 
     randomiseSegment() {
         // TODO rework with #122
-        const item = this.form.get('mediaItemId').value as VideoItem;
+        const item = this.form.get('mediaItem').value as VideoItem;
         const start = this.randInt(1, (item.durationMs / 1000) / 2); // always in first half
         let end = 1;
         do {

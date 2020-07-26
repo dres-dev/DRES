@@ -20,6 +20,8 @@ export * from './restCompetitionDescription';
 export * from './restTaskDescription';
 export * from './restTaskDescriptionComponent';
 export * from './restTaskDescriptionTarget';
+export * from './restTaskDescriptionTargetItem';
+export * from './restTeam';
 export * from './runInfo';
 export * from './runState';
 export * from './score';

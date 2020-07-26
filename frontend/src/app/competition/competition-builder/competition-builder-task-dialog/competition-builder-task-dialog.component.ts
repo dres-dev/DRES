@@ -9,7 +9,6 @@ import {
     RestTaskDescriptionTarget,
     TaskGroup,
     TaskType,
-    TemporalRange,
     VideoItem
 } from '../../../../../openapi';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
@@ -17,6 +16,7 @@ import {Observable} from 'rxjs';
 import {filter, tap} from 'rxjs/operators';
 import {AppConfig} from '../../../app.config';
 import {CompetitionBuilderTaskDescriptionComponentDialogComponent} from '../competition-builder-task-description-component-dialog/competition-builder-task-description-component-dialog.component';
+import {CompetitionFormBuilder} from './competition-form.builder';
 
 
 /**
@@ -57,52 +57,13 @@ export class CompetitionBuilderTaskDialogComponent {
                 public config: AppConfig,
                 private dialog: MatDialog) {
 
-        this.taskType = data?.taskType;
+        this.taskType = this.data?.taskType;
+        const builder = new CompetitionFormBuilder(this.taskType, this.data.task);
+
 
         this.mediaCollectionSource = this.collectionService.getApiCollection().pipe(tap(x => this.mediaCollections = x));
 
-        this.form = new FormGroup({
-            name: new FormControl(this?.data?.task?.name, [Validators.required]),
-            duration: new FormControl(this?.data.taskType.taskDuration, [Validators.required, Validators.min(1)]),
-            group: new FormControl(this?.data?.taskGroup.name, [Validators.required]),
-            type: new FormControl(this?.data?.taskType.name, [Validators.required]),
-            components: new FormArray(this?.data?.task?.components ? this?.data?.task?.components.map((v) => new FormControl(v)) : [], [Validators.required, Validators.minLength(1)]),
-            collection: new FormControl(this?.data?.task?.defaultMediaCollectionId, [Validators.required]),
-        });
-
-        this.form.addControl('target.type', new FormControl(this.taskType.targetType, [Validators.required]));
-        this.form.addControl('target.items', new FormArray(this?.data?.task?.target?.mediaItems ? this?.data?.task?.target?.mediaItems.map((v) => new FormControl(v)) : [], [Validators.required, Validators.minLength(1)]));
-        this.form.addControl('target.range.start', new FormControl(this?.data?.task?.target?.range?.start, [Validators.required, Validators.min(0)]));
-        this.form.addControl('target.range.end', new FormControl(this?.data?.task?.target?.range?.end, [Validators.required, Validators.min(0)]));
-
-        if (this?.data?.task?.duration) {
-            /* in case of editing, default is from type */
-            this.form.get('duration').setValue(this.data.task.duration);
-        }
-
-        // switch (this.data.taskGroup.type) {
-        //     case 'KIS_VISUAL':
-        //         this.form = CompetitionBuilderTaskDialogComponent.KisVisualFormControl(this.data.taskGroup, this.data.task as KisVisualTaskDescription);
-        //         this.mediaItemSource = this.form.get('mediaItemId').valueChanges.pipe(
-        //             filter((value: string) => value.length >= 1),
-        //             flatMap(value => {
-        //                 return this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, value);
-        //             })
-        //         );
-        //         break;
-        //     case 'KIS_TEXTUAL':
-        //         this.form = CompetitionBuilderTaskDialogComponent.KisTextualFormControl(this.data.taskGroup, this.data.task as KisTextualTaskDescription);
-        //         this.mediaItemSource = this.form.get('mediaItemId').valueChanges.pipe(
-        //             filter((value: string) => value.length >= 1),
-        //             flatMap((value) => {
-        //                 return this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, value);
-        //             })
-        //         );
-        //         break;
-        //     case 'AVS':
-        //         this.form = CompetitionBuilderTaskDialogComponent.AvsFormControl(this.data.taskGroup, this.data.task as AvsTaskDescription);
-        //         break;
-        // }
+        this.form = builder.formForData();
     }
 
     // /**
@@ -238,10 +199,10 @@ export class CompetitionBuilderTaskDialogComponent {
             } as RestTaskDescriptionTarget
         } as RestTaskDescription;
         if (this.form.get('target.range.start') && this.form.get('target.range.end')) {
-            data.target.range = {
-                start: this.form.get('target.range.start').value,
-                end: this.form.get('target.range.end').value
-            } as TemporalRange;
+            //data.target.range = {
+            //    start: this.form.get('target.range.start').value,
+            //    end: this.form.get('target.range.end').value
+            // } as TemporalRange;
         }
         return data;
     }
@@ -354,6 +315,20 @@ export class CompetitionBuilderTaskDialogComponent {
         max = Math.ceil(max);
         return Math.round(Math.random() * (max - min + 1) + min);
     }
+
+
+
+    private formForTarget() {
+        switch (this.taskType.targetType) {
+            case 'SINGLE_MEDIA_ITEM':
+            case 'SINGLE_MEDIA_SEGMENT':
+            case 'MULTIPLE_MEDIA_ITEMS':
+            case  'JUDGEMENT':
+
+        }
+    }
+
+
 
     // private getTaskDescription(): TaskDescriptionBase {
     //     switch (this.data.taskGroup.type) {

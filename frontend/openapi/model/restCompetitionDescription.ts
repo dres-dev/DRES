@@ -9,10 +9,10 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TaskType } from './taskType';
-import { Team } from './team';
-import { TaskGroup } from './taskGroup';
-import { RestTaskDescription } from './restTaskDescription';
+import {TaskType} from './taskType';
+import {RestTeam} from './restTeam';
+import {TaskGroup} from './taskGroup';
+import {RestTaskDescription} from './restTaskDescription';
 
 
 export interface RestCompetitionDescription { 
@@ -22,6 +22,6 @@ export interface RestCompetitionDescription {
     taskTypes: Array<TaskType>;
     groups: Array<TaskGroup>;
     tasks: Array<RestTaskDescription>;
-    teams: Array<Team>;
+    teams: Array<RestTeam>;
 }
 

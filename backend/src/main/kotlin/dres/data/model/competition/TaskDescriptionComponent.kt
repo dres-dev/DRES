@@ -41,8 +41,8 @@ data class ExternalImageTaskDescriptionComponent(val imageLocation: String, over
 
 data class ImageItemTaskDescriptionComponent(val item: MediaItem.ImageItem, override val start: Long?, override val end: Long?): TaskDescriptionComponent
 
-data class ExternalVideoTaskDescriptionComponent(val imageLocation: String, override val start: Long?, override val end: Long?) : FileTaskDescriptionComponent {
-    override fun file(): File = File(imageLocation)
+data class ExternalVideoTaskDescriptionComponent(val videoLocation: String, override val start: Long?, override val end: Long?) : FileTaskDescriptionComponent {
+    override fun file(): File = File(videoLocation)
 }
 
 data class VideoItemSegmentTaskDescriptionComponent(override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange, override val start: Long?, override val end: Long?) : CachedVideoItem, CachedTaskDescriptionComponent

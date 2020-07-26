@@ -1,5 +1,7 @@
 package dres.data.serializers
 
+import dres.data.dbo.DAO
+import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.CompetitionDescription
 import dres.utilities.extensions.readUID
 import dres.utilities.extensions.writeUID
@@ -7,7 +9,7 @@ import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer
 
-object CompetitionSerializer: Serializer<CompetitionDescription> {
+class CompetitionSerializer(private val mediaItems: DAO<MediaItem>): Serializer<CompetitionDescription> {
     override fun serialize(out: DataOutput2, value: CompetitionDescription) {
         out.writeUID(value.id)
         out.writeUTF(value.name)
@@ -37,7 +39,7 @@ object CompetitionSerializer: Serializer<CompetitionDescription> {
         val description = input.readUTF()
         val taskTypes = (0 until input.readInt()).map { TaskTypeSerializer.deserialize(input, available) }.toMutableList()
         val groups = (0 until input.readInt()).map { TaskGroupSerializer.deserialize(input, available) }.toMutableList()
-        val tasks = (0 until input.readInt()).map { TaskDescriptionSerializer.deserialize(input, groups, taskTypes) }.toMutableList()
+        val tasks = (0 until input.readInt()).map { TaskDescriptionSerializer.deserialize(input, groups, taskTypes, mediaItems) }.toMutableList()
         val teams = (0 until input.readInt()).map { TeamSerializer.deserialize(input, available) }.toMutableList()
 
         return CompetitionDescription(

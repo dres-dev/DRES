@@ -1,5 +1,7 @@
 package dres.data.serializers
 
+import dres.data.dbo.DAO
+import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.*
 import dres.data.model.competition.interfaces.TaskDescription
 import dres.utilities.extensions.readUID
@@ -25,26 +27,51 @@ object TaskDescriptionSerializer {
 
         out.packInt(components.size)
         components.forEach {
+            out.packLong(it.start ?: -1)
+            out.packLong(it.end ?: -1)
             out.writeUTF(it.javaClass.name)
             when(it) {
-                is TextTaskDescriptionComponent -> TODO()
-                is VideoItemSegmentTaskDescriptionComponent -> TODO()
-                is ImageItemTaskDescriptionComponent -> TODO()
-                is ExternalImageTaskDescriptionComponent -> TODO()
-                is ExternalVideoTaskDescriptionComponent -> TODO()
+                is TextTaskDescriptionComponent -> {
+                    out.writeUTF(it.text)
+                }
+                is VideoItemSegmentTaskDescriptionComponent -> {
+                    out.writeUID(it.item.id)
+                    TemporalRangeSerializer.serialize(out, it.temporalRange)
+                }
+                is ImageItemTaskDescriptionComponent -> {
+                    out.writeUID(it.item.id)
+                }
+                is ExternalImageTaskDescriptionComponent -> {
+                    out.writeUTF(it.imageLocation)
+                }
+                is ExternalVideoTaskDescriptionComponent -> {
+                    out.writeUTF(it.videoLocation)
+                }
                 else -> throw IllegalArgumentException("serialization of ${it.javaClass.simpleName} not implemented")
             }
         }
 
     }
 
-    private fun readTaskDescriptionComponents(input: DataInput2) : List<TaskDescriptionComponent> = (0 until input.unpackInt()).map {
+    private fun readTaskDescriptionComponents(input: DataInput2, mediaItems: DAO<MediaItem>) : List<TaskDescriptionComponent> = (0 until input.unpackInt()).map {
+        val start = input.unpackLong().let { if (it == -1L) null else it  }
+        val end = input.unpackLong().let { if (it == -1L) null else it  }
         when(input.readUTF()) {
-            TextTaskDescriptionComponent::javaClass.name -> TODO()
-            VideoItemSegmentTaskDescriptionComponent::javaClass.name-> TODO()
-            ImageItemTaskDescriptionComponent::javaClass.name -> TODO()
-            ExternalImageTaskDescriptionComponent::javaClass.name -> TODO()
-            ExternalVideoTaskDescriptionComponent::javaClass.name -> TODO()
+            TextTaskDescriptionComponent::javaClass.name -> {
+                TextTaskDescriptionComponent(input.readUTF(), start, end)
+            }
+            VideoItemSegmentTaskDescriptionComponent::javaClass.name-> {
+                VideoItemSegmentTaskDescriptionComponent(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, 0), start, end)
+            }
+            ImageItemTaskDescriptionComponent::javaClass.name -> {
+                ImageItemTaskDescriptionComponent(mediaItems[input.readUID()]!! as MediaItem.ImageItem, start, end)
+            }
+            ExternalImageTaskDescriptionComponent::javaClass.name -> {
+                ExternalImageTaskDescriptionComponent(input.readUTF(), start, end)
+            }
+            ExternalVideoTaskDescriptionComponent::javaClass.name -> {
+                ExternalVideoTaskDescriptionComponent(input.readUTF(), start, end)
+            }
             else -> throw IllegalArgumentException("deserialization of ${it.javaClass.simpleName} not implemented")
         }
     }
@@ -68,7 +95,7 @@ object TaskDescriptionSerializer {
          }
     }
 
-    fun deserialize(input: DataInput2, taskGroups: List<TaskGroup>, taskTypes: List<TaskType>): TaskDescription {
+    fun deserialize(input: DataInput2, taskGroups: List<TaskGroup>, taskTypes: List<TaskType>, mediaItems: DAO<MediaItem>): TaskDescription {
 
         val uid = input.readUID()
         val name = input.readUTF()
@@ -76,7 +103,7 @@ object TaskDescriptionSerializer {
         val taskTypeName = input.readUTF()
         val duration = input.unpackLong()
         val defaultMediaCollectionId = input.readUID()
-        val components = readTaskDescriptionComponents(input)
+        val components = readTaskDescriptionComponents(input, mediaItems)
         val target = readTaskDescriptionTarget(input)
 
         return TaskDescription(

@@ -9,11 +9,11 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TemporalRange } from './temporalRange';
+import {TemporalRange} from './temporalRange';
 
 
 export interface RestTaskDescriptionTargetItem { 
-    segment: string;
+    mediaItem: string;
     temporalRange?: TemporalRange;
 }
 

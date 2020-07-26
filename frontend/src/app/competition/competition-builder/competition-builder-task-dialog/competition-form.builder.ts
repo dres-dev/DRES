@@ -45,7 +45,7 @@ export class CompetitionFormBuilder {
     private singleMediaItemTargetForm(data?: RestTaskDescriptionTargetItem) {
         return new FormArray([new FormGroup({
             mediaCollection: new FormControl(null),
-            mediaItem: new FormControl(data?.segment, Validators.required),
+            mediaItem: new FormControl(data?.mediaItem, Validators.required),
         })]);
     }
 
@@ -57,7 +57,7 @@ export class CompetitionFormBuilder {
     private singleMediaSegmentTargetForm(data?: RestTaskDescriptionTargetItem) {
         return new FormArray([new FormGroup({
             mediaCollection: new FormControl(null),
-            mediaItem: new FormControl(data?.segment, Validators.required),
+            mediaItem: new FormControl(data?.mediaItem, Validators.required),
             start: new FormControl(data?.temporalRange.start.value, Validators.required),
             end: new FormControl(data?.temporalRange.end.value, Validators.required),
             time_unit: new FormControl(data?.temporalRange.start.unit ? data?.temporalRange.start.unit  : 'FRAME_NUMBER', Validators.required)

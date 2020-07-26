@@ -7,8 +7,11 @@ import {
     RestTaskDescription,
     RestTaskDescriptionComponent,
     RestTaskDescriptionTarget,
+    RestTaskDescriptionTargetItem,
     TaskGroup,
     TaskType,
+    TemporalPoint,
+    TemporalRange,
     VideoItem
 } from '../../../../../openapi';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
@@ -186,24 +189,25 @@ export class CompetitionBuilderTaskDialogComponent {
      */
     fetchFormData(): RestTaskDescription {
         const data = {
-            id: 'TODO:serverside-only?', // FIXME isn't this serverside only or is this a prep for UUID all the things?
+            id: this.form.get('uid').value,
             name: this.form.get('name').value,
-            taskGroup: this.form.get('group').value,
-            taskType: this.form.get('type').value,
+            taskGroup: this.data.taskGroup.name, /* Cannot be edited! */
+            taskType: this.data.taskGroup.type, /* Cannot be edited! */
             duration: this.form.get('duration').value,
-            defaultMediaCollectionId: this.form.get('collection').value,
             components: this.form.get('components').value,
             target: {
                 type: this.taskType.targetType,
-                mediaItems: this.form.get('target.items').value
+                mediaItems: this.form.get('target').value.map(t => {
+                    return {
+                        mediaItem: t.get('mediaItem').value,
+                        temporalRange: t.get('start') ? {
+                            start: { value: t.get('start'), unit: t.get('unit_time') } as TemporalPoint,
+                            end: {value: t.get('end'),  unit: t.get('unit_time')} as TemporalPoint
+                        } as TemporalRange : null
+                    } as RestTaskDescriptionTargetItem;
+                })
             } as RestTaskDescriptionTarget
         } as RestTaskDescription;
-        if (this.form.get('target.range.start') && this.form.get('target.range.end')) {
-            //data.target.range = {
-            //    start: this.form.get('target.range.start').value,
-            //    end: this.form.get('target.range.end').value
-            // } as TemporalRange;
-        }
         return data;
     }
 

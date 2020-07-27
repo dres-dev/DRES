@@ -223,7 +223,7 @@ export class CompetitionFormBuilder {
             start: new FormControl(data?.temporalRange.start.value, [Validators.required, Validators.min(0)]),
             end: new FormControl(data?.temporalRange.end.value, [Validators.required, Validators.min(0)]),
             time_unit: new FormControl(data?.temporalRange.start.unit ?
-                data?.temporalRange.start.unit  : 'FRAME_NUMBER', Validators.required)
+                data?.temporalRange.start.unit  : 'SECONDS', Validators.required)
         })]);
     }
 
@@ -263,6 +263,10 @@ export class CompetitionFormBuilder {
      */
     private imageItemComponentForm(index: number, component?: RestTaskDescriptionComponent) {
         const mediaItemFormControl =  new FormControl(component?.mediaItem, Validators.required);
+        if (!mediaItemFormControl.value && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
+            mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
+        }
+
         this.dataSources.set(`components.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
             switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
@@ -280,23 +284,43 @@ export class CompetitionFormBuilder {
      * @param component The {@link RestTaskDescriptionComponent} to populate data from.
      */
     private videoItemComponentForm(index: number, component?: RestTaskDescriptionComponent) {
+
+        /* Initialize media item based on target. */
         const mediaItemFormControl =  new FormControl(component?.mediaItem, Validators.required);
         if (!mediaItemFormControl.value && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
             mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
         }
 
+        /* Prepare data source. */
         this.dataSources.set(`components.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
             switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
-        return new FormGroup({
+
+        /* Prepare FormGroup. */
+        const group = new FormGroup({
             type: new FormControl('VIDEO_ITEM_SEGMENT', [Validators.required]),
             mediaItem: mediaItemFormControl,
             start: new FormControl(component?.range.start.value, [Validators.required, Validators.min(0)]),
             end: new FormControl(component?.range.end.value, [Validators.required, Validators.min(0)]),
             time_unit: new FormControl(component?.range.start.unit ?
-                component?.range.start.unit  : 'FRAME_NUMBER', Validators.required)
+                component?.range.start.unit  : 'SECONDS', Validators.required)
         });
+
+        /* Initialize start, end and time unit based on target. */
+        if (!group.get('start').value && this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT') {
+            group.get('start').setValue((this.form.get('target') as FormArray).controls[0].get('start').value);
+        }
+
+        if (!group.get('end').value && this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT') {
+            group.get('end').setValue((this.form.get('target') as FormArray).controls[0].get('end').value);
+        }
+
+        if (!group.get('time_unit').value && this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT') {
+            group.get('time_unit').setValue((this.form.get('target') as FormArray).controls[0].get('time_unit').value);
+        }
+
+        return group;
     }
 
     /**
@@ -340,7 +364,7 @@ export class CompetitionFormBuilder {
             start: new FormControl(component?.range.start.value, [Validators.required, Validators.min(0)]),
             end: new FormControl(component?.range.end.value, [Validators.required, Validators.min(0)]),
             time_unit: new FormControl(component?.range.start.unit ?
-                component?.range.start.unit  : 'FRAME_NUMBER', Validators.required)
+                component?.range.start.unit  : 'SECONDS', Validators.required)
         });
     }
 }

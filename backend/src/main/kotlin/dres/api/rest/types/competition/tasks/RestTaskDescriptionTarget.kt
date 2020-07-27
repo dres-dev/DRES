@@ -23,7 +23,7 @@ data class RestTaskDescriptionTarget(val type: TaskType.TargetType, val mediaIte
          */
         fun fromTarget(target: TaskDescriptionTarget) = when(target) {
             is TaskDescriptionTarget.JudgementTaskDescriptionTarget -> RestTaskDescriptionTarget(TaskType.TargetType.JUDGEMENT)
-            is TaskDescriptionTarget.MediaSegmentTarget -> RestTaskDescriptionTarget(TaskType.TargetType.SINGLE_MEDIA_SEGMENT, listOf(RestTaskDescriptionTargetItem(target.item.id.toString(), target.temporalRange)))
+            is TaskDescriptionTarget.MediaSegmentTarget -> RestTaskDescriptionTarget(TaskType.TargetType.SINGLE_MEDIA_SEGMENT, listOf(RestTaskDescriptionTargetItem(target.item.id.string, target.temporalRange)))
             else -> throw IllegalStateException("transformation to RestTaskDescriptionTarget from $target not implemented")
         }
     }

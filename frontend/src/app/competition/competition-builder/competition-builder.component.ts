@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {filter} from 'rxjs/operators';
-import {CompetitionService, RestCompetitionDescription, RestTeam, TaskGroup, TaskType} from '../../../../openapi';
+import {CompetitionService, RestCompetitionDescription, RestTaskDescription, RestTeam, TaskGroup, TaskType} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Subscription} from 'rxjs';
@@ -178,35 +178,40 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * Opens the dialog to edit a task description.
+     * Opens the dialog to edit a {@link RestTaskDescription}.
      *
-     * @param task The TaskDescription to edit.
+     * @param task The {@link RestTaskDescription} to edit.
      */
-    public editTask(task: TaskDescription) {
-        // fixme
-        // const index = this.competition.tasks.indexOf(task);
-        // const index = 1;
-        // if (index > -1) {
-        //     const dialogRef = this.dialog.open(
-        //         CompetitionBuilderTaskDialogComponent,
-        //         {data: {taskGroup: task.taskGroup /*, task: task*/} as Partial<CompetitionBuilderTaskDialogData>, width: '750px'}
-        //     );
-        //     dialogRef.afterClosed().pipe(
-        //         filter(t => t != null),
-        //     ).subscribe((t) => {
-        //         this.competition.tasks[index] = t;
-        //         this.dirty = true;
-        //         this.taskTable.renderRows();
-        //     });
-        // }
+    public editTask(task: RestTaskDescription) {
+        const index = this.competition.tasks.indexOf(task);
+        if (index > -1) {
+            const dialogRef = this.dialog.open(
+                CompetitionBuilderTaskDialogComponent,
+                {data: {
+                    taskGroup: this.competition.taskGroups.find(g => g.name === task.taskGroup),
+                    taskType: this.competition.taskTypes.find(g => g.name === task.taskType),
+                    task: task
+                } as CompetitionBuilderTaskDialogData, width: '750px'}
+            );
+            dialogRef.afterClosed().pipe(
+                filter(t => t != null),
+            ).subscribe((t) => {
+                this.competition.tasks[index] = t;
+                this.dirty = true;
+                this.taskTable.renderRows();
+            });
+        }
     }
 
-    public removeTask(task: TaskDescription) {
-        // fixme
-        /*
+    /**
+     * Removes the selected {@link RestTaskDescription} from the list of {@link RestTaskDescription}s.
+     *
+     * @param task {@link RestTaskDescription} to remove.
+     */
+    public removeTask(task: RestTaskDescription) {
         this.competition.tasks.splice(this.competition.tasks.indexOf(task), 1);
         this.dirty = true;
-        this.taskTable.renderRows();*/
+        this.taskTable.renderRows();
     }
 
     public addTeam() {

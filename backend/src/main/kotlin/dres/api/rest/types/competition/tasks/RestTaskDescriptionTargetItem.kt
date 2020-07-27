@@ -8,5 +8,6 @@ import dres.data.model.basics.time.TemporalRange
  * @see RestTaskDescriptionTarget
  * @author Ralph Gasser
  * @version 1.0
+ *
  */
 data class RestTaskDescriptionTargetItem(val mediaItem: String, val temporalRange: TemporalRange? = null)

@@ -29,8 +29,6 @@ export * from './scoreOverview';
 export * from './sessionId';
 export * from './submissionInfo';
 export * from './successStatus';
-export * from './taskDescription';
-export * from './taskDescriptionComponent';
 export * from './taskGroup';
 export * from './taskInfo';
 export * from './taskType';

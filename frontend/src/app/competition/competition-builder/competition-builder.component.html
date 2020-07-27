@@ -68,7 +68,7 @@
 
                     <mat-list style="display: inline-block;">
                         <mat-chip-list>
-                            <mat-chip *ngFor="let group of competition.groups"
+                            <mat-chip *ngFor="let group of competition.taskGroups"
                                       [removable]="true" (removed)="removeTaskGroup(group)"
                                       [matTooltip]="'Type: '+group.type" color="primary">
                                 {{group.name}}
@@ -133,7 +133,7 @@
                 <div class="spacer-flex"></div>
 
                 <mat-menu #taskMenu="matMenu">
-                    <button *ngFor="let group of competition.groups" mat-menu-item
+                    <button *ngFor="let group of competition.taskGroups" mat-menu-item
                             (click)="addTask(group)">{{group.name}}</button>
                 </mat-menu>
 

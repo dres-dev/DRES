@@ -9,13 +9,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TaskDescription } from './taskDescription';
+import { RestTaskDescription } from './restTaskDescription';
 
 
 export interface RunState { 
     id: string;
     status: RunState.StatusEnum;
-    currentTask?: TaskDescription;
+    currentTask?: RestTaskDescription;
     timeLeft: number;
 }
 export namespace RunState {

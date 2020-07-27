@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import dres.data.model.Entity
 import dres.data.model.UID
 import dres.data.model.competition.CompetitionDescription
-import dres.data.model.competition.interfaces.TaskDescription
+import dres.data.model.competition.TaskDescription
 import dres.data.model.run.CompetitionRun.TaskRun
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer

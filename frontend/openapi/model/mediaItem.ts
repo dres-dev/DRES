@@ -16,7 +16,7 @@ export interface MediaItem {
     name: string;
     location: string;
     collection: string;
-    id_HSBmXqg?: string;
     id: string;
+    id_HSBmXqg?: string;
 }
 

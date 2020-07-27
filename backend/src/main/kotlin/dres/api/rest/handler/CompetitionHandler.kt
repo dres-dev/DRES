@@ -75,7 +75,7 @@ class GetCompetitionHandler(competitions: DAO<CompetitionDescription>) : Competi
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context) = RestCompetitionDescription(competitionFromContext(ctx))
+    override fun doGet(ctx: Context) = RestCompetitionDescription.fromCompetition(competitionFromContext(ctx))
 
     override val route: String = "competition/:competitionId"
 }
@@ -117,7 +117,7 @@ class ListTaskHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
             ]
     )
 
-    override fun doGet(ctx: Context) = competitionFromContext(ctx).tasks.map { RestTaskDescription(it) }
+    override fun doGet(ctx: Context) = competitionFromContext(ctx).tasks.map { RestTaskDescription.fromTask(it) }
 
 }
 
@@ -169,7 +169,7 @@ class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>, val me
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
 
-        val competition = CompetitionDescription(restCompetitionDescription, mediaItems)
+        val competition = restCompetitionDescription.toCompetitionDescription(mediaItems)
 
         if (!this.competitions.exists(competition.id)) {
             throw ErrorStatusException(404, "Competition with ID ${competition.id} does not exist.")

@@ -3,8 +3,27 @@ package dres.data.model.competition
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.time.TemporalRange
 
-interface TaskDescriptionTarget
 
-object JudgementTaskDescriptionTarget : TaskDescriptionTarget
+/**
+ * Represents the target of a [TaskDescription], i.e., the media object or segment that is
+ * considered correct.
+ *
+ * @author Luca Rossetto & Ralph Gasser
+ * @version 1.0
+ */
+sealed class TaskDescriptionTarget {
+    /**
+     * A [TaskDescriptionTarget] that is validated by human judges.
+     */
+    object JudgementTaskDescriptionTarget : TaskDescriptionTarget()
 
-data class MediaSegmentTarget(override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange) : TaskDescriptionTarget, CachedVideoItem
+    /**
+     * A  [TaskDescriptionTarget], specified by a [MediaItem].
+     */
+    data class MediaItemTarget(val item: MediaItem) : TaskDescriptionTarget()
+
+    /**
+     * A video segment [TaskDescriptionTarget], specified by a [MediaItem.VideoItem] and a [TemporalRange].
+     */
+    data class MediaSegmentTarget(override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange) : TaskDescriptionTarget(), CachedVideoItem
+}

@@ -1,7 +1,7 @@
 package dres.run.validation
 
 import dres.data.model.competition.VideoSegment
-import dres.data.model.competition.interfaces.TaskDescription
+import dres.data.model.competition.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.validation.interfaces.SubmissionValidator

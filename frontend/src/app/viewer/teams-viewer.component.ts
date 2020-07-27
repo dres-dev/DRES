@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
-import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskDescription} from '../../../openapi';
+import {CompetitionRunService, RestTaskDescription, RunInfo, RunState, ScoreOverview, SubmissionInfo} from '../../../openapi';
 import {BehaviorSubject, merge, Observable, of, Subscription} from 'rxjs';
 import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, tap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
@@ -37,7 +37,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     @Input() runId: Observable<number>;
     @Input() info: Observable<RunInfo>;
     @Input() state: Observable<RunState>;
-    @Input() taskEnded: Observable<TaskDescription>;
+    @Input() taskEnded: Observable<RestTaskDescription>;
 
     /** Observable that tracks all the submissions per team. */
     submissions: Observable<SubmissionInfo[][]>;

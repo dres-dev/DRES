@@ -12,7 +12,7 @@ import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.QueryDescription
 import dres.data.model.competition.TaskGroup
 import dres.data.model.competition.TaskType
-import dres.data.model.competition.interfaces.TaskDescription
+import dres.data.model.competition.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor

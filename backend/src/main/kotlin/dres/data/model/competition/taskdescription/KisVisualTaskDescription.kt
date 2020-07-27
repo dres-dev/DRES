@@ -10,7 +10,7 @@ package dres.data.model.competition.taskdescription
 //import dres.data.model.competition.QueryDescription
 //import dres.data.model.competition.TaskGroup
 //import dres.data.model.competition.interfaces.MediaSegmentTaskDescription
-//import dres.data.model.competition.interfaces.TaskDescription
+//import dres.data.model.competition.TaskDescription
 //import dres.run.filter.DuplicateSubmissionFilter
 //import dres.run.filter.OneCorrectSubmissionPerTeamFilter
 //import dres.run.filter.SubmissionFilter

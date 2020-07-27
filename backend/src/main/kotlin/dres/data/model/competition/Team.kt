@@ -17,10 +17,10 @@ data class Team constructor(
         val users: MutableList<UID>) {
 
     constructor(restTeam: RestTeam) : this(
-            restTeam.name,
-            restTeam.color,
-            restTeam.logo,
-            restTeam.users.map { it.UID() }.toMutableList()
+        restTeam.name,
+        restTeam.color,
+        restTeam.logo,
+        restTeam.users.map { it.UID() }.toMutableList()
     )
 
     /**

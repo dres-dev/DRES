@@ -1,7 +1,7 @@
 package dres.run.score.scoreboard
 
 import dres.data.model.competition.Team
-import dres.data.model.competition.interfaces.TaskDescription
+import dres.data.model.competition.TaskDescription
 import dres.data.model.run.CompetitionRun
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max

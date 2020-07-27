@@ -5,7 +5,7 @@ import dres.api.rest.RestApiRole
 import dres.api.rest.types.run.websocket.ClientMessage
 import dres.data.model.UID
 import dres.data.model.competition.CompetitionDescription
-import dres.data.model.competition.interfaces.TaskDescription
+import dres.data.model.competition.TaskDescription
 import dres.data.model.run.CompetitionRun
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus

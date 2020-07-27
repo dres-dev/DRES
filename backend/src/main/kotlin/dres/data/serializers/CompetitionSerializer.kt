@@ -18,8 +18,8 @@ class CompetitionSerializer(private val mediaItems: DAO<MediaItem>): Serializer<
         for (type in value.taskTypes) {
             TaskTypeSerializer.serialize(out, type)
         }
-        out.writeInt(value.groups.size)
-        for (task in value.groups) {
+        out.writeInt(value.taskGroups.size)
+        for (task in value.taskGroups) {
             TaskGroupSerializer.serialize(out, task)
         }
         out.writeInt(value.tasks.size)

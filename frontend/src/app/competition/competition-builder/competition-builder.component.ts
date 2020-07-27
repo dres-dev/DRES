@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {filter} from 'rxjs/operators';
-import {CompetitionService, RestCompetitionDescription, RestTeam, TaskDescription, TaskGroup, TaskType} from '../../../../openapi';
+import {CompetitionService, RestCompetitionDescription, RestTeam, TaskGroup, TaskType} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Subscription} from 'rxjs';
@@ -117,7 +117,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
         dialogRef.afterClosed().pipe(
             filter(g => g != null),
         ).subscribe((g) => {
-            this.competition.groups.push(g);
+            this.competition.taskGroups.push(g);
             this.dirty = true;
         });
     }
@@ -149,7 +149,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
      * Removes a Task Group and all associated tasks.
      */
     public removeTaskGroup(group: TaskGroup) {
-        this.competition.groups.splice(this.competition.groups.indexOf(group));
+        this.competition.taskGroups.splice(this.competition.taskGroups.indexOf(group));
         // assuming taskGroup:string in task is the actual name --> late will be replaced by uuid
         this.competition.tasks.filter(t => t.taskGroup === group.name).map(t => this.competition.tasks.indexOf(t)).forEach(i => {
             this.competition.tasks.splice(i);

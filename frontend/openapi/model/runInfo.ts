@@ -9,15 +9,15 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TaskDescription } from './taskDescription';
-import { Team } from './team';
+import { RestTeam } from './restTeam';
+import { RestTaskDescription } from './restTaskDescription';
 
 
 export interface RunInfo { 
     id: string;
     name: string;
     description?: string;
-    teams: Array<Team>;
-    tasks: Array<TaskDescription>;
+    teams: Array<RestTeam>;
+    tasks: Array<RestTaskDescription>;
 }
 

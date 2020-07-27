@@ -1,22 +1,20 @@
-package dres.data.model.competition.interfaces
+package dres.data.model.competition
 
-import dres.api.rest.types.competition.RestTaskDescription
-import dres.data.dbo.DAO
 import dres.data.model.Config
 import dres.data.model.UID
-import dres.data.model.basics.media.MediaItem
-import dres.data.model.competition.*
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.validation.TemporalOverlapSubmissionValidator
 import dres.run.validation.interfaces.SubmissionValidator
 import dres.run.validation.judged.BasicJudgementValidator
-import dres.utilities.extensions.UID
 import java.io.*
 import java.util.*
 
 /**
  * Basic description of a [Task].
+ *
+ * @version 1.0
+ * @author Luca Rossetto & Ralph Gasser
  */
 class TaskDescription(
 
@@ -26,9 +24,10 @@ class TaskDescription(
     /** The name of the task */
     val name: String,
 
-    /** The [TaskGroup]  the [Task] belongs to */
+    /** The [TaskGroup] this [TaskDescription] belongs to. */
     val taskGroup: TaskGroup,
 
+    /** The [TaskType] this [TaskDescription] belongs to. */
     val taskType: TaskType,
 
     /** The duration of the [TaskDescription] in seconds. */
@@ -36,12 +35,11 @@ class TaskDescription(
 
     /** The id of the relevant media collection for this task, if not otherwise specified */
     val mediaCollectionId: UID,
+    /** The [TaskDescriptionTarget] that identifies the target media. */
+    val target: TaskDescriptionTarget,
 
-    /** */
-    val components: List<TaskDescriptionComponent>,
-
-    /** */
-    val target: TaskDescriptionTarget
+    /** List of [TaskDescriptionComponent]s that act as clues to find the target media. */
+    val components: List<TaskDescriptionComponent>
 ){
 
     /**
@@ -60,7 +58,7 @@ class TaskDescription(
      */
     fun newValidator(): SubmissionValidator = when(taskType.targetType){
         TaskType.TargetType.SINGLE_MEDIA_ITEM -> TODO()
-        TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionValidator(target as MediaSegmentTarget)
+        TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionValidator(target as TaskDescriptionTarget.MediaSegmentTarget)
         TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> TODO()
         TaskType.TargetType.JUDGEMENT -> BasicJudgementValidator()
     }
@@ -89,7 +87,7 @@ class TaskDescription(
     }
 
     private fun targetToQueryContent(config: Config): QueryContent = when (target) {
-        is MediaSegmentTarget -> {
+        is TaskDescriptionTarget.MediaSegmentTarget -> {
             val file = File(File(config.cachePath + "/tasks"), target.cacheItemName())
             FileInputStream(file).use { imageInFile ->
                 val fileData = ByteArray(file.length().toInt())
@@ -106,17 +104,6 @@ class TaskDescription(
     }
 
     /** Produces a Textual description of the content of the task if possible */
-    fun textualDescription(): String = components.filterIsInstance(TextTaskDescriptionComponent::class.java)
+    fun textualDescription(): String = components.filterIsInstance(TaskDescriptionComponent.TextTaskDescriptionComponent::class.java)
             .maxBy { it.start ?: 0 }?.text ?: name
 }
-
-fun TaskDescription(description: RestTaskDescription, taskGroups: List<TaskGroup>, taskTypes: List<TaskType>, mediaItems: DAO<MediaItem>) : TaskDescription = TaskDescription(
-    description.id.UID(),
-    description.name,
-    taskGroups.find { it.name == description.taskGroup }!!,
-    taskTypes.find { it.name == description.taskType }!!,
-    description.duration,
-    description.mediaCollectionId.UID(),
-    description.components.map { TaskDescriptionComponent(it, mediaItems) },
-    description.target.toTarget(mediaItems)
-)

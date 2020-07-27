@@ -1,16 +1,11 @@
 package dres.data.model.competition
 
 
-import dres.api.rest.types.competition.RestCompetitionDescription
-import dres.data.dbo.DAO
 import dres.data.model.Entity
 import dres.data.model.UID
-import dres.data.model.basics.media.MediaItem
-import dres.data.model.competition.interfaces.TaskDescription
 import dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dres.run.score.scoreboard.MeanAggregateScoreBoard
 import dres.run.score.scoreboard.Scoreboard
-import dres.utilities.extensions.UID
 
 
 data class CompetitionDescription(
@@ -18,14 +13,14 @@ data class CompetitionDescription(
         val name: String,
         val description: String?,
         val taskTypes: MutableList<TaskType>,
-        val groups: MutableList<TaskGroup>,
+        val taskGroups: MutableList<TaskGroup>,
         val tasks: MutableList<TaskDescription>,
         val teams: MutableList<Team>
 ) : Entity {
 
     fun validate() {
-        for (group in this.groups) {
-            if (this.groups.map { it.name }.count { it == group.name } > 1) {
+        for (group in this.taskGroups) {
+            if (this.taskGroups.map { it.name }.count { it == group.name } > 1) {
                 throw IllegalArgumentException("Duplicate group with name '${group.name}'!")
             }
         }
@@ -49,7 +44,7 @@ data class CompetitionDescription(
      * @return List of [Scoreboard] implementations.
      */
     fun generateDefaultScoreboards(): List<Scoreboard> {
-        val groupBoards = this.groups.map {group ->
+        val groupBoards = this.taskGroups.map { group ->
             MaxNormalizingScoreBoard(group.name, this.teams, {task -> task.taskGroup == group}, group.name)
         }
         val aggregateScoreBoard = MeanAggregateScoreBoard("average", groupBoards)
@@ -60,14 +55,3 @@ data class CompetitionDescription(
             tasks.map { it.target }.filterIsInstance(CachedVideoItem::class.java)
     )
 }
-
-fun CompetitionDescription(description: RestCompetitionDescription, mediaItems: DAO<MediaItem>): CompetitionDescription = CompetitionDescription(
-        description.id.UID(),
-        description.name,
-        description.description,
-        description.taskTypes.toMutableList(),
-        description.groups.toMutableList(),
-        description.tasks.map { TaskDescription(it, description.groups, description.taskTypes, mediaItems) }.toMutableList(),
-        description.teams.map{ Team(it) }.toMutableList()
-
-)

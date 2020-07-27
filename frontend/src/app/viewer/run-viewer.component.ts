@@ -19,7 +19,7 @@ import {
 import {webSocket, WebSocketSubject, WebSocketSubjectConfig} from 'rxjs/webSocket';
 import {AppConfig} from '../app.config';
 import {IWsMessage} from '../model/ws/ws-message.interface';
-import {CompetitionRunService, RunInfo, RunState, TaskDescription} from '../../../openapi';
+import {CompetitionRunService, RestTaskDescription, RunInfo, RunState} from '../../../openapi';
 import {IWsServerMessage} from '../model/ws/ws-server-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -46,13 +46,13 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
     runState: Observable<RunState>;
 
     /** Observable that fires whenever a task starts. Emits the task description of the task that just started. */
-    taskStarted: Observable<TaskDescription>;
+    taskStarted: Observable<RestTaskDescription>;
 
     /** Observable that fires whenever a task changes. Emits the task description of the new task. */
-    taskChanged: Observable<TaskDescription>;
+    taskChanged: Observable<RestTaskDescription>;
 
     /** Observable that fires whenever a task ends. Emits the task description of the task that just ended. */
-    taskEnded: Observable<TaskDescription>;
+    taskEnded: Observable<RestTaskDescription>;
 
     /** Internal WebSocket subscription for pinging the server. */
     private pingSubscription: Subscription;

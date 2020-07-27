@@ -1,6 +1,5 @@
 package dres.data.model.competition
 
-import dres.data.model.competition.interfaces.TaskDescription
 import dres.run.filter.*
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.score.scorer.AvsTaskScorer

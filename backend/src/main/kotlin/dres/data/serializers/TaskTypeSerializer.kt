@@ -21,13 +21,13 @@ object TaskTypeSerializer : Serializer<TaskType> {
     }
 
     override fun deserialize(input: DataInput2, available: Int): TaskType =
-            TaskType(
-                    input.readUTF(),
-                    input.unpackLong(),
-                    TaskType.TargetType.valueOf(input.readUTF()),
-                    (0 until input.unpackInt()).map {TaskType.QueryComponentType.valueOf(input.readUTF())}.toSet(),
-                    TaskType.ScoringType.valueOf(input.readUTF()),
-                    (0 until input.unpackInt()).map {TaskType.SubmissionFilterType.valueOf(input.readUTF())}.toSet(),
-                    (0 until input.unpackInt()).map {TaskType.Options.valueOf(input.readUTF())}.toSet()
-            )
+        TaskType(
+                input.readUTF(),
+                input.unpackLong(),
+                TaskType.TargetType.valueOf(input.readUTF()),
+                (0 until input.unpackInt()).map {TaskType.QueryComponentType.valueOf(input.readUTF())}.toSet(),
+                TaskType.ScoringType.valueOf(input.readUTF()),
+                (0 until input.unpackInt()).map {TaskType.SubmissionFilterType.valueOf(input.readUTF())}.toSet(),
+                (0 until input.unpackInt()).map {TaskType.Options.valueOf(input.readUTF())}.toSet()
+        )
 }

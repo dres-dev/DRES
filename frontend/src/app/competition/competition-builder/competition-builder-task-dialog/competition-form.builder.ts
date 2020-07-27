@@ -281,6 +281,10 @@ export class CompetitionFormBuilder {
      */
     private videoItemComponentForm(index: number, component?: RestTaskDescriptionComponent) {
         const mediaItemFormControl =  new FormControl(component?.mediaItem, Validators.required);
+        if (!mediaItemFormControl.value && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
+            mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
+        }
+
         this.dataSources.set(`components.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
             switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))

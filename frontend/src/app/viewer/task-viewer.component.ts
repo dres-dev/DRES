@@ -1,11 +1,7 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
 import {
-    CompetitionRunService,
-    //ImageQueryDescription,
-    RunState,
-    TaskDescription,
-    //TextQueryDescription,
-    //VideoQueryDescription
+    CompetitionRunService, RestTaskDescription,
+    RunState
 } from '../../../openapi';
 import {combineLatest, interval, Observable, of, timer, zip} from 'rxjs';
 import {catchError, filter, flatMap, map, share, shareReplay, switchMap, take, tap, withLatestFrom} from 'rxjs/operators';
@@ -23,9 +19,9 @@ import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
 export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     @Input() runId: Observable<string>;
     @Input() state: Observable<RunState>;
-    @Input() taskStarted: Observable<TaskDescription>;
-    @Input() taskChanged: Observable<TaskDescription>;
-    @Input() taskEnded: Observable<TaskDescription>;
+    @Input() taskStarted: Observable<RestTaskDescription>;
+    @Input() taskChanged: Observable<RestTaskDescription>;
+    @Input() taskEnded: Observable<RestTaskDescription>;
     @Input() webSocket: Observable<IWsMessage>;
     @Input() webSocketSubject: WebSocketSubject<IWsMessage>;
 

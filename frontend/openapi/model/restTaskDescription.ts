@@ -9,8 +9,8 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import {RestTaskDescriptionComponent} from './restTaskDescriptionComponent';
-import {RestTaskDescriptionTarget} from './restTaskDescriptionTarget';
+import { RestTaskDescriptionComponent } from './restTaskDescriptionComponent';
+import { RestTaskDescriptionTarget } from './restTaskDescriptionTarget';
 
 
 export interface RestTaskDescription { 

@@ -1,9 +1,35 @@
-import {RestTaskDescription, RestTaskDescriptionTarget, RestTaskDescriptionTargetItem, TaskType} from '../../../../../openapi';
+import {
+    CollectionService,
+    MediaItem,
+    RestTaskDescription,
+    RestTaskDescriptionTarget,
+    RestTaskDescriptionTargetItem,
+    TaskType
+} from '../../../../../openapi';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
+import {filter, switchMap} from 'rxjs/operators';
+import {Observable} from 'rxjs';
 
 export class CompetitionFormBuilder {
 
-    constructor(private taskType: TaskType, private data?: RestTaskDescription) {
+    /** List of data sources managed by this CompetitionFormBuilder. */
+    private dataSources = new Map<string, Observable<MediaItem[]>>();
+
+    /**
+     * Constructor for CompetitionFormBuilder.
+     *
+     * @param taskType
+     * @param collectionService
+     * @param data
+     */
+    constructor(private taskType: TaskType, private collectionService: CollectionService, private data?: RestTaskDescription) {}
+
+    /**
+     *
+     * @param key
+     */
+    public dataSource(key: string): Observable<MediaItem[]> {
+        return this.dataSources.get(key);
     }
 
     /**
@@ -16,7 +42,8 @@ export class CompetitionFormBuilder {
             uid:  new FormControl(this.data?.id),
             name: new FormControl(this.data?.name, [Validators.required]),
             duration: new FormControl(this.durationInitValue, [Validators.required, Validators.min(1)]),
-            components: new FormArray(this.data?.components ? this.data?.components?.map(v => new FormControl(v)) : [], [Validators.minLength(1)]),
+            components: new FormArray(this.data?.components ?
+                this.data?.components?.map(v => new FormControl(v)) : [], [Validators.minLength(1)]),
             target: this.formForTarget()
         });
     }
@@ -27,7 +54,7 @@ export class CompetitionFormBuilder {
      * otherwise the default value based on the tasktype default
      */
     private get durationInitValue(){
-        if(this?.data?.duration){
+        if (this?.data?.duration) {
             return this.data.duration;
         }else{
             return this.taskType.taskDuration;
@@ -43,7 +70,7 @@ export class CompetitionFormBuilder {
             case 'SINGLE_MEDIA_ITEM':
                 return this.singleMediaItemTargetForm(this.data?.target?.mediaItems[0]);
             case 'SINGLE_MEDIA_SEGMENT':
-                return this.singleMediaSegmentTargetForm(this.data?.target?.mediaItems[0]);
+                return this.singleMediaSegmentTargetForm(0, this.data?.target?.mediaItems[0]);
             case 'MULTIPLE_MEDIA_ITEMS':
                 return this.multipleMediaSegmentTargetForm(this.data?.target);
             case 'JUDGEMENT':
@@ -57,24 +84,45 @@ export class CompetitionFormBuilder {
      * @param data The optional {RestTaskDescriptionTargetItem} containing the data.
      */
     private singleMediaItemTargetForm(data?: RestTaskDescriptionTargetItem) {
+
+        /* Prepare auto complete field. */
+        const mediaCollectionFormControl = new FormControl(null);
+        const mediaItemFormControl =  new FormControl(data?.mediaItem, Validators.required);
+
+        this.dataSources.set('target.0.mediaItem', mediaItemFormControl.valueChanges.pipe(
+            filter(s => s.length >= 1),
+            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(mediaCollectionFormControl.value, s))
+        ));
+
         return new FormArray([new FormGroup({
-            mediaCollection: new FormControl(null),
-            mediaItem: new FormControl(data?.mediaItem, Validators.required),
+            mediaCollection: mediaCollectionFormControl,
+            mediaItem: mediaItemFormControl,
         })]);
     }
 
     /**
      * Returns FormGroup for a single Media Segment Target.
      *
+     * @param index Index of the FormControl
      * @param data The optional {RestTaskDescriptionTargetItem} containing the data.
      */
-    private singleMediaSegmentTargetForm(data?: RestTaskDescriptionTargetItem) {
+    private singleMediaSegmentTargetForm(index: number, data?: RestTaskDescriptionTargetItem) {
+        /* Prepare auto complete field. */
+        const mediaCollectionFormControl = new FormControl(null);
+        const mediaItemFormControl =  new FormControl(data?.mediaItem, Validators.required);
+
+        this.dataSources.set(`target.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
+            filter(s => s.length >= 1),
+            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(mediaCollectionFormControl.value, s))
+        ));
+
         return new FormArray([new FormGroup({
-            mediaCollection: new FormControl(null),
-            mediaItem: new FormControl(data?.mediaItem, Validators.required),
+            mediaCollection: mediaCollectionFormControl,
+            mediaItem: mediaItemFormControl,
             start: new FormControl(data?.temporalRange.start.value, Validators.required),
             end: new FormControl(data?.temporalRange.end.value, Validators.required),
-            time_unit: new FormControl(data?.temporalRange.start.unit ? data?.temporalRange.start.unit  : 'FRAME_NUMBER', Validators.required)
+            time_unit: new FormControl(data?.temporalRange.start.unit ?
+                data?.temporalRange.start.unit  : 'FRAME_NUMBER', Validators.required)
         })]);
     }
 
@@ -86,9 +134,9 @@ export class CompetitionFormBuilder {
     private multipleMediaSegmentTargetForm(data?: RestTaskDescriptionTarget) {
         const content = [];
         if (data != null) {
-            content.push(data?.mediaItems.map(i => this.singleMediaSegmentTargetForm(i)));
+            content.push(data?.mediaItems.map((d, i) => this.singleMediaSegmentTargetForm(i, d)));
         } else {
-            content.push(this.singleMediaSegmentTargetForm());
+            content.push(this.singleMediaSegmentTargetForm(0));
         }
         return new FormArray(content);
     }

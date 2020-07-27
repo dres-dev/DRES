@@ -16,7 +16,7 @@ import {
 } from '../../../../../openapi';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Observable} from 'rxjs';
-import {filter, tap} from 'rxjs/operators';
+import {filter, first} from 'rxjs/operators';
 import {AppConfig} from '../../../app.config';
 import {
     CompetitionBuilderTaskDescriptionComponentDialogComponent,
@@ -45,9 +45,13 @@ export class CompetitionBuilderTaskDialogComponent {
 
     form: FormGroup;
     units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
+
+    /** Data source for list of {@link MediaCollection}. Loaded upon construction of the dialog. */
     mediaCollectionSource: Observable<MediaCollection[]>;
-    mediaCollections: MediaCollection[];
-    mediaItemSource: Observable<MediaItem[]>;
+
+    /** The {@link CompetitionFormBuilder} used by this dialogue. */
+    builder: CompetitionFormBuilder;
+
     showPlayer = false;
     videoUrl: Observable<string>;
     @ViewChild('videoPlayer', {static: false}) video: ElementRef;
@@ -64,12 +68,13 @@ export class CompetitionBuilderTaskDialogComponent {
                 private dialog: MatDialog) {
 
         this.taskType = this.data?.taskType;
-        const builder = new CompetitionFormBuilder(this.taskType, this.data.task);
+        this.builder = new CompetitionFormBuilder(this.taskType, this.collectionService, this.data.task);
 
 
-        this.mediaCollectionSource = this.collectionService.getApiCollection().pipe(tap(x => this.mediaCollections = x));
+        this.mediaCollectionSource = this.collectionService.getApiCollection();
 
-        this.form = builder.formForData();
+
+        this.form = this.builder.formForData();
     }
 
     // /**
@@ -122,7 +127,14 @@ export class CompetitionBuilderTaskDialogComponent {
     //     addTo.addControl('mediaCollection', new FormControl(task?.defaultCollection));
     //     addTo.addControl('description', new FormControl(task?.description, Validators.minLength(1)));
     //     return addTo;
-    // }
+    //
+    /**
+     * Returns a data source for the list of {@link MediaItem}s for the selected {@link MediaCollection}.
+     */
+    public mediaItemSource(collectionId: string, input: string) {
+        return this.collectionService.getApiCollectionWithCollectionidWithStartswith(collectionId, input);
+    }
+
 
     /**
      * Handler for + button for task description component. Adds said component
@@ -244,27 +256,39 @@ export class CompetitionBuilderTaskDialogComponent {
         return this.taskType.targetType === TaskType.TargetTypeEnum.JUDGEMENT;
     }
 
-    randomisedMediaItem() {
-        if (this.mediaCollections && this.mediaCollections[0]) {
-            this.collectionService.getApiCollectionRandomWithCollectionid(
-                this.mediaCollections[0].id)
-                .subscribe(value => {
-                    (this.form.get('target') as FormArray).get('mediaItem').setValue(value);
-                });
-        }
+    public randomMediaItem() {
+
     }
 
-    randomiseSegment() {
-        // TODO rework with #122
-        const item = this.form.get('mediaItem').value as VideoItem;
+    /**
+     * Picks a ranomd {@link MediaItem} from the list.
+     *
+     * @param collectionId The ID of the collection to pick a {@link MediaItem} from.
+     * @param target The target {@link FormControl} to apply the value to.
+     */
+    public pickRandomMediaItem(collectionId: string, target: FormControl) {
+        this.collectionService.getApiCollectionRandomWithCollectionid(collectionId).pipe(first()).subscribe(value => {
+            target.setValue(value);
+        });
+    }
+
+    /**
+     * Picks a random segment within the given {@link MediaItem} .
+     *
+     * @param item The {@link VideoItem} to pick the segment for.
+     * @param startControl The target {@link FormControl} to apply the value to.
+     * @param endControl The target {@link FormControl} to apply the value to.
+     * @param unitControl The target {@link FormControl} to apply the value to.
+     */
+    public pickRandomSegment(item: VideoItem, startControl: FormControl, endControl: FormControl, unitControl: FormControl) {
         const start = this.randInt(1, (item.durationMs / 1000) / 2); // always in first half
         let end = 1;
         do {
             end = start + this.randInt(5, (item.durationMs / 1000)); // Arbitrary 5 seconds minimal length
         } while (end > (item.durationMs / 1000));
-        this.form.get('time_unit').setValue('SECONDS');
-        this.form.get('start').setValue(start);
-        this.form.get('end').setValue(end);
+        startControl.setValue(start);
+        endControl.setValue(end);
+        unitControl.setValue('SECONDS');
     }
 
     toggleVideoPlayer() {

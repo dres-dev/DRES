@@ -18,7 +18,7 @@
         <h2>Target</h2>
         <div *ngFor="let target of form.get('target')['controls']; let i = index">
             <p>
-                <mat-form-field style="width: 100%;" *ngIf="target.get('mediaCollection')">
+                <mat-form-field style="width: 40%;" *ngIf="target.get('mediaCollection')">
                     <mat-select [placeholder]="(isTargetJudgment() ? 'Default ': '')+'Media Collection'"
                                 [formControl]="target.get('mediaCollection')">
                         <mat-option *ngFor="let mediaCollection of (mediaCollectionSource | async)"
@@ -28,21 +28,17 @@
                     </mat-select>
                 </mat-form-field>
 
-                <mat-form-field style="width: 55%;"
-                                *ngIf="target.get('mediaItem') && target.get('mediaCollection').value">
-                    <input type="text" matInput placeholder="Media item" [formControl]="target.get('mediaItem')"
-                           [matAutocomplete]="autoGroup">
+                <mat-form-field style="width: 55%;" *ngIf="target.get('mediaItem') && target.get('mediaCollection').value">
+                    <input type="text" matInput placeholder="Media item" [formControl]="target.get('mediaItem')" [matAutocomplete]="autoGroup">
                     <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">
-                        <mat-option *ngFor="let mediaItem of (mediaItemSource | async)" [value]="mediaItem">
+                        <mat-option *ngFor="let mediaItem of (this.builder.dataSource('target.' + i + '.mediaItem') | async)" [value]="mediaItem">
                             <span>{{mediaItem.name}}</span> |
                             <small>Type: {{mediaItem.itemType}}, ID: {{mediaItem.id}}</small>
                         </mat-option>
                     </mat-autocomplete>
-                    <button mat-icon-button matSuffix [attr.aria-label]="'Randomised Media Item'"
-                            [disabled]="target.get('mediaItem').value"
-                            matTooltipDisabled="Cannot randomise media element of exising task"
-                            (click)="randomisedMediaItem()"
-                            matTooltip="Random Media Item from collection">
+                    <button mat-icon-button matSuffix [attr.aria-label]="'Pick random media item'"
+                            matTooltip="Random Media Item from collection"
+                            (click)="pickRandomMediaItem(target.get('mediaCollection').value, target.get('mediaItem'))">
                         <mat-icon>shuffle</mat-icon>
                     </button><!-- or 'casino' for a dice -->
                 </mat-form-field>
@@ -61,10 +57,10 @@
                     </select>
                 </mat-form-field>
                 <span style="width: 10%;">
-                <button mat-flat-button
-                        matTooltip="Randomise segment start and end"
-                        [disabled]="target.get('mediaItemId') == undefined || target.get('mediaItemId').value == null"
-                        (click)="randomiseSegment()">
+                <button mat-icon-button matSuffix
+                        matTooltip="Randomise segment start and end."
+                        [disabled]="!target.get('mediaItem').value"
+                        (click)="pickRandomSegment(target.get('mediaItem').value, target.get('start'), target.get('end'), target.get('time_unit'))">
                     <mat-icon>shuffle</mat-icon>
                 </button>
             </span>
@@ -78,7 +74,7 @@
                 <mat-menu #componentsMenu="matMenu">
                     <button *ngFor="let compType of taskType.components" mat-menu-item (click)="addDescComponent(compType)">Add {{compType | titlecase}}</button>
                 </mat-menu>
-                <button mat-button aria-label="Add new query descirption component" matTooltip="Add new query description component" [matMenuTriggerFor]="componentsMenu">
+                <button mat-button aria-label="Add new query description component" matTooltip="Add new query description component" [matMenuTriggerFor]="componentsMenu">
                     <mat-icon>add</mat-icon>
                     Add query description component
                 </button>

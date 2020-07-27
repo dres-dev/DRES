@@ -1,104 +1,144 @@
 <h1 mat-dialog-title xmlns="http://www.w3.org/1999/html">Add task to {{data.taskGroup.name}}</h1>
 <div mat-dialog-content>
     <form [formGroup]="form">
-        <p *ngIf="form.get('uid').value"><strong>UID: </strong>{{form.get('uid').value}}</p>
+        <p *ngIf="form.get('id').value"><strong>UID: </strong>{{form.get('id').value}}</p>
         <p><strong>Task group / type: </strong>{{data.taskGroup.name}} / {{data.taskType.name}}</p>
         <p>
-            <mat-form-field style="width: 60%;">
+            <mat-form-field style="width: 50%;">
                 <mat-label>Name</mat-label>
                 <input type="text" matInput placeholder="Name" [formControl]="form.get('name')"/>
             </mat-form-field>
 
-            <mat-form-field style="width: 40%;">
+            <mat-form-field style="width: 40%;" *ngIf="form.get('mediaCollection')">
+                <mat-select [placeholder]="(data.taskType.targetType === 'JUDGEMENT' ? 'Default ': '') + 'Media Collection'"
+                            [formControl]="form.get('mediaCollection')">
+                    <mat-option *ngFor="let mediaCollection of (mediaCollectionSource | async)" [value]="mediaCollection.id">
+                        <span>{{mediaCollection.name}}</span> (ID: {{mediaCollection.id}})
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field style="width: 10%;">
                 <mat-label>Duration [s]</mat-label>
                 <input type="number" matInput placeholder="Duration" [formControl]="form.get('duration')"/>
             </mat-form-field>
         </p>
 
-        <h2>Target</h2>
-        <div *ngFor="let target of form.get('target')['controls']; let i = index">
-            <p>
-                <mat-form-field style="width: 40%;" *ngIf="target.get('mediaCollection')">
-                    <mat-select [placeholder]="(isTargetJudgment() ? 'Default ': '')+'Media Collection'"
-                                [formControl]="target.get('mediaCollection')">
-                        <mat-option *ngFor="let mediaCollection of (mediaCollectionSource | async)"
-                                    [value]="mediaCollection.id">
-                            <span>{{mediaCollection.name}}</span> (ID: {{mediaCollection.id}})
-                        </mat-option>
-                    </mat-select>
-                </mat-form-field>
+        <div *ngIf="form.get('mediaCollection').value">
+            <h2>Target
+                <button *ngIf="data.taskType.targetType == 'MULTIPLE_MEDIA_ITEMS'" mat-button aria-label="Add query target." matTooltip="Add query target." (click)="addQueryTarget()"><mat-icon>add</mat-icon></button>
+            </h2>
+            <div *ngFor="let target of form.get('target')['controls']; let i = index">
+                <p>
+                    <mat-form-field style="width: 100%;" *ngIf="target.get('mediaItem')">
+                        <input type="text" matInput placeholder="Media item" [formControl]="target.get('mediaItem')" [matAutocomplete]="autoGroup">
+                        <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">
+                            <mat-option *ngFor="let mediaItem of (this.builder.dataSource('target.' + i + '.mediaItem') | async)" [value]="mediaItem">
+                                <span>{{mediaItem.name}}</span> |
+                                <small>Type: {{mediaItem.itemType}}, ID: {{mediaItem.id}}</small>
+                            </mat-option>
+                        </mat-autocomplete>
+                        <button mat-icon-button matSuffix [attr.aria-label]="'Pick random media item'"
+                                matTooltip="Random Media Item from collection"
+                                (click)="pickRandomMediaItem(form.get('mediaCollection').value, target.get('mediaItem'))">
+                            <mat-icon>shuffle</mat-icon>
+                        </button><!-- or 'casino' for a dice -->
+                    </mat-form-field>
+                </p>
 
-                <mat-form-field style="width: 55%;" *ngIf="target.get('mediaItem') && target.get('mediaCollection').value">
-                    <input type="text" matInput placeholder="Media item" [formControl]="target.get('mediaItem')" [matAutocomplete]="autoGroup">
-                    <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">
-                        <mat-option *ngFor="let mediaItem of (this.builder.dataSource('target.' + i + '.mediaItem') | async)" [value]="mediaItem">
-                            <span>{{mediaItem.name}}</span> |
-                            <small>Type: {{mediaItem.itemType}}, ID: {{mediaItem.id}}</small>
-                        </mat-option>
-                    </mat-autocomplete>
-                    <button mat-icon-button matSuffix [attr.aria-label]="'Pick random media item'"
-                            matTooltip="Random Media Item from collection"
-                            (click)="pickRandomMediaItem(target.get('mediaCollection').value, target.get('mediaItem'))">
-                        <mat-icon>shuffle</mat-icon>
-                    </button><!-- or 'casino' for a dice -->
-                </mat-form-field>
-            </p>
-
-            <p *ngIf="target.get('start') && target.get('end')">
-                <mat-form-field style="width: 35%;">
-                    <input type="number" matInput placeholder="Segment start" [formControl]="target.get('start')"/>
-                </mat-form-field>
-                <mat-form-field style="width: 35%;">
-                    <input type="number" matInput placeholder="Segment end" [formControl]="target.get('end')"/>
-                </mat-form-field>
-                <mat-form-field style="width: 20%;">
-                    <select matNativeControl [formControl]="target.get('time_unit')">
-                        <option *ngFor="let unit of units" [value]="unit">{{unit}}</option>
-                    </select>
-                </mat-form-field>
-                <span style="width: 10%;">
-                <button mat-icon-button matSuffix
-                        matTooltip="Randomise segment start and end."
-                        [disabled]="!target.get('mediaItem').value"
-                        (click)="pickRandomSegment(target.get('mediaItem').value, target.get('start'), target.get('end'), target.get('time_unit'))">
-                    <mat-icon>shuffle</mat-icon>
-                </button>
-            </span>
-            </p>
-        </div>
-
-        <div style="flex-basis: 65%;">
-            <div style="display: flex; align-items: center">
-                <h2>Query description</h2>
-                <div class="spacer-flex"></div>
-                <mat-menu #componentsMenu="matMenu">
-                    <button *ngFor="let compType of taskType.components" mat-menu-item (click)="addDescComponent(compType)">Add {{compType | titlecase}}</button>
-                </mat-menu>
-                <button mat-button aria-label="Add new query description component" matTooltip="Add new query description component" [matMenuTriggerFor]="componentsMenu">
-                    <mat-icon>add</mat-icon>
-                    Add query description component
-                </button>
+                <p *ngIf="target.get('start') && target.get('end')">
+                    <mat-form-field style="width: 30%;">
+                        <input type="number" matInput placeholder="Segment start" [formControl]="target.get('start')"/>
+                    </mat-form-field>
+                    <mat-form-field style="width: 30%;">
+                        <input type="number" matInput placeholder="Segment end" [formControl]="target.get('end')"/>
+                    </mat-form-field>
+                    <mat-form-field style="width: 40%;">
+                        <select matNativeControl [formControl]="target.get('time_unit')">
+                            <option *ngFor="let unit of units" [value]="unit">{{unit}}</option>
+                        </select>
+                        <span matSuffix>
+                            <button mat-icon-button
+                                    aria-label="Randomise segment start and end."
+                                    matTooltip="Randomise segment start and end."
+                                    [disabled]="!target.get('mediaItem').value"
+                                    (click)="pickRandomSegment(target.get('mediaItem').value, target.get('start'), target.get('end'), target.get('time_unit'))">
+                                <mat-icon>shuffle</mat-icon>
+                            </button>
+                            <button mat-icon-button
+                                    aria-label="Show media item."
+                                    matTooltip="Show media item."
+                                    [disabled]="!target.get('mediaItem').value && !target.get('start').value && !target.get('end').value"
+                                    (click)="toggleVideoPlayer()" >
+                                <mat-icon>remove_red_eye</mat-icon>
+                            </button>
+                        </span>
+                    </mat-form-field>
+                </p>
             </div>
-            <mat-list>
-                <mat-list-item *ngFor="let comp of form.get('components').value">
-                    <mat-icon matTooltip="{{comp.type | titlecase}}">{{listIconForType(comp.type)}}</mat-icon>
-                    <div mat-line>...</div>
-                    <div mat-line>TODO: Textual could be first n chars of description...</div>
-                </mat-list-item>
-            </mat-list>
+        </div>
+        <div *ngIf="form.get('mediaCollection').value && form.get('target').controls.length > 0">
+            <h2>Query description
+                <button mat-button aria-label="Add query description component." matTooltip="Add query description component." [matMenuTriggerFor]="componentsMenu">
+                    <mat-icon>add</mat-icon>
+                </button>
+                <mat-menu #componentsMenu="matMenu">
+                    <button *ngFor="let compType of data.taskType.components" mat-menu-item (click)="addQueryComponent(compType)">Add {{compType | titlecase}}</button>
+                </mat-menu>
+            </h2>
+            <div *ngFor="let target of form.get('components')['controls']; let i = index" style="display: flex">
+                <div style="flex-basis: 100%; flex-grow: 1">
+                    <p>
+                        <mat-form-field style="width: 55%;" *ngIf="target.get('mediaItem')">
+                            <input type="text" matInput placeholder="Media item" [formControl]="target.get('mediaItem')" [matAutocomplete]="autoGroup">
+                            <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">
+                                <mat-option *ngFor="let mediaItem of (this.builder.dataSource('components.' + i + '.mediaItem') | async)" [value]="mediaItem">
+                                    <span>{{mediaItem.name}}</span> |
+                                    <small>Type: {{mediaItem.itemType}}, ID: {{mediaItem.id}}</small>
+                                </mat-option>
+                            </mat-autocomplete>
+                        </mat-form-field>
+                    </p>
+
+                    <p *ngIf="target.get('start') && target.get('end')">
+                        <mat-form-field style="width: 30%;">
+                            <input type="number" matInput placeholder="Segment start" [formControl]="target.get('start')"/>
+                        </mat-form-field>
+                        <mat-form-field style="width: 30%;">
+                            <input type="number" matInput placeholder="Segment end" [formControl]="target.get('end')"/>
+                        </mat-form-field>
+                        <mat-form-field style="width: 40%;">
+                            <select matNativeControl [formControl]="target.get('time_unit')">
+                                <option *ngFor="let unit of units" [value]="unit">{{unit}}</option>
+                            </select>
+                            <span matSuffix>
+                            <button mat-icon-button
+                                    aria-label="Show media item."
+                                    matTooltip="Show media item."
+                                    [disabled]="!target.get('mediaItem').value && !target.get('start').value && !target.get('end').value"
+                                    (click)="toggleVideoPlayer()" >
+                                <mat-icon>remove_red_eye</mat-icon>
+                            </button>
+                        </span>
+                        </mat-form-field>
+                    </p>
+
+                    <p *ngIf="target.get('description')">
+                        <mat-form-field style="width: 100%;">
+                            <textarea matInput placeholder="Textual description" [formControl]="target.get('description')"></textarea>
+                        </mat-form-field>
+                    </p>
+                </div>
+                <div class="spacer-flex"></div>
+                <div>
+                    <button mat-icon-button (click)="removeQueryComponent(i)" aria-label="Add query description component." matTooltip="Remove query description component.">
+                        <mat-icon>remove</mat-icon>
+                    </button>
+                </div>
+            </div>
         </div>
     </form>
     <div>
-        <div style="width: 100%; text-align: center;">
-            <button *ngIf="showPlayer" mat-stroked-button
-                    (click)="toggleVideoPlayer()">
-                Hide video player
-            </button>
-            <button *ngIf="!showPlayer" mat-raised-button
-                    (click)="toggleVideoPlayer()">
-                Show video player
-            </button>
-        </div>
         <video *ngIf="showPlayer" #videoPlayer style="width: 100%; padding-top: 1rem;" preload="auto"
                [src]="(videoUrl | async)" controls
                [muted]="(config.configAsObservable | async).effects.mute"></video>

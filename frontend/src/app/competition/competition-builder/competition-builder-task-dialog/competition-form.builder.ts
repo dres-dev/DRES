@@ -2,9 +2,13 @@ import {
     CollectionService,
     MediaItem,
     RestTaskDescription,
+    RestTaskDescriptionComponent,
     RestTaskDescriptionTarget,
     RestTaskDescriptionTargetItem,
-    TaskType
+    TaskGroup,
+    TaskType,
+    TemporalPoint,
+    TemporalRange
 } from '../../../../../openapi';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {filter, switchMap} from 'rxjs/operators';
@@ -15,36 +19,126 @@ export class CompetitionFormBuilder {
     /** List of data sources managed by this CompetitionFormBuilder. */
     private dataSources = new Map<string, Observable<MediaItem[]>>();
 
+    /** The {@link FormGroup} held by this {@link CompetitionFormBuilder}. */
+    public form: FormGroup;
+
+
     /**
      * Constructor for CompetitionFormBuilder.
      *
+     * @param taskGroup
      * @param taskType
      * @param collectionService
      * @param data
      */
-    constructor(private taskType: TaskType, private collectionService: CollectionService, private data?: RestTaskDescription) {}
+    constructor(private taskGroup: TaskGroup, private taskType: TaskType, private collectionService: CollectionService, private data?: RestTaskDescription) {
+        this.initializeForm();
+    }
 
     /**
+     * Returns the {@link Observable<MediaItem[]>} for the given key.
      *
-     * @param key
+     * @param key Key to fetch the data source for.
      */
     public dataSource(key: string): Observable<MediaItem[]> {
         return this.dataSources.get(key);
     }
 
     /**
+     * Adds a new {@link FormGroup} for the given {@link TaskType.ComponentsEnum}.
      *
-     * @param taskType
-     * @param data
+     * @param type {@link TaskType.ComponentsEnum} to add a {@linl FormGroup} for.
      */
-    public formForData() {
-        return new FormGroup({
-            uid:  new FormControl(this.data?.id),
+    public addComponentForm(type: TaskType.ComponentsEnum) {
+        const array = this.form.get('components') as FormArray;
+        const newIndex = array.length;
+        switch (type) {
+            case 'IMAGE_ITEM':
+                array.push(this.imageItemComponentForm(newIndex));
+                break;
+            case 'VIDEO_ITEM_SEGMENT':
+                array.push(this.videoItemComponentForm(newIndex));
+                break;
+            case 'TEXT':
+                array.push(this.textItemComponentForm(newIndex));
+                break;
+            case 'EXTERNAL_IMAGE':
+                array.push(this.externalImageItemComponentForm(newIndex));
+                break;
+            case 'EXTERNAL_VIDEO':
+                array.push(this.externalVideoItemComponentForm(newIndex));
+                break;
+        }
+    }
+
+    /**
+     * Removes the {@link FormGroup} at the given index.
+     *
+     * @param index Index to remove.
+     */
+    public removeComponentForm(index: number) {
+        const array = this.form.get('components') as FormArray;
+        if (array.length > index) {
+            array.removeAt(index);
+        }
+    }
+
+    /**
+     * Assembles form data and returns a {@link RestTaskDescription}.
+     */
+    public fetchFormData(): RestTaskDescription {
+        const data = {
+            name: this.form.get('name').value,
+            taskGroup: this.taskGroup.name, /* Cannot be edited! */
+            taskType: this.taskGroup.type, /* Cannot be edited! */
+            duration: this.form.get('duration').value,
+            mediaCollectionId: this.form.get('mediaCollection').value,
+            components: (this.form.get('components') as FormArray).controls.map(c => {
+                return {
+                    type: c.get('type').value,
+                    mediaItem: c.get('mediaItem') ? c.get('mediaItem').value.id : null,
+                    range: c.get('start') && c.get('end') ? {
+                        start: { value: c.get('start').value, unit: c.get('time_unit').value }  as TemporalPoint,
+                        end: { value: c.get('end').value, unit: c.get('time_unit').value }  as TemporalPoint,
+                    } as TemporalRange : null,
+                    description: c.get('description') ? c.get('description').value : null,
+                    payload: c.get('payload') ? c.get('payload').value : null,
+                    dataType: c.get('dataType') ? c.get('dataType').value : null
+                } as RestTaskDescriptionComponent;
+            }),
+            target: {
+                type: this.taskType.targetType,
+                mediaItems: (this.form.get('target') as FormArray).controls.map(t => {
+                    return {
+                        mediaItem: t.get('mediaItem').value.id,
+                        temporalRange: t.get('start') && t.get('end') ? {
+                            start: {value: t.get('start').value, unit: t.get('time_unit').value} as TemporalPoint,
+                            end: {value: t.get('end').value, unit: t.get('time_unit').value} as TemporalPoint
+                        } as TemporalRange : null
+                    } as RestTaskDescriptionTargetItem;
+                })
+            } as RestTaskDescriptionTarget
+        } as RestTaskDescription;
+
+        /* Set ID of set. */
+        if (this.form.get('id').value) {
+            data.id = this.form.get('id').value;
+        }
+
+        return data;
+    }
+
+    /**
+     * Initializes the {@link FormGroup}.
+     */
+    private initializeForm() {
+        this.form = new FormGroup({
+            id: new FormControl(this.data?.id),
             name: new FormControl(this.data?.name, [Validators.required]),
             duration: new FormControl(this.durationInitValue, [Validators.required, Validators.min(1)]),
-            components: new FormArray(this.data?.components ?
-                this.data?.components?.map(v => new FormControl(v)) : [], [Validators.minLength(1)]),
-            target: this.formForTarget()
+            mediaCollection: new FormControl(this.data?.mediaCollectionId, [Validators.required]),
+            target: this.formForTarget(),
+            components: this.formForQueryComponents()
         });
     }
 
@@ -68,11 +162,11 @@ export class CompetitionFormBuilder {
     private formForTarget() {
         switch (this.taskType.targetType) {
             case 'SINGLE_MEDIA_ITEM':
-                return this.singleMediaItemTargetForm(this.data?.target?.mediaItems[0]);
-            case 'SINGLE_MEDIA_SEGMENT':
-                return this.singleMediaSegmentTargetForm(0, this.data?.target?.mediaItems[0]);
+                return this.singleMediaItemTargetForm(0, this.data?.target?.mediaItems[0]);
             case 'MULTIPLE_MEDIA_ITEMS':
-                return this.multipleMediaSegmentTargetForm(this.data?.target);
+                return this.multipleMediaItemTargetForm(this.data?.target);
+            case 'SINGLE_MEDIA_SEGMENT':
+                return this.singleMediaSegmentTargetForm( this.data?.target?.mediaItems[0]);
             case 'JUDGEMENT':
                 return new FormArray([]);
         }
@@ -81,63 +175,170 @@ export class CompetitionFormBuilder {
     /**
      * Returns FormGroup for a single Media Item Target.
      *
+     * @param index Index of the FormControl
      * @param data The optional {RestTaskDescriptionTargetItem} containing the data.
      */
-    private singleMediaItemTargetForm(data?: RestTaskDescriptionTargetItem) {
-
+    private singleMediaItemTargetForm(index: number, data?: RestTaskDescriptionTargetItem) {
         /* Prepare auto complete field. */
-        const mediaCollectionFormControl = new FormControl(null);
         const mediaItemFormControl =  new FormControl(data?.mediaItem, Validators.required);
-
         this.dataSources.set('target.0.mediaItem', mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
-            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(mediaCollectionFormControl.value, s))
+            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
 
-        return new FormArray([new FormGroup({
-            mediaCollection: mediaCollectionFormControl,
-            mediaItem: mediaItemFormControl,
-        })]);
+        return new FormArray([new FormGroup({mediaItem: mediaItemFormControl})]);
+    }
+
+    /**
+     * Returns FormGroup for a multiple Media Item Targets.
+     *
+     * @param data The optional {RestTaskDescriptionTarget} containing the data.
+     */
+    private multipleMediaItemTargetForm(data?: RestTaskDescriptionTarget) {
+        const content = [];
+        if (data != null) {
+            content.push(data?.mediaItems.map((d, i) => this.singleMediaItemTargetForm(i, d)));
+        } else {
+            content.push(this.singleMediaItemTargetForm(0));
+        }
+        return new FormArray(content);
     }
 
     /**
      * Returns FormGroup for a single Media Segment Target.
      *
-     * @param index Index of the FormControl
      * @param data The optional {RestTaskDescriptionTargetItem} containing the data.
      */
-    private singleMediaSegmentTargetForm(index: number, data?: RestTaskDescriptionTargetItem) {
+    private singleMediaSegmentTargetForm(data?: RestTaskDescriptionTargetItem) {
         /* Prepare auto complete field. */
-        const mediaCollectionFormControl = new FormControl(null);
         const mediaItemFormControl =  new FormControl(data?.mediaItem, Validators.required);
 
-        this.dataSources.set(`target.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
+        this.dataSources.set(`target.0.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
-            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(mediaCollectionFormControl.value, s))
+            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
 
         return new FormArray([new FormGroup({
-            mediaCollection: mediaCollectionFormControl,
             mediaItem: mediaItemFormControl,
-            start: new FormControl(data?.temporalRange.start.value, Validators.required),
-            end: new FormControl(data?.temporalRange.end.value, Validators.required),
+            start: new FormControl(data?.temporalRange.start.value, [Validators.required, Validators.min(0)]),
+            end: new FormControl(data?.temporalRange.end.value, [Validators.required, Validators.min(0)]),
             time_unit: new FormControl(data?.temporalRange.start.unit ?
                 data?.temporalRange.start.unit  : 'FRAME_NUMBER', Validators.required)
         })]);
     }
 
     /**
-     * Returns FormGroup for a multiple Media Segment Targets.
-     *
-     * @param data The optional {RestTaskDescriptionTarget} containing the data.
+     * Returns the component form for the given {TaskType}
      */
-    private multipleMediaSegmentTargetForm(data?: RestTaskDescriptionTarget) {
-        const content = [];
-        if (data != null) {
-            content.push(data?.mediaItems.map((d, i) => this.singleMediaSegmentTargetForm(i, d)));
-        } else {
-            content.push(this.singleMediaSegmentTargetForm(0));
+    private formForQueryComponents() {
+        const array = [];
+        if (this.data) {
+            for (const component of this.data.components) {
+                const index = this.data.components.indexOf(component);
+                switch (component.type) {
+                    case 'IMAGE_ITEM':
+                        array.push(this.imageItemComponentForm(index, component));
+                        break;
+                    case 'VIDEO_ITEM_SEGMENT':
+                        array.push(this.videoItemComponentForm(index, component));
+                        break;
+                    case 'TEXT':
+                        array.push(this.textItemComponentForm(index, component));
+                        break;
+                    case 'EXTERNAL_IMAGE':
+                        break;
+                    case 'EXTERNAL_VIDEO':
+                        break;
+                }
+            }
         }
-        return new FormArray(content);
+        return new FormArray(array);
+    }
+
+    /**
+     * Returns a new image item component {@link FormGroup}.
+     *
+     * @param index The position of the new {@link FormGroup} (for data source).
+     * @param component The {@link RestTaskDescriptionComponent} to populate data from.
+     */
+    private imageItemComponentForm(index: number, component?: RestTaskDescriptionComponent) {
+        const mediaItemFormControl =  new FormControl(component?.mediaItem, Validators.required);
+        this.dataSources.set(`components.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
+            filter(s => s.length >= 1),
+            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
+        ));
+        return new FormGroup({
+            type: new FormControl('IMAGE_ITEM', [Validators.required]),
+            mediaItem: mediaItemFormControl
+        });
+    }
+
+    /**
+     * Returns a new video item component {@link FormGroup}.
+     *
+     * @param index The position of the new {@link FormGroup} (for data source).
+     * @param component The {@link RestTaskDescriptionComponent} to populate data from.
+     */
+    private videoItemComponentForm(index: number, component?: RestTaskDescriptionComponent) {
+        const mediaItemFormControl =  new FormControl(component?.mediaItem, Validators.required);
+        this.dataSources.set(`components.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
+            filter(s => s.length >= 1),
+            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
+        ));
+        return new FormGroup({
+            type: new FormControl('VIDEO_ITEM_SEGMENT', [Validators.required]),
+            mediaItem: mediaItemFormControl,
+            start: new FormControl(component?.range.start.value, [Validators.required, Validators.min(0)]),
+            end: new FormControl(component?.range.end.value, [Validators.required, Validators.min(0)]),
+            time_unit: new FormControl(component?.range.start.unit ?
+                component?.range.start.unit  : 'FRAME_NUMBER', Validators.required)
+        });
+    }
+
+    /**
+     * Returns a new external image item component {@link FormGroup}.
+     *
+     * @param index The position of the new {@link FormGroup} (for data source).
+     * @param component The {@link RestTaskDescriptionComponent} to populate data from.
+     */
+    private textItemComponentForm(index: number, component?: RestTaskDescriptionComponent) {
+        return new FormGroup({
+            type: new FormControl('TEXT', [Validators.required]),
+            description: new FormControl(component?.description, [Validators.required])
+        });
+    }
+
+    /**
+     * Returns a new external image item component {@link FormGroup}.
+     *
+     * @param index The position of the new {@link FormGroup} (for data source).
+     * @param component The {@link RestTaskDescriptionComponent} to populate data from.
+     */
+    private externalImageItemComponentForm(index: number, component?: RestTaskDescriptionComponent) {
+        return new FormGroup({
+            type: new FormControl('EXTERNAL_IMAGE', [Validators.required]),
+            payload: new FormControl(component?.payload, [Validators.required]),
+            dataType: new FormControl(component?.dataType, [Validators.required]),
+        });
+    }
+
+    /**
+     * Returns a new external video item component {@link FormGroup}.
+     *
+     * @param index The position of the new {@link FormGroup} (for data source).
+     * @param component The {@link RestTaskDescriptionComponent} to populate data from.
+     */
+    private externalVideoItemComponentForm(index: number, component?: RestTaskDescriptionComponent) {
+        return new FormGroup({
+            type: new FormControl('EXTERNAL_VIDEO', [Validators.required]),
+            payload: new FormControl(component?.payload, [Validators.required]),
+            dataType: new FormControl(component?.dataType, [Validators.required]),
+            start: new FormControl(component?.range.start.value, [Validators.required, Validators.min(0)]),
+            end: new FormControl(component?.range.end.value, [Validators.required, Validators.min(0)]),
+            time_unit: new FormControl(component?.range.start.unit ?
+                component?.range.start.unit  : 'FRAME_NUMBER', Validators.required)
+        });
     }
 }
+
+

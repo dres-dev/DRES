@@ -9,15 +9,12 @@ import dres.utilities.TimeUtil
  * Notion of a [TemporalRange] within a [MediaItem] that exhibits temporal development (e.g. [VideoItem].
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.1
  *
  * @param start The start of the [TemporalRange]
  * @param end The end of the [TemporalRange]
  */
-data class TemporalRange @JsonCreator constructor(
-        @JsonProperty("start") val start: TemporalPoint,
-        @JsonProperty("end") val end: TemporalPoint
-) {
+data class TemporalRange constructor(val start: TemporalPoint, val end: TemporalPoint) {
 
     constructor(startMs: Long, endMs: Long): this(TemporalPoint(startMs.toDouble(), TemporalUnit.MILLISECONDS), TemporalPoint(endMs.toDouble(), TemporalUnit.MILLISECONDS))
 

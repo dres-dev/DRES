@@ -18,30 +18,29 @@ import java.util.*
 /**
  * Basic description of a [Task].
  */
-
 class TaskDescription(
 
-        /** Internal, unique ID of this [TaskDescription]. */
+    /** Internal, unique ID of this [TaskDescription]. */
     val id: UID,
 
-        /** The name of the task */
+    /** The name of the task */
     val name: String,
 
-        /** The [TaskGroup]  the [Task] belongs to */
+    /** The [TaskGroup]  the [Task] belongs to */
     val taskGroup: TaskGroup,
 
     val taskType: TaskType,
 
-        /** The duration of the [TaskDescription] in seconds. */
+    /** The duration of the [TaskDescription] in seconds. */
     val duration: Long,
 
-        /** The id of the relevant media collection for this task, if not otherwise specified */
-    val defaultMediaCollectionId: UID,
+    /** The id of the relevant media collection for this task, if not otherwise specified */
+    val mediaCollectionId: UID,
 
-        /** */
+    /** */
     val components: List<TaskDescriptionComponent>,
 
-        /** */
+    /** */
     val target: TaskDescriptionTarget
 ){
 
@@ -112,12 +111,12 @@ class TaskDescription(
 }
 
 fun TaskDescription(description: RestTaskDescription, taskGroups: List<TaskGroup>, taskTypes: List<TaskType>, mediaItems: DAO<MediaItem>) : TaskDescription = TaskDescription(
-        description.id.UID(),
-        description.name,
-        taskGroups.find { it.name == description.taskGroup }!!,
-        taskTypes.find { it.name == description.taskType }!!,
-        description.duration,
-        description.defaultMediaCollectionId.UID(),
-        description.components.map { TaskDescriptionComponent(it, mediaItems) },
-        description.target.toTarget(mediaItems)
+    description.id.UID(),
+    description.name,
+    taskGroups.find { it.name == description.taskGroup }!!,
+    taskTypes.find { it.name == description.taskType }!!,
+    description.duration,
+    description.mediaCollectionId.UID(),
+    description.components.map { TaskDescriptionComponent(it, mediaItems) },
+    description.target.toTarget(mediaItems)
 )

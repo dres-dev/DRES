@@ -12,12 +12,12 @@ import org.mapdb.DataOutput2
 object TaskDescriptionSerializer {
     fun serialize(out: DataOutput2, value: TaskDescription) { //FIXME
 
-        out.writeUID(value.id)
+        out.writeUID(value.id!!)
         out.writeUTF(value.name)
         out.writeUTF(value.taskGroup.name)
         out.writeUTF(value.taskType.name)
         out.packLong(value.duration)
-        out.writeUID(value.defaultMediaCollectionId)
+        out.writeUID(value.mediaCollectionId)
         writeTaskDescriptionComponents(out, value.components)
         writeTaskDescriptionTarget(out, value.target)
 

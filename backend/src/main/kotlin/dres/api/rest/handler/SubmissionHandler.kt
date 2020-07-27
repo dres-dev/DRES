@@ -71,7 +71,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         val collectionParam = map[PARAMETER_NAME_COLLECTION]?.first()
         val collectionId: UID = when {
             collectionParam != null -> this.collections.find { it.name == collectionParam }?.id
-            else -> runManager.currentTask?.defaultMediaCollectionId
+            else -> runManager.currentTask?.mediaCollectionId
         } ?: throw ErrorStatusException(404, "Media collection '$collectionParam' could not be found.")
 
         /* Find media item. */

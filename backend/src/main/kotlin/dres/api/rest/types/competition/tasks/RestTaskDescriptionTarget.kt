@@ -2,7 +2,6 @@ package dres.api.rest.types.competition.tasks
 
 import dres.data.dbo.DAO
 import dres.data.model.basics.media.MediaItem
-import dres.data.model.basics.time.TemporalRange
 import dres.data.model.competition.JudgementTaskDescriptionTarget
 import dres.data.model.competition.MediaSegmentTarget
 import dres.data.model.competition.TaskDescriptionTarget

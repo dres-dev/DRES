@@ -11,6 +11,7 @@ import org.mapdb.Serializer
 
 class CompetitionSerializer(private val mediaItems: DAO<MediaItem>): Serializer<CompetitionDescription> {
     override fun serialize(out: DataOutput2, value: CompetitionDescription) {
+        val taskDescriptionSerializer = TaskDescriptionSerializer(value.taskGroups, value.taskTypes, this.mediaItems)
         out.writeUID(value.id)
         out.writeUTF(value.name)
         out.writeUTF(value.description ?: "")
@@ -24,7 +25,7 @@ class CompetitionSerializer(private val mediaItems: DAO<MediaItem>): Serializer<
         }
         out.packInt(value.tasks.size)
         for (task in value.tasks) {
-            TaskDescriptionSerializer.serialize(out, task)
+            taskDescriptionSerializer.serialize(out, task)
         }
         out.packInt(value.teams.size)
         for (team in value.teams) {
@@ -37,9 +38,10 @@ class CompetitionSerializer(private val mediaItems: DAO<MediaItem>): Serializer<
         val name = input.readUTF()
         val description = input.readUTF()
         val taskTypes = (0 until input.unpackInt()).map { TaskTypeSerializer.deserialize(input, available) }.toMutableList()
-        val groups = (0 until input.unpackInt()).map { TaskGroupSerializer.deserialize(input, available) }.toMutableList()
-        val tasks = (0 until input.unpackInt()).map { TaskDescriptionSerializer.deserialize(input, groups, taskTypes, mediaItems) }.toMutableList()
+        val taskGroups = (0 until input.unpackInt()).map { TaskGroupSerializer.deserialize(input, available) }.toMutableList()
+        val taskDescriptionSerializer = TaskDescriptionSerializer(taskGroups, taskTypes, this.mediaItems)
+        val tasks = (0 until input.unpackInt()).map { taskDescriptionSerializer.deserialize(input,available) }.toMutableList()
         val teams = (0 until input.unpackInt()).map { TeamSerializer.deserialize(input, available) }.toMutableList()
-        return CompetitionDescription(id, name, description, taskTypes, groups, tasks, teams)
+        return CompetitionDescription(id, name, description, taskTypes, taskGroups, tasks, teams)
     }
 }

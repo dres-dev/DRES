@@ -8,13 +8,14 @@ import dres.utilities.extensions.readUID
 import dres.utilities.extensions.writeUID
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
+import org.mapdb.Serializer
 
-object TaskDescriptionSerializer {
+class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: List<TaskType>, val mediaItems: DAO<MediaItem>): Serializer<TaskDescription> {
 
     /**
      * Serializes [TaskDescription]
      */
-    fun serialize(out: DataOutput2, value: TaskDescription) {
+    override fun serialize(out: DataOutput2, value: TaskDescription) {
         out.writeUID(value.id)
         out.writeUTF(value.name)
         out.writeUTF(value.taskGroup.name)
@@ -28,15 +29,15 @@ object TaskDescriptionSerializer {
     /**
      * Deserializes [TaskDescription]
      */
-    fun deserialize(input: DataInput2, taskGroups: List<TaskGroup>, taskTypes: List<TaskType>, mediaItems: DAO<MediaItem>): TaskDescription = TaskDescription(
+    override fun deserialize(input: DataInput2, available: Int): TaskDescription = TaskDescription(
             input.readUID(),
             input.readUTF(),
             input.readUTF().let { n -> taskGroups.first { it.name == n } },
             input.readUTF().let { n -> taskTypes.first { it.name == n } },
             input.unpackLong(),
             input.readUID(),
-            readTaskDescriptionTarget(input, mediaItems),
-            readTaskDescriptionComponents(input, mediaItems)
+            readTaskDescriptionTarget(input, available, this.mediaItems),
+            readTaskDescriptionComponents(input, available, this.mediaItems)
     )
 
     /**
@@ -66,7 +67,7 @@ object TaskDescriptionSerializer {
      * @param out [TaskDescriptionComponent]s to serialize.
      */
     private fun writeTaskDescriptionComponents(out: DataOutput2, components: List<TaskDescriptionComponent>){
-        out.writeInt(components.size)
+        out.packInt(components.size)
         components.forEach {
             out.packLong(it.start ?: -1)
             out.packLong(it.end ?: -1)
@@ -100,11 +101,11 @@ object TaskDescriptionSerializer {
      *
      * @return Deserialized [TaskDescriptionTarget].
      */
-    private fun readTaskDescriptionTarget(input: DataInput2, mediaItems: DAO<MediaItem>) : TaskDescriptionTarget {
+    private fun readTaskDescriptionTarget(input: DataInput2, available: Int, mediaItems: DAO<MediaItem>) : TaskDescriptionTarget {
         return when(val className = input.readUTF()) {
             TaskDescriptionTarget.JudgementTaskDescriptionTarget::class.java.name -> TaskDescriptionTarget.JudgementTaskDescriptionTarget
             TaskDescriptionTarget.MediaSegmentTarget::class.java.name -> {
-                TaskDescriptionTarget.MediaSegmentTarget(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, 0))
+                TaskDescriptionTarget.MediaSegmentTarget(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
             }
             TaskDescriptionTarget.MediaItemTarget::class.java.name -> {
                 TaskDescriptionTarget.MediaItemTarget(mediaItems[input.readUID()]!!)
@@ -121,8 +122,8 @@ object TaskDescriptionSerializer {
      *
      * @return Deserialized [TaskDescriptionTarget]s.
      */
-    private fun readTaskDescriptionComponents(input: DataInput2, mediaItems: DAO<MediaItem>) : List<TaskDescriptionComponent> = (0 until input.unpackInt()).map {
-        val size = input.readInt()
+    private fun readTaskDescriptionComponents(input: DataInput2, available: Int, mediaItems: DAO<MediaItem>) : List<TaskDescriptionComponent> = (0 until input.unpackInt()).map {
+        val size = input.unpackInt()
         return (0 until size).map {
             val start = input.unpackLong().let { if (it == -1L) null else it  }
             val end = input.unpackLong().let { if (it == -1L) null else it  }
@@ -132,7 +133,7 @@ object TaskDescriptionSerializer {
                     TaskDescriptionComponent.TextTaskDescriptionComponent(input.readUTF(), start, end)
                 }
                 TaskDescriptionComponent.VideoItemSegmentTaskDescriptionComponent::class.java.name-> {
-                    TaskDescriptionComponent.VideoItemSegmentTaskDescriptionComponent(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, 0), start, end)
+                    TaskDescriptionComponent.VideoItemSegmentTaskDescriptionComponent(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available), start, end)
                 }
                 TaskDescriptionComponent.ImageItemTaskDescriptionComponent::class.java.name -> {
                     TaskDescriptionComponent.ImageItemTaskDescriptionComponent(mediaItems[input.readUID()]!! as MediaItem.ImageItem, start, end)

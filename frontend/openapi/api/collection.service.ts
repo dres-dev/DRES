@@ -11,19 +11,15 @@
  */
 /* tslint:disable:no-unused-variable member-ordering */
 
-import { Inject, Injectable, Optional }                      from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams,
-         HttpResponse, HttpEvent, HttpParameterCodec }       from '@angular/common/http';
-import { CustomHttpParameterCodec }                          from '../encoder';
-import { Observable }                                        from 'rxjs';
+import {Inject, Injectable, Optional} from '@angular/core';
+import {HttpClient, HttpEvent, HttpHeaders, HttpParameterCodec, HttpParams, HttpResponse} from '@angular/common/http';
+import {CustomHttpParameterCodec} from '../encoder';
+import {Observable} from 'rxjs';
 
-import { ErrorStatus } from '../model/models';
-import { MediaCollection } from '../model/models';
-import { MediaItem } from '../model/models';
+import {MediaItem, RestMediaCollection, RestMediaItem} from '../model/models';
 
-import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
-import { Configuration }                                     from '../configuration';
-
+import {BASE_PATH} from '../variables';
+import {Configuration} from '../configuration';
 
 
 @Injectable({
@@ -88,13 +84,13 @@ export class CollectionService {
     }
 
     /**
-     * Lists all available Media Collections with basic information about their content.
+     * Lists all available media collections with basic information about their content.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiCollection(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<MediaCollection>>;
-    public getApiCollection(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<MediaCollection>>>;
-    public getApiCollection(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<MediaCollection>>>;
+    public getApiCollection(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<RestMediaCollection>>;
+    public getApiCollection(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<RestMediaCollection>>>;
+    public getApiCollection(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<RestMediaCollection>>>;
     public getApiCollection(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
 
         let headers = this.defaultHeaders;
@@ -117,7 +113,7 @@ export class CollectionService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<Array<MediaCollection>>(`${this.configuration.basePath}/api/collection`,
+        return this.httpClient.get<Array<RestMediaCollection>>(`${this.configuration.basePath}/api/collection`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
@@ -129,59 +125,14 @@ export class CollectionService {
     }
 
     /**
-     * Gives a random Media Item within a given Media Collection.
+     * Shows the content of the specified media collection.
      * @param collectionId Collection ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiCollectionRandomWithCollectionid(collectionId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<MediaItem>;
-    public getApiCollectionRandomWithCollectionid(collectionId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<MediaItem>>;
-    public getApiCollectionRandomWithCollectionid(collectionId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<MediaItem>>;
-    public getApiCollectionRandomWithCollectionid(collectionId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
-        if (collectionId === null || collectionId === undefined) {
-            throw new Error('Required parameter collectionId was null or undefined when calling getApiCollectionRandomWithCollectionid.');
-        }
-
-        let headers = this.defaultHeaders;
-
-        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
-        if (httpHeaderAcceptSelected === undefined) {
-            // to determine the Accept header
-            const httpHeaderAccepts: string[] = [
-                'application/json'
-            ];
-            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
-        }
-        if (httpHeaderAcceptSelected !== undefined) {
-            headers = headers.set('Accept', httpHeaderAcceptSelected);
-        }
-
-
-        let responseType: 'text' | 'json' = 'json';
-        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
-            responseType = 'text';
-        }
-
-        return this.httpClient.get<MediaItem>(`${this.configuration.basePath}/api/collection/random/${encodeURIComponent(String(collectionId))}`,
-            {
-                responseType: <any>responseType,
-                withCredentials: this.configuration.withCredentials,
-                headers: headers,
-                observe: observe,
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
-     * Lists all available Media Collections with basic information about their content.
-     * @param collectionId Collection ID
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public getApiCollectionWithCollectionid(collectionId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<MediaItem>>;
-    public getApiCollectionWithCollectionid(collectionId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<MediaItem>>>;
-    public getApiCollectionWithCollectionid(collectionId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<MediaItem>>>;
+    public getApiCollectionWithCollectionid(collectionId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<RestMediaItem>>;
+    public getApiCollectionWithCollectionid(collectionId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<RestMediaItem>>>;
+    public getApiCollectionWithCollectionid(collectionId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<RestMediaItem>>>;
     public getApiCollectionWithCollectionid(collectionId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (collectionId === null || collectionId === undefined) {
             throw new Error('Required parameter collectionId was null or undefined when calling getApiCollectionWithCollectionid.');
@@ -207,7 +158,7 @@ export class CollectionService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<Array<MediaItem>>(`${this.configuration.basePath}/api/collection/${encodeURIComponent(String(collectionId))}`,
+        return this.httpClient.get<Array<RestMediaItem>>(`${this.configuration.basePath}/api/collection/${encodeURIComponent(String(collectionId))}`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
@@ -219,15 +170,109 @@ export class CollectionService {
     }
 
     /**
-     * Lists Media Items of a Media Collection whose name start with the given fragment
+     * Selects and returns a specific media item from a given media collection.
+     * @param collectionId Collection ID
+     * @param mediaId Media item ID
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getApiCollectionWithCollectionidMediaWithMediaid(collectionId: string, mediaId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<RestMediaItem>;
+    public getApiCollectionWithCollectionidMediaWithMediaid(collectionId: string, mediaId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<RestMediaItem>>;
+    public getApiCollectionWithCollectionidMediaWithMediaid(collectionId: string, mediaId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<RestMediaItem>>;
+    public getApiCollectionWithCollectionidMediaWithMediaid(collectionId: string, mediaId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (collectionId === null || collectionId === undefined) {
+            throw new Error('Required parameter collectionId was null or undefined when calling getApiCollectionWithCollectionidMediaWithMediaid.');
+        }
+        if (mediaId === null || mediaId === undefined) {
+            throw new Error('Required parameter mediaId was null or undefined when calling getApiCollectionWithCollectionidMediaWithMediaid.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.get<RestMediaItem>(`${this.configuration.basePath}/api/collection/${encodeURIComponent(String(collectionId))}/media/${encodeURIComponent(String(mediaId))}`,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Selects and returns a random media item from a given media collection.
+     * @param collectionId Collection ID
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getApiCollectionWithCollectionidRandom(collectionId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<RestMediaItem>;
+    public getApiCollectionWithCollectionidRandom(collectionId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<RestMediaItem>>;
+    public getApiCollectionWithCollectionidRandom(collectionId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<RestMediaItem>>;
+    public getApiCollectionWithCollectionidRandom(collectionId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (collectionId === null || collectionId === undefined) {
+            throw new Error('Required parameter collectionId was null or undefined when calling getApiCollectionWithCollectionidRandom.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.get<RestMediaItem>(`${this.configuration.basePath}/api/collection/${encodeURIComponent(String(collectionId))}/random`,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Lists media items from a given media collection whose name start with the given string.
      * @param collectionId Collection ID
      * @param startsWith Name starts with
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiCollectionWithCollectionidWithStartswith(collectionId: string, startsWith: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<MediaItem>>;
-    public getApiCollectionWithCollectionidWithStartswith(collectionId: string, startsWith: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<MediaItem>>>;
-    public getApiCollectionWithCollectionidWithStartswith(collectionId: string, startsWith: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<MediaItem>>>;
+    public getApiCollectionWithCollectionidWithStartswith(collectionId: string, startsWith: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<RestMediaItem>>;
+    public getApiCollectionWithCollectionidWithStartswith(collectionId: string, startsWith: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<RestMediaItem>>>;
+    public getApiCollectionWithCollectionidWithStartswith(collectionId: string, startsWith: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<RestMediaItem>>>;
     public getApiCollectionWithCollectionidWithStartswith(collectionId: string, startsWith: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (collectionId === null || collectionId === undefined) {
             throw new Error('Required parameter collectionId was null or undefined when calling getApiCollectionWithCollectionidWithStartswith.');
@@ -256,7 +301,7 @@ export class CollectionService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<Array<MediaItem>>(`${this.configuration.basePath}/api/collection/${encodeURIComponent(String(collectionId))}/${encodeURIComponent(String(startsWith))}`,
+        return this.httpClient.get<Array<RestMediaItem>>(`${this.configuration.basePath}/api/collection/${encodeURIComponent(String(collectionId))}/${encodeURIComponent(String(startsWith))}`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

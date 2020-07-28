@@ -1,6 +1,14 @@
 import {Component, ElementRef, Inject, ViewChild} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {CollectionService, MediaCollection, MediaItem, RestTaskDescription, TaskGroup, TaskType, VideoItem} from '../../../../../openapi';
+import {
+    CollectionService,
+    RestMediaCollection,
+    RestMediaItem,
+    RestTaskDescription,
+    TaskGroup,
+    TaskType,
+    VideoItem
+} from '../../../../../openapi';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs';
 import {first} from 'rxjs/operators';
@@ -28,7 +36,7 @@ export class CompetitionBuilderTaskDialogComponent {
     units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
 
     /** Data source for list of {@link MediaCollection}. Loaded upon construction of the dialog. */
-    mediaCollectionSource: Observable<MediaCollection[]>;
+    mediaCollectionSource: Observable<RestMediaCollection[]>;
 
     /** The {@link CompetitionFormBuilder} used by this dialogue. */
     builder: CompetitionFormBuilder;
@@ -75,9 +83,9 @@ export class CompetitionBuilderTaskDialogComponent {
      *
      * @param value MediaItem to convert
      */
-    public mediaItemToDisplay(value: MediaItem) {
+    public mediaItemToDisplay(value: RestMediaItem) {
         if (value) {
-            return `${value.name} (${value.id})`;
+            return `${value.name} (${value.type})`;
         } else {
             return '';
         }
@@ -113,7 +121,7 @@ export class CompetitionBuilderTaskDialogComponent {
      * @param target The target {@link FormControl} to apply the value to.
      */
     public pickRandomMediaItem(collectionId: string, target: FormControl) {
-        this.collectionService.getApiCollectionRandomWithCollectionid(collectionId).pipe(first()).subscribe(value => {
+        this.collectionService.getApiCollectionWithCollectionidRandom(collectionId).pipe(first()).subscribe(value => {
             target.setValue(value);
         });
     }
@@ -191,20 +199,5 @@ export class CompetitionBuilderTaskDialogComponent {
         min = Math.floor(min);
         max = Math.ceil(max);
         return Math.round(Math.random() * (max - min + 1) + min);
-    }
-
-    listIconForType(comp: TaskType.ComponentsEnum) {
-        switch (comp) {
-            case 'IMAGE_ITEM':
-                return 'image';
-            case 'VIDEO_ITEM_SEGMENT':
-                return 'movie';
-            case 'TEXT':
-                return 'title';
-            case 'EXTERNAL_IMAGE':
-                return 'add_photo_alt';
-            case 'EXTERNAL_VIDEO':
-                return 'local_movies';
-        }
     }
 }

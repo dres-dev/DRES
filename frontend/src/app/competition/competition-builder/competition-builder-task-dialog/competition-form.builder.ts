@@ -1,6 +1,6 @@
 import {
     CollectionService,
-    MediaItem,
+    RestMediaItem,
     RestTaskDescription,
     RestTaskDescriptionComponent,
     RestTaskDescriptionTarget,
@@ -11,13 +11,13 @@ import {
     TemporalRange
 } from '../../../../../openapi';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
-import {filter, switchMap} from 'rxjs/operators';
+import {filter, first, switchMap} from 'rxjs/operators';
 import {Observable} from 'rxjs';
 
 export class CompetitionFormBuilder {
 
     /** List of data sources managed by this CompetitionFormBuilder. */
-    private dataSources = new Map<string, Observable<MediaItem[]>>();
+    private dataSources = new Map<string, Observable<RestMediaItem[]>>();
 
     /** The {@link FormGroup} held by this {@link CompetitionFormBuilder}. */
     public form: FormGroup;
@@ -40,7 +40,7 @@ export class CompetitionFormBuilder {
      *
      * @param key Key to fetch the data source for.
      */
-    public dataSource(key: string): Observable<MediaItem[]> {
+    public dataSource(key: string): Observable<RestMediaItem[]> {
         return this.dataSources.get(key);
     }
 
@@ -176,15 +176,24 @@ export class CompetitionFormBuilder {
      * Returns FormGroup for a single Media Item Target.
      *
      * @param index Index of the FormControl
-     * @param data The optional {RestTaskDescriptionTargetItem} containing the data.
+     * @param initialize The optional {RestTaskDescriptionTargetItem} containing the data to initialize the form with.
      */
-    private singleMediaItemTargetForm(index: number, data?: RestTaskDescriptionTargetItem) {
+    private singleMediaItemTargetForm(index: number, initialize?: RestTaskDescriptionTargetItem) {
         /* Prepare auto complete field. */
-        const mediaItemFormControl =  new FormControl(data?.mediaItem, Validators.required);
+        const mediaItemFormControl =  new FormControl(null, Validators.required);
         this.dataSources.set('target.0.mediaItem', mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
             switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
+
+        /* Load media item from API. */
+        if (initialize?.mediaItem && this.data?.mediaCollectionId) {
+            this.collectionService.getApiCollectionWithCollectionidMediaWithMediaid(this.data?.mediaCollectionId, initialize.mediaItem)
+                .pipe(first()).subscribe(s => {
+                    mediaItemFormControl.setValue(s);
+                });
+        }
+
 
         return new FormArray([new FormGroup({mediaItem: mediaItemFormControl})]);
     }
@@ -192,12 +201,12 @@ export class CompetitionFormBuilder {
     /**
      * Returns FormGroup for a multiple Media Item Targets.
      *
-     * @param data The optional {RestTaskDescriptionTarget} containing the data.
+     * @param initialize The optional {RestTaskDescriptionTarget} to initialize the form with.
      */
-    private multipleMediaItemTargetForm(data?: RestTaskDescriptionTarget) {
+    private multipleMediaItemTargetForm(initialize?: RestTaskDescriptionTarget) {
         const content = [];
-        if (data != null) {
-            content.push(data?.mediaItems.map((d, i) => this.singleMediaItemTargetForm(i, d)));
+        if (initialize) {
+            content.push(initialize?.mediaItems.map((d, i) => this.singleMediaItemTargetForm(i, d)));
         } else {
             content.push(this.singleMediaItemTargetForm(0));
         }
@@ -207,23 +216,31 @@ export class CompetitionFormBuilder {
     /**
      * Returns FormGroup for a single Media Segment Target.
      *
-     * @param data The optional {RestTaskDescriptionTargetItem} containing the data.
+     * @param initialize The optional {RestTaskDescriptionTargetItem} to initialize the form with.
      */
-    private singleMediaSegmentTargetForm(data?: RestTaskDescriptionTargetItem) {
+    private singleMediaSegmentTargetForm(initialize?: RestTaskDescriptionTargetItem) {
         /* Prepare auto complete field. */
-        const mediaItemFormControl =  new FormControl(data?.mediaItem, Validators.required);
+        const mediaItemFormControl =  new FormControl(null, Validators.required);
 
         this.dataSources.set(`target.0.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
             switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
 
+        /* Load media item from API. */
+        if (initialize?.mediaItem && this.data.mediaCollectionId) {
+            this.collectionService.getApiCollectionWithCollectionidMediaWithMediaid(this.data.mediaCollectionId, initialize.mediaItem)
+                .pipe(first()).subscribe(s => {
+                mediaItemFormControl.setValue(s);
+            });
+        }
+
         return new FormArray([new FormGroup({
             mediaItem: mediaItemFormControl,
-            start: new FormControl(data?.temporalRange.start.value, [Validators.required, Validators.min(0)]),
-            end: new FormControl(data?.temporalRange.end.value, [Validators.required, Validators.min(0)]),
-            time_unit: new FormControl(data?.temporalRange.start.unit ?
-                data?.temporalRange.start.unit  : 'SECONDS', Validators.required)
+            start: new FormControl(initialize?.temporalRange.start.value, [Validators.required, Validators.min(0)]),
+            end: new FormControl(initialize?.temporalRange.end.value, [Validators.required, Validators.min(0)]),
+            time_unit: new FormControl(initialize?.temporalRange.start.unit ?
+                initialize?.temporalRange.start.unit  : 'SECONDS', Validators.required)
         })]);
     }
 

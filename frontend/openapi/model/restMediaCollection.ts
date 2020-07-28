@@ -11,8 +11,9 @@
  */
 
 
-export interface VideoItem { 
-    durationMs: number;
-    fps: number;
+export interface RestMediaCollection { 
+    id: string;
+    name: string;
+    description?: string;
 }
 

@@ -114,7 +114,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             val collectionItems = this@MediaCollectionCommand
                     .items.filter { it.collection == collectionId }
                     // First sort reversed by type (i.e. Video before Image), then by name
-                    .sortedWith(compareBy<MediaItem> { it.itemType }.reversed().thenBy {
+                    .sortedWith(compareBy<MediaItem> { it.javaClass.name }.reversed().thenBy {
                         when (sort) {
                             SortField.ID -> it.id.string
                             SortField.NAME -> it.name
@@ -155,13 +155,16 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                                         cell(it.id)
                                         cell(it.name)
                                         cell(it.location)
-                                        if (it is MediaItem.VideoItem) {
-                                            cell(it.itemType)
-                                            cell(it.durationMs)
-                                            cell(it.fps)
-                                        } else {
-                                            cell(it.itemType) {
-                                                columnSpan = 3
+                                        when(it) {
+                                            is MediaItem.ImageItem -> {
+                                                cell("image") {
+                                                    columnSpan = 3
+                                                }
+                                            }
+                                            is MediaItem.VideoItem -> {
+                                                cell("video")
+                                                cell(it.durationMs)
+                                                cell(it.fps)
                                             }
                                         }
                                     }
@@ -322,8 +325,8 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 .default(System.out)
 
         private fun toRow(item: MediaItem): List<String?> = when (item) {
-            is MediaItem.ImageItem -> listOf(item.itemType, item.name, item.location, null, null)
-            is MediaItem.VideoItem -> listOf(item.itemType, item.name, item.location, item.duration.toMillis().toString(), item.fps.toString())
+            is MediaItem.ImageItem -> listOf("image", item.name, item.location, null, null)
+            is MediaItem.VideoItem -> listOf("video", item.name, item.location, item.duration.toMillis().toString(), item.fps.toString())
         }
 
         private val header = listOf("itemType", "name", "location", "duration", "fps")
@@ -376,7 +379,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             val collectionItems = this@MediaCollectionCommand.items.filter { it.collection == collectionId }.toList()
 
             val itemsToInsert = itemsFromFile.filter { item ->
-                collectionItems.none { it.name == item.name && it.location == item.location && it.itemType == it.itemType }
+                collectionItems.none { it.name == item.name && it.location == item.location }
             }
 
             this@MediaCollectionCommand.items.batchAppend(itemsToInsert)

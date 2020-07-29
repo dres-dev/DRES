@@ -94,7 +94,7 @@
                             <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">
                                 <mat-option *ngFor="let mediaItem of (this.builder.dataSource('components.' + i + '.mediaItem') | async)" [value]="mediaItem">
                                     <span>{{mediaItem.name}}</span> |
-                                    <small>Type: {{mediaItem.itemType}}, ID: {{mediaItem.id}}</small>
+                                    <small>Type: {{mediaItem.type}}, ID: {{mediaItem.id}}</small>
                                 </mat-option>
                             </mat-autocomplete>
                         </mat-form-field>

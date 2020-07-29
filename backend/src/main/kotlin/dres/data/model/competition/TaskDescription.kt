@@ -1,5 +1,9 @@
 package dres.data.model.competition
 
+import dres.api.rest.types.query.ContentType
+import dres.api.rest.types.query.QueryContentElement
+import dres.api.rest.types.query.QueryHint
+import dres.api.rest.types.query.QueryTarget
 import dres.data.model.Config
 import dres.data.model.UID
 import dres.run.filter.SubmissionFilter
@@ -72,30 +76,59 @@ class TaskDescription(
     fun newFilter(): SubmissionFilter = taskType.newFilter()
 
     /**
-     * Generates a [QueryDescription] object to be used by a viewer
+     * Generates and returns a [QueryHint] object to be used by the RESTful interface.
+     *
+     * @param config The [Config] used of path resolution.
+     * @return [QueryHint]
+     *
      * @throws FileNotFoundException
      * @throws IOException
      */
-    fun toQueryDescription(config: Config): QueryDescription = QueryDescription(
-            name,
-            query = componentsToQueryContent(config),
-            reveal = targetToQueryContent(config)
-    )
-
-    private fun componentsToQueryContent(config: Config): QueryContent {
-        TODO()
+    fun toQueryDescription(config: Config): QueryHint {
+        val sequence = this.components.map {
+            when(it) {
+                is TaskDescriptionComponent.TextTaskDescriptionComponent -> QueryContentElement(it.text, ContentType.TEXT)
+                is TaskDescriptionComponent.ImageItemTaskDescriptionComponent -> {
+                    val file = File(config.cachePath + "/tasks")
+                    FileInputStream(file).use { imageInFile ->
+                        val fileData = ByteArray(file.length().toInt())
+                        imageInFile.read(fileData)
+                        QueryContentElement(Base64.getEncoder().encodeToString(fileData), ContentType.IMAGE)
+                    }
+                }
+                is TaskDescriptionComponent.VideoItemSegmentTaskDescriptionComponent -> {
+                    val file = File(config.cachePath + "/tasks", it.cacheItemName())
+                    FileInputStream(file).let { imageInFile ->
+                        val fileData = ByteArray(file.length().toInt())
+                        imageInFile.read(fileData)
+                        QueryContentElement(Base64.getEncoder().encodeToString(fileData), ContentType.VIDEO)
+                    }
+                }
+                else -> throw IllegalStateException("Transformation from ${target::javaClass} to query hint currently not implemented.")
+            }
+        }
+        return QueryHint(this.id.string, sequence, false)
     }
 
-    private fun targetToQueryContent(config: Config): QueryContent = when (target) {
+    /**
+     * Generates and returns a [QueryTarget] object to be used by the RESTful interface.
+     *
+     * @param config The [Config] used of path resolution.
+     * @return [QueryTarget]
+     *
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    private fun toQueryTarget(config: Config): QueryTarget = when (this.target) {
         is TaskDescriptionTarget.MediaSegmentTarget -> {
             val file = File(File(config.cachePath + "/tasks"), target.cacheItemName())
             FileInputStream(file).use { imageInFile ->
                 val fileData = ByteArray(file.length().toInt())
                 imageInFile.read(fileData)
-                QueryContent(video = listOf(QueryContentElement(Base64.getEncoder().encodeToString(fileData), "video/mp4")))
+                QueryTarget(this.id.string, listOf(QueryContentElement(Base64.getEncoder().encodeToString(fileData), ContentType.VIDEO)))
             }
         }
-        else -> throw IllegalStateException("transformation from ${target::javaClass} to QueryContent not implemented")
+        else -> throw IllegalStateException("Transformation from ${target::javaClass} to query harget currently not implemented.")
     }
 
     /** Prints an overview of the task to a provided stream */

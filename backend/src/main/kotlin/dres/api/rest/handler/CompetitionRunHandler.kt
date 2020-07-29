@@ -2,6 +2,7 @@ package dres.api.rest.handler
 
 import dres.api.rest.AccessManager
 import dres.api.rest.RestApiRole
+import dres.api.rest.types.query.QueryHint
 import dres.api.rest.types.run.RunInfo
 import dres.api.rest.types.run.RunState
 import dres.api.rest.types.status.ErrorStatus
@@ -9,7 +10,6 @@ import dres.api.rest.types.status.ErrorStatusException
 import dres.data.model.Config
 import dres.data.model.UID
 import dres.data.model.basics.media.MediaItem
-import dres.data.model.competition.QueryDescription
 import dres.data.model.competition.TaskGroup
 import dres.data.model.competition.TaskType
 import dres.data.model.competition.TaskDescription
@@ -250,7 +250,7 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
     }
 }
 
-class CurrentQueryHandler(private val config: Config) : AbstractCompetitionRunRestHandler(), GetRestHandler<QueryDescription> {
+class CurrentQueryHandler(private val config: Config) : AbstractCompetitionRunRestHandler(), GetRestHandler<QueryHint> {
 
     override val route = "run/:runId/query"
 
@@ -261,13 +261,13 @@ class CurrentQueryHandler(private val config: Config) : AbstractCompetitionRunRe
             tags = ["Competition Run"],
             pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(QueryDescription::class)]),
+                OpenApiResponse("200", [OpenApiContent(QueryHint::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): QueryDescription {
+    override fun doGet(ctx: Context): QueryHint {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.")
 

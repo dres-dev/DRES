@@ -194,7 +194,6 @@ export class CompetitionFormBuilder {
                 });
         }
 
-
         return new FormArray([new FormGroup({mediaItem: mediaItemFormControl})]);
     }
 
@@ -276,18 +275,28 @@ export class CompetitionFormBuilder {
      * Returns a new image item component {@link FormGroup}.
      *
      * @param index The position of the new {@link FormGroup} (for data source).
-     * @param component The {@link RestTaskDescriptionComponent} to populate data from.
+     * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
      */
-    private imageItemComponentForm(index: number, component?: RestTaskDescriptionComponent) {
-        const mediaItemFormControl =  new FormControl(component?.mediaItem, Validators.required);
-        if (!mediaItemFormControl.value && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
+    private imageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
+        const mediaItemFormControl =  new FormControl(null, Validators.required);
+        if (!initialize.mediaItem && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
             mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
         }
-
+        
+        /* Prepare data source. */
         this.dataSources.set(`components.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
             switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
+
+        /* Load media item from API. */
+        if (initialize?.mediaItem && this.data?.mediaCollectionId) {
+            this.collectionService.getApiCollectionWithCollectionidMediaWithMediaid(this.data?.mediaCollectionId, initialize.mediaItem)
+                .pipe(first()).subscribe(s => {
+                mediaItemFormControl.setValue(s);
+            });
+        }
+
         return new FormGroup({
             type: new FormControl('IMAGE_ITEM', [Validators.required]),
             mediaItem: mediaItemFormControl
@@ -298,13 +307,12 @@ export class CompetitionFormBuilder {
      * Returns a new video item component {@link FormGroup}.
      *
      * @param index The position of the new {@link FormGroup} (for data source).
-     * @param component The {@link RestTaskDescriptionComponent} to populate data from.
+     * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
      */
-    private videoItemComponentForm(index: number, component?: RestTaskDescriptionComponent) {
-
+    private videoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
         /* Initialize media item based on target. */
-        const mediaItemFormControl =  new FormControl(component?.mediaItem, Validators.required);
-        if (!mediaItemFormControl.value && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
+        const mediaItemFormControl =  new FormControl(null, Validators.required);
+        if (!initialize.mediaItem && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
             mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
         }
 
@@ -314,14 +322,22 @@ export class CompetitionFormBuilder {
             switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
 
+        /* Load media item from API. */
+        if (initialize?.mediaItem && this.data?.mediaCollectionId) {
+            this.collectionService.getApiCollectionWithCollectionidMediaWithMediaid(this.data?.mediaCollectionId, initialize.mediaItem)
+                .pipe(first()).subscribe(s => {
+                mediaItemFormControl.setValue(s);
+            });
+        }
+
         /* Prepare FormGroup. */
         const group = new FormGroup({
             type: new FormControl('VIDEO_ITEM_SEGMENT', [Validators.required]),
             mediaItem: mediaItemFormControl,
-            start: new FormControl(component?.range.start.value, [Validators.required, Validators.min(0)]),
-            end: new FormControl(component?.range.end.value, [Validators.required, Validators.min(0)]),
-            time_unit: new FormControl(component?.range.start.unit ?
-                component?.range.start.unit  : 'SECONDS', Validators.required)
+            start: new FormControl(initialize?.range.start.value, [Validators.required, Validators.min(0)]),
+            end: new FormControl(initialize?.range.end.value, [Validators.required, Validators.min(0)]),
+            time_unit: new FormControl(initialize?.range.start.unit ?
+                initialize?.range.start.unit  : 'SECONDS', Validators.required)
         });
 
         /* Initialize start, end and time unit based on target. */

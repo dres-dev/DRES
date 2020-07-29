@@ -69,8 +69,8 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
     private fun writeTaskDescriptionComponents(out: DataOutput2, components: List<TaskDescriptionComponent>){
         out.packInt(components.size)
         components.forEach {
-            out.packLong(it.start ?: -1)
-            out.packLong(it.end ?: -1)
+            out.packLong(it.start ?: -1L)
+            out.packLong(it.end ?: -1L)
             out.writeUTF(it.javaClass.name)
             when(it) {
                 is TaskDescriptionComponent.TextTaskDescriptionComponent -> {
@@ -123,29 +123,26 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
      * @return Deserialized [TaskDescriptionTarget]s.
      */
     private fun readTaskDescriptionComponents(input: DataInput2, available: Int, mediaItems: DAO<MediaItem>) : List<TaskDescriptionComponent> = (0 until input.unpackInt()).map {
-        val size = input.unpackInt()
-        return (0 until size).map {
-            val start = input.unpackLong().let { if (it == -1L) null else it  }
-            val end = input.unpackLong().let { if (it == -1L) null else it  }
-            val className = input.readUTF()
-            when(className) {
-                TaskDescriptionComponent.TextTaskDescriptionComponent::class.java.name -> {
-                    TaskDescriptionComponent.TextTaskDescriptionComponent(input.readUTF(), start, end)
-                }
-                TaskDescriptionComponent.VideoItemSegmentTaskDescriptionComponent::class.java.name-> {
-                    TaskDescriptionComponent.VideoItemSegmentTaskDescriptionComponent(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available), start, end)
-                }
-                TaskDescriptionComponent.ImageItemTaskDescriptionComponent::class.java.name -> {
-                    TaskDescriptionComponent.ImageItemTaskDescriptionComponent(mediaItems[input.readUID()]!! as MediaItem.ImageItem, start, end)
-                }
-                TaskDescriptionComponent.ExternalImageTaskDescriptionComponent::class.java.name -> {
-                    TaskDescriptionComponent.ExternalImageTaskDescriptionComponent(input.readUTF(), start, end)
-                }
-                TaskDescriptionComponent.ExternalVideoTaskDescriptionComponent::class.java.name -> {
-                    TaskDescriptionComponent.ExternalVideoTaskDescriptionComponent(input.readUTF(), start, end)
-                }
-                else -> throw IllegalArgumentException("Failed to deserialize $className; not implemented.")
+        val start = input.unpackLong().let { if (it == -1L) null else it  }
+        val end = input.unpackLong().let { if (it == -1L) null else it  }
+        val className = input.readUTF()
+        when(className) {
+            TaskDescriptionComponent.TextTaskDescriptionComponent::class.java.name -> {
+                TaskDescriptionComponent.TextTaskDescriptionComponent(input.readUTF(), start, end)
             }
+            TaskDescriptionComponent.VideoItemSegmentTaskDescriptionComponent::class.java.name-> {
+                TaskDescriptionComponent.VideoItemSegmentTaskDescriptionComponent(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available), start, end)
+            }
+            TaskDescriptionComponent.ImageItemTaskDescriptionComponent::class.java.name -> {
+                TaskDescriptionComponent.ImageItemTaskDescriptionComponent(mediaItems[input.readUID()]!! as MediaItem.ImageItem, start, end)
+            }
+            TaskDescriptionComponent.ExternalImageTaskDescriptionComponent::class.java.name -> {
+                TaskDescriptionComponent.ExternalImageTaskDescriptionComponent(input.readUTF(), start, end)
+            }
+            TaskDescriptionComponent.ExternalVideoTaskDescriptionComponent::class.java.name -> {
+                TaskDescriptionComponent.ExternalVideoTaskDescriptionComponent(input.readUTF(), start, end)
+            }
+            else -> throw IllegalArgumentException("Failed to deserialize $className; not implemented.")
         }
     }
 }

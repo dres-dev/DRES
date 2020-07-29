@@ -4,7 +4,7 @@ import {
     CompetitionOverview,
     CompetitionRunAdminService,
     CompetitionService,
-    CompetitionStart
+    CompetitionStartMessage
 } from '../../../../openapi';
 import {MatDialog} from '@angular/material/dialog';
 import {CompetitionCreateDialogComponent} from './competition-create-dialog.component';
@@ -55,7 +55,7 @@ export class CompetitionListComponent implements AfterViewInit {
             tap(r => this.waitingForRun = true),
             flatMap((r: CompetitionStartDialogResult) => {
                 return this.runAdminService.postApiRunAdminCreate(
-                    {competitionId: id, name: r.name, type: r.type, scoreboards: []} as CompetitionStart
+                    {competitionId: id, name: r.name, type: r.type, scoreboards: []} as CompetitionStartMessage
                 );
             })
         ).subscribe((r) => {

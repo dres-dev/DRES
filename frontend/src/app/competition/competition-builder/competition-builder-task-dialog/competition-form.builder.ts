@@ -282,7 +282,7 @@ export class CompetitionFormBuilder {
         if (!initialize.mediaItem && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
             mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
         }
-        
+
         /* Prepare data source. */
         this.dataSources.set(`components.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),

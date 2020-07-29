@@ -9,9 +9,16 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { VideoItemAllOf } from './videoItemAllOf';
+import { MediaItem } from './mediaItem';
 
 
 export interface VideoItem { 
+    collection: string;
+    name: string;
+    location: string;
+    id_HSBmXqg?: string;
+    id: string;
     durationMs: number;
     fps: number;
 }

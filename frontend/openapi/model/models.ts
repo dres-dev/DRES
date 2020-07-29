@@ -1,6 +1,6 @@
 export * from './competitionCreate';
 export * from './competitionOverview';
-export * from './competitionStart';
+export * from './competitionStartMessage';
 export * from './errorStatus';
 export * from './imageItem';
 export * from './judgement';

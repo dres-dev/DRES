@@ -17,7 +17,7 @@ import { HttpClient, HttpHeaders, HttpParams,
 import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
-import { CompetitionStart } from '../model/models';
+import { CompetitionStartMessage } from '../model/models';
 import { ErrorStatus } from '../model/models';
 import { SuccessStatus } from '../model/models';
 import { ViewerInfo } from '../model/models';
@@ -135,14 +135,14 @@ export class CompetitionRunAdminService {
 
     /**
      * Creates a new competition run from an existing competition
-     * @param competitionStart 
+     * @param competitionStartMessage 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postApiRunAdminCreate(competitionStart?: CompetitionStart, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public postApiRunAdminCreate(competitionStart?: CompetitionStart, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public postApiRunAdminCreate(competitionStart?: CompetitionStart, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public postApiRunAdminCreate(competitionStart?: CompetitionStart, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public postApiRunAdminCreate(competitionStartMessage?: CompetitionStartMessage, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiRunAdminCreate(competitionStartMessage?: CompetitionStartMessage, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiRunAdminCreate(competitionStartMessage?: CompetitionStartMessage, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiRunAdminCreate(competitionStartMessage?: CompetitionStartMessage, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
 
         let headers = this.defaultHeaders;
 
@@ -174,7 +174,7 @@ export class CompetitionRunAdminService {
         }
 
         return this.httpClient.post<SuccessStatus>(`${this.configuration.basePath}/api/run/admin/create`,
-            competitionStart,
+            competitionStartMessage,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

@@ -1,6 +1,7 @@
 package dres.api.rest.handler
 
 import dres.api.rest.RestApiRole
+import dres.api.rest.types.competition.CompetitionStartMessage
 import dres.api.rest.types.run.RunType
 import dres.api.rest.types.run.ViewerInfo
 import dres.api.rest.types.status.ErrorStatus
@@ -57,7 +58,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
             summary = "Creates a new competition run from an existing competition",
             path = "/api/run/admin/create",
             method = HttpMethod.POST,
-            requestBody = OpenApiRequestBody([OpenApiContent(CompetitionStart::class)]),
+            requestBody = OpenApiRequestBody([OpenApiContent(CompetitionStartMessage::class)]),
             tags = ["Competition Run Admin"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -68,12 +69,12 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
     override fun doPost(ctx: Context): SuccessStatus {
 
         val competitionStartMessage = try {
-            ctx.bodyAsClass(CompetitionStart::class.java)
+            ctx.bodyAsClass(CompetitionStartMessage::class.java)
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
 
-        val competitionToStart = this.competitionById(competitionStartMessage.competitionId)
+        val competitionToStart = this.competitionById(competitionStartMessage.competitionId.UID())
 
         /* ensure that only one synchronous run of a competition is happening at any given time */
         if(competitionStartMessage.type == RunType.SYNCHRONOUS && RunExecutor.managers().any {
@@ -118,30 +119,6 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
             return SuccessStatus("Competition '${competitionStartMessage.name}' was started and is running with ID ${manager.id}.")
         } catch (e: IllegalArgumentException) {
             throw ErrorStatusException(400, e.message ?: "Invalid parameters. This is a programmers error!")
-        }
-    }
-
-    data class CompetitionStart(val competitionId: UID, val name: String, val type: RunType, val scoreboards: Array<String>) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as CompetitionStart
-
-            if (competitionId != other.competitionId) return false
-            if (name != other.name) return false
-            if (type != other.type) return false
-            if (!scoreboards.contentEquals(other.scoreboards)) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = competitionId.hashCode()
-            result = 31 * result + name.hashCode()
-            result = 31 * result + type.hashCode()
-            result = 31 * result + scoreboards.contentHashCode()
-            return result
         }
     }
 }

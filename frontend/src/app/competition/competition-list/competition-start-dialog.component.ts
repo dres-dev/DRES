@@ -1,12 +1,12 @@
 import {Component} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
 import {MatDialogRef} from '@angular/material/dialog';
-import {CompetitionStart} from '../../../../openapi';
+import {CompetitionStartMessage} from '../../../../openapi';
 
 
 export interface CompetitionStartDialogResult {
     name: string;
-    type: CompetitionStart.TypeEnum;
+    type: CompetitionStartMessage.TypeEnum;
 }
 
 @Component({
@@ -15,7 +15,7 @@ export interface CompetitionStartDialogResult {
 })
 export class CompetitionStartDialogComponent {
     form: FormGroup = new FormGroup({name: new FormControl(''), type: new FormControl('')});
-    runTypes: CompetitionStart.TypeEnum[] = ['SYNCHRONOUS', 'ASYNCHRONOUS'];
+    runTypes: CompetitionStartMessage.TypeEnum[] = ['SYNCHRONOUS', 'ASYNCHRONOUS'];
 
     constructor(public dialogRef: MatDialogRef<CompetitionStartDialogComponent>) {}
 

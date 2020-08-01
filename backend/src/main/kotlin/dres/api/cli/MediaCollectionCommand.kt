@@ -17,10 +17,12 @@ import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.media.MediaItemSegment
 import dres.data.model.basics.media.MediaItemSegmentList
 import dres.data.model.basics.time.TemporalRange
+import dres.utilities.FFmpegUtil
 import dres.utilities.extensions.UID
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
+import java.util.concurrent.TimeUnit
 
 class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val segments: DAO<MediaItemSegmentList>) :
         NoOpCliktCommand(name = "collection") {
@@ -36,7 +38,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
     }
 
     init {
-        this.subcommands(CreateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), CheckCollectionCommand(), AddMediaItemCommand(), ExportCollectionCommand(), ImportCollectionCommand(), DeleteCollectionCommand(), ImportMediaSegmentsCommand())
+        this.subcommands(CreateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), CheckCollectionCommand(), ScanCollectionCommand(), AddMediaItemCommand(), ExportCollectionCommand(), ImportCollectionCommand(), DeleteCollectionCommand(), ImportMediaSegmentsCommand())
     }
 
     abstract inner class AbstractCollectionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {
@@ -152,7 +154,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                             body {
                                 collectionItems.forEach {
                                     row {
-                                        cell(it.id)
+                                        cell(it.id.string)
                                         cell(it.name)
                                         cell(it.location)
                                         when(it) {
@@ -219,6 +221,92 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
 
         }
+    }
+
+    inner class ScanCollectionCommand : AbstractCollectionCommand("scan", help = "Scans a collection directory and adds found items") {
+
+        val imageTypes by option("-it", "--imageType", help = "Image file types (endings) to be considered in the scan" ).multiple()
+        val videoTypes by option("-vt", "--videoType", help = "Video file types (endings) to be considered in the scan" ).multiple()
+
+        override fun run() {
+
+            val collectionId = this.actualCollectionId()
+            if (collectionId == null) {
+                println("Collection not found.")
+                return
+            }
+
+            val collection = this@MediaCollectionCommand.collections[collectionId]!!
+
+            if (imageTypes.isEmpty() && videoTypes.isEmpty()) {
+                println("No file types specified.")
+                return
+            }
+
+            val base = File(collection.basePath)
+            val files = base.walkTopDown().filter { it.isFile && (it.extension in imageTypes || it.extension in videoTypes) }
+
+            files.forEach {file ->
+
+                println("found ${file.absolutePath}")
+
+                val relativePath = file.relativeTo(base).path
+
+                val existing = this@MediaCollectionCommand.items.find { it.location == relativePath}
+
+                when {
+                    file.extension in imageTypes -> {
+
+                        if (existing == null) { //add
+                            val newItem = MediaItem.ImageItem(UID.EMPTY, file.nameWithoutExtension, relativePath, collection.id)
+                            this@MediaCollectionCommand.items.append(newItem)
+                            println("Added Image ${newItem.name}")
+                        } else { //skip
+                            println("Image ${existing.name} already present")
+                        }
+
+
+                    }
+                    file.extension in videoTypes -> {
+
+                        println("Analyzing ${file.absolutePath}")
+
+                        val result = FFmpegUtil.analyze(file.toPath()).streams.first()
+                        val fps = (result.rFrameRate ?: result.avgFrameRate!!).toFloat()
+                        val duration = result.getDuration(TimeUnit.MILLISECONDS).let {
+                            if (it != null) {
+                                it
+                            } else {
+                                println("Cannot read duration from file, counting frames")
+                                val analysis = FFmpegUtil.analyze(file.toPath(), countFrames = true)
+                                val frames = analysis.streams.first().nbReadFrames
+                                println("Counted $frames frames")
+                                ((frames * 1000) / fps).toLong()
+                            }
+                        }
+
+                        println("Found frame rate to be $fps frames per seconds and duration $duration ms")
+
+                        if (existing == null) { //add
+                            val newItem = MediaItem.VideoItem(UID.EMPTY, file.nameWithoutExtension, relativePath, collection.id, duration, fps)
+                            this@MediaCollectionCommand.items.append(newItem)
+                            println("Added Video ${newItem.name}")
+                        } else { //skip
+                            val newItem = MediaItem.VideoItem(existing.id, existing.name, relativePath, collection.id, duration, fps)
+                            this@MediaCollectionCommand.items.update(newItem)
+                            println("Updated Video ${newItem.name}")
+                        }
+
+                    }
+                }
+
+                println()
+
+            }
+
+        }
+
+
     }
 
     inner class DeleteCollectionCommand : AbstractCollectionCommand("delete", help = "Deletes a Collection") {

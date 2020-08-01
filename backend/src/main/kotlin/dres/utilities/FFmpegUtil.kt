@@ -1,9 +1,12 @@
 package dres.utilities
 
+import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
 import com.github.kokorin.jaffree.ffmpeg.FFmpegResult
 import com.github.kokorin.jaffree.ffmpeg.UrlInput
 import com.github.kokorin.jaffree.ffmpeg.UrlOutput
+import com.github.kokorin.jaffree.ffprobe.FFprobe
+import com.github.kokorin.jaffree.ffprobe.FFprobeResult
 import dres.data.model.competition.CachedVideoItem
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
@@ -132,5 +135,12 @@ object FFmpegUtil {
         extractSegment(input, "${range.first / 1000}", "${range.second / 1000}", output)
 
     }
+
+    fun analyze(videoPath: Path, countFrames: Boolean = false): FFprobeResult = FFprobe.atPath(ffmpegBin)
+            .setInput(videoPath)
+            .setShowStreams(true)
+            .setCountFrames(countFrames)
+            .setSelectStreams(StreamType.VIDEO)
+            .execute()
 
 }

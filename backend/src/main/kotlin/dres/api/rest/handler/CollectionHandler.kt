@@ -50,6 +50,109 @@ class ListCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaI
     override val route: String = "collection"
 }
 
+class AddCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), PostRestHandler<SuccessStatus> {
+
+    @OpenApi(
+            summary = "Adds a new media collection",
+            path = "/api/collection",
+            tags = ["Collection"],
+            method = HttpMethod.POST,
+            requestBody = OpenApiRequestBody([OpenApiContent(RestMediaCollection::class)]),
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doPost(ctx: Context): SuccessStatus {
+
+        val restCollection = try {
+            ctx.bodyAsClass(RestMediaCollection::class.java)
+        } catch (e: BadRequestResponse) {
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+        }
+
+        if (restCollection.basePath == null) {
+            throw ErrorStatusException(400, "Invalid parameters, collection base path not set.")
+        }
+
+        if (collections.find { it.name == restCollection.name } != null) {
+            throw ErrorStatusException(400, "Invalid parameters, collection with name ${restCollection.name} already exists.")
+        }
+
+        val collection = MediaCollection(UID.EMPTY, restCollection.name, restCollection.description, restCollection.basePath)
+        collections.append(collection)
+
+        return SuccessStatus("Collection added")
+
+    }
+
+    override val route: String = "collection"
+
+}
+
+class DeleteCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), DeleteRestHandler<SuccessStatus> {
+
+    @OpenApi(
+            summary = "Deletes a media collection",
+            path = "/api/collection/:collectionId",
+            tags = ["Collection"],
+            method = HttpMethod.DELETE,
+            requestBody = OpenApiRequestBody([OpenApiContent(RestMediaCollection::class)]),
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doDelete(ctx: Context): SuccessStatus {
+        val collection = collectionFromContext(ctx)
+
+        collections.delete(collection)
+
+        return SuccessStatus("Collection ${collection.id.string} deleted")
+    }
+
+    override val route: String = "collection/:collectionId"
+
+}
+
+class UpdateCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), PatchRestHandler<SuccessStatus> {
+
+    @OpenApi(
+            summary = "Updates a media collection",
+            path = "/api/collection",
+            tags = ["Collection"],
+            method = HttpMethod.PATCH,
+            requestBody = OpenApiRequestBody([OpenApiContent(RestMediaCollection::class)]),
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doPatch(ctx: Context): SuccessStatus {
+
+        val restCollection = try {
+            ctx.bodyAsClass(RestMediaCollection::class.java)
+        } catch (e: BadRequestResponse) {
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+        }
+
+        val collection = collections[restCollection.id.UID()]
+                ?: throw ErrorStatusException(400, "Invalid parameters, collection with ID ${restCollection.id} does not exist.")
+
+        val updatedcollection = MediaCollection(collection.id, restCollection.name, restCollection.description ?: collection.description, restCollection.basePath ?: collection.basePath)
+        collections.update(updatedcollection)
+
+        return SuccessStatus("Collection updated")
+
+    }
+
+    override val route: String = "collection"
+
+}
+
 class ShowCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), GetRestHandler<List<RestMediaItem>> {
 
     @OpenApi(

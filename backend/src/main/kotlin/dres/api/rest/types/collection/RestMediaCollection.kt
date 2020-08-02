@@ -13,7 +13,7 @@ import dres.utilities.extensions.UID
  * @author Ralph Gasser
  * @version 1.0
  */
-data class RestMediaCollection(val id: String, val name: String, val description: String? = null) {
+data class RestMediaCollection(val id: String, val name: String, val description: String? = null, val basePath: String? = null) {
     companion object {
         /**
          * Generates a [RestMediaItem] from a [TaskDescription] and returns it.

@@ -17,27 +17,36 @@ sealed class TaskDescriptionComponent(internal val contentType: ContentType) {
     abstract val start: Long?
     abstract val end: Long?
 
+    internal abstract fun textDescription(): String
+
 
     /**
      * A textual [TaskDescriptionComponent] consisting of a simple, textual description.
      */
-    data class TextTaskDescriptionComponent(val text: String, override val start: Long?, override val end: Long?) : TaskDescriptionComponent(ContentType.TEXT)
+    data class TextTaskDescriptionComponent(val text: String, override val start: Long?, override val end: Long?) : TaskDescriptionComponent(ContentType.TEXT) {
+        override fun textDescription(): String = "\"$text\" from ${start ?: "beginning"} to ${end ?: "end"}"
+    }
 
     /**
      * A visual [TaskDescriptionComponent] consisting of a single image  that is part of a collection maintained by DRES.
      */
-    data class ImageItemTaskDescriptionComponent(val item: MediaItem.ImageItem, override val start: Long?, override val end: Long?): TaskDescriptionComponent(ContentType.IMAGE)
+    data class ImageItemTaskDescriptionComponent(val item: MediaItem.ImageItem, override val start: Long?, override val end: Long?): TaskDescriptionComponent(ContentType.IMAGE) {
+        override fun textDescription(): String = "Image ${item.name} from ${start ?: "beginning"} to ${end ?: "end"}"
+    }
 
     /**
      * A visual [TaskDescriptionComponent] consisting of a segment of a video that is part of a collection maintained by DRES.
      */
-    data class VideoItemSegmentTaskDescriptionComponent(override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange, override val start: Long?, override val end: Long?) : TaskDescriptionComponent(ContentType.VIDEO), CachedVideoItem
+    data class VideoItemSegmentTaskDescriptionComponent(override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange, override val start: Long?, override val end: Long?) : TaskDescriptionComponent(ContentType.VIDEO), CachedVideoItem {
+        override fun textDescription(): String = "Video ${item.name} from ${start ?: "beginning"} to ${end ?: "end"}"
+    }
 
     /**
      * A visual [TaskDescriptionComponent] consisting of an external image provided by the user.
      */
     data class ExternalImageTaskDescriptionComponent(val imageLocation: String, override val start: Long?, override val end: Long?) : TaskDescriptionComponent(ContentType.IMAGE), FileTaskDescriptionComponent {
         override fun file(): File = File(imageLocation)
+        override fun textDescription(): String = "External Image at $imageLocation from ${start ?: "beginning"} to ${end ?: "end"}"
     }
 
     /*
@@ -45,6 +54,7 @@ sealed class TaskDescriptionComponent(internal val contentType: ContentType) {
      */
     data class ExternalVideoTaskDescriptionComponent(val videoLocation: String, override val start: Long?, override val end: Long?) : TaskDescriptionComponent(ContentType.VIDEO), FileTaskDescriptionComponent {
         override fun file(): File = File(videoLocation)
+        override fun textDescription(): String = "External Video at $videoLocation from ${start ?: "beginning"} to ${end ?: "end"}"
     }
 }
 

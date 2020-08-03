@@ -9,4 +9,6 @@ package dres.data.model.basics.time
  * @param value Value of the [TemporalPoint]
  * @param unit Unit of the [TemporalPoint]
  */
-data class TemporalPoint constructor(val value: Double, val unit: TemporalUnit)
+data class TemporalPoint constructor(val value: Double, val unit: TemporalUnit) {
+    fun niceText(): String = "$value ${unit.name.toLowerCase()}"
+}

@@ -134,8 +134,13 @@ class TaskDescription(
 
     /** Prints an overview of the task to a provided stream */
     fun printOverview(out: PrintStream) {
-        out.println(name)
-        //TODO
+        out.println("$name: ${taskGroup.name} (${taskType.name})")
+        out.println("Target: ${target.textDescription()}")
+        out.println("Components: (${components.size})")
+        components.sortedBy { it.start ?: 0}.forEach {
+            out.println(it.textDescription())
+        }
+        out.println()
     }
 
     /** Produces a Textual description of the content of the task if possible */

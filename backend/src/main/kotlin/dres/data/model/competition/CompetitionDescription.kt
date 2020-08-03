@@ -36,6 +36,8 @@ data class CompetitionDescription(
                 throw IllegalArgumentException("Duplicate team with name '${team.name}'!")
             }
         }
+
+        tasks.forEach { it.validate() }
     }
 
     /**

@@ -1,20 +1,23 @@
 import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Observable, timer} from 'rxjs';
-// import {TextQueryDescription, TextualDescription} from '../../../../openapi';
-import {concatMap, delayWhen, map, take, withLatestFrom} from 'rxjs/operators';
+import {Observable} from 'rxjs';
+import {filter, map} from 'rxjs/operators';
 import {AppConfig} from '../../app.config';
-import {fromArray} from 'rxjs/internal/observable/fromArray';
-import {AudioPlayerUtilities} from '../../utilities/audio-player.utilities';
+import {QueryContentElement} from '../../../../openapi';
 
 @Component({
     selector: 'app-text-query-object-preview',
-    templateUrl: './text-query-object-preview.component.html',
-    styleUrls: ['./text-query-object-preview.component.scss']
+    template: `
+        <div class="query-text-container">
+            <p class="query-text" [style.font-size]="fontSize+'em'" [style.text-align]="'center'" [style.line-height]="'1.5em'">{{currentText | async}}</p>
+        </div>
+    `
 })
 export class TextQueryObjectPreviewComponent implements OnInit, OnDestroy {
-    @Input() queryObject: Observable<any>; // <TextQueryDescription>;
-    @Input() timeElapsed: Observable<number>;
 
+    /** Observable of current {@link QueryContentElement} that should be displayed. */
+    @Input() queryContent: Observable<QueryContentElement>;
+
+    /** Current text to display. */
     currentText: Observable<string>;
 
     /** Font size in em. TODO: Make configurable. */
@@ -26,20 +29,9 @@ export class TextQueryObjectPreviewComponent implements OnInit, OnDestroy {
     constructor(public config: AppConfig) {}
 
     ngOnInit(): void {
-        this.currentText = this.timeElapsed.pipe(
-            take(1),
-            withLatestFrom(this.queryObject),
-            concatMap(([time, query]) => {
-                return fromArray(query.text).pipe(
-                    delayWhen<any>(t => timer(1000 * Math.max(0, (t.showAfter - time)))),
-                    map((t, i) => {
-                        if (i > 0) {
-                            AudioPlayerUtilities.playOnce('assets/audio/ding.ogg', this.audio.nativeElement);
-                        }
-                        return t.text;
-                    })
-                );
-            })
+        this.currentText = this.queryContent.pipe(
+            filter(q => q.contentType === 'TEXT'),
+            map(q => q.content)
         );
     }
 

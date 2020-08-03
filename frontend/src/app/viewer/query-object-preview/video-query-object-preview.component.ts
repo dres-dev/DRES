@@ -2,7 +2,7 @@ import {Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
 import {Observable} from 'rxjs';
 import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
 import {filter, map} from 'rxjs/operators';
-//import {VideoQueryDescription} from '../../../../openapi';
+import {QueryContentElement, QueryHint} from '../../../../openapi';
 
 @Component({
     selector: 'app-video-query-object-preview',
@@ -12,9 +12,15 @@ import {filter, map} from 'rxjs/operators';
 })
 export class VideoQueryObjectPreviewComponent implements OnInit {
 
-    @Input() muteAfter = 0;
-    @Input() queryObject: Observable<any> // <VideoQueryDescription>;
+    /** Observable of current {@link QueryContentElement} that should be displayed. Provided by user of this component. */
+    @Input() queryObject: Observable<QueryContentElement>;
+
+    /** Flag indicating whether video player should be muted or not. Can be provided by a user of this component. */
     @Input() muted = true;
+
+    /** Indicates after how many repetitions the video player should be muted (default = 1). Can be provided by a user of this component. */
+    @Input() muteAfter = 1;
+
     @ViewChild('player') player: ElementRef<HTMLVideoElement>;
     videoUrl: Observable<SafeUrl>;
     numberOfLoops = 0;
@@ -40,8 +46,8 @@ export class VideoQueryObjectPreviewComponent implements OnInit {
 
     ngOnInit(): void {
         this.videoUrl = this.queryObject.pipe(
-            filter(q => q?.video != null),
-            map(q => this.sanitizer.bypassSecurityTrustUrl(VideoQueryObjectPreviewComponent.base64ToUrl(q.video, q.contentType)))
+            filter(q => q.contentType === 'VIDEO'),
+            map(q => this.sanitizer.bypassSecurityTrustUrl(VideoQueryObjectPreviewComponent.base64ToUrl(q.content, 'video/mp4')))
         );
     }
 
@@ -56,7 +62,9 @@ export class VideoQueryObjectPreviewComponent implements OnInit {
      * Handles end of playback in video player. Mutes video and exists fullscreen mode (if enabled). Then restarts playback.
      */
     public handleEnded() {
-        this.muted = (this.numberOfLoops >= this.muteAfter);
-        this.player.nativeElement.play().then(s => this.numberOfLoops += 1);
+        this.player.nativeElement.play().then(s => {
+            this.numberOfLoops += 1;
+            this.muted = (this.numberOfLoops >= this.muteAfter);
+        });
     }
 }

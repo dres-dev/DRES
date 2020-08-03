@@ -1,6 +1,7 @@
 package dres.api.rest.handler
 
 import dres.api.rest.RestApiRole
+import dres.api.rest.types.collection.RestFullMediaCollection
 import dres.api.rest.types.collection.RestMediaCollection
 import dres.api.rest.types.collection.RestMediaItem
 import dres.api.rest.types.status.ErrorStatus
@@ -38,7 +39,7 @@ class ListCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaI
 
     @OpenApi(
             summary = "Lists all available media collections with basic information about their content.",
-            path = "/api/collection",
+            path = "/api/collection/list",
             tags = ["Collection"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<RestMediaCollection>::class)]),
@@ -47,7 +48,7 @@ class ListCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaI
     )
     override fun doGet(ctx: Context) = this.collections.map { RestMediaCollection.fromMediaCollection(it) }
 
-    override val route: String = "collection"
+    override val route: String = "collection/list"
 }
 
 class AddCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), PostRestHandler<SuccessStatus> {
@@ -139,7 +140,7 @@ class UpdateCollectionHandler(collections: DAO<MediaCollection>, items: DAO<Medi
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
 
-        val collection = collections[restCollection.id.UID()]
+        val collection = collections[restCollection.id!!.UID()]
                 ?: throw ErrorStatusException(400, "Invalid parameters, collection with ID ${restCollection.id} does not exist.")
 
         val updatedcollection = MediaCollection(collection.id, restCollection.name, restCollection.description ?: collection.description, restCollection.basePath ?: collection.basePath)
@@ -153,7 +154,7 @@ class UpdateCollectionHandler(collections: DAO<MediaCollection>, items: DAO<Medi
 
 }
 
-class ShowCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), GetRestHandler<List<RestMediaItem>> {
+class ShowCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), GetRestHandler<RestFullMediaCollection> {
 
     @OpenApi(
             summary = "Shows the content of the specified media collection.",
@@ -161,14 +162,15 @@ class ShowCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaI
             pathParams = [OpenApiParam("collectionId", UID::class, "Collection ID")],
             tags = ["Collection"],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<RestMediaItem>::class)]),
+                OpenApiResponse("200", [OpenApiContent(RestFullMediaCollection::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): List<RestMediaItem> {
+    override fun doGet(ctx: Context): RestFullMediaCollection {
         val collection = collectionFromContext(ctx) //also checks if collection exists
-        return items.filter { it.collection == collection.id }.map { RestMediaItem.fromMediaItem(it) }
+        val items = items.filter { it.collection == collection.id }.map { RestMediaItem.fromMediaItem(it) }
+        return RestFullMediaCollection(RestMediaCollection.fromMediaCollection(collection), items);
     }
 
     override val route: String = "collection/:collectionId"

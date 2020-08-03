@@ -13,7 +13,6 @@ export class CollectionListComponent implements AfterViewInit {
 
     displayedColumns = ['actions', 'id', 'name', 'description', 'basePath'];
     collections: RestMediaCollection[] = [];
-    void;
 
     constructor(
         private collectionService: CollectionService,
@@ -24,7 +23,7 @@ export class CollectionListComponent implements AfterViewInit {
     }
 
     refresh() {
-        this.collectionService.getApiCollection().subscribe((results: RestMediaCollection[]) => {
+        this.collectionService.getApiCollectionList().subscribe((results: RestMediaCollection[]) => {
             this.collections = results;
         }, (r) => {
           this.collections = [];

@@ -52,7 +52,7 @@ export class CompetitionBuilderTaskDialogComponent {
 
         this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.data.task);
         this.form = this.builder.form;
-        this.mediaCollectionSource = this.collectionService.getApiCollection();
+        this.mediaCollectionSource = this.collectionService.getApiCollectionList();
     }
 
     /**

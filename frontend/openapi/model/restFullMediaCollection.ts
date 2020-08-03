@@ -9,12 +9,12 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { RestMediaItem } from './restMediaItem';
+import { RestMediaCollection } from './restMediaCollection';
 
 
-export interface RestMediaCollection { 
-    id?: string;
-    name: string;
-    description?: string;
-    basePath?: string;
+export interface RestFullMediaCollection { 
+    collection: RestMediaCollection;
+    items: Array<RestMediaItem>;
 }
 

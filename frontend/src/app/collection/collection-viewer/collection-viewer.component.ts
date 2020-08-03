@@ -14,7 +14,7 @@ import {AppConfig} from '../../app.config';
 })
 export class CollectionViewerComponent implements OnInit, OnDestroy {
 
-    displayedColumns = ['actions', 'id', 'name', 'type', 'durationMs', 'fps'];
+    displayedColumns = ['actions', 'id', 'name', 'location', 'type', 'durationMs', 'fps'];
 
     collectionId: Observable<string>;
     collection: Observable<RestFullMediaCollection>;

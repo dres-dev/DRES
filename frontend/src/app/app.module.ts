@@ -28,6 +28,9 @@ import { CollectionListComponent } from './collection/collection-list/collection
 import {MatListModule} from '@angular/material/list';
 import {MatTableModule} from '@angular/material/table';
 import { CollectionViewerComponent } from './collection/collection-viewer/collection-viewer.component';
+import { MediaItemBuilderDialogComponent } from './collection/collection-builder/media-item-builder-dialog/media-item-builder-dialog.component';
+import { CollectionBuilderDialogComponent } from './collection/collection-builder/collection-builder-dialog/collection-builder-dialog.component';
+import {MatDialogModule} from '@angular/material/dialog';
 
 
 /**
@@ -40,7 +43,7 @@ export function initializeApp(appConfig: AppConfig) {
 }
 
 @NgModule({
-  declarations: [AppComponent, CollectionListComponent, CollectionViewerComponent],
+  declarations: [AppComponent, CollectionListComponent, CollectionViewerComponent, MediaItemBuilderDialogComponent, CollectionBuilderDialogComponent],
     imports: [
         BrowserModule,
         AppRoutingModule,
@@ -65,7 +68,8 @@ export function initializeApp(appConfig: AppConfig) {
         RunModule,
         JudgementModule,
         MatListModule,
-        MatTableModule
+        MatTableModule,
+        MatDialogModule
     ],
   providers: [
       AppConfig,

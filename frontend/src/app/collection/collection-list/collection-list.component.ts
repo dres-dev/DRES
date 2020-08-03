@@ -2,7 +2,9 @@ import {AfterViewInit, Component} from '@angular/core';
 import {CollectionService, RestMediaCollection} from '../../../../openapi';
 import {Router} from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {MatDialog} from '@angular/material/dialog';
+import {MatDialog, MatDialogConfig} from '@angular/material/dialog';
+import {CollectionBuilderDialogComponent} from '../collection-builder/collection-builder-dialog/collection-builder-dialog.component';
+import {filter, flatMap} from 'rxjs/operators';
 
 @Component({
     selector: 'app-collection-list',
@@ -26,19 +28,54 @@ export class CollectionListComponent implements AfterViewInit {
         this.collectionService.getApiCollectionList().subscribe((results: RestMediaCollection[]) => {
             this.collections = results;
         }, (r) => {
-          this.collections = [];
-          this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+            this.collections = [];
+            this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
         });
     }
 
     ngAfterViewInit(): void {
-      this.refresh();
+        this.refresh();
     }
 
-    create(){}
+    create(id: string = null) {
+        const config = {width: '500px'} as MatDialogConfig<RestMediaCollection>;
+        if (id) {
+            config.data = this.collections.find(c => c.id === id);
+        } else {
+            config.data = null;
+        }
+        const dialogRef = this.dialog.open(CollectionBuilderDialogComponent, config);
+        dialogRef.afterClosed().pipe(
+            filter(r => r != null),
+            flatMap((r: RestMediaCollection) => {
+                if (id) {
+                    return this.collectionService.patchApiCollection(r);
+                } else {
+                    return this.collectionService.postApiCollection(r);
 
-    edit(id: string){}
+                }
+            })
+        ).subscribe((r) => {
+            this.refresh();
+            this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
+        }, (r) => {
+            this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+        });
+    }
 
-    delete(id: string){}
+    edit(id: string) {
+        this.create(id);
+    }
+
+    delete(id: string) {
+        if (confirm(`Do you really want to delete collection with ID ${id}?`)) {
+            this.collectionService.deleteApiCollectionWithCollectionid(id).subscribe((r) => {
+                this.refresh();
+                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
+            }, (r) => {
+                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+            });
+        }
+    }
 
 }

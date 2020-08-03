@@ -19,6 +19,7 @@ import { Observable }                                        from 'rxjs';
 
 import { ErrorStatus } from '../model/models';
 import { MediaItem } from '../model/models';
+import { RestFullMediaCollection } from '../model/models';
 import { RestMediaCollection } from '../model/models';
 import { RestMediaItem } from '../model/models';
 import { SuccessStatus } from '../model/models';
@@ -149,10 +150,10 @@ export class CollectionService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiCollection(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<RestMediaCollection>>;
-    public getApiCollection(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<RestMediaCollection>>>;
-    public getApiCollection(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<RestMediaCollection>>>;
-    public getApiCollection(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getApiCollectionList(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<RestMediaCollection>>;
+    public getApiCollectionList(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<RestMediaCollection>>>;
+    public getApiCollectionList(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<RestMediaCollection>>>;
+    public getApiCollectionList(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
 
         let headers = this.defaultHeaders;
 
@@ -174,7 +175,7 @@ export class CollectionService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<Array<RestMediaCollection>>(`${this.configuration.basePath}/api/collection`,
+        return this.httpClient.get<Array<RestMediaCollection>>(`${this.configuration.basePath}/api/collection/list`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
@@ -191,9 +192,9 @@ export class CollectionService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiCollectionWithCollectionid(collectionId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<RestMediaItem>>;
-    public getApiCollectionWithCollectionid(collectionId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<RestMediaItem>>>;
-    public getApiCollectionWithCollectionid(collectionId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<RestMediaItem>>>;
+    public getApiCollectionWithCollectionid(collectionId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<RestFullMediaCollection>;
+    public getApiCollectionWithCollectionid(collectionId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<RestFullMediaCollection>>;
+    public getApiCollectionWithCollectionid(collectionId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<RestFullMediaCollection>>;
     public getApiCollectionWithCollectionid(collectionId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (collectionId === null || collectionId === undefined) {
             throw new Error('Required parameter collectionId was null or undefined when calling getApiCollectionWithCollectionid.');
@@ -219,7 +220,7 @@ export class CollectionService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<Array<RestMediaItem>>(`${this.configuration.basePath}/api/collection/${encodeURIComponent(String(collectionId))}`,
+        return this.httpClient.get<RestFullMediaCollection>(`${this.configuration.basePath}/api/collection/${encodeURIComponent(String(collectionId))}`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

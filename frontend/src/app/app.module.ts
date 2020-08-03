@@ -24,6 +24,10 @@ import {AppConfig} from './app.config';
 import {UserModule} from './user/user.module';
 import {JudgementModule} from './judgement/judgement.module';
 import {AccessRoleService} from './services/session/access-role.service';
+import { CollectionListComponent } from './collection/collection-list/collection-list.component';
+import {MatListModule} from '@angular/material/list';
+import {MatTableModule} from '@angular/material/table';
+import { CollectionViewerComponent } from './collection/collection-viewer/collection-viewer.component';
 
 
 /**
@@ -36,7 +40,7 @@ export function initializeApp(appConfig: AppConfig) {
 }
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [AppComponent, CollectionListComponent, CollectionViewerComponent],
     imports: [
         BrowserModule,
         AppRoutingModule,
@@ -59,7 +63,9 @@ export function initializeApp(appConfig: AppConfig) {
         CompetitionModule,
         ViewerModule,
         RunModule,
-        JudgementModule
+        JudgementModule,
+        MatListModule,
+        MatTableModule
     ],
   providers: [
       AppConfig,

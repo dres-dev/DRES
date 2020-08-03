@@ -1,6 +1,17 @@
 <h1>Details Media Collection: "{{(collection | async)?.collection.name}}"
-    ({{collectionId | async}})
+    ({{(collectionId | async).substr(0,8)}})
 </h1>
+<div style="display: flex;">
+    <!-- <div><b>Name:</b>{{(collection | async).collection.name}}</div> -->
+    <div>
+        <b>Description: </b>{{(collection | async).collection?.description}}<br />
+        <b>Base Path: </b>{{(collection | async).collection?.basePath}}
+    </div>
+    <div class="spacer-flex"></div>
+    <div>
+        <b>Items: </b>{{(collection | async).items.length}}
+    </div>
+</div>
 <div>
     <table mat-table [dataSource]="mediaItems" style="width: 100%;">
         <!-- Column Defs -->
@@ -8,7 +19,7 @@
         <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Actions</th>
             <td mat-cell *matCellDef="let row">
-                <button mat-icon-button aria-label="Show media item." matTooltip="Show media item" (click)="show(row.name)">
+                <button mat-icon-button aria-label="Show media item." matTooltip="Show media item" (click)="show(row.id)">
                     <mat-icon>visibility</mat-icon>
                 </button>
                 <button mat-icon-button aria-label="Edit collection." matTooltip="Edit media item." (click)="edit(row.id)">

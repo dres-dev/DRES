@@ -31,7 +31,7 @@
     <!-- id col -->
     <ng-container matColumnDef="id">
       <th mat-header-cell *matHeaderCellDef>ID</th>
-      <td mat-cell *matCellDef="let row">{{row.id}}</td>
+      <td mat-cell *matCellDef="let row">{{row.id.substring(0,8)}}</td>
     </ng-container>
 
     <!-- name col -->

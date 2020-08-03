@@ -12,7 +12,7 @@ import dres.utilities.extensions.UID
  * @author Ralph Gasser
  * @version 1.0
  */
-data class RestMediaItem(val id: String, val name: String, val type: RestMediaItemType, val collectionId: String, val durationMs: Long? = null, val fps: Float? = null) {
+data class RestMediaItem(val id: String, val name: String, val type: RestMediaItemType, val collectionId: String, val location: String, val durationMs: Long? = null, val fps: Float? = null) {
     companion object {
         /**
          * Generates a [RestMediaItem] from a [TaskDescription] and returns it.
@@ -20,8 +20,8 @@ data class RestMediaItem(val id: String, val name: String, val type: RestMediaIt
          * @param task The [TaskDescription] to convert.
          */
         fun fromMediaItem(item: MediaItem) = when (item) {
-            is MediaItem.ImageItem -> RestMediaItem(item.id.string, item.name, RestMediaItemType.IMAGE, item.collection.string)
-            is MediaItem.VideoItem -> RestMediaItem(item.id.string, item.name,RestMediaItemType.VIDEO, item.collection.string, item.durationMs, item.fps)
+            is MediaItem.ImageItem -> RestMediaItem(item.id.string, item.name, RestMediaItemType.IMAGE, item.collection.string, item.location)
+            is MediaItem.VideoItem -> RestMediaItem(item.id.string, item.name,RestMediaItemType.VIDEO, item.collection.string, item.location, item.durationMs, item.fps)
         }
     }
 
@@ -31,5 +31,10 @@ data class RestMediaItem(val id: String, val name: String, val type: RestMediaIt
      *
      * @param mediaItems The [DAO] to perform lookups
      */
-    fun toMediaItem(mediaItems: DAO<MediaItem>) = mediaItems[this.id.UID()]
+    fun lookup(mediaItems: DAO<MediaItem>) = mediaItems[this.id.UID()]
+
+    fun toMediaItem(): MediaItem = when(type){
+        RestMediaItemType.IMAGE -> MediaItem.ImageItem(id.UID(), name, location, collectionId.UID())
+        RestMediaItemType.VIDEO -> MediaItem.VideoItem(id.UID(), name, location, collectionId.UID(), durationMs!!, fps!!)
+    }
 }

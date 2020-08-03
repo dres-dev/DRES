@@ -2,10 +2,11 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {CollectionService, RestFullMediaCollection, RestMediaItem} from '../../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {MatDialog} from '@angular/material/dialog';
+import {MatDialog, MatDialogConfig} from '@angular/material/dialog';
 import {Observable, of, Subscription} from 'rxjs';
-import {catchError, filter, map, retry, shareReplay, switchMap} from 'rxjs/operators';
+import {catchError, filter, flatMap, map, retry, shareReplay, switchMap} from 'rxjs/operators';
 import {AppConfig} from '../../app.config';
+import {MediaItemBuilderDialogComponent} from '../collection-builder/media-item-builder-dialog/media-item-builder-dialog.component';
 
 @Component({
     selector: 'app-collection-viewer',
@@ -60,30 +61,63 @@ export class CollectionViewerComponent implements OnInit, OnDestroy {
     }
 
     delete(id: string) {
-
+        // FIXME
+        /*if (confirm(`Do you really want to delete media item with ID ${id}?`)) {
+            this.collectionService.deleteApiMediaitemWithCollectionid().subscribe((r) => {
+                this.refresh();
+                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
+            }, (r) => {
+                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+            });
+        }*/
     }
 
     edit(id: string) {
-
+        this.create(id);
     }
 
     ngOnDestroy(): void {
         this.itemsSub.unsubscribe();
     }
 
+    show(id: string) {
+        this.collectionId.subscribe((collectionId) => {
+            window.open(this.mediaUrlForItem(collectionId, id), '_blank');
+        });
+    }
+
+    create(id?: string) {
+        const config = {width: '500px'} as MatDialogConfig<RestMediaItem>;
+        if (id) {
+            config.data = this.mediaItems.find(it => it.id === id);
+        } else {
+            config.data = null;
+        }
+        const dialogRef = this.dialog.open(MediaItemBuilderDialogComponent, config);
+        dialogRef.afterClosed().pipe(
+            filter(r => r != null),
+            flatMap((r: RestMediaItem) => {
+                if (id) {
+                    // return this.collectionService.patchApiMediaitem(r);
+                    return this.collectionService.postApiMediaitem(r); // FIXME to keep compiler happy
+                } else {
+                    return this.collectionService.postApiMediaitem(r);
+                }
+            })
+        ).subscribe((r) => {
+            this.refresh();
+            this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
+        }, (r) => {
+            this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+        });
+    }
+
     /**
      * Builds the routerLink array for the given id
      */
     private mediaUrlForItem(collectionId: string, id: string) {
-
         const url = this.config.resolveApiUrl(`media/${collectionId}/${id}`);
         console.log(url);
         return url;
-    }
-
-    show(id: string) {
-        this.collectionId.subscribe((collectionid) => {
-            window.open(this.mediaUrlForItem(collectionid, id), '_blank');
-        });
     }
 }

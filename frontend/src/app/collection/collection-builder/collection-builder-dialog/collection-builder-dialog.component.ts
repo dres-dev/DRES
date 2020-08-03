@@ -27,7 +27,7 @@ export class CollectionBuilderDialogComponent implements OnInit {
     }
 
     isEditing(): boolean {
-        return this.data !== undefined;
+        return this.data?.id !== undefined;
     }
 
     /**

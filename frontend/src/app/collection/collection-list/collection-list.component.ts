@@ -37,7 +37,7 @@ export class CollectionListComponent implements AfterViewInit {
         this.refresh();
     }
 
-    create(id: string = null) {
+    create(id?: string) {
         const config = {width: '500px'} as MatDialogConfig<RestMediaCollection>;
         if (id) {
             config.data = this.collections.find(c => c.id === id);

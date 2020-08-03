@@ -31,6 +31,7 @@ import { CollectionViewerComponent } from './collection/collection-viewer/collec
 import { MediaItemBuilderDialogComponent } from './collection/collection-builder/media-item-builder-dialog/media-item-builder-dialog.component';
 import { CollectionBuilderDialogComponent } from './collection/collection-builder/collection-builder-dialog/collection-builder-dialog.component';
 import {MatDialogModule} from '@angular/material/dialog';
+import {MatSelectModule} from '@angular/material/select';
 
 
 /**
@@ -69,7 +70,8 @@ export function initializeApp(appConfig: AppConfig) {
         JudgementModule,
         MatListModule,
         MatTableModule,
-        MatDialogModule
+        MatDialogModule,
+        MatSelectModule
     ],
   providers: [
       AppConfig,

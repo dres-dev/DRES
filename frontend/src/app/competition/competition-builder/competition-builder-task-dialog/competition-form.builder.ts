@@ -312,7 +312,7 @@ export class CompetitionFormBuilder {
     private videoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
         /* Initialize media item based on target. */
         const mediaItemFormControl =  new FormControl(null, Validators.required);
-        if (!initialize.mediaItem && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
+        if (!initialize?.mediaItem && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
             mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
         }
 

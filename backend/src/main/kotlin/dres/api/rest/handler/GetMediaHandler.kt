@@ -6,6 +6,7 @@ import dres.data.dbo.DaoIndexer
 import dres.data.model.UID
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
+import dres.utilities.extensions.UID
 import dres.utilities.extensions.errorResponse
 import dres.utilities.extensions.streamFile
 import io.javalin.http.Context
@@ -41,7 +42,7 @@ class GetMediaHandler(private val collections: DAO<MediaCollection>, private val
             return
         }
 
-        val collectionUid = UID(params["collection"]!!)
+        val collectionUid = params["collection"]!!.UID()
         val collection = collectionCache[collectionUid].firstOrNull() //collections.find { it.name == collectionName }
 
         if (collection == null) {
@@ -49,7 +50,7 @@ class GetMediaHandler(private val collections: DAO<MediaCollection>, private val
             return
         }
 
-        val itemUid = UID(params["item"]!!)
+        val itemUid = params["item"]!!.UID()
         val item = itemCache[collection.id to itemUid].firstOrNull()//items.find { it.collection == collection.id && it.name == itemName }
 
         if (item == null) {

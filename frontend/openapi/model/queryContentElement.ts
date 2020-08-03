@@ -13,8 +13,17 @@
 
 export interface QueryContentElement { 
     content: string;
-    contentType: string;
+    contentType: QueryContentElement.ContentTypeEnum;
     offset: number;
-    maxDuration?: number;
+    duration?: number;
 }
+export namespace QueryContentElement {
+    export type ContentTypeEnum = 'TEXT' | 'VIDEO' | 'IMAGE';
+    export const ContentTypeEnum = {
+        TEXT: 'TEXT' as ContentTypeEnum,
+        VIDEO: 'VIDEO' as ContentTypeEnum,
+        IMAGE: 'IMAGE' as ContentTypeEnum
+    };
+}
+
 

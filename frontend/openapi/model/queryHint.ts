@@ -9,12 +9,12 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { QueryContentElement } from './queryContentElement';
 
 
-export interface RestMediaCollection { 
-    id: string;
-    name: string;
-    description?: string;
-    basePath?: string;
+export interface QueryHint { 
+    taskId: string;
+    sequence: Array<QueryContentElement>;
+    loop: boolean;
 }
 

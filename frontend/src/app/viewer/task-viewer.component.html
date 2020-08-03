@@ -21,12 +21,12 @@
         </h2>
 
         <div *ngIf="(state | async)?.status === 'RUNNING_TASK'">
-            <app-video-query-object-preview *ngIf="(currentQueryObject | async)?.type === 'VIDEO'" [queryObject]="currentQueryObject" [muted]="(config.configAsObservable | async).effects.mute"></app-video-query-object-preview>
-            <app-text-query-object-preview *ngIf="(currentQueryObject | async)?.type === 'TEXT'" [queryObject]="currentQueryObject" [timeElapsed]="timeElapsed"></app-text-query-object-preview>
+            <app-video-query-object-preview *ngIf="(currentQueryContentElement | async)?.contentType === 'VIDEO'" [queryObject]="currentQueryContentElement" [muted]="(config.configAsObservable | async).effects.mute"></app-video-query-object-preview>
+            <app-text-query-object-preview *ngIf="(currentQueryContentElement | async)?.contentType === 'TEXT'" [queryContent]="currentQueryContentElement"></app-text-query-object-preview>
         </div>
 
         <div *ngIf="(state | async)?.status === 'TASK_ENDED'">
-            <app-video-query-object-preview *ngIf="(currentQueryObject | async) && (currentQueryObject | async)['video']" [queryObject]="currentQueryObject" [muted]="true"></app-video-query-object-preview>
+           <!-- <app-video-query-object-preview *ngIf="(currentQueryHint | async) && (currentQueryHint | async)['video']" [queryObject]="currentQueryHint" [muted]="true"></app-video-query-object-preview> -->
         </div>
 
         <audio #audio [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>

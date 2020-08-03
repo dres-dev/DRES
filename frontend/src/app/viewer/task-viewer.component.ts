@@ -6,8 +6,7 @@ import {
 import {combineLatest, interval, Observable, of, timer, zip} from 'rxjs';
 import {
     catchError,
-    concatMap,
-    delayWhen,
+    concatMap, delayWhen,
     filter,
     flatMap,
     map,
@@ -109,14 +108,14 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
         this.currentQueryContentElement = this.timeElapsed.pipe(
             take(1),
             withLatestFrom(this.currentQueryHint),
-            concatMap(([time, hint]) => {
+            concatMap(([time, hint]: [number, QueryHint], i) => {
                 return fromArray(hint.sequence).pipe(
-                    delayWhen<any>(t => timer(1000 * Math.max(0, (t.offset - time)))),
-                    map((t, i) => {
-                        if (i > 0) {
+                    delayWhen<any>(c => timer(1000 * Math.max(0, (c.offset - time)))),
+                    map((t, index) => {
+                        if (index > 0) {
                             AudioPlayerUtilities.playOnce('assets/audio/ding.ogg', this.audio.nativeElement);
                         }
-                        return t.text;
+                        return t;
                     })
                 );
             })

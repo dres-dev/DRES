@@ -15,6 +15,10 @@
         <mat-icon>people</mat-icon>
     </button>
 
+    <button *ngIf="isAdmin | async" mat-icon-button aria-label="Media Collection management" matTooltip="Media collection management" routerLink="/collection/list">
+        <mat-icon>perm_media</mat-icon>
+    </button>
+
 
     <div class="spacer-flex"></div>
 

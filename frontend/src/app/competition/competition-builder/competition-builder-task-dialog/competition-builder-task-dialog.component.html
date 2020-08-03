@@ -86,11 +86,11 @@
                     <button *ngFor="let compType of data.taskType.components" mat-menu-item (click)="addQueryComponent(compType)">Add {{compType | titlecase}}</button>
                 </mat-menu>
             </h2>
-            <div *ngFor="let description of form.get('components')['controls']; let i = index" style="display: flex">
+            <div *ngFor="let descriptionComponent of form.get('components')['controls']; let i = index" style="display: flex">
                 <div style="flex-basis: 100%; flex-grow: 1">
                     <p>
-                        <mat-form-field style="width: 55%;" *ngIf="description.get('mediaItem')">
-                            <input type="text" matInput placeholder="Media item" [formControl]="description.get('mediaItem')" [matAutocomplete]="autoGroup">
+                        <mat-form-field style="width: 55%;" *ngIf="descriptionComponent.get('mediaItem')">
+                            <input type="text" matInput placeholder="Media item" [formControl]="descriptionComponent.get('mediaItem')" [matAutocomplete]="autoGroup">
                             <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">
                                 <mat-option *ngFor="let mediaItem of (this.builder.dataSource('components.' + i + '.mediaItem') | async)" [value]="mediaItem">
                                     <span>{{mediaItem.name}}</span> |
@@ -100,22 +100,22 @@
                         </mat-form-field>
                     </p>
 
-                    <p *ngIf="description.get('start') && description.get('end')">
+                    <p *ngIf="descriptionComponent.get('start') && descriptionComponent.get('end')">
                         <mat-form-field style="width: 30%;">
-                            <input type="number" matInput placeholder="Segment start" [formControl]="description.get('start')"/>
+                            <input type="number" matInput placeholder="Segment start" [formControl]="descriptionComponent.get('start')"/>
                         </mat-form-field>
                         <mat-form-field style="width: 30%;">
-                            <input type="number" matInput placeholder="Segment end" [formControl]="description.get('end')"/>
+                            <input type="number" matInput placeholder="Segment end" [formControl]="descriptionComponent.get('end')"/>
                         </mat-form-field>
                         <mat-form-field style="width: 40%;">
-                            <select matNativeControl [formControl]="description.get('time_unit')">
+                            <select matNativeControl [formControl]="descriptionComponent.get('time_unit')">
                                 <option *ngFor="let unit of units" [value]="unit">{{unit}}</option>
                             </select>
                             <span matSuffix>
                             <button mat-icon-button
                                     aria-label="Show media item."
                                     matTooltip="Show media item."
-                                    [disabled]="!description.get('mediaItem').value && !description.get('start').value && !description.get('end').value"
+                                    [disabled]="!descriptionComponent.get('mediaItem').value && !descriptionComponent.get('start').value && !descriptionComponent.get('end').value"
                                     (click)="toggleVideoPlayer()" >
                                 <mat-icon>remove_red_eye</mat-icon>
                             </button>
@@ -123,9 +123,9 @@
                         </mat-form-field>
                     </p>
 
-                    <p *ngIf="description.get('description')">
+                    <p *ngIf="descriptionComponent.get('description')">
                         <mat-form-field style="width: 100%;">
-                            <textarea matInput placeholder="Textual description" [formControl]="description.get('description')"></textarea>
+                            <textarea matInput placeholder="Textual description" [formControl]="descriptionComponent.get('description')"></textarea>
                         </mat-form-field>
                     </p>
                 </div>

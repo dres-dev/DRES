@@ -13,9 +13,10 @@ import dres.run.validation.interfaces.SubmissionValidator
 import dres.run.validation.judged.BasicJudgementValidator
 import java.io.*
 import java.util.*
+import kotlin.math.max
 
 /**
- * Basic description of a [Task].
+ * Basic description of a [TaskDescription].
  *
  * @version 1.0
  * @author Luca Rossetto & Ralph Gasser
@@ -133,10 +134,27 @@ class TaskDescription(
 
     /** Prints an overview of the task to a provided stream */
     fun printOverview(out: PrintStream) {
+        out.println(name)
         //TODO
     }
 
     /** Produces a Textual description of the content of the task if possible */
     fun textualDescription(): String = components.filterIsInstance(TaskDescriptionComponent.TextTaskDescriptionComponent::class.java)
             .maxBy { it.start ?: 0 }?.text ?: name
+
+    /**
+     * Checks if no components of the same type overlap
+     * @throws IllegalArgumentException
+     */
+    fun validate() {
+        this.components.groupBy { it.contentType }.forEach {group ->
+            var end = 0L
+            group.value.sortedBy { it.start ?: 0 }.forEach {
+                if((it.start ?: end) < end){
+                    throw IllegalArgumentException("Overlapping component of type ${group.key} in task $name")
+                }
+                end = max(end, it.end ?: (it.start ?: 0) + 1)
+            }
+        }
+    }
 }

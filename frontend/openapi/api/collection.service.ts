@@ -18,7 +18,6 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 import { ErrorStatus } from '../model/models';
-import { MediaItem } from '../model/models';
 import { RestFullMediaCollection } from '../model/models';
 import { RestMediaCollection } from '../model/models';
 import { RestMediaItem } from '../model/models';
@@ -480,18 +479,14 @@ export class CollectionService {
 
     /**
      * Adds a Media Item to the specified Media Collection.
-     * @param collectionId Collection ID
-     * @param mediaItem 
+     * @param restMediaItem 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postApiCollectionWithCollectionid(collectionId: string, mediaItem?: MediaItem, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<MediaItem>>;
-    public postApiCollectionWithCollectionid(collectionId: string, mediaItem?: MediaItem, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<MediaItem>>>;
-    public postApiCollectionWithCollectionid(collectionId: string, mediaItem?: MediaItem, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<MediaItem>>>;
-    public postApiCollectionWithCollectionid(collectionId: string, mediaItem?: MediaItem, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
-        if (collectionId === null || collectionId === undefined) {
-            throw new Error('Required parameter collectionId was null or undefined when calling postApiCollectionWithCollectionid.');
-        }
+    public postApiMediaitem(restMediaItem?: RestMediaItem, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postApiMediaitem(restMediaItem?: RestMediaItem, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postApiMediaitem(restMediaItem?: RestMediaItem, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postApiMediaitem(restMediaItem?: RestMediaItem, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
 
         let headers = this.defaultHeaders;
 
@@ -522,8 +517,8 @@ export class CollectionService {
             responseType = 'text';
         }
 
-        return this.httpClient.post<Array<MediaItem>>(`${this.configuration.basePath}/api/collection/${encodeURIComponent(String(collectionId))}`,
-            mediaItem,
+        return this.httpClient.post<SuccessStatus>(`${this.configuration.basePath}/api/mediaitem`,
+            restMediaItem,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

@@ -1,6 +1,7 @@
 package dres.api.rest.types.collection
 
 import dres.data.dbo.DAO
+import dres.data.model.UID
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.TaskDescription
 import dres.utilities.extensions.UID
@@ -12,7 +13,7 @@ import dres.utilities.extensions.UID
  * @author Ralph Gasser
  * @version 1.0
  */
-data class RestMediaItem(val id: String, val name: String, val type: RestMediaItemType, val collectionId: String, val location: String, val durationMs: Long? = null, val fps: Float? = null) {
+data class RestMediaItem(val id: String = UID.EMPTY.string, val name: String, val type: RestMediaItemType, val collectionId: String, val location: String, val durationMs: Long? = null, val fps: Float? = null) {
     companion object {
         /**
          * Generates a [RestMediaItem] from a [TaskDescription] and returns it.

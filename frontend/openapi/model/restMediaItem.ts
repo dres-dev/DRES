@@ -16,6 +16,7 @@ export interface RestMediaItem {
     name: string;
     type: RestMediaItem.TypeEnum;
     collectionId: string;
+    location: string;
     durationMs?: number;
     fps?: number;
 }

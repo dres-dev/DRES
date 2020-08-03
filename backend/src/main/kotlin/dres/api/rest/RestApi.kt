@@ -53,7 +53,7 @@ object RestApi {
                 //media
                 MediaPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
                 SubmissionPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
-                GetMediaHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, dataAccessLayer.collectionNameIndex),
+                GetMediaHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionUidIndex, dataAccessLayer.collectionUidIndex),
 
                 //collection
                 ListCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),

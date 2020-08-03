@@ -14,7 +14,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import java.io.File
 
-class GetMediaHandler(private val collections: DAO<MediaCollection>, private val itemCache: DaoIndexer<MediaItem, Pair<UID, String>>, private val collectionCache : DaoIndexer<MediaCollection, String>) : GetRestHandler<Any>, AccessManagedRestHandler {
+class GetMediaHandler(private val collections: DAO<MediaCollection>, private val itemCache: DaoIndexer<MediaItem, Pair<UID,UID>>, private val collectionCache : DaoIndexer<MediaCollection, UID>) : GetRestHandler<Any>, AccessManagedRestHandler {
 
     override val permittedRoles = setOf(RestApiRole.VIEWER)
     override val route: String = "media/:collection/:item"
@@ -25,8 +25,8 @@ class GetMediaHandler(private val collections: DAO<MediaCollection>, private val
     @OpenApi(summary = "Returns a collection item",
             path = "/api/media/:collection/:item",
             pathParams = [
-                OpenApiParam("collection", String::class, "Collection name"),
-                OpenApiParam("item", String::class, "MediaItem name")
+                OpenApiParam("collection", String::class, "Collection id"),
+                OpenApiParam("item", String::class, "MediaItem id")
             ],
             tags = ["Media"],
             responses = [OpenApiResponse("200"), OpenApiResponse("401"), OpenApiResponse("400"), OpenApiResponse("404")],
@@ -41,19 +41,19 @@ class GetMediaHandler(private val collections: DAO<MediaCollection>, private val
             return
         }
 
-        val collectionName = params["collection"]!!
-        val collection = collectionCache[collectionName].firstOrNull() //collections.find { it.name == collectionName }
+        val collectionUid = UID(params["collection"]!!)
+        val collection = collectionCache[collectionUid].firstOrNull() //collections.find { it.name == collectionName }
 
         if (collection == null) {
             ctx.errorResponse(404, "collection not found")
             return
         }
 
-        val itemName = params["item"]!!
-        val item = itemCache[collection.id to itemName].firstOrNull()//items.find { it.collection == collection.id && it.name == itemName }
+        val itemUid = UID(params["item"]!!)
+        val item = itemCache[collection.id to itemUid].firstOrNull()//items.find { it.collection == collection.id && it.name == itemName }
 
         if (item == null) {
-            ctx.errorResponse(404, "item with name $itemName found")
+            ctx.errorResponse(404, "item with name $itemUid found")
             return
         }
 

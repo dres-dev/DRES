@@ -4,6 +4,7 @@ import dres.api.rest.RestApiRole
 import dres.api.rest.types.collection.RestFullMediaCollection
 import dres.api.rest.types.collection.RestMediaCollection
 import dres.api.rest.types.collection.RestMediaItem
+import dres.api.rest.types.collection.RestMediaItemType
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
@@ -170,7 +171,7 @@ class ShowCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaI
     override fun doGet(ctx: Context): RestFullMediaCollection {
         val collection = collectionFromContext(ctx) //also checks if collection exists
         val items = items.filter { it.collection == collection.id }.map { RestMediaItem.fromMediaItem(it) }
-        return RestFullMediaCollection(RestMediaCollection.fromMediaCollection(collection), items);
+        return RestFullMediaCollection(RestMediaCollection.fromMediaCollection(collection), items)
     }
 
     override val route: String = "collection/:collectionId"
@@ -180,15 +181,12 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
 
     @OpenApi(
             summary = "Adds a Media Item to the specified Media Collection.",
-            path = "/api/collection/:collectionId", method = HttpMethod.POST,
-            pathParams = [OpenApiParam("collectionId", UID::class, "Collection ID")],
-            requestBody = OpenApiRequestBody([OpenApiContent(MediaItem::class)]),
+            path = "/api/mediaitem", method = HttpMethod.POST,
+            requestBody = OpenApiRequestBody([OpenApiContent(RestMediaItem::class)]),
             tags = ["Collection"],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<MediaItem>::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)])
             ]
     )
     override fun doPost(ctx: Context): SuccessStatus {
@@ -196,7 +194,7 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
         val collection = collectionFromContext(ctx)
 
         val mediaItem = try {
-            ctx.bodyAsClass(MediaItem::class.java)
+            ctx.bodyAsClass(RestMediaItem::class.java)
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
@@ -206,18 +204,21 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
             throw ErrorStatusException(400, "item with name '${mediaItem.name}' already exists in collection: $existing")
         }
 
-        val toAdd: MediaItem = if (mediaItem.collection == collection.id) {
-            mediaItem
-        } else {
-            mediaItem.withCollection(collection.id)
+        if (mediaItem.type == RestMediaItemType.VIDEO) {
+            if (mediaItem.durationMs == null){
+                throw ErrorStatusException(400, "Duration needs to be set for a video item")
+            }
+            if (mediaItem.fps == null){
+                throw ErrorStatusException(400, "Frame rate needs to be set for a video item")
+            }
         }
 
-        items.append(toAdd)
+        items.append(mediaItem.toMediaItem())
         return SuccessStatus("Media Item added")
 
     }
 
-    override val route: String = "collection/:collectionId"
+    override val route: String = "mediaitem"
 }
 
 class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, private val collectionItems: DaoIndexer<MediaItem, UID>) : CollectionHandler(collections, items), GetRestHandler<List<RestMediaItem>> {

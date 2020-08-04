@@ -12,7 +12,7 @@
 
 
 export interface RestMediaCollection { 
-    id?: string;
+    id: string;
     name: string;
     description?: string;
     basePath?: string;

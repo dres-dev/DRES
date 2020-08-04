@@ -1,7 +1,7 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {AppConfig} from '../app.config';
-import {CompetitionRunAdminService, CompetitionRunService, RunInfo, RunState, ViewerInfo} from '../../../openapi';
+import {CompetitionRunAdminService, CompetitionRunService, RunInfo, RunState, UserService, ViewerInfo} from '../../../openapi';
 import {combineLatest, merge, Observable, Subject, timer} from 'rxjs';
 import {flatMap, map, shareReplay, switchMap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -26,7 +26,6 @@ export class RunAdminViewComponent {
     displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'action'];
 
 
-
     /**
      *
      * @param activeRoute
@@ -39,6 +38,7 @@ export class RunAdminViewComponent {
                 private config: AppConfig,
                 private runService: CompetitionRunService,
                 private runAdminService: CompetitionRunAdminService,
+                private userService: UserService,
                 private snackBar: MatSnackBar) {
         this.runId = this.activeRoute.params.pipe(map(a => a.runId));
         this.run = this.runId.pipe(
@@ -66,9 +66,9 @@ export class RunAdminViewComponent {
         this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidStart(id))).subscribe(
             (r) => {
                 this.update.next();
-                this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
+                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
             }, (r) => {
-                this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
             }
         );
     }
@@ -77,9 +77,9 @@ export class RunAdminViewComponent {
         this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidTerminate(id))).subscribe(
             (r) => {
                 this.update.next();
-                this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
+                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
             }, (r) => {
-                this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
             }
         );
     }
@@ -88,9 +88,9 @@ export class RunAdminViewComponent {
         this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidTaskNext(id))).subscribe(
             (r) => {
                 this.update.next();
-                this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
+                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
             }, (r) => {
-                this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
             }
         );
     }
@@ -99,9 +99,9 @@ export class RunAdminViewComponent {
         this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidTaskPrevious(id))).subscribe(
             (r) => {
                 this.update.next();
-                this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
+                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
             }, (r) => {
-                this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
             }
         );
     }
@@ -110,9 +110,9 @@ export class RunAdminViewComponent {
         this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidTaskStart(id))).subscribe(
             (r) => {
                 this.update.next();
-                this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
+                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
             }, (r) => {
-                this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
             }
         );
     }
@@ -121,9 +121,9 @@ export class RunAdminViewComponent {
         this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidTaskAbort(id))).subscribe(
             (r) => {
                 this.update.next();
-                this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
+                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
             }, (r) => {
-                this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
             }
         );
     }
@@ -132,9 +132,9 @@ export class RunAdminViewComponent {
         this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidTaskSwitchWithIdx(id, idx))).subscribe(
             (r) => {
                 this.update.next();
-                this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
+                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
             }, (r) => {
-                this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
             }
         );
     }
@@ -143,9 +143,9 @@ export class RunAdminViewComponent {
         this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidAdjustWithDuration(id, duration))).subscribe(
             (r) => {
                 this.update.next();
-                this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
+                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
             }, (r) => {
-                this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
             }
         );
     }
@@ -154,15 +154,15 @@ export class RunAdminViewComponent {
         this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidViewersWithVieweridForce(id, viewerId))).subscribe(
             (r) => {
                 this.update.next();
-                this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000});
+                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
             }, (r) => {
-                this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000});
+                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
             }
         );
     }
 
     public toFormattedTime(sec: number): string {
-        const hours   = Math.floor(sec / 3600);
+        const hours = Math.floor(sec / 3600);
         const minutes = Math.floor(sec / 60) % 60;
         const seconds = sec % 60;
 
@@ -170,5 +170,16 @@ export class RunAdminViewComponent {
             .map(v => v < 10 ? '0' + v : v)
             .filter((v, i) => v !== '00' || i > 0)
             .join(':');
+    }
+
+    userNameOf(user: string) : Observable<string>{
+        // if (user) {
+        //     return this.userService.getApiUserWithId(user).pipe(
+        //         map(u => u.username),
+        //         shareReplay(1)
+        //     );
+        // } else {
+            return null;
+        // }
     }
 }

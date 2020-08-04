@@ -292,13 +292,13 @@ class DeleteMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<Media
 
     @OpenApi(
             summary = "Selects and returns a specific media item.",
-            path = "/api/mediaItem/:mediaId", method = HttpMethod.GET,
+            path = "/api/mediaItem/:mediaId", method = HttpMethod.DELETE,
             pathParams = [
                 OpenApiParam("mediaId", UID::class, "Media item ID")
             ],
             tags = ["Collection"],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(RestMediaItem::class)]),
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])

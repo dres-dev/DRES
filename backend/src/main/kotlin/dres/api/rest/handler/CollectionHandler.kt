@@ -144,8 +144,8 @@ class UpdateCollectionHandler(collections: DAO<MediaCollection>, items: DAO<Medi
         val collection = collections[restCollection.id!!.UID()]
                 ?: throw ErrorStatusException(400, "Invalid parameters, collection with ID ${restCollection.id} does not exist.")
 
-        val updatedcollection = MediaCollection(collection.id, restCollection.name, restCollection.description ?: collection.description, restCollection.basePath ?: collection.basePath)
-        collections.update(updatedcollection)
+        val updatedCollection = MediaCollection(collection.id, restCollection.name, restCollection.description ?: collection.description, restCollection.basePath ?: collection.basePath)
+        collections.update(updatedCollection)
 
         return SuccessStatus("Collection updated")
 
@@ -181,7 +181,7 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
 
     @OpenApi(
             summary = "Adds a Media Item to the specified Media Collection.",
-            path = "/api/mediaitem", method = HttpMethod.POST,
+            path = "/api/mediaItem", method = HttpMethod.POST,
             requestBody = OpenApiRequestBody([OpenApiContent(RestMediaItem::class)]),
             tags = ["Collection"],
             responses = [
@@ -191,15 +191,14 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
     )
     override fun doPost(ctx: Context): SuccessStatus {
 
-        val collection = collectionFromContext(ctx)
-
         val mediaItem = try {
             ctx.bodyAsClass(RestMediaItem::class.java)
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
 
-        val existing = items.find { it.collection == collection.id && it.name == mediaItem.name }
+        val collectionId = mediaItem.collectionId.UID()
+        val existing = items.find { it.collection == collectionId && it.name == mediaItem.name }
         if (existing != null) {
             throw ErrorStatusException(400, "item with name '${mediaItem.name}' already exists in collection: $existing")
         }
@@ -218,7 +217,105 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
 
     }
 
-    override val route: String = "mediaitem"
+    override val route: String = "mediaItem"
+}
+
+class UpdateMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), PatchRestHandler<SuccessStatus> {
+
+    @OpenApi(
+            summary = "Updates a Media Item to the specified Media Collection.",
+            path = "/api/mediaItem", method = HttpMethod.PATCH,
+            requestBody = OpenApiRequestBody([OpenApiContent(RestMediaItem::class)]),
+            tags = ["Collection"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doPatch(ctx: Context): SuccessStatus {
+
+        val mediaItem = try {
+            ctx.bodyAsClass(RestMediaItem::class.java)
+        } catch (e: BadRequestResponse) {
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+        }
+
+        items[mediaItem.id.UID()] ?: throw ErrorStatusException(400, "item with name '${mediaItem.name}' does not exists")
+
+
+        if (mediaItem.type == RestMediaItemType.VIDEO) {
+            if (mediaItem.durationMs == null){
+                throw ErrorStatusException(400, "Duration needs to be set for a video item")
+            }
+            if (mediaItem.fps == null){
+                throw ErrorStatusException(400, "Frame rate needs to be set for a video item")
+            }
+        }
+
+        items.update(mediaItem.toMediaItem())
+        return SuccessStatus("Media Item updated")
+
+    }
+
+    override val route: String = "mediaItem"
+}
+
+class GetMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), GetRestHandler<RestMediaItem> {
+
+    @OpenApi(
+            summary = "Selects and returns a specific media item.",
+            path = "/api/mediaItem/:mediaId", method = HttpMethod.GET,
+            pathParams = [
+                OpenApiParam("mediaId", UID::class, "Media item ID")
+            ],
+            tags = ["Collection"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(RestMediaItem::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): RestMediaItem {
+        val mediaId = ctx.pathParamMap().getOrElse("mediaId") {
+            throw ErrorStatusException(404, "Parameter 'mediaId' is missing!'")
+        }.UID()
+        val item = this.items[mediaId] ?:  throw ErrorStatusException(404, "Media item with ID $mediaId not found.'")
+
+        return RestMediaItem.fromMediaItem(item)
+    }
+
+    override val route: String = "mediaItem/:mediaId"
+}
+
+class DeleteMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), DeleteRestHandler<SuccessStatus> {
+
+    @OpenApi(
+            summary = "Selects and returns a specific media item.",
+            path = "/api/mediaItem/:mediaId", method = HttpMethod.GET,
+            pathParams = [
+                OpenApiParam("mediaId", UID::class, "Media item ID")
+            ],
+            tags = ["Collection"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(RestMediaItem::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doDelete(ctx: Context): SuccessStatus {
+        val mediaId = ctx.pathParamMap().getOrElse("mediaId") {
+            throw ErrorStatusException(404, "Parameter 'mediaId' is missing!'")
+        }.UID()
+        val item = this.items[mediaId] ?:  throw ErrorStatusException(404, "Media item with ID $mediaId not found.'")
+
+        this.items.delete(item)
+
+        return SuccessStatus("Item deleted")
+    }
+
+    override val route: String = "mediaItem/:mediaId"
 }
 
 class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, private val collectionItems: DaoIndexer<MediaItem, UID>) : CollectionHandler(collections, items), GetRestHandler<List<RestMediaItem>> {
@@ -254,38 +351,6 @@ class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIt
     }
 
     override val route: String = "collection/:collectionId/:startsWith"
-}
-
-class GetMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>) : CollectionHandler(collections, items), GetRestHandler<RestMediaItem> {
-
-    @OpenApi(
-            summary = "Selects and returns a specific media item from a given media collection.",
-            path = "/api/collection/:collectionId/media/:mediaId", method = HttpMethod.GET,
-            pathParams = [
-                OpenApiParam("collectionId", UID::class, "Collection ID"),
-                OpenApiParam("mediaId", UID::class, "Media item ID")
-            ],
-            tags = ["Collection"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(RestMediaItem::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
-    )
-    override fun doGet(ctx: Context): RestMediaItem {
-        val collection = collectionFromContext(ctx)
-        val mediaId = ctx.pathParamMap().getOrElse("mediaId") {
-            throw ErrorStatusException(404, "Parameter 'mediaId' is missing!'")
-        }.UID()
-        val item = this.items[mediaId] ?:  throw ErrorStatusException(404, "Media item with ID $mediaId not found.'")
-        if (item.collection != collection.id) {
-            throw ErrorStatusException(400, "Collection ID of media item and collection don't match!'")
-        }
-        return RestMediaItem.fromMediaItem(item)
-    }
-
-    override val route: String = "collection/:collectionId/media/:mediaId"
 }
 
 class RandomMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, private val collectionItems: DaoIndexer<MediaItem, UID>) : CollectionHandler(collections, items), GetRestHandler<RestMediaItem> {

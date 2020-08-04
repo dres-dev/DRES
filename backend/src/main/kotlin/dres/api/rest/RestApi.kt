@@ -62,6 +62,8 @@ object RestApi {
                 UpdateCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 DeleteCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 AddMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+                UpdateMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+                DeleteMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 GetMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 RandomMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionIndex), // Must be before ListMediaItem
                 ListMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionIndex),

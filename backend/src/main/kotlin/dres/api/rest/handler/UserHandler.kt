@@ -16,7 +16,7 @@ import dres.utilities.extensions.toSessionId
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
 
-data class SessionId(val sessionId:String)
+data class SessionId(val sessionId: String)
 
 data class UserRequest(val username: String, val password: String?, val role: Role?)
 
@@ -24,7 +24,7 @@ data class UserDetails(val id: UID, val username: String, val role: Role, val se
 
     companion object {
         fun of(user: User): UserDetails = UserDetails(user.id, user.username.name, user.role)
-        fun create(user:User, ctx:Context): UserDetails = UserDetails(user.id,user.username.name, user.role, ctx.sessionId())
+        fun create(user: User, ctx: Context): UserDetails = UserDetails(user.id, user.username.name, user.role, ctx.sessionId())
     }
 }
 
@@ -37,9 +37,9 @@ abstract class UserHandler() : RestHandler {
 
     protected fun getIdFromPath(ctx: Context): UID {
         val id = ctx.pathParam("id").UID()
-        if(UserManager.exists(id=id)){
+        if (UserManager.exists(id = id)) {
             return id
-        }else{
+        } else {
             throw ErrorStatusException(404, "User ($id) not found!")
         }
     }
@@ -69,6 +69,26 @@ class ListUsersHandler() : UserHandler(), GetRestHandler<List<UserDetails>>, Acc
     override val permittedRoles = setOf(RestApiRole.ADMIN)
 
     override val route = "user/list"
+}
+
+class UserDetailsHandler() : UserHandler(), GetRestHandler<UserDetails>, AccessManagedRestHandler {
+
+
+    @OpenApi(
+            summary = "Gets details of the user with the given id",
+            path = "/api/user/:id",
+            tags = ["User"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)], description = "If the user could not be found"),
+                OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context) = UserDetails.of(getUserFromId(ctx))
+
+    override val permittedRoles = RestApiRole.values().toSet()
+
+    override val route = "user/:id"
 }
 
 class DeleteUsersHandler() : UserHandler(), DeleteRestHandler<UserDetails>, AccessManagedRestHandler {
@@ -115,9 +135,9 @@ class CreateUsersHandler() : UserHandler(), PostRestHandler<UserDetails>, Access
     override fun doPost(ctx: Context): UserDetails {
         val req = getCreateUserFromBody(ctx)
         val success = UserManager.create(req)
-        if(success){
+        if (success) {
             return UserDetails.of(UserManager.get(username = UserName(req.username))!!)
-        }else{
+        } else {
             throw ErrorStatusException(400, "The request could not be fulfilled.")
         }
     }
@@ -146,22 +166,22 @@ class UpdateUsersHandler() : UserHandler(), PatchRestHandler<UserDetails>, Acces
         val id = getIdFromPath(ctx) // Id was verified that it exists
         val req = getCreateUserFromBody(ctx)
         val caller = getFromSessionOrDie(ctx)
-        when{
-            (caller.role == Role.ADMIN) and (caller.id != id)-> {
+        when {
+            (caller.role == Role.ADMIN) and (caller.id != id) -> {
                 /* ADMIN -- Can edit anyone */
-                val success = UserManager.update(id=id, user=req)
-                if(success){
-                    return UserDetails.of(UserManager.get(id=id)!!)
-                }else{
+                val success = UserManager.update(id = id, user = req)
+                if (success) {
+                    return UserDetails.of(UserManager.get(id = id)!!)
+                } else {
                     throw ErrorStatusException(500, "Could not update user!")
                 }
             }
             caller.id == id -> {
                 /* Self-Update*/
-                val success = UserManager.update(id=id, user=req)
-                if(success){
-                    return UserDetails.of(UserManager.get(id=id)!!)
-                }else{
+                val success = UserManager.update(id = id, user = req)
+                if (success) {
+                    return UserDetails.of(UserManager.get(id = id)!!)
+                } else {
                     throw ErrorStatusException(500, "Could not update user!")
                 }
             }
@@ -185,8 +205,8 @@ class CurrentUsersHandler() : UserHandler(), GetRestHandler<UserDetails>, Access
                 OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context) : UserDetails {
-        return UserDetails.create(getFromSessionOrDie(ctx),ctx)
+    override fun doGet(ctx: Context): UserDetails {
+        return UserDetails.create(getFromSessionOrDie(ctx), ctx)
     }
 
     override val permittedRoles = setOf(RestApiRole.VIEWER)
@@ -195,7 +215,7 @@ class CurrentUsersHandler() : UserHandler(), GetRestHandler<UserDetails>, Access
 
 }
 
-class CurrentUsersSessionIdHandler(): UserHandler(), GetRestHandler<SessionId>, AccessManagedRestHandler {
+class CurrentUsersSessionIdHandler() : UserHandler(), GetRestHandler<SessionId>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Get current sessionId",
@@ -206,7 +226,7 @@ class CurrentUsersSessionIdHandler(): UserHandler(), GetRestHandler<SessionId>, 
                 OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context) : SessionId {
+    override fun doGet(ctx: Context): SessionId {
         return ctx.sessionId().toSessionId()
     }
 
@@ -215,7 +235,7 @@ class CurrentUsersSessionIdHandler(): UserHandler(), GetRestHandler<SessionId>, 
     override val route = "user/session"
 }
 
-class ActiveSessionsHandler(private val users : DAO<User>) : GetRestHandler<List<UserDetails>>, AccessManagedRestHandler {
+class ActiveSessionsHandler(private val users: DAO<User>) : GetRestHandler<List<UserDetails>>, AccessManagedRestHandler {
 
     override val permittedRoles = setOf(RestApiRole.ADMIN)
     override val route = "user/allCurrentSessions"
@@ -232,8 +252,9 @@ class ActiveSessionsHandler(private val users : DAO<User>) : GetRestHandler<List
     )
     override fun doGet(ctx: Context): List<UserDetails> {
 
-        return AccessManager.currentSessions.map {session ->
-            val userId = AccessManager.getUserIdForSession(session) ?: return@map UserDetails(UID.EMPTY, "??", Role.VIEWER, session)
+        return AccessManager.currentSessions.map { session ->
+            val userId = AccessManager.getUserIdForSession(session)
+                    ?: return@map UserDetails(UID.EMPTY, "??", Role.VIEWER, session)
             val user = users[userId] ?: return@map UserDetails(userId, "??", Role.VIEWER, session)
             UserDetails(
                     user.id, user.username.name, user.role, session

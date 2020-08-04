@@ -43,6 +43,7 @@ object RestApi {
                 LoginHandler(dataAccessLayer.audit),
                 LogoutHandler(dataAccessLayer.audit),
                 ListUsersHandler(),
+                UserDetailsHandler(),
                 CurrentUsersHandler(),
                 DeleteUsersHandler(),
                 CreateUsersHandler(),

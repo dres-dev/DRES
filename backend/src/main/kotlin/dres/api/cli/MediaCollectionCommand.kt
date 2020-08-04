@@ -38,7 +38,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
     }
 
     init {
-        this.subcommands(CreateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), CheckCollectionCommand(), ScanCollectionCommand(), AddMediaItemCommand(), ExportCollectionCommand(), ImportCollectionCommand(), DeleteCollectionCommand(), ImportMediaSegmentsCommand())
+        this.subcommands(CreateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), CheckCollectionCommand(), ScanCollectionCommand(), AddMediaItemCommand(), DeleteItemCommand(), ExportCollectionCommand(), ImportCollectionCommand(), DeleteCollectionCommand(), ImportMediaSegmentsCommand())
     }
 
     abstract inner class AbstractCollectionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {
@@ -74,7 +74,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
     inner class ListCollectionsCommand : CliktCommand(name = "list", help = "Lists all Collections") {
         val plain by option("-p", "--plain", help = "Plain print: No fancy table presentation for machine readable output").flag(default = false)
         override fun run() {
-            println("Availablee media collections ${this@MediaCollectionCommand.collections.toSet().size}")
+            println("Available media collections ${this@MediaCollectionCommand.collections.toSet().size}")
             if (plain) {
                 this@MediaCollectionCommand.collections.forEach {
                     println(it)
@@ -254,8 +254,8 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
                 val existing = this@MediaCollectionCommand.items.find { it.location == relativePath}
 
-                when {
-                    file.extension in imageTypes -> {
+                when (file.extension) {
+                    in imageTypes -> {
 
                         if (existing == null) { //add
                             val newItem = MediaItem.ImageItem(UID.EMPTY, file.nameWithoutExtension, relativePath, collection.id)
@@ -267,7 +267,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
 
                     }
-                    file.extension in videoTypes -> {
+                    in videoTypes -> {
 
                         println("Analyzing ${file.absolutePath}")
 
@@ -337,6 +337,37 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             print("Deleting Collection...")
             this@MediaCollectionCommand.collections.delete(collectionId)
             println("done")
+
+        }
+    }
+
+    inner class DeleteItemCommand : AbstractCollectionCommand("deleteItem", help = "Deletes a Media Item") {
+
+        private val itemName: String by option("-in", "--itemName", help = "Name of the Item").default("")
+        private val itemIdInput: UID? by option("-ii", "--itemId", help = "Id of the Item").convert { it.UID() }
+
+        override fun run() {
+
+            val collectionId = this.actualCollectionId()
+            if (collectionId == null && itemIdInput == null) {
+                println("Collection not found.")
+                return
+            }
+
+            if (itemName.isBlank() && itemIdInput == null) {
+                println("Item not specified.")
+                return
+            }
+
+            val itemId = itemIdInput ?: this@MediaCollectionCommand.items.find { it.collection == collectionId && it.name == itemName }?.id
+
+            if (itemId == null) {
+                println("Item not found.")
+                return
+            }
+
+            this@MediaCollectionCommand.items.delete(itemId)
+            println("Item '${itemId.string}' deleted")
 
         }
     }

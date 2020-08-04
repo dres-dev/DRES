@@ -6,10 +6,10 @@
     </div>
     <div class="spacer-flex"></div>
     <div>
-        <button mat-icon-button aria-label="Refresh list of collections" matTooltip="Refresh list of collections" (click)="refresh()">
+        <button mat-icon-button aria-label="Refresh list of media items" matTooltip="Refresh list of media items" (click)="refresh()">
             <mat-icon>refresh</mat-icon>
         </button>
-        <button mat-icon-button aria-label="Create new collection." matTooltip="Create new collection." (click)="create()">
+        <button mat-icon-button aria-label="Create new media item." matTooltip="Create new media item." (click)="create()">
             <mat-icon>add_to_photos</mat-icon>
         </button>
     </div>
@@ -36,11 +36,11 @@
                         (click)="show(row.id)">
                     <mat-icon>visibility</mat-icon>
                 </button>
-                <button mat-icon-button aria-label="Edit collection." matTooltip="Edit media item."
+                <button mat-icon-button aria-label="Edit media item." matTooltip="Edit media item."
                         (click)="edit(row.id)">
                     <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button aria-label="Delete collection." matTooltip="Delete media item."
+                <button mat-icon-button aria-label="Delete media item." matTooltip="Delete media item."
                         (click)="delete(row.id)">
                     <mat-icon>delete</mat-icon>
                 </button>

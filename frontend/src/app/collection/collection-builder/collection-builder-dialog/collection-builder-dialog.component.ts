@@ -21,7 +21,7 @@ export class CollectionBuilderDialogComponent implements OnInit {
             id: new FormControl(data?.id),
             name: new FormControl(data?.name, [Validators.required, Validators.minLength(3)]),
             description: new FormControl(data?.description),
-            basePath: new FormControl({value: data?.basePath, disabled: this.isEditing()})
+            basePath: new FormControl(data?.basePath)
         });
 
     }

@@ -191,7 +191,7 @@ export class CompetitionFormBuilder {
 
         /* Load media item from API. */
         if (initialize?.mediaItem && this.data?.mediaCollectionId) {
-            this.collectionService.getApiCollectionWithCollectionidMediaWithMediaid(this.data?.mediaCollectionId, initialize.mediaItem)
+            this.collectionService.getApiMediaitemWithMediaid(initialize.mediaItem)
                 .pipe(first()).subscribe(s => {
                     mediaItemFormControl.setValue(s);
                 });
@@ -231,7 +231,7 @@ export class CompetitionFormBuilder {
 
         /* Load media item from API. */
         if (initialize?.mediaItem && this.data.mediaCollectionId) {
-            this.collectionService.getApiCollectionWithCollectionidMediaWithMediaid(this.data.mediaCollectionId, initialize.mediaItem)
+            this.collectionService.getApiMediaitemWithMediaid( initialize.mediaItem)
                 .pipe(first()).subscribe(s => {
                 mediaItemFormControl.setValue(s);
             });
@@ -294,7 +294,7 @@ export class CompetitionFormBuilder {
 
         /* Load media item from API. */
         if (initialize?.mediaItem && this.data?.mediaCollectionId) {
-            this.collectionService.getApiCollectionWithCollectionidMediaWithMediaid(this.data?.mediaCollectionId, initialize.mediaItem)
+            this.collectionService.getApiMediaitemWithMediaid(initialize.mediaItem)
                 .pipe(first()).subscribe(s => {
                 mediaItemFormControl.setValue(s);
             });
@@ -329,7 +329,7 @@ export class CompetitionFormBuilder {
 
         /* Load media item from API. */
         if (initialize?.mediaItem && this.data?.mediaCollectionId) {
-            this.collectionService.getApiCollectionWithCollectionidMediaWithMediaid(this.data?.mediaCollectionId, initialize.mediaItem)
+            this.collectionService.getApiMediaitemWithMediaid(initialize.mediaItem)
                 .pipe(first()).subscribe(s => {
                 mediaItemFormControl.setValue(s);
             });

@@ -5,7 +5,7 @@ import java.util.*
 
 inline class UID (val string: String) {
     companion object {
-        val EMPTY = UID("00000000-0000-000000000-000000000000")
+        val EMPTY = UID(UUID(0L, 0L))
     }
     constructor() : this(UUID.randomUUID().toString())
     constructor(uuid: UUID) : this(uuid.toString())

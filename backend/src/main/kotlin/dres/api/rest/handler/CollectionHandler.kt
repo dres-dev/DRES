@@ -141,7 +141,7 @@ class UpdateCollectionHandler(collections: DAO<MediaCollection>, items: DAO<Medi
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
 
-        val collection = collections[restCollection.id!!.UID()]
+        val collection = collections[restCollection.id.UID()]
                 ?: throw ErrorStatusException(400, "Invalid parameters, collection with ID ${restCollection.id} does not exist.")
 
         val updatedCollection = MediaCollection(collection.id, restCollection.name, restCollection.description ?: collection.description, restCollection.basePath ?: collection.basePath)

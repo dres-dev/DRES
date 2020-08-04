@@ -11,14 +11,16 @@
  */
 /* tslint:disable:no-unused-variable member-ordering */
 
-import {Inject, Injectable, Optional} from '@angular/core';
-import {HttpClient, HttpEvent, HttpHeaders, HttpParameterCodec, HttpParams, HttpResponse} from '@angular/common/http';
-import {CustomHttpParameterCodec} from '../encoder';
-import {Observable} from 'rxjs';
+import { Inject, Injectable, Optional }                      from '@angular/core';
+import { HttpClient, HttpHeaders, HttpParams,
+         HttpResponse, HttpEvent, HttpParameterCodec }       from '@angular/common/http';
+import { CustomHttpParameterCodec }                          from '../encoder';
+import { Observable }                                        from 'rxjs';
 
 
-import {BASE_PATH} from '../variables';
-import {Configuration} from '../configuration';
+import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
+import { Configuration }                                     from '../configuration';
+
 
 
 @Injectable({
@@ -83,21 +85,17 @@ export class DefaultService {
     }
 
     /**
-     * Get api collection with collectionid with mediaid
-     * @param collectionId 
+     * Delete api mediaitem with mediaid
      * @param mediaId 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiCollectionWithCollectionidWithMediaid(collectionId: string, mediaId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined}): Observable<any>;
-    public getApiCollectionWithCollectionidWithMediaid(collectionId: string, mediaId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined}): Observable<HttpResponse<any>>;
-    public getApiCollectionWithCollectionidWithMediaid(collectionId: string, mediaId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined}): Observable<HttpEvent<any>>;
-    public getApiCollectionWithCollectionidWithMediaid(collectionId: string, mediaId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined}): Observable<any> {
-        if (collectionId === null || collectionId === undefined) {
-            throw new Error('Required parameter collectionId was null or undefined when calling getApiCollectionWithCollectionidWithMediaid.');
-        }
+    public deleteApiMediaitemWithMediaid(mediaId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined}): Observable<any>;
+    public deleteApiMediaitemWithMediaid(mediaId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined}): Observable<HttpResponse<any>>;
+    public deleteApiMediaitemWithMediaid(mediaId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined}): Observable<HttpEvent<any>>;
+    public deleteApiMediaitemWithMediaid(mediaId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined}): Observable<any> {
         if (mediaId === null || mediaId === undefined) {
-            throw new Error('Required parameter mediaId was null or undefined when calling getApiCollectionWithCollectionidWithMediaid.');
+            throw new Error('Required parameter mediaId was null or undefined when calling deleteApiMediaitemWithMediaid.');
         }
 
         let headers = this.defaultHeaders;
@@ -119,7 +117,7 @@ export class DefaultService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<any>(`${this.configuration.basePath}/api/collection/${encodeURIComponent(String(collectionId))}/${encodeURIComponent(String(mediaId))}`,
+        return this.httpClient.delete<any>(`${this.configuration.basePath}/api/mediaItem/${encodeURIComponent(String(mediaId))}`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

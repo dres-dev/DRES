@@ -3,6 +3,11 @@ import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {RestMediaItem} from '../../../../../openapi';
 
+export interface MediaItemBuilderData {
+    item?: RestMediaItem;
+    collectionId: string;
+}
+
 @Component({
     selector: 'app-media-item-builder-dialog',
     templateUrl: './media-item-builder-dialog.component.html',
@@ -17,24 +22,35 @@ export class MediaItemBuilderDialogComponent implements OnInit {
 
     constructor(
         public dialogRef: MatDialogRef<MediaItemBuilderDialogComponent>,
-        @Inject(MAT_DIALOG_DATA) public data: RestMediaItem
+        @Inject(MAT_DIALOG_DATA) public data: MediaItemBuilderData
     ) {
 
         this.form = new FormGroup({
-            id: new FormControl(data?.id),
-            name: new FormControl(data?.name, [Validators.required, Validators.minLength(3)]),
-            location: new FormControl({value: data?.location, disabled: this.isEditing()}),
-            type: new FormControl(data?.type, [Validators.required])
+            id: new FormControl(data?.item?.id),
+            name: new FormControl(data?.item?.name, [Validators.required, Validators.minLength(3)]),
+            location: new FormControl(data?.item?.location, Validators.required),
+            type: new FormControl(data?.item?.type, [Validators.required]),
+            collectionId: new FormControl(data.collectionId)
         });
-        if (data?.type === RestMediaItem.TypeEnum.VIDEO) {
-            this.form.addControl('durationMs', new FormControl(data?.durationMs, [Validators.required, Validators.min(1)]));
-            this.form.addControl('fps', new FormControl(data?.fps, [Validators.required, Validators.min(1), Validators.max(200)])); // Arbitrarily limiting to 200 fps
+        if (data?.item?.type === RestMediaItem.TypeEnum.VIDEO) {
+            this.form.addControl('durationMs', new FormControl(data?.item?.durationMs, [Validators.required, Validators.min(1)]));
+            this.form.addControl('fps', new FormControl(data?.item?.fps, [Validators.required, Validators.min(1), Validators.max(200)])); // Arbitrarily limiting to 200 fps
+        }
+    }
+
+    enableVideoItemControls(enable: boolean){
+        if (enable) {
+            this.form.addControl('durationMs', new FormControl(0, [Validators.required, Validators.min(1)]));
+            this.form.addControl('fps', new FormControl(0, [Validators.required, Validators.min(1), Validators.max(200)]));
+        } else {
+            this.form.removeControl('durationMs');
+            this.form.removeControl('fps');
         }
     }
 
 
     isEditing(): boolean {
-        return this.data?.id !== undefined;
+        return this.data?.item?.id !== undefined;
     }
 
     ngOnInit(): void {
@@ -62,7 +78,8 @@ export class MediaItemBuilderDialogComponent implements OnInit {
         const item = {
             name: this.form.get('name').value,
             location: this.form.get('location').value,
-            type: this.form.get('type').value
+            type: this.form.get('type').value,
+            collectionId: this.form.get('collectionId').value
         } as RestMediaItem;
         /* Are we editing ? */
         if (this.isEditing()) {

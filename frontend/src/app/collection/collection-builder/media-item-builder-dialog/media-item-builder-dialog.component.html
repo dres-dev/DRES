@@ -4,7 +4,7 @@
         <p>
             <mat-form-field style="width: 80%;">
                 <mat-select placeholder="Type" formControlName="type">
-                    <mat-option *ngFor="let type of types" [value]="type">
+                    <mat-option *ngFor="let type of types" [value]="type" (click)="enableVideoItemControls( type === 'VIDEO')">
                         {{type}}
                     </mat-option>
                 </mat-select>

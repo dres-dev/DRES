@@ -1,6 +1,7 @@
 package dres.api.rest.types.collection
 
 import dres.data.dbo.DAO
+import dres.data.model.UID
 
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.TaskDescription
@@ -13,7 +14,7 @@ import dres.utilities.extensions.UID
  * @author Ralph Gasser
  * @version 1.0
  */
-data class RestMediaCollection(val id: String?, val name: String, val description: String? = null, val basePath: String? = null) {
+data class RestMediaCollection(val id: String = UID.EMPTY.string, val name: String, val description: String? = null, val basePath: String? = null) {
     companion object {
         /**
          * Generates a [RestMediaItem] from a [TaskDescription] and returns it.
@@ -29,5 +30,5 @@ data class RestMediaCollection(val id: String?, val name: String, val descriptio
      *
      * @param mediaCollections The [DAO] to perform lookups.
      */
-    fun toMediaCollection(mediaCollections: DAO<MediaCollection>) = mediaCollections[this.id!!.UID()]
+    fun toMediaCollection(mediaCollections: DAO<MediaCollection>) = mediaCollections[this.id.UID()]
 }

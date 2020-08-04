@@ -6,7 +6,10 @@ import {MatDialog, MatDialogConfig} from '@angular/material/dialog';
 import {Observable, of, Subscription} from 'rxjs';
 import {catchError, filter, flatMap, map, retry, shareReplay, switchMap} from 'rxjs/operators';
 import {AppConfig} from '../../app.config';
-import {MediaItemBuilderDialogComponent} from '../collection-builder/media-item-builder-dialog/media-item-builder-dialog.component';
+import {
+    MediaItemBuilderData,
+    MediaItemBuilderDialogComponent
+} from '../collection-builder/media-item-builder-dialog/media-item-builder-dialog.component';
 
 @Component({
     selector: 'app-collection-viewer',
@@ -61,15 +64,14 @@ export class CollectionViewerComponent implements OnInit, OnDestroy {
     }
 
     delete(id: string) {
-        // FIXME
-        /*if (confirm(`Do you really want to delete media item with ID ${id}?`)) {
-            this.collectionService.deleteApiMediaitemWithCollectionid().subscribe((r) => {
+        if (confirm(`Do you really want to delete media item with ID ${id}?`)) {
+            this.collectionService.deleteApiMediaitemWithMediaid(id).subscribe((r) => {
                 this.refresh();
                 this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
             }, (r) => {
                 this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
             });
-        }*/
+        }
     }
 
     edit(id: string) {
@@ -87,28 +89,29 @@ export class CollectionViewerComponent implements OnInit, OnDestroy {
     }
 
     create(id?: string) {
-        const config = {width: '500px'} as MatDialogConfig<RestMediaItem>;
-        if (id) {
-            config.data = this.mediaItems.find(it => it.id === id);
-        } else {
-            config.data = null;
-        }
-        const dialogRef = this.dialog.open(MediaItemBuilderDialogComponent, config);
-        dialogRef.afterClosed().pipe(
-            filter(r => r != null),
-            flatMap((r: RestMediaItem) => {
-                if (id) {
-                    // return this.collectionService.patchApiMediaitem(r);
-                    return this.collectionService.postApiMediaitem(r); // FIXME to keep compiler happy
-                } else {
-                    return this.collectionService.postApiMediaitem(r);
-                }
-            })
-        ).subscribe((r) => {
-            this.refresh();
-            this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-        }, (r) => {
-            this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+        this.collectionId.subscribe((colId: string) => {
+            const config = {width: '500px'} as MatDialogConfig<Partial<MediaItemBuilderData>>;
+            if (id) {
+                config.data = {item: this.mediaItems.find(it => it.id === id), collectionId: colId} as MediaItemBuilderData;
+            } else {
+                config.data = {collectionId: colId} as Partial<MediaItemBuilderData>;
+            }
+            const dialogRef = this.dialog.open(MediaItemBuilderDialogComponent, config);
+            dialogRef.afterClosed().pipe(
+                filter(r => r != null),
+                flatMap((r: RestMediaItem) => {
+                    if (id) {
+                        return this.collectionService.patchApiMediaitem(r);
+                    } else {
+                        return this.collectionService.postApiMediaitem(r);
+                    }
+                })
+            ).subscribe((r) => {
+                this.refresh();
+                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
+            }, (r) => {
+                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+            });
         });
     }
 

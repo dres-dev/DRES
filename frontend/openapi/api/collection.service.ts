@@ -145,6 +145,51 @@ export class CollectionService {
     }
 
     /**
+     * Selects and returns a specific media item.
+     * @param mediaId Media item ID
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public deleteApiMediaitemWithMediaid(mediaId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public deleteApiMediaitemWithMediaid(mediaId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public deleteApiMediaitemWithMediaid(mediaId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public deleteApiMediaitemWithMediaid(mediaId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (mediaId === null || mediaId === undefined) {
+            throw new Error('Required parameter mediaId was null or undefined when calling deleteApiMediaitemWithMediaid.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.delete<SuccessStatus>(`${this.configuration.basePath}/api/mediaItem/${encodeURIComponent(String(mediaId))}`,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Lists all available media collections with basic information about their content.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -220,55 +265,6 @@ export class CollectionService {
         }
 
         return this.httpClient.get<RestFullMediaCollection>(`${this.configuration.basePath}/api/collection/${encodeURIComponent(String(collectionId))}`,
-            {
-                responseType: <any>responseType,
-                withCredentials: this.configuration.withCredentials,
-                headers: headers,
-                observe: observe,
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
-     * Selects and returns a specific media item from a given media collection.
-     * @param collectionId Collection ID
-     * @param mediaId Media item ID
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public getApiCollectionWithCollectionidMediaWithMediaid(collectionId: string, mediaId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<RestMediaItem>;
-    public getApiCollectionWithCollectionidMediaWithMediaid(collectionId: string, mediaId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<RestMediaItem>>;
-    public getApiCollectionWithCollectionidMediaWithMediaid(collectionId: string, mediaId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<RestMediaItem>>;
-    public getApiCollectionWithCollectionidMediaWithMediaid(collectionId: string, mediaId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
-        if (collectionId === null || collectionId === undefined) {
-            throw new Error('Required parameter collectionId was null or undefined when calling getApiCollectionWithCollectionidMediaWithMediaid.');
-        }
-        if (mediaId === null || mediaId === undefined) {
-            throw new Error('Required parameter mediaId was null or undefined when calling getApiCollectionWithCollectionidMediaWithMediaid.');
-        }
-
-        let headers = this.defaultHeaders;
-
-        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
-        if (httpHeaderAcceptSelected === undefined) {
-            // to determine the Accept header
-            const httpHeaderAccepts: string[] = [
-                'application/json'
-            ];
-            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
-        }
-        if (httpHeaderAcceptSelected !== undefined) {
-            headers = headers.set('Accept', httpHeaderAcceptSelected);
-        }
-
-
-        let responseType: 'text' | 'json' = 'json';
-        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
-            responseType = 'text';
-        }
-
-        return this.httpClient.get<RestMediaItem>(`${this.configuration.basePath}/api/collection/${encodeURIComponent(String(collectionId))}/media/${encodeURIComponent(String(mediaId))}`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
@@ -374,6 +370,51 @@ export class CollectionService {
     }
 
     /**
+     * Selects and returns a specific media item.
+     * @param mediaId Media item ID
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getApiMediaitemWithMediaid(mediaId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<RestMediaItem>;
+    public getApiMediaitemWithMediaid(mediaId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<RestMediaItem>>;
+    public getApiMediaitemWithMediaid(mediaId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<RestMediaItem>>;
+    public getApiMediaitemWithMediaid(mediaId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (mediaId === null || mediaId === undefined) {
+            throw new Error('Required parameter mediaId was null or undefined when calling getApiMediaitemWithMediaid.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.get<RestMediaItem>(`${this.configuration.basePath}/api/mediaItem/${encodeURIComponent(String(mediaId))}`,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Updates a media collection
      * @param restMediaCollection 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -415,6 +456,58 @@ export class CollectionService {
 
         return this.httpClient.patch<SuccessStatus>(`${this.configuration.basePath}/api/collection`,
             restMediaCollection,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Updates a Media Item to the specified Media Collection.
+     * @param restMediaItem 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public patchApiMediaitem(restMediaItem?: RestMediaItem, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public patchApiMediaitem(restMediaItem?: RestMediaItem, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public patchApiMediaitem(restMediaItem?: RestMediaItem, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public patchApiMediaitem(restMediaItem?: RestMediaItem, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+
+        let headers = this.defaultHeaders;
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            headers = headers.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.patch<SuccessStatus>(`${this.configuration.basePath}/api/mediaItem`,
+            restMediaItem,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
@@ -517,7 +610,7 @@ export class CollectionService {
             responseType = 'text';
         }
 
-        return this.httpClient.post<SuccessStatus>(`${this.configuration.basePath}/api/mediaitem`,
+        return this.httpClient.post<SuccessStatus>(`${this.configuration.basePath}/api/mediaItem`,
             restMediaItem,
             {
                 responseType: <any>responseType,

@@ -21,8 +21,9 @@
         </h2>
 
         <div *ngIf="(state | async)?.status === 'RUNNING_TASK'">
-            <app-video-query-object-preview *ngIf="(currentQueryContentElement | async)?.contentType === 'VIDEO'" [queryObject]="currentQueryContentElement" [muted]="(config.configAsObservable | async).effects.mute"></app-video-query-object-preview>
-            <app-text-query-object-preview *ngIf="(currentQueryContentElement | async)?.contentType === 'TEXT'" [queryContent]="currentQueryContentElement"></app-text-query-object-preview>
+            <app-video-object-preview [queryObject]="currentQueryContentElement" [muted]="(config.configAsObservable | async).effects.mute"></app-video-object-preview>
+            <app-image-object-preview [queryContent]="currentQueryContentElement"></app-image-object-preview>
+            <app-text-object-preview [queryContent]="currentQueryContentElement"></app-text-object-preview>
         </div>
 
         <div *ngIf="(state | async)?.status === 'TASK_ENDED'">

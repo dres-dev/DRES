@@ -1,12 +1,10 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
-import {
-    CompetitionRunService, QueryContentElement, QueryHint, RestTaskDescription,
-    RunState
-} from '../../../openapi';
-import {combineLatest, interval, Observable, of, timer, zip} from 'rxjs';
+import {CompetitionRunService, QueryContentElement, QueryHint, RestTaskDescription, RunState} from '../../../openapi';
+import {combineLatest, interval, merge, Observable, of, timer, zip} from 'rxjs';
 import {
     catchError,
-    concatMap, delayWhen,
+    concatMap,
+    delayWhen,
     filter,
     flatMap,
     map,
@@ -71,9 +69,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             switchMap(id => this.runService.getApiRunWithRunidQuery(id).pipe(
                 catchError(e => {
                     console.error('[TaskViewerComponent] Could not load current query object due to an error.', e);
-                    return of(null);
-                }),
-                filter(q => q != null)
+                    return of({ taskId: 'unknown', sequence: [], loop: false} as QueryHint);
+                })
             )),
             shareReplay({bufferSize: 1, refCount: true})
         );
@@ -92,7 +89,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             share()
         );
 
-        /* Timer observables */
+        /* Observable for the time that is still left */
         this.timeLeft = polledState.pipe(
             map(s => s.timeLeft),
             tap(t => {
@@ -101,24 +98,43 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
                 }
             })
         );
+
+        /** */
         this.timeElapsed = polledState.pipe(map(s => s.currentTask?.duration - s.timeLeft));
 
 
-        /* Observable for current query component. */
-        this.currentQueryContentElement = this.timeElapsed.pipe(
-            take(1),
-            withLatestFrom(this.currentQueryHint),
-            concatMap(([time, hint]: [number, QueryHint], i) => {
-                return fromArray(hint.sequence).pipe(
-                    delayWhen<any>(c => timer(1000 * Math.max(0, (c.offset - time)))),
-                    map((t, index) => {
-                        if (index > 0) {
-                            AudioPlayerUtilities.playOnce('assets/audio/ding.ogg', this.audio.nativeElement);
-                        }
-                        return t;
+        /** Observable for current query component. */
+        this.currentQueryContentElement = merge([this.runId, this.taskStarted]).pipe(
+            flatMap(e => this.currentQueryHint),
+            concatMap((hint, i) => {
+                return this.timeElapsed.pipe(
+                    take(1),
+                    flatMap(time => {
+                        /* Find last element per category (which is always retained). */
+                        const retain = new Map<QueryContentElement.ContentTypeEnum, QueryContentElement>();
+                        hint.sequence.forEach(e => {
+                            if (!retain.has(e.contentType)) {
+                                retain.set(e.contentType, e);
+                            } else if (retain.get(e.contentType).offset < e.offset) {
+                                retain.set(e.contentType, e);
+                            }
+                        });
+
+                        /* Filter out all element in the sequence that are not eligible for display*/
+                        const sequence = hint.sequence.filter(e => (e.offset - time) >= 0 || e === retain.get(e.contentType));
+                        return fromArray(sequence).pipe(
+                            delayWhen<any>(c => interval(1000 * Math.max(0, (c.offset - time)))),
+                            map((t, index) => {
+                                if (index > 0) {
+                                    AudioPlayerUtilities.playOnce('assets/audio/ding.ogg', this.audio.nativeElement);
+                                }
+                                return t;
+                            })
+                        );
                     })
                 );
-            })
+            }),
+            shareReplay({bufferSize: 1, refCount: true})
         );
 
         /* Observable reacting to TASK_PREPARE message. */

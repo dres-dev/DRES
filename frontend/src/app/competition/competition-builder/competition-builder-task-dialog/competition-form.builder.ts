@@ -97,8 +97,10 @@ export class CompetitionFormBuilder {
             components: (this.form.get('components') as FormArray).controls.map(c => {
                 return {
                     type: c.get('type').value,
+                    start: c.get('start').value,
+                    end: c.get('end').value,
                     mediaItem: c.get('mediaItem') ? c.get('mediaItem').value.id : null,
-                    range: c.get('start') && c.get('end') ? {
+                    range: c.get('segment_start') && c.get('segment_end') ? {
                         start: { value: c.get('segment_start').value, unit: c.get('segment_time_unit').value }  as TemporalPoint,
                         end: { value: c.get('segment_end').value, unit: c.get('segment_time_unit').value }  as TemporalPoint,
                     } as TemporalRange : null,
@@ -111,10 +113,8 @@ export class CompetitionFormBuilder {
                 type: this.taskType.targetType,
                 mediaItems: (this.form.get('target') as FormArray).controls.map(t => {
                     return {
-                        start: t.get('start').value,
-                        end: t.get('end').value,
                         mediaItem: t.get('mediaItem').value.id,
-                        temporalRange: t.get('start') && t.get('end') ? {
+                        temporalRange: t.get('segment_start') && t.get('segment_start') ? {
                             start: {value: t.get('segment_start').value, unit: t.get('segment_time_unit').value} as TemporalPoint,
                             end: {value: t.get('segment_end').value, unit: t.get('segment_time_unit').value} as TemporalPoint
                         } as TemporalRange : null
@@ -301,8 +301,8 @@ export class CompetitionFormBuilder {
         }
 
         return new FormGroup({
-            start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.form.get('duration').value)]),
-            end: new FormControl(initialize?.end, [Validators.required, Validators.min(0), Validators.max(this.form.get('duration').value)]),
+            start: new FormControl(initialize?.start),
+            end: new FormControl(initialize?.end),
             type: new FormControl('IMAGE_ITEM', [Validators.required]),
             mediaItem: mediaItemFormControl
         });
@@ -337,8 +337,8 @@ export class CompetitionFormBuilder {
 
         /* Prepare FormGroup. */
         const group = new FormGroup({
-            start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.form.get('duration').value)]),
-            end: new FormControl(initialize?.end, [Validators.required, Validators.min(0), Validators.max(this.form.get('duration').value)]),
+            start: new FormControl(initialize?.start),
+            end: new FormControl(initialize?.end),
             type: new FormControl('VIDEO_ITEM_SEGMENT', [Validators.required]),
             mediaItem: mediaItemFormControl,
             segment_start: new FormControl(initialize?.range.start.value, [Validators.required, Validators.min(0)]),
@@ -371,8 +371,8 @@ export class CompetitionFormBuilder {
      */
     private textItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
         return new FormGroup({
-            start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.form.get('duration').value)]),
-            end: new FormControl(initialize?.end, [Validators.required, Validators.min(0), Validators.max(this.form.get('duration').value)]),
+            start: new FormControl(initialize?.start),
+            end: new FormControl(initialize?.end),
             type: new FormControl('TEXT', [Validators.required]),
             description: new FormControl(initialize?.description, [Validators.required])
         });
@@ -386,8 +386,8 @@ export class CompetitionFormBuilder {
      */
     private externalImageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
         return new FormGroup({
-            start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.form.get('duration').value)]),
-            end: new FormControl(initialize?.end, [Validators.required, Validators.min(0), Validators.max(this.form.get('duration').value)]),
+            start: new FormControl(initialize?.start),
+            end: new FormControl(initialize?.end),
             type: new FormControl('EXTERNAL_IMAGE', [Validators.required]),
             payload: new FormControl(initialize?.payload, [Validators.required]),
             dataType: new FormControl(initialize?.dataType, [Validators.required]),
@@ -402,8 +402,8 @@ export class CompetitionFormBuilder {
      */
     private externalVideoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
         return new FormGroup({
-            start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.form.get('duration').value)]),
-            end: new FormControl(initialize?.end, [Validators.required, Validators.min(0), Validators.max(this.form.get('duration').value)]),
+            start: new FormControl(initialize?.start),
+            end: new FormControl(initialize?.end),
             type: new FormControl('EXTERNAL_VIDEO', [Validators.required]),
             payload: new FormControl(initialize?.payload, [Validators.required]),
             dataType: new FormControl(initialize?.dataType, [Validators.required]),

@@ -2,7 +2,9 @@ package dres.api.rest.handler
 
 import dres.api.rest.RestApiRole
 import dres.api.rest.types.competition.RestCompetitionDescription
+import dres.api.rest.types.competition.RestDetailedTeam
 import dres.api.rest.types.competition.RestTaskDescription
+import dres.api.rest.types.competition.RestTeam
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
@@ -11,6 +13,7 @@ import dres.data.model.UID
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.Team
+import dres.mgmt.admin.UserManager
 import dres.utilities.extensions.UID
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
@@ -97,6 +100,30 @@ class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
             ]
     )
     override fun doGet(ctx: Context) = competitionFromContext(ctx).teams
+
+}
+
+
+/**
+ * REST handler to list all teams for a [CompetitionDescription], inclusive [UserDetails]
+ */
+class ListDetailedTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<RestDetailedTeam>>{
+
+    override val route: String = "competition/:competitionId/teams/details"
+
+    @OpenApi(
+            summary="Lists the teams with their user details",
+            path= "/api/competition/:competitionId/teams/details",
+            pathParams= [OpenApiParam("competitionId", UID::class, "Competition ID")],
+            tags = ["Competition"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(Array<RestDetailedTeam>::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context) = competitionFromContext(ctx).teams.map{ RestDetailedTeam.of(it) }
 
 }
 

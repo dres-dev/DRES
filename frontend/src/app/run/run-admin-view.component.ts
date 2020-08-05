@@ -1,7 +1,15 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {AppConfig} from '../app.config';
-import {CompetitionRunAdminService, CompetitionRunService, RunInfo, RunState, UserService, ViewerInfo} from '../../../openapi';
+import {
+    CompetitionRunAdminService,
+    CompetitionRunService,
+    CompetitionService,
+    RestDetailedTeam,
+    RunInfo,
+    RunState,
+    ViewerInfo
+} from '../../../openapi';
 import {combineLatest, merge, Observable, Subject, timer} from 'rxjs';
 import {flatMap, map, shareReplay, switchMap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -24,7 +32,7 @@ export class RunAdminViewComponent {
     viewers: Observable<ViewerInfo[]>;
     update = new Subject();
     displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'action'];
-
+    teams: Observable<RestDetailedTeam[]>;
 
     /**
      *
@@ -37,8 +45,8 @@ export class RunAdminViewComponent {
     constructor(private activeRoute: ActivatedRoute,
                 private config: AppConfig,
                 private runService: CompetitionRunService,
+                private competitionService: CompetitionService,
                 private runAdminService: CompetitionRunAdminService,
-                private userService: UserService,
                 private snackBar: MatSnackBar) {
         this.runId = this.activeRoute.params.pipe(map(a => a.runId));
         this.run = this.runId.pipe(
@@ -60,6 +68,14 @@ export class RunAdminViewComponent {
         this.viewers = this.runId.pipe(
             flatMap(runId => timer(0, 1000).pipe(switchMap(i => this.runAdminService.getApiRunAdminWithRunidViewers(runId))))
         );
+
+        this.teams = this.run.pipe(
+            switchMap(runAndInfo => {
+                return this.competitionService.getApiCompetitionWithCompetitionidTeamsDetails(runAndInfo.info.competitionId);
+            }),
+            shareReplay({bufferSize: 1, refCount: true})
+        );
+
     }
 
     public start() {
@@ -172,14 +188,14 @@ export class RunAdminViewComponent {
             .join(':');
     }
 
-    userNameOf(user: string) : Observable<string>{
+    userNameOf(user: string): Observable<string> {
         // if (user) {
         //     return this.userService.getApiUserWithId(user).pipe(
         //         map(u => u.username),
         //         shareReplay(1)
         //     );
         // } else {
-            return null;
+        return null;
         // }
     }
 }

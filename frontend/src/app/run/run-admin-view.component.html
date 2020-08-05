@@ -133,18 +133,17 @@
                 </mat-card-header>
                 <mat-card-content>
 
-                    <mat-action-list>
-                        <mat-list-item *ngFor="let team of (run | async).info.teams; let i = index" [style.color]="team.color">
-                            <img matListAvatar src="{{team.logo}}" [style.width]="'90px'" alt="team logo">
+                    <mat-list dense>
+                        <mat-list-item *ngFor="let team of (teams | async); let i = index" [style.color]="team.color">
+                            <img matListAvatar src="{{team.logo}}" [style.width]="'90px'" class="alt-list-avatar" alt="team logo">
                             <h3 matLine>{{team.name}}</h3>
-                            <p matLine>
-                                {{team.users.length}} member(s)
+                            <p matLine>{{team.users.length}} member(s)</p>
+                            <p matLine *ngFor="let user of team.users">
+                                <!-- <mat-icon>person</mat-icon>-->
+                                &bull; {{user.username}}
                             </p>
-                            <!-- <p matLine *ngFor="let user of team.users">
-                                {{(userNameOf(user) | async)}}
-                            </p> -->
                         </mat-list-item>
-                    </mat-action-list>
+                    </mat-list>
 
                 </mat-card-content>
             </mat-card>

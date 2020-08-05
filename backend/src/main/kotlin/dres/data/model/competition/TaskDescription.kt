@@ -18,7 +18,7 @@ import kotlin.math.max
 /**
  * Basic description of a [TaskDescription].
  *
- * @version 1.0
+ * @version 1.0.1
  * @author Luca Rossetto & Ralph Gasser
  */
 class TaskDescription(
@@ -63,7 +63,7 @@ class TaskDescription(
      */
     fun newValidator(): SubmissionValidator = when(taskType.targetType){
         TaskType.TargetType.SINGLE_MEDIA_ITEM -> TODO()
-        TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionValidator(target as TaskDescriptionTarget.MediaSegmentTarget)
+        TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionValidator(target as TaskDescriptionTarget.VideoSegmentTarget)
         TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> TODO()
         TaskType.TargetType.JUDGEMENT -> BasicJudgementValidator()
     }
@@ -86,26 +86,13 @@ class TaskDescription(
      * @throws IOException
      */
     fun toQueryDescription(config: Config): QueryHint {
-        val sequence = this.components.map {
-            when(it) {
-                is TaskDescriptionComponent.TextTaskDescriptionComponent -> QueryContentElement(it.text, ContentType.TEXT)
-                is TaskDescriptionComponent.ImageItemTaskDescriptionComponent -> {
-                    val file = File(config.cachePath + "/tasks")
-                    FileInputStream(file).use { imageInFile ->
-                        val fileData = ByteArray(file.length().toInt())
-                        imageInFile.read(fileData)
-                        QueryContentElement(Base64.getEncoder().encodeToString(fileData), ContentType.IMAGE)
-                    }
+        val sequence = this.components.groupBy { it.contentType }.flatMap {group ->
+            group.value.sortedBy { it.start ?: 0 }.flatMap {
+                val ret = mutableListOf(it.toQueryContentElement(config))
+                if (it.end != null) {
+                    ret.add(QueryContentElement(contentType = ret.first().contentType, offset = it.end!!))
                 }
-                is TaskDescriptionComponent.VideoItemSegmentTaskDescriptionComponent -> {
-                    val file = File(config.cachePath + "/tasks", it.cacheItemName())
-                    FileInputStream(file).let { imageInFile ->
-                        val fileData = ByteArray(file.length().toInt())
-                        imageInFile.read(fileData)
-                        QueryContentElement(Base64.getEncoder().encodeToString(fileData), ContentType.VIDEO)
-                    }
-                }
-                else -> throw IllegalStateException("Transformation from ${target::javaClass} to query hint currently not implemented.")
+                ret
             }
         }
         return QueryHint(this.id.string, sequence, false)
@@ -120,17 +107,11 @@ class TaskDescription(
      * @throws FileNotFoundException
      * @throws IOException
      */
-    private fun toQueryTarget(config: Config): QueryTarget = when (this.target) {
-        is TaskDescriptionTarget.MediaSegmentTarget -> {
-            val file = File(File(config.cachePath + "/tasks"), target.cacheItemName())
-            FileInputStream(file).use { imageInFile ->
-                val fileData = ByteArray(file.length().toInt())
-                imageInFile.read(fileData)
-                QueryTarget(this.id.string, listOf(QueryContentElement(Base64.getEncoder().encodeToString(fileData), ContentType.VIDEO)))
-            }
-        }
-        else -> throw IllegalStateException("Transformation from ${target::javaClass} to query harget currently not implemented.")
-    }
+    private fun toQueryTarget(config: Config): QueryTarget? = this.target.toQueryContentElement(config)?.let { QueryTarget(this.id.string, listOf(it)) }
+
+    /** Produces a Textual description of the content of the task if possible */
+    fun textualDescription(): String = components.filterIsInstance(TaskDescriptionComponent.TextTaskDescriptionComponent::class.java)
+            .maxBy { it.start ?: 0 }?.text ?: name
 
     /** Prints an overview of the task to a provided stream */
     fun printOverview(out: PrintStream) {
@@ -142,10 +123,6 @@ class TaskDescription(
         }
         out.println()
     }
-
-    /** Produces a Textual description of the content of the task if possible */
-    fun textualDescription(): String = components.filterIsInstance(TaskDescriptionComponent.TextTaskDescriptionComponent::class.java)
-            .maxBy { it.start ?: 0 }?.text ?: name
 
     /**
      * Checks if no components of the same type overlap

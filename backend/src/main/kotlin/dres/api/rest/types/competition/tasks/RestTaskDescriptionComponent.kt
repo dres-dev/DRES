@@ -102,8 +102,7 @@ data class RestTaskDescriptionComponent(
         fun toComponent(mediaItems: DAO<MediaItem>) = when(this.type){
                 TaskType.QueryComponentType.IMAGE_ITEM -> TaskDescriptionComponent.ImageItemTaskDescriptionComponent(mediaItems[this.mediaItem!!.UID()] as MediaItem.ImageItem, this.start, this.end)
                 TaskType.QueryComponentType.VIDEO_ITEM_SEGMENT -> TaskDescriptionComponent.VideoItemSegmentTaskDescriptionComponent(mediaItems[this.mediaItem!!.UID()] as MediaItem.VideoItem, this.range!!, this.start, this.end)
-                TaskType.QueryComponentType.TEXT -> TaskDescriptionComponent.TextTaskDescriptionComponent(this.description
-                        ?: "", this.start, this.end)
+                TaskType.QueryComponentType.TEXT -> TaskDescriptionComponent.TextTaskDescriptionComponent(this.description ?: "", this.start, this.end)
                 TaskType.QueryComponentType.EXTERNAL_IMAGE -> TODO()
                 TaskType.QueryComponentType.EXTERNAL_VIDEO -> TODO()
         }

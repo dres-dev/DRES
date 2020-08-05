@@ -50,7 +50,7 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
         out.writeUTF(target.javaClass.name)
         when(target) {
             is TaskDescriptionTarget.JudgementTaskDescriptionTarget -> {}
-            is TaskDescriptionTarget.MediaSegmentTarget -> {
+            is TaskDescriptionTarget.VideoSegmentTarget -> {
                 out.writeUID(target.item.id)
                 TemporalRangeSerializer.serialize(out, target.temporalRange)
             }
@@ -104,8 +104,9 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
     private fun readTaskDescriptionTarget(input: DataInput2, available: Int, mediaItems: DAO<MediaItem>) : TaskDescriptionTarget {
         return when(val className = input.readUTF()) {
             TaskDescriptionTarget.JudgementTaskDescriptionTarget::class.java.name -> TaskDescriptionTarget.JudgementTaskDescriptionTarget
-            TaskDescriptionTarget.MediaSegmentTarget::class.java.name -> {
-                TaskDescriptionTarget.MediaSegmentTarget(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
+            "dres.data.model.competition.TaskDescriptionTarget\$MediaSegmentTarget",
+            TaskDescriptionTarget.VideoSegmentTarget::class.java.name -> {
+                TaskDescriptionTarget.VideoSegmentTarget(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
             }
             TaskDescriptionTarget.MediaItemTarget::class.java.name -> {
                 TaskDescriptionTarget.MediaItemTarget(mediaItems[input.readUID()]!!)

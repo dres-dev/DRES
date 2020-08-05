@@ -1,14 +1,15 @@
 import {NgModule} from '@angular/core';
-import {VideoQueryObjectPreviewComponent} from './video-query-object-preview.component';
-import {TextQueryObjectPreviewComponent} from './text-query-object-preview.component';
+import {VideoObjectPreviewComponent} from './video-object-preview.component';
+import {TextObjectPreviewComponent} from './text-object-preview.component';
 import {CommonModule} from '@angular/common';
+import {ImageObjectPreviewComponent} from './image-object-preview.component';
 
 @NgModule({
     imports: [
         CommonModule
     ],
-    exports:      [ VideoQueryObjectPreviewComponent, TextQueryObjectPreviewComponent ],
-    declarations: [ VideoQueryObjectPreviewComponent, TextQueryObjectPreviewComponent ],
+    exports:      [ VideoObjectPreviewComponent, TextObjectPreviewComponent, ImageObjectPreviewComponent ],
+    declarations: [ VideoObjectPreviewComponent, TextObjectPreviewComponent, ImageObjectPreviewComponent ],
     providers:    [ ]
 })
 export class QueryObjectPreviewModule { }

@@ -1,9 +1,5 @@
 package dres.api.rest.types.run
 
-import dres.api.rest.types.competition.RestTaskDescription
-import dres.api.rest.types.competition.RestTeam
-import dres.data.model.competition.Team
-import dres.data.model.competition.TaskDescription
 import dres.data.model.run.CompetitionRun
 import dres.run.RunManager
 
@@ -13,21 +9,21 @@ import dres.run.RunManager
  * it allows for local caching and other optimizations.
  *
  * @author Ralph Gasser
- * @version 1.0.1
+ * @version 1.0.2
  */
 data class RunInfo(
         val id: String,
         val name: String,
         val description: String?,
-        val teams: List<RestTeam>,
-        val tasks: List<RestTaskDescription>,
+        val teams: List<TeamInfo>,
+        val tasks: List<TaskInfo>,
         val competitionId: String) {
     constructor(run: RunManager) : this(
-            run.id.string,
-            run.name,
-            run.competitionDescription.description,
-            run.competitionDescription.teams.map { RestTeam(it) },
-            run.competitionDescription.tasks.map { RestTaskDescription.fromTask(it) },
-            run.competitionDescription.id.string
+        run.id.string,
+        run.name,
+        run.competitionDescription.description,
+        run.competitionDescription.teams.map { TeamInfo(it) },
+        run.competitionDescription.tasks.map { TaskInfo(it) },
+        run.competitionDescription.id.string
     )
 }

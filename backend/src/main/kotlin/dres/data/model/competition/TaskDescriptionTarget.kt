@@ -1,8 +1,7 @@
 package dres.data.model.competition
 
-import dres.api.rest.types.query.ContentType
-import dres.api.rest.types.query.QueryContentElement
-import dres.api.rest.types.query.QueryTarget
+import dres.api.rest.types.task.ContentType
+import dres.api.rest.types.task.ContentElement
 import dres.data.model.Config
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.time.TemporalRange
@@ -25,22 +24,22 @@ sealed class TaskDescriptionTarget {
     internal abstract fun textDescription(): String
 
     /**
-     * Generates and returns a [QueryContentElement] object to be used by the RESTful interface.
+     * Generates and returns a [ContentElement] object to be used by the RESTful interface.
      *
      * @param config The [Config] used of path resolution.
-     * @return [QueryContentElement]
+     * @return [ContentElement]
      *
      * @throws FileNotFoundException
      * @throws IOException
      */
-    internal abstract fun toQueryContentElement(config: Config): QueryContentElement?
+    internal abstract fun toQueryContentElement(config: Config): ContentElement?
 
     /**
      * A [TaskDescriptionTarget] that is validated by human judges.
      */
     object JudgementTaskDescriptionTarget : TaskDescriptionTarget() {
         override fun textDescription() = "Judgement"
-        override fun toQueryContentElement(config: Config): QueryContentElement? = null
+        override fun toQueryContentElement(config: Config): ContentElement? = null
     }
 
     /**
@@ -48,7 +47,7 @@ sealed class TaskDescriptionTarget {
      */
     data class MediaItemTarget(val item: MediaItem) : TaskDescriptionTarget() {
         override fun textDescription() = "Media Item ${item.name}"
-        override fun toQueryContentElement(config: Config): QueryContentElement? = TODO()
+        override fun toQueryContentElement(config: Config): ContentElement? = TODO()
     }
 
     /**
@@ -56,12 +55,12 @@ sealed class TaskDescriptionTarget {
      */
     data class VideoSegmentTarget(override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange) : TaskDescriptionTarget(), CachedVideoItem {
         override fun textDescription() = "Media Item ${item.name} @ ${temporalRange.start.niceText()} - ${temporalRange.end.niceText()}"
-        override fun toQueryContentElement(config: Config): QueryContentElement? {
+        override fun toQueryContentElement(config: Config): ContentElement? {
             val file = File(File(config.cachePath + "/tasks"), this.cacheItemName())
             return FileInputStream(file).use { imageInFile ->
                 val fileData = ByteArray(file.length().toInt())
                 imageInFile.read(fileData)
-                QueryContentElement(ContentType.VIDEO, Base64.getEncoder().encodeToString(fileData))
+                ContentElement(ContentType.VIDEO, Base64.getEncoder().encodeToString(fileData))
             }
         }
     }

@@ -1,9 +1,8 @@
 package dres.data.model.competition
 
-import dres.api.rest.types.query.ContentType
-import dres.api.rest.types.query.QueryContentElement
-import dres.api.rest.types.query.QueryHint
-import dres.api.rest.types.query.QueryTarget
+import dres.api.rest.types.task.ContentElement
+import dres.api.rest.types.task.TaskHint
+import dres.api.rest.types.task.TaskTarget
 import dres.data.model.Config
 import dres.data.model.UID
 import dres.run.filter.SubmissionFilter
@@ -12,7 +11,6 @@ import dres.run.validation.TemporalOverlapSubmissionValidator
 import dres.run.validation.interfaces.SubmissionValidator
 import dres.run.validation.judged.BasicJudgementValidator
 import java.io.*
-import java.util.*
 import kotlin.math.max
 
 /**
@@ -40,6 +38,7 @@ class TaskDescription(
 
     /** The id of the relevant media collection for this task, if not otherwise specified */
     val mediaCollectionId: UID,
+
     /** The [TaskDescriptionTarget] that identifies the target media. */
     val target: TaskDescriptionTarget,
 
@@ -77,37 +76,37 @@ class TaskDescription(
     fun newFilter(): SubmissionFilter = taskType.newFilter()
 
     /**
-     * Generates and returns a [QueryHint] object to be used by the RESTful interface.
+     * Generates and returns a [TaskHint] object to be used by the RESTful interface.
      *
      * @param config The [Config] used of path resolution.
-     * @return [QueryHint]
+     * @return [TaskHint]
      *
      * @throws FileNotFoundException
      * @throws IOException
      */
-    fun toQueryDescription(config: Config): QueryHint {
-        val sequence = this.components.groupBy { it.contentType }.flatMap {group ->
+    fun toTaskHint(config: Config): TaskHint {
+        val sequence = this.components.groupBy { it.contentType }.flatMap { group ->
             group.value.sortedBy { it.start ?: 0 }.flatMap {
                 val ret = mutableListOf(it.toQueryContentElement(config))
                 if (it.end != null) {
-                    ret.add(QueryContentElement(contentType = ret.first().contentType, offset = it.end!!))
+                    ret.add(ContentElement(contentType = ret.first().contentType, offset = it.end!!))
                 }
                 ret
             }
         }
-        return QueryHint(this.id.string, sequence, false)
+        return TaskHint(this.id.string, sequence, false)
     }
 
     /**
-     * Generates and returns a [QueryTarget] object to be used by the RESTful interface.
+     * Generates and returns a [TaskTarget] object to be used by the RESTful interface.
      *
      * @param config The [Config] used of path resolution.
-     * @return [QueryTarget]
+     * @return [TaskTarget]
      *
      * @throws FileNotFoundException
      * @throws IOException
      */
-    private fun toQueryTarget(config: Config): QueryTarget? = this.target.toQueryContentElement(config)?.let { QueryTarget(this.id.string, listOf(it)) }
+    fun toTaskTarget(config: Config): TaskTarget? = this.target.toQueryContentElement(config)?.let { TaskTarget(this.id.string, listOf(it)) }
 
     /** Produces a Textual description of the content of the task if possible */
     fun textualDescription(): String = components.filterIsInstance(TaskDescriptionComponent.TextTaskDescriptionComponent::class.java)
@@ -129,7 +128,7 @@ class TaskDescription(
      * @throws IllegalArgumentException
      */
     fun validate() {
-        this.components.groupBy { it.contentType }.forEach {group ->
+        this.components.groupBy { it.contentType }.forEach { group ->
             var end = 0L
             group.value.sortedBy { it.start ?: 0 }.forEach {
                 if((it.start ?: end) < end){

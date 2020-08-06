@@ -1,4 +1,4 @@
-package dres.api.rest.types.query
+package dres.api.rest.types.task
 
 enum class ContentType(val mimeType: String, val base64: Boolean) {
     TEXT("text/plain", false),

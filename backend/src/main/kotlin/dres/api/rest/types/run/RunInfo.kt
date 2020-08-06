@@ -15,6 +15,19 @@ import dres.run.RunManager
  * @author Ralph Gasser
  * @version 1.0.1
  */
-data class RunInfo(val id: String, val name: String, val description: String?, val teams: List<RestTeam>, val tasks: List<RestTaskDescription>) {
-    constructor(run: RunManager) : this(run.id.string, run.name, run.competitionDescription.description, run.competitionDescription.teams.map { RestTeam(it) }, run.competitionDescription.tasks.map { RestTaskDescription.fromTask(it) })
+data class RunInfo(
+        val id: String,
+        val name: String,
+        val description: String?,
+        val teams: List<RestTeam>,
+        val tasks: List<RestTaskDescription>,
+        val competitionId: String) {
+    constructor(run: RunManager) : this(
+            run.id.string,
+            run.name,
+            run.competitionDescription.description,
+            run.competitionDescription.teams.map { RestTeam(it) },
+            run.competitionDescription.tasks.map { RestTaskDescription.fromTask(it) },
+            run.competitionDescription.id.string
+    )
 }

@@ -12,10 +12,9 @@
 
 
 export interface QueryContentElement { 
-    content: string;
     contentType: QueryContentElement.ContentTypeEnum;
+    content?: string;
     offset: number;
-    duration?: number;
 }
 export namespace QueryContentElement {
     export type ContentTypeEnum = 'TEXT' | 'VIDEO' | 'IMAGE';

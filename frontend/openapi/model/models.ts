@@ -15,6 +15,7 @@ export * from './queryHint';
 export * from './queryResult';
 export * from './queryResultLog';
 export * from './restCompetitionDescription';
+export * from './restDetailedTeam';
 export * from './restFullMediaCollection';
 export * from './restMediaCollection';
 export * from './restMediaItem';

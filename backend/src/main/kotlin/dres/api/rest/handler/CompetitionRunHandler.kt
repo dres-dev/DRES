@@ -2,7 +2,8 @@ package dres.api.rest.handler
 
 import dres.api.rest.AccessManager
 import dres.api.rest.RestApiRole
-import dres.api.rest.types.query.QueryHint
+import dres.api.rest.types.task.TaskHint
+import dres.api.rest.types.task.TaskTarget
 import dres.api.rest.types.run.RunInfo
 import dres.api.rest.types.run.RunState
 import dres.api.rest.types.status.ErrorStatus
@@ -250,24 +251,24 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
     }
 }
 
-class CurrentQueryHandler(private val config: Config) : AbstractCompetitionRunRestHandler(), GetRestHandler<QueryHint> {
+class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRunRestHandler(), GetRestHandler<TaskHint> {
 
-    override val route = "run/:runId/query"
+    override val route = "run/:runId/hint"
 
     private val taskCacheLocation = File(config.cachePath + "/tasks")
     @OpenApi(
-            summary = "Returns the query description for the current task run (i.e. the one that is currently selected).",
-            path = "/api/run/:runId/query",
+            summary = "Returns the task hint for the current task run (i.e. the one that is currently selected).",
+            path = "/api/run/:runId/hint",
             tags = ["Competition Run"],
             pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(QueryHint::class)]),
+                OpenApiResponse("200", [OpenApiContent(TaskHint::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): QueryHint {
+    override fun doGet(ctx: Context): TaskHint {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.")
 
@@ -275,16 +276,65 @@ class CurrentQueryHandler(private val config: Config) : AbstractCompetitionRunRe
             throw ErrorStatusException(403, "Access denied.")
         }
 
-        val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId")
+        val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId.")
         try {
-                return task.toQueryDescription(config)
-            } catch (e: FileNotFoundException) {
-                throw ErrorStatusException(404, "Query object cache file not found!")
-            } catch (ioe: IOException) {
-                throw ErrorStatusException(500, "Exception when reading query object cache file.")
-            }
+            return task.toTaskHint(config)
+        } catch (e: FileNotFoundException) {
+            throw ErrorStatusException(404, "Query object cache file not found!")
+        } catch (ioe: IOException) {
+            throw ErrorStatusException(500, "Exception when reading query object cache file.")
+        }
     }
 }
+
+class CurrentTaskTargetHandler(private val config: Config) : AbstractCompetitionRunRestHandler(), GetRestHandler<TaskTarget> {
+
+    override val route = "run/:runId/target"
+
+    private val taskCacheLocation = File(config.cachePath + "/tasks")
+    @OpenApi(
+            summary = "Returns the task target for the current task run (i.e. the one that is currently selected).",
+            path = "/api/run/:runId/target",
+            tags = ["Competition Run"],
+            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(TaskTarget::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): TaskTarget {
+        val runId = runId(ctx)
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.")
+
+        /* Test for access rights. */
+        if (!run.participantCanView && isParticipant(ctx)){
+            throw ErrorStatusException(403, "Access denied.")
+        }
+
+        /* Test for correct state. */
+        if (run.status != RunManagerStatus.TASK_ENDED) {
+            throw ErrorStatusException(400, "Query target can only be loaded if task has just ended.")
+        }
+
+        /* Fetch query target and transform it. */
+        val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId.")
+        try {
+            val target = task.toTaskTarget(config)
+            if (target != null) {
+                return target
+            } else {
+                throw ErrorStatusException(404, "Current task does not have a defined query target object.")
+            }
+        } catch (e: FileNotFoundException) {
+            throw ErrorStatusException(404, "Query object cache file not found!")
+        } catch (ioe: IOException) {
+            throw ErrorStatusException(500, "Exception when reading query object cache file.")
+        }
+    }
+}
+
 
 
 class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {

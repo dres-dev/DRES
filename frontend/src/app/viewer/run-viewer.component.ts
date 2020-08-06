@@ -2,7 +2,8 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {interval, merge, Observable, of, Subscription} from 'rxjs';
 import {
-    catchError, debounce,
+    catchError,
+    debounce,
     delay,
     filter,
     flatMap,
@@ -19,7 +20,7 @@ import {
 import {webSocket, WebSocketSubject, WebSocketSubjectConfig} from 'rxjs/webSocket';
 import {AppConfig} from '../app.config';
 import {IWsMessage} from '../model/ws/ws-message.interface';
-import {CompetitionRunService, RestTaskDescription, RunInfo, RunState} from '../../../openapi';
+import {CompetitionRunService, RunInfo, RunState, TaskInfo} from '../../../openapi';
 import {IWsServerMessage} from '../model/ws/ws-server-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -46,13 +47,13 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
     runState: Observable<RunState>;
 
     /** Observable that fires whenever a task starts. Emits the task description of the task that just started. */
-    taskStarted: Observable<RestTaskDescription>;
+    taskStarted: Observable<TaskInfo>;
 
     /** Observable that fires whenever a task changes. Emits the task description of the new task. */
-    taskChanged: Observable<RestTaskDescription>;
+    taskChanged: Observable<TaskInfo>;
 
     /** Observable that fires whenever a task ends. Emits the task description of the task that just ended. */
-    taskEnded: Observable<RestTaskDescription>;
+    taskEnded: Observable<TaskInfo>;
 
     /** Internal WebSocket subscription for pinging the server. */
     private pingSubscription: Subscription;
@@ -153,15 +154,15 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         /* Basic observable that fires when a task starts.  */
         this.taskStarted = this.runState.pipe(
             pairwise(),
-            filter(([s1, s2]) => s1.status === 'PREPARING_TASK' && s2.status === 'RUNNING_TASK'),
+            filter(([s1, s2]) => (s1 === null || s1.status === 'PREPARING_TASK') && s2.status === 'RUNNING_TASK'),
             map(([s1, s2]) => s2.currentTask),
             shareReplay({bufferSize: 1, refCount: true})
         );
 
         /* Basic observable that fires when a task ends.  */
-        this.taskEnded = this.runState.pipe(
+        this.taskEnded = merge(of(null as RunState), this.runState).pipe(
             pairwise(),
-            filter(([s1, s2]) => s1.status === 'RUNNING_TASK' && s2.status === 'TASK_ENDED'),
+            filter(([s1, s2]) => (s1 === null || s1.status === 'RUNNING_TASK') && s2.status === 'TASK_ENDED'),
             map(([s1, s2]) => s2.currentTask),
             shareReplay({bufferSize: 1, refCount: true})
         );

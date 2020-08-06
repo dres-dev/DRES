@@ -2,7 +2,7 @@ import {Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
 import {Observable} from 'rxjs';
 import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
 import {filter, map} from 'rxjs/operators';
-import {QueryContentElement} from '../../../../openapi';
+import {ContentElement} from '../../../../openapi';
 import {DataUtilities} from '../../utilities/data.utilities';
 
 @Component({
@@ -16,7 +16,7 @@ import {DataUtilities} from '../../utilities/data.utilities';
 export class VideoObjectPreviewComponent implements OnInit {
 
     /** Observable of current {@link QueryContentElement} that should be displayed. Provided by user of this component. */
-    @Input() queryObject: Observable<QueryContentElement>;
+    @Input() queryObject: Observable<ContentElement>;
 
     /** Flag indicating whether video player should be muted or not. Can be provided by a user of this component. */
     @Input() muted = true;

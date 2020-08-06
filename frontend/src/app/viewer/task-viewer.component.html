@@ -27,7 +27,8 @@
         </div>
 
         <div *ngIf="(state | async)?.status === 'TASK_ENDED'">
-           <!-- <app-video-query-object-preview *ngIf="(currentQueryHint | async) && (currentQueryHint | async)['video']" [queryObject]="currentQueryHint" [muted]="true"></app-video-query-object-preview> -->
+            <app-video-object-preview [queryObject]="currentTaskTarget" [muted]="true"></app-video-object-preview>
+            <app-image-object-preview [queryContent]="currentTaskTarget"></app-image-object-preview>
         </div>
 
         <audio #audio [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>

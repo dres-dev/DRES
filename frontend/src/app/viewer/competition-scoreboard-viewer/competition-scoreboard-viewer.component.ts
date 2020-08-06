@@ -1,5 +1,5 @@
 import {Component, Input, OnInit, ViewChild} from '@angular/core';
-import {CompetitionRunService, RestTeam, RunInfo, RunState} from '../../../../openapi';
+import {CompetitionRunService, RunInfo, RunState, TeamInfo} from '../../../../openapi';
 import {concat, Observable, of} from 'rxjs';
 import {
     ApexAxisChartSeries,
@@ -100,7 +100,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
 
     series: Observable<ApexAxisChartSeries>;
 
-    teams: Observable<RestTeam[]>;
+    teams: Observable<TeamInfo[]>;
     currentTaskGroup: Observable<string>;
 
     // TODO Make this somewhat more beautiful and configurable
@@ -115,7 +115,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
 
         /* Create observable for current task group. */
         this.currentTaskGroup = this.state.pipe(
-            map(state => state.currentTask?.taskGroup)
+            map(state => state.currentTask?.taskGroup?.name)
         );
 
         /* Create observable for series. */

@@ -11,23 +11,15 @@
  */
 /* tslint:disable:no-unused-variable member-ordering */
 
-import { Inject, Injectable, Optional }                      from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams,
-         HttpResponse, HttpEvent, HttpParameterCodec }       from '@angular/common/http';
-import { CustomHttpParameterCodec }                          from '../encoder';
-import { Observable }                                        from 'rxjs';
+import {Inject, Injectable, Optional} from '@angular/core';
+import {HttpClient, HttpEvent, HttpHeaders, HttpParameterCodec, HttpParams, HttpResponse} from '@angular/common/http';
+import {CustomHttpParameterCodec} from '../encoder';
+import {Observable} from 'rxjs';
 
-import { ErrorStatus } from '../model/models';
-import { QueryHint } from '../model/models';
-import { RunInfo } from '../model/models';
-import { RunState } from '../model/models';
-import { ScoreOverview } from '../model/models';
-import { SubmissionInfo } from '../model/models';
-import { TaskInfo } from '../model/models';
+import {RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskHint, TaskInfo, TaskTarget} from '../model/models';
 
-import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
-import { Configuration }                                     from '../configuration';
-
+import {BASE_PATH} from '../variables';
+import {Configuration} from '../configuration';
 
 
 @Injectable({
@@ -354,17 +346,17 @@ export class CompetitionRunService {
     }
 
     /**
-     * Returns the query description for the current task run (i.e. the one that is currently selected).
+     * Returns the task hint for the current task run (i.e. the one that is currently selected).
      * @param runId Competition Run ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiRunWithRunidQuery(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<QueryHint>;
-    public getApiRunWithRunidQuery(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<QueryHint>>;
-    public getApiRunWithRunidQuery(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<QueryHint>>;
-    public getApiRunWithRunidQuery(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getApiRunWithRunidHint(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<TaskHint>;
+    public getApiRunWithRunidHint(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<TaskHint>>;
+    public getApiRunWithRunidHint(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<TaskHint>>;
+    public getApiRunWithRunidHint(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
-            throw new Error('Required parameter runId was null or undefined when calling getApiRunWithRunidQuery.');
+            throw new Error('Required parameter runId was null or undefined when calling getApiRunWithRunidHint.');
         }
 
         let headers = this.defaultHeaders;
@@ -387,7 +379,52 @@ export class CompetitionRunService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<QueryHint>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/query`,
+        return this.httpClient.get<TaskHint>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/hint`,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Returns the task target for the current task run (i.e. the one that is currently selected).
+     * @param runId Competition Run ID
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getApiRunWithRunidTarget(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<TaskTarget>;
+    public getApiRunWithRunidTarget(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<TaskTarget>>;
+    public getApiRunWithRunidTarget(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<TaskTarget>>;
+    public getApiRunWithRunidTarget(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (runId === null || runId === undefined) {
+            throw new Error('Required parameter runId was null or undefined when calling getApiRunWithRunidTarget.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.get<TaskTarget>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/target`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

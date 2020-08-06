@@ -11,8 +11,9 @@
  */
 
 
-export interface VideoItem { 
-    durationMs: number;
-    fps: number;
+export interface TeamInfo { 
+    name: string;
+    color: string;
+    logo: string;
 }
 

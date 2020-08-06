@@ -9,10 +9,11 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import {ContentElement} from './contentElement';
 
 
-export interface VideoItem { 
-    durationMs: number;
-    fps: number;
+export interface TaskTarget { 
+    taskId: string;
+    sequence: Array<ContentElement>;
 }
 

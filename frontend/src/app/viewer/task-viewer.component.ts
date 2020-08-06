@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
-import {CompetitionRunService, QueryContentElement, QueryHint, RestTaskDescription, RunState} from '../../../openapi';
+import {CompetitionRunService, ContentElement, RunState, TaskHint, TaskInfo} from '../../../openapi';
 import {BehaviorSubject, combineLatest, interval, Observable, of, Subscription, timer, zip} from 'rxjs';
 import {
     catchError,
@@ -30,9 +30,9 @@ import {fromArray} from 'rxjs/internal/observable/fromArray';
 export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     @Input() runId: Observable<string>;
     @Input() state: Observable<RunState>;
-    @Input() taskStarted: Observable<RestTaskDescription>;
-    @Input() taskChanged: Observable<RestTaskDescription>;
-    @Input() taskEnded: Observable<RestTaskDescription>;
+    @Input() taskStarted: Observable<TaskInfo>;
+    @Input() taskChanged: Observable<TaskInfo>;
+    @Input() taskEnded: Observable<TaskInfo>;
     @Input() webSocket: Observable<IWsMessage>;
     @Input() webSocketSubject: WebSocketSubject<IWsMessage>;
 
@@ -42,8 +42,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     /** Time that has elapsed (only when a task is running). */
     timeElapsed: Observable<number>;
 
-    /** Observable that returns  the current {@link QueryContentElement} based on {@link QueryHint} and time that has ellapsed. */
-    currentQueryContentElement: Observable<QueryContentElement>;
+    /** Observable that returns  the current {@link ContentElement} based on {@link QueryHint} and time that has ellapsed. */
+    currentQueryContentElement: Observable<ContentElement>;
 
     /** Observable that fires everytime a TASK_PREPARE message is received. */
     preparingTask: Observable<boolean>;
@@ -54,12 +54,14 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     /** Reference to the audio element used during countdown. */
     @ViewChild('audio') audio: ElementRef<HTMLAudioElement>;
 
-    /** Reference to the current {@link QueryHint}. */
-    currentQueryHint = new BehaviorSubject<QueryHint>(null);
+    /** Reference to the current {@link TaskHint}. */
+    currentTaskHint = new BehaviorSubject<TaskHint>(null);
 
-    /** Subscription for the current {@link QueryHint}. */
-    currentQueryHintSubscription: Subscription;
+    /** Reference to the current {@link TaskHint}. */
+    currentTaskTarget: Observable<ContentElement>;
 
+    /** Subscription for the current {@link TaskHint}. */
+    currentTaskHintSubscription: Subscription;
 
     constructor(protected runService: CompetitionRunService, public config: AppConfig) {}
 
@@ -67,11 +69,17 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
      * Create a subscription for task changes.
      */
     ngAfterViewInit(): void {
-        /* Subscription for the current query object. */
-        this.currentQueryHintSubscription = this.taskChanged.pipe(
+
+        /*
+        * Subscription for the current query object; required because loading of TaskHint should take place irrespective of whether
+        * that TaskHint is currently being displayed.
+        *
+        * IMPORTANT: Unsubscribe in onDestroy!
+        */
+        this.currentTaskHintSubscription = this.taskChanged.pipe(
             flatMap(task => this.runId),
-            tap(s => this.currentQueryHint.next(null)),
-            switchMap(id => this.runService.getApiRunWithRunidQuery(id).pipe(
+            tap(s => this.currentTaskHint.next(null)),
+            switchMap(id => this.runService.getApiRunWithRunidHint(id).pipe(
                 catchError(e => {
                     console.error('[TaskViewerComponent] Could not load current query object due to an error.', e);
                     return of(null);
@@ -79,45 +87,35 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
                 filter(h => h != null)
             ))
         ).subscribe(h => {
-            this.currentQueryHint.next(h);
+            this.currentTaskHint.next(h);
         });
 
-        /* Observable for the time left and time elapsed (for running tasks only). */
-        const polledState = this.state.pipe(
-            filter(s => s.status === 'RUNNING_TASK'),
-            switchMap(s => interval(1000).pipe(
-                switchMap(t => this.runService.getApiRunStateWithRunid(s.id)),
-                catchError((err, o) => {
-                    console.log(`[TaskViewerComponent] Error occurred while polling state: ${err?.message}`);
+        /* Observable for the current task target (loaded on demand). */
+        this.currentTaskTarget = this.taskEnded.pipe(
+            flatMap(s => this.runId),
+            switchMap(id => this.runService.getApiRunWithRunidTarget(id).pipe(
+                catchError(e => {
+                    console.error('[TaskViewerComponent] Could not load current query object due to an error.', e);
                     return of(null);
                 }),
-                filter(p => p != null)
+                shareReplay({bufferSize: 1, refCount: true})
             )),
-            share()
-        );
-
-        /* Observable for the time that is still left. */
-        this.timeLeft = polledState.pipe(
-            map(s => s.timeLeft),
-            tap(t => {
-                if (t === 30 || t === 60) {
-                    AudioPlayerUtilities.playOnce('assets/audio/glass.ogg', this.audio.nativeElement);
+            flatMap(h => {
+                if (!h) {
+                    return [];
                 }
+                return fromArray(h.sequence).pipe(delayWhen<any>(c => interval(c.offset * 1000)));
             })
         );
 
-        /* Observable for the time that has ellapsed. */
-        this.timeElapsed = polledState.pipe(map(s => s.currentTask?.duration - s.timeLeft));
-
-
         /* Observable for current query component. */
-        this.currentQueryContentElement = this.currentQueryHint.pipe(
+        this.currentQueryContentElement = this.currentTaskHint.pipe(
             concatMap((hint, i) => {
                 return this.timeElapsed.pipe(
                     take(1),
                     flatMap(time => {
                         const sequence = [];
-                        const largest = new Map<QueryContentElement.ContentTypeEnum, QueryContentElement>();
+                        const largest = new Map<ContentElement.ContentTypeEnum, ContentElement>();
 
                         if (!hint) {
                             return sequence;
@@ -151,13 +149,39 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
                         );
                     })
                 );
-            }),
-            shareReplay({bufferSize: 1, refCount: true})
+            })
         );
+
+        /* Observable for the time left and time elapsed (for running tasks only). */
+        const polledState = this.state.pipe(
+            filter(s => s.status === 'RUNNING_TASK'),
+            switchMap(s => interval(1000).pipe(
+                switchMap(t => this.runService.getApiRunStateWithRunid(s.id)),
+                catchError((err, o) => {
+                    console.log(`[TaskViewerComponent] Error occurred while polling state: ${err?.message}`);
+                    return of(null);
+                }),
+                filter(p => p != null)
+            )),
+            share()
+        );
+
+        /* Observable for the time that is still left. */
+        this.timeLeft = polledState.pipe(
+            map(s => s.timeLeft),
+            tap(t => {
+                if (t === 30 || t === 60) {
+                    AudioPlayerUtilities.playOnce('assets/audio/glass.ogg', this.audio.nativeElement);
+                }
+            })
+        );
+
+        /* Observable for the time that has ellapsed. */
+        this.timeElapsed = polledState.pipe(map(s => s.currentTask?.duration - s.timeLeft));
 
         /* Observable reacting to TASK_PREPARE message. */
         this.preparingTask = combineLatest([
-            zip(this.webSocket.pipe(filter(m => m.type === 'TASK_PREPARE')), this.currentQueryHint.pipe(filter(h => h != null))),
+            zip(this.webSocket.pipe(filter(m => m.type === 'TASK_PREPARE')), this.currentTaskHint.pipe(filter(h => h != null))),
             this.state
         ]).pipe(
             map(([m, s]) => {
@@ -185,8 +209,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
      * Cleanup all subscriptions.
      */
     ngOnDestroy(): void {
-        this.currentQueryHintSubscription.unsubscribe(); /* IMPORTANT! */
-        this.currentQueryHintSubscription = null;
+        this.currentTaskHintSubscription.unsubscribe(); /* IMPORTANT! */
+        this.currentTaskHintSubscription = null;
     }
 
     public toFormattedTime(sec: number): string {

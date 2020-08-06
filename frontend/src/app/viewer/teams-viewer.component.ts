@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
-import {CompetitionRunService, RestTaskDescription, RunInfo, RunState, ScoreOverview, SubmissionInfo} from '../../../openapi';
+import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskInfo} from '../../../openapi';
 import {BehaviorSubject, merge, Observable, of, Subscription} from 'rxjs';
 import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, tap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
@@ -34,10 +34,10 @@ interface SubmissionDelta {
     ]
 })
 export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
-    @Input() runId: Observable<number>;
+    @Input() runId: Observable<string>;
     @Input() info: Observable<RunInfo>;
     @Input() state: Observable<RunState>;
-    @Input() taskEnded: Observable<RestTaskDescription>;
+    @Input() taskEnded: Observable<TaskInfo>;
 
     /** Observable that tracks all the submissions per team. */
     submissions: Observable<SubmissionInfo[][]>;
@@ -54,9 +54,8 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     /** Reference to the audio file played during countdown. */
     @ViewChild('audio') audio: ElementRef<HTMLAudioElement>;
 
-    /** */
+    /** Internal subscription for playing sound effect of a task that has ended. */
     taskEndedSoundEffect: Subscription;
-
 
     constructor(private runService: CompetitionRunService, public config: AppConfig) {}
 
@@ -155,7 +154,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     }
 
     public ngOnDestroy(): void {
-        this.taskEndedSoundEffect.unsubscribe();
+        this.taskEndedSoundEffect.unsubscribe(); /* IMPORTANT. */
         this.taskEndedSoundEffect = null;
     }
 
@@ -170,8 +169,9 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     }
 
     /**
+     * Returns an obsevable for the {@link SubmissionInfo} for the given team.
      *
-     * @param team
+     * @param team The team's index.
      */
     public submissionForTeam(team: number): Observable<SubmissionInfo[]> {
         return this.submissions.pipe(

@@ -1,9 +1,9 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
-import {QueryContentElement} from '../../../../openapi';
 import {filter, map} from 'rxjs/operators';
 import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
 import {DataUtilities} from '../../utilities/data.utilities';
+import {ContentElement} from '../../../../openapi';
 
 @Component({
     selector: 'app-image-object-preview',
@@ -15,7 +15,7 @@ import {DataUtilities} from '../../utilities/data.utilities';
 })
 export class ImageObjectPreviewComponent implements OnInit, OnDestroy {
     /** Observable of current {@link QueryContentElement} that should be displayed. */
-    @Input() queryContent: Observable<QueryContentElement>;
+    @Input() queryContent: Observable<ContentElement>;
 
     /** Current image to display (as data URL). */
     imageUrl: Observable<SafeUrl>;

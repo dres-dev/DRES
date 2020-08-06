@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
 import {CompetitionRunService, QueryContentElement, QueryHint, RestTaskDescription, RunState} from '../../../openapi';
-import {combineLatest, interval, merge, Observable, of, timer, zip} from 'rxjs';
+import {BehaviorSubject, combineLatest, interval, Observable, of, Subscription, timer, zip} from 'rxjs';
 import {
     catchError,
     concatMap,
@@ -42,9 +42,6 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     /** Time that has elapsed (only when a task is running). */
     timeElapsed: Observable<number>;
 
-    /** Observable that returns and caches the current {@link QueryHint}. */
-    currentQueryHint: Observable<QueryHint>;
-
     /** Observable that returns  the current {@link QueryContentElement} based on {@link QueryHint} and time that has ellapsed. */
     currentQueryContentElement: Observable<QueryContentElement>;
 
@@ -57,6 +54,13 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     /** Reference to the audio element used during countdown. */
     @ViewChild('audio') audio: ElementRef<HTMLAudioElement>;
 
+    /** Reference to the current {@link QueryHint}. */
+    currentQueryHint = new BehaviorSubject<QueryHint>(null);
+
+    /** Subscription for the current {@link QueryHint}. */
+    currentQueryHintSubscription: Subscription;
+
+
     constructor(protected runService: CompetitionRunService, public config: AppConfig) {}
 
     /**
@@ -64,16 +68,19 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
      */
     ngAfterViewInit(): void {
         /* Subscription for the current query object. */
-        this.currentQueryHint = this.taskChanged.pipe(
+        this.currentQueryHintSubscription = this.taskChanged.pipe(
             flatMap(task => this.runId),
+            tap(s => this.currentQueryHint.next(null)),
             switchMap(id => this.runService.getApiRunWithRunidQuery(id).pipe(
                 catchError(e => {
                     console.error('[TaskViewerComponent] Could not load current query object due to an error.', e);
-                    return of({ taskId: 'unknown', sequence: [], loop: false} as QueryHint);
-                })
-            )),
-            shareReplay({bufferSize: 1, refCount: true})
-        );
+                    return of(null);
+                }),
+                filter(h => h != null)
+            ))
+        ).subscribe(h => {
+            this.currentQueryHint.next(h);
+        });
 
         /* Observable for the time left and time elapsed (for running tasks only). */
         const polledState = this.state.pipe(
@@ -89,7 +96,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             share()
         );
 
-        /* Observable for the time that is still left */
+        /* Observable for the time that is still left. */
         this.timeLeft = polledState.pipe(
             map(s => s.timeLeft),
             tap(t => {
@@ -99,29 +106,40 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             })
         );
 
-        /** */
+        /* Observable for the time that has ellapsed. */
         this.timeElapsed = polledState.pipe(map(s => s.currentTask?.duration - s.timeLeft));
 
 
-        /** Observable for current query component. */
-        this.currentQueryContentElement = merge([this.runId, this.taskStarted]).pipe(
-            flatMap(e => this.currentQueryHint),
+        /* Observable for current query component. */
+        this.currentQueryContentElement = this.currentQueryHint.pipe(
             concatMap((hint, i) => {
                 return this.timeElapsed.pipe(
                     take(1),
                     flatMap(time => {
+                        const sequence = [];
+                        const largest = new Map<QueryContentElement.ContentTypeEnum, QueryContentElement>();
+
+                        if (!hint) {
+                            return sequence;
+                        }
+
                         /* Find last element per category (which is always retained). */
-                        const retain = new Map<QueryContentElement.ContentTypeEnum, QueryContentElement>();
                         hint.sequence.forEach(e => {
-                            if (!retain.has(e.contentType)) {
-                                retain.set(e.contentType, e);
-                            } else if (retain.get(e.contentType).offset < e.offset) {
-                                retain.set(e.contentType, e);
+                            if (e.offset - time < 0) {
+                                if (!largest.has(e.contentType)) {
+                                    largest.set(e.contentType, e);
+                                    sequence.push(e);
+                                } else if (largest.get(e.contentType).offset < e.offset) {
+                                    sequence.splice(sequence.indexOf(largest.get(e.contentType)));
+                                    largest.set(e.contentType, e);
+                                    sequence.push(e);
+                                }
+                            } else {
+                                sequence.push(e);
                             }
                         });
 
                         /* Filter out all element in the sequence that are not eligible for display*/
-                        const sequence = hint.sequence.filter(e => (e.offset - time) >= 0 || e === retain.get(e.contentType));
                         return fromArray(sequence).pipe(
                             delayWhen<any>(c => interval(1000 * Math.max(0, (c.offset - time)))),
                             map((t, index) => {
@@ -139,7 +157,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
 
         /* Observable reacting to TASK_PREPARE message. */
         this.preparingTask = combineLatest([
-            zip(this.webSocket.pipe(filter(m => m.type === 'TASK_PREPARE')), this.currentQueryHint),
+            zip(this.webSocket.pipe(filter(m => m.type === 'TASK_PREPARE')), this.currentQueryHint.pipe(filter(h => h != null))),
             this.state
         ]).pipe(
             map(([m, s]) => {
@@ -167,6 +185,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
      * Cleanup all subscriptions.
      */
     ngOnDestroy(): void {
+        this.currentQueryHintSubscription.unsubscribe(); /* IMPORTANT! */
+        this.currentQueryHintSubscription = null;
     }
 
     public toFormattedTime(sec: number): string {

@@ -122,6 +122,9 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     /** The internal [DAOUpdatable] instance used by this [SynchronousRunManager]. */
     private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
 
+    /** The internal [DAOUpdatable] used to end a task once no more submissions are possible */
+    private val endTaskUpdatable = EndTaskUpdatable(this)
+
     /** List of [Updatable] held by this [SynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
 
@@ -137,6 +140,8 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         this.updatables.add(this.scoreboards)
         this.updatables.add(this.messageQueueUpdatable)
         this.updatables.add(this.daoUpdatable)
+        this.updatables.add(this.endTaskUpdatable)
+
 
         /** End ongoing runs upon initialization (in case server crashed during task execution). */
         if (this.run.lastTask?.isRunning == true) {

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CollectionService, RestFullMediaCollection, RestMediaItem} from '../../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -10,6 +10,8 @@ import {
     MediaItemBuilderData,
     MediaItemBuilderDialogComponent
 } from '../collection-builder/media-item-builder-dialog/media-item-builder-dialog.component';
+import {MatPaginator} from '@angular/material/paginator';
+import {MatTableDataSource} from '@angular/material/table';
 
 @Component({
     selector: 'app-collection-viewer',
@@ -19,6 +21,9 @@ import {
 export class CollectionViewerComponent implements OnInit, OnDestroy {
 
     displayedColumns = ['actions', 'id', 'name', 'location', 'type', 'durationMs', 'fps'];
+
+    @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
+    dataSource = new MatTableDataSource<RestMediaItem>();
 
     collectionId: Observable<string>;
     collection: Observable<RestFullMediaCollection>;
@@ -37,6 +42,7 @@ export class CollectionViewerComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.refresh();
+
     }
 
 
@@ -60,6 +66,8 @@ export class CollectionViewerComponent implements OnInit, OnDestroy {
         /* Get the items from the observable */
         this.itemsSub = this.collection.subscribe((col) => {
             this.mediaItems = col.items.sort((a, b) => a.name.localeCompare(b.name));
+            this.dataSource.data = this.mediaItems;
+            this.dataSource.paginator = this.paginator;
         });
     }
 

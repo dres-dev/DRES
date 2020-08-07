@@ -29,7 +29,7 @@ export class MediaItemBuilderDialogComponent implements OnInit {
             id: new FormControl(data?.item?.id),
             name: new FormControl(data?.item?.name, [Validators.required, Validators.minLength(3)]),
             location: new FormControl(data?.item?.location, Validators.required),
-            type: new FormControl(data?.item?.type, [Validators.required]),
+            type: new FormControl({value: data?.item?.type, disabled: this.isEditing()}, [Validators.required]),
             collectionId: new FormControl(data.collectionId)
         });
         if (data?.item?.type === RestMediaItem.TypeEnum.VIDEO) {

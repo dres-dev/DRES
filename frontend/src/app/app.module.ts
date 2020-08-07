@@ -32,6 +32,7 @@ import { MediaItemBuilderDialogComponent } from './collection/collection-builder
 import { CollectionBuilderDialogComponent } from './collection/collection-builder/collection-builder-dialog/collection-builder-dialog.component';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatSelectModule} from '@angular/material/select';
+import {MatPaginatorModule} from '@angular/material/paginator';
 
 
 /**
@@ -71,7 +72,8 @@ export function initializeApp(appConfig: AppConfig) {
         MatListModule,
         MatTableModule,
         MatDialogModule,
-        MatSelectModule
+        MatSelectModule,
+        MatPaginatorModule
     ],
   providers: [
       AppConfig,

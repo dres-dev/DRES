@@ -6,10 +6,12 @@
     </div>
     <div class="spacer-flex"></div>
     <div>
-        <button mat-icon-button aria-label="Refresh list of media items" matTooltip="Refresh list of media items" (click)="refresh()">
+        <button mat-icon-button aria-label="Refresh list of media items" matTooltip="Refresh list of media items"
+                (click)="refresh()">
             <mat-icon>refresh</mat-icon>
         </button>
-        <button mat-icon-button aria-label="Create new media item." matTooltip="Create new media item." (click)="create()">
+        <button mat-icon-button aria-label="Create new media item." matTooltip="Create new media item."
+                (click)="create()">
             <mat-icon>note_add</mat-icon>
         </button>
     </div>
@@ -26,7 +28,7 @@
     </div>
 </div>
 <div>
-    <table mat-table [dataSource]="mediaItems" style="width: 100%;">
+    <table mat-table [dataSource]="dataSource" style="width: 100%;">
         <!-- Column Defs -->
         <!-- Actions column -->
         <ng-container matColumnDef="actions">
@@ -84,7 +86,10 @@
         </ng-container>
 
         <!-- Headers & Data -->
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns" matTooltip="Click to show media item."></tr>
+
     </table>
+    <!-- Pagination -->
+    <mat-paginator [pageSizeOptions]="[5, 10, 50, 100]" showFirstLastButtons></mat-paginator>
 </div>

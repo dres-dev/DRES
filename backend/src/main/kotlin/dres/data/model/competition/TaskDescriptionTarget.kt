@@ -21,6 +21,8 @@ import java.util.*
  */
 sealed class TaskDescriptionTarget {
 
+    abstract val ordinal: Int
+
     internal abstract fun textDescription(): String
 
     /**
@@ -38,6 +40,7 @@ sealed class TaskDescriptionTarget {
      * A [TaskDescriptionTarget] that is validated by human judges.
      */
     object JudgementTaskDescriptionTarget : TaskDescriptionTarget() {
+        override val ordinal: Int = 1
         override fun textDescription() = "Judgement"
         override fun toQueryContentElement(config: Config): ContentElement? = null
     }
@@ -46,6 +49,7 @@ sealed class TaskDescriptionTarget {
      * A [TaskDescriptionTarget], specified by a [MediaItem].
      */
     data class MediaItemTarget(val item: MediaItem) : TaskDescriptionTarget() {
+        override val ordinal: Int = 2
         override fun textDescription() = "Media Item ${item.name}"
         override fun toQueryContentElement(config: Config): ContentElement? = TODO()
     }
@@ -54,6 +58,7 @@ sealed class TaskDescriptionTarget {
      * A [TaskDescriptionTarget], specified by a [MediaItem.VideoItem] and a [TemporalRange].
      */
     data class VideoSegmentTarget(override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange) : TaskDescriptionTarget(), CachedVideoItem {
+        override val ordinal: Int = 3
         override fun textDescription() = "Media Item ${item.name} @ ${temporalRange.start.niceText()} - ${temporalRange.end.niceText()}"
         override fun toQueryContentElement(config: Config): ContentElement? {
             val file = File(File(config.cachePath + "/tasks"), this.cacheItemName())

@@ -7,7 +7,7 @@ import dres.data.model.competition.*
 import dres.utilities.extensions.UID
 
 /**
- * The RESTful API equivalent for [TaskDescriptionComponent].
+ * The RESTful API equivalent for [TaskDescriptionHint].
  *
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
@@ -81,28 +81,28 @@ data class RestTaskDescriptionComponent(
 
         companion object {
                 /**
-                 * Generates a [RestTaskDescriptionComponent] from a [TaskDescriptionComponent] and returns it.
+                 * Generates a [RestTaskDescriptionComponent] from a [TaskDescriptionHint] and returns it.
                  *
-                 * @param component The [TaskDescriptionComponent] to convert.
+                 * @param hint The [TaskDescriptionHint] to convert.
                  */
-                fun fromComponent(component: TaskDescriptionComponent) = when(component) {
-                        is TaskDescriptionComponent.TextTaskDescriptionComponent -> RestTaskDescriptionComponent(type = TaskType.QueryComponentType.TEXT, start = component.start, end = component.end, description = component.text)
-                        is TaskDescriptionComponent.ImageItemTaskDescriptionComponent -> RestTaskDescriptionComponent(type = TaskType.QueryComponentType.IMAGE_ITEM, start = component.start, end = component.end, mediaItem = component.item.id.string)
-                        is TaskDescriptionComponent.VideoItemSegmentTaskDescriptionComponent -> RestTaskDescriptionComponent(type = TaskType.QueryComponentType.VIDEO_ITEM_SEGMENT, start = component.start, end = component.end, mediaItem = component.item.id.string, range = component.temporalRange)
-                is TaskDescriptionComponent.ExternalImageTaskDescriptionComponent -> TODO()
-                        is TaskDescriptionComponent.ExternalVideoTaskDescriptionComponent -> TODO()
+                fun fromComponent(hint: TaskDescriptionHint) = when(hint) {
+                        is TaskDescriptionHint.TextTaskDescriptionHint -> RestTaskDescriptionComponent(type = TaskType.QueryComponentType.TEXT, start = hint.start, end = hint.end, description = hint.text)
+                        is TaskDescriptionHint.ImageItemTaskDescriptionHint -> RestTaskDescriptionComponent(type = TaskType.QueryComponentType.IMAGE_ITEM, start = hint.start, end = hint.end, mediaItem = hint.item.id.string)
+                        is TaskDescriptionHint.VideoItemSegmentTaskDescriptionHint -> RestTaskDescriptionComponent(type = TaskType.QueryComponentType.VIDEO_ITEM_SEGMENT, start = hint.start, end = hint.end, mediaItem = hint.item.id.string, range = hint.temporalRange)
+                is TaskDescriptionHint.ExternalImageTaskDescriptionHint -> TODO()
+                        is TaskDescriptionHint.ExternalVideoTaskDescriptionHint -> TODO()
                 }
         }
 
         /**
-         * Converts this [RestTaskDescriptionComponent] to the corresponding [TaskDescriptionComponent] and returns it.
+         * Converts this [RestTaskDescriptionComponent] to the corresponding [TaskDescriptionHint] and returns it.
          *
          * @param mediaItems [DAO] used to perform media item lookups.
          */
         fun toComponent(mediaItems: DAO<MediaItem>) = when(this.type){
-                TaskType.QueryComponentType.IMAGE_ITEM -> TaskDescriptionComponent.ImageItemTaskDescriptionComponent(mediaItems[this.mediaItem!!.UID()] as MediaItem.ImageItem, this.start, this.end)
-                TaskType.QueryComponentType.VIDEO_ITEM_SEGMENT -> TaskDescriptionComponent.VideoItemSegmentTaskDescriptionComponent(mediaItems[this.mediaItem!!.UID()] as MediaItem.VideoItem, this.range!!, this.start, this.end)
-                TaskType.QueryComponentType.TEXT -> TaskDescriptionComponent.TextTaskDescriptionComponent(this.description ?: "", this.start, this.end)
+                TaskType.QueryComponentType.IMAGE_ITEM -> TaskDescriptionHint.ImageItemTaskDescriptionHint(mediaItems[this.mediaItem!!.UID()] as MediaItem.ImageItem, this.start, this.end)
+                TaskType.QueryComponentType.VIDEO_ITEM_SEGMENT -> TaskDescriptionHint.VideoItemSegmentTaskDescriptionHint(mediaItems[this.mediaItem!!.UID()] as MediaItem.VideoItem, this.range!!, this.start, this.end)
+                TaskType.QueryComponentType.TEXT -> TaskDescriptionHint.TextTaskDescriptionHint(this.description ?: "", this.start, this.end)
                 TaskType.QueryComponentType.EXTERNAL_IMAGE -> TODO()
                 TaskType.QueryComponentType.EXTERNAL_VIDEO -> TODO()
         }

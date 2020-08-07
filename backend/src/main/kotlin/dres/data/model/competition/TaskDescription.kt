@@ -42,8 +42,8 @@ class TaskDescription(
     /** The [TaskDescriptionTarget] that identifies the target media. */
     val target: TaskDescriptionTarget,
 
-    /** List of [TaskDescriptionComponent]s that act as clues to find the target media. */
-    val components: List<TaskDescriptionComponent>
+    /** List of [TaskDescriptionHint]s that act as clues to find the target media. */
+    val hints: List<TaskDescriptionHint>
 ){
 
     /**
@@ -85,7 +85,7 @@ class TaskDescription(
      * @throws IOException
      */
     fun toTaskHint(config: Config): TaskHint {
-        val sequence = this.components.groupBy { it.contentType }.flatMap { group ->
+        val sequence = this.hints.groupBy { it.contentType }.flatMap { group ->
             group.value.sortedBy { it.start ?: 0 }.flatMap {
                 val ret = mutableListOf(it.toQueryContentElement(config))
                 if (it.end != null) {
@@ -109,15 +109,15 @@ class TaskDescription(
     fun toTaskTarget(config: Config): TaskTarget? = this.target.toQueryContentElement(config)?.let { TaskTarget(this.id.string, listOf(it)) }
 
     /** Produces a Textual description of the content of the task if possible */
-    fun textualDescription(): String = components.filterIsInstance(TaskDescriptionComponent.TextTaskDescriptionComponent::class.java)
+    fun textualDescription(): String = hints.filterIsInstance(TaskDescriptionHint.TextTaskDescriptionHint::class.java)
             .maxBy { it.start ?: 0 }?.text ?: name
 
     /** Prints an overview of the task to a provided stream */
     fun printOverview(out: PrintStream) {
         out.println("$name: ${taskGroup.name} (${taskType.name})")
         out.println("Target: ${target.textDescription()}")
-        out.println("Components: (${components.size})")
-        components.sortedBy { it.start ?: 0}.forEach {
+        out.println("Components: (${hints.size})")
+        hints.sortedBy { it.start ?: 0}.forEach {
             out.println(it.textDescription())
         }
         out.println()
@@ -128,7 +128,7 @@ class TaskDescription(
      * @throws IllegalArgumentException
      */
     fun validate() {
-        this.components.groupBy { it.contentType }.forEach { group ->
+        this.hints.groupBy { it.contentType }.forEach { group ->
             var end = 0L
             group.value.sortedBy { it.start ?: 0 }.forEach {
                 if((it.start ?: end) < end){

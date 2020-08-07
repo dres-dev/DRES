@@ -42,7 +42,7 @@ class RestTaskDescription(
             task.duration,
             task.mediaCollectionId.string,
             RestTaskDescriptionTarget.fromTarget(task.target),
-            task.components.map {
+            task.hints.map {
                 RestTaskDescriptionComponent.fromComponent(it)
             }
         )

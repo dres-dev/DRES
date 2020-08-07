@@ -1,10 +1,11 @@
 package dres.api.rest.types.competition
 
-import dres.api.rest.types.competition.tasks.RestTaskDescriptionTarget
-import dres.api.rest.types.competition.tasks.RestTaskDescriptionTargetItem
 import dres.data.dbo.DAO
 import dres.data.model.basics.media.MediaItem
-import dres.data.model.competition.*
+import dres.data.model.competition.CompetitionDescription
+import dres.data.model.competition.TaskGroup
+import dres.data.model.competition.TaskType
+import dres.data.model.competition.Team
 import dres.utilities.extensions.UID
 
 /**
@@ -22,7 +23,8 @@ data class RestCompetitionDescription(
         val taskTypes: List<TaskType>,
         val taskGroups: List<TaskGroup>,
         val tasks: List<RestTaskDescription>,
-        val teams: List<RestTeam>
+        val teams: List<RestTeam>,
+        val participantCanView: Boolean
 ) {
 
 
@@ -39,7 +41,8 @@ data class RestCompetitionDescription(
             competition.taskTypes,
             competition.taskGroups,
             competition.tasks.map { RestTaskDescription.fromTask(it) },
-            competition.teams.map { RestTeam(it) }
+            competition.teams.map { RestTeam(it) },
+            competition.participantCanView
         )
     }
 
@@ -55,7 +58,8 @@ data class RestCompetitionDescription(
         this.taskTypes.toMutableList(),
         this.taskGroups.toMutableList(),
         this.tasks.map { it.toTaskDescription(this.taskGroups, this.taskTypes, mediaItems) }.toMutableList(),
-        this.teams.map { Team(it) }.toMutableList()
+        this.teams.map { Team(it) }.toMutableList(),
+        this.participantCanView
     )
 }
 

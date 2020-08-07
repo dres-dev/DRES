@@ -105,7 +105,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
      * viewer for this [SynchronousRunManager].
      */
     override val participantCanView: Boolean
-        get() = true //TODO implement way to configure this
+        get() = this.run.competitionDescription.participantCanView
 
     /** Internal data structure that tracks all [WebSocketConnection]s and their ready state (for [RunManagerStatus.PREPARING_TASK]) */
     private val readyLatch = ReadyLatch<WebSocketConnection>()

@@ -4,7 +4,6 @@ import dres.api.rest.RestApiRole
 import dres.api.rest.types.competition.RestCompetitionDescription
 import dres.api.rest.types.competition.RestDetailedTeam
 import dres.api.rest.types.competition.RestTaskDescription
-import dres.api.rest.types.competition.RestTeam
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
@@ -13,7 +12,6 @@ import dres.data.model.UID
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.CompetitionDescription
 import dres.data.model.competition.Team
-import dres.mgmt.admin.UserManager
 import dres.utilities.extensions.UID
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
@@ -168,7 +166,7 @@ class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
         }
 
-        val competition = CompetitionDescription(UID.EMPTY, createRequest.name, createRequest.description, mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf())
+        val competition = CompetitionDescription(UID.EMPTY, createRequest.name, createRequest.description, mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf(), true)
         val competitionId = this.competitions.append(competition)
         return SuccessStatus("Competition with ID $competitionId was created.")
     }

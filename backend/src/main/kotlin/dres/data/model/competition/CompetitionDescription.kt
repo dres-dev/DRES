@@ -15,7 +15,8 @@ data class CompetitionDescription(
         val taskTypes: MutableList<TaskType>,
         val taskGroups: MutableList<TaskGroup>,
         val tasks: MutableList<TaskDescription>,
-        val teams: MutableList<Team>
+        val teams: MutableList<Team>,
+        val participantCanView: Boolean
 ) : Entity {
 
     fun validate() {

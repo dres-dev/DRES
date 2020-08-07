@@ -29,7 +29,6 @@ import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
-import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 
@@ -255,7 +254,6 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
 
     override val route = "run/:runId/hint"
 
-    private val taskCacheLocation = File(config.cachePath + "/tasks")
     @OpenApi(
             summary = "Returns the task hint for the current task run (i.e. the one that is currently selected).",
             path = "/api/run/:runId/hint",
@@ -291,7 +289,6 @@ class CurrentTaskTargetHandler(private val config: Config) : AbstractCompetition
 
     override val route = "run/:runId/target"
 
-    private val taskCacheLocation = File(config.cachePath + "/tasks")
     @OpenApi(
             summary = "Returns the task target for the current task run (i.e. the one that is currently selected).",
             path = "/api/run/:runId/target",

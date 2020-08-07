@@ -36,7 +36,7 @@ abstract class UserHandler() : RestHandler {
     }
 
     protected fun getIdFromPath(ctx: Context): UID {
-        val id = ctx.pathParam("id").UID()
+        val id = ctx.pathParam("userId").UID()
         if (UserManager.exists(id = id)) {
             return id
         } else {
@@ -76,7 +76,10 @@ class UserDetailsHandler() : UserHandler(), GetRestHandler<UserDetails>, AccessM
 
     @OpenApi(
             summary = "Gets details of the user with the given id",
-            path = "/api/user/:id",
+            path = "/api/user/:userId",
+            pathParams = [
+                OpenApiParam("userId", UID::class, "User's UID")
+            ],
             tags = ["User"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
@@ -88,15 +91,15 @@ class UserDetailsHandler() : UserHandler(), GetRestHandler<UserDetails>, AccessM
 
     override val permittedRoles = RestApiRole.values().toSet()
 
-    override val route = "user/:id"
+    override val route = "user/:userId"
 }
 
 class DeleteUsersHandler() : UserHandler(), DeleteRestHandler<UserDetails>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Deletes the specified user. Requires ADMIN privileges",
-            path = "/api/user/:id", method = HttpMethod.DELETE,
-            pathParams = [OpenApiParam("id", Long::class, "User ID")],
+            path = "/api/user/:userId", method = HttpMethod.DELETE,
+            pathParams = [OpenApiParam("userId", Long::class, "User ID")],
             tags = ["User"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
@@ -115,7 +118,7 @@ class DeleteUsersHandler() : UserHandler(), DeleteRestHandler<UserDetails>, Acce
 
     override val permittedRoles = setOf(RestApiRole.ADMIN)
 
-    override val route = "user/:id"
+    override val route = "user/:userId"
 }
 
 
@@ -123,7 +126,7 @@ class CreateUsersHandler() : UserHandler(), PostRestHandler<UserDetails>, Access
 
     @OpenApi(
             summary = "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
-            path = "/api/user/create", method = HttpMethod.POST,
+            path = "/api/user", method = HttpMethod.POST,
             requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
             tags = ["User"],
             responses = [
@@ -144,15 +147,15 @@ class CreateUsersHandler() : UserHandler(), PostRestHandler<UserDetails>, Access
 
     override val permittedRoles = setOf(RestApiRole.ADMIN)
 
-    override val route = "user/create"
+    override val route = "user"
 }
 
 class UpdateUsersHandler() : UserHandler(), PatchRestHandler<UserDetails>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone",
-            path = "/api/user/:id", method = HttpMethod.PATCH,
-            pathParams = [OpenApiParam("id", UID::class, "User ID")],
+            path = "/api/user/:userId", method = HttpMethod.PATCH,
+            pathParams = [OpenApiParam("userId", UID::class, "User ID")],
             requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
             tags = ["User"],
             responses = [
@@ -191,14 +194,14 @@ class UpdateUsersHandler() : UserHandler(), PatchRestHandler<UserDetails>, Acces
 
     override val permittedRoles = setOf(RestApiRole.VIEWER)
 
-    override val route = "user/:id"
+    override val route = "user/:userId"
 }
 
 class CurrentUsersHandler() : UserHandler(), GetRestHandler<UserDetails>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Get information about the current user.",
-            path = "/api/user/info",
+            path = "/api/user",
             tags = ["User"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
@@ -211,7 +214,7 @@ class CurrentUsersHandler() : UserHandler(), GetRestHandler<UserDetails>, Access
 
     override val permittedRoles = setOf(RestApiRole.VIEWER)
 
-    override val route = "user/info"
+    override val route = "user"
 
 }
 
@@ -238,12 +241,12 @@ class CurrentUsersSessionIdHandler() : UserHandler(), GetRestHandler<SessionId>,
 class ActiveSessionsHandler(private val users: DAO<User>) : GetRestHandler<List<UserDetails>>, AccessManagedRestHandler {
 
     override val permittedRoles = setOf(RestApiRole.ADMIN)
-    override val route = "user/allCurrentSessions"
+    override val route = "user/session/active/list"
 
 
     @OpenApi(
             summary = "Get details of all current user sessions",
-            path = "/api/user/allCurrentSessions",
+            path = "/api/user/session/active/list",
             tags = ["User"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<UserDetails>::class)]),

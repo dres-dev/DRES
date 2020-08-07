@@ -37,6 +37,14 @@ object RestApi {
         val runExecutor = RunExecutor
 
 
+        /**
+         * The list of API operations, each as a handler.
+         * Did you follow our convention?
+         *  - `GET  <entity>/{<entityId>}` with entity being an entity of the system in singular. Note the id is prefixed with the entity name
+         *  - `GET <entity>/list` with entity being an entity of the system in singular, returning a list of all of these entities
+         *  - Above naming scheme applies also for nested / context sensitive entities
+         *  - REST conventions for `POST`, `PATCH` and `DELETE` methods apply
+         */
         val apiRestHandlers = listOf(
 
                 //user
@@ -125,8 +133,8 @@ object RestApi {
         }.routes {
 
             path("api") {
-                apiRestHandlers.forEach {handler ->
-                    path(handler.route){
+                apiRestHandlers.forEach { handler ->
+                    path(handler.route) {
 
                         val permittedRoles = if (handler is AccessManagedRestHandler) {
                             handler.permittedRoles
@@ -134,19 +142,19 @@ object RestApi {
                             roles(RestApiRole.ANYONE)
                         }
 
-                        if (handler is GetRestHandler<*>){
+                        if (handler is GetRestHandler<*>) {
                             get(handler::get, permittedRoles)
                         }
 
-                        if (handler is PostRestHandler<*>){
+                        if (handler is PostRestHandler<*>) {
                             post(handler::post, permittedRoles)
                         }
 
-                        if (handler is PatchRestHandler<*>){
+                        if (handler is PatchRestHandler<*>) {
                             patch(handler::patch, permittedRoles)
                         }
 
-                        if (handler is DeleteRestHandler<*>){
+                        if (handler is DeleteRestHandler<*>) {
                             delete(handler::delete, permittedRoles)
                         }
 
@@ -160,12 +168,12 @@ object RestApi {
                 get(submissionHandler::get, submissionHandler.permittedRoles)
             }
 
-            path("log/query"){
+            path("log/query") {
                 val queryLogHandler = QueryLogHandler()
                 post(queryLogHandler::post, queryLogHandler.permittedRoles)
             }
 
-            path("log/result"){
+            path("log/result") {
                 val resultLogHandler = ResultLogHandler()
                 post(resultLogHandler::post, resultLogHandler.permittedRoles)
             }
@@ -178,7 +186,7 @@ object RestApi {
             ctx.status(500).json(ErrorStatus("Internal server error!"))
             logger.error("Exception during hadling of request to ${ctx.path()}", e)
         }
-        .start(config.httpPort)
+                .start(config.httpPort)
     }
 
     fun stop() {
@@ -274,7 +282,6 @@ object RestApi {
         }
 
     }
-
 
 
 }

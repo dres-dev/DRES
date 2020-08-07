@@ -52,7 +52,7 @@ class ListCompetitionHandler(competitions: DAO<CompetitionDescription>) : Compet
 
     @OpenApi(
             summary = "Lists an overview of all available competitions with basic information about their content.",
-            path = "/api/competition",
+            path = "/api/competition/list",
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<CompetitionOverview>::class)]),
@@ -61,7 +61,7 @@ class ListCompetitionHandler(competitions: DAO<CompetitionDescription>) : Compet
     )
     override fun doGet(ctx: Context)  = competitions.map { CompetitionOverview.of(it) }
 
-    override val route: String = "competition"
+    override val route: String = "competition/list"
 }
 
 class GetCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<RestCompetitionDescription> {
@@ -85,11 +85,11 @@ class GetCompetitionHandler(competitions: DAO<CompetitionDescription>) : Competi
 
 class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<Team>> {
 
-    override val route: String = "competition/:competitionId/team"
+    override val route: String = "competition/:competitionId/team/list"
 
     @OpenApi(
             summary = "Lists the Teams of a specific competition.",
-            path = "/api/competition/:competitionId/team",
+            path = "/api/competition/:competitionId/team/list",
             pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
@@ -109,11 +109,11 @@ class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
  */
 class ListDetailedTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<RestDetailedTeam>>{
 
-    override val route: String = "competition/:competitionId/teams/details"
+    override val route: String = "competition/:competitionId/team/list/details"
 
     @OpenApi(
             summary="Lists the teams with their user details",
-            path= "/api/competition/:competitionId/teams/details",
+            path= "/api/competition/:competitionId/team/list/details",
             pathParams= [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
@@ -129,11 +129,11 @@ class ListDetailedTeamHandler(competitions: DAO<CompetitionDescription>) : Compe
 
 class ListTaskHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<RestTaskDescription>> {
 
-    override val route: String = "competition/:competitionId/task"
+    override val route: String = "competition/:competitionId/task/list"
 
     @OpenApi(
             summary = "Lists the Tasks of a specific competition.",
-            path = "/api/competition/:competitionId/task",
+            path = "/api/competition/:competitionId/task/list",
             pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [

@@ -397,11 +397,11 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), 
  * REST handler to list all viewers for a [CompetitionRun].
  */
 class ListViewersRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), GetRestHandler<Array<ViewerInfo>> {
-    override val route: String = "run/admin/:runId/viewers"
+    override val route: String = "run/admin/:runId/viewer/list"
 
     @OpenApi(
             summary = "Lists all registered viewers for a competition run. This is a method for admins.",
-            path = "/api/run/admin/:runId/viewers",
+            path = "/api/run/admin/:runId/viewer/list",
             method = HttpMethod.GET,
             pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],

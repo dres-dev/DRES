@@ -92,16 +92,16 @@ export class UserService {
 
     /**
      * Deletes the specified user. Requires ADMIN privileges
-     * @param id User ID
+     * @param userId User ID
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public deleteApiUserWithId(id: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<UserDetails>;
-    public deleteApiUserWithId(id: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<UserDetails>>;
-    public deleteApiUserWithId(id: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<UserDetails>>;
-    public deleteApiUserWithId(id: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
-        if (id === null || id === undefined) {
-            throw new Error('Required parameter id was null or undefined when calling deleteApiUserWithId.');
+    public deleteApiUserWithUserid(userId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<UserDetails>;
+    public deleteApiUserWithUserid(userId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<UserDetails>>;
+    public deleteApiUserWithUserid(userId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<UserDetails>>;
+    public deleteApiUserWithUserid(userId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (userId === null || userId === undefined) {
+            throw new Error('Required parameter userId was null or undefined when calling deleteApiUserWithUserid.');
         }
 
         let headers = this.defaultHeaders;
@@ -124,7 +124,7 @@ export class UserService {
             responseType = 'text';
         }
 
-        return this.httpClient.delete<UserDetails>(`${this.configuration.basePath}/api/user/${encodeURIComponent(String(id))}`,
+        return this.httpClient.delete<UserDetails>(`${this.configuration.basePath}/api/user/${encodeURIComponent(String(userId))}`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
@@ -177,55 +177,14 @@ export class UserService {
     }
 
     /**
-     * Get details of all current user sessions
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public getApiUserAllcurrentsessions(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<UserDetails>>;
-    public getApiUserAllcurrentsessions(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<UserDetails>>>;
-    public getApiUserAllcurrentsessions(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<UserDetails>>>;
-    public getApiUserAllcurrentsessions(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
-
-        let headers = this.defaultHeaders;
-
-        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
-        if (httpHeaderAcceptSelected === undefined) {
-            // to determine the Accept header
-            const httpHeaderAccepts: string[] = [
-                'application/json'
-            ];
-            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
-        }
-        if (httpHeaderAcceptSelected !== undefined) {
-            headers = headers.set('Accept', httpHeaderAcceptSelected);
-        }
-
-
-        let responseType: 'text' | 'json' = 'json';
-        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
-            responseType = 'text';
-        }
-
-        return this.httpClient.get<Array<UserDetails>>(`${this.configuration.basePath}/api/user/allCurrentSessions`,
-            {
-                responseType: <any>responseType,
-                withCredentials: this.configuration.withCredentials,
-                headers: headers,
-                observe: observe,
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
      * Get information about the current user.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiUserInfo(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<UserDetails>;
-    public getApiUserInfo(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<UserDetails>>;
-    public getApiUserInfo(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<UserDetails>>;
-    public getApiUserInfo(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getApiUser(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<UserDetails>;
+    public getApiUser(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<UserDetails>>;
+    public getApiUser(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<UserDetails>>;
+    public getApiUser(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
 
         let headers = this.defaultHeaders;
 
@@ -247,7 +206,7 @@ export class UserService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<UserDetails>(`${this.configuration.basePath}/api/user/info`,
+        return this.httpClient.get<UserDetails>(`${this.configuration.basePath}/api/user`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
@@ -341,17 +300,58 @@ export class UserService {
     }
 
     /**
-     * Gets details of the user with the given id
-     * @param id 
+     * Get details of all current user sessions
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiUserWithId(id: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<UserDetails>;
-    public getApiUserWithId(id: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<UserDetails>>;
-    public getApiUserWithId(id: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<UserDetails>>;
-    public getApiUserWithId(id: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
-        if (id === null || id === undefined) {
-            throw new Error('Required parameter id was null or undefined when calling getApiUserWithId.');
+    public getApiUserSessionActiveList(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<UserDetails>>;
+    public getApiUserSessionActiveList(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<UserDetails>>>;
+    public getApiUserSessionActiveList(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<UserDetails>>>;
+    public getApiUserSessionActiveList(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+
+        let headers = this.defaultHeaders;
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.get<Array<UserDetails>>(`${this.configuration.basePath}/api/user/session/active/list`,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Gets details of the user with the given id
+     * @param userId User\&#39;s UID
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getApiUserWithUserid(userId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<UserDetails>;
+    public getApiUserWithUserid(userId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<UserDetails>>;
+    public getApiUserWithUserid(userId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<UserDetails>>;
+    public getApiUserWithUserid(userId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (userId === null || userId === undefined) {
+            throw new Error('Required parameter userId was null or undefined when calling getApiUserWithUserid.');
         }
 
         let headers = this.defaultHeaders;
@@ -374,7 +374,7 @@ export class UserService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<UserDetails>(`${this.configuration.basePath}/api/user/${encodeURIComponent(String(id))}`,
+        return this.httpClient.get<UserDetails>(`${this.configuration.basePath}/api/user/${encodeURIComponent(String(userId))}`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
@@ -387,17 +387,17 @@ export class UserService {
 
     /**
      * Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone
-     * @param id User ID
+     * @param userId User ID
      * @param userRequest 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public patchApiUserWithId(id: string, userRequest?: UserRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<UserDetails>;
-    public patchApiUserWithId(id: string, userRequest?: UserRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<UserDetails>>;
-    public patchApiUserWithId(id: string, userRequest?: UserRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<UserDetails>>;
-    public patchApiUserWithId(id: string, userRequest?: UserRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
-        if (id === null || id === undefined) {
-            throw new Error('Required parameter id was null or undefined when calling patchApiUserWithId.');
+    public patchApiUserWithUserid(userId: string, userRequest?: UserRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<UserDetails>;
+    public patchApiUserWithUserid(userId: string, userRequest?: UserRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<UserDetails>>;
+    public patchApiUserWithUserid(userId: string, userRequest?: UserRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<UserDetails>>;
+    public patchApiUserWithUserid(userId: string, userRequest?: UserRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (userId === null || userId === undefined) {
+            throw new Error('Required parameter userId was null or undefined when calling patchApiUserWithUserid.');
         }
 
         let headers = this.defaultHeaders;
@@ -429,7 +429,7 @@ export class UserService {
             responseType = 'text';
         }
 
-        return this.httpClient.patch<UserDetails>(`${this.configuration.basePath}/api/user/${encodeURIComponent(String(id))}`,
+        return this.httpClient.patch<UserDetails>(`${this.configuration.basePath}/api/user/${encodeURIComponent(String(userId))}`,
             userRequest,
             {
                 responseType: <any>responseType,
@@ -499,10 +499,10 @@ export class UserService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postApiUserCreate(userRequest?: UserRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<UserDetails>;
-    public postApiUserCreate(userRequest?: UserRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<UserDetails>>;
-    public postApiUserCreate(userRequest?: UserRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<UserDetails>>;
-    public postApiUserCreate(userRequest?: UserRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public postApiUser(userRequest?: UserRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<UserDetails>;
+    public postApiUser(userRequest?: UserRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<UserDetails>>;
+    public postApiUser(userRequest?: UserRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<UserDetails>>;
+    public postApiUser(userRequest?: UserRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
 
         let headers = this.defaultHeaders;
 
@@ -533,7 +533,7 @@ export class UserService {
             responseType = 'text';
         }
 
-        return this.httpClient.post<UserDetails>(`${this.configuration.basePath}/api/user/create`,
+        return this.httpClient.post<UserDetails>(`${this.configuration.basePath}/api/user`,
             userRequest,
             {
                 responseType: <any>responseType,

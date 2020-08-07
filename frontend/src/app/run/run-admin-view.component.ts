@@ -34,14 +34,6 @@ export class RunAdminViewComponent {
     displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'action'];
     teams: Observable<RestDetailedTeam[]>;
 
-    /**
-     *
-     * @param activeRoute
-     * @param config
-     * @param runService
-     * @param runAdminService
-     * @param snackBar
-     */
     constructor(private activeRoute: ActivatedRoute,
                 private config: AppConfig,
                 private runService: CompetitionRunService,
@@ -66,12 +58,12 @@ export class RunAdminViewComponent {
 
 
         this.viewers = this.runId.pipe(
-            flatMap(runId => timer(0, 1000).pipe(switchMap(i => this.runAdminService.getApiRunAdminWithRunidViewers(runId))))
+            flatMap(runId => timer(0, 1000).pipe(switchMap(i => this.runAdminService.getApiRunAdminWithRunidViewerList(runId))))
         );
 
         this.teams = this.run.pipe(
             switchMap(runAndInfo => {
-                return this.competitionService.getApiCompetitionWithCompetitionidTeamsDetails(runAndInfo.info.competitionId);
+                return this.competitionService.getApiCompetitionWithCompetitionidTeamListDetails(runAndInfo.info.competitionId);
             }),
             shareReplay({bufferSize: 1, refCount: true})
         );

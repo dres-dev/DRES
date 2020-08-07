@@ -21,7 +21,7 @@ export class AuthenticationService {
         this.userService.getApiUserSession().pipe(
             catchError(e => of(null)),
             filter(s => s != null),
-            flatMap(s => this.userService.getApiUserInfo()),
+            flatMap(s => this.userService.getApiUser()),
             filter(u => u != null)
         ).subscribe(u => {
             this.userDetails.next(u);
@@ -37,7 +37,7 @@ export class AuthenticationService {
      */
     public login(user: string, pass: string) {
         return this.userService.postApiLogin({username: user, password: pass} as LoginRequest).pipe(
-            flatMap(() => this.userService.getApiUserInfo()),
+            flatMap(() => this.userService.getApiUser()),
             tap(data => {
                 this.userDetails.next(data);
                 console.log(`Successfully logged in as '${this.userDetails.value.username}'.`);
@@ -52,7 +52,7 @@ export class AuthenticationService {
      */
     public updateUser(user: UserRequest) {
         return this.user.pipe(
-            flatMap((u: UserDetails) => this.userService.patchApiUserWithId(u.id, user)),
+            flatMap((u: UserDetails) => this.userService.patchApiUserWithUserid(u.id, user)),
             tap((u: UserDetails) => this.userDetails.next(u))
         );
     }

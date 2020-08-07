@@ -86,7 +86,7 @@ export class CompetitionListComponent implements AfterViewInit {
     }
 
     public refresh() {
-        this.competitionService.getApiCompetition().subscribe((results: CompetitionOverview[]) => {
+        this.competitionService.getApiCompetitionList().subscribe((results: CompetitionOverview[]) => {
                 this.competitions = results;
             },
             (r) => {

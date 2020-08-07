@@ -19,7 +19,11 @@ export class LoginComponent implements OnInit, OnDestroy {
     private returnUrl = '/';
     private authenticationServiceSubscription: Subscription;
 
-    constructor(private authenticationService: AuthenticationService, private router: Router, private route: ActivatedRoute, private snackBar: MatSnackBar) {
+    constructor(
+        private authenticationService: AuthenticationService,
+        private router: Router,
+        private route: ActivatedRoute,
+        private snackBar: MatSnackBar) {
     }
 
     ngOnInit(): void {

@@ -9,8 +9,8 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import {TaskInfo} from './taskInfo';
-import {TeamInfo} from './teamInfo';
+import { TaskInfo } from './taskInfo';
+import { TeamInfo } from './teamInfo';
 
 
 export interface RunInfo { 

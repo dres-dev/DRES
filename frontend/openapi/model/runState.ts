@@ -9,7 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import {TaskInfo} from './taskInfo';
+import { TaskInfo } from './taskInfo';
 
 
 export interface RunState { 

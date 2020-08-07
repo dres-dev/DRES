@@ -29,7 +29,7 @@ export class AbstractRunListComponent {
          * Creates a combined observable that updates the state in a regular interval and the info +
          * state whenever a manual update is triggered.
          */
-        const query = combineLatest([this.runService.getApiRunInfo(), this.runService.getApiRunState()]);
+        const query = combineLatest([this.runService.getApiRunInfoList(), this.runService.getApiRunStateList()]);
         this.runs = merge(timer(0, this.updateInterval), this.update).pipe(
             flatMap(t => query),
             map(([info, state]) => {

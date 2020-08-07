@@ -60,11 +60,6 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
 
     /**
      * Constructor; extracts the runId and keeps a local reference.
-     *
-     * @param activeRoute
-     * @param config
-     * @param runService
-     * @param snackBar
      */
     constructor(private activeRoute: ActivatedRoute,
                 private config: AppConfig,

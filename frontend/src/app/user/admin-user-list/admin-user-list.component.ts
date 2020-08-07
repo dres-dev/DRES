@@ -30,7 +30,7 @@ export class AdminUserListComponent implements AfterViewInit {
     dialogRef.afterClosed().pipe(
         filter(r => r != null),
         flatMap((u: UserRequest) => {
-          return this.userService.postApiUserCreate(u);
+          return this.userService.postApiUser(u);
         })
     ).subscribe((r) => {
       this.refresh();
@@ -46,7 +46,7 @@ export class AdminUserListComponent implements AfterViewInit {
         filter(r => r != null),
         flatMap((u: UserRequest) => {
           console.debug(`Edit Result: ${u}`);
-          return this.userService.patchApiUserWithId(user.id, u);
+          return this.userService.patchApiUserWithUserid(user.id, u);
         })
     ).subscribe((r) => {
       this.refresh();
@@ -58,7 +58,7 @@ export class AdminUserListComponent implements AfterViewInit {
 
   public delete(userId: number) {
     if (confirm(`Do you really want to delete user (${userId})?`)) {
-      this.userService.deleteApiUserWithId(userId).subscribe((u: UserDetails) => {
+      this.userService.deleteApiUserWithUserid(userId).subscribe((u: UserDetails) => {
             this.refresh();
             this.snackBar.open(`Success: ${u.username} (${u.id}) deleted`, null, {duration: 5000});
           },

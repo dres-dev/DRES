@@ -9,7 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import {ContentElement} from './contentElement';
+import { ContentElement } from './contentElement';
 
 
 export interface TaskTarget { 

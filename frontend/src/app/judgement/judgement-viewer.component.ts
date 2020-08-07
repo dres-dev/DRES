@@ -248,13 +248,16 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
 
     /**
      * Kindly provided by https://stackoverflow.com/a/7616484
-     * @param str
      */
     private hashCode(str: string) {
-        let hash = 0, i, chr;
+        let hash = 0;
+        let i;
+        let chr;
         for (i = 0; i < str.length; i++) {
             chr = str.charCodeAt(i);
+            // tslint:disable-next-line:no-bitwise
             hash = ((hash << 5) - hash) + chr;
+            // tslint:disable-next-line:no-bitwise
             hash |= 0; // Convert to 32bit integer
         }
         return hash as number;

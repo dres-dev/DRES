@@ -11,15 +11,24 @@
  */
 /* tslint:disable:no-unused-variable member-ordering */
 
-import {Inject, Injectable, Optional} from '@angular/core';
-import {HttpClient, HttpEvent, HttpHeaders, HttpParameterCodec, HttpParams, HttpResponse} from '@angular/common/http';
-import {CustomHttpParameterCodec} from '../encoder';
-import {Observable} from 'rxjs';
+import { Inject, Injectable, Optional }                      from '@angular/core';
+import { HttpClient, HttpHeaders, HttpParams,
+         HttpResponse, HttpEvent, HttpParameterCodec }       from '@angular/common/http';
+import { CustomHttpParameterCodec }                          from '../encoder';
+import { Observable }                                        from 'rxjs';
 
-import {RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskHint, TaskInfo, TaskTarget} from '../model/models';
+import { ErrorStatus } from '../model/models';
+import { RunInfo } from '../model/models';
+import { RunState } from '../model/models';
+import { ScoreOverview } from '../model/models';
+import { SubmissionInfo } from '../model/models';
+import { TaskHint } from '../model/models';
+import { TaskInfo } from '../model/models';
+import { TaskTarget } from '../model/models';
 
-import {BASE_PATH} from '../variables';
-import {Configuration} from '../configuration';
+import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
+import { Configuration }                                     from '../configuration';
+
 
 
 @Injectable({
@@ -88,10 +97,10 @@ export class CompetitionRunService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiRunInfo(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<RunInfo>>;
-    public getApiRunInfo(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<RunInfo>>>;
-    public getApiRunInfo(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<RunInfo>>>;
-    public getApiRunInfo(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getApiRunInfoList(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<RunInfo>>;
+    public getApiRunInfoList(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<RunInfo>>>;
+    public getApiRunInfoList(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<RunInfo>>>;
+    public getApiRunInfoList(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
 
         let headers = this.defaultHeaders;
 
@@ -113,7 +122,7 @@ export class CompetitionRunService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<Array<RunInfo>>(`${this.configuration.basePath}/api/run/info`,
+        return this.httpClient.get<Array<RunInfo>>(`${this.configuration.basePath}/api/run/info/list`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
@@ -264,10 +273,10 @@ export class CompetitionRunService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiRunState(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<RunState>>;
-    public getApiRunState(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<RunState>>>;
-    public getApiRunState(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<RunState>>>;
-    public getApiRunState(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getApiRunStateList(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<RunState>>;
+    public getApiRunStateList(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<RunState>>>;
+    public getApiRunStateList(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<RunState>>>;
+    public getApiRunStateList(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
 
         let headers = this.defaultHeaders;
 
@@ -289,7 +298,7 @@ export class CompetitionRunService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<Array<RunState>>(`${this.configuration.basePath}/api/run/state`,
+        return this.httpClient.get<Array<RunState>>(`${this.configuration.basePath}/api/run/state/list`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
@@ -486,12 +495,12 @@ export class CompetitionRunService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiRunWithRunidTaskSubmissions(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<SubmissionInfo>>;
-    public getApiRunWithRunidTaskSubmissions(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<SubmissionInfo>>>;
-    public getApiRunWithRunidTaskSubmissions(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<SubmissionInfo>>>;
-    public getApiRunWithRunidTaskSubmissions(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getApiRunWithRunidTaskSubmissionList(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<SubmissionInfo>>;
+    public getApiRunWithRunidTaskSubmissionList(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<SubmissionInfo>>>;
+    public getApiRunWithRunidTaskSubmissionList(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<SubmissionInfo>>>;
+    public getApiRunWithRunidTaskSubmissionList(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
-            throw new Error('Required parameter runId was null or undefined when calling getApiRunWithRunidTaskSubmissions.');
+            throw new Error('Required parameter runId was null or undefined when calling getApiRunWithRunidTaskSubmissionList.');
         }
 
         let headers = this.defaultHeaders;
@@ -514,7 +523,7 @@ export class CompetitionRunService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<Array<SubmissionInfo>>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/task/submissions`,
+        return this.httpClient.get<Array<SubmissionInfo>>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/task/submission/list`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
@@ -532,15 +541,15 @@ export class CompetitionRunService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiRunWithRunidTaskSubmissionsAfterWithTimestamp(runId: string, timestamp: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<SubmissionInfo>>;
-    public getApiRunWithRunidTaskSubmissionsAfterWithTimestamp(runId: string, timestamp: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<SubmissionInfo>>>;
-    public getApiRunWithRunidTaskSubmissionsAfterWithTimestamp(runId: string, timestamp: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<SubmissionInfo>>>;
-    public getApiRunWithRunidTaskSubmissionsAfterWithTimestamp(runId: string, timestamp: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getApiRunWithRunidTaskSubmissionListAfterWithTimestamp(runId: string, timestamp: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<SubmissionInfo>>;
+    public getApiRunWithRunidTaskSubmissionListAfterWithTimestamp(runId: string, timestamp: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<SubmissionInfo>>>;
+    public getApiRunWithRunidTaskSubmissionListAfterWithTimestamp(runId: string, timestamp: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<SubmissionInfo>>>;
+    public getApiRunWithRunidTaskSubmissionListAfterWithTimestamp(runId: string, timestamp: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
-            throw new Error('Required parameter runId was null or undefined when calling getApiRunWithRunidTaskSubmissionsAfterWithTimestamp.');
+            throw new Error('Required parameter runId was null or undefined when calling getApiRunWithRunidTaskSubmissionListAfterWithTimestamp.');
         }
         if (timestamp === null || timestamp === undefined) {
-            throw new Error('Required parameter timestamp was null or undefined when calling getApiRunWithRunidTaskSubmissionsAfterWithTimestamp.');
+            throw new Error('Required parameter timestamp was null or undefined when calling getApiRunWithRunidTaskSubmissionListAfterWithTimestamp.');
         }
 
         let headers = this.defaultHeaders;
@@ -563,7 +572,7 @@ export class CompetitionRunService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<Array<SubmissionInfo>>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/task/submissions/after/${encodeURIComponent(String(timestamp))}`,
+        return this.httpClient.get<Array<SubmissionInfo>>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/task/submission/list/after/${encodeURIComponent(String(timestamp))}`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
@@ -581,15 +590,15 @@ export class CompetitionRunService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiRunWithRunidTaskSubmissionsTaskWithTaskid(runId: string, taskId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<SubmissionInfo>>;
-    public getApiRunWithRunidTaskSubmissionsTaskWithTaskid(runId: string, taskId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<SubmissionInfo>>>;
-    public getApiRunWithRunidTaskSubmissionsTaskWithTaskid(runId: string, taskId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<SubmissionInfo>>>;
-    public getApiRunWithRunidTaskSubmissionsTaskWithTaskid(runId: string, taskId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getApiRunWithRunidTaskSubmissionsListTaskWithTaskid(runId: string, taskId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<SubmissionInfo>>;
+    public getApiRunWithRunidTaskSubmissionsListTaskWithTaskid(runId: string, taskId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<SubmissionInfo>>>;
+    public getApiRunWithRunidTaskSubmissionsListTaskWithTaskid(runId: string, taskId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<SubmissionInfo>>>;
+    public getApiRunWithRunidTaskSubmissionsListTaskWithTaskid(runId: string, taskId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
-            throw new Error('Required parameter runId was null or undefined when calling getApiRunWithRunidTaskSubmissionsTaskWithTaskid.');
+            throw new Error('Required parameter runId was null or undefined when calling getApiRunWithRunidTaskSubmissionsListTaskWithTaskid.');
         }
         if (taskId === null || taskId === undefined) {
-            throw new Error('Required parameter taskId was null or undefined when calling getApiRunWithRunidTaskSubmissionsTaskWithTaskid.');
+            throw new Error('Required parameter taskId was null or undefined when calling getApiRunWithRunidTaskSubmissionsListTaskWithTaskid.');
         }
 
         let headers = this.defaultHeaders;
@@ -612,7 +621,7 @@ export class CompetitionRunService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<Array<SubmissionInfo>>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/task/submissions/task/${encodeURIComponent(String(taskId))}`,
+        return this.httpClient.get<Array<SubmissionInfo>>(`${this.configuration.basePath}/api/run/${encodeURIComponent(String(runId))}/task/submissions/list/task/${encodeURIComponent(String(taskId))}`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

@@ -94,12 +94,12 @@ export class CompetitionRunAdminService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiRunAdminWithRunidViewers(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<ViewerInfo>>;
-    public getApiRunAdminWithRunidViewers(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<ViewerInfo>>>;
-    public getApiRunAdminWithRunidViewers(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<ViewerInfo>>>;
-    public getApiRunAdminWithRunidViewers(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getApiRunAdminWithRunidViewerList(runId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<ViewerInfo>>;
+    public getApiRunAdminWithRunidViewerList(runId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<ViewerInfo>>>;
+    public getApiRunAdminWithRunidViewerList(runId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<ViewerInfo>>>;
+    public getApiRunAdminWithRunidViewerList(runId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (runId === null || runId === undefined) {
-            throw new Error('Required parameter runId was null or undefined when calling getApiRunAdminWithRunidViewers.');
+            throw new Error('Required parameter runId was null or undefined when calling getApiRunAdminWithRunidViewerList.');
         }
 
         let headers = this.defaultHeaders;
@@ -122,7 +122,7 @@ export class CompetitionRunAdminService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<Array<ViewerInfo>>(`${this.configuration.basePath}/api/run/admin/${encodeURIComponent(String(runId))}/viewers`,
+        return this.httpClient.get<Array<ViewerInfo>>(`${this.configuration.basePath}/api/run/admin/${encodeURIComponent(String(runId))}/viewer/list`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

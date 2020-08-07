@@ -62,7 +62,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     ngAfterViewInit(): void {
         /* Observable that tracks all the submissions per team. */
         this.submissions = this.state.pipe(
-            switchMap(st => this.runService.getApiRunWithRunidTaskSubmissions(st.id).pipe(
+            switchMap(st => this.runService.getApiRunWithRunidTaskSubmissionList(st.id).pipe(
                 retry(3),
                 catchError((err, o) => {
                     console.log(`[TeamsViewerComponent] Error while loading submissions: ${err?.message}.`);
@@ -161,8 +161,6 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
 
     /**
      * Generates a URL for the preview image of a submission.
-     *
-     * @param submission
      */
     public previewForSubmission(submission: SubmissionInfo): Observable<string> {
         return this.runId.pipe(map(runId => this.config.resolveApiUrl(`/preview/submission/${runId}/${submission.id}`)));

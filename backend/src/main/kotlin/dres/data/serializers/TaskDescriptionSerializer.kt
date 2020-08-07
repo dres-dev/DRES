@@ -23,7 +23,7 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
         out.packLong(value.duration)
         out.writeUID(value.mediaCollectionId)
         writeTaskDescriptionTarget(out, value.target)
-        writeTaskDescriptionComponents(out, value.components)
+        writeTaskDescriptionHints(out, value.hints)
     }
 
     /**
@@ -47,7 +47,7 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
      * @param out [TaskDescriptionTarget] to serialize.
      */
     private fun writeTaskDescriptionTarget(out: DataOutput2, target: TaskDescriptionTarget) {
-        out.writeUTF(target.javaClass.name)
+        out.packInt(target.ordinal)
         when(target) {
             is TaskDescriptionTarget.JudgementTaskDescriptionTarget -> {}
             is TaskDescriptionTarget.VideoSegmentTarget -> {
@@ -61,32 +61,32 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
     }
 
     /**
-     * Part of serialization of [TaskDescription]. Writes [TaskDescriptionComponent]s
+     * Part of serialization of [TaskDescription]. Writes [TaskDescriptionHint]s
      *
      * @param out [DataOutput2] to write to.
-     * @param out [TaskDescriptionComponent]s to serialize.
+     * @param out [TaskDescriptionHint]s to serialize.
      */
-    private fun writeTaskDescriptionComponents(out: DataOutput2, components: List<TaskDescriptionComponent>){
-        out.packInt(components.size)
-        components.forEach {
+    private fun writeTaskDescriptionHints(out: DataOutput2, hints: List<TaskDescriptionHint>){
+        out.packInt(hints.size)
+        hints.forEach {
             out.packLong(it.start ?: -1L)
             out.packLong(it.end ?: -1L)
-            out.writeUTF(it.javaClass.name)
+            out.packInt(it.ordinal)
             when(it) {
-                is TaskDescriptionComponent.TextTaskDescriptionComponent -> {
+                is TaskDescriptionHint.TextTaskDescriptionHint -> {
                     out.writeUTF(it.text)
                 }
-                is TaskDescriptionComponent.VideoItemSegmentTaskDescriptionComponent -> {
+                is TaskDescriptionHint.VideoItemSegmentTaskDescriptionHint -> {
                     out.writeUID(it.item.id)
                     TemporalRangeSerializer.serialize(out, it.temporalRange)
                 }
-                is TaskDescriptionComponent.ImageItemTaskDescriptionComponent -> {
+                is TaskDescriptionHint.ImageItemTaskDescriptionHint -> {
                     out.writeUID(it.item.id)
                 }
-                is TaskDescriptionComponent.ExternalImageTaskDescriptionComponent -> {
+                is TaskDescriptionHint.ExternalImageTaskDescriptionHint -> {
                     out.writeUTF(it.imageLocation)
                 }
-                is TaskDescriptionComponent.ExternalVideoTaskDescriptionComponent -> {
+                is TaskDescriptionHint.ExternalVideoTaskDescriptionHint -> {
                     out.writeUTF(it.videoLocation)
                 }
             }
@@ -102,48 +102,32 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
      * @return Deserialized [TaskDescriptionTarget].
      */
     private fun readTaskDescriptionTarget(input: DataInput2, available: Int, mediaItems: DAO<MediaItem>) : TaskDescriptionTarget {
-        return when(val className = input.readUTF()) {
-            TaskDescriptionTarget.JudgementTaskDescriptionTarget::class.java.name -> TaskDescriptionTarget.JudgementTaskDescriptionTarget
-            "dres.data.model.competition.TaskDescriptionTarget\$MediaSegmentTarget",
-            TaskDescriptionTarget.VideoSegmentTarget::class.java.name -> {
-                TaskDescriptionTarget.VideoSegmentTarget(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
-            }
-            TaskDescriptionTarget.MediaItemTarget::class.java.name -> {
-                TaskDescriptionTarget.MediaItemTarget(mediaItems[input.readUID()]!!)
-            }
-            else -> throw IllegalStateException("Failed to deserialize $className; not implemented.")
+        return when(val ordinal = input.unpackInt()) {
+            1 -> TaskDescriptionTarget.JudgementTaskDescriptionTarget
+            2 -> TaskDescriptionTarget.MediaItemTarget(mediaItems[input.readUID()]!!)
+            3 -> TaskDescriptionTarget.VideoSegmentTarget(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
+            else -> throw IllegalStateException("Failed to deserialize Task Description Target for ordinal $ordinal; not implemented.")
         }
     }
 
     /**
-     * Part of deserialization of [TaskDescription]. Reads [TaskDescriptionComponent]s
+     * Part of deserialization of [TaskDescription]. Reads [TaskDescriptionHint]s
      *
      * @param out [DataInput2] to read from.
      * @param mediaItems [DAO] to lookup [MediaItem]s
      *
      * @return Deserialized [TaskDescriptionTarget]s.
      */
-    private fun readTaskDescriptionComponents(input: DataInput2, available: Int, mediaItems: DAO<MediaItem>) : List<TaskDescriptionComponent> = (0 until input.unpackInt()).map {
+    private fun readTaskDescriptionComponents(input: DataInput2, available: Int, mediaItems: DAO<MediaItem>) : List<TaskDescriptionHint> = (0 until input.unpackInt()).map {
         val start = input.unpackLong().let { if (it == -1L) null else it  }
         val end = input.unpackLong().let { if (it == -1L) null else it  }
-        val className = input.readUTF()
-        when(className) {
-            TaskDescriptionComponent.TextTaskDescriptionComponent::class.java.name -> {
-                TaskDescriptionComponent.TextTaskDescriptionComponent(input.readUTF(), start, end)
-            }
-            TaskDescriptionComponent.VideoItemSegmentTaskDescriptionComponent::class.java.name-> {
-                TaskDescriptionComponent.VideoItemSegmentTaskDescriptionComponent(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available), start, end)
-            }
-            TaskDescriptionComponent.ImageItemTaskDescriptionComponent::class.java.name -> {
-                TaskDescriptionComponent.ImageItemTaskDescriptionComponent(mediaItems[input.readUID()]!! as MediaItem.ImageItem, start, end)
-            }
-            TaskDescriptionComponent.ExternalImageTaskDescriptionComponent::class.java.name -> {
-                TaskDescriptionComponent.ExternalImageTaskDescriptionComponent(input.readUTF(), start, end)
-            }
-            TaskDescriptionComponent.ExternalVideoTaskDescriptionComponent::class.java.name -> {
-                TaskDescriptionComponent.ExternalVideoTaskDescriptionComponent(input.readUTF(), start, end)
-            }
-            else -> throw IllegalArgumentException("Failed to deserialize $className; not implemented.")
+        when(val ordinal = input.unpackInt()) {
+            1 -> TaskDescriptionHint.TextTaskDescriptionHint(input.readUTF(), start, end)
+            2 -> TaskDescriptionHint.ImageItemTaskDescriptionHint(mediaItems[input.readUID()]!! as MediaItem.ImageItem, start, end)
+            3 -> TaskDescriptionHint.VideoItemSegmentTaskDescriptionHint(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available), start, end)
+            4 -> TaskDescriptionHint.ExternalImageTaskDescriptionHint(input.readUTF(), start, end)
+            5 -> TaskDescriptionHint.ExternalVideoTaskDescriptionHint(input.readUTF(), start, end)
+            else -> throw IllegalArgumentException("Failed to deserialize Task Description Hint for ordinal $ordinal; not implemented.")
         }
     }
 }

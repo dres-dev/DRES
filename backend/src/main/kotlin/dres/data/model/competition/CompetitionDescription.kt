@@ -53,7 +53,7 @@ data class CompetitionDescription(
         return groupBoards.plus(aggregateScoreBoard)
     }
 
-    fun getAllCachedVideoItems(): List<CachedVideoItem> = tasks.flatMap { it.components }.filterIsInstance(CachedVideoItem::class.java).plus(
+    fun getAllCachedVideoItems(): List<CachedVideoItem> = tasks.flatMap { it.hints }.filterIsInstance(CachedVideoItem::class.java).plus(
             tasks.map { it.target }.filterIsInstance(CachedVideoItem::class.java)
     )
 }

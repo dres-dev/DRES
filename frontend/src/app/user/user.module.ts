@@ -17,26 +17,28 @@ import { AdminUserCreateOrEditDialogComponent } from './admin-user-create-or-edi
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatSelectModule} from '@angular/material/select';
 import {LoginComponent} from './login/login.component';
+import {ClipboardModule} from '@angular/cdk/clipboard';
 
 
 @NgModule({
   declarations: [LoginComponent, ProfileComponent, AdminUserListComponent, AdminUserCreateOrEditDialogComponent],
-  imports: [
-    CommonModule,
-    MatCardModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    FlexLayoutModule,
-    MatGridListModule,
-    MatDividerModule,
-    MatIconModule,
-    MatButtonModule,
-    MatInputModule,
-    MatTooltipModule,
-    MatTableModule,
-    MatDialogModule,
-    MatSelectModule
-  ]
+    imports: [
+        CommonModule,
+        MatCardModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        FlexLayoutModule,
+        MatGridListModule,
+        MatDividerModule,
+        MatIconModule,
+        MatButtonModule,
+        MatInputModule,
+        MatTooltipModule,
+        MatTableModule,
+        MatDialogModule,
+        MatSelectModule,
+        ClipboardModule
+    ]
 })
 export class UserModule {
 }

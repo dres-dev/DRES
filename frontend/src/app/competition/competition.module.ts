@@ -17,6 +17,7 @@ import {MatMenuModule} from '@angular/material/menu';
 import {CompetitionBuilderModule} from './competition-builder/competition-builder.module';
 import {CompetitionStartDialogComponent} from './competition-list/competition-start-dialog.component';
 import {MatSelectModule} from '@angular/material/select';
+import {MatCheckboxModule} from '@angular/material/checkbox';
 
 @NgModule({
     imports: [
@@ -34,7 +35,8 @@ import {MatSelectModule} from '@angular/material/select';
         MatProgressSpinnerModule,
         MatMenuModule,
         CompetitionBuilderModule,
-        MatSelectModule
+        MatSelectModule,
+        MatCheckboxModule
     ],
     exports:      [ CompetitionListComponent ],
     declarations: [ CompetitionListComponent, CompetitionCreateDialogComponent, CompetitionStartDialogComponent ],

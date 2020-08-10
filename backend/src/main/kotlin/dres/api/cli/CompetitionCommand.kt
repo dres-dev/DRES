@@ -73,11 +73,11 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                     paddingRight = 1
                 }
                 header {
-                    row("name", "id", "# teams", "# tasks", "description")
+                    row("name", "id", "# teams", "# tasks", "description", "participants can view")
                 }
                 body {
                     this@CompetitionCommand.competitions.forEach {
-                        row(it.name, it.id, it.teams.size, it.tasks.size, it.description).also { no++ }
+                        row(it.name, it.id, it.teams.size, it.tasks.size, it.description, if(it.participantCanView){"x"}else{""}).also { no++ }
                     }
                 }
             })

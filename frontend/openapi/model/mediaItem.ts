@@ -12,10 +12,10 @@
 
 
 export interface MediaItem { 
+    collection: string;
     name: string;
     location: string;
-    collection: string;
-    id: string;
     id_HSBmXqg?: string;
+    id: string;
 }
 

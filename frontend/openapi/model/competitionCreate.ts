@@ -14,5 +14,6 @@
 export interface CompetitionCreate { 
     name: string;
     description: string;
+    participantsCanView: boolean;
 }
 

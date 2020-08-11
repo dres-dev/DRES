@@ -46,7 +46,7 @@ abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollecti
     protected fun handlePreviewRequest(item: MediaItem, time: Long?, ctx: Context) {
 
         val collection = this.collections[item.collection]
-                ?: throw ErrorStatusException(404, "Collection ${item.collection} does not exist.")
+                ?: throw ErrorStatusException(404, "Collection ${item.collection} does not exist.", ctx)
 
         val basePath = File(collection.basePath)
 
@@ -64,7 +64,7 @@ abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollecti
 
             /* check timestamp. */
             if (time == null) {
-                throw ErrorStatusException(400, "Timestamp unspecified or invalid.")
+                throw ErrorStatusException(400, "Timestamp unspecified or invalid.", ctx)
             }
 
 
@@ -137,8 +137,8 @@ class MediaPreviewHandler(collections: DAO<MediaCollection>, itemIndex: DaoIndex
             val params = ctx.pathParamMap()
 
             val collectionId = params["collection"]?.UID()
-                    ?: throw ErrorStatusException(400, "Collection ID not specified or invalid.")
-            val itemName = params["item"] ?: throw ErrorStatusException(400, "Item name not specified.")
+                    ?: throw ErrorStatusException(400, "Collection ID not specified or invalid.", ctx)
+            val itemName = params["item"] ?: throw ErrorStatusException(400, "Item name not specified.", ctx)
             val time = params["time"]?.toLongOrNull()
 
             handlePreviewRequest(collectionId, itemName, time, ctx)
@@ -175,15 +175,15 @@ class SubmissionPreviewHandler(collections: DAO<MediaCollection>, itemIndex: Dao
             val params = ctx.pathParamMap()
 
             val runId = params["runId"]?.UID()
-                    ?: throw ErrorStatusException(404, "Parameter 'runId' is invalid")
+                    ?: throw ErrorStatusException(404, "Parameter 'runId' is invalid", ctx)
             val submissionId = params["submissionId"]
-                    ?: throw ErrorStatusException(404, "Parameter 'submissionId' is missing")
+                    ?: throw ErrorStatusException(404, "Parameter 'submissionId' is missing", ctx)
 
             val run = RunExecutor.managerForId(runId)
-                    ?: throw ErrorStatusException(404, "Competition Run $runId not found")
+                    ?: throw ErrorStatusException(404, "Competition Run $runId not found", ctx)
 
             val submission = run.allSubmissions.find { it.uid == submissionId }
-                    ?: throw ErrorStatusException(404, "Submission '$submissionId' not found")
+                    ?: throw ErrorStatusException(404, "Submission '$submissionId' not found", ctx)
 
             handlePreviewRequest(submission.item, submission.start, ctx)
         } catch (e: ErrorStatusException) {

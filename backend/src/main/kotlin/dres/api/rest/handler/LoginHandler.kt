@@ -35,14 +35,14 @@ class LoginHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, PostRes
         val loginRequest = try {
             ctx.bodyAsClass(LoginRequest::class.java)
         }catch (e: BadRequestResponse){
-            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error.")
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error.", ctx)
         }
 
         val username = UserName(loginRequest.username)
         val password = PlainPassword(loginRequest.password)
 
         val user = getMatchingUser(username, password)
-                ?: throw ErrorStatusException(401, "Invalid credentials. Please try again!")
+                ?: throw ErrorStatusException(401, "Invalid credentials. Please try again!", ctx)
 
         AccessManager.setUserForSession(ctx.sessionId(), user)
         AuditLogger.login(loginRequest.username, ctx.sessionId(), LogEventSource.REST)
@@ -50,5 +50,5 @@ class LoginHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, PostRes
 
     }
 
-    override val route = "login";
+    override val route = "login"
 }

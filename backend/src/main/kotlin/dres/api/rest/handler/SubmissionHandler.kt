@@ -51,14 +51,14 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
 
     private fun getRelevantManagers(userId: UID): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
-    private fun getActiveRun(userId: UID): RunManager {
+    private fun getActiveRun(userId: UID, ctx: Context): RunManager {
         val managers = getRelevantManagers(userId).filter { it.status == RunManagerStatus.RUNNING_TASK }
         if (managers.isEmpty()) {
-            throw ErrorStatusException(404, "There is currently no eligible competition with an active task.")
+            throw ErrorStatusException(404, "There is currently no eligible competition with an active task.", ctx)
         }
 
         if (managers.size > 1) {
-            throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.competitionDescription.name }}")
+            throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.competitionDescription.name }}", ctx)
         }
 
         return managers.first()
@@ -72,28 +72,28 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         val collectionId: UID = when {
             collectionParam != null -> this.collections.find { it.name == collectionParam }?.id
             else -> runManager.currentTask?.mediaCollectionId
-        } ?: throw ErrorStatusException(404, "Media collection '$collectionParam' could not be found.")
+        } ?: throw ErrorStatusException(404, "Media collection '$collectionParam' could not be found.", ctx)
 
         /* Find media item. */
-        val itemParam = map[PARAMETER_NAME_ITEM]?.first() ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_ITEM' is missing but required!'")
+        val itemParam = map[PARAMETER_NAME_ITEM]?.first() ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_ITEM' is missing but required!'", ctx)
         val item = this.itemIndex[collectionId to itemParam].firstOrNull() ?:
-            throw ErrorStatusException(404, "Media item '$itemParam (collection = $collectionId)' could not be found.")
+            throw ErrorStatusException(404, "Media item '$itemParam (collection = $collectionId)' could not be found.", ctx)
 
         val mapToSegment = runManager.currentTask?.taskType?.options?.contains(TaskType.Options.MAP_TO_SEGMENT) == true
 
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) && item is MediaItem.VideoItem -> {
-                val time = this.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item)
+                val time = this.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item, ctx)
                 Submission(team, userId, submissionTime, item, time.first, time.second)
             }
             map.containsKey(PARAMETER_NAME_FRAME) && (item is PlayableMediaItem) -> {
-                val time = this.frameToTime(map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull() ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number."), item)
-                val range = if(mapToSegment && item is MediaItem.VideoItem) timeToSegment(time, item) else time to time
+                val time = this.frameToTime(map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull() ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number.", ctx), item)
+                val range = if(mapToSegment && item is MediaItem.VideoItem) timeToSegment(time, item, ctx) else time to time
                 Submission(team, userId, submissionTime, item, range.first, range.second)
             }
             map.containsKey(PARAMETER_NAME_TIMECODE) && (item is PlayableMediaItem) -> {
-                val time = this.timecodeToTime(map[PARAMETER_NAME_TIMECODE]?.first()!!, item)
-                val range = if(mapToSegment && item is MediaItem.VideoItem) timeToSegment(time, item) else time to time
+                val time = this.timecodeToTime(map[PARAMETER_NAME_TIMECODE]?.first()!!, item, ctx)
+                val range = if(mapToSegment && item is MediaItem.VideoItem) timeToSegment(time, item, ctx) else time to time
                 Submission(team, userId, submissionTime, item, range.first, range.second)
             }
             else -> Submission(team, userId, submissionTime, item)
@@ -105,9 +105,9 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
     /**
      * Converts a shot number to a timestamp in milliseconds.
      */
-    private fun shotToTime(shot: String, item: MediaItem.VideoItem): Pair<Long,Long> {
-        val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.")
-        val segment = segmentList.segments.find { it.name == shot } ?: throw ErrorStatusException(400, "Shot '${item.name}.$shot' not found.")
+    private fun shotToTime(shot: String, item: MediaItem.VideoItem, ctx: Context): Pair<Long,Long> {
+        val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.", ctx)
+        val segment = segmentList.segments.find { it.name == shot } ?: throw ErrorStatusException(400, "Shot '${item.name}.$shot' not found.", ctx)
         return TimeUtil.toMilliseconds(segment.range, item.fps)
     }
 
@@ -121,14 +121,14 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
     /**
      * Converts a timecode to a timestamp in milliseconds.
      */
-    private fun timecodeToTime(timecode: String, item: PlayableMediaItem): Long {
-        return TimeUtil.timeCodeToMilliseconds(timecode, item.fps) ?: throw ErrorStatusException(400, "'$timecode' is not a valid time code")
+    private fun timecodeToTime(timecode: String, item: PlayableMediaItem, ctx: Context): Long {
+        return TimeUtil.timeCodeToMilliseconds(timecode, item.fps) ?: throw ErrorStatusException(400, "'$timecode' is not a valid time code", ctx)
     }
 
-    private fun timeToSegment(time: Long, item: MediaItem.VideoItem): Pair<Long,Long> {
-        val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.")
+    private fun timeToSegment(time: Long, item: MediaItem.VideoItem, ctx: Context): Pair<Long,Long> {
+        val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.", ctx)
         if (segmentList.segments.isEmpty()) {
-            throw ErrorStatusException(400, "No segments found for item '${item.name}'.")
+            throw ErrorStatusException(400, "No segments found for item '${item.name}'.", ctx)
         }
         val segment = segmentList.segments.find {
             val range = TimeUtil.toMilliseconds(it.range, item.fps)
@@ -158,14 +158,14 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             ]
     )
     override fun doGet(ctx: Context): SuccessStatus {
-        val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.")
-        val run = getActiveRun(userId)
+        val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
+        val run = getActiveRun(userId, ctx)
         val time = System.currentTimeMillis()
         val submission = toSubmission(ctx, userId, run, time)
         val result = try {
             run.postSubmission(submission)
         } catch (e: IllegalArgumentException) { //is only thrown by submission filter TODO: nicer exception type
-            throw ErrorStatusException(208, "Submission rejected")
+            throw ErrorStatusException(208, "Submission rejected", ctx)
         }
 
         AuditLogger.submission(run.id, run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId())

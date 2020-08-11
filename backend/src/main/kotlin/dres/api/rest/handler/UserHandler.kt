@@ -28,11 +28,11 @@ data class UserDetails(val id: UID, val username: String, val role: Role, val se
     }
 }
 
-abstract class UserHandler() : RestHandler {
+abstract class UserHandler : RestHandler {
 
     protected fun getFromSessionOrDie(ctx: Context): User {
         return UserManager.get(id = AccessManager.getUserIdForSession(ctx.sessionId())!!)
-                ?: throw ErrorStatusException(404, "User could not be found!")
+                ?: throw ErrorStatusException(404, "User could not be found!", ctx)
     }
 
     protected fun getIdFromPath(ctx: Context): UID {
@@ -40,13 +40,13 @@ abstract class UserHandler() : RestHandler {
         if (UserManager.exists(id = id)) {
             return id
         } else {
-            throw ErrorStatusException(404, "User ($id) not found!")
+            throw ErrorStatusException(404, "User ($id) not found!", ctx)
         }
     }
 
     protected fun getUserFromId(ctx: Context): User {
         val id = getIdFromPath(ctx)
-        return UserManager.get(id = id) ?: throw ErrorStatusException(404, "User ($id) not found!")
+        return UserManager.get(id = id) ?: throw ErrorStatusException(404, "User ($id) not found!", ctx)
     }
 
     protected fun getCreateUserFromBody(ctx: Context): UserRequest {
@@ -55,7 +55,7 @@ abstract class UserHandler() : RestHandler {
 }
 
 
-class ListUsersHandler() : UserHandler(), GetRestHandler<List<UserDetails>>, AccessManagedRestHandler {
+class ListUsersHandler : UserHandler(), GetRestHandler<List<UserDetails>>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Lists all available users.",
@@ -71,7 +71,7 @@ class ListUsersHandler() : UserHandler(), GetRestHandler<List<UserDetails>>, Acc
     override val route = "user/list"
 }
 
-class UserDetailsHandler() : UserHandler(), GetRestHandler<UserDetails>, AccessManagedRestHandler {
+class UserDetailsHandler : UserHandler(), GetRestHandler<UserDetails>, AccessManagedRestHandler {
 
 
     @OpenApi(
@@ -94,7 +94,7 @@ class UserDetailsHandler() : UserHandler(), GetRestHandler<UserDetails>, AccessM
     override val route = "user/:userId"
 }
 
-class DeleteUsersHandler() : UserHandler(), DeleteRestHandler<UserDetails>, AccessManagedRestHandler {
+class DeleteUsersHandler : UserHandler(), DeleteRestHandler<UserDetails>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Deletes the specified user. Requires ADMIN privileges",
@@ -112,7 +112,7 @@ class DeleteUsersHandler() : UserHandler(), DeleteRestHandler<UserDetails>, Acce
         if (UserManager.delete(id = user.id)) {
             return UserDetails.of(user)
         } else {
-            throw ErrorStatusException(500, "Could not delete the user (${user.id})")
+            throw ErrorStatusException(500, "Could not delete the user (${user.id})", ctx)
         }
     }
 
@@ -122,7 +122,7 @@ class DeleteUsersHandler() : UserHandler(), DeleteRestHandler<UserDetails>, Acce
 }
 
 
-class CreateUsersHandler() : UserHandler(), PostRestHandler<UserDetails>, AccessManagedRestHandler {
+class CreateUsersHandler : UserHandler(), PostRestHandler<UserDetails>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
@@ -141,7 +141,7 @@ class CreateUsersHandler() : UserHandler(), PostRestHandler<UserDetails>, Access
         if (success) {
             return UserDetails.of(UserManager.get(username = UserName(req.username))!!)
         } else {
-            throw ErrorStatusException(400, "The request could not be fulfilled.")
+            throw ErrorStatusException(400, "The request could not be fulfilled.", ctx)
         }
     }
 
@@ -150,7 +150,7 @@ class CreateUsersHandler() : UserHandler(), PostRestHandler<UserDetails>, Access
     override val route = "user"
 }
 
-class UpdateUsersHandler() : UserHandler(), PatchRestHandler<UserDetails>, AccessManagedRestHandler {
+class UpdateUsersHandler : UserHandler(), PatchRestHandler<UserDetails>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone",
@@ -176,7 +176,7 @@ class UpdateUsersHandler() : UserHandler(), PatchRestHandler<UserDetails>, Acces
                 if (success) {
                     return UserDetails.of(UserManager.get(id = id)!!)
                 } else {
-                    throw ErrorStatusException(500, "Could not update user!")
+                    throw ErrorStatusException(500, "Could not update user!", ctx)
                 }
             }
             caller.id == id -> {
@@ -185,10 +185,10 @@ class UpdateUsersHandler() : UserHandler(), PatchRestHandler<UserDetails>, Acces
                 if (success) {
                     return UserDetails.of(UserManager.get(id = id)!!)
                 } else {
-                    throw ErrorStatusException(500, "Could not update user!")
+                    throw ErrorStatusException(500, "Could not update user!", ctx)
                 }
             }
-            else -> throw ErrorStatusException(400, "Cannot edit user ($id) as $caller!")
+            else -> throw ErrorStatusException(400, "Cannot edit user ($id) as $caller!", ctx)
         }
     }
 
@@ -197,7 +197,7 @@ class UpdateUsersHandler() : UserHandler(), PatchRestHandler<UserDetails>, Acces
     override val route = "user/:userId"
 }
 
-class CurrentUsersHandler() : UserHandler(), GetRestHandler<UserDetails>, AccessManagedRestHandler {
+class CurrentUsersHandler : UserHandler(), GetRestHandler<UserDetails>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Get information about the current user.",
@@ -218,7 +218,7 @@ class CurrentUsersHandler() : UserHandler(), GetRestHandler<UserDetails>, Access
 
 }
 
-class CurrentUsersSessionIdHandler() : UserHandler(), GetRestHandler<SessionId>, AccessManagedRestHandler {
+class CurrentUsersSessionIdHandler : UserHandler(), GetRestHandler<SessionId>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Get current sessionId",

@@ -37,7 +37,7 @@ abstract class AbstractCompetitionRunAdminRestHandler : RestHandler, AccessManag
     fun getRun(runId: UID): RunManager? = RunExecutor.managerForId(runId)
 
     fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
-        throw ErrorStatusException(404, "Parameter 'runId' is missing!'")
+        throw ErrorStatusException(404, "Parameter 'runId' is missing!'", ctx)
     }.UID()
 }
 
@@ -49,8 +49,8 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
     private val cacheLocation = File(config.cachePath + "/tasks")
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
-    private fun competitionById(id: UID): CompetitionDescription =
-            competitions[id] ?: throw ErrorStatusException(404, "Competition with ID $id not found.'")
+    private fun competitionById(id: UID, ctx: Context): CompetitionDescription =
+            competitions[id] ?: throw ErrorStatusException(404, "Competition with ID $id not found.'", ctx)
 
     override val route = "run/admin/create"
 
@@ -71,16 +71,16 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
         val competitionStartMessage = try {
             ctx.bodyAsClass(CompetitionStartMessage::class.java)
         } catch (e: BadRequestResponse) {
-            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        val competitionToStart = this.competitionById(competitionStartMessage.competitionId.UID())
+        val competitionToStart = this.competitionById(competitionStartMessage.competitionId.UID(), ctx)
 
         /* ensure that only one synchronous run of a competition is happening at any given time */
         if(competitionStartMessage.type == RunType.SYNCHRONOUS && RunExecutor.managers().any {
                     it is SynchronousRunManager && it.competitionDescription == competitionToStart && it.status != RunManagerStatus.TERMINATED }
         ){
-            throw ErrorStatusException(400, "Synchronous run of competition ${competitionToStart.name} already exists")
+            throw ErrorStatusException(400, "Synchronous run of competition ${competitionToStart.name} already exists", ctx)
         }
 
         val segmentTasks = competitionToStart.getAllCachedVideoItems()
@@ -89,7 +89,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
         segmentTasks.forEach {
             val item = it.item
             val collection = this.collections[item.collection]
-                    ?: throw ErrorStatusException(400, "collection ${item.collection} not found")
+                    ?: throw ErrorStatusException(400, "collection ${item.collection} not found", ctx)
 
             val videoFile = File(File(collection.basePath), item.location)
 
@@ -118,7 +118,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
 
             return SuccessStatus("Competition '${competitionStartMessage.name}' was started and is running with ID ${manager.id}.")
         } catch (e: IllegalArgumentException) {
-            throw ErrorStatusException(400, e.message ?: "Invalid parameters. This is a programmers error!")
+            throw ErrorStatusException(400, e.message ?: "Invalid parameters. This is a programmers error!", ctx)
         }
     }
 }
@@ -143,13 +143,13 @@ class StartCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(),
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
-        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
         try {
             run.start()
             AuditLogger.competitionStart(run.id, LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Run $runId was successfully started.")
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Run $runId could not be started because it is in the wrong state (state = ${run.status}).")
+            throw ErrorStatusException(400, "Run $runId could not be started because it is in the wrong state (state = ${run.status}).", ctx)
         }
     }
 }
@@ -174,15 +174,15 @@ class NextTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
-        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
         try {
             if (run.nextTask()) {
                 return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTask!!.name}'.")
             } else {
-                throw ErrorStatusException(400, "Task for run $runId could not be changed because there are no tasks left.")
+                throw ErrorStatusException(400, "Task for run $runId could not be changed because there are no tasks left.", ctx)
             }
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).")
+            throw ErrorStatusException(400, "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).", ctx)
         }
     }
 }
@@ -210,18 +210,18 @@ class SwitchTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandl
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
-        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
         val idx = ctx.pathParamMap().getOrElse("idx") {
-            throw ErrorStatusException(404, "Parameter 'idx' is missing!'")
+            throw ErrorStatusException(404, "Parameter 'idx' is missing!'", ctx)
         }.toInt()
 
         try {
             run.goToTask(idx)
             return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTask!!.name}'.")
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).")
+            throw ErrorStatusException(400, "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).", ctx)
         } catch (e: IndexOutOfBoundsException) {
-            throw ErrorStatusException(404, "Task for run $runId could not be changed because index $idx is out of bounds for number of available tasks.")
+            throw ErrorStatusException(404, "Task for run $runId could not be changed because index $idx is out of bounds for number of available tasks.", ctx)
         }
     }
 }
@@ -246,15 +246,15 @@ class PreviousTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHan
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
-        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
         try {
             if (run.previousTask()) {
                 return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTask!!.name}'.")
             } else {
-                throw ErrorStatusException(400, "Task for run $runId could not be changed because there are no tasks left.")
+                throw ErrorStatusException(400, "Task for run $runId could not be changed because there are no tasks left.", ctx)
             }
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).")
+            throw ErrorStatusException(400, "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).", ctx)
         }
     }
 }
@@ -279,13 +279,13 @@ class StartTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
-        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
         try {
             run.startTask()
             AuditLogger.taskStart(run.id, run.currentTask?.name ?: "n/a", LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Task '${run.currentTask!!.name}' for run $runId was successfully started.")
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Task '${run.currentTask!!.name}' for run $runId could not be started because run is in the wrong state (state = ${run.status}).")
+            throw ErrorStatusException(400, "Task '${run.currentTask!!.name}' for run $runId could not be started because run is in the wrong state (state = ${run.status}).", ctx)
         }
     }
 }
@@ -310,14 +310,14 @@ class AbortTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
-        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
         try {
             val task = run.currentTask
             run.abortTask()
             AuditLogger.taskEnd(run.id, task?.name ?: "n/a", LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Task '${run.currentTask!!.name}' for run $runId was successfully aborted.")
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Task '${run.currentTask!!.name}' for run $runId could not be aborted because run is in the wrong state (state = ${run.status}).")
+            throw ErrorStatusException(400, "Task '${run.currentTask!!.name}' for run $runId could not be aborted because run is in the wrong state (state = ${run.status}).", ctx)
         }
     }
 }
@@ -342,13 +342,13 @@ class TerminateCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
-        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
         try {
             run.end()
             AuditLogger.competitionEnd(run.id, LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Run $runId was successfully terminated.")
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Run $runId could not be terminated because it is in the wrong state (state = ${run.status}).")
+            throw ErrorStatusException(400, "Run $runId could not be terminated because it is in the wrong state (state = ${run.status}).", ctx)
         }
     }
 }
@@ -377,18 +377,18 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), 
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
-        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
         val duration = ctx.pathParamMap().getOrElse("duration") {
-            throw ErrorStatusException(404, "Parameter 'duration' is missing!'")
+            throw ErrorStatusException(404, "Parameter 'duration' is missing!'", ctx)
         }.toInt()
         try {
             run.adjustDuration(duration)
             AuditLogger.taskModified(run.id, run.currentTask?.name ?: "n/a","Task duration adjusted by ${duration}s.", LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Duration for run $runId was successfully adjusted.")
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Duration for run $runId could not be adjusted because it is in the wrong state (state = ${run.status}).")
+            throw ErrorStatusException(400, "Duration for run $runId could not be adjusted because it is in the wrong state (state = ${run.status}).", ctx)
         } catch (e: IllegalArgumentException) {
-            throw ErrorStatusException(400, "Duration for run $runId could not be adjusted because new duration would drop bellow zero (state = ${run.status}).")
+            throw ErrorStatusException(400, "Duration for run $runId could not be adjusted because new duration would drop bellow zero (state = ${run.status}).", ctx)
         }
     }
 }
@@ -414,7 +414,7 @@ class ListViewersRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), Get
     )
     override fun doGet(ctx: Context): Array<ViewerInfo> {
         val runId = runId(ctx)
-        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
         return run.viewers().map{ ViewerInfo(it.key.sessionId, it.key.userName, it.key.host, it.value) }.toTypedArray()
     }
 }
@@ -444,17 +444,17 @@ class ForceViewerRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), Pos
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
         val viewerId = ctx.pathParamMap().getOrElse("viewerId") {
-            throw ErrorStatusException(404, "Parameter 'viewerId' is missing!'")
+            throw ErrorStatusException(404, "Parameter 'viewerId' is missing!'", ctx)
         }
-        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
         try {
             if (run.overrideReadyState(viewerId)) {
                 return SuccessStatus("State for viewer $viewerId forced successfully.")
             } else {
-                throw ErrorStatusException(404, "Viewer $viewerId does not exist!'")
+                throw ErrorStatusException(404, "Viewer $viewerId does not exist!'", ctx)
             }
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Viewer state for viewer $viewerId (run $runId) could not be enforced because run is in the wrong state (state = ${run.status}).")
+            throw ErrorStatusException(400, "Viewer state for viewer $viewerId (run $runId) could not be enforced because run is in the wrong state (state = ${run.status}).", ctx)
         }
     }
 }

@@ -24,14 +24,14 @@ abstract class LogHandler : PostRestHandler<SuccessStatus>, AccessManagedRestHan
 
     private fun getRelevantManagers(userId: UID): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
-    protected fun getActiveRun(userId: UID): RunManager {
+    protected fun getActiveRun(userId: UID, ctx: Context): RunManager {
         val managers = getRelevantManagers(userId).filter { it.status != RunManagerStatus.CREATED && it.status != RunManagerStatus.TERMINATED }
         if (managers.isEmpty()) {
-            throw ErrorStatusException(404, "There is currently no eligible competition with an active task.")
+            throw ErrorStatusException(404, "There is currently no eligible competition with an active task.", ctx)
         }
 
         if (managers.size > 1) {
-            throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.competitionDescription.name }}")
+            throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.competitionDescription.name }}", ctx)
         }
 
         return managers.first()
@@ -55,15 +55,15 @@ class QueryLogHandler : LogHandler() {
     )
     override fun doPost(ctx: Context): SuccessStatus {
 
-        val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.")
-        val run = getActiveRun(userId)
+        val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
+        val run = getActiveRun(userId, ctx)
 
 
         val queryEventLog = try {
             ctx.body<QueryEventLog>()
         } catch (e: BadRequestResponse){
             EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionId(), run.id, ctx.body()))
-            throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}")
+            throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}", ctx)
         }.copy(serverTimeStamp = System.currentTimeMillis())
 
         EventStreamProcessor.event(QueryEventLogEvent(ctx.sessionId(), run.id, queryEventLog))
@@ -89,14 +89,14 @@ class ResultLogHandler : LogHandler() {
     )
     override fun doPost(ctx: Context): SuccessStatus {
 
-        val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.")
-        val run = getActiveRun(userId)
+        val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
+        val run = getActiveRun(userId, ctx)
 
         val queryResultLog = try {
             ctx.body<QueryResultLog>()
         } catch (e: BadRequestResponse){
             EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionId(), run.id, ctx.body()))
-            throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}")
+            throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}", ctx)
         }.copy(serverTimeStamp = System.currentTimeMillis())
 
         EventStreamProcessor.event(QueryResultLogEvent(ctx.sessionId(), run.id, queryResultLog))

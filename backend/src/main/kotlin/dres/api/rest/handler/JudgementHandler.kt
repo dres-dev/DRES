@@ -21,7 +21,7 @@ abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.JUDGE)
 
     protected fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
-        throw ErrorStatusException(400, "Parameter 'runId' is missing!'")
+        throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx)
     }.UID()
 }
 
@@ -47,12 +47,12 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
     )
     override fun doGet(ctx: Context): JudgementRequest {
         val runId = this.runId(ctx)
-        val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
 
-        val validator = run.judgementValidators.find { it.hasOpen } ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement", true)
-        val next = validator.next(ctx.sessionId()) ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement")
+        val validator = run.judgementValidators.find { it.hasOpen } ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement", ctx, true)
+        val next = validator.next(ctx.sessionId()) ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement", ctx)
 
-        val collection = this.collections[next.second.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.second.item.collection}")
+        val collection = this.collections[next.second.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.second.item.collection}", ctx)
 
         val taskDescription = next.second.taskRun?.task?.textualDescription() ?: next.second.taskRun?.task?.name ?: "no task description available"
 
@@ -78,14 +78,14 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = this.runId(ctx)
-        val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
         val judgement = try {
             ctx.bodyAsClass(Judgement::class.java)
         } catch (e: BadRequestResponse) {
-            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        val validator = run.judgementValidators.find { it.id == judgement.validator } ?: throw ErrorStatusException(404, "no matching task found with validator ${judgement.validator}")
+        val validator = run.judgementValidators.find { it.id == judgement.validator } ?: throw ErrorStatusException(404, "no matching task found with validator ${judgement.validator}", ctx)
 
         validator.judge(judgement.token, judgement.verdict)
 
@@ -114,10 +114,10 @@ class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, A
     override fun doGet(ctx: Context): List<JudgementValidatorStatus> {
 
         val runId = ctx.pathParamMap().getOrElse("runId") {
-            throw ErrorStatusException(400, "Parameter 'runId' is missing!'")
+            throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx)
         }.UID()
 
-        val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found")
+        val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
 
         return run.judgementValidators.map { JudgementValidatorStatus(it.id, it.pending, it.open) }
     }

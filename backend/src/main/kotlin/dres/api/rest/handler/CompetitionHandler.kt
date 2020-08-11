@@ -24,13 +24,13 @@ abstract class CompetitionHandler(protected val competitions: DAO<CompetitionDes
 
     private fun competitionId(ctx: Context): UID =
             ctx.pathParamMap().getOrElse("competitionId") {
-                throw ErrorStatusException(404, "Parameter 'competitionId' is missing!'")
+                throw ErrorStatusException(404, "Parameter 'competitionId' is missing!'", ctx)
             }.UID()
 
-    protected fun competitionById(id: UID): CompetitionDescription =
-            competitions[id] ?: throw ErrorStatusException(404, "Competition with ID $id not found.'")
+    protected fun competitionById(id: UID, ctx: Context): CompetitionDescription =
+            competitions[id] ?: throw ErrorStatusException(404, "Competition with ID $id not found.'", ctx)
 
-    protected fun competitionFromContext(ctx: Context): CompetitionDescription = competitionById(competitionId(ctx))
+    protected fun competitionFromContext(ctx: Context): CompetitionDescription = competitionById(competitionId(ctx), ctx)
 
 }
 
@@ -163,7 +163,7 @@ class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
         val createRequest = try {
             ctx.bodyAsClass(CompetitionCreate::class.java)
         }catch (e: BadRequestResponse){
-            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
         val competition = CompetitionDescription(UID.EMPTY, createRequest.name, createRequest.description, mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf(), true)
@@ -191,19 +191,19 @@ class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>, val me
         val restCompetitionDescription = try {
             ctx.bodyAsClass(RestCompetitionDescription::class.java)
         } catch (e: BadRequestResponse) {
-            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
         val competition = restCompetitionDescription.toCompetitionDescription(mediaItems)
 
         if (!this.competitions.exists(competition.id)) {
-            throw ErrorStatusException(404, "Competition with ID ${competition.id} does not exist.")
+            throw ErrorStatusException(404, "Competition with ID ${competition.id} does not exist.", ctx)
         }
 
         try {
             competition.validate()
         }catch (e: IllegalArgumentException) {
-            throw ErrorStatusException(400, e.message!!)
+            throw ErrorStatusException(400, e.message!!, ctx)
         }
 
         this.competitions.update(competition)
@@ -233,7 +233,7 @@ class DeleteCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
         return if (competition != null) {
             SuccessStatus("Competition with ID ${competitionToDelete.id} was deleted.")
         } else {
-            throw ErrorStatusException(404, "Competition with ID ${competitionToDelete.id} not found.")
+            throw ErrorStatusException(404, "Competition with ID ${competitionToDelete.id} not found.", ctx)
         }
     }
 

@@ -2,18 +2,18 @@ package dres.api.rest.handler
 
 import dres.api.rest.AccessManager
 import dres.api.rest.RestApiRole
-import dres.api.rest.types.task.TaskHint
-import dres.api.rest.types.task.TaskTarget
 import dres.api.rest.types.run.RunInfo
 import dres.api.rest.types.run.RunState
 import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
+import dres.api.rest.types.task.TaskHint
+import dres.api.rest.types.task.TaskTarget
 import dres.data.model.Config
 import dres.data.model.UID
 import dres.data.model.basics.media.MediaItem
+import dres.data.model.competition.TaskDescription
 import dres.data.model.competition.TaskGroup
 import dres.data.model.competition.TaskType
-import dres.data.model.competition.TaskDescription
 import dres.data.model.run.Submission
 import dres.data.model.run.SubmissionStatus
 import dres.run.RunExecutor
@@ -65,7 +65,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
     }
 
     fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
-        throw ErrorStatusException(400, "Parameter 'runId' is missing!'")
+        throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx)
     }.UID()
 }
 
@@ -121,10 +121,10 @@ class GetCompetitionRunInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
     )
     override fun doGet(ctx: Context): RunInfo {
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.")
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
         if (!run.participantCanView && isParticipant(ctx)){
-            throw ErrorStatusException(403, "Access Denied")
+            throw ErrorStatusException(403, "Access Denied", ctx)
         }
 
         return RunInfo(run)
@@ -149,10 +149,10 @@ class GetCompetitionRunStateHandler : AbstractCompetitionRunRestHandler(), GetRe
     )
     override fun doGet(ctx: Context): RunState {
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.")
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
         if (!run.participantCanView && isParticipant(ctx)){
-            throw ErrorStatusException(403, "Access Denied")
+            throw ErrorStatusException(403, "Access Denied", ctx)
         }
 
         return RunState(run)
@@ -177,7 +177,7 @@ class ListCompetitionScoreHandler : AbstractCompetitionRunRestHandler(), GetRest
     )
     override fun doGet(ctx: Context): List<ScoreOverview> {
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.")
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
         return run.scoreboards.scoreboards.map { it.overview() }
     }
 }
@@ -200,13 +200,13 @@ class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHand
     )
     override fun doGet(ctx: Context): ScoreOverview {
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.")
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
         if (!run.participantCanView && isParticipant(ctx)){
-            throw ErrorStatusException(403, "Access denied.")
+            throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        val scores = run.currentTaskScore?.scores() ?: throw ErrorStatusException(404, "No active task run in run $runId.")
+        val scores = run.currentTaskScore?.scores() ?: throw ErrorStatusException(404, "No active task run in run $runId.", ctx)
         return ScoreOverview("task",
                 run.currentTask?.taskGroup?.name,
                 run.competitionDescription.teams.indices.sorted().map { Score(it, scores[it] ?: 0.0) }
@@ -240,13 +240,13 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
     override fun doGet(ctx: Context): TaskInfo {
 
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.")
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
         if (!run.participantCanView && isParticipant(ctx)){
-            throw ErrorStatusException(403, "Access denied.")
+            throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        return TaskInfo.of(run.currentTask ?: throw ErrorStatusException(404, "Run $runId has currently no active task."))
+        return TaskInfo.of(run.currentTask ?: throw ErrorStatusException(404, "Run $runId has currently no active task.", ctx))
     }
 }
 
@@ -268,19 +268,19 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
     )
     override fun doGet(ctx: Context): TaskHint {
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.")
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
         if (!run.participantCanView && isParticipant(ctx)){
-            throw ErrorStatusException(403, "Access denied.")
+            throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId.")
+        val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId.", ctx)
         try {
             return task.toTaskHint(config)
         } catch (e: FileNotFoundException) {
-            throw ErrorStatusException(404, "Query object cache file not found!")
+            throw ErrorStatusException(404, "Query object cache file not found!", ctx)
         } catch (ioe: IOException) {
-            throw ErrorStatusException(500, "Exception when reading query object cache file.")
+            throw ErrorStatusException(500, "Exception when reading query object cache file.", ctx)
         }
     }
 }
@@ -303,31 +303,31 @@ class CurrentTaskTargetHandler(private val config: Config) : AbstractCompetition
     )
     override fun doGet(ctx: Context): TaskTarget {
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.")
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
         /* Test for access rights. */
         if (!run.participantCanView && isParticipant(ctx)){
-            throw ErrorStatusException(403, "Access denied.")
+            throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
         /* Test for correct state. */
         if (run.status != RunManagerStatus.TASK_ENDED) {
-            throw ErrorStatusException(400, "Query target can only be loaded if task has just ended.")
+            throw ErrorStatusException(400, "Query target can only be loaded if task has just ended.", ctx)
         }
 
         /* Fetch query target and transform it. */
-        val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId.")
+        val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId.", ctx)
         try {
             val target = task.toTaskTarget(config)
             if (target != null) {
                 return target
             } else {
-                throw ErrorStatusException(404, "Current task does not have a defined query target object.")
+                throw ErrorStatusException(404, "Current task does not have a defined query target object.", ctx)
             }
         } catch (e: FileNotFoundException) {
-            throw ErrorStatusException(404, "Query object cache file not found!")
+            throw ErrorStatusException(404, "Query object cache file not found!", ctx)
         } catch (ioe: IOException) {
-            throw ErrorStatusException(500, "Exception when reading query object cache file.")
+            throw ErrorStatusException(500, "Exception when reading query object cache file.", ctx)
         }
     }
 }
@@ -350,10 +350,10 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
     )
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.")
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
         if (!run.participantCanView && isParticipant(ctx)){
-            throw ErrorStatusException(403, "Access denied.")
+            throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
         /* Obtain current task run and check status. */
@@ -388,10 +388,10 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
     )
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.")
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
         if (!run.participantCanView && isParticipant(ctx)){
-            throw ErrorStatusException(403, "Access denied")
+            throw ErrorStatusException(403, "Access denied", ctx)
         }
 
         val timestamp = ctx.pathParamMap().getOrDefault("timestamp", "0").toLong()
@@ -426,13 +426,13 @@ class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHa
     )
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.")
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
         if (!run.participantCanView && isParticipant(ctx)){
-            throw ErrorStatusException(403, "Access denied")
+            throw ErrorStatusException(403, "Access denied", ctx)
         }
 
-        val taskId = ctx.pathParamMap()["taskId"]?.toInt() ?: throw ErrorStatusException(404, "Missing task id")
+        val taskId = ctx.pathParamMap()["taskId"]?.toInt() ?: throw ErrorStatusException(404, "Missing task id", ctx)
 
         return if (run.currentTaskRun?.taskId == taskId && run.status == RunManagerStatus.RUNNING_TASK) {
             if (run.currentTaskRun?.task?.taskType?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) {

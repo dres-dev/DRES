@@ -26,13 +26,13 @@ abstract class CollectionHandler(protected val collections: DAO<MediaCollection>
 
     private fun collectionId(ctx: Context): UID =
             ctx.pathParamMap().getOrElse("collectionId") {
-                throw ErrorStatusException(404, "Parameter 'collectionId' is missing!'")
+                throw ErrorStatusException(404, "Parameter 'collectionId' is missing!'", ctx)
             }.UID()
 
-    private fun collectionById(id: UID): MediaCollection =
-            collections[id] ?: throw ErrorStatusException(404, "Collection with ID $id not found.'")
+    private fun collectionById(id: UID, ctx: Context): MediaCollection =
+            collections[id] ?: throw ErrorStatusException(404, "Collection with ID $id not found.'", ctx)
 
-    protected fun collectionFromContext(ctx: Context): MediaCollection = collectionById(collectionId(ctx))
+    protected fun collectionFromContext(ctx: Context): MediaCollection = collectionById(collectionId(ctx), ctx)
 
 }
 
@@ -71,15 +71,15 @@ class AddCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaIt
         val restCollection = try {
             ctx.bodyAsClass(RestMediaCollection::class.java)
         } catch (e: BadRequestResponse) {
-            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
         if (restCollection.basePath == null) {
-            throw ErrorStatusException(400, "Invalid parameters, collection base path not set.")
+            throw ErrorStatusException(400, "Invalid parameters, collection base path not set.", ctx)
         }
 
         if (collections.find { it.name == restCollection.name } != null) {
-            throw ErrorStatusException(400, "Invalid parameters, collection with name ${restCollection.name} already exists.")
+            throw ErrorStatusException(400, "Invalid parameters, collection with name ${restCollection.name} already exists.", ctx)
         }
 
         val collection = MediaCollection(UID.EMPTY, restCollection.name, restCollection.description, restCollection.basePath)
@@ -138,11 +138,11 @@ class UpdateCollectionHandler(collections: DAO<MediaCollection>, items: DAO<Medi
         val restCollection = try {
             ctx.bodyAsClass(RestMediaCollection::class.java)
         } catch (e: BadRequestResponse) {
-            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
         val collection = collections[restCollection.id.UID()]
-                ?: throw ErrorStatusException(400, "Invalid parameters, collection with ID ${restCollection.id} does not exist.")
+                ?: throw ErrorStatusException(400, "Invalid parameters, collection with ID ${restCollection.id} does not exist.", ctx)
 
         val updatedCollection = MediaCollection(collection.id, restCollection.name, restCollection.description ?: collection.description, restCollection.basePath ?: collection.basePath)
         collections.update(updatedCollection)
@@ -194,21 +194,21 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
         val mediaItem = try {
             ctx.bodyAsClass(RestMediaItem::class.java)
         } catch (e: BadRequestResponse) {
-            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
         val collectionId = mediaItem.collectionId.UID()
         val existing = items.find { it.collection == collectionId && it.name == mediaItem.name }
         if (existing != null) {
-            throw ErrorStatusException(400, "item with name '${mediaItem.name}' already exists in collection: $existing")
+            throw ErrorStatusException(400, "item with name '${mediaItem.name}' already exists in collection: $existing", ctx)
         }
 
         if (mediaItem.type == RestMediaItemType.VIDEO) {
             if (mediaItem.durationMs == null){
-                throw ErrorStatusException(400, "Duration needs to be set for a video item")
+                throw ErrorStatusException(400, "Duration needs to be set for a video item", ctx)
             }
             if (mediaItem.fps == null){
-                throw ErrorStatusException(400, "Frame rate needs to be set for a video item")
+                throw ErrorStatusException(400, "Frame rate needs to be set for a video item", ctx)
             }
         }
 
@@ -237,18 +237,18 @@ class UpdateMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<Media
         val mediaItem = try {
             ctx.bodyAsClass(RestMediaItem::class.java)
         } catch (e: BadRequestResponse) {
-            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!")
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        items[mediaItem.id.UID()] ?: throw ErrorStatusException(400, "item with name '${mediaItem.name}' does not exists")
+        items[mediaItem.id.UID()] ?: throw ErrorStatusException(400, "item with name '${mediaItem.name}' does not exists", ctx)
 
 
         if (mediaItem.type == RestMediaItemType.VIDEO) {
             if (mediaItem.durationMs == null){
-                throw ErrorStatusException(400, "Duration needs to be set for a video item")
+                throw ErrorStatusException(400, "Duration needs to be set for a video item", ctx)
             }
             if (mediaItem.fps == null){
-                throw ErrorStatusException(400, "Frame rate needs to be set for a video item")
+                throw ErrorStatusException(400, "Frame rate needs to be set for a video item", ctx)
             }
         }
 
@@ -278,9 +278,9 @@ class GetMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
     )
     override fun doGet(ctx: Context): RestMediaItem {
         val mediaId = ctx.pathParamMap().getOrElse("mediaId") {
-            throw ErrorStatusException(404, "Parameter 'mediaId' is missing!'")
+            throw ErrorStatusException(404, "Parameter 'mediaId' is missing!'", ctx)
         }.UID()
-        val item = this.items[mediaId] ?:  throw ErrorStatusException(404, "Media item with ID $mediaId not found.'")
+        val item = this.items[mediaId] ?:  throw ErrorStatusException(404, "Media item with ID $mediaId not found.'", ctx)
 
         return RestMediaItem.fromMediaItem(item)
     }
@@ -306,9 +306,9 @@ class DeleteMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<Media
     )
     override fun doDelete(ctx: Context): SuccessStatus {
         val mediaId = ctx.pathParamMap().getOrElse("mediaId") {
-            throw ErrorStatusException(404, "Parameter 'mediaId' is missing!'")
+            throw ErrorStatusException(404, "Parameter 'mediaId' is missing!'", ctx)
         }.UID()
-        val item = this.items[mediaId] ?:  throw ErrorStatusException(404, "Media item with ID $mediaId not found.'")
+        val item = this.items[mediaId] ?:  throw ErrorStatusException(404, "Media item with ID $mediaId not found.'", ctx)
 
         this.items.delete(item)
 

@@ -20,5 +20,6 @@ export interface RunInfo {
     teams: Array<TeamInfo>;
     tasks: Array<TaskInfo>;
     competitionId: string;
+    participantsCanView: boolean;
 }
 

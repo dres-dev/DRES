@@ -2,12 +2,19 @@
 <div mat-dialog-content>
     <form [formGroup]="form">
         <p>
-            <mat-form-field style="width: 100%">
+            <mat-form-field style="width:100%;">
                 <mat-label>Name</mat-label>
                 <input type="text" matInput placeholder="Name" formControlName="name" required/>
             </mat-form-field>
         </p>
-
+        <p style="width: 100%;"
+           matTooltip="Whether participants are allowed to view the tasks.
+                             Set to false if this is not desired.
+                             If false, only users with the role VIEWER can view the tasks.">
+            <mat-checkbox [(ngModel)]="participantsCanView" [ngModelOptions]="{standalone: true}">
+                Participants Can View
+            </mat-checkbox>
+        </p>
         <p>
             <mat-form-field style="width: 100%">
                 <mat-label>Description</mat-label>

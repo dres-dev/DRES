@@ -5,7 +5,7 @@ import {Router} from '@angular/router';
 import {RunInfo} from '../../../openapi/model/runInfo';
 
 
-interface RunInfoWithState {
+export interface RunInfoWithState {
     id: string;
     name: string;
     description?: string;
@@ -13,6 +13,7 @@ interface RunInfoWithState {
     status: RunState.StatusEnum;
     currentTask?: string;
     timeLeft: string;
+    participantsCanView?: boolean;
 }
 
 export class AbstractRunListComponent {
@@ -42,7 +43,8 @@ export class AbstractRunListComponent {
                         teams: v.teams.length,
                         status: s.status,
                         currentTask: s.currentTask?.name,
-                        timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a'
+                        timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a',
+                        participantsCanView: v.participantsCanView
                     } as RunInfoWithState;
                 });
             })

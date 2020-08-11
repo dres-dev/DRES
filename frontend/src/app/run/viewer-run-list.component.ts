@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {AbstractRunListComponent} from './abstract-run-list.component';
+import {AbstractRunListComponent, RunInfoWithState} from './abstract-run-list.component';
 import {CompetitionRunAdminService, CompetitionRunService} from '../../../openapi';
 import {Router} from '@angular/router';
 import {AccessChecking} from '../model/access-checking.interface';
@@ -10,9 +10,11 @@ import {AccessRoleService} from '../services/session/access-role.service';
     selector: 'app-viewer-run-list',
     templateUrl: './viewer-run-list.component.html'
 })
-export class ViewerRunListComponent extends AbstractRunListComponent implements AccessChecking{
+export class ViewerRunListComponent extends AbstractRunListComponent implements AccessChecking {
 
     judgeGroup = AccessRoleService.JUDGE_GROUP;
+    viewerGroup = AccessRoleService.VIEWER_GROUP;
+    participantGroup = AccessRoleService.PARTICIPANT_GROUP;
 
     constructor(runService: CompetitionRunService,
                 runAdminService: CompetitionRunAdminService,
@@ -23,5 +25,14 @@ export class ViewerRunListComponent extends AbstractRunListComponent implements 
 
     hasAccessFor(group: UserGroup): boolean {
         return this.accessService.accessGranted(group);
+    }
+
+    cannotAccess(row: RunInfoWithState) {
+        if (this.hasAccessFor(this.participantGroup)) {
+            return !row.participantsCanView;
+        } else {
+            return false;
+        }
+
     }
 }

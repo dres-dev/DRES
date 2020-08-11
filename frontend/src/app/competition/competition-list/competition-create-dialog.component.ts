@@ -9,7 +9,12 @@ import {CompetitionCreate} from '../../../../openapi';
     templateUrl: 'competition-create-dialog.component.html',
 })
 export class CompetitionCreateDialogComponent {
-    form: FormGroup = new FormGroup({name: new FormControl(''), description: new FormControl('')});
+    form: FormGroup = new FormGroup({
+            name: new FormControl(''),
+            description: new FormControl('')
+        });
+
+    participantsCanView = true;
 
     constructor(public dialogRef: MatDialogRef<CompetitionCreateDialogComponent>) {
     }
@@ -18,7 +23,8 @@ export class CompetitionCreateDialogComponent {
         if (this.form.valid) {
             this.dialogRef.close({
                 name: this.form.get('name').value,
-                description: this.form.get('description').value
+                description: this.form.get('description').value,
+                participantsCanView: this.participantsCanView
             } as CompetitionCreate);
         }
     }

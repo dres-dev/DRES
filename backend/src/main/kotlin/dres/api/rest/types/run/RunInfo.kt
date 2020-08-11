@@ -17,13 +17,15 @@ data class RunInfo(
         val description: String?,
         val teams: List<TeamInfo>,
         val tasks: List<TaskInfo>,
-        val competitionId: String) {
+        val competitionId: String,
+        val participantsCanView: Boolean) {
     constructor(run: RunManager) : this(
-        run.id.string,
-        run.name,
-        run.competitionDescription.description,
-        run.competitionDescription.teams.map { TeamInfo(it) },
-        run.competitionDescription.tasks.map { TaskInfo(it) },
-        run.competitionDescription.id.string
+            run.id.string,
+            run.name,
+            run.competitionDescription.description,
+            run.competitionDescription.teams.map { TeamInfo(it) },
+            run.competitionDescription.tasks.map { TaskInfo(it) },
+            run.competitionDescription.id.string,
+            run.competitionDescription.participantCanView
     )
 }

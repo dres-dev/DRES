@@ -23,5 +23,6 @@ export interface RestCompetitionDescription {
     taskGroups: Array<TaskGroup>;
     tasks: Array<RestTaskDescription>;
     teams: Array<RestTeam>;
+    participantCanView: boolean;
 }
 

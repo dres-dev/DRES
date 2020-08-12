@@ -2,6 +2,7 @@ package dres.api.rest.handler
 
 import dres.api.rest.AccessManager
 import dres.api.rest.RestApiRole
+import dres.api.rest.types.collection.RestMediaItem
 import dres.api.rest.types.run.RunInfo
 import dres.api.rest.types.run.RunState
 import dres.api.rest.types.status.ErrorStatus
@@ -447,8 +448,8 @@ class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHa
     }
 }
 
-data class SubmissionInfo(val team: Int, val member: UID, val status: SubmissionStatus, val timestamp: Long, val id: String? = null, val item: MediaItem? = null, val start: Long? = null, val end: Long? = null) {
-    constructor(submission: Submission) : this(submission.team, submission.member, submission.status, submission.timestamp, submission.uid, submission.item, submission.start, submission.end)
+data class SubmissionInfo(val team: Int, val member: UID, val status: SubmissionStatus, val timestamp: Long, val id: String? = null, val item: RestMediaItem? = null, val start: Long? = null, val end: Long? = null) {
+    constructor(submission: Submission) : this(submission.team, submission.member, submission.status, submission.timestamp, submission.uid, RestMediaItem.fromMediaItem(submission.item), submission.start, submission.end)
 
     companion object {
         fun blind(submission: Submission): SubmissionInfo = SubmissionInfo(submission.team, submission.member, submission.status, submission.timestamp)

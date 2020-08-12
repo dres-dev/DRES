@@ -9,7 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { MediaItem } from './mediaItem';
+import { RestMediaItem } from './restMediaItem';
 
 
 export interface SubmissionInfo { 
@@ -18,7 +18,7 @@ export interface SubmissionInfo {
     status: SubmissionInfo.StatusEnum;
     timestamp: number;
     id?: string;
-    item?: MediaItem;
+    item?: RestMediaItem;
     start?: number;
     end?: number;
 }

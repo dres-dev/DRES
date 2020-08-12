@@ -493,8 +493,8 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             return when (map.getValue("itemType")) {
                 "image" -> MediaItem.ImageItem(UID.EMPTY, map.getValue("name"), map.getValue("location"), collectionId)
                 "video" -> {
-                    if (map.containsKey("ms") && map.containsKey("fps")) {
-                        return MediaItem.VideoItem(UID.EMPTY, map.getValue("name"), map.getValue("location"), collectionId, map.getValue("ms").toLong(), map.getValue("fps").toFloat())
+                    if (map.containsKey("duration") && map.containsKey("fps")) {
+                        return MediaItem.VideoItem(UID.EMPTY, map.getValue("name"), map.getValue("location"), collectionId, map.getValue("duration").toLong(), map.getValue("fps").toFloat())
                     }
                     return null
                 }

@@ -31,6 +31,16 @@ export interface CompetitionBuilderTaskDialogData {
     templateUrl: './competition-builder-task-dialog.component.html'
 })
 export class CompetitionBuilderTaskDialogComponent {
+
+    constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskDialogComponent>,
+                public collectionService: CollectionService,
+                @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData,
+                public config: AppConfig) {
+
+        this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.data.task);
+        this.form = this.builder.form;
+        this.mediaCollectionSource = this.collectionService.getApiCollectionList();
+    }
     form: FormGroup;
     units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
 
@@ -44,14 +54,10 @@ export class CompetitionBuilderTaskDialogComponent {
     videoUrl: Observable<string>;
     @ViewChild('videoPlayer', {static: false}) video: ElementRef;
 
-    constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskDialogComponent>,
-                public collectionService: CollectionService,
-                @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData,
-                public config: AppConfig) {
-
-        this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.data.task);
-        this.form = this.builder.form;
-        this.mediaCollectionSource = this.collectionService.getApiCollectionList();
+    private static randInt(min: number, max: number): number {
+        min = Math.floor(min);
+        max = Math.ceil(max);
+        return Math.round(Math.random() * (max - min + 1) + min);
     }
 
     /**
@@ -134,10 +140,10 @@ export class CompetitionBuilderTaskDialogComponent {
      * @param unitControl The target {@link FormControl} to apply the value to.
      */
     public pickRandomSegment(item: RestMediaItem, startControl: FormControl, endControl: FormControl, unitControl: FormControl) {
-        const start = this.randInt(1, (item.durationMs / 1000) / 2); // always in first half
+        const start = CompetitionBuilderTaskDialogComponent.randInt(1, (item.durationMs / 1000) / 2); // always in first half
         let end = 1;
         do {
-            end = start + this.randInt(5, (item.durationMs / 1000)); // Arbitrary 5 seconds minimal length
+            end = start + CompetitionBuilderTaskDialogComponent.randInt(5, (item.durationMs / 1000)); // Arbitrary 5 seconds minimal length
         } while (end > (item.durationMs / 1000));
         startControl.setValue(start);
         endControl.setValue(end);
@@ -192,11 +198,5 @@ export class CompetitionBuilderTaskDialogComponent {
                 console.error(`The time unit ${this.form.get('time_unit').value} is not supported`);
         }
         return '';
-    }
-
-    private randInt(min: number, max: number): number {
-        min = Math.floor(min);
-        max = Math.ceil(max);
-        return Math.round(Math.random() * (max - min + 1) + min);
     }
 }

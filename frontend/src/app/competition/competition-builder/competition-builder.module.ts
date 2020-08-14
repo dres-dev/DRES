@@ -21,6 +21,7 @@ import {MatChipsModule} from '@angular/material/chips';
 import {CompetitionBuilderTaskTypeDialogComponent} from './competition-builder-task-type-dialog/competition-builder-task-type-dialog.component';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatCardModule} from '@angular/material/card';
+import { VideoPlayerSegmentBuilderComponent } from './competition-builder-task-dialog/video-player-segment-builder/video-player-segment-builder.component';
 
 @NgModule({
     imports: [
@@ -49,7 +50,8 @@ import {MatCardModule} from '@angular/material/card';
         CompetitionBuilderTeamDialogComponent,
         CompetitionBuilderTaskDialogComponent,
         CompetitionBuilderTaskGroupDialogComponent,
-        CompetitionBuilderTaskTypeDialogComponent
+        CompetitionBuilderTaskTypeDialogComponent,
+        VideoPlayerSegmentBuilderComponent
     ],
     providers: []
 })

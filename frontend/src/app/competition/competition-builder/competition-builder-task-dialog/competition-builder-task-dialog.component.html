@@ -156,11 +156,6 @@
             </div>
         </div>
     </form>
-    <div>
-        <video *ngIf="showPlayer" #videoPlayer style="width: 100%; padding-top: 1rem;" preload="auto"
-               [src]="(videoUrl | async)" controls
-               [muted]="(config.configAsObservable | async).effects.mute"></video>
-    </div>
 </div>
 <div mat-dialog-actions>
     <button mat-button (click)="close()">Cancel</button>

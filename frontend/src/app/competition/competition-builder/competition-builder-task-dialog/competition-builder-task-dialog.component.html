@@ -77,7 +77,7 @@
                 </p>
             </div>
         </div>
-        <div *ngIf="form.get('mediaCollection').value && form.get('target')['controls'].length > 0">
+        <div *ngIf="form.get('mediaCollection').value">
             <h2>Query description
                 <button mat-button aria-label="Add query description component." matTooltip="Add query description component." [matMenuTriggerFor]="componentsMenu">
                     <mat-icon>add</mat-icon>

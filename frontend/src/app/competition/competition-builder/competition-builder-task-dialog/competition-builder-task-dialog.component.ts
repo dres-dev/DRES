@@ -1,18 +1,24 @@
 import {Component, ElementRef, Inject, ViewChild} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import {MAT_DIALOG_DATA, MatDialog, MatDialogConfig, MatDialogRef} from '@angular/material/dialog';
 import {
     CollectionService,
     RestMediaCollection,
     RestMediaItem,
     RestTaskDescription,
     TaskGroup,
-    TaskType
+    TaskType,
+    TemporalRange
 } from '../../../../../openapi';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs';
-import {first} from 'rxjs/operators';
+import {filter, first, flatMap, tap} from 'rxjs/operators';
 import {AppConfig} from '../../../app.config';
 import {CompetitionFormBuilder} from './competition-form.builder';
+import {CollectionBuilderDialogComponent} from '../../../collection/collection-builder/collection-builder-dialog/collection-builder-dialog.component';
+import {
+    VideoPlayerSegmentBuilderComponent,
+    VideoPlayerSegmentBuilderData
+} from './video-player-segment-builder/video-player-segment-builder.component';
 
 
 /**
@@ -32,27 +38,26 @@ export interface CompetitionBuilderTaskDialogData {
 })
 export class CompetitionBuilderTaskDialogComponent {
 
+    form: FormGroup;
+    units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
+    /** Data source for list of {@link MediaCollection}. Loaded upon construction of the dialog. */
+    mediaCollectionSource: Observable<RestMediaCollection[]>;
+    /** The {@link CompetitionFormBuilder} used by this dialogue. */
+    builder: CompetitionFormBuilder;
+    showPlayer = false;
+    videoUrl: Observable<string>;
+    @ViewChild('videoPlayer', {static: false}) video: ElementRef;
+
     constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskDialogComponent>,
                 public collectionService: CollectionService,
                 @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData,
+                private dialog: MatDialog,
                 public config: AppConfig) {
 
         this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.data.task);
         this.form = this.builder.form;
         this.mediaCollectionSource = this.collectionService.getApiCollectionList();
     }
-    form: FormGroup;
-    units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
-
-    /** Data source for list of {@link MediaCollection}. Loaded upon construction of the dialog. */
-    mediaCollectionSource: Observable<RestMediaCollection[]>;
-
-    /** The {@link CompetitionFormBuilder} used by this dialogue. */
-    builder: CompetitionFormBuilder;
-
-    showPlayer = false;
-    videoUrl: Observable<string>;
-    @ViewChild('videoPlayer', {static: false}) video: ElementRef;
 
     private static randInt(min: number, max: number): number {
         min = Math.floor(min);
@@ -150,20 +155,26 @@ export class CompetitionBuilderTaskDialogComponent {
         unitControl.setValue('SECONDS');
     }
 
-    toggleVideoPlayer() {
-        if (this.showPlayer) {
-            if (this.video && this.video.nativeElement) {
-                const player = this.video.nativeElement as HTMLVideoElement;
-                if (!player.paused) {
-                    player.pause();
-                }
-            }
-            this.videoUrl = null;
-        } else {
-            const url = this.pathForItem(this.form.get('mediaItemId').value as RestMediaItem);
-            this.videoUrl = new Observable<string>(sub => sub.next(url));
-        }
-        this.showPlayer = !this.showPlayer;
+    toggleVideoPlayer(mediaItem: RestMediaItem, segmentStart: string, segmentEnd: string) {
+        /* Add to toggleVideoPlayer button if
+        [disabled]="!target.get('mediaItem').value && !target.get('segment_start').value && !target.get('segment_end').value"
+         */
+        /*
+        convert segmentStart / end based on unit to seconds
+        pass everything to dialog. let dialog handle and take result as temporal range
+         */
+        const start = Number.parseInt(segmentStart, 10); // TODO sensitive conversion
+        const end = Number.parseInt(segmentEnd, 10); // TODO sensitive conversion
+        const config = {
+            width: '500px', data: {mediaItem, segmentStart: start, segmentEnd: end}
+        } as MatDialogConfig<VideoPlayerSegmentBuilderData>;
+        const dialogRef = this.dialog.open(VideoPlayerSegmentBuilderComponent, config);
+        dialogRef.afterClosed().pipe(
+            filter(r => r != null),
+            tap((r: TemporalRange) => {
+                // TODO fill form accordingly. Howto know which one was called? (i.e. target or description)
+            })
+        );
     }
 
     /**

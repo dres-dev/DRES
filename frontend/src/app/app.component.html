@@ -7,7 +7,7 @@
         <mat-icon>build</mat-icon> Competition Builder
     </button>
 
-    <button mat-button aria-label="Ongoing runs" matTooltip="Ongoing runs" routerLink="/run/list">
+    <button *ngIf="loggedIn | async" mat-button aria-label="Ongoing runs" matTooltip="Ongoing runs" routerLink="/run/list">
         <mat-icon>directions_run</mat-icon> Competition Runs
     </button>
 

@@ -20,24 +20,35 @@ export class CompetitionBuilderTaskGroupDialogComponent {
     /** FromGroup for this dialog. */
     form: FormGroup;
 
-
     constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskGroupDialogComponent>,
                 @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskGroupDialogData) {
+        this.supportedTaskTypes = data?.types;
 
         this.form = new FormGroup({
             name: new FormControl(data?.group?.name, [Validators.required, Validators.minLength(3)]),
-            type: new FormControl(data?.group?.type, [Validators.required])// ,
+            type: new FormControl(this.typeFromName(data?.group?.type), [Validators.required])
         });
-        this.supportedTaskTypes = data?.types; // todo must not be null, group might be null
+    }
+
+    private typeFromName(name){
+        return this.supportedTaskTypes.find(t => t.name === name);
     }
 
     public save(): void {
         if (this.form.valid) {
-            this.dialogRef.close({
-                name: this.form.get('name').value,
-                type: (this.form.get('type').value as TaskType).name
-            } as TaskGroup);
+            this.dialogRef.close(this.fetchFormData());
         }
+    }
+
+    fetchFormData() {
+        return {
+            name: this.form.get('name').value,
+            type: (this.form.get('type').value as TaskType).name
+        } as TaskGroup;
+    }
+
+    export(){
+        console.log(JSON.stringify(this.fetchFormData()));
     }
 
     public close(): void {

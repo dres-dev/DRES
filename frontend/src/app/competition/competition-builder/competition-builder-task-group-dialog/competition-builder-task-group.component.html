@@ -10,7 +10,7 @@
 
         <p>
             <mat-form-field style="width: 100%">
-                <mat-select placeholder="Type" formControlName="type">
+                <mat-select placeholder="Type" [formControl]="form.get('type')">
                     <mat-option *ngFor="let type of supportedTaskTypes" [value]="type">
                         {{type.name}} ({{type.targetType}} | {{type.score}})
                     </mat-option>
@@ -22,4 +22,5 @@
 <div mat-dialog-actions>
     <button mat-button (click)="close()">Cancel</button>
     <button mat-button (click)="save()">Save</button>
+    <button mat-button (click)="export()">Export</button>
 </div>

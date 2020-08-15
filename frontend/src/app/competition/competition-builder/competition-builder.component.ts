@@ -109,10 +109,13 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     /**
      * Opens the dialog to add a new task group.
      */
-    public addTaskGroup() {
+    public addTaskGroup(group?: TaskGroup) {
         const dialogRef = this.dialog.open(
             CompetitionBuilderTaskGroupDialogComponent,
-            {data: {types: this.competition.taskTypes, group: null} as CompetitionBuilderTaskGroupDialogData, width: '750px'}
+            {
+                data: {types: this.competition.taskTypes, group: group ? group : null} as CompetitionBuilderTaskGroupDialogData,
+                width: '750px'
+            }
         );
         dialogRef.afterClosed().pipe(
             filter(g => g != null),
@@ -122,7 +125,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
         });
     }
 
-    public addTaskType() {
+    public addTaskType(type?: TaskType) {
         /* Debug only */
         const dummydata = {
             name: 'Textual KIS',
@@ -135,7 +138,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
         } as Partial<TaskType>;
         const dialogRef = this.dialog.open(
             CompetitionBuilderTaskTypeDialogComponent,
-            {data: dummydata, width: '750px'} // fixme remove debug data
+            {data: type ? type : dummydata, width: '750px'} // fixme remove debug data
         );
         dialogRef.afterClosed().pipe(
             filter(g => g != null),
@@ -187,11 +190,13 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
         if (index > -1) {
             const dialogRef = this.dialog.open(
                 CompetitionBuilderTaskDialogComponent,
-                {data: {
-                    taskGroup: this.competition.taskGroups.find(g => g.name === task.taskGroup),
-                    taskType: this.competition.taskTypes.find(g => g.name === task.taskType),
-                    task: task
-                } as CompetitionBuilderTaskDialogData, width: '750px'}
+                {
+                    data: {
+                        taskGroup: this.competition.taskGroups.find(g => g.name === task.taskGroup),
+                        taskType: this.competition.taskTypes.find(g => g.name === task.taskType),
+                        task: task
+                    } as CompetitionBuilderTaskDialogData, width: '750px'
+                }
             );
             dialogRef.afterClosed().pipe(
                 filter(t => t != null),

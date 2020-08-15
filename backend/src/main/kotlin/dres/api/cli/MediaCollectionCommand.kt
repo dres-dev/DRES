@@ -11,6 +11,7 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.jakewharton.picnic.table
 import dres.data.dbo.DAO
+import dres.data.dbo.DaoIndexer
 import dres.data.model.UID
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
@@ -24,7 +25,7 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 import java.util.concurrent.TimeUnit
 
-class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val segments: DAO<MediaItemSegmentList>) :
+class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val itemPathIndex: DaoIndexer<MediaItem, String>, val segments: DAO<MediaItemSegmentList>) :
         NoOpCliktCommand(name = "collection") {
 
     companion object {
@@ -246,21 +247,22 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             val base = File(collection.basePath)
             val files = base.walkTopDown().filter { it.isFile && (it.extension in imageTypes || it.extension in videoTypes) }
 
+            val buffer = mutableListOf<MediaItem>()
+
             files.forEach {file ->
 
                 println("found ${file.absolutePath}")
 
                 val relativePath = file.relativeTo(base).path
 
-                val existing = this@MediaCollectionCommand.items.find { it.location == relativePath}
+                val existing = this@MediaCollectionCommand.itemPathIndex[relativePath].find { it.collection == collectionId }
 
                 when (file.extension) {
                     in imageTypes -> {
 
                         if (existing == null) { //add
                             val newItem = MediaItem.ImageItem(UID.EMPTY, file.nameWithoutExtension, relativePath, collection.id)
-                            this@MediaCollectionCommand.items.append(newItem)
-                            println("Added Image ${newItem.name}")
+                            buffer.add(newItem)
                         } else { //skip
                             println("Image ${existing.name} already present")
                         }
@@ -289,8 +291,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
                         if (existing == null) { //add
                             val newItem = MediaItem.VideoItem(UID.EMPTY, file.nameWithoutExtension, relativePath, collection.id, duration, fps)
-                            this@MediaCollectionCommand.items.append(newItem)
-                            println("Added Video ${newItem.name}")
+                            buffer.add(newItem)
                         } else { //skip
                             val newItem = MediaItem.VideoItem(existing.id, existing.name, relativePath, collection.id, duration, fps)
                             this@MediaCollectionCommand.items.update(newItem)
@@ -302,7 +303,23 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
                 println()
 
+                if (buffer.size >= 1000){
+                    println()
+                    print("Storing buffer...")
+                    this@MediaCollectionCommand.items.batchAppend(buffer)
+                    buffer.clear()
+                    println("done")
+                }
+
             }
+
+            println()
+            if (buffer.isNotEmpty()) {
+                print("Storing buffer...")
+                this@MediaCollectionCommand.items.batchAppend(buffer)
+                println("done")
+            }
+
 
         }
 
@@ -476,8 +493,8 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             return when (map.getValue("itemType")) {
                 "image" -> MediaItem.ImageItem(UID.EMPTY, map.getValue("name"), map.getValue("location"), collectionId)
                 "video" -> {
-                    if (map.containsKey("ms") && map.containsKey("fps")) {
-                        return MediaItem.VideoItem(UID.EMPTY, map.getValue("name"), map.getValue("location"), collectionId, map.getValue("ms").toLong(), map.getValue("fps").toFloat())
+                    if (map.containsKey("duration") && map.containsKey("fps")) {
+                        return MediaItem.VideoItem(UID.EMPTY, map.getValue("name"), map.getValue("location"), collectionId, map.getValue("duration").toLong(), map.getValue("fps").toFloat())
                     }
                     return null
                 }

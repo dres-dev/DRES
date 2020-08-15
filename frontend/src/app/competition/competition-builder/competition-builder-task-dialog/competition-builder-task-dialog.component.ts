@@ -6,8 +6,7 @@ import {
     RestMediaItem,
     RestTaskDescription,
     TaskGroup,
-    TaskType,
-    VideoItem
+    TaskType
 } from '../../../../../openapi';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs';
@@ -134,7 +133,7 @@ export class CompetitionBuilderTaskDialogComponent {
      * @param endControl The target {@link FormControl} to apply the value to.
      * @param unitControl The target {@link FormControl} to apply the value to.
      */
-    public pickRandomSegment(item: VideoItem, startControl: FormControl, endControl: FormControl, unitControl: FormControl) {
+    public pickRandomSegment(item: RestMediaItem, startControl: FormControl, endControl: FormControl, unitControl: FormControl) {
         const start = this.randInt(1, (item.durationMs / 1000) / 2); // always in first half
         let end = 1;
         do {
@@ -155,7 +154,7 @@ export class CompetitionBuilderTaskDialogComponent {
             }
             this.videoUrl = null;
         } else {
-            const url = this.pathForItem(this.form.get('mediaItemId').value as VideoItem);
+            const url = this.pathForItem(this.form.get('mediaItemId').value as RestMediaItem);
             this.videoUrl = new Observable<string>(sub => sub.next(url));
         }
         this.showPlayer = !this.showPlayer;
@@ -171,7 +170,7 @@ export class CompetitionBuilderTaskDialogComponent {
     /**
      * Handler for 'close' button.
      */
-    private pathForItem(item: VideoItem): string {
+    private pathForItem(item: RestMediaItem): string {
         // units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
         let timeSuffix = '';
         switch (this.form.get('time_unit').value) {
@@ -192,7 +191,7 @@ export class CompetitionBuilderTaskDialogComponent {
             default:
                 console.error(`The time unit ${this.form.get('time_unit').value} is not supported`);
         }
-        return "";
+        return '';
     }
 
     private randInt(min: number, max: number): number {

@@ -26,7 +26,7 @@
 
         <div *ngIf="form.get('mediaCollection').value">
             <h2>Target
-                <button *ngIf="data.taskType.targetType == 'MULTIPLE_MEDIA_ITEMS'" mat-button aria-label="Add query target." matTooltip="Add query target." (click)="addQueryTarget()"><mat-icon>add</mat-icon></button>
+                <button *ngIf="data.taskType.targetType == 'MULTIPLE_MEDIA_ITEMS'" mat-button aria-label="Add query target." matTooltip="Add query target." (click)="addQueryTarget('MULTIPLE_MEDIA_ITEMS')"><mat-icon>add</mat-icon></button>
             </h2>
             <div *ngFor="let target of form.get('target')['controls']; let i = index">
                 <p>
@@ -77,7 +77,7 @@
                 </p>
             </div>
         </div>
-        <div *ngIf="form.get('mediaCollection').value && form.get('target')['controls'].length > 0">
+        <div *ngIf="form.get('mediaCollection').value">
             <h2>Query description
                 <button mat-button aria-label="Add query description component." matTooltip="Add query description component." [matMenuTriggerFor]="componentsMenu">
                     <mat-icon>add</mat-icon>
@@ -96,7 +96,7 @@
                             <input type="number" matInput placeholder="End" [formControl]="description.get('end')"/>
                         </mat-form-field>
 
-                        <span *ngIf="description.get('type').value === 'IMAGEITEM'">
+                        <span *ngIf="description.get('type').value === 'IMAGE_ITEM'">
                             <mat-form-field style="width: 85%;" *ngIf="description.get('mediaItem')">
                                 <input type="text" matInput placeholder="Media item" [formControl]="description.get('mediaItem')" [matAutocomplete]="autoGroup"/>
                                 <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">

@@ -27,12 +27,13 @@ object FFmpegUtil {
     private val frameRequestQueue = ConcurrentLinkedQueue<FrameRequest>()
 
     private const val concurrentFrameRequests = 4
+    private var threadRunning = true
 
     private val frameExtractionManagementThread = Thread {
 
         val futureList = mutableListOf<Pair<FrameRequest, Future<FFmpegResult>>>()
 
-        while (true) {
+        while (threadRunning) {
 
             try {
                 futureList.removeIf {
@@ -142,5 +143,9 @@ object FFmpegUtil {
             .setCountFrames(countFrames)
             .setSelectStreams(StreamType.VIDEO)
             .execute()
+
+    fun stop() {
+        threadRunning = false
+    }
 
 }

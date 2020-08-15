@@ -8,6 +8,7 @@ import dres.mgmt.admin.UserManager
 import dres.run.RunExecutor
 import dres.run.audit.AuditLogger
 import dres.run.eventstream.EventStreamProcessor
+import dres.utilities.FFmpegUtil
 import java.io.File
 import java.nio.file.Paths
 
@@ -26,6 +27,7 @@ object DRES {
             null
         } ?: Config()
 
+        print("initializing...")
 
         /* Initialize data access layer. */
         val dataAccessLayer = DataAccessLayer(Paths.get(config.dataPath))
@@ -45,9 +47,12 @@ object DRES {
         /* Initialize Rest API. */
         RestApi.init(config, dataAccessLayer)
 
+        println("done")
+
         Cli.loop(dataAccessLayer, config) //blocks until quit command is given
         RestApi.stop()
         RunExecutor.stop()
         EventStreamProcessor.stop()
+        FFmpegUtil.stop()
     }
 }

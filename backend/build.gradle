@@ -127,6 +127,13 @@ node {
     nodeModulesDir = file("${project.projectDir}/../frontend")
 }
 
+task cleanFrontendResources(type: Delete){
+   delete 'src/main/resources/html'
+   doLast {
+	mkdir 'src/main/resources/html'
+	}
+}
+
 
 task buildFrontend(type: NpmTask){
     args = ['run', 'pbuild']
@@ -138,9 +145,12 @@ task buildFrontend(type: NpmTask){
     }*/
 }
 
+
 task deployFrontend(type: Copy){
     // TODO Frontend config adjustment
+    dependsOn 'cleanFrontendResources'
     dependsOn 'buildFrontend'
+    tasks.findByName('buildFrontend').mustRunAfter 'cleanFrontendResources'
     from('../frontend/dist/dres-frontend')
     into('src/main/resources/html')
 }

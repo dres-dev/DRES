@@ -68,7 +68,7 @@ export class CompetitionBuilderTaskDialogComponent {
     /**
      *
      */
-    public addQueryTarget() {
+    public addQueryTarget(targetType: TaskType.TargetTypeEnum) {
 
     }
 

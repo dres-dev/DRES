@@ -26,7 +26,6 @@ data class RestTaskDescriptionTarget(val type: TaskType.TargetType, val mediaIte
             is TaskDescriptionTarget.VideoSegmentTarget -> RestTaskDescriptionTarget(TaskType.TargetType.SINGLE_MEDIA_SEGMENT, listOf(RestTaskDescriptionTargetItem(target.item.id.string, target.temporalRange)))
             is TaskDescriptionTarget.MediaItemTarget -> RestTaskDescriptionTarget(TaskType.TargetType.SINGLE_MEDIA_ITEM, listOf(RestTaskDescriptionTargetItem(target.item.id.string)))
             is TaskDescriptionTarget.MultipleMediaItemTarget -> RestTaskDescriptionTarget(TaskType.TargetType.MULTIPLE_MEDIA_ITEMS, target.items.map { RestTaskDescriptionTargetItem(it.id.string) })
-            else -> throw IllegalStateException("transformation to RestTaskDescriptionTarget from $target not implemented")
         }
     }
 

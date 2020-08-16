@@ -66,14 +66,23 @@ export class CompetitionBuilderTaskDialogComponent {
     }
 
     /**
-     *
+     * Handler for (+) button for query target form component.
      */
     public addQueryTarget(targetType: TaskType.TargetTypeEnum) {
-
+        this.builder.addTargetForm(targetType);
     }
 
     /**
-     * Handler for + button for query hint form component.
+     * Handler for (-) button for query target form component.
+     *
+     * @param index The index of the query target to remove.
+     */
+    public removeQueryTarget(index: number) {
+        this.builder.removeTargetForm(index);
+    }
+
+    /**
+     * Handler for (+) button for query hint form component.
      */
     public addQueryComponent(componentType: TaskType.ComponentsEnum) {
         this.builder.addComponentForm(componentType);
@@ -82,7 +91,7 @@ export class CompetitionBuilderTaskDialogComponent {
     /**
      * Handler for (-) button for query hint form components.
      *
-     * @param index The index to remove the component at
+     * @param index The index of the query component to remove.
      */
     public removeQueryComponent(index: number) {
         this.builder.removeComponentForm(index);

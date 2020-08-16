@@ -73,12 +73,41 @@ export class CompetitionFormBuilder {
     }
 
     /**
+     * Adds a new {@link FormGroup} for the given {@link TaskType.ComponentsEnum}.
+     *
+     * @param type The {@link TaskType.TargetTypeEnum} to add a {@link FormGroup} for.
+     */
+    public addTargetForm(type: TaskType.TargetTypeEnum) {
+        const array = this.form.get('target') as FormArray;
+        const newIndex = array.length;
+        switch (type) {
+            case 'MULTIPLE_MEDIA_ITEMS':
+                array.push(this.singleMediaItemTargetForm(newIndex));
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
      * Removes the {@link FormGroup} at the given index.
      *
      * @param index Index to remove.
      */
     public removeComponentForm(index: number) {
         const array = this.form.get('components') as FormArray;
+        if (array.length > index) {
+            array.removeAt(index);
+        }
+    }
+
+    /**
+     * Removes the {@link FormGroup} at the given index.
+     *
+     * @param index Index to remove.
+     */
+    public removeTargetForm(index: number) {
+        const array = this.form.get('target') as FormArray;
         if (array.length > index) {
             array.removeAt(index);
         }
@@ -165,11 +194,17 @@ export class CompetitionFormBuilder {
     private formForTarget() {
         switch (this.taskType.targetType) {
             case 'SINGLE_MEDIA_ITEM':
-                return this.singleMediaItemTargetForm(0, this.data?.target?.mediaItems[0]);
+                return new FormArray([this.singleMediaItemTargetForm(0, this.data?.target?.mediaItems[0])]);
             case 'MULTIPLE_MEDIA_ITEMS':
-                return this.multipleMediaItemTargetForm(this.data?.target);
+                const content: FormGroup[] = [];
+                if (this.data?.target) {
+                    this.data?.target?.mediaItems.forEach((d, i) => content.push(this.singleMediaItemTargetForm(i, d)));
+                } else {
+                    content.push(this.singleMediaItemTargetForm(0));
+                }
+                return new FormArray(content);
             case 'SINGLE_MEDIA_SEGMENT':
-                return this.singleMediaSegmentTargetForm( this.data?.target?.mediaItems[0]);
+                return new FormArray([this.singleMediaSegmentTargetForm(this.data?.target?.mediaItems[0])]);
             case 'JUDGEMENT':
                 return new FormArray([]);
         }
@@ -181,10 +216,10 @@ export class CompetitionFormBuilder {
      * @param index Index of the FormControl
      * @param initialize The optional {RestTaskDescriptionTargetItem} containing the data to initialize the form with.
      */
-    private singleMediaItemTargetForm(index: number, initialize?: RestTaskDescriptionTargetItem) {
+    private singleMediaItemTargetForm(index: number, initialize?: RestTaskDescriptionTargetItem): FormGroup {
         /* Prepare auto complete field. */
-        const mediaItemFormControl =  new FormControl(null, Validators.required);
-        this.dataSources.set('target.0.mediaItem', mediaItemFormControl.valueChanges.pipe(
+        const mediaItemFormControl = new FormControl(null, Validators.required);
+        this.dataSources.set(`target.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
             switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
@@ -197,22 +232,7 @@ export class CompetitionFormBuilder {
                 });
         }
 
-        return new FormArray([new FormGroup({mediaItem: mediaItemFormControl})]);
-    }
-
-    /**
-     * Returns FormGroup for a multiple Media Item Targets.
-     *
-     * @param initialize The optional {RestTaskDescriptionTarget} to initialize the form with.
-     */
-    private multipleMediaItemTargetForm(initialize?: RestTaskDescriptionTarget) {
-        const content = [];
-        if (initialize) {
-            content.push(initialize?.mediaItems.map((d, i) => this.singleMediaItemTargetForm(i, d)));
-        } else {
-            content.push(this.singleMediaItemTargetForm(0));
-        }
-        return new FormArray(content);
+        return new FormGroup({mediaItem: mediaItemFormControl});
     }
 
     /**
@@ -237,13 +257,13 @@ export class CompetitionFormBuilder {
             });
         }
 
-        return new FormArray([new FormGroup({
+        return new FormGroup({
             mediaItem: mediaItemFormControl,
             segment_start: new FormControl(initialize?.temporalRange.start.value, [Validators.required, Validators.min(0)]),
             segment_end: new FormControl(initialize?.temporalRange.end.value, [Validators.required, Validators.min(0)]),
             segment_time_unit: new FormControl(initialize?.temporalRange.start.unit ?
                 initialize?.temporalRange.start.unit  : 'SECONDS', Validators.required)
-        })]);
+        });
     }
 
     /**
@@ -282,7 +302,7 @@ export class CompetitionFormBuilder {
      */
     private imageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
         const mediaItemFormControl =  new FormControl(null, Validators.required);
-        if (!initialize.mediaItem && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
+        if (!initialize?.mediaItem && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
             mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
         }
 
@@ -294,7 +314,7 @@ export class CompetitionFormBuilder {
 
         /* Load media item from API. */
         if (initialize?.mediaItem && this.data?.mediaCollectionId) {
-            this.collectionService.getApiMediaitemWithMediaid(initialize.mediaItem)
+            this.collectionService.getApiMediaitemWithMediaid(initialize?.mediaItem)
                 .pipe(first()).subscribe(s => {
                 mediaItemFormControl.setValue(s);
             });

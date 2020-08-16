@@ -1,0 +1,9 @@
+{
+  "httpPort": 8080,
+  "httpsPort": 8443,
+  "enableSsl": false,
+  "keystorePath": "keystore.jks",
+  "keystorePassword": "password",
+  "dataPath": "./data",
+  "cachePath": "./cache"
+}

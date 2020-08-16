@@ -6,7 +6,6 @@ import dres.data.model.competition.*
 import dres.data.model.competition.TaskDescription
 import dres.utilities.extensions.readUID
 import dres.utilities.extensions.writeUID
-import jdk.vm.ci.code.TargetDescription
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer

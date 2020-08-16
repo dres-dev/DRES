@@ -6,6 +6,7 @@ import dres.data.model.competition.*
 import dres.data.model.competition.TaskDescription
 import dres.utilities.extensions.readUID
 import dres.utilities.extensions.writeUID
+import jdk.vm.ci.code.TargetDescription
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer
@@ -57,6 +58,10 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
             is TaskDescriptionTarget.MediaItemTarget -> {
                 out.writeUID(target.item.id)
             }
+            is TaskDescriptionTarget.MultipleMediaItemTarget -> {
+                out.packInt(target.items.size)
+                target.items.forEach { out.writeUID(it.id) }
+            }
         }
     }
 
@@ -106,6 +111,7 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
             1 -> TaskDescriptionTarget.JudgementTaskDescriptionTarget
             2 -> TaskDescriptionTarget.MediaItemTarget(mediaItems[input.readUID()]!!)
             3 -> TaskDescriptionTarget.VideoSegmentTarget(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
+            4 -> TaskDescriptionTarget.MultipleMediaItemTarget((0 until input.unpackInt()).map { mediaItems[input.readUID()]!! })
             else -> throw IllegalStateException("Failed to deserialize Task Description Target for ordinal $ordinal; not implemented.")
         }
     }

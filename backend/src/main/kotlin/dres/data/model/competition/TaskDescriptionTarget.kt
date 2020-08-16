@@ -69,4 +69,13 @@ sealed class TaskDescriptionTarget {
             }
         }
     }
+
+    /**
+     * A [TaskDescriptionTarget], specified by multiple [MediaItem]s.
+     */
+    data class MultipleMediaItemTarget(val items: List<MediaItem>) : TaskDescriptionTarget() {
+        override val ordinal: Int = 4
+        override fun textDescription() = "Media Items"
+        override fun toQueryContentElement(config: Config): ContentElement? = TODO()
+    }
 }

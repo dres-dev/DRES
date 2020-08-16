@@ -36,7 +36,7 @@ data class RestTaskDescriptionTarget(val type: TaskType.TargetType, val mediaIte
     fun toTarget(mediaItems: DAO<MediaItem>) = when(this.type){
         TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TaskDescriptionTarget.VideoSegmentTarget(mediaItems[this.mediaItems.first().mediaItem.UID()]!! as MediaItem.VideoItem, this.mediaItems.first().temporalRange!!)
         TaskType.TargetType.JUDGEMENT -> TaskDescriptionTarget.JudgementTaskDescriptionTarget
-        TaskType.TargetType.SINGLE_MEDIA_ITEM -> TODO()
-        TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> TODO()
+        TaskType.TargetType.SINGLE_MEDIA_ITEM -> TaskDescriptionTarget.MediaItemTarget(mediaItems[this.mediaItems.first().mediaItem.UID()]!!)
+        TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> TaskDescriptionTarget.MultipleMediaItemTarget(this.mediaItems.map { mediaItems[it.mediaItem.UID()]!! })
     }
 }

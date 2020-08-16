@@ -86,11 +86,17 @@ class TaskDescription(
      */
     fun toTaskHint(config: Config): TaskHint {
         val sequence = this.hints.groupBy { it.contentType }.flatMap { group ->
+            var index = 0
             group.value.sortedBy { it.start ?: 0 }.flatMap {
                 val ret = mutableListOf(it.toQueryContentElement(config))
                 if (it.end != null) {
-                    ret.add(ContentElement(contentType = ret.first().contentType, offset = it.end!!))
+                    if (index == (group.value.size - 1)) {
+                        ret.add(ContentElement(contentType = ret.first().contentType, offset = it.end!!))
+                    } else if ((group.value[index+1].start ?: 0) > it.end!!) {
+                        ret.add(ContentElement(contentType = ret.first().contentType, offset = it.end!!))
+                    }
                 }
+                index += 1
                 ret
             }
         }

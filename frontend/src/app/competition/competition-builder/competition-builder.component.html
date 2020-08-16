@@ -39,8 +39,16 @@
                 </p>
                 <h2>
                     Task types
+                    <mat-menu #taskTypeMenu="matMenu">
+                        <button mat-menu-item (click)="addTaskType()">New...</button>
+                        <button mat-menu-item (click)="addTaskType(tkisTemplate)">Template: Textual KIS</button>
+                        <button mat-menu-item (click)="addTaskType(vkisTemplate)">Template: Visual KIS</button>
+                        <button mat-menu-item (click)="addTaskType(avsTemplate)">Template: AVS</button>
+                        <button mat-menu-item (click)="addTaskType(lscTemplate)">Template: LSC</button>
+                    </mat-menu>
+
                     <button mat-button aria-label="Add new task type." matTooltip="Add new task type."
-                            (click)="addTaskType()">
+                            [matMenuTriggerFor]="taskTypeMenu">
                         <mat-icon>add</mat-icon>
                         Add task type
                     </button>

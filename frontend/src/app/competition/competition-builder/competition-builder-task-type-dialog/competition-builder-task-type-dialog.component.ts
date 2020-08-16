@@ -60,13 +60,13 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
             /* Target Type. Required */
             target: new FormControl(this.data?.targetType, [Validators.required]),
             /* Components. Required, at least one */
-            components: this.data.components ? new FormArray(this.data?.components?.map((v) => new FormControl(v)), [Validators.minLength(1)]) : new FormArray([]),
+            components: this.data?.components ? new FormArray(this.data?.components?.map((v) => new FormControl(v)), [Validators.minLength(1)]) : new FormArray([]),
             /* Scoring. Required */
             scoring: new FormControl(this.data?.score, [Validators.required]),
             /* Submission Filters. Optional */
-            filters: this.data.filter ? new FormArray(this.data?.filter?.map((v) => new FormControl(v))) : new FormArray([]),
+            filters: this.data?.filter ? new FormArray(this.data?.filter?.map((v) => new FormControl(v))) : new FormArray([]),
             /* Options. Optional */
-            options: this.data.options ? new FormArray(this.data?.options?.map((v) => new FormControl(v))) : new FormArray([])
+            options: this.data?.options ? new FormArray(this.data?.options?.map((v) => new FormControl(v))) : new FormArray([])
         });
     }
 

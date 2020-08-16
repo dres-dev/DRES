@@ -25,23 +25,83 @@ import {
 })
 export class CompetitionBuilderComponent implements OnInit, OnDestroy {
 
+    /**
+     * The official VBS Textual Known Item Search task type template
+     */
+    public static TKIS_TEMPLATE = {
+        name: 'Textual KIS',
+        taskDuration: 420,
+        targetType: 'SINGLE_MEDIA_SEGMENT',
+        components: ['TEXT'],
+        score: 'KIS',
+        filter: ['NO_DUPLICATES', 'ONE_CORRECT_PER_TEAM', 'TEMPORAL_SUBMISSION'],
+        options: ['HIDDEN_RESULTS', 'MAP_TO_SEGMENT']
+    } as TaskType;
+    /**
+     * The official VBS Visual Known Item Search task type template
+     */
+    public static VKIS_TEMPLATE = {
+        name: 'VISUAL KIS',
+        taskDuration: 300,
+        targetType: 'SINGLE_MEDIA_SEGMENT',
+        components: ['VIDEO_ITEM_SEGMENT'],
+        score: 'KIS',
+        filter: ['NO_DUPLICATES', 'ONE_CORRECT_PER_TEAM', 'TEMPORAL_SUBMISSION'],
+        options: ['MAP_TO_SEGMENT']
+    } as TaskType;
+    /**
+     * The official VBS Ad-hoc Video Search task type template
+     */
+    public static AVS_TEMPLATE = {
+        name: 'Ad-hoc Video Search',
+        taskDuration: 300,
+        targetType: 'JUDGEMENT',
+        components: ['TEXT'],
+        score: 'AVS',
+        filter: ['NO_DUPLICATES', 'TEMPORAL_SUBMISSION'],
+        options: ['MAP_TO_SEGMENT']
+    } as TaskType;
+    /**
+     * The official LSC taskt ype template
+     */
+    public static LSC_TEMPLATE = {
+        name: 'LSC',
+        taskDuration: 300,
+        targetType: 'MULTIPLE_MEDIA_ITEMS',
+        components: ['TEXT'],
+        score: 'AVS',
+        filter: ['NO_DUPLICATES', 'ONE_CORRECT_PER_TEAM'],
+        options: ['HIDDEN_RESULTS']
+    } as TaskType;
     competitionId: string;
     competition: RestCompetitionDescription;
-
     @ViewChild('taskTable')
     taskTable: MatTable<any>;
-
-
     @ViewChild('teamTable')
     teamTable: MatTable<any>;
-
     displayedColumnsTeams: string[] = ['logo', 'name', 'action'];
     displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'action'];
-
     form: FormGroup = new FormGroup({name: new FormControl(''), description: new FormControl('')});
     dirty = false;
     routeSubscription: Subscription;
     changeSubscription: Subscription;
+
+    /**
+     * Ref to template for easy access in thml
+     */
+    tkisTemplate = CompetitionBuilderComponent.TKIS_TEMPLATE;
+    /**
+     * Ref to template for easy access in thml
+     */
+    vkisTemplate = CompetitionBuilderComponent.VKIS_TEMPLATE;
+    /**
+     * Ref to template for easy access in thml
+     */
+    avsTemplate = CompetitionBuilderComponent.AVS_TEMPLATE;
+    /**
+     * Ref to template for easy access in thml
+     */
+    lscTemplate = CompetitionBuilderComponent.LSC_TEMPLATE;
 
     constructor(private competitionService: CompetitionService,
                 private route: ActivatedRoute,
@@ -126,19 +186,9 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     }
 
     public addTaskType(type?: TaskType) {
-        /* Debug only */
-        const dummydata = {
-            name: 'Textual KIS',
-            taskDuration: 420,
-            components: [TaskType.ComponentsEnum.TEXT],
-            score: TaskType.ScoreEnum.KIS,
-            targetType: TaskType.TargetTypeEnum.SINGLEMEDIASEGMENT, // traditional KIS
-            options: [TaskType.OptionsEnum.HIDDENRESULTS, TaskType.OptionsEnum.MAPTOSEGMENT],
-            filter: [TaskType.FilterEnum.NODUPLICATES, TaskType.FilterEnum.ONECORRECTPERTEAM]
-        } as Partial<TaskType>;
         const dialogRef = this.dialog.open(
             CompetitionBuilderTaskTypeDialogComponent,
-            {data: type ? type : dummydata, width: '750px'} // fixme remove debug data
+            {data: type ? type : null, width: '750px'}
         );
         dialogRef.afterClosed().pipe(
             filter(g => g != null),

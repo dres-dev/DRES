@@ -28,54 +28,63 @@
             <h2>Target
                 <button *ngIf="data.taskType.targetType == 'MULTIPLE_MEDIA_ITEMS'" mat-button aria-label="Add query target." matTooltip="Add query target." (click)="addQueryTarget('MULTIPLE_MEDIA_ITEMS')"><mat-icon>add</mat-icon></button>
             </h2>
-            <div *ngFor="let target of form.get('target')['controls']; let i = index">
-                <p>
-                    <mat-form-field style="width: 100%;" *ngIf="target.get('mediaItem')">
-                        <input type="text" matInput placeholder="Media item" [formControl]="target.get('mediaItem')" [matAutocomplete]="autoGroup">
-                        <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">
-                            <mat-option *ngFor="let mediaItem of (this.builder.dataSource('target.' + i + '.mediaItem') | async)" [value]="mediaItem">
-                                <span>{{mediaItem.name}}</span> |
-                                <small>Type: {{mediaItem.type}}, ID: {{mediaItem.id}}</small>
-                            </mat-option>
-                        </mat-autocomplete>
-                        <button mat-icon-button matSuffix [attr.aria-label]="'Pick random media item'"
-                                matTooltip="Random Media Item from collection"
-                                (click)="pickRandomMediaItem(form.get('mediaCollection').value, target.get('mediaItem'))">
-                            <mat-icon>shuffle</mat-icon>
-                        </button><!-- or 'casino' for a dice -->
-                    </mat-form-field>
-                </p>
-
-                <p *ngIf="target.get('segment_start') && target.get('segment_end')">
-                    <mat-form-field style="width: 30%;">
-                        <input type="number" matInput placeholder="Segment start" [formControl]="target.get('segment_start')"/>
-                    </mat-form-field>
-                    <mat-form-field style="width: 30%;">
-                        <input type="number" matInput placeholder="Segment end" [formControl]="target.get('segment_end')"/>
-                    </mat-form-field>
-                    <mat-form-field style="width: 40%;">
-                        <select matNativeControl [formControl]="target.get('segment_time_unit')">
-                            <option *ngFor="let unit of units" [value]="unit">{{unit}}</option>
-                        </select>
-                        <span matSuffix>
-                            <button mat-icon-button
-                                    aria-label="Randomise segment start and end."
-                                    matTooltip="Randomise segment start and end."
-                                    [disabled]="!target.get('mediaItem').value"
-                                    (click)="pickRandomSegment(target.get('mediaItem').value, target.get('segment_start'), target.get('segment_end'), target.get('segment_time_unit'))">
+            <div *ngFor="let target of form.get('target')['controls']; let i = index" style="display: flex">
+                <div style="flex-basis: 100%; flex-grow: 1">
+                    <p>
+                        <mat-form-field style="width: 100%;" *ngIf="target.get('mediaItem')">
+                            <input type="text" matInput placeholder="Media item" [formControl]="target.get('mediaItem')" [matAutocomplete]="autoGroup">
+                            <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">
+                                <mat-option *ngFor="let mediaItem of (this.builder.dataSource('target.' + i + '.mediaItem') | async)" [value]="mediaItem">
+                                    <span>{{mediaItem.name}}</span> |
+                                    <small>Type: {{mediaItem.type}}, ID: {{mediaItem.id}}</small>
+                                </mat-option>
+                            </mat-autocomplete>
+                            <button mat-icon-button matSuffix [attr.aria-label]="'Pick random media item'"
+                                    matTooltip="Random Media Item from collection"
+                                    (click)="pickRandomMediaItem(form.get('mediaCollection').value, target.get('mediaItem'))">
                                 <mat-icon>shuffle</mat-icon>
-                            </button>
-                            <button mat-icon-button
-                                    aria-label="Show media item."
-                                    matTooltip="Show media item."
-                                    [disabled]="!target.get('mediaItem').value && !target.get('segment_start').value && !target.get('segment_end').value"
-                                    (click)="toggleVideoPlayer()" >
-                                <mat-icon>remove_red_eye</mat-icon>
-                            </button>
-                        </span>
-                    </mat-form-field>
-                </p>
+                            </button><!-- or 'casino' for a dice -->
+                        </mat-form-field>
+                    </p>
+
+                    <p *ngIf="target.get('segment_start') && target.get('segment_end')">
+                        <mat-form-field style="width: 30%;">
+                            <input type="number" matInput placeholder="Segment start" [formControl]="target.get('segment_start')"/>
+                        </mat-form-field>
+                        <mat-form-field style="width: 30%;">
+                            <input type="number" matInput placeholder="Segment end" [formControl]="target.get('segment_end')"/>
+                        </mat-form-field>
+                        <mat-form-field style="width: 40%;">
+                            <select matNativeControl [formControl]="target.get('segment_time_unit')">
+                                <option *ngFor="let unit of units" [value]="unit">{{unit}}</option>
+                            </select>
+                            <span matSuffix>
+                                <button mat-icon-button
+                                        aria-label="Randomise segment start and end."
+                                        matTooltip="Randomise segment start and end."
+                                        [disabled]="!target.get('mediaItem').value"
+                                        (click)="pickRandomSegment(target.get('mediaItem').value, target.get('segment_start'), target.get('segment_end'), target.get('segment_time_unit'))">
+                                    <mat-icon>shuffle</mat-icon>
+                                </button>
+                                <button mat-icon-button
+                                        aria-label="Show media item."
+                                        matTooltip="Show media item."
+                                        [disabled]="!target.get('mediaItem').value && !target.get('segment_start').value && !target.get('segment_end').value"
+                                        (click)="toggleVideoPlayer()" >
+                                    <mat-icon>remove_red_eye</mat-icon>
+                                </button>
+                            </span>
+                        </mat-form-field>
+                    </p>
+                </div>
+                <div class="spacer-flex" *ngIf="data.taskType.targetType == 'MULTIPLE_MEDIA_ITEMS'"></div>
+                <div *ngIf="data.taskType.targetType == 'MULTIPLE_MEDIA_ITEMS'">
+                    <button mat-icon-button (click)="removeQueryTarget(i)" aria-label="Remove query target." matTooltip="Remove query target.">
+                        <mat-icon>remove</mat-icon>
+                    </button>
+                </div>
             </div>
+
         </div>
         <div *ngIf="form.get('mediaCollection').value">
             <h2>Query description
@@ -149,7 +158,7 @@
                 </div>
                 <div class="spacer-flex"></div>
                 <div>
-                    <button mat-icon-button (click)="removeQueryComponent(i)" aria-label="Add query description component." matTooltip="Remove query description component.">
+                    <button mat-icon-button (click)="removeQueryComponent(i)" aria-label="Remove query hint." matTooltip="Remove query hint.">
                         <mat-icon>remove</mat-icon>
                     </button>
                 </div>

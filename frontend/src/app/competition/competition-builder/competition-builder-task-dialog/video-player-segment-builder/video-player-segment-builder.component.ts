@@ -1,5 +1,5 @@
-import {AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Observable, Subscription} from 'rxjs';
+import {AfterViewInit, Component, ElementRef, Inject, OnDestroy, ViewChild} from '@angular/core';
+import {Observable, of, Subscription} from 'rxjs';
 import {RestMediaItem, TemporalRange} from '../../../../../../openapi';
 import {AppConfig} from '../../../../app.config';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
@@ -27,12 +27,23 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
     private endInSeconds: number;
     private requestSub: Subscription;
 
-    constructor(public config: AppConfig, public dialogRef: MatDialogRef<VideoPlayerSegmentBuilderData>,
+    constructor(public config: AppConfig,
+                public dialogRef: MatDialogRef<VideoPlayerSegmentBuilderData>,
                 @Inject(MAT_DIALOG_DATA) public data: VideoPlayerSegmentBuilderData) {
-        // TODO setup numbers
+
     }
 
     ngAfterViewInit(): void {
+        if (this.data.mediaItem) {
+            this.videoUrl = of(this.config.resolveApiUrl(`/media/${this.data?.mediaItem?.collectionId}/${this.data?.mediaItem?.id}`));
+        }
+        if(this.data.segmentStart){
+            this.startInSeconds = this.data.segmentStart === -1 ? 0 : this.data.segmentStart;
+        }
+        if(this.data.segmentEnd){
+            this.endInSeconds = this.data.segmentEnd === -1 ? this.data.mediaItem.durationMs / 1000 : this.data.segmentEnd;
+        }
+
         /* Custom loop handler */
         this.video.nativeElement.addEventListener('timeupdate', () => {
             const playtime = ((this.video.nativeElement.currentTime - this.startInSeconds) / (this.endInSeconds - this.startInSeconds)) * 100;
@@ -64,7 +75,9 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
 
     ngOnDestroy(): void {
         this.stop();
-        this.requestSub.unsubscribe();
+        if (this.requestSub) {
+            this.requestSub.unsubscribe();
+        }
     }
 
     togglePlaying() {

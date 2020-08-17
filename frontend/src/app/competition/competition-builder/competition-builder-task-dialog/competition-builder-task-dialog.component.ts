@@ -172,10 +172,16 @@ export class CompetitionBuilderTaskDialogComponent {
         convert segmentStart / end based on unit to seconds
         pass everything to dialog. let dialog handle and take result as temporal range
          */
-        const start = Number.parseInt(segmentStart, 10); // TODO sensitive conversion
-        const end = Number.parseInt(segmentEnd, 10); // TODO sensitive conversion
+        let start = -1;
+        let end = -1;
+        if(segmentStart){
+            start = Number.parseInt(segmentStart, 10);
+        }
+        if(segmentEnd){
+            end = Number.parseInt(segmentEnd, 10);
+        }
         const config = {
-            width: '500px', data: {mediaItem, segmentStart: start, segmentEnd: end}
+            width: '800px', data: {mediaItem, segmentStart: start, segmentEnd: end}
         } as MatDialogConfig<VideoPlayerSegmentBuilderData>;
         const dialogRef = this.dialog.open(VideoPlayerSegmentBuilderComponent, config);
         dialogRef.afterClosed().pipe(

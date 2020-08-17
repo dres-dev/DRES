@@ -23,6 +23,8 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatCardModule} from '@angular/material/card';
 import { VideoPlayerSegmentBuilderComponent } from './competition-builder-task-dialog/video-player-segment-builder/video-player-segment-builder.component';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
+import {FlexModule} from '@angular/flex-layout';
+import {MatSliderModule} from '@angular/material/slider';
 
 @NgModule({
     imports: [
@@ -44,7 +46,9 @@ import {MatProgressBarModule} from '@angular/material/progress-bar';
         MatChipsModule,
         MatCheckboxModule,
         MatCardModule,
-        MatProgressBarModule
+        MatProgressBarModule,
+        FlexModule,
+        MatSliderModule
     ],
     exports: [CompetitionBuilderComponent],
     declarations: [

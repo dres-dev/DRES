@@ -23,8 +23,9 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
     playtimeRelative: Observable<number>;
     private start: number;
     private end: number;
-    private startInSeconds: number;
-    private endInSeconds: number;
+    startInSeconds: number;
+    endInSeconds: number;
+    durationInSeconds: number;
     private requestSub: Subscription;
 
     constructor(public config: AppConfig,
@@ -36,6 +37,7 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
     ngAfterViewInit(): void {
         if (this.data.mediaItem) {
             this.videoUrl = of(this.config.resolveApiUrl(`/media/${this.data?.mediaItem?.collectionId}/${this.data?.mediaItem?.id}`));
+            this.durationInSeconds = this.data.mediaItem.durationMs / 1000;
         }
         if(this.data.segmentStart){
             this.startInSeconds = this.data.segmentStart === -1 ? 0 : this.data.segmentStart;

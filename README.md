@@ -22,7 +22,7 @@ However, the entire setup process is Gradle based. To setup DRES, follow these s
 ## First Steps
 
 Using the DRES CLI, the `help` command lists available commands and their usage. If one would like to know more about a certain command, use the argument `-h`.
-Following the first steps towards a successful installment of a (distributed) retrieval evaluation campagn. A prerequisit is the previous deployment, see (Setup)[Setup] and a running DRES instance.
+Following the first steps towards a successful installment of a (distributed) retrieval evaluation campagn. A prerequisit is the previous deployment, see [Setup](#setup) and a running DRES instance.
 
 ### Create User
 

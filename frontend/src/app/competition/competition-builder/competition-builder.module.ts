@@ -25,6 +25,7 @@ import { VideoPlayerSegmentBuilderComponent } from './competition-builder-task-d
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {FlexModule} from '@angular/flex-layout';
 import {MatSliderModule} from '@angular/material/slider';
+import {ServicesModule} from '../../services/services.module';
 
 @NgModule({
     imports: [
@@ -48,7 +49,8 @@ import {MatSliderModule} from '@angular/material/slider';
         MatCardModule,
         MatProgressBarModule,
         FlexModule,
-        MatSliderModule
+        MatSliderModule,
+        ServicesModule
     ],
     exports: [CompetitionBuilderComponent],
     declarations: [

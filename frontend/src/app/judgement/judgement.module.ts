@@ -6,7 +6,6 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
 import {FlexModule} from '@angular/flex-layout';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {MatVideoModule} from 'mat-video';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {MatBadgeModule} from '@angular/material/badge';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
@@ -24,7 +23,6 @@ import {MatDialogModule} from '@angular/material/dialog';
         MatButtonModule,
         FlexModule,
         MatTooltipModule,
-        MatVideoModule,
         BrowserAnimationsModule,
         MatBadgeModule,
         MatProgressBarModule,

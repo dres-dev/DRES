@@ -147,12 +147,17 @@ task buildFrontend(type: NpmTask){
 
 
 task deployFrontend(type: Copy){
-    // TODO Frontend config adjustment
     dependsOn 'cleanFrontendResources'
     dependsOn 'buildFrontend'
     tasks.findByName('buildFrontend').mustRunAfter 'cleanFrontendResources'
     from('../frontend/dist/dres-frontend')
     into('src/main/resources/html')
+}
+
+task deploy {
+    dependsOn 'deployFrontend'
+    dependsOn 'distZip'
+    tasks.findByName('distZip').mustRunAfter 'deployFrontend'
 }
 
 

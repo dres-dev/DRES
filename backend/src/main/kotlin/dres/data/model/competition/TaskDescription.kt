@@ -116,7 +116,7 @@ class TaskDescription(
 
     /** Produces a Textual description of the content of the task if possible */
     fun textualDescription(): String = hints.filterIsInstance(TaskDescriptionHint.TextTaskDescriptionHint::class.java)
-            .maxBy { it.start ?: 0 }?.text ?: name
+            .maxByOrNull { it.start ?: 0 }?.text ?: name
 
     /** Prints an overview of the task to a provided stream */
     fun printOverview(out: PrintStream) {

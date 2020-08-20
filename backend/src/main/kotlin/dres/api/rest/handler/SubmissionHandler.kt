@@ -133,7 +133,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         val segment = segmentList.segments.find {
             val range = TimeUtil.toMilliseconds(it.range, item.fps)
             range.first <= time && range.second >= time
-        } ?: segmentList.segments.minBy { abs(it.range.center - time) }!!
+        } ?: segmentList.segments.minByOrNull { abs(it.range.center - time) }!!
 
         return TimeUtil.toMilliseconds(segment.range, item.fps)
     }

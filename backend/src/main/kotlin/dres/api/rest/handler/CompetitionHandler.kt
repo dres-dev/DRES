@@ -168,7 +168,7 @@ class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
 
         val competition = CompetitionDescription(UID.EMPTY, createRequest.name, createRequest.description, mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf(), createRequest.participantsCanView)
         val competitionId = this.competitions.append(competition)
-        return SuccessStatus("Competition with ID $competitionId was created.")
+        return SuccessStatus("Competition with ID ${competitionId.string} was created.")
     }
 
     override val route: String = "competition"
@@ -197,7 +197,7 @@ class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>, val me
         val competition = restCompetitionDescription.toCompetitionDescription(mediaItems)
 
         if (!this.competitions.exists(competition.id)) {
-            throw ErrorStatusException(404, "Competition with ID ${competition.id} does not exist.", ctx)
+            throw ErrorStatusException(404, "Competition with ID ${competition.id.string} does not exist.", ctx)
         }
 
         try {
@@ -207,7 +207,7 @@ class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>, val me
         }
 
         this.competitions.update(competition)
-        return SuccessStatus("Competition with ID ${competition.id} was updated.")
+        return SuccessStatus("Competition with ID ${competition.id.string} was updated.")
     }
 
     override val route: String = "competition"
@@ -231,9 +231,9 @@ class DeleteCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
         val competitionToDelete = competitionFromContext(ctx)
         val competition = this.competitions.delete(competitionToDelete.id)
         return if (competition != null) {
-            SuccessStatus("Competition with ID ${competitionToDelete.id} was deleted.")
+            SuccessStatus("Competition with ID ${competitionToDelete.id.string} was deleted.")
         } else {
-            throw ErrorStatusException(404, "Competition with ID ${competitionToDelete.id} not found.", ctx)
+            throw ErrorStatusException(404, "Competition with ID ${competitionToDelete.id.string} not found.", ctx)
         }
     }
 

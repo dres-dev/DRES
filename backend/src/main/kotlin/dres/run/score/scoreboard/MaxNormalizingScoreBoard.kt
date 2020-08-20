@@ -20,7 +20,7 @@ class MaxNormalizingScoreBoard(private val name: String, teams: List<Team>, priv
                     it.value.map { i -> i.value }.sum()
                 }
 
-        val maxScore = max(1.0, scoreSums.values.max() ?: return emptyMap())
+        val maxScore = max(1.0, scoreSums.values.maxOrNull() ?: return emptyMap())
 
         return scoreSums.mapValues { it.value * maxScoreNormalized / maxScore }
     }

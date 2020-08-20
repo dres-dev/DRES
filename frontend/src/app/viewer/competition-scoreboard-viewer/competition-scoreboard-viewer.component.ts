@@ -118,8 +118,69 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
             map(state => state.currentTask?.taskGroup?.name)
         );
 
-        /* Create observable for series. */
-        this.series = concat(
+        console.log(`Overview: ${this.competitionOverview}`);
+        if (this.competitionOverview) {
+            /* Create observable for series. */
+            this.series = this.competitionOverviewSeries();
+        } else {
+            this.series = this.taskGroupOverview();
+        }
+    }
+
+    private taskGroupOverview(): Observable<ApexAxisChartSeries> {
+        return concat(
+            of([{name: 'Empty', data: []}]),
+            this.state.pipe(
+                switchMap(s => {
+                    return this.runService.getApiRunScoreWithRunidTask(s.id).pipe(
+                        catchError(err => {
+                            console.log('Error when retrieving scores.', err);
+                            return of(null);
+                        })
+                    );
+                }),
+                withLatestFrom(this.teams, this.currentTaskGroup),
+                // FIXME investigate why taskGroup is undefined
+                // filter(([scores, team, taskGroup]) => {
+                //     console.log(`Check: ${scores.taskGroup}===${taskGroup}`)
+                //     return scores.taskGroup === taskGroup;
+                // }),
+                map(([scores, team, taskGroup]) => {
+                    if (scores == null) {
+                        /* If we know the team, at least we can zero the teams */
+                        if (team != null) {
+                            return [{
+                                name: 'N/A', data: team.map(t => {
+                                    return {x: t.name, y: 0, fillColor: t.color};
+                                })
+                            }] as ApexAxisChartSeries;
+                        } else {
+                            return [{name: 'Empty', data: []}];
+                        }
+                    }
+                    /* In case there is no value, specifically set 0 as score for each team*/
+                    if (scores.scores.length === 0) {
+                        return [{
+                            name: scores.name, data: team.map(t => {
+                                return {x: t.name, y: 0, fillColor: t.color};
+                            })
+                        }] as ApexAxisChartSeries;
+                    } else {
+                        const combined = team.map((t, i) => {
+                            return {team: t, score: Math.round(scores.scores[i].score)};
+                        }).sort((a, b) => b.score - a.score);
+                        return [{
+                            name: scores.name, data: combined.map(c => {
+                                return {x: c.team.name, y: c.score, fillColor: c.team.color};
+                            })
+                        }] as ApexAxisChartSeries;
+                    }
+                })
+            ));
+    }
+
+    private competitionOverviewSeries(): Observable<ApexAxisChartSeries> {
+        return concat(
             of([{name: 'Empty', data: []}]),
             this.state.pipe(
                 switchMap(s => {
@@ -144,16 +205,20 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
                     }).map(s => {
                         /* In case there is no value, specifically set 0 as score for each team*/
                         if (s.scores.length === 0) {
-                            return {name: s.name, data: team.map(t => {
-                                return { x: t.name, y: 0, fillColor: t.color };
-                            })};
+                            return {
+                                name: s.name, data: team.map(t => {
+                                    return {x: t.name, y: 0/*, fillColor: t.color*/};
+                                })
+                            };
                         } else {
                             const combined = team.map((t, i) => {
-                                return {team: t,  score: Math.round(s.scores[i].score) };
+                                return {team: t, score: Math.round(s.scores[i].score)};
                             }).sort((a, b) => b.score - a.score);
-                            return {name: s.name, data: combined.map(c => {
-                              return { x: c.team.name, y: c.score, fillColor: c.team.color };
-                            })};
+                            return {
+                                name: s.name, data: combined.map(c => {
+                                    return {x: c.team.name, y: c.score/*, fillColor: c.team.color*/};
+                                })
+                            };
                         }
                     });
                 })

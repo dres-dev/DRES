@@ -7,10 +7,13 @@ import dres.data.model.Config
 import dres.data.model.UID
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
+import dres.run.validation.MediaItemsSubmissionValidator
 import dres.run.validation.TemporalOverlapSubmissionValidator
 import dres.run.validation.interfaces.SubmissionValidator
 import dres.run.validation.judged.BasicJudgementValidator
-import java.io.*
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.PrintStream
 import kotlin.math.max
 
 /**
@@ -61,9 +64,9 @@ class TaskDescription(
      * @return [SubmissionValidator].
      */
     fun newValidator(): SubmissionValidator = when(taskType.targetType){
-        TaskType.TargetType.SINGLE_MEDIA_ITEM -> TODO()
+        TaskType.TargetType.SINGLE_MEDIA_ITEM -> MediaItemsSubmissionValidator(setOf((target as TaskDescriptionTarget.MediaItemTarget).item))
         TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionValidator(target as TaskDescriptionTarget.VideoSegmentTarget)
-        TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> TODO()
+        TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> MediaItemsSubmissionValidator((target as TaskDescriptionTarget.MultipleMediaItemTarget).items.toSet())
         TaskType.TargetType.JUDGEMENT -> BasicJudgementValidator()
     }
 

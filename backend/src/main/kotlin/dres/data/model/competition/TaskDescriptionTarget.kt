@@ -1,8 +1,10 @@
 package dres.data.model.competition
 
-import dres.api.rest.types.task.ContentType
 import dres.api.rest.types.task.ContentElement
+import dres.api.rest.types.task.ContentType
+import dres.data.dbo.DAO
 import dres.data.model.Config
+import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
 import dres.data.model.basics.time.TemporalRange
 import java.io.File
@@ -34,7 +36,7 @@ sealed class TaskDescriptionTarget {
      * @throws FileNotFoundException
      * @throws IOException
      */
-    internal abstract fun toQueryContentElement(config: Config): ContentElement?
+    internal abstract fun toQueryContentElement(config: Config, collections: DAO<MediaCollection>): List<ContentElement>
 
     /**
      * A [TaskDescriptionTarget] that is validated by human judges.
@@ -42,7 +44,7 @@ sealed class TaskDescriptionTarget {
     object JudgementTaskDescriptionTarget : TaskDescriptionTarget() {
         override val ordinal: Int = 1
         override fun textDescription() = "Judgement"
-        override fun toQueryContentElement(config: Config): ContentElement? = null
+        override fun toQueryContentElement(config: Config, collections: DAO<MediaCollection>): List<ContentElement> = emptyList()
     }
 
     /**
@@ -51,7 +53,20 @@ sealed class TaskDescriptionTarget {
     data class MediaItemTarget(val item: MediaItem) : TaskDescriptionTarget() {
         override val ordinal: Int = 2
         override fun textDescription() = "Media Item ${item.name}"
-        override fun toQueryContentElement(config: Config): ContentElement? = TODO()
+        override fun toQueryContentElement(config: Config, collections: DAO<MediaCollection>): List<ContentElement>  {
+            val collection = collections[this.item.collection]!!
+            val file = File(File(collection.basePath), this.item.location)
+            return listOf(
+                    FileInputStream(file).use { imageInFile ->
+                val fileData = ByteArray(file.length().toInt())
+                imageInFile.read(fileData)
+                ContentElement(when(item){
+                    is MediaItem.VideoItem -> ContentType.VIDEO
+                    is MediaItem.ImageItem -> ContentType.IMAGE
+                }, Base64.getEncoder().encodeToString(fileData))
+            }
+            )
+        }
     }
 
     /**
@@ -60,13 +75,13 @@ sealed class TaskDescriptionTarget {
     data class VideoSegmentTarget(override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange) : TaskDescriptionTarget(), CachedVideoItem {
         override val ordinal: Int = 3
         override fun textDescription() = "Media Item ${item.name} @ ${temporalRange.start.niceText()} - ${temporalRange.end.niceText()}"
-        override fun toQueryContentElement(config: Config): ContentElement? {
+        override fun toQueryContentElement(config: Config, collections: DAO<MediaCollection>): List<ContentElement>  {
             val file = File(File(config.cachePath + "/tasks"), this.cacheItemName())
-            return FileInputStream(file).use { imageInFile ->
+            return listOf(FileInputStream(file).use { imageInFile ->
                 val fileData = ByteArray(file.length().toInt())
                 imageInFile.read(fileData)
                 ContentElement(ContentType.VIDEO, Base64.getEncoder().encodeToString(fileData))
-            }
+            })
         }
     }
 
@@ -76,6 +91,26 @@ sealed class TaskDescriptionTarget {
     data class MultipleMediaItemTarget(val items: List<MediaItem>) : TaskDescriptionTarget() {
         override val ordinal: Int = 4
         override fun textDescription() = "Media Items"
-        override fun toQueryContentElement(config: Config): ContentElement? = TODO()
+        override fun toQueryContentElement(config: Config, collections: DAO<MediaCollection>): List<ContentElement> {
+
+            val delay = 20L
+            var i = 0
+
+            return this.items.map { item ->
+                val collection = collections[item.collection]!!
+                val file = File(File(collection.basePath), item.location)
+
+                    FileInputStream(file).use { imageInFile ->
+                        val fileData = ByteArray(file.length().toInt())
+                        imageInFile.read(fileData)
+                        ContentElement(when(item){
+                            is MediaItem.VideoItem -> ContentType.VIDEO
+                            is MediaItem.ImageItem -> ContentType.IMAGE
+                        }, Base64.getEncoder().encodeToString(fileData), offset = i++ * delay)
+                    }
+
+            }
+
+        }
     }
 }

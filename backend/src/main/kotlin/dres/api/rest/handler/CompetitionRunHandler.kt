@@ -9,8 +9,10 @@ import dres.api.rest.types.status.ErrorStatus
 import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.task.TaskHint
 import dres.api.rest.types.task.TaskTarget
+import dres.data.dbo.DAO
 import dres.data.model.Config
 import dres.data.model.UID
+import dres.data.model.basics.media.MediaCollection
 import dres.data.model.competition.TaskDescription
 import dres.data.model.competition.TaskGroup
 import dres.data.model.competition.TaskType
@@ -285,7 +287,7 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
     }
 }
 
-class CurrentTaskTargetHandler(private val config: Config) : AbstractCompetitionRunRestHandler(), GetRestHandler<TaskTarget> {
+class CurrentTaskTargetHandler(private val config: Config, private val collections: DAO<MediaCollection>) : AbstractCompetitionRunRestHandler(), GetRestHandler<TaskTarget> {
 
     override val route = "run/:runId/target"
 
@@ -318,7 +320,7 @@ class CurrentTaskTargetHandler(private val config: Config) : AbstractCompetition
         /* Fetch query target and transform it. */
         val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId.", ctx)
         try {
-            val target = task.toTaskTarget(config)
+            val target = task.toTaskTarget(config, collections)
             if (target != null) {
                 return target
             } else {

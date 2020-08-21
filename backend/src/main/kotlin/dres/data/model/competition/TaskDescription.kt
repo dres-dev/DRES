@@ -3,8 +3,10 @@ package dres.data.model.competition
 import dres.api.rest.types.task.ContentElement
 import dres.api.rest.types.task.TaskHint
 import dres.api.rest.types.task.TaskTarget
+import dres.data.dbo.DAO
 import dres.data.model.Config
 import dres.data.model.UID
+import dres.data.model.basics.media.MediaCollection
 import dres.run.filter.SubmissionFilter
 import dres.run.score.interfaces.TaskRunScorer
 import dres.run.validation.MediaItemsSubmissionValidator
@@ -115,7 +117,7 @@ class TaskDescription(
      * @throws FileNotFoundException
      * @throws IOException
      */
-    fun toTaskTarget(config: Config): TaskTarget? = this.target.toQueryContentElement(config)?.let { TaskTarget(this.id.string, listOf(it)) }
+    fun toTaskTarget(config: Config, collections: DAO<MediaCollection>): TaskTarget? = this.target.toQueryContentElement(config, collections).let { TaskTarget(this.id.string, it) }
 
     /** Produces a Textual description of the content of the task if possible */
     fun textualDescription(): String = hints.filterIsInstance(TaskDescriptionHint.TextTaskDescriptionHint::class.java)

@@ -257,7 +257,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
                 val existing = this@MediaCollectionCommand.itemPathIndex[relativePath].find { it.collection == collectionId }
 
-                when (file.extension) {
+                when (file.extension.toLowerCase()) {
                     in imageTypes -> {
 
                         if (existing == null) { //add

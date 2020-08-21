@@ -11,7 +11,6 @@ import dres.api.rest.types.task.TaskHint
 import dres.api.rest.types.task.TaskTarget
 import dres.data.model.Config
 import dres.data.model.UID
-import dres.data.model.basics.media.MediaItem
 import dres.data.model.competition.TaskDescription
 import dres.data.model.competition.TaskGroup
 import dres.data.model.competition.TaskType
@@ -448,12 +447,12 @@ class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHa
     }
 }
 
-data class SubmissionInfo(val team: Int, val member: UID, val status: SubmissionStatus, val timestamp: Long, val id: String? = null, val item: RestMediaItem? = null, val start: Long? = null, val end: Long? = null) {
-    constructor(submission: Submission) : this(submission.team, submission.member, submission.status, submission.timestamp, submission.uid, RestMediaItem.fromMediaItem(submission.item), submission.start, submission.end)
+data class SubmissionInfo(val team: Int, val member: String, val status: SubmissionStatus, val timestamp: Long, val id: String? = null, val item: RestMediaItem? = null, val start: Long? = null, val end: Long? = null) {
+    constructor(submission: Submission) : this(submission.team, submission.member.string, submission.status, submission.timestamp, submission.uid, RestMediaItem.fromMediaItem(submission.item), submission.start, submission.end)
 
     companion object {
-        fun blind(submission: Submission): SubmissionInfo = SubmissionInfo(submission.team, submission.member, submission.status, submission.timestamp)
-        fun withId(submission: Submission): SubmissionInfo = SubmissionInfo(submission.team, submission.member, submission.status, submission.timestamp, submission.uid)
+        fun blind(submission: Submission): SubmissionInfo = SubmissionInfo(submission.team, submission.member.string, submission.status, submission.timestamp)
+        fun withId(submission: Submission): SubmissionInfo = SubmissionInfo(submission.team, submission.member.string, submission.status, submission.timestamp, submission.uid)
     }
 }
 

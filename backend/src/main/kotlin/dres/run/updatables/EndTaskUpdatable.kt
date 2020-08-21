@@ -15,7 +15,7 @@ class EndTaskUpdatable(private val run: RunManager) : Updatable {
             val correctSubmissionTeams = run.currentTaskRun!!.submissions.filter { it.status == SubmissionStatus.CORRECT }.map { it.team }.toSet()
 
             if (run.competitionDescription.teams.size == correctSubmissionTeams.size) { //all teams have a correct submission
-                run.adjustDuration(1 - run.timeLeft().toInt())
+                run.adjustDuration(1 - (run.timeLeft().toInt())/1000) /* run.timeLeft() is ms */
             }
 
         }

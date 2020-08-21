@@ -29,7 +29,7 @@ inline class WebSocketConnection(val context: WsContext) {
 
     /** IP address of the client. */
     val host
-        get() = this.context.host()
+        get() = this.context.session.remoteAddress.hostString
 
     fun send(message: Any) = this.context.send(JavalinJson.toJson(message))
     fun send(message: String) = this.context.send(message)

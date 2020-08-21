@@ -20,11 +20,11 @@ data class SessionId(val sessionId: String)
 
 data class UserRequest(val username: String, val password: String?, val role: Role?)
 
-data class UserDetails(val id: UID, val username: String, val role: Role, val sessionId: String? = null) {
+data class UserDetails(val id: String, val username: String, val role: Role, val sessionId: String? = null) {
 
     companion object {
-        fun of(user: User): UserDetails = UserDetails(user.id, user.username.name, user.role)
-        fun create(user: User, ctx: Context): UserDetails = UserDetails(user.id, user.username.name, user.role, ctx.sessionId())
+        fun of(user: User): UserDetails = UserDetails(user.id.string, user.username.name, user.role)
+        fun create(user: User, ctx: Context): UserDetails = UserDetails(user.id.string, user.username.name, user.role, ctx.sessionId())
     }
 }
 
@@ -257,10 +257,10 @@ class ActiveSessionsHandler(private val users: DAO<User>) : GetRestHandler<List<
 
         return AccessManager.currentSessions.map { session ->
             val userId = AccessManager.getUserIdForSession(session)
-                    ?: return@map UserDetails(UID.EMPTY, "??", Role.VIEWER, session)
-            val user = users[userId] ?: return@map UserDetails(userId, "??", Role.VIEWER, session)
+                    ?: return@map UserDetails(UID.EMPTY.string, "??", Role.VIEWER, session)
+            val user = users[userId] ?: return@map UserDetails(userId.string, "??", Role.VIEWER, session)
             UserDetails(
-                    user.id, user.username.name, user.role, session
+                    user.id.string, user.username.name, user.role, session
             )
         }
 

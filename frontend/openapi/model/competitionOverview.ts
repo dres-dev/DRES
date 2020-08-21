@@ -12,10 +12,10 @@
 
 
 export interface CompetitionOverview { 
-    id: string;
     name: string;
     description: string;
     taskCount: number;
     teamCount: number;
+    id_ybInk6A: string;
 }
 

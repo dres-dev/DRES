@@ -226,8 +226,8 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
     inner class ScanCollectionCommand : AbstractCollectionCommand("scan", help = "Scans a collection directory and adds found items") {
 
-        val imageTypes by option("-it", "--imageType", help = "Image file types (endings) to be considered in the scan" ).multiple()
-        val videoTypes by option("-vt", "--videoType", help = "Video file types (endings) to be considered in the scan" ).multiple()
+        val imageTypes by option("-it", "--imageType", help = "Image file types (endings) to be considered in the scan" ).convert { it.toLowerCase() }.multiple()
+        val videoTypes by option("-vt", "--videoType", help = "Video file types (endings) to be considered in the scan" ).convert { it.toLowerCase() }.multiple()
 
         override fun run() {
 
@@ -245,7 +245,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             }
 
             val base = File(collection.basePath)
-            val files = base.walkTopDown().filter { it.isFile && (it.extension in imageTypes || it.extension in videoTypes) }
+            val files = base.walkTopDown().filter { it.isFile && (it.extension.toLowerCase() in imageTypes || it.extension in videoTypes) }
 
             val buffer = mutableListOf<MediaItem>()
 

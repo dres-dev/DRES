@@ -14,13 +14,13 @@ import { RestMediaItem } from './restMediaItem';
 
 export interface SubmissionInfo { 
     team: number;
+    member: string;
     status: SubmissionInfo.StatusEnum;
     timestamp: number;
     id?: string;
     item?: RestMediaItem;
     start?: number;
     end?: number;
-    member_ybInk6A: string;
 }
 export namespace SubmissionInfo {
     export type StatusEnum = 'CORRECT' | 'WRONG' | 'INDETERMINATE' | 'UNDECIDABLE';

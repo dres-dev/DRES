@@ -69,7 +69,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
         taskDuration: 300,
         targetType: 'MULTIPLE_MEDIA_ITEMS',
         components: ['TEXT'],
-        score: 'AVS',
+        score: 'KIS',
         filter: ['NO_DUPLICATES', 'ONE_CORRECT_PER_TEAM'],
         options: ['HIDDEN_RESULTS']
     } as TaskType;

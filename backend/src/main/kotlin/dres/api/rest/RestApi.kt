@@ -74,8 +74,8 @@ object RestApi {
                 UpdateMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 DeleteMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 GetMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-                RandomMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionIndex), // Must be before ListMediaItem
-                ListMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionIndex),
+                RandomMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionUidIndex), // Must be before ListMediaItem
+                ListMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionNameIndex),
 
                 //competition
                 ListCompetitionHandler(dataAccessLayer.competitions),

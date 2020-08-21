@@ -318,7 +318,7 @@ class DeleteMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<Media
     override val route: String = "mediaItem/:mediaId"
 }
 
-class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, private val collectionItems: DaoIndexer<MediaItem, UID>) : CollectionHandler(collections, items), GetRestHandler<List<RestMediaItem>> {
+class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, private val mediaItemCollectionNameIndex: DaoIndexer<MediaItem, Pair<UID, String>>) : CollectionHandler(collections, items), GetRestHandler<List<RestMediaItem>> {
     @OpenApi(
             summary = "Lists media items from a given media collection whose name start with the given string.",
             path = "/api/collection/:collectionId/:startsWith", method = HttpMethod.GET,
@@ -337,23 +337,21 @@ class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIt
     override fun doGet(ctx: Context): List<RestMediaItem> {
         val collection = collectionFromContext(ctx)
         val startsWith = ctx.pathParamMap()["startsWith"]
-        val items = this.collectionItems[collection.id]
+        val names = mediaItemCollectionNameIndex.keys().filter { it.first == collection.id }
 
         return if (!startsWith.isNullOrBlank()) {
-            items.filter {
-                it.collection == collection.id && it.name.startsWith(startsWith)
-            }.take(50).map { RestMediaItem.fromMediaItem(it) }
+            names.filter {
+                it.second.startsWith(startsWith)
+            }.take(50).map { RestMediaItem.fromMediaItem(mediaItemCollectionNameIndex[it].first()) }
         } else {
-            items.filter {
-                it.collection == collection.id
-            }.take(50).map { RestMediaItem.fromMediaItem(it) }
+            names.take(50).map { RestMediaItem.fromMediaItem(mediaItemCollectionNameIndex[it].first()) }
         }
     }
 
     override val route: String = "collection/:collectionId/:startsWith"
 }
 
-class RandomMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, private val collectionItems: DaoIndexer<MediaItem, UID>) : CollectionHandler(collections, items), GetRestHandler<RestMediaItem> {
+class RandomMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaItem>, private val mediaItemCollectionUidIndex: DaoIndexer<MediaItem, Pair<UID, UID>>) : CollectionHandler(collections, items), GetRestHandler<RestMediaItem> {
 
     private val rand = Random(System.currentTimeMillis()) // TODO Decide upon seed -- time based or fixed?
 
@@ -373,8 +371,9 @@ class RandomMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<Media
     )
     override fun doGet(ctx: Context): RestMediaItem {
         val collection = collectionFromContext(ctx)
-        val items = this.collectionItems[collection.id]
-        return RestMediaItem.fromMediaItem(items[rand.nextInt(items.size)])
+        val ids = mediaItemCollectionUidIndex.keys().filter { it.first == collection.id }
+        val itemId = ids[rand.nextInt(ids.size)].second
+        return RestMediaItem.fromMediaItem(items[itemId]!!)
     }
 
     override val route: String = "collection/:collectionId/random"

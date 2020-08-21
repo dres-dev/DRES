@@ -56,7 +56,7 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
 
         val taskDescription = next.second.taskRun?.task?.textualDescription() ?: next.second.taskRun?.task?.name ?: "no task description available"
 
-        return JudgementRequest(next.first, validator.id, collection.name, next.second.item.name, taskDescription, next.second.start?.toString(), next.second.end?.toString())
+        return JudgementRequest(next.first, validator.id, collection.id.string, next.second.item.id.string, taskDescription, next.second.start?.toString(), next.second.end?.toString())
     }
 }
 

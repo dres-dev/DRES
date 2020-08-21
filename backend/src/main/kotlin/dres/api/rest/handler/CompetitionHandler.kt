@@ -34,9 +34,9 @@ abstract class CompetitionHandler(protected val competitions: DAO<CompetitionDes
 
 }
 
-data class CompetitionOverview(val id: UID, val name: String, val description: String, val taskCount: Int, val teamCount: Int) {
+data class CompetitionOverview(val id: String, val name: String, val description: String, val taskCount: Int, val teamCount: Int) {
     companion object {
-        fun of(competitionDescription: CompetitionDescription): CompetitionOverview = CompetitionOverview(competitionDescription.id, competitionDescription.name, competitionDescription.description
+        fun of(competitionDescription: CompetitionDescription): CompetitionOverview = CompetitionOverview(competitionDescription.id.string, competitionDescription.name, competitionDescription.description
                 ?: "", competitionDescription.tasks.size, competitionDescription.teams.size)
     }
 }

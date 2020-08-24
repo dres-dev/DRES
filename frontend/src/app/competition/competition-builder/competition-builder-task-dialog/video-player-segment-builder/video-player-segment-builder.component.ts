@@ -36,8 +36,6 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
 
     doLoop = true;
 
-    private start: number;
-    private end: number;
     private requestSub: Subscription;
 
     constructor(public config: AppConfig,
@@ -155,12 +153,17 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
         return JSON.stringify(this.fetchData());
     }
 
-    private fetchData() {
-        return {
-            start: {value: this.start, unit: 'SECONDS'},
-            end: {value: this.end, unit: 'SECONDS'}
-        } as TemporalRange;
+    recalcVideoTime($event: Event) {
+        console.log(`Change: ${this.startInSeconds} - ${this.endInSeconds}`);
+        this.video.nativeElement.currentTime = this.startInSeconds;
     }
 
-
+    private fetchData() {
+        const out = {
+            start: {value: this.startInSeconds, unit: 'SECONDS'},
+            end: {value: this.endInSeconds, unit: 'SECONDS'}
+        } as TemporalRange;
+        console.log(`Fetched: ${out}`);
+        return out;
+    }
 }

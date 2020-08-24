@@ -200,6 +200,7 @@ export class CompetitionBuilderTaskDialogComponent {
         dialogRef.afterClosed().pipe(
             filter(r => r != null),
             tap((r: TemporalRange) => {
+                console.log(`Finished: ${r}`);
                 startControl.setValue(r.start.value);
                 endControl.setValue(r.start.value);
                 unitControl.setValue(TemporalPoint.UnitEnum.SECONDS);

@@ -36,6 +36,14 @@
         <div fxFlex="15">
             Start: {{startInSeconds | formatTime}}
         </div>
+        <mat-form-field fxFlex="35">
+            <mat-label>Start [s]</mat-label>
+            <input type="number" matInput [(ngModel)]="startInSeconds" (change)="recalcVideoTime($event)"/>
+        </mat-form-field>
+        <mat-form-field fxFlex="35">
+            <mat-label>End [s]</mat-label>
+            <input type="number" matInput [(ngModel)]="endInSeconds" (change)="recalcVideoTime($event)"/>
+        </mat-form-field>
         <!--
         <div fxFlex>
             <ng5-slider [(value)]="startInSeconds" [(highValue)]="endInSeconds" [options]="options"></ng5-slider>
@@ -48,5 +56,7 @@
     </div>
 </div>
 <div mat-dialog-actions>
-
+    <button mat-button (click)="close()">Cancel</button>
+    <button mat-button (click)="save()">Save</button>
+    <button mat-button (click)="export()">Export</button>
 </div>

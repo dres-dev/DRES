@@ -416,7 +416,7 @@ class ListExternalItemHandler(config: Config) : GetRestHandler<Array<String>> {
     override fun doGet(ctx: Context): Array<String> {
         val startsWith = ctx.pathParamMap()["startsWith"] ?: ""
         val list = Files.walk(this.path, 1, FileVisitOption.FOLLOW_LINKS).filter {
-            Files.isRegularFile(it) && it.fileName.startsWith(startsWith)
+            Files.isRegularFile(it) && it.fileName.toString().startsWith(startsWith)
         }.limit(50).map { it.toString() }.toList()
         return list.toTypedArray()
     }

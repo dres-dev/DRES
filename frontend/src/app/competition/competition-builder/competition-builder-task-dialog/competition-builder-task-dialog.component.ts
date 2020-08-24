@@ -12,7 +12,7 @@ import {
 } from '../../../../../openapi';
 import {AbstractControl, FormControl, FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs';
-import {filter, first, tap} from 'rxjs/operators';
+import {filter, first} from 'rxjs/operators';
 import {AppConfig} from '../../../app.config';
 import {CompetitionFormBuilder} from './competition-form.builder';
 import {
@@ -198,14 +198,14 @@ export class CompetitionBuilderTaskDialogComponent {
         } as MatDialogConfig<VideoPlayerSegmentBuilderData>;
         const dialogRef = this.dialog.open(VideoPlayerSegmentBuilderComponent, config);
         dialogRef.afterClosed().pipe(
-            filter(r => r != null),
-            tap((r: TemporalRange) => {
+            filter(r => r != null))
+            .subscribe((r: TemporalRange) => {
                 console.log(`Finished: ${r}`);
                 startControl.setValue(r.start.value);
-                endControl.setValue(r.start.value);
+                endControl.setValue(r.end.value);
                 unitControl.setValue(TemporalPoint.UnitEnum.SECONDS);
-            })
-        );
+            });
+
     }
 
     /**

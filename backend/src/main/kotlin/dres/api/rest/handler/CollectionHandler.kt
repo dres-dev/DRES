@@ -10,6 +10,7 @@ import dres.api.rest.types.status.ErrorStatusException
 import dres.api.rest.types.status.SuccessStatus
 import dres.data.dbo.DAO
 import dres.data.dbo.DaoIndexer
+import dres.data.model.Config
 import dres.data.model.UID
 import dres.data.model.basics.media.MediaCollection
 import dres.data.model.basics.media.MediaItem
@@ -18,7 +19,11 @@ import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
+import java.nio.file.FileVisitOption
+import java.nio.file.Files
+import java.nio.file.Paths
 import kotlin.random.Random
+import kotlin.streams.toList
 
 abstract class CollectionHandler(protected val collections: DAO<MediaCollection>, protected val items: DAO<MediaItem>) : RestHandler, AccessManagedRestHandler {
 
@@ -377,4 +382,44 @@ class RandomMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<Media
     }
 
     override val route: String = "collection/:collectionId/random"
+}
+
+/**
+ * Lists and returns the media items in the external media item directory.
+ */
+class ListExternalItemHandler(config: Config) : GetRestHandler<Array<String>> {
+
+    /** Path to the directory that contains the external items. */
+    val path = Paths.get(config.externalPath)
+
+    init {
+        /* Check if directory exists and create it, if it doesn't. */
+        if (!Files.exists(this.path)) {
+            Files.createDirectories(this.path)
+        }
+    }
+
+    @OpenApi(
+            summary = "Lists items from the external media collection whose name start with the given string.",
+            path = "/api/external/:startsWith", method = HttpMethod.GET,
+            pathParams = [
+                OpenApiParam("startsWith", String::class, "Name starts with.", required = false)
+            ],
+            tags = ["Collection"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(Array<String>::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): Array<String> {
+        val startsWith = ctx.pathParamMap()["startsWith"] ?: ""
+        val list = Files.walk(this.path, 1, FileVisitOption.FOLLOW_LINKS).filter {
+            Files.isRegularFile(it) && it.fileName.startsWith(startsWith)
+        }.limit(50).map { it.toString() }.toList()
+        return list.toTypedArray()
+    }
+
+    override val route: String = "external/:startsWith"
 }

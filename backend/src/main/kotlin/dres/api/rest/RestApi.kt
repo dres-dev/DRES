@@ -76,6 +76,7 @@ object RestApi {
                 GetMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 RandomMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionUidIndex), // Must be before ListMediaItem
                 ListMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionNameIndex),
+                ListExternalItemHandler(config),
 
                 //competition
                 ListCompetitionHandler(dataAccessLayer.competitions),

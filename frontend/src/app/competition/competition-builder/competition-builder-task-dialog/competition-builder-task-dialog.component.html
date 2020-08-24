@@ -51,6 +51,9 @@
                                     (click)="pickRandomMediaItem(form.get('mediaCollection').value, target.get('mediaItem'))">
                                 <mat-icon>shuffle</mat-icon>
                             </button><!-- or 'casino' for a dice -->
+                            <mat-error *ngIf="target.controls['mediaItem'].hasError('incorrect')">
+                                Please select a valid media item i.e. use the autocomplete to select a value.
+                            </mat-error>
                         </mat-form-field>
                     </p>
 
@@ -126,6 +129,9 @@
                                         <span>{{mediaItem.name}}</span> |
                                         <small>Type: {{mediaItem.type}}, ID: {{mediaItem.id}}</small>
                                     </mat-option>
+                                    <mat-error *ngIf="description.controls['mediaItem'].hasError('incorrect')">
+                                Please select a valid media item i.e. use the autocomplete to select a value.
+                            </mat-error>
                                 </mat-autocomplete>
                             </mat-form-field>
                         </span>
@@ -148,6 +154,9 @@
                                         <span>{{mediaItem.name}}</span> |
                                         <small>Type: {{mediaItem.type}}, ID: {{mediaItem.id}}</small>
                                     </mat-option>
+                                    <mat-error *ngIf="description.controls['mediaItem'].hasError('incorrect')">
+                                Please select a valid media item i.e. use the autocomplete to select a value.
+                            </mat-error>
                                 </mat-autocomplete>
                             </mat-form-field>
                             <mat-form-field style="width: 10%;">

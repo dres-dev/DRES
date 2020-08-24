@@ -13,6 +13,7 @@ import {
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {filter, first, switchMap} from 'rxjs/operators';
 import {Observable} from 'rxjs';
+import {RequireMatch} from './competition-builder-task-dialog.component';
 
 export class CompetitionFormBuilder {
 
@@ -218,7 +219,7 @@ export class CompetitionFormBuilder {
      */
     private singleMediaItemTargetForm(index: number, initialize?: RestTaskDescriptionTargetItem): FormGroup {
         /* Prepare auto complete field. */
-        const mediaItemFormControl = new FormControl(null, Validators.required);
+        const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
         this.dataSources.set(`target.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
             switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
@@ -232,7 +233,7 @@ export class CompetitionFormBuilder {
                 });
         }
 
-        return new FormGroup({mediaItem: mediaItemFormControl});
+        return new FormGroup({mediaItem: mediaItemFormControl}, [RequireMatch]);
     }
 
     /**
@@ -242,7 +243,7 @@ export class CompetitionFormBuilder {
      */
     private singleMediaSegmentTargetForm(initialize?: RestTaskDescriptionTargetItem) {
         /* Prepare auto complete field. */
-        const mediaItemFormControl =  new FormControl(null, Validators.required);
+        const mediaItemFormControl =  new FormControl(null, [Validators.required, RequireMatch]);
 
         this.dataSources.set(`target.0.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
@@ -262,7 +263,7 @@ export class CompetitionFormBuilder {
             segment_start: new FormControl(initialize?.temporalRange.start.value, [Validators.required, Validators.min(0)]),
             segment_end: new FormControl(initialize?.temporalRange.end.value, [Validators.required, Validators.min(0)]),
             segment_time_unit: new FormControl(initialize?.temporalRange.start.unit ?
-                initialize?.temporalRange.start.unit  : 'SECONDS', Validators.required)
+                initialize?.temporalRange.start.unit  : 'SECONDS', [Validators.required])
         });
     }
 
@@ -301,7 +302,7 @@ export class CompetitionFormBuilder {
      * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
      */
     private imageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
-        const mediaItemFormControl =  new FormControl(null, Validators.required);
+        const mediaItemFormControl =  new FormControl(null, [Validators.required, RequireMatch]);
         if (!initialize?.mediaItem && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
             mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
         }
@@ -336,7 +337,7 @@ export class CompetitionFormBuilder {
      */
     private videoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
         /* Initialize media item based on target. */
-        const mediaItemFormControl =  new FormControl(null, Validators.required);
+        const mediaItemFormControl =  new FormControl(null, [Validators.required, RequireMatch]);
         if (!initialize?.mediaItem && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
             mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
         }

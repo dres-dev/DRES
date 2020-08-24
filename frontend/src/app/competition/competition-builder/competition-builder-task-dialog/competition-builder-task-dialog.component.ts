@@ -6,15 +6,15 @@ import {
     RestMediaItem,
     RestTaskDescription,
     TaskGroup,
-    TaskType, TemporalPoint,
+    TaskType,
+    TemporalPoint,
     TemporalRange
 } from '../../../../../openapi';
-import {FormControl, FormGroup} from '@angular/forms';
+import {AbstractControl, FormControl, FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs';
-import {filter, first, flatMap, tap} from 'rxjs/operators';
+import {filter, first, tap} from 'rxjs/operators';
 import {AppConfig} from '../../../app.config';
 import {CompetitionFormBuilder} from './competition-form.builder';
-import {CollectionBuilderDialogComponent} from '../../../collection/collection-builder/collection-builder-dialog/collection-builder-dialog.component';
 import {
     VideoPlayerSegmentBuilderComponent,
     VideoPlayerSegmentBuilderData
@@ -29,6 +29,19 @@ export interface CompetitionBuilderTaskDialogData {
     taskGroup: TaskGroup;
     taskType: TaskType;
     task?: RestTaskDescription;
+}
+
+/**
+ * https://onthecode.co.uk/force-selection-angular-material-autocomplete/
+ * @param control
+ * @constructor
+ */
+export function RequireMatch(control: AbstractControl) {
+    const selection: any = control.value;
+    if (typeof selection === 'string') {
+        return {incorrect: true};
+    }
+    return null;
 }
 
 
@@ -174,10 +187,10 @@ export class CompetitionBuilderTaskDialogComponent {
          */
         let start = -1;
         let end = -1;
-        if(startControl && startControl.value){
+        if (startControl && startControl.value) {
             start = Number.parseInt(startControl.value, 10);
         }
-        if(endControl && endControl.value){
+        if (endControl && endControl.value) {
             end = Number.parseInt(endControl.value, 10);
         }
         const config = {

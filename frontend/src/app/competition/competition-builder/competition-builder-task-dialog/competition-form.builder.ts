@@ -18,7 +18,7 @@ import {RequireMatch} from './competition-builder-task-dialog.component';
 export class CompetitionFormBuilder {
 
     /** List of data sources managed by this CompetitionFormBuilder. */
-    private dataSources = new Map<string, Observable<RestMediaItem[]>>();
+    private dataSources = new Map<string, Observable<RestMediaItem[] | string[]>>();
 
     /** The {@link FormGroup} held by this {@link CompetitionFormBuilder}. */
     public form: FormGroup;
@@ -42,7 +42,7 @@ export class CompetitionFormBuilder {
      *
      * @param key Key to fetch the data source for.
      */
-    public dataSource(key: string): Observable<RestMediaItem[]> {
+    public dataSource(key: string): Observable<RestMediaItem[] | string[]> {
         return this.dataSources.get(key);
     }
 
@@ -135,8 +135,7 @@ export class CompetitionFormBuilder {
                         end: { value: c.get('segment_end').value, unit: c.get('segment_time_unit').value }  as TemporalPoint,
                     } as TemporalRange : null,
                     description: c.get('description') ? c.get('description').value : null,
-                    payload: c.get('payload') ? c.get('payload').value : null,
-                    dataType: c.get('dataType') ? c.get('dataType').value : null
+                    path: c.get('path') ? c.get('path').value : null
                 } as RestTaskDescriptionComponent;
             }),
             target: {
@@ -286,8 +285,10 @@ export class CompetitionFormBuilder {
                         array.push(this.textItemComponentForm(index, component));
                         break;
                     case 'EXTERNAL_IMAGE':
+                        array.push(this.externalImageItemComponentForm(index, component));
                         break;
                     case 'EXTERNAL_VIDEO':
+                        array.push(this.externalVideoItemComponentForm(index, component));
                         break;
                 }
             }
@@ -406,12 +407,20 @@ export class CompetitionFormBuilder {
      * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
      */
     private externalImageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
+        /* Prepare form control. */
+        const pathFormControl = new FormControl(initialize?.path, [Validators.required]);
+
+        /* Prepare data source. */
+        this.dataSources.set(`components.${index}.path`, pathFormControl.valueChanges.pipe(
+            filter(s => s.length >= 1),
+            switchMap(s => this.collectionService.getApiExternalWithStartswith(s))
+        ));
+
         return new FormGroup({
             start: new FormControl(initialize?.start),
             end: new FormControl(initialize?.end),
             type: new FormControl('EXTERNAL_IMAGE', [Validators.required]),
-            payload: new FormControl(initialize?.payload, [Validators.required]),
-            dataType: new FormControl(initialize?.dataType, [Validators.required]),
+            path: pathFormControl
         });
     }
 
@@ -422,16 +431,20 @@ export class CompetitionFormBuilder {
      * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
      */
     private externalVideoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
+        /* Prepare form control. */
+        const pathFormControl = new FormControl(initialize?.path, [Validators.required]);
+
+        /* Prepare data source. */
+        this.dataSources.set(`components.${index}.path`, pathFormControl.valueChanges.pipe(
+            filter(s => s.length >= 1),
+            switchMap(s => this.collectionService.getApiExternalWithStartswith(s))
+        ));
+
         return new FormGroup({
             start: new FormControl(initialize?.start),
             end: new FormControl(initialize?.end),
             type: new FormControl('EXTERNAL_VIDEO', [Validators.required]),
-            payload: new FormControl(initialize?.payload, [Validators.required]),
-            dataType: new FormControl(initialize?.dataType, [Validators.required]),
-            segment_start: new FormControl(initialize?.range.start.value, [Validators.required, Validators.min(0)]),
-            segment_end: new FormControl(initialize?.range.end.value, [Validators.required, Validators.min(0)]),
-            segment_time_unit: new FormControl(initialize?.range.start.unit ?
-                initialize?.range.start.unit  : 'SECONDS', Validators.required)
+            path: pathFormControl
         });
     }
 }

@@ -120,8 +120,7 @@
 
                         <span *ngIf="description.get('type').value === 'IMAGE_ITEM'">
                             <mat-form-field style="width: 85%;" *ngIf="description.get('mediaItem')">
-                                <input type="text" matInput placeholder="Media item"
-                                       [formControl]="description.get('mediaItem')" [matAutocomplete]="autoGroup"/>
+                                <input type="text" matInput placeholder="Media item" [formControl]="description.get('mediaItem')" [matAutocomplete]="autoGroup"/>
                                 <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">
                                     <mat-option
                                             *ngFor="let mediaItem of (this.builder.dataSource('components.' + i + '.mediaItem') | async)"
@@ -130,8 +129,22 @@
                                         <small>Type: {{mediaItem.type}}, ID: {{mediaItem.id}}</small>
                                     </mat-option>
                                     <mat-error *ngIf="description.controls['mediaItem'].hasError('incorrect')">
-                                Please select a valid media item i.e. use the autocomplete to select a value.
-                            </mat-error>
+                                        Please select a valid media item, i.e., use the autocomplete to select a value.
+                                    </mat-error>
+                                </mat-autocomplete>
+                            </mat-form-field>
+                        </span>
+
+                        <span *ngIf="description.get('type').value === 'EXTERNAL_IMAGE' || description.get('type').value === 'EXTERNAL_VIDEO'">
+                            <mat-form-field style="width: 85%;" *ngIf="description.get('path')">
+                                <input type="text" matInput placeholder="External media item path" [formControl]="description.get('path')" [matAutocomplete]="autoGroup"/>
+                                <mat-autocomplete #autoGroup="matAutocomplete">
+                                    <mat-option *ngFor="let path of (this.builder.dataSource('components.' + i + '.path') | async)" [value]="path">
+                                        <span>{{path}}</span>
+                                    </mat-option>
+                                    <mat-error *ngIf="description.controls['path'].hasError('incorrect')">
+                                        Please select a valid media item, i.e., use the autocomplete to select a value.
+                                    </mat-error>
                                 </mat-autocomplete>
                             </mat-form-field>
                         </span>

@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskInfo} from '../../../openapi';
 import {BehaviorSubject, merge, Observable, of, Subscription} from 'rxjs';
 import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, tap, withLatestFrom} from 'rxjs/operators';
@@ -18,6 +18,7 @@ interface SubmissionDelta {
     selector: 'app-teams-viewer',
     templateUrl: './teams-viewer.component.html',
     styleUrls: ['./teams-viewer.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     animations: [
     trigger('highlight', [
         transition('nohighlight => correct', animate('1500ms', keyframes([
@@ -57,7 +58,15 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     /** Internal subscription for playing sound effect of a task that has ended. */
     taskEndedSoundEffect: Subscription;
 
-    constructor(private runService: CompetitionRunService, public config: AppConfig) {}
+    constructor(private runService: CompetitionRunService,
+                private ref: ChangeDetectorRef,
+                public config: AppConfig) {
+
+        this.ref.detach();
+        setInterval(() => {
+            this.ref.detectChanges();
+        }, 500);
+    }
 
     ngAfterViewInit(): void {
         /* Observable that tracks all the submissions per team. */

@@ -51,10 +51,13 @@
 }
 
 .submission img {
+  background-image: url('~src/assets/images/load-icon.png');
+  background-size: 46px 46px;
+
   width: 46px;
   height: 46px;
   margin: 2px;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 .submission p {

@@ -10,6 +10,7 @@ data class Config(
         val enableSsl: Boolean = true,
         val keystorePath: String = "keystore.jks",
         val keystorePassword: String = "password",
+        val externalPath: String = "./external",
         val dataPath: String = "./data_branch",
         val cachePath: String = "./cache") {
 

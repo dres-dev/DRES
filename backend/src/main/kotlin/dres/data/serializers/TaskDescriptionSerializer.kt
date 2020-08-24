@@ -9,6 +9,7 @@ import dres.utilities.extensions.writeUID
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer
+import java.nio.file.Paths
 
 class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: List<TaskType>, val mediaItems: DAO<MediaItem>): Serializer<TaskDescription> {
 
@@ -88,10 +89,10 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
                     out.writeUID(it.item.id)
                 }
                 is TaskDescriptionHint.ExternalImageTaskDescriptionHint -> {
-                    out.writeUTF(it.imageLocation)
+                    out.writeUTF(it.imageLocation.toString())
                 }
                 is TaskDescriptionHint.ExternalVideoTaskDescriptionHint -> {
-                    out.writeUTF(it.videoLocation)
+                    out.writeUTF(it.videoLocation.toString())
                 }
             }
         }
@@ -130,8 +131,8 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
             1 -> TaskDescriptionHint.TextTaskDescriptionHint(input.readUTF(), start, end)
             2 -> TaskDescriptionHint.ImageItemTaskDescriptionHint(mediaItems[input.readUID()]!! as MediaItem.ImageItem, start, end)
             3 -> TaskDescriptionHint.VideoItemSegmentTaskDescriptionHint(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available), start, end)
-            4 -> TaskDescriptionHint.ExternalImageTaskDescriptionHint(input.readUTF(), start, end)
-            5 -> TaskDescriptionHint.ExternalVideoTaskDescriptionHint(input.readUTF(), start, end)
+            4 -> TaskDescriptionHint.ExternalImageTaskDescriptionHint(Paths.get(input.readUTF()), start, end)
+            5 -> TaskDescriptionHint.ExternalVideoTaskDescriptionHint(Paths.get(input.readUTF()), start, end)
             else -> throw IllegalArgumentException("Failed to deserialize Task Description Hint for ordinal $ordinal; not implemented.")
         }
     }

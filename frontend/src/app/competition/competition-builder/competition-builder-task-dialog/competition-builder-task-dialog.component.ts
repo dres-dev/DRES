@@ -6,7 +6,7 @@ import {
     RestMediaItem,
     RestTaskDescription,
     TaskGroup,
-    TaskType,
+    TaskType, TemporalPoint,
     TemporalRange
 } from '../../../../../openapi';
 import {FormControl, FormGroup} from '@angular/forms';
@@ -164,7 +164,7 @@ export class CompetitionBuilderTaskDialogComponent {
         unitControl.setValue('SECONDS');
     }
 
-    toggleVideoPlayer(mediaItem: RestMediaItem, segmentStart: string, segmentEnd: string) {
+    toggleVideoPlayer(mediaItem: RestMediaItem, startControl?: FormControl, endControl?: FormControl, unitControl?: FormControl) {
         /* Add to toggleVideoPlayer button if
         [disabled]="!target.get('mediaItem').value && !target.get('segment_start').value && !target.get('segment_end').value"
          */
@@ -174,11 +174,11 @@ export class CompetitionBuilderTaskDialogComponent {
          */
         let start = -1;
         let end = -1;
-        if(segmentStart){
-            start = Number.parseInt(segmentStart, 10);
+        if(startControl && startControl.value){
+            start = Number.parseInt(startControl.value, 10);
         }
-        if(segmentEnd){
-            end = Number.parseInt(segmentEnd, 10);
+        if(endControl && endControl.value){
+            end = Number.parseInt(endControl.value, 10);
         }
         const config = {
             width: '800px', data: {mediaItem, segmentStart: start, segmentEnd: end}
@@ -187,7 +187,9 @@ export class CompetitionBuilderTaskDialogComponent {
         dialogRef.afterClosed().pipe(
             filter(r => r != null),
             tap((r: TemporalRange) => {
-                // TODO fill form accordingly. Howto know which one was called? (i.e. target or description)
+                startControl.setValue(r.start.value);
+                endControl.setValue(r.start.value);
+                unitControl.setValue(TemporalPoint.UnitEnum.SECONDS);
             })
         );
     }

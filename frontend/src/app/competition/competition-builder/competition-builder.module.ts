@@ -26,6 +26,8 @@ import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {FlexModule} from '@angular/flex-layout';
 import {MatSliderModule} from '@angular/material/slider';
 import {ServicesModule} from '../../services/services.module';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {Ng5SliderModule} from 'ng5-slider';
 
 @NgModule({
     imports: [
@@ -50,7 +52,9 @@ import {ServicesModule} from '../../services/services.module';
         MatProgressBarModule,
         FlexModule,
         MatSliderModule,
-        ServicesModule
+        ServicesModule,
+        MatSlideToggleModule,
+        Ng5SliderModule
     ],
     exports: [CompetitionBuilderComponent],
     declarations: [

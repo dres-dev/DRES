@@ -1,7 +1,7 @@
 <h1>Segment Editor for {{data?.mediaItem?.name}}</h1>
 <div mat-dialog-content>
 
-    <video #videoPlayer class="video-player" preload="auto" [src]="(videoUrl | async)" autoplay loop
+    <video #videoPlayer class="video-player" preload="auto" [src]="(videoUrl | async)" autoplay [loop]="doLoop"
            [muted]="(config.configAsObservable | async).effects.mute">
     </video>
     <div class="controls-container" *ngIf="(videoUrl | async)" fxLayout="row" fxFlexFill
@@ -13,18 +13,37 @@
                 <mat-icon>{{this.video.nativeElement.paused ? "play_arrow" : "pause"}}</mat-icon>
             </button>
         </div>
-        <div fxFlex>
+        <!--<div fxFlex>
             <mat-progress-bar mode="determinate" [value]="(playtimeRelative | async)"
                               matTooltip="Time relative to the submission, inclusive some temporal context."></mat-progress-bar>
+        </div>-->
+        <div class="spacer-flex"></div>
+        <div fxFlex="10">
+            <mat-slide-toggle [(ngModel)]="doLoop"><mat-icon>loop</mat-icon></mat-slide-toggle>
         </div>
     </div>
     <div class="controls-container" *ngIf="(videoUrl | async)" fxLayout="row" fxFlexFill
          fxLayoutAlign="space-between center">
-        <div flex="15">
+        <div fxFlex="15">
             {{video.nativeElement.currentTime | formatTime}} / {{durationInSeconds | formatTime}}
         </div>
         <div fxFlex="85">
-            <mat-slider style="width: 100%;" [min]="startInSeconds" [max]="endInSeconds" [(value)]="video.nativeElement.currentTime"></mat-slider>
+            <mat-slider style="width: 100%;" [min]="0" [max]="durationInSeconds" [(value)]="video.nativeElement.currentTime"></mat-slider>
+        </div>
+    </div>
+    <div class="controls-container" *ngIf="(videoUrl | async)" fxLayout="row" fxFlexFill
+         fxLayoutAlign="space-between center">
+        <div fxFlex="15">
+            Start: {{startInSeconds | formatTime}}
+        </div>
+        <!--
+        <div fxFlex>
+            <ng5-slider [(value)]="startInSeconds" [(highValue)]="endInSeconds" [options]="options"></ng5-slider>
+        </div>
+        -->
+        <div class="spacer-flex"></div>
+        <div fxFlex="15">
+            End: {{endInSeconds | formatTime}}
         </div>
     </div>
 </div>

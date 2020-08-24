@@ -81,7 +81,7 @@
                             aria-label="Show media item."
                             matTooltip="Show media item."
 
-                            (click)="toggleVideoPlayer(target.get('mediaItem').value, target.get('segment_start').value, target.get('segment_end').value)">
+                            (click)="toggleVideoPlayer(target.get('mediaItem').value, target.get('segment_start'), target.get('segment_end'), target.get('segment_time_unit'))">
                         <mat-icon>remove_red_eye</mat-icon>
                     </button>
                     </p>
@@ -166,7 +166,7 @@
                                     <button mat-icon-button
                                             aria-label="Show media item."
                                             matTooltip="Show media item."
-                                            (click)="toggleVideoPlayer(description.get('mediaItem').value,description.get('segment_start').value,description.get('segment_end').value)">
+                                            (click)="toggleVideoPlayer(description.get('mediaItem').value,description.get('segment_start'),description.get('segment_end'), description.get('segment_time_unit'))">
                                         <mat-icon>remove_red_eye</mat-icon>
                                     </button>
                                 </span>

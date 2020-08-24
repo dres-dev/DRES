@@ -17,7 +17,7 @@ export interface RestTaskDescriptionComponent {
     start?: number;
     end?: number;
     description?: string;
-    payload?: string;
+    path?: string;
     dataType?: string;
     mediaItem?: string;
     range?: TemporalRange;

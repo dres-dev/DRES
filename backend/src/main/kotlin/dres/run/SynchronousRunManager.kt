@@ -426,6 +426,9 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
 
                 /* 3) Yield to other threads. */
                 Thread.sleep(10)
+            } catch (ie: InterruptedException) {
+                LOGGER.info("Interrupted SynchronousRunManager, exiting")
+                return
             } catch (e: Throwable) {
                 LOGGER.error("Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!", e)
             }

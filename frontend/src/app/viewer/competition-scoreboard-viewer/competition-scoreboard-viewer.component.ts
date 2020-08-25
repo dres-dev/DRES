@@ -213,7 +213,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
                         } else {
                             const combined = team.map((t, i) => {
                                 return {team: t, score: Math.round(s.scores[i].score)};
-                            }).sort((a, b) => b.score - a.score);
+                            });
                             return {
                                 name: s.name, data: combined.map(c => {
                                     return {x: c.team.name, y: c.score/*, fillColor: c.team.color*/};

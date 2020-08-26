@@ -492,15 +492,6 @@
 						"type": "string"
 					}
 				}],
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/RestMediaCollection"
-							}
-						}
-					}
-				},
 				"responses": {
 					"200": {
 						"description": "OK",

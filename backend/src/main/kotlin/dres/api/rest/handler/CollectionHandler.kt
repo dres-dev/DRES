@@ -105,7 +105,6 @@ class DeleteCollectionHandler(collections: DAO<MediaCollection>, items: DAO<Medi
             path = "/api/collection/:collectionId",
             tags = ["Collection"],
             method = HttpMethod.DELETE,
-            requestBody = OpenApiRequestBody([OpenApiContent(RestMediaCollection::class)]),
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),

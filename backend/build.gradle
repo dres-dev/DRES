@@ -14,7 +14,8 @@ buildscript {
     }
 }
 plugins {
-    id 'com.moowork.node'     version '1.3.1'
+    // id 'com.moowork.node'     version '1.3.1' // see https://github.com/srs/gradle-node-plugin/issues/292#issuecomment-562848790
+    id 'com.github.node-gradle.node' version '2.2.0'
     id 'de.undercouch.download' version '4.0.4'
 }
 apply plugin: 'application'
@@ -118,8 +119,8 @@ sourceSets {
 }
 
 node {
-    version = '12.16.3'
-    npmVersion = '6.14.4'
+    version = '12.18.3'
+    npmVersion = '6.14.6'
 
     download = true
     workDir = file("${project.projectDir}/../frontend/nodejs")

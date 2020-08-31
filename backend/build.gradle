@@ -132,6 +132,7 @@ task cleanFrontendResources(type: Delete){
    delete 'src/main/resources/html'
    doLast {
 	mkdir 'src/main/resources/html'
+	new File('src/main/resources/html/index.html').text = " "
 	}
 }
 
@@ -152,6 +153,7 @@ task deployFrontend(type: Copy){
     dependsOn 'buildFrontend'
     tasks.findByName('buildFrontend').mustRunAfter 'cleanFrontendResources'
     from('../frontend/dist/dres-frontend')
+    exclude '**/config.json'
     into('src/main/resources/html')
 }
 

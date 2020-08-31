@@ -44,7 +44,7 @@ This assumes you already have a folder with multimedia content for the collectio
 
 
 ```
-DRES> collection create -c first -d "A desription of the collection" -p path/to/media
+DRES> collection create -n first -d "A desription of the collection" -p path/to/media
 ```
 
 Then, there are several ways to import the actual multimedia content. The easiest way (but might take a while) is to use the scan command:

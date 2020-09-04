@@ -38,7 +38,7 @@
             <div *ngFor="let target of form.get('target')['controls']; let i = index" style="display: flex">
                 <div style="flex-basis: 100%; flex-grow: 1">
                     <p>
-                        <mat-form-field style="width: 100%;" *ngIf="target.get('mediaItem')">
+                        <mat-form-field *ngIf="target.get('mediaItem')" [style]="isImageMediaItem(target.get('mediaItem').value) ? 'width: 95%;' : 'width: 100%;'">
                             <input type="text" matInput placeholder="Media item" [formControl]="target.get('mediaItem')" [matAutocomplete]="autoGroup">
                             <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">
                                 <mat-option *ngFor="let mediaItem of (this.builder.dataSource('target.' + i + '.mediaItem') | async)" [value]="mediaItem">
@@ -55,6 +55,14 @@
                                 Please select a valid media item i.e. use the autocomplete to select a value.
                             </mat-error>
                         </mat-form-field>
+                        <button *ngIf="isImageMediaItem(target.get('mediaItem').value)" style="width: 5%;"
+                                mat-icon-button
+                                aria-label="Show media item."
+                                matTooltip="Show media item."
+                                (click)="togglePreview(i)"
+                        >
+                            <mat-icon>{{isPreviewActive(i) ? 'visibility_off' : 'visibility'}}</mat-icon>
+                        </button>
                     </p>
 
                     <p *ngIf="target.get('segment_start') && target.get('segment_end')">
@@ -87,6 +95,9 @@
                             (click)="toggleVideoPlayer(target.get('mediaItem').value, target.get('segment_start'), target.get('segment_end'), target.get('segment_time_unit'))">
                         <mat-icon>remove_red_eye</mat-icon>
                     </button>
+                    </p>
+                    <p *ngIf="isPreviewActive(i)" style="width: 100%;">
+                        <img style="max-width: 100%;" [src]="getImageUrl(target.get('mediaItem').value)" [alt]="'Preview of '+target.get('mediaItem').value?.name">
                     </p>
                 </div>
                 <div class="spacer-flex" *ngIf="data.taskType.targetType == 'MULTIPLE_MEDIA_ITEMS'"></div>
@@ -133,6 +144,12 @@
                                     </mat-error>
                                 </mat-autocomplete>
                             </mat-form-field>
+                            <button mat-icon-button
+                                    aria-label="Show media item."
+                                    matTooltip="Show media item."
+                                    >
+                                        <mat-icon>remove_red_eye</mat-icon>
+                                    </button>
                         </span>
 
                         <span *ngIf="description.get('type').value === 'EXTERNAL_IMAGE' || description.get('type').value === 'EXTERNAL_VIDEO'">

@@ -217,9 +217,11 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
      */
     public addTask(group: TaskGroup) {
         const type = this.competition.taskTypes.find(v => v.name === group.type);
+        // const width = window.screen.width * .75;
+        const width = 750
         const dialogRef = this.dialog.open(
             CompetitionBuilderTaskDialogComponent,
-            {data: {taskGroup: group, taskType: type, task: null} as CompetitionBuilderTaskDialogData, width: '750px'}
+            {data: {taskGroup: group, taskType: type, task: null} as CompetitionBuilderTaskDialogData, width: `${width}px`}
         );
         dialogRef.afterClosed().pipe(
             filter(t => t != null),
@@ -237,6 +239,8 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
      */
     public editTask(task: RestTaskDescription) {
         const index = this.competition.tasks.indexOf(task);
+        // const width = window.screen.width * .75;
+        const width = 750;
         if (index > -1) {
             const dialogRef = this.dialog.open(
                 CompetitionBuilderTaskDialogComponent,
@@ -245,7 +249,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
                         taskGroup: this.competition.taskGroups.find(g => g.name === task.taskGroup),
                         taskType: this.competition.taskTypes.find(g => g.name === task.taskType),
                         task: task
-                    } as CompetitionBuilderTaskDialogData, width: '750px'
+                    } as CompetitionBuilderTaskDialogData, width: `${width}px`
                 }
             );
             dialogRef.afterClosed().pipe(
@@ -257,6 +261,8 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
             });
         }
     }
+
+
 
     /**
      * Removes the selected {@link RestTaskDescription} from the list of {@link RestTaskDescription}s.

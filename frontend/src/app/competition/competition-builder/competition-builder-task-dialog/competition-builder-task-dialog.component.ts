@@ -57,9 +57,8 @@ export class CompetitionBuilderTaskDialogComponent {
     mediaCollectionSource: Observable<RestMediaCollection[]>;
     /** The {@link CompetitionFormBuilder} used by this dialogue. */
     builder: CompetitionFormBuilder;
-    showPlayer = false;
-    videoUrl: Observable<string>;
     @ViewChild('videoPlayer', {static: false}) video: ElementRef;
+    private imagePreviewMap = new Set<number>();
 
     constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskDialogComponent>,
                 public collectionService: CollectionService,
@@ -208,6 +207,37 @@ export class CompetitionBuilderTaskDialogComponent {
 
     }
 
+    isImageMediaItem(mi: RestMediaItem): boolean {
+        if (mi) {
+            return mi.type === 'IMAGE';
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Check whether the given index is currently listed as active preview
+     * @param index
+     */
+    isPreviewActive(index: number): boolean {
+        return this.imagePreviewMap.has(index);
+    }
+
+    togglePreview(index: number) {
+        if (this.imagePreviewMap.has(index)) {
+            this.imagePreviewMap.delete(index);
+        } else {
+            this.imagePreviewMap.add(index);
+        }
+    }
+
+    getImageUrl(mi: RestMediaItem) {
+        if (mi && mi.type === 'IMAGE') {
+            return this.config.resolveApiUrl(`/media/${mi.collectionId}/${mi.id}`);
+        }
+        return '';
+    }
+
     /**
      * Handler for 'close' button.
      */
@@ -241,4 +271,5 @@ export class CompetitionBuilderTaskDialogComponent {
         }
         return '';
     }
+
 }

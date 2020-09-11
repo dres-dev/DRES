@@ -59,6 +59,7 @@ export class CompetitionBuilderTaskDialogComponent {
     builder: CompetitionFormBuilder;
     @ViewChild('videoPlayer', {static: false}) video: ElementRef;
     private imagePreviewMap = new Set<number>();
+    viewLayout = 'list';
 
     constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskDialogComponent>,
                 public collectionService: CollectionService,

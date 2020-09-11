@@ -28,6 +28,8 @@ import {MatSliderModule} from '@angular/material/slider';
 import {ServicesModule} from '../../services/services.module';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {Ng5SliderModule} from 'ng5-slider';
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {MatGridListModule} from '@angular/material/grid-list';
 
 @NgModule({
     imports: [
@@ -54,7 +56,9 @@ import {Ng5SliderModule} from 'ng5-slider';
         MatSliderModule,
         ServicesModule,
         MatSlideToggleModule,
-        Ng5SliderModule
+        Ng5SliderModule,
+        MatButtonToggleModule,
+        MatGridListModule
     ],
     exports: [CompetitionBuilderComponent],
     declarations: [

@@ -22,6 +22,29 @@ However, the entire setup process is Gradle based. To setup DRES, follow these s
 5. Build the backend using Gradle `$> ./gradlew distZip` (alternatively `$> ./gradlew distTar`)
 6. Extract and run the backend (it serves the frontend)
 
+## Configuration
+
+Both the backend and the frontend have several properties which can be configured using a json configuration file.
+
+### Backend Configuration
+
+The backend looks for a file named `config.json` at the location from where it is started. If this file is not found, default values are used for all configurable settings. To use a different configutation file, pass its path as the first parameter when starting the backend. The configuration file is structured as follows. All values are optional and overwrite the defaults listed below, if set.
+
+```json5
+
+{
+  "httpPort":         8080,           //the port to be used for HTTP
+  "httpsPort":        8443,           //the port to be used for HTTPS, if enabled
+  "enableSsl":        true,           //specifies if HTTPS is supposed to be enabled. If set to true, HTTP connections will be upgraded
+  "keystorePath":     "keystore.jks", //path to the Java Key Store file to be used for the SSL certificate
+  "keystorePassword": "password",     //password for the Key Store file
+  "externalPath":     "./external",   //path for external media items
+  "dataPath":         "./data",       //path where the local database is to be stored
+  "cachePath":        "./cache"       //path where pre-rendered media items are to be stored
+}
+
+```
+
 ## First Steps
 
 Using the DRES CLI, the `help` command lists available commands and their usage. If one would like to know more about a certain command, use the argument `-h`.

@@ -47,7 +47,7 @@
             <AppenderRef ref="Libraries"/>
         </logger>
 
-        <logger name="dres" level="INFO">
+        <logger name="dev.dres" level="INFO">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RestRequests"/>
             <AppenderRef ref="Audit"/>

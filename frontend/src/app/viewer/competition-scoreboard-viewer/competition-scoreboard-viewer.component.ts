@@ -12,7 +12,7 @@ import {
     ApexTheme,
     ChartComponent
 } from 'ng-apexcharts';
-import {catchError, map, switchMap, withLatestFrom} from 'rxjs/operators';
+import {catchError, combineLatest, map, switchMap, withLatestFrom} from 'rxjs/operators';
 
 
 /**
@@ -118,7 +118,6 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
             map(state => state.currentTask?.taskGroup?.name)
         );
 
-        console.log(`Overview: ${this.competitionOverview}`);
         if (this.competitionOverview) {
             /* Create observable for series. */
             this.series = this.competitionOverviewSeries();
@@ -139,7 +138,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
                         })
                     );
                 }),
-                withLatestFrom(this.teams, this.currentTaskGroup),
+                combineLatest(this.teams, this.currentTaskGroup),
                 // FIXME investigate why taskGroup is undefined
                 // filter(([scores, team, taskGroup]) => {
                 //     console.log(`Check: ${scores.taskGroup}===${taskGroup}`)
@@ -191,7 +190,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
                         })
                     );
                 }),
-                withLatestFrom(this.teams, this.currentTaskGroup),
+                combineLatest(this.teams, this.currentTaskGroup),
                 map(([scores, team, taskGroup]) => {
                     if (scores == null) {
                         return [{name: 'Empty', data: []}];

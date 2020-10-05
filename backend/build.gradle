@@ -25,7 +25,7 @@ apply plugin: 'kotlinx-serialization'
 apply plugin: 'com.google.protobuf'
 apply plugin: 'idea'
 
-mainClassName = 'dres.DRES'
+mainClassName = 'dev.dres.DRES'
 
 def frontendLocation = '../frontend'
 

@@ -1,7 +1,7 @@
 import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
 import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskInfo} from '../../../openapi';
 import {BehaviorSubject, merge, Observable, of, Subscription} from 'rxjs';
-import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, tap, withLatestFrom} from 'rxjs/operators';
+import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, tap, withLatestFrom, combineLatest} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
 import {animate, keyframes, style, transition, trigger} from '@angular/animations';
@@ -79,7 +79,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
                 }),
                 filter(sb => sb != null), /* Filter null responses. */
             )),
-            withLatestFrom(this.info),
+            combineLatest(this.info),
             map(([submissions, info]) => {
                 return info.teams.map((v, i) => {
                     return submissions.filter(s => s.team === i);

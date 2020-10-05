@@ -109,7 +109,7 @@ object Cli {
         return matchList
     }
 
-    class DRESBaseCommand : NoOpCliktCommand(name = "dev/dres"){
+    class DRESBaseCommand : NoOpCliktCommand(name = "dres"){
 
         init {
             context { helpFormatter = CliHelpFormatter()}

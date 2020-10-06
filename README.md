@@ -93,7 +93,8 @@ In order to submit a result to be evaluated, the submission endpoint is accessed
 - http(s)://{server}/submit?*item*={item}?*shot*={shot} where {shot} is the identifier for a pre-defined temporal segment within the {item}
 - http(s)://{server}/submit?*item*={item}?*frame*={frame} where {frame} is the frame number within the {item}, in case it is a video
 - http(s)://{server}/submit?*item*={item}?*timecode*={timecode} where {timecode} is a temporal position within the {item} in the form HH:MM:SS:FF. In case just a plain number is passed, the behavior is equivalent to passing the same value as {frame}
-In case no session cookie is passed as part of the request, an additional *session* parameter can be passed to transmit the session id token. The session id can be found via the UI in the User Profile, accessible via the top-right menu.
+
+In case no session cookie is passed as part of the request, an additional *session* parameter can be passed to transmit the session id token. The session id can be found via the UI in the User Profile, accessible via the top-right menu. Alternatively, the information about the currently authenticated user, including the session token, can be accessed via http(s)://{server}/api/user which will return the information in JSON format.
 
 ## Interaction Logging
 Analogously to the VBS server, the logging of interaction sequences and complete result lists is supported. The specification of the messages can be found in [this working document](https://www.overleaf.com/read/rppygxshvhrn) as well as the OpenApi specifications. The interaction/querying logs can be submittet to http(s)://{server}/log/query and the result logs can be sent to http(s)://{server}/log/result, both via POST.

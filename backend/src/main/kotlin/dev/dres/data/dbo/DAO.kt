@@ -66,12 +66,12 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
     fun delete(id: UID): T? = this.lock.write {
         try {
             val deleted = this.data.remove(id)
+            this.db.commit()
             if (deleted != null){
                 this.indexers.forEach {
                     it.delete(deleted)
                 }
             }
-            this.db.commit()
             return deleted
         } catch (e: Throwable) {
             this.db.rollback()
@@ -105,6 +105,7 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
             this.db.commit()
         } catch (e: Throwable) {
             this.db.rollback()
+            this.indexers.forEach { it.rebuild() }
             throw e
         }
     }
@@ -120,11 +121,11 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
             val old = this.data[id]!!
             try {
                 this.data[id] = value
+                this.db.commit()
                 this.indexers.forEach {
                     it.delete(old)
                     it.append(value)
                 }
-                this.db.commit()
             } catch (e: Throwable) {
                 this.db.rollback()
                 throw e
@@ -182,6 +183,7 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
             this.data.values
         } catch (e: Throwable) {
             this.db.rollback()
+            this.indexers.forEach { it.rebuild() }
             throw e
         }
     }

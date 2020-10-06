@@ -64,14 +64,19 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      * @return Deleted entry [T]
      */
     fun delete(id: UID): T? = this.lock.write {
-        val deleted = this.data.remove(id)
-        this.db.commit()
-        if(deleted != null){
-            indexers.forEach {
-                it.delete(deleted)
+        try {
+            val deleted = this.data.remove(id)
+            if (deleted != null){
+                this.indexers.forEach {
+                    it.delete(deleted)
+                }
             }
+            this.db.commit()
+            return deleted
+        } catch (e: Throwable) {
+            this.db.rollback()
+            throw e
         }
-        return deleted
     }
 
     /**
@@ -87,16 +92,21 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      * Deletes all values with given ids
      */
     fun batchDelete(ids: Iterable<UID>) = this.lock.write {
-        for (id in ids){
-            val t = data[id]
-            if(t != null){
-                indexers.forEach {
-                    it.delete(t)
+        try {
+            for (id in ids){
+                val t = data[id]
+                if (t != null){
+                    this.indexers.forEach {
+                        it.delete(t)
+                    }
                 }
+                this.data.remove(id)
             }
-            this.data.remove(id)
+            this.db.commit()
+        } catch (e: Throwable) {
+            this.db.rollback()
+            throw e
         }
-        this.db.commit()
     }
 
     /**
@@ -108,12 +118,17 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
     fun update(id: UID, value: T) = this.lock.write {
         if (this.data.containsKey(id)) {
             val old = this.data[id]!!
-            this.data[id] = value
-            indexers.forEach {
-                it.delete(old)
-                it.append(value)
+            try {
+                this.data[id] = value
+                this.indexers.forEach {
+                    it.delete(old)
+                    it.append(value)
+                }
+                this.db.commit()
+            } catch (e: Throwable) {
+                this.db.rollback()
+                throw e
             }
-            this.db.commit()
         } else {
             throw IndexOutOfBoundsException("Could not update value with ID $id because such a value doesn't exist.")
         }
@@ -135,10 +150,15 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
     fun append(value: T): UID = this.lock.write {
         val next = UID()
         value.id = next
-        this.data[next] = value
-        this.db.commit()
-        indexers.forEach {
-            it.append(value)
+        try {
+            this.data[next] = value
+            this.db.commit()
+            this.indexers.forEach {
+                it.append(value)
+            }
+        } catch (e: Throwable) {
+            this.db.rollback()
+            throw e
         }
         return next
     }
@@ -149,16 +169,21 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      * @param values An iterable of the values [T] that should be appended.
      */
     fun batchAppend(values: Iterable<T>) = this.lock.write {
-        for (value in values) {
-            val next = UID()
-            value.id = next
-            this.data[next] = value
-            indexers.forEach {
-                it.append(value)
+        try {
+            for (value in values) {
+                val next = UID()
+                value.id = next
+                this.data[next] = value
+                this.indexers.forEach {
+                    it.append(value)
+                }
             }
+            this.db.commit()
+            this.data.values
+        } catch (e: Throwable) {
+            this.db.rollback()
+            throw e
         }
-        this.db.commit()
-        this.data.values
     }
 
     /**

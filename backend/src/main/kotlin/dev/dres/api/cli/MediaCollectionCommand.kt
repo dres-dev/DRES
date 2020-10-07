@@ -20,6 +20,7 @@ import dev.dres.data.model.basics.media.MediaItemSegmentList
 import dev.dres.data.model.basics.time.TemporalRange
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.extensions.UID
+import dev.dres.utilities.extensions.cleanPathString
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -66,7 +67,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
         override fun run() {
             this@MediaCollectionCommand.collections.append(
-                    MediaCollection(name = name, description = description, basePath = basePath)
+                    MediaCollection(name = name.trim(), description = description, basePath = basePath.cleanPathString())
             )
             println("added collection")
         }
@@ -158,7 +159,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                                         cell(it.id.string)
                                         cell(it.name)
                                         cell(it.location)
-                                        when(it) {
+                                        when (it) {
                                             is MediaItem.ImageItem -> {
                                                 cell("image") {
                                                     columnSpan = 3
@@ -226,8 +227,8 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
     inner class ScanCollectionCommand : AbstractCollectionCommand("scan", help = "Scans a collection directory and adds found items") {
 
-        val imageTypes by option("-it", "--imageType", help = "Image file types (endings) to be considered in the scan" ).convert { it.toLowerCase() }.multiple()
-        val videoTypes by option("-vt", "--videoType", help = "Video file types (endings) to be considered in the scan" ).convert { it.toLowerCase() }.multiple()
+        val imageTypes by option("-it", "--imageType", help = "Image file types (endings) to be considered in the scan").convert { it.toLowerCase() }.multiple()
+        val videoTypes by option("-vt", "--videoType", help = "Video file types (endings) to be considered in the scan").convert { it.toLowerCase() }.multiple()
 
         override fun run() {
 
@@ -249,7 +250,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
             val buffer = mutableListOf<MediaItem>()
 
-            files.forEach {file ->
+            files.forEach { file ->
 
                 println("found ${file.absolutePath}")
 
@@ -303,7 +304,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
                 println()
 
-                if (buffer.size >= 1000){
+                if (buffer.size >= 1000) {
                     println()
                     print("Storing buffer...")
                     this@MediaCollectionCommand.items.batchAppend(buffer)
@@ -376,7 +377,8 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 return
             }
 
-            val itemId = itemIdInput ?: this@MediaCollectionCommand.items.find { it.collection == collectionId && it.name == itemName }?.id
+            val itemId = itemIdInput
+                    ?: this@MediaCollectionCommand.items.find { it.collection == collectionId && it.name == itemName }?.id
 
             if (itemId == null) {
                 println("Item not found.")
@@ -416,7 +418,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                     println(existing)
                     return
                 }
-                this@MediaCollectionCommand.items.append(MediaItem.ImageItem(name = name, location = path, collection = collectionId, id = UID.EMPTY))
+                this@MediaCollectionCommand.items.append(MediaItem.ImageItem(name = name.trim(), location = path.cleanPathString(), collection = collectionId, id = UID.EMPTY))
                 println("item added")
             }
 

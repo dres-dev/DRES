@@ -5,6 +5,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.utilities.extensions.UID
+import dev.dres.utilities.extensions.cleanPathString
 
 /**
  * The RESTful API equivalent for [dres.data.model.basics.media.MediaItem].
@@ -22,7 +23,7 @@ data class RestMediaItem(val id: String= UID.EMPTY.string, val name: String, val
          */
         fun fromMediaItem(item: MediaItem) = when (item) {
             is MediaItem.ImageItem -> RestMediaItem(item.id.string, item.name, RestMediaItemType.IMAGE, item.collection.string, item.location)
-            is MediaItem.VideoItem -> RestMediaItem(item.id.string, item.name,RestMediaItemType.VIDEO, item.collection.string, item.location, item.durationMs, item.fps)
+            is MediaItem.VideoItem -> RestMediaItem(item.id.string, item.name, RestMediaItemType.VIDEO, item.collection.string, item.location, item.durationMs, item.fps)
         }
     }
 
@@ -35,7 +36,7 @@ data class RestMediaItem(val id: String= UID.EMPTY.string, val name: String, val
     fun lookup(mediaItems: DAO<MediaItem>) = mediaItems[this.id.UID()]
 
     fun toMediaItem(): MediaItem = when(type){
-        RestMediaItemType.IMAGE -> MediaItem.ImageItem(id.UID(), name, location, collectionId.UID())
-        RestMediaItemType.VIDEO -> MediaItem.VideoItem(id.UID(), name, location, collectionId.UID(), durationMs!!, fps!!)
+        RestMediaItemType.IMAGE -> MediaItem.ImageItem(id.UID(), name.trim(), location.cleanPathString(), collectionId.UID())
+        RestMediaItemType.VIDEO -> MediaItem.VideoItem(id.UID(), name.trim(), location.cleanPathString(), collectionId.UID(), durationMs!!, fps!!)
     }
 }

@@ -15,6 +15,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.utilities.extensions.UID
+import dev.dres.utilities.extensions.cleanPathString
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -87,7 +88,7 @@ class AddCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaIt
             throw ErrorStatusException(400, "Invalid parameters, collection with name ${restCollection.name} already exists.", ctx)
         }
 
-        val collection = MediaCollection(UID.EMPTY, restCollection.name, restCollection.description, restCollection.basePath)
+        val collection = MediaCollection(UID.EMPTY, restCollection.name, restCollection.description, restCollection.basePath.cleanPathString())
         collections.append(collection)
 
         return SuccessStatus("Collection added")
@@ -148,7 +149,7 @@ class UpdateCollectionHandler(collections: DAO<MediaCollection>, items: DAO<Medi
         val collection = collections[restCollection.id.UID()]
                 ?: throw ErrorStatusException(400, "Invalid parameters, collection with ID ${restCollection.id} does not exist.", ctx)
 
-        val updatedCollection = MediaCollection(collection.id, restCollection.name, restCollection.description ?: collection.description, restCollection.basePath ?: collection.basePath)
+        val updatedCollection = MediaCollection(collection.id, restCollection.name.trim(), restCollection.description ?: collection.description, restCollection.basePath?.cleanPathString() ?: collection.basePath)
         collections.update(updatedCollection)
 
         return SuccessStatus("Collection updated")
@@ -202,7 +203,7 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
         }
 
         val collectionId = mediaItem.collectionId.UID()
-        val existing = items.find { it.collection == collectionId && it.name == mediaItem.name }
+        val existing = items.find { it.collection == collectionId && it.name.trim() == mediaItem.name.trim() }
         if (existing != null) {
             throw ErrorStatusException(400, "item with name '${mediaItem.name}' already exists in collection: $existing", ctx)
         }

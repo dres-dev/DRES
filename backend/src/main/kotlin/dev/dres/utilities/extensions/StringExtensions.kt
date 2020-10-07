@@ -6,6 +6,7 @@ import dev.dres.data.model.admin.PlainPassword
 import dev.dres.data.model.admin.UserName
 import dev.dres.mgmt.admin.UserManager
 import java.util.*
+import java.util.regex.Matcher
 
 fun String?.toUsername(): UserName? {
     if (this == null || this.isEmpty()) {
@@ -32,3 +33,5 @@ fun String.toSessionId(): SessionId {
 }
 
 fun String.UID(): UID = UID(UUID.fromString(this))
+
+fun String.cleanPathString() = this.trim().replaceFirst("^~", Matcher.quoteReplacement(System.getProperty("user.home")))

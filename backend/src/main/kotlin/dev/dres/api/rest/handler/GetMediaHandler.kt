@@ -1,7 +1,6 @@
 package dev.dres.api.rest.handler
 
 import dev.dres.api.rest.RestApiRole
-import dev.dres.data.dbo.DAO
 import dev.dres.data.dbo.DaoIndexer
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
@@ -15,7 +14,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import java.io.File
 
-class GetMediaHandler(private val collections: DAO<MediaCollection>, private val itemCache: DaoIndexer<MediaItem, Pair<UID,UID>>, private val collectionCache : DaoIndexer<MediaCollection, UID>) : GetRestHandler<Any>, AccessManagedRestHandler {
+class GetMediaHandler(private val itemCache: DaoIndexer<MediaItem, Pair<UID,UID>>, private val collectionCache : DaoIndexer<MediaCollection, UID>) : GetRestHandler<Any>, AccessManagedRestHandler {
 
     override val permittedRoles = setOf(RestApiRole.VIEWER)
     override val route: String = "media/:collection/:item"

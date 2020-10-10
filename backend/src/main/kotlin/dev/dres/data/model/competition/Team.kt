@@ -29,10 +29,20 @@ data class Team constructor(
      * @return [BufferedImage] of the logo.
      */
     fun logo(): BufferedImage {
-        val base64Image: String = this.logo.split(",")[1]
-        val imageBytes = DatatypeConverter.parseBase64Binary(base64Image)
+        val imageBytes = logoData().second
         ByteArrayInputStream(imageBytes).use {
             return ImageIO.read(it)
         }
+    }
+
+    fun logoData(): Pair<String, ByteArray> {
+
+        val base64Image: String = this.logo.substringAfter(",")
+        val imageBytes = DatatypeConverter.parseBase64Binary(base64Image)
+
+        val mimeType = this.logo.substringBefore(";").substringBefore(":")
+
+        return Pair(mimeType, imageBytes)
+
     }
 }

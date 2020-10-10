@@ -11,6 +11,6 @@ import dev.dres.data.model.run.CompetitionRun
  * @author Ralph Gasser
  * @version 1.0.0
  */
-data class TeamInfo(val name: String, val color: String, val logo: String) {
-    constructor(team: Team) : this(team.name, team.color, team.logo)
+data class TeamInfo(val name: String, val color: String) {
+    constructor(team: Team) : this(team.name, team.color)
 }

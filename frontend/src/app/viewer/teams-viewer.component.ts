@@ -176,6 +176,13 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     }
 
     /**
+     * Generates a URL for the logo of the team.
+     */
+    public teamLogo(teamId: number): Observable<string> {
+        return this.runId.pipe(map(runId => this.config.resolveApiUrl(`/run/logo/${runId}/${teamId}`)));
+    }
+
+    /**
      * Returns an obsevable for the {@link SubmissionInfo} for the given team.
      *
      * @param team The team's index.
@@ -217,4 +224,3 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
         );
     }
 }
-

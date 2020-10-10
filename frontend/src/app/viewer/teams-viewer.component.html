@@ -9,7 +9,7 @@
 
                 </div>
                 <div [style.background-color]="team.color" class="logo">
-                    <img src="{{team.logo}}">
+                    <img src="{{teamLogo(i) | async}}">
                 </div>
                 <div *ngIf="(state | async)?.status === 'TASK_ENDED' || (state | async)?.status === 'RUNNING_TASK'" >
                     <p class="score">
@@ -35,4 +35,3 @@
         </div>
     </mat-card-content>
 </mat-card>
-

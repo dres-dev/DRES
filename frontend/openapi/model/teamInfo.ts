@@ -14,6 +14,5 @@
 export interface TeamInfo { 
     name: string;
     color: string;
-    logo: string;
 }
 

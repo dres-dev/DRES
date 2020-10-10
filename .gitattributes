@@ -5,3 +5,4 @@
 ffmpeg filter=lfs diff=lfs merge=lfs -text
 ffplay filter=lfs diff=lfs merge=lfs -text
 ffprobe filter=lfs diff=lfs merge=lfs -text
+gradlew text eol=lf

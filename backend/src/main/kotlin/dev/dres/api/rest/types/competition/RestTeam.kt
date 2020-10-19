@@ -32,9 +32,11 @@ data class RestTeam(val name: String,
          *
          * @param config The [Config] object with global configuration.
          * @param data The Base64 encoded image data.
+         * @param logoId The [UID] of the logo to store.
+         *
          * @return The UID of the image.
          */
-        fun storeImage(config: Config, data: String): UID {
+        fun storeLogo(config: Config, data: String, logoId: UID = UID()): UID {
             /* Parse image data. */
             val base64Image: String = data.substringAfter(",")
             val imageBytes = DatatypeConverter.parseBase64Binary(base64Image)
@@ -48,7 +50,7 @@ data class RestTeam(val name: String,
                     } else {
                         Pair((original.width * (config.logoMaxSize.toDouble() / original.height)).toInt(), config.logoMaxSize)
                     }
-                    val resizedImage = BufferedImage(target.first, target.second, BufferedImage.TYPE_INT_RGB)
+                    val resizedImage = BufferedImage(target.first, target.second, BufferedImage.TYPE_INT_ARGB)
                     val graphics2D = resizedImage.createGraphics()
                     graphics2D.drawImage(original, 0, 0, target.first, target.second, null)
                     graphics2D.dispose()
@@ -57,8 +59,7 @@ data class RestTeam(val name: String,
             }
 
             /* Generate UID and prepare file path. */
-            val uid = UID()
-            val path = Team.logoPath(config, uid)
+            val path = Team.logoPath(config, logoId)
             if (!Files.exists(path.parent)) {
                 Files.createDirectories(path.parent)
             }
@@ -67,7 +68,7 @@ data class RestTeam(val name: String,
             Files.newOutputStream(path).use {
                 ImageIO.write(image, "PNG", it)
             }
-            return uid
+            return logoId
         }
     }
 
@@ -77,9 +78,11 @@ data class RestTeam(val name: String,
      * @param config The [Config] object with global configuration.
      * @return [Team]
      */
-    fun toTeam(config: Config): Team = when {
-        this.logoId != null -> Team(this.name, this.color, this.logoId, this.users.map { it.UID() }.toMutableList())
-        this.logoData != null -> Team(this.name, this.color, storeImage(config, this.logoData).string, this.users.map { it.UID() }.toMutableList())
-        else -> throw IllegalStateException("Cannot convert to Team, because it contains no logo information.")
+    fun toTeam(config: Config): Team {
+        val logoId = this.logoId?.UID() ?: UID()
+        if (this.logoData != null) {
+            storeLogo(config, this.logoData, logoId)
+        }
+        return Team(this.name, this.color, logoId.string, this.users.map { it.UID() }.toMutableList())
     }
 }

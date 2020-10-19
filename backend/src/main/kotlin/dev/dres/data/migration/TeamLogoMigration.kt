@@ -43,7 +43,7 @@ object TeamLogoMigration : Migration {
             } catch (e: IllegalArgumentException) {
                 println("Migrating team data for competition ${desc.id}...")
                 val newTeams = desc.teams.mapIndexed { index, team ->
-                    val uid = RestTeam.storeImage(config, team.logo)
+                    val uid = RestTeam.storeLogo(config, team.logo)
                     updateMap["${desc.id}.$index"] = uid
                     Team(team.name, team.color, uid.string, team.users)
                 }.toMutableList()
@@ -71,7 +71,7 @@ object TeamLogoMigration : Migration {
                     val uid = if (updateMap.containsKey("${run.competitionDescription.id}.$index")) {
                         updateMap.getValue("${run.competitionDescription.id}.$index")
                     } else {
-                        RestTeam.storeImage(config, team.logo)
+                        RestTeam.storeLogo(config, team.logo)
                     }
                     Team(team.name, team.color, uid.string, team.users)
                 }.toMutableList()

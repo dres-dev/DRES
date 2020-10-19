@@ -17,5 +17,6 @@ export interface Team {
     color: string;
     logo: string;
     users: Array<UID>;
+    logoId_1rSl5jE: string;
 }
 

@@ -14,7 +14,8 @@
 export interface RestTeam { 
     name: string;
     color: string;
-    logo: string;
+    logoData?: string;
+    logoId?: string;
     users: Array<string>;
 }
 

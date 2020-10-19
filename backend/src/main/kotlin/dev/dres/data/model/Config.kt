@@ -12,7 +12,8 @@ data class Config(
         val keystorePassword: String = "password",
         val externalPath: String = "./external",
         val dataPath: String = "./data_branch",
-        val cachePath: String = "./cache") {
+        val cachePath: String = "./cache",
+        val logoMaxSize: Int = 1000) {
 
     companion object{
         fun read(file: File): Config? {

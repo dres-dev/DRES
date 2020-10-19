@@ -16,6 +16,7 @@ import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TaskGroup
 import dev.dres.data.model.competition.TaskType
+import dev.dres.data.model.competition.Team
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.RunExecutor
@@ -24,7 +25,6 @@ import dev.dres.run.RunManagerStatus
 import dev.dres.run.score.scoreboard.Score
 import dev.dres.run.score.scoreboard.ScoreOverview
 import dev.dres.utilities.extensions.UID
-import dev.dres.utilities.extensions.errorResponse
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
 import io.javalin.http.Context
@@ -34,6 +34,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.nio.file.Files
 
 
 abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRestHandler {
@@ -131,46 +132,6 @@ class GetCompetitionRunInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
         }
 
         return RunInfo(run)
-    }
-}
-
-class GetTeamLogoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<Any> {
-
-    override val route = "run/logo/:runId/:teamId"
-
-    //not used
-    override fun doGet(ctx: Context): Any = ""
-
-    @OpenApi(
-            summary = "Returns the logo of a team participating in a run.",
-            path = "/api/run/logo/:runId/:teamId",
-            tags = ["Competition Run", "Media"],
-            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
-            responses = [OpenApiResponse("200"), OpenApiResponse("401"), OpenApiResponse("400"), OpenApiResponse("404")],
-            ignore = true
-    )
-    override fun get(ctx: Context) {
-        try {
-            val runId = runId(ctx)
-            val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
-
-            val teamId = ctx.pathParam<Int>("teamId").get()
-
-            if (!run.participantCanView && isParticipant(ctx)) {
-                throw ErrorStatusException(403, "Access Denied", ctx)
-            }
-
-            val team = run.competitionDescription.teams.getOrNull(teamId)
-                    ?: throw ErrorStatusException(404, "Team $teamId not found.", ctx)
-
-            val logo = team.logoData()
-
-            ctx.contentType(logo.first)
-            ctx.result(logo.second)
-        } catch (e: ErrorStatusException) {
-            ctx.errorResponse(e)
-        }
-
     }
 }
 

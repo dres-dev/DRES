@@ -1,48 +1,33 @@
 package dev.dres.data.model.competition
 
-
-import dev.dres.api.rest.types.competition.RestTeam
+import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.utilities.extensions.UID
-import java.awt.image.BufferedImage
-import java.io.ByteArrayInputStream
-import javax.imageio.ImageIO
-import javax.xml.bind.DatatypeConverter
+import java.nio.file.Path
+import java.nio.file.Paths
 
+/**
+ * Represents a [Team] that takes part in a competition managed by DRES.
+ *
+ * TODO: Explicitly type [logo] to be a UID.
+ *
+ * @author Ralph Gasser, Loris Sauter, Luca Rossetto
+ * @version 1.1.0
+ */
+data class Team constructor(val name: String, val color: String, val logo: String, val users: MutableList<UID>) {
 
-data class Team constructor(
-        val name: String,
-        val color: String,
-        val logo: String,
-        val users: MutableList<UID>) {
+    /** Accessor for logoId; used for backwards compatibility. TODO: Replace by actual field.*/
+    val logoId: UID
+        get() = this.logo.UID()
 
-    constructor(restTeam: RestTeam) : this(
-        restTeam.name,
-        restTeam.color,
-        restTeam.logo,
-        restTeam.users.map { it.UID() }.toMutableList()
-    )
+    companion object {
 
-    /**
-     * Returns the logo data as [BufferedImage].
-     *
-     * @return [BufferedImage] of the logo.
-     */
-    fun logo(): BufferedImage {
-        val imageBytes = logoData().second
-        ByteArrayInputStream(imageBytes).use {
-            return ImageIO.read(it)
-        }
-    }
-
-    fun logoData(): Pair<String, ByteArray> {
-
-        val base64Image: String = this.logo.substringAfter(",")
-        val imageBytes = DatatypeConverter.parseBase64Binary(base64Image)
-
-        val mimeType = this.logo.substringBefore(";").substringBefore(":")
-
-        return Pair(mimeType, imageBytes)
-
+        /**
+         * Generates and returns the [Path] to the team logo with the given [logoId].
+         *
+         * @param logoId The ID of the desired logo.
+         * @param config The global [Config] used to construct the [Path].
+         */
+        fun logoPath(config: Config, logoId: UID) = Paths.get(config.cachePath, "logos", "${logoId.string}.png")
     }
 }

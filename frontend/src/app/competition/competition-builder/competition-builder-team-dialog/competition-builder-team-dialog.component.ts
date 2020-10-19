@@ -25,7 +25,7 @@ export class CompetitionBuilderTeamDialogComponent {
             name: new FormControl(team?.name, [Validators.required, Validators.minLength(3)]),
             color: new FormControl(team?.color ? team.color : CompetitionBuilderTeamDialogComponent.randomColor(), [Validators.required, Validators.minLength(7), Validators.maxLength(7)]),
             logo: new FormControl(''),
-            logoData: new FormControl(team?.logo, Validators.required),
+            logoData: new FormControl(team?.logoData, Validators.required),
             users: new FormControl(team?.users != null ? team.users : []),
             userInput: new FormControl('')
         });

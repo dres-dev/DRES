@@ -1,5 +1,5 @@
 import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
-import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskInfo} from '../../../openapi';
+import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskInfo, Team, TeamInfo} from '../../../openapi';
 import {BehaviorSubject, merge, Observable, of, Subscription} from 'rxjs';
 import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, tap, withLatestFrom, combineLatest} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
@@ -178,8 +178,8 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     /**
      * Generates a URL for the logo of the team.
      */
-    public teamLogo(teamId: number): Observable<string> {
-        return this.runId.pipe(map(runId => this.config.resolveApiUrl(`/run/logo/${runId}/${teamId}`)));
+    public teamLogo(team: TeamInfo): string {
+        return this.config.resolveApiUrl(`/competition/logo/${team.logoId}`);
     }
 
     /**

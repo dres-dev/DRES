@@ -9,7 +9,7 @@
 
                 </div>
                 <div [style.background-color]="team.color" class="logo">
-                    <img src="{{teamLogo(i) | async}}">
+                    <img src="{{teamLogo(team)}}">
                 </div>
                 <div *ngIf="(state | async)?.status === 'TASK_ENDED' || (state | async)?.status === 'RUNNING_TASK'" >
                     <p class="score">

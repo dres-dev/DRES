@@ -67,9 +67,14 @@ class GetTeamLogoHandler(val config: Config) : AbstractCompetitionRunRestHandler
     override fun get(ctx: Context) {
 
         /* Extract logoId. */
-        val logoId = ctx.pathParamMap().getOrElse("logoId") {
-            throw ErrorStatusException(400, "Parameter 'logoId' is missing!'", ctx)
-        }.UID()
+        val logoId = try {
+            ctx.pathParamMap().getOrElse("logoId") {
+                throw ErrorStatusException(400, "Parameter 'logoId' is missing!'", ctx)
+            }.UID()
+        }catch (ex: java.lang.IllegalArgumentException){
+            throw ErrorStatusException(400, "Could not deserialise logoId '${ctx.pathParamMap()["logoId"]}'", ctx)
+        }
+
 
         /* Load image and return it. */
         try {

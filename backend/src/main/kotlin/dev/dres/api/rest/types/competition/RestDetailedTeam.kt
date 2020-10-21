@@ -7,7 +7,7 @@ import dev.dres.mgmt.admin.UserManager
 
 data class RestDetailedTeam(val name: String,
                             val color: String,
-                            val logo: UID,
+                            val logoId: String,
                             val users: List<UserDetails>) {
 
     companion object {
@@ -15,7 +15,7 @@ data class RestDetailedTeam(val name: String,
             return RestDetailedTeam(
                     team.name,
                     team.color,
-                    team.logoId,
+                    team.logoId.string,
                     team.users.map { UserDetails.of(UserManager.get(it)!!) })
         }
     }

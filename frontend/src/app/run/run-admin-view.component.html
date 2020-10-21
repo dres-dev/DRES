@@ -135,7 +135,11 @@
 
                     <mat-list dense>
                         <mat-list-item *ngFor="let team of (teams | async); let i = index" [style.color]="team.color">
-                            <img matListAvatar src="{{team.logo}}" [style.width]="'90px'" class="alt-list-avatar" alt="team logo">
+                            <img matListAvatar
+                                 src="{{teamLogo(team)}}"
+                                 [style.width]="'50%'"
+                                 [style.background-color]="team.color"
+                                 class="alt-list-avatar" alt="{{team.name}}'s logo" />
                             <h3 matLine>{{team.name}}</h3>
                             <p matLine>{{team.users.length}} member(s)</p>
                             <p matLine *ngFor="let user of team.users">

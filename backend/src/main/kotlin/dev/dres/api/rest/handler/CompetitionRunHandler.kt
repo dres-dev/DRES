@@ -16,6 +16,7 @@ import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TaskGroup
 import dev.dres.data.model.competition.TaskType
+import dev.dres.data.model.competition.Team
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.RunExecutor
@@ -33,6 +34,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.nio.file.Files
 
 
 abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRestHandler {

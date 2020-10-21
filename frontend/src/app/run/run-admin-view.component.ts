@@ -5,9 +5,9 @@ import {
     CompetitionRunAdminService,
     CompetitionRunService,
     CompetitionService,
-    RestDetailedTeam,
+    RestDetailedTeam, RestTeam,
     RunInfo,
-    RunState,
+    RunState, TeamInfo,
     ViewerInfo
 } from '../../../openapi';
 import {combineLatest, merge, Observable, Subject, timer} from 'rxjs';
@@ -178,6 +178,13 @@ export class RunAdminViewComponent {
             .map(v => v < 10 ? '0' + v : v)
             .filter((v, i) => v !== '00' || i > 0)
             .join(':');
+    }
+
+    /**
+     * Generates a URL for the logo of the team.
+     */
+    public teamLogo(team: RestDetailedTeam): string {
+        return this.config.resolveApiUrl(`/competition/logo/${team.logoId}`);
     }
 
     userNameOf(user: string): Observable<string> {

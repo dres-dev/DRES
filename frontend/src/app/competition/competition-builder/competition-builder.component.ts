@@ -1,7 +1,14 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {filter} from 'rxjs/operators';
-import {CompetitionService, RestCompetitionDescription, RestTaskDescription, RestTeam, TaskGroup, TaskType} from '../../../../openapi';
+import {
+    CompetitionService,
+    RestCompetitionDescription,
+    RestTaskDescription,
+    RestTeam,
+    TaskGroup,
+    TaskType
+} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Subscription} from 'rxjs';
@@ -17,6 +24,7 @@ import {
     CompetitionBuilderTaskDialogComponent,
     CompetitionBuilderTaskDialogData
 } from './competition-builder-task-dialog/competition-builder-task-dialog.component';
+import {AppConfig} from '../../app.config';
 
 @Component({
     selector: 'app-competition-builer',
@@ -107,7 +115,8 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
                 private route: ActivatedRoute,
                 private routerService: Router,
                 private snackBar: MatSnackBar,
-                private dialog: MatDialog) {
+                private dialog: MatDialog,
+                private config: AppConfig) {
     }
 
     ngOnInit() {
@@ -218,7 +227,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
     public addTask(group: TaskGroup) {
         const type = this.competition.taskTypes.find(v => v.name === group.type);
         // const width = window.screen.width * .75;
-        const width = 750
+        const width = 750;
         const dialogRef = this.dialog.open(
             CompetitionBuilderTaskDialogComponent,
             {data: {taskGroup: group, taskType: type, task: null} as CompetitionBuilderTaskDialogData, width: `${width}px`}
@@ -273,6 +282,13 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
         this.competition.tasks.splice(this.competition.tasks.indexOf(task), 1);
         this.dirty = true;
         this.taskTable.renderRows();
+    }
+
+    /**
+     * Generates a URL for the logo of the team.
+     */
+    public teamLogo(team: RestTeam): string {
+        return this.config.resolveApiUrl(`/competition/logo/${team.logoId}`);
     }
 
     public addTeam() {

@@ -24,8 +24,8 @@ export class CompetitionBuilderTeamDialogComponent {
         this.form = new FormGroup({
             name: new FormControl(team?.name, [Validators.required, Validators.minLength(3)]),
             color: new FormControl(team?.color ? team.color : CompetitionBuilderTeamDialogComponent.randomColor(), [Validators.required, Validators.minLength(7), Validators.maxLength(7)]),
-            logo: new FormControl(''),
-            logoData: new FormControl(team?.logo, Validators.required),
+            logoId: new FormControl(team?.logoId),
+            logoData: new FormControl(team?.logoData),
             users: new FormControl(team?.users != null ? team.users : []),
             userInput: new FormControl('')
         });
@@ -87,7 +87,8 @@ export class CompetitionBuilderTeamDialogComponent {
             this.dialogRef.close({
                 name: this.form.get('name').value,
                 color: this.form.get('color').value,
-                logo: this.form.get('logoData').value,
+                logoData: this.form.get('logoData').value,
+                logoId: this.form.get('logoId').value,
                 users: this.form.get('users').value
             } as RestTeam);
         }

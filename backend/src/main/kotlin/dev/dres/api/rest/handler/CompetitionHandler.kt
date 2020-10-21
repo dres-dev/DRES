@@ -8,6 +8,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.dbo.DAO
+import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.CompetitionDescription
@@ -17,6 +18,8 @@ import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
+import java.io.FileNotFoundException
+import java.nio.file.Files
 
 abstract class CompetitionHandler(protected val competitions: DAO<CompetitionDescription>) : RestHandler, AccessManagedRestHandler {
 
@@ -45,6 +48,46 @@ data class CompetitionOverview(val id: String, val name: String, val description
  * Data class for creation of competition
  */
 data class CompetitionCreate(val name: String, val description: String, val participantsCanView: Boolean = true)
+
+class GetTeamLogoHandler(val config: Config) : AbstractCompetitionRunRestHandler(), GetRestHandler<Any> {
+
+    override val route = "competition/logo/:logoId"
+
+    //not used
+    override fun doGet(ctx: Context): Any = ""
+
+    @OpenApi(
+            summary = "Returns the logo for the given logo ID.",
+            path = "/api/competition/logo/:logoId",
+            tags = ["Competition Run", "Media"],
+            pathParams = [OpenApiParam("logoId", UID::class, "The ID of the logo.")],
+            responses = [OpenApiResponse("200"), OpenApiResponse("401"), OpenApiResponse("400"), OpenApiResponse("404")],
+            ignore = true
+    )
+    override fun get(ctx: Context) {
+
+        /* Extract logoId. */
+        val logoId = try {
+            ctx.pathParamMap().getOrElse("logoId") {
+                throw ErrorStatusException(400, "Parameter 'logoId' is missing!'", ctx)
+            }.UID()
+        }catch (ex: java.lang.IllegalArgumentException){
+            throw ErrorStatusException(400, "Could not deserialise logoId '${ctx.pathParamMap()["logoId"]}'", ctx)
+        }
+
+
+        /* Load image and return it. */
+        try {
+            val image = Files.newInputStream(Team.logoPath(this.config, logoId)).use {
+                it.readAllBytes()
+            }
+            ctx.contentType("image/png")
+            ctx.result(image)
+        } catch (e: FileNotFoundException) {
+            throw ErrorStatusException(404, "Logo file for team $logoId not found!", ctx)
+        }
+    }
+}
 
 class ListCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<CompetitionOverview>> {
 
@@ -174,7 +217,7 @@ class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
     override val route: String = "competition"
 }
 
-class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>, val mediaItems: DAO<MediaItem>) : CompetitionHandler(competitions), PatchRestHandler<SuccessStatus> {
+class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>, val config: Config, val mediaItems: DAO<MediaItem>) : CompetitionHandler(competitions), PatchRestHandler<SuccessStatus> {
     @OpenApi(
             summary = "Updates an existing competition.",
             path = "/api/competition", method = HttpMethod.PATCH,
@@ -194,7 +237,7 @@ class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>, val me
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        val competition = restCompetitionDescription.toCompetitionDescription(mediaItems)
+        val competition = restCompetitionDescription.toCompetitionDescription(this.config, mediaItems)
 
         if (!this.competitions.exists(competition.id)) {
             throw ErrorStatusException(404, "Competition with ID ${competition.id.string} does not exist.", ctx)

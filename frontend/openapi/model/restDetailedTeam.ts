@@ -15,7 +15,7 @@ import { UserDetails } from './userDetails';
 export interface RestDetailedTeam { 
     name: string;
     color: string;
-    logo: string;
+    logoId: string;
     users: Array<UserDetails>;
 }
 

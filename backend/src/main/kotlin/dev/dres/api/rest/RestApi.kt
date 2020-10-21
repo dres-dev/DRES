@@ -62,7 +62,7 @@ object RestApi {
                 //media
                 MediaPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
                 SubmissionPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
-                GetMediaHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionUidIndex, dataAccessLayer.collectionUidIndex),
+                GetMediaHandler(dataAccessLayer.mediaItemCollectionUidIndex, dataAccessLayer.collectionUidIndex),
 
                 //collection
                 ListCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
@@ -81,12 +81,13 @@ object RestApi {
                 //competition
                 ListCompetitionHandler(dataAccessLayer.competitions),
                 CreateCompetitionHandler(dataAccessLayer.competitions),
-                UpdateCompetitionHandler(dataAccessLayer.competitions, dataAccessLayer.mediaItems),
+                UpdateCompetitionHandler(dataAccessLayer.competitions, config, dataAccessLayer.mediaItems),
                 GetCompetitionHandler(dataAccessLayer.competitions),
                 DeleteCompetitionHandler(dataAccessLayer.competitions),
                 ListTeamHandler(dataAccessLayer.competitions),
                 ListDetailedTeamHandler(dataAccessLayer.competitions),
                 ListTaskHandler(dataAccessLayer.competitions),
+                GetTeamLogoHandler(config),
 
                 //competition run
                 ListCompetitionRunInfosHandler(),

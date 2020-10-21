@@ -11,7 +11,7 @@ object TeamSerializer : Serializer<Team> {
     override fun serialize(out: DataOutput2, value: Team) {
         out.writeUTF(value.name)
         out.writeUTF(value.color)
-        out.writeUTF(value.logo)
+        out.writeUID(value.logoId)
         out.packInt(value.users.size)
         value.users.forEach { out.writeUID(it) }
     }

@@ -36,6 +36,9 @@
             <span *ngIf="form.get('logoData').value" style="max-height: 25px; text-align: center">
                 <img [src]="form.get('logoData').value" style="height: 20px;">
             </span>
+            <span *ngIf="form.get('logoId').value">
+                {{form.get('logoId').value}}
+            </span>
         </p>
     </form>
 </div>

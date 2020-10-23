@@ -83,8 +83,9 @@ export class CompetitionFormBuilder {
         const newIndex = array.length;
         switch (type) {
             case 'MULTIPLE_MEDIA_ITEMS':
-                array.push(this.singleMediaItemTargetForm(newIndex));
-                break;
+                const targetForm = this.singleMediaItemTargetForm(newIndex);
+                array.push(targetForm);
+                return targetForm;
             default:
                 break;
         }

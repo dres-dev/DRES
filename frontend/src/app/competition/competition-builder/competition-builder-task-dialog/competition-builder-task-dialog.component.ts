@@ -19,6 +19,8 @@ import {
     VideoPlayerSegmentBuilderComponent,
     VideoPlayerSegmentBuilderData
 } from './video-player-segment-builder/video-player-segment-builder.component';
+import {AdvancedBuilderDialogComponent, AdvancedBuilderDialogData} from './advanced-builder-dialog/advanced-builder-dialog.component';
+import TargetTypeEnum = TaskType.TargetTypeEnum;
 
 
 /**
@@ -58,8 +60,8 @@ export class CompetitionBuilderTaskDialogComponent {
     /** The {@link CompetitionFormBuilder} used by this dialogue. */
     builder: CompetitionFormBuilder;
     @ViewChild('videoPlayer', {static: false}) video: ElementRef;
-    private imagePreviewMap = new Set<number>();
     viewLayout = 'list';
+    private imagePreviewMap = new Set<number>();
 
     constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskDialogComponent>,
                 public collectionService: CollectionService,
@@ -246,6 +248,27 @@ export class CompetitionBuilderTaskDialogComponent {
         this.dialogRef.close(null);
     }
 
+    batchAddTargets() {
+        const config = {
+            width: '400px', height: '600px', data: {builder: this.builder}
+        } as MatDialogConfig<AdvancedBuilderDialogData>;
+        const dialogRef = this.dialog.open(AdvancedBuilderDialogComponent, config);
+        dialogRef.afterClosed().pipe(
+            filter(r => r != null))
+            .subscribe((r: Array<string>) => {
+                this.builder.removeTargetForm(0);
+                const mediaCollectionId = this.builder.form.get('mediaCollection').value;
+                r.forEach((name, idx) => {
+                    const form = this.builder.addTargetForm(TargetTypeEnum.MULTIPLEMEDIAITEMS);
+                    console.log(`${mediaCollectionId} ? ${name}`);
+                    const nameNoExt = name.substring(0, name.lastIndexOf('.'));
+                    this.collectionService.getApiCollectionWithCollectionidWithStartswith(mediaCollectionId, nameNoExt)
+                        .subscribe(item =>
+                        form.get('mediaItem').setValue(item[0]));
+                });
+            });
+    }
+
     /**
      * Handler for 'close' button.
      */
@@ -272,5 +295,4 @@ export class CompetitionBuilderTaskDialogComponent {
         }
         return '';
     }
-
 }

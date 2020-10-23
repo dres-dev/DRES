@@ -30,6 +30,7 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {Ng5SliderModule} from 'ng5-slider';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatGridListModule} from '@angular/material/grid-list';
+import {AdvancedBuilderDialogComponent} from './competition-builder-task-dialog/advanced-builder-dialog/advanced-builder-dialog.component';
 
 @NgModule({
     imports: [
@@ -67,7 +68,8 @@ import {MatGridListModule} from '@angular/material/grid-list';
         CompetitionBuilderTaskDialogComponent,
         CompetitionBuilderTaskGroupDialogComponent,
         CompetitionBuilderTaskTypeDialogComponent,
-        VideoPlayerSegmentBuilderComponent
+        VideoPlayerSegmentBuilderComponent,
+        AdvancedBuilderDialogComponent
     ],
     providers: []
 })

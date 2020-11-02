@@ -50,4 +50,13 @@ class DaoIndexer<T: Entity, K> internal constructor(private val dao: DAO<T>, pri
         }
     }
 
+    fun find(predicate: (K) -> Boolean): List<T> = this.lock.optimisticRead {
+        val key = this.index.keys.find(predicate)
+        return if (key == null) emptyList() else this[key]
+    }
+
+    fun filter(predicate: (K) -> Boolean): List<T> = this.lock.optimisticRead {
+        return this.index.keys.filter(predicate).flatMap { this[it] }
+    }
+
 }

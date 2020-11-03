@@ -1,7 +1,7 @@
 package dev.dres.run.score.interfaces
 
 import dev.dres.data.model.run.CompetitionRun
-import dev.dres.run.TaskRunAnalyzer
+import dev.dres.data.model.run.Submission
 
 /**
  * Computes the current scores of all teams for a given  [CompetitionRun.TaskRun]
@@ -9,4 +9,8 @@ import dev.dres.run.TaskRunAnalyzer
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */
-interface RecalculatingTaskRunScorer: TaskRunAnalyzer<Map<Int, Double>>, TaskRunScorer
+interface RecalculatingTaskRunScorer: TaskRunScorer {
+
+    fun computeScores(submissions: Collection<Submission>, teamIds: Collection<Int>, taskStartTime: Long, taskDuration: Long, taskEndTime: Long = 0): Map<Int, Double>
+
+}

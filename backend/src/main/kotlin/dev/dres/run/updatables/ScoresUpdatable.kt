@@ -51,7 +51,12 @@ class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdat
             }
 
             /* Update scorers. */
-            scorersToUpdate.forEach { it.second.analyze(it.first) }
+            scorersToUpdate.forEach {
+                val task = it.first
+                if (it.first.started != null) {
+                    it.second.computeScores(task.submissions, task.competition.competitionDescription.teams.indices.toList(), task.started!!, task.duration, task.ended ?: 0)
+                }
+            }
 
             /* If elements were removed, then update scoreboards and tasks. */
             if (removed) {

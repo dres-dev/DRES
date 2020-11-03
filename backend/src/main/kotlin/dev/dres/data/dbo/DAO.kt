@@ -20,7 +20,7 @@ import java.util.concurrent.locks.StampedLock
  * @author Ralph Gasser
  * @version 1.0
  */
-class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterable<T>, AutoCloseable {
+class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>, cacheSize: Long = 100, cacheDuration: Long = 30) : Iterable<T>, AutoCloseable {
 
     init {
         path.parent.toFile().mkdirs()
@@ -37,20 +37,10 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
 
     private val indexers = mutableListOf<DaoIndexer<T, *>>()
 
-
+    /** Internal cache */
     private val cache: LoadingCache<UID, T> = Caffeine.newBuilder()
-            .maximumSize(100)
-            .expireAfterAccess(1, TimeUnit.HOURS)
-//            .writer(object: CacheWriter<UID, T> {
-//                override fun write(key: UID, value: T) {
-//                    data[key] = value
-//                }
-//
-//                override fun delete(key: UID, value: T?, cause: RemovalCause) {
-//                    //we do deletion outside of the cache
-//                }
-//
-//            })
+            .maximumSize(cacheSize)
+            .expireAfterAccess(cacheDuration, TimeUnit.MINUTES)
             .build { key -> data[key]}
 
     /** Name of the entity accessed through this [DAO]. */
@@ -67,7 +57,6 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      * @return Entry [T]
      */
     operator fun get(id: UID) = this.lock.optimisticRead {
-        //this.data[id]
         cache[id]
     }
 
@@ -115,21 +104,24 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      * Deletes all values with given ids
      */
     fun batchDelete(ids: Iterable<UID>) = this.lock.write {
+        val toDelete = mutableListOf<T>()
         try {
             for (id in ids){
                 val t = data[id]
                 if (t != null){
-                    this.indexers.forEach {
-                        it.delete(t)
-                    }
+                    toDelete.add(t)
                 }
                 this.data.remove(id)
             }
             this.db.commit()
             this.cache.invalidate(ids)
+            toDelete.forEach { t ->
+                this.indexers.forEach {
+                    it.delete(t)
+                }
+            }
         } catch (e: Throwable) {
             this.db.rollback()
-            this.indexers.forEach { it.rebuild() }
             throw e
         }
     }

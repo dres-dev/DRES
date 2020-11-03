@@ -1,5 +1,6 @@
 package dev.dres.run
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.run.websocket.ClientMessage
 import dev.dres.api.rest.types.run.websocket.ClientMessageType
@@ -18,6 +19,7 @@ import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import dev.dres.utilities.ReadyLatch
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -34,6 +36,11 @@ import kotlin.math.max
 class SynchronousRunManager(val run: CompetitionRun) : RunManager {
 
     private val LOGGER = LoggerFactory.getLogger(this.javaClass)
+
+    /**
+     * Number of consecutive errors which have to occur within the main execution loop before it tries to gracefully terminate
+     */
+    private val maxErrorCount = 5
 
     /**
      * Alternative constructor from existing [CompetitionRun].
@@ -412,6 +419,8 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         /** Sort list of by [Phase] in ascending order. */
         this.updatables.sortBy { it.phase }
 
+        var errorCounter = 0
+
         /** Start [SynchronousRunManager] . */
         while (this.status != RunManagerStatus.TERMINATED) {
             try {
@@ -431,6 +440,17 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
                 return
             } catch (e: Throwable) {
                 LOGGER.error("Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!", e)
+                LOGGER.error("This is the ${++errorCounter}. in a row, will terminate loop after $maxErrorCount errors")
+
+                // oh shit, something went horribly horribly wrong
+                if (errorCounter >= maxErrorCount){
+                    LOGGER.error("Reached maximum consecutive error count, terminating loop")
+                    this.persistCurrentRunInformation()
+                    break //terminate loop
+                }
+
+            } finally {
+                errorCounter = 0
             }
         }
 
@@ -440,6 +460,20 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         }
 
         LOGGER.info("SynchronousRunManager ${this.id} reached end of run logic.")
+    }
+
+    /**
+     * Tries to persist the information of a current run in case something goes horribly wrong
+     */
+    private fun persistCurrentRunInformation() {
+        try{
+            val file = File("run_dump_${this.run.id.string}.json")
+            jacksonObjectMapper().writeValue(file, this.run)
+            LOGGER.info("Wrote current run state to ${file.absolutePath}")
+        } catch (e: Exception){
+            LOGGER.error("Could not write run to disk: ", e)
+        }
+
     }
 
     /**

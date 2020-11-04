@@ -35,4 +35,5 @@ class DataAccessLayer(private val basePath: Path) {
     val runs = DAO(this.basePath.resolve("runs.db"), CompetitionRunSerializer(competitionSerializer))
 
     val audit = DAO(this.basePath.resolve("auditLog.db"), AuditLogEntrySerializer, cacheDuration = 1440)
+    val auditTimes = NumericDaoIndexer(audit){it.timestamp}
 }

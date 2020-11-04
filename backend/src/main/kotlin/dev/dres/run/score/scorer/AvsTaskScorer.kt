@@ -20,9 +20,9 @@ class AvsTaskScorer: RecalculatingTaskRunScorer {
         val correctSubmissionsPerTeam = correctSubmissions.groupBy { it.team }
         val wrongSubmissionsPerTeam = wrongSubmissions.groupBy { it.team }
 
-        val temoral = correctSubmissions.all { it.start != null && it.end != null }
+        val temporal = correctSubmissions.all { it.start != null && it.end != null }
 
-        lastScores = if (temoral){
+        lastScores = if (temporal){
 
             val ranges = submissions.groupBy { it.item.id }.map { (item, submissions) ->
                 item to TimeUtil.merge(submissions.map { it.temporalRange() }, overlap = 1000)

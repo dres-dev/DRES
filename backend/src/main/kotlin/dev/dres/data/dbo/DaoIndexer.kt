@@ -9,11 +9,11 @@ import java.util.concurrent.locks.StampedLock
 /**
  * Wrapper for DAO which enables index-based access
  */
-class DaoIndexer<T: Entity, K> internal constructor(private val dao: DAO<T>, private val keyTransform: (T) -> K) {
+open class DaoIndexer<T: Entity, K> internal constructor(internal val dao: DAO<T>, internal val keyTransform: (T) -> K) {
 
-    private val index: MutableMap<K, MutableList<UID>> = mutableMapOf()
+    internal val index: MutableMap<K, MutableList<UID>> = mutableMapOf()
 
-    private val lock = StampedLock()
+    internal val lock = StampedLock()
 
     init {
         //load DAO to index

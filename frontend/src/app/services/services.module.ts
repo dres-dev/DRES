@@ -4,6 +4,7 @@ import {AppConfig} from '../app.config';
 import {AuthenticationService} from './session/authentication.sevice';
 import { RoundPipePipe } from './pipes/round-pipe.pipe';
 import { FormatTimePipePipe } from './pipes/format-time-pipe.pipe';
+import {CanDeactivateGuard} from './can-deactivate.guard';
 
 @NgModule({
   imports: [ApiModule.forRoot(() => {
@@ -14,6 +15,6 @@ import { FormatTimePipePipe } from './pipes/format-time-pipe.pipe';
   })],
   exports: [ApiModule, RoundPipePipe, FormatTimePipePipe],
   declarations: [RoundPipePipe, FormatTimePipePipe],
-  providers: [AuthenticationService]
+  providers: [AuthenticationService, CanDeactivateGuard]
 })
 export class ServicesModule {}

@@ -21,6 +21,7 @@ class DAOUpdatable<T: Entity>(val dao: DAO<T>, val obj: T): StatefulUpdatable {
     override fun update(status: RunManagerStatus) {
         if (this.dirty) {
             this.dao.update(this.obj)
+            this.dirty = false
         }
     }
 

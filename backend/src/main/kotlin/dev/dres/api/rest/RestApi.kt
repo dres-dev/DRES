@@ -125,6 +125,8 @@ object RestApi {
             it.enableCorsForAllOrigins()
             it.server { setupHttpServer(config) }
             it.registerPlugin(getConfiguredOpenApiPlugin())
+            //it.registerPlugin(getConfiguredOpenApiPlugin(OpenApiEndpointOptions.dresLogOnly)) // not allowed. see https://github.com/dres-dev/DRES/issues/197
+            //it.registerPlugin(getConfiguredOpenApiPlugin(OpenApiEndpointOptions.dresSubmissionOnly)) // not allowed. see https://github.com/dres-dev/DRES/issues/197
             it.defaultContentType = "application/json"
             it.prefer405over404 = true
             it.sessionHandler { fileSessionHandler(config) }
@@ -196,7 +198,7 @@ object RestApi {
         javalin = null
     }
 
-    private fun getConfiguredOpenApiPlugin() = OpenApiPlugin(
+    private fun getConfiguredOpenApiPlugin(options: OpenApiEndpointOptions = OpenApiEndpointOptions.dresDefaultOptions) = OpenApiPlugin(
             OpenApiOptions(
                     Info().apply {
                         title("DRES API")
@@ -204,12 +206,18 @@ object RestApi {
                         description("API for DRES (Distributed Retrieval Evaluation Server), Version 1.0")
                     }
             ).apply {
-                path("/swagger-docs") // endpoint for OpenAPI json
-                swagger(SwaggerOptions("/swagger-ui")) // endpoint for swagger-ui
-                reDoc(ReDocOptions("/redoc")) // endpoint for redoc
+                path(options.oasPath) // endpoint for OpenAPI json
+                swagger(SwaggerOptions(options.swaggerUi)) // endpoint for swagger-ui
+                if(options.hasRedoc){
+                    reDoc(ReDocOptions(options.redocUi!!)) // endpoint for redoc
+                }
                 activateAnnotationScanningFor("dev.dres.api.rest.handler")
+                if(options.ignored.isNotEmpty()){
+                    ignoredPaths = options.ignored.toMutableList()
+                }
             }
     )
+
 
     private fun fileSessionHandler(config: Config) = SessionHandler().apply {
         sessionCache = DefaultSessionCache(this).apply {

@@ -9,8 +9,8 @@ import com.github.ajalt.clikt.output.HelpFormatter
 import dev.dres.data.dbo.DataAccessLayer
 import dev.dres.data.model.Config
 import org.jline.builtins.Completers
-import org.jline.reader.Completer
-import org.jline.reader.LineReaderBuilder
+import org.jline.builtins.Completers.TreeCompleter.node
+import org.jline.reader.*
 import org.jline.reader.impl.completer.AggregateCompleter
 import org.jline.reader.impl.completer.StringsCompleter
 import org.jline.terminal.Terminal
@@ -41,11 +41,28 @@ object Cli {
             System.exit(-1)
         }
 
-        val completer: Completer = AggregateCompleter(
+        val completer = DelegateCompleter(AggregateCompleter(
                 StringsCompleter("quit", "exit", "help"),
-                StringsCompleter(clikt.registeredSubcommandNames()),
+                // Based on https://github.com/jline/jline3/wiki/Completion
+                // However, this is not working as subcommands are not completed
+                /*Completers.TreeCompleter(
+                        clikt.registeredSubcommands().map {
+                            if(it.registeredSubcommands().isNotEmpty()){
+                                val list = mutableListOf(it.commandName as Any)
+                                list.addAll(it.registeredSubcommandNames().map { node(it) })
+                                node(list.first())
+                            }else{
+                                node(it.commandName)
+                            }
+                        }
+                ),*/
+                // Pseudo-solution. Not ideal, as all subcommands are flattened
+                AggregateCompleter(
+                        StringsCompleter(clikt.registeredSubcommandNames()),
+                        StringsCompleter(clikt.registeredSubcommands().flatMap { it.registeredSubcommandNames() })
+                ),
                 Completers.FileNameCompleter()
-        )
+        ))
 
         val lineReader = LineReaderBuilder.builder()
                 .terminal(terminal)
@@ -115,6 +132,16 @@ object Cli {
             context { helpFormatter = CliHelpFormatter()}
         }
 
+    }
+
+    /**
+     * Delegate for [Completer] to dynamically exchange and / or adapt a completer.
+     * Delegates incoming completion requests to the delegate
+     */
+    class DelegateCompleter(var delegate: Completer):Completer{
+        override fun complete(reader: LineReader?, line: ParsedLine?, candidates: MutableList<Candidate>?) {
+            delegate.complete(reader, line, candidates)
+        }
     }
 
     class CliHelpFormatter : CliktHelpFormatter() {

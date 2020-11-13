@@ -22,13 +22,18 @@ import dev.dres.data.model.basics.time.TemporalRange
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.cleanPathString
+import org.slf4j.LoggerFactory
+import org.slf4j.MarkerFactory
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.util.concurrent.TimeUnit
 
-class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val itemPathIndex: DaoIndexer<MediaItem, String>, val segments: DAO<MediaItemSegmentList>) :
+class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val itemPathIndex: DaoIndexer<MediaItem, String>, val mediaItemCollectionIndex: DaoIndexer<MediaItem, UID>, val segments: DAO<MediaItemSegmentList>) :
         NoOpCliktCommand(name = "collection") {
+    private val logMarker = MarkerFactory.getMarker("CLI")
+    private val logger = LoggerFactory.getLogger(this.javaClass)
+
     override fun aliases(): Map<String, List<String>> {
         return mapOf(
                 "ls" to listOf("list"),
@@ -150,11 +155,11 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                                 paddingRight = 1
                             }
                             header {
-                                row("id", "name", "description", "basePath")
+                                row("id", "name", "description", "basePath", "# items")
                             }
                             body {
                                 this@MediaCollectionCommand.collections.forEach {
-                                    row(it.id, it.name, it.description ?: "", it.basePath)
+                                    row(it.id.string, it.name, it.description ?: "", it.basePath, this@MediaCollectionCommand.mediaItemCollectionIndex.filter { uid -> it.id.equals(uid) }.size)
                                 }
                             }
                         }
@@ -364,7 +369,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                         }
                     }
                 }catch(e:Throwable){
-                    System.err.println("An error occurred with $file. Noting and skipping...")
+                    this@MediaCollectionCommand.logger.error("An error occurred with $file. Noting and skipping...")
                     println("An error occurred with $file. Noting and skipping...")
                     issues[file.path] = e.stackTraceToString()
                 }

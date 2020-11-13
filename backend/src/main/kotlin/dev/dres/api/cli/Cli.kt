@@ -9,7 +9,6 @@ import com.github.ajalt.clikt.output.HelpFormatter
 import dev.dres.data.dbo.DataAccessLayer
 import dev.dres.data.model.Config
 import org.jline.builtins.Completers
-import org.jline.builtins.Completers.TreeCompleter.node
 import org.jline.reader.*
 import org.jline.reader.impl.completer.AggregateCompleter
 import org.jline.reader.impl.completer.StringsCompleter
@@ -24,12 +23,22 @@ object Cli {
 
     private const val PROMPT = "DRES> "
 
+
     /**
      * blocking call
      */
     fun loop(dataAccessLayer: DataAccessLayer, config: Config) {
 
-        val clikt = DRESBaseCommand().subcommands(CompetitionCommand(dataAccessLayer.competitions, dataAccessLayer.collections, config), UserCommand(), MediaCollectionCommand(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemPathIndex, dataAccessLayer.mediaSegments), CompetitionRunCommand(dataAccessLayer.runs))
+        val clikt = DRESBaseCommand().subcommands(
+                CompetitionCommand(dataAccessLayer.competitions, dataAccessLayer.collections, config),
+                UserCommand(),
+                MediaCollectionCommand(
+                        dataAccessLayer.collections,
+                        dataAccessLayer.mediaItems,
+                        dataAccessLayer.mediaItemPathIndex,
+                        dataAccessLayer.mediaItemCollectionIndex,
+                        dataAccessLayer.mediaSegments),
+                CompetitionRunCommand(dataAccessLayer.runs))
 
         var terminal: Terminal? = null
         try {

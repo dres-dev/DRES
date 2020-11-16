@@ -47,7 +47,7 @@ object RestApi {
          */
         val apiRestHandlers = listOf(
 
-                //user
+                // User
                 LoginHandler(dataAccessLayer.audit),
                 LogoutHandler(dataAccessLayer.audit),
                 ListUsersHandler(),
@@ -59,12 +59,12 @@ object RestApi {
                 UserDetailsHandler(), // Must be AFTER CurrentUserHandler
                 ActiveSessionsHandler(dataAccessLayer.users),
 
-                //media
+                // Media
                 MediaPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
                 SubmissionPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
                 GetMediaHandler(dataAccessLayer.mediaItemCollectionUidIndex, dataAccessLayer.collectionUidIndex),
 
-                //collection
+                // Collection
                 ListCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 ShowCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 AddCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
@@ -78,7 +78,7 @@ object RestApi {
                 ListMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionNameIndex),
                 ListExternalItemHandler(config),
 
-                //competition
+                // Competition
                 ListCompetitionHandler(dataAccessLayer.competitions),
                 CreateCompetitionHandler(dataAccessLayer.competitions),
                 UpdateCompetitionHandler(dataAccessLayer.competitions, config, dataAccessLayer.mediaItems),
@@ -89,7 +89,7 @@ object RestApi {
                 ListTaskHandler(dataAccessLayer.competitions),
                 GetTeamLogoHandler(config),
 
-                //competition run
+                // Competition run
                 ListCompetitionRunInfosHandler(),
                 ListCompetitionRunStatesHandler(),
                 GetCompetitionRunInfoHandler(),
@@ -103,7 +103,7 @@ object RestApi {
                 RecentSubmissionInfoHandler(),
                 PastSubmissionInfoHandler(),
 
-                //Competition run admin
+                // Competition run admin
                 CreateCompetitionRunAdminHandler(dataAccessLayer.competitions, dataAccessLayer.collections, config),
                 StartCompetitionRunAdminHandler(),
                 NextTaskCompetitionRunAdminHandler(),
@@ -116,9 +116,15 @@ object RestApi {
                 ListViewersRunAdminHandler(),
                 ForceViewerRunAdminHandler(),
 
+                // Judgement
                 NextOpenJudgementHandler(dataAccessLayer.collections),
                 PostJudgementHandler(),
-                JudgementStatusHandler()
+                JudgementStatusHandler(),
+
+                // Audit Log
+                GetAuditLogInfoHandler(dataAccessLayer.auditTimes),
+                LatestAuditLogHandler(dataAccessLayer.auditTimes),
+                ListAuditLogsHandler(dataAccessLayer.auditTimes, dataAccessLayer.audit)
         )
 
         javalin = Javalin.create {

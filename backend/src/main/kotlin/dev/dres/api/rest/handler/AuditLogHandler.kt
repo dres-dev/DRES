@@ -67,19 +67,51 @@ class ListAuditLogsInRange(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, v
 
     @OpenApi(
             summary = "Lists all audit logs matching the query",
-            path = "/api/audit/list/:limit/:page",
+            path = "/api/audit/list/:since/:upto",
             pathParams = [
-                OpenApiParam(ListAuditLogsHandler.LIMIT_PARAM, Int::class, "The maximum number of results. Default: 500"),
-                OpenApiParam(ListAuditLogsHandler.PAGE_INDEX_PARAM, Int::class, "The page index offset, relative to the limit")
+                OpenApiParam(":since", Long::class, "Timestamp of the earliest audit log to include"),
+                OpenApiParam(":upto", Long::class, "Timestamp of the latest audit log to include.")
             ],
             tags = ["Audit"],
             responses = [
-//                OpenApiResponse("200", [OpenApiContent(AuditLogPage::class)], description = "The audit logs"),
                 OpenApiResponse("200", [OpenApiContent(Array<RestAuditLogEntry>::class)], description = "The audit logs"),
                 OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)], description = "Whenever a non-admin user starts the call")
             ]
     )
     override fun doGet(ctx: Context): Array<RestAuditLogEntry> {
+        var settings = 0
+        val since = ctx.pathParam(":since").let {
+            if(it.isNotBlank()){
+                try{
+                    return@let it.toLong()
+                }catch(e: NumberFormatException){
+                    settings = 1
+                    return@let 0L
+                }
+            }else{
+                settings = 1
+                return@let 0L
+            }
+        }
+        val upto = ctx.pathParam(":upto").let{
+            if(it.isNotBlank()){
+                try{
+                    return@let it.toLong()
+                }catch(e: NumberFormatException){
+                    settings += 2
+                    return@let Long.MAX_VALUE
+                }
+            }else{
+                settings += 2
+                return@let Long.MAX_VALUE
+            }
+        }
+        return when(settings){
+            0 -> auditTimes.inRange(since, upto)
+            1 -> auditTimes.atMost(upto)
+            2 -> auditTimes.atLeast(since)
+            else -> audit
+        }.map { RestAuditLogEntry.convert(it) }.toTypedArray()
 
     }
 

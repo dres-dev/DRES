@@ -19,6 +19,8 @@ import dev.dres.run.RunManagerStatus
 import dev.dres.run.SynchronousRunManager
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
+import dev.dres.run.eventstream.EventStreamProcessor
+import dev.dres.run.eventstream.TaskStartEvent
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
@@ -283,6 +285,7 @@ class StartTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
         try {
             run.startTask()
             AuditLogger.taskStart(run.id, run.currentTask?.name ?: "n/a", LogEventSource.REST, ctx.sessionId())
+            EventStreamProcessor.event(TaskStartEvent(runId, run.currentTaskRun!!.uid, run.currentTask!!))
             return SuccessStatus("Task '${run.currentTask!!.name}' for run $runId was successfully started.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Task '${run.currentTask!!.name}' for run $runId could not be started because run is in the wrong state (state = ${run.status}).", ctx)

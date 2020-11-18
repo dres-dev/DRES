@@ -12,6 +12,10 @@ import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.run.CompetitionRun
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.run.audit.AuditLogger
+import dev.dres.run.audit.LogEventSource
+import dev.dres.run.eventstream.EventStreamProcessor
+import dev.dres.run.eventstream.TaskEndEvent
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.score.interfaces.TaskRunScorer
 import dev.dres.run.updatables.*
@@ -515,8 +519,11 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
             val timeLeft = this.timeLeft()
             if (timeLeft <= 0) {
                 this.stateLock.write {
-                    this.currentTaskRun?.end()
+                    val task = this.currentTaskRun!!
+                    task.end()
                     this.status = RunManagerStatus.TASK_ENDED
+                    AuditLogger.taskEnd(this.id, this.currentTask.name, LogEventSource.INTERNAL, null);
+                    EventStreamProcessor.event(TaskEndEvent(this.id, task.uid))
                 }
 
                 /* Mark DAO for update. */

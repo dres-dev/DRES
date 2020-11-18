@@ -21,7 +21,8 @@ enum class AuditLogEntryType {
 
 enum class LogEventSource {
     REST,
-    CLI
+    CLI,
+    INTERNAL
 }
 
 sealed class AuditLogEntry(val type: AuditLogEntryType): Entity{

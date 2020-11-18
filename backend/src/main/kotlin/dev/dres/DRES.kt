@@ -9,6 +9,7 @@ import dev.dres.mgmt.admin.UserManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
+import dev.dres.run.eventstream.handlers.SubmissionStatisticsHandler
 import dev.dres.utilities.FFmpegUtil
 import java.io.File
 import java.nio.file.Paths
@@ -46,6 +47,7 @@ object DRES {
         AuditLogger.init(dataAccessLayer.audit)
 
         /* Initialize Event Stream Processor */
+        EventStreamProcessor.register(SubmissionStatisticsHandler())
         EventStreamProcessor.init()
 
         /* Initialize Rest API. */

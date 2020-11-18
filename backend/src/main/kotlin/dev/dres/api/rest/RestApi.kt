@@ -131,7 +131,7 @@ object RestApi {
             it.enableCorsForAllOrigins()
             it.server { setupHttpServer(config) }
             it.registerPlugin(getConfiguredOpenApiPlugin())
-            //it.registerPlugin(getConfiguredOpenApiPlugin(OpenApiEndpointOptions.dresLogOnly)) // not allowed. see https://github.com/dres-dev/DRES/issues/197
+//            it.registerPlugin(getConfiguredOpenApiPlugin(OpenApiEndpointOptions.dresLogOnly)) // not allowed. see https://github.com/dres-dev/DRES/issues/197
             //it.registerPlugin(getConfiguredOpenApiPlugin(OpenApiEndpointOptions.dresSubmissionOnly)) // not allowed. see https://github.com/dres-dev/DRES/issues/197
             it.defaultContentType = "application/json"
             it.prefer405over404 = true
@@ -203,6 +203,7 @@ object RestApi {
         javalin?.stop()
         javalin = null
     }
+
 
     private fun getConfiguredOpenApiPlugin(options: OpenApiEndpointOptions = OpenApiEndpointOptions.dresDefaultOptions) = OpenApiPlugin(
             OpenApiOptions(

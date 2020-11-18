@@ -61,6 +61,30 @@ class LatestAuditLogHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>) 
     }
 }
 
+class ListAuditLogsInRange(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, val audit: DAO<AuditLogEntry>): AuditLogHandler(auditTimes), GetRestHandler<Array<RestAuditLogEntry>>{
+
+    override val route = "audit/logs/:since/:upto"
+
+    @OpenApi(
+            summary = "Lists all audit logs matching the query",
+            path = "/api/audit/list/:limit/:page",
+            pathParams = [
+                OpenApiParam(ListAuditLogsHandler.LIMIT_PARAM, Int::class, "The maximum number of results. Default: 500"),
+                OpenApiParam(ListAuditLogsHandler.PAGE_INDEX_PARAM, Int::class, "The page index offset, relative to the limit")
+            ],
+            tags = ["Audit"],
+            responses = [
+//                OpenApiResponse("200", [OpenApiContent(AuditLogPage::class)], description = "The audit logs"),
+                OpenApiResponse("200", [OpenApiContent(Array<RestAuditLogEntry>::class)], description = "The audit logs"),
+                OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)], description = "Whenever a non-admin user starts the call")
+            ]
+    )
+    override fun doGet(ctx: Context): Array<RestAuditLogEntry> {
+
+    }
+
+}
+
 class ListAuditLogsHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, val audit: DAO<AuditLogEntry>) : AuditLogHandler(auditTimes), GetRestHandler<Array<RestAuditLogEntry>> {
 
     override val route = "audit/list/${LIMIT_PARAM.toPathParamKey()}/${PAGE_INDEX_PARAM.toPathParamKey()}"

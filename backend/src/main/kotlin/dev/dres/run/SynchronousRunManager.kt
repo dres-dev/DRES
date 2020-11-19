@@ -39,6 +39,8 @@ import kotlin.math.max
  */
 class SynchronousRunManager(val run: CompetitionRun) : RunManager {
 
+    private val VIEWER_TIME_OUT = 30L //TODO make configurable
+
     private val LOGGER = LoggerFactory.getLogger(this.javaClass)
 
     /**
@@ -269,7 +271,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         this.daoUpdatable.dirty = true
 
         /* Reset the ReadyLatch. */
-        this.readyLatch.reset()
+        this.readyLatch.reset(VIEWER_TIME_OUT)
 
         /* Enqueue WS message for sending */
         this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_PREPARE))
@@ -501,7 +503,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
      */
     private fun internalStateUpdate() {
         /** Case 1: Facilitates internal transition from RunManagerStatus.PREPARING_TASK to RunManagerStatus.RUNNING_TASK. */
-        if (this.status == RunManagerStatus.PREPARING_TASK && this.readyLatch.allReady()) {
+        if (this.status == RunManagerStatus.PREPARING_TASK && this.readyLatch.allReadyOrTimedOut()) {
             this.stateLock.write {
                 this.currentTaskRun?.start()
                 this.status = RunManagerStatus.RUNNING_TASK

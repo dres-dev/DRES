@@ -35,7 +35,7 @@ object AuditLogger {
 
     fun taskEnd(competitionRunUid: UID, taskName: String, api: LogEventSource, session: String?) = log(TaskEndAuditLogEntry(competitionRunUid, taskName, api, session))
 
-    fun submission(competitionRunUid: UID, taskName: String, submission: Submission, api: LogEventSource, session: String?) = log(SubmissionAuditLogEntry(competitionRunUid, taskName, submission, api, session))
+    fun submission(competitionRunUid: UID, taskName: String, submission: Submission, api: LogEventSource, session: String?, address: String) = log(SubmissionAuditLogEntry(competitionRunUid, taskName, submission, api, session, address))
 
     fun judgement(competitionRunUid: UID, validator: String, token: String, verdict: SubmissionStatus, api: LogEventSource, session: String?) = log(JudgementAuditLogEntry(competitionRunUid, validator, token, verdict, api, session))
 

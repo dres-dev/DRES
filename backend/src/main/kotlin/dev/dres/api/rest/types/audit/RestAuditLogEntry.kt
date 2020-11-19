@@ -49,9 +49,9 @@ class RestTaskEndAuditLogEntry(id: UID, val competition: UID, val taskName: Stri
     constructor(log: TaskEndAuditLogEntry) : this(log.id, log.competition, log.taskName, log.api, log.user)
 }
 
-class RestSubmissionAuditLogEntry(id: UID, val competition: UID, val taskName: String, val submission: Submission, val api: LogEventSource, val user: String?) : RestAuditLogEntry(AuditLogEntryType.SUBMISSION, id) {
-    constructor(competition: UID, taskName: String, submission: Submission, api: LogEventSource, user: String?) : this(UID.EMPTY, competition, taskName, submission, api, user)
-    constructor(log: SubmissionAuditLogEntry) : this(log.id, log.competition, log.taskName, log.submission, log.api, log.user)
+class RestSubmissionAuditLogEntry(id: UID, val competition: UID, val taskName: String, val submission: Submission, val api: LogEventSource, val user: String?, val address: String) : RestAuditLogEntry(AuditLogEntryType.SUBMISSION, id) {
+    constructor(competition: UID, taskName: String, submission: Submission, api: LogEventSource, user: String?, address: String) : this(UID.EMPTY, competition, taskName, submission, api, user, address)
+    constructor(log: SubmissionAuditLogEntry) : this(log.id, log.competition, log.taskName, log.submission, log.api, log.user, log.address)
 }
 
 class RestJudgementAuditLogEntry(id: UID, val competition: UID, val validator: String, val token: String, val verdict: SubmissionStatus, val api: LogEventSource, val user: String?) : RestAuditLogEntry(AuditLogEntryType.JUDGEMENT, id) {

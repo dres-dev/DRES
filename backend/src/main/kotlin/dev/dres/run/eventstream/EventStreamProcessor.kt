@@ -24,7 +24,7 @@ object EventStreamProcessor {
     private val eventSink = PrintWriter(File("events/${System.currentTimeMillis()}.txt").also { it.parentFile.mkdirs() })
 
     fun event(event: StreamEvent) = eventQueue.add(event)
-    fun register(handler: StreamEventHandler) = handlerLock.write { eventHandlers.add(handler) }
+    fun register(vararg handler: StreamEventHandler) = handlerLock.write { eventHandlers.addAll(handler) }
 
     fun init() {
         if (active) {

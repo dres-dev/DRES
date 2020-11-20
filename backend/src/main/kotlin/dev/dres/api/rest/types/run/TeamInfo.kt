@@ -9,8 +9,8 @@ import dev.dres.data.model.run.CompetitionRun
  * and other optimizations.
  *
  * @author Ralph Gasser
- * @version 1.0.1
+ * @version 1.0.2
  */
-data class TeamInfo(val name: String, val color: String, val logoId: String) {
-    constructor(team: Team) : this(team.name, team.color, team.logoId.string)
+data class TeamInfo(val uid: String, val name: String, val color: String, val logoId: String) {
+    constructor(team: Team) : this(team.uid.string, team.name, team.color, team.logoId.string)
 }

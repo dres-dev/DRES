@@ -16,9 +16,9 @@ import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TaskGroup
 import dev.dres.data.model.competition.TaskType
-import dev.dres.data.model.competition.Team
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.run.TemporalSubmissionAspect
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
@@ -34,7 +34,6 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import java.io.FileNotFoundException
 import java.io.IOException
-import java.nio.file.Files
 
 
 abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRestHandler {
@@ -452,7 +451,8 @@ class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHa
 }
 
 data class SubmissionInfo(val team: Int, val member: String, val status: SubmissionStatus, val timestamp: Long, val id: String? = null, val item: RestMediaItem? = null, val start: Long? = null, val end: Long? = null) {
-    constructor(submission: Submission) : this(submission.team, submission.member.string, submission.status, submission.timestamp, submission.uid, RestMediaItem.fromMediaItem(submission.item), submission.start, submission.end)
+    constructor(submission: Submission) : this(submission.team, submission.member.string, submission.status, submission.timestamp, submission.uid, RestMediaItem.fromMediaItem(submission.item), null, null)
+    constructor(submission: TemporalSubmissionAspect) : this(submission.team, submission.member.string, submission.status, submission.timestamp, submission.uid, RestMediaItem.fromMediaItem(submission.item), submission.start, submission.end)
 
     companion object {
         fun blind(submission: Submission): SubmissionInfo = SubmissionInfo(submission.team, submission.member.string, submission.status, submission.timestamp)

@@ -3,8 +3,8 @@ package dev.dres.run.validation.judged
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.run.TemporalSubmissionAspect
 import dev.dres.run.validation.interfaces.JudgementValidator
-import dev.dres.run.validation.interfaces.SubmissionValidator
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -32,7 +32,8 @@ class BasicJudgementValidator(): JudgementValidator { //TODO better name
 
     /** Helper class to store submission information independent of source */
     private data class ItemRange(val item: MediaItem, val start: Long, val end: Long){
-        constructor(submission: Submission): this(submission.item, submission.start ?: 0, submission.end ?: 0)
+        constructor(submission: TemporalSubmissionAspect): this(submission.item, submission.start, submission.end)
+        constructor(submission: Submission): this(submission.item, 0, 0)
     }
 
     private val updateLock = ReentrantReadWriteLock()

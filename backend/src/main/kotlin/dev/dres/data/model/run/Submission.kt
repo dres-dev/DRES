@@ -15,32 +15,64 @@ import java.util.*
  * @version 1.0
  */
 
-data class Submission(val team: Int,
-                      val member: UID,
-                      val timestamp: Long,
-                      val item: MediaItem,
-                      val start: Long? = null, //in ms
-                      val end: Long? = null, //in ms
-                      val uid: String = UUID.randomUUID().toString()
-) {
+interface BaseSubmissionAspect {
+    val team: Int
+    val member: UID
+    val timestamp: Long
+    val item: MediaItem
+    val uid: String
+    var status: SubmissionStatus
+}
 
-    var status: SubmissionStatus = SubmissionStatus.INDETERMINATE
+interface TemporalSubmissionAspect : BaseSubmissionAspect {
+
+    /** Start time in milliseconds */
+    val start: Long
+
+    /** End time in milliseconds */
+    val end: Long
+
+    val temporalRange: TemporalRange
+}
+
+interface SpatialSubmissionAspect : BaseSubmissionAspect {
+    //TODO some spatial representation
+}
+
+sealed class Submission(override val team: Int,
+                        override val member: UID,
+                        override val timestamp: Long,
+                        override val item: MediaItem,
+                        override val uid: String
+) : BaseSubmissionAspect {
+
+    override var status: SubmissionStatus = SubmissionStatus.INDETERMINATE
 
     @Transient
     @JsonIgnore
     var taskRun: CompetitionRun.TaskRun? = null
-    internal set
+        internal set
 
-    fun temporalRange(): TemporalRange {
-        if (start == null && end == null) {
-            val zero = TemporalPoint(0.0, TemporalUnit.MILLISECONDS)
-            return TemporalRange(zero, zero)
-        }
-        if (start != null && end != null){
-            return TemporalRange(TemporalPoint(start.toDouble(), TemporalUnit.MILLISECONDS), TemporalPoint(end.toDouble(), TemporalUnit.MILLISECONDS))
-        }
-        val point = TemporalPoint(start?.toDouble()
-                ?: end!!.toDouble(), TemporalUnit.MILLISECONDS)
-        return TemporalRange(point, point)
-    }
+
+}
+
+data class ItemSubmission(override val team: Int,
+                          override val member: UID,
+                          override val timestamp: Long,
+                          override val item: MediaItem,
+                          override val uid: String = UUID.randomUUID().toString()
+) : Submission(team, member, timestamp, item, uid)
+
+data class TemporalSubmission(override val team: Int,
+                              override val member: UID,
+                              override val timestamp: Long,
+                              override val item: MediaItem,
+                              override val start: Long, //in ms
+                              override val end: Long, //in ms
+                              override val uid: String = UUID.randomUUID().toString()
+) : Submission(team, member, timestamp, item, uid), TemporalSubmissionAspect {
+
+    override val temporalRange: TemporalRange
+        get() = TemporalRange(TemporalPoint(start.toDouble(), TemporalUnit.MILLISECONDS), TemporalPoint(end.toDouble(), TemporalUnit.MILLISECONDS))
+
 }

@@ -15,8 +15,7 @@ import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.basics.media.MediaItemSegmentList
 import dev.dres.data.model.basics.media.PlayableMediaItem
 import dev.dres.data.model.competition.TaskType
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.run.*
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
 import dev.dres.run.audit.AuditLogger
@@ -84,19 +83,19 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) && item is MediaItem.VideoItem -> {
                 val time = this.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item, ctx)
-                Submission(team, userId, submissionTime, item, time.first, time.second)
+                TemporalSubmission(team, userId, submissionTime, item, time.first, time.second)
             }
             map.containsKey(PARAMETER_NAME_FRAME) && (item is PlayableMediaItem) -> {
                 val time = this.frameToTime(map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull() ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number.", ctx), item)
                 val range = if(mapToSegment && item is MediaItem.VideoItem) timeToSegment(time, item, ctx) else time to time
-                Submission(team, userId, submissionTime, item, range.first, range.second)
+                TemporalSubmission(team, userId, submissionTime, item, range.first, range.second)
             }
             map.containsKey(PARAMETER_NAME_TIMECODE) && (item is PlayableMediaItem) -> {
                 val time = this.timecodeToTime(map[PARAMETER_NAME_TIMECODE]?.first()!!, item, ctx)
                 val range = if(mapToSegment && item is MediaItem.VideoItem) timeToSegment(time, item, ctx) else time to time
-                Submission(team, userId, submissionTime, item, range.first, range.second)
+                TemporalSubmission(team, userId, submissionTime, item, range.first, range.second)
             }
-            else -> Submission(team, userId, submissionTime, item)
+            else -> ItemSubmission(team, userId, submissionTime, item)
         }.also {
             it.taskRun = runManager.currentTaskRun
         }
@@ -185,7 +184,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
     }
 
     private fun generatePreview(submission: Submission) {
-        if (submission.item !is MediaItem.VideoItem){
+        if (submission !is TemporalSubmissionAspect){
             return
         }
         val collection = collections[submission.item.collection] ?: return
@@ -196,7 +195,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             return
         }
         val mediaItemLocation = Path.of(collection.basePath, submission.item.location)
-        FFmpegUtil.extractFrame(mediaItemLocation, submission.start!!, imgPath)
+        FFmpegUtil.extractFrame(mediaItemLocation, submission.start, imgPath)
 
     }
 }

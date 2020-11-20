@@ -8,6 +8,7 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.run.TemporalSubmissionAspect
 import dev.dres.run.RunExecutor
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.extensions.*
@@ -185,7 +186,10 @@ class SubmissionPreviewHandler(collections: DAO<MediaCollection>, itemIndex: Dao
             val submission = run.allSubmissions.find { it.uid == submissionId }
                     ?: throw ErrorStatusException(404, "Submission '$submissionId' not found", ctx)
 
-            handlePreviewRequest(submission.item, submission.start, ctx)
+            handlePreviewRequest(
+                    submission.item,
+                    if (submission is TemporalSubmissionAspect) submission.start else null
+                    , ctx)
         } catch (e: ErrorStatusException) {
             ctx.errorResponse(e)
         }

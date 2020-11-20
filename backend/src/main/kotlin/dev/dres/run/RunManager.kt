@@ -9,6 +9,7 @@ import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.run.CompetitionRun
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.interfaces.TaskRunScorer
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.ScoreboardsUpdatable

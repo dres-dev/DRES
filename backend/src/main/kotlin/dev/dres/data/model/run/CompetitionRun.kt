@@ -173,7 +173,7 @@ open class CompetitionRun(override var id: UID, val name: String, val competitio
             if (!this.isRunning) {
                 throw IllegalStateException("Task run '${this@CompetitionRun.name}.${this.position}' is currently not running.")
             }
-            if (this@CompetitionRun.competitionDescription.teams.any { it.uid == submission.teamId }) {
+            if (!this@CompetitionRun.competitionDescription.teams.any { it.uid == submission.teamId }) {
                 throw IllegalStateException("Team ${submission.teamId} does not exists for competition run ${this@CompetitionRun.name}.")
             }
             if (!this.filter.test(submission)) {

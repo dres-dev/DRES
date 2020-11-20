@@ -9,6 +9,7 @@ import org.mapdb.Serializer
 
 object TeamSerializer : Serializer<Team> {
     override fun serialize(out: DataOutput2, value: Team) {
+        out.writeUID(value.uid)
         out.writeUTF(value.name)
         out.writeUTF(value.color)
         out.writeUID(value.logoId)
@@ -17,9 +18,10 @@ object TeamSerializer : Serializer<Team> {
     }
 
     override fun deserialize(input: DataInput2, available: Int): Team = Team(
+        input.readUID(),
         input.readUTF(),
         input.readUTF(),
-        input.readUTF(),
+        input.readUID(),
         (0 until input.unpackInt()).map { input.readUID() }.toMutableList()
     )
 }

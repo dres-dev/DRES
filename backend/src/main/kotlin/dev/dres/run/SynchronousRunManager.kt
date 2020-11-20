@@ -34,7 +34,7 @@ import kotlin.math.max
  * An implementation of [RunManager] aimed at distributed execution having a single DRES Server instance and multiple
  * viewers connected via WebSocket. Before starting a [CompetitionRun.TaskRun], all viewer instances are synchronized.
  *
- * @version 2.0.1
+ * @version 2.1.0
  * @author Ralph Gasser
  */
 class SynchronousRunManager(val run: CompetitionRun) : RunManager {
@@ -61,7 +61,6 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     override val name: String
         get() = this.run.name
 
-
     /** The [CompetitionDescription] executed by this [SynchronousRunManager]. */
     override val competitionDescription: CompetitionDescription
         get() = this.run.competitionDescription
@@ -80,10 +79,6 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
                 else -> null
             }
         }
-
-    /** Currently active [TaskRunScorer]. */
-    override val currentTaskScore: TaskRunScorer?
-        get() = this.currentTaskRun?.scorer
 
     /** The list of [Submission]s for the current [CompetitionRun.TaskRun]. */
     override val submissions: List<Submission>
@@ -112,13 +107,6 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     /** Returns list [JudgementValidator]s associated with this [SynchronousRunManager]. May be empty*/
     override val judgementValidators: List<JudgementValidator>
         get() = this.run.runs.mapNotNull { if (it.hasStarted && it.validator is JudgementValidator) it.validator else null }
-
-    /**
-     * Determines whether or not users with the role [dres.data.model.admin.Role.PARTICIPANT] can have an active
-     * viewer for this [SynchronousRunManager].
-     */
-    override val participantCanView: Boolean
-        get() = this.run.competitionDescription.participantCanView
 
     /** Internal data structure that tracks all [WebSocketConnection]s and their ready state (for [RunManagerStatus.PREPARING_TASK]) */
     private val readyLatch = ReadyLatch<WebSocketConnection>()
@@ -259,7 +247,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         check(this.status == RunManagerStatus.ACTIVE || this.status == RunManagerStatus.TASK_ENDED) { "SynchronizedRunManager is in status ${this.status}. Tasks can therefore not be started." }
 
         /* Create and prepare pipeline for submission. */
-        val ret = this.run.newTaskRun(this.competitionDescription.tasks.indexOf(this.currentTask))
+        val ret = this.run.newTaskRun(this.currentTask.id)
         val pipeline = Triple(ret.task.newFilter(), ret.task.newValidator(), ret.task.newScorer())
         (this.submissionPipeline as MutableList).add(pipeline)
 
@@ -301,11 +289,18 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     }
 
     /**
-     * Returns [CompetitionRun.TaskRun]s for a specific task ID. May be empty.
+     * Returns [CompetitionRun.TaskRun]s for a specific task [UID]. May be empty.
      *
-     * @param taskId The ID of the [Task] for which [CompetitionRun.TaskRun]s should be retrieved.
+     * @param taskRunId The [UID] of the [CompetitionRun.TaskRun].
      */
-    override fun taskRuns(taskId: Int): List<CompetitionRun.TaskRun> = this.run.runs.filter { it.taskId == taskId }
+    override fun taskRunForId(taskRunId: UID): CompetitionRun.TaskRun? = this.run.runs.find { it.uid == taskRunId }
+
+    /**
+     * Returns the number of [CompetitionRun.TaskRun]s held by this [RunManager].
+     *
+     * @return The number of [CompetitionRun.TaskRun]s held by this [RunManager]
+     */
+    override fun taskRuns(): Int = this.run.runs.size
 
     /**
      * Adjusts the duration of the current [CompetitionRun.TaskRun] by the specified amount. Amount can be either positive or negative.
@@ -479,7 +474,6 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         } catch (e: Exception){
             LOGGER.error("Could not write run to disk: ", e)
         }
-
     }
 
     /**

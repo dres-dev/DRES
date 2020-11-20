@@ -54,7 +54,7 @@ class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdat
             scorersToUpdate.forEach {
                 val task = it.first
                 if (it.first.started != null) {
-                    it.second.computeScores(task.submissions, task.competition.competitionDescription.teams.indices.toList(), task.started!!, task.duration, task.ended ?: 0)
+                    it.second.computeScores(task.submissions, task.competition.competitionDescription.teams.map { t -> t.uid }, task.started!!, task.duration, task.ended ?: 0)
                 }
             }
 

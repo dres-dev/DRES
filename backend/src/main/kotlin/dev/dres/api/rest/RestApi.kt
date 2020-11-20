@@ -94,8 +94,6 @@ object RestApi {
                 ListCompetitionRunStatesHandler(),
                 GetCompetitionRunInfoHandler(),
                 GetCompetitionRunStateHandler(),
-                ListCompetitionScoreHandler(),
-                CurrentTaskScoreHandler(),
                 CurrentTaskHintHandler(config),
                 CurrentTaskTargetHandler(config, dataAccessLayer.collections),
                 CurrentTaskInfoHandler(),

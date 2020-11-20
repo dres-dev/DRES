@@ -12,11 +12,11 @@ import dev.dres.run.validation.interfaces.SubmissionValidator
 import java.util.*
 
 /**
- * Represents a concrete [Run] of a [CompetitionDescription]. [CompetitionRun]s can be started and ended and they
- * can be used to create new [TaskRun]s and access the current [TaskRun].
+ * Represents a concrete [Run] of a [CompetitionDescription]. [CompetitionRun]s can be started and
+ * ended and they can be used to create new [TaskRun]s and access the current [TaskRun].
  *
  * @author Ralph Gasser
- * @param 1.2
+ * @param 1.2.1
  */
 open class CompetitionRun(override var id: UID, val name: String, val competitionDescription: CompetitionDescription): Run, Entity {
 
@@ -68,13 +68,13 @@ open class CompetitionRun(override var id: UID, val name: String, val competitio
     }
 
     /**
-     * Creates a new [TaskRun] for the given [Task].
+     * Creates a new [TaskRun] for the given [TaskDescription].
      *
-     * @param task ID of the [Task] to start a [TaskRun]
+     * @param taskId [UID] of the [TaskDescription] to start a [TaskRun] for.
      */
-    fun newTaskRun(task: Int): TaskRun {
+    fun newTaskRun(taskId: UID): TaskRun {
         if (this@CompetitionRun.runs.isEmpty() || this@CompetitionRun.runs.last().hasEnded) {
-            val ret = TaskRun(task)
+            val ret = TaskRun(taskId = taskId)
             (this.runs as MutableList<TaskRun>).add(ret)
             return ret
         } else {
@@ -85,45 +85,34 @@ open class CompetitionRun(override var id: UID, val name: String, val competitio
     override fun toString(): String = "CompetitionRun(id=$id, name=${name})"
 
     /**
-     * Represents a concrete [Run] of a [Task]. [TaskRun]s always exist within a [CompetitionRun].
+     * Represents a concrete [Run] of a [TaskDescription]. [TaskRun]s always exist within a [CompetitionRun].
      * As a [CompetitionRun], [TaskRun]s can be started and ended and they can be used to register [Submission]s.
      *
-     * @version 1.1
+     * @version 1.2.0
      * @author Ralph Gasser
      */
     @JsonIgnoreProperties(value = ["competition"])
-    inner class TaskRun (val taskId: Int, val uid: String = UUID.randomUUID().toString()): Run {
+    inner class TaskRun (val uid: UID = UID(), val taskId: UID): Run {
 
-        internal constructor(task: Int, uid: String, started: Long, ended: Long): this(task, uid) {
+        internal constructor(uid: UID, taskId: UID, started: Long, ended: Long): this(uid, taskId) {
             this.started =  if (started == -1L) { null } else { started }
             this.ended = if (ended == -1L) { null } else { ended }
         }
 
-        /** Timestamp of when this [TaskRun] was started. */
-        @Volatile
-        override var started: Long? = null
-            private set
-
-        /** Timestamp of when this [TaskRun] was ended. */
-        @Volatile
-        override var ended: Long? = null
-            private set
-
-        /** Duration of this [TaskRun]. Defaults to the duration specified in the [TaskDescription]. */
-        @Volatile
-        var duration: Long = this@CompetitionRun.competitionDescription.tasks[this@TaskRun.taskId].duration
-
         /** List of [Submission]s* registered for this [TaskRun]. */
         val submissions: List<Submission> = mutableListOf()
-
-        val task: TaskDescription
-            get() = this@CompetitionRun.competitionDescription.tasks[this@TaskRun.taskId]
-
-
 
         /** The [CompetitionRun] this [TaskRun] belongs to.*/
         val competition: CompetitionRun
             get() = this@CompetitionRun
+
+        /** The position of this [TaskRun] within the [CompetitionRun]. */
+        val position: Int
+            get() = this@CompetitionRun.runs.indexOf(this)
+
+        /** Reference to the [TaskDescription] describing this [TaskRun]. */
+        @Transient
+        val task: TaskDescription = this@CompetitionRun.competitionDescription.tasks.find { it.id == this.taskId } ?: throw IllegalArgumentException("There is no task with ID ${this.taskId}.")
 
         /** The [SubmissionFilter] used to filter [Submission]s. */
         @Transient
@@ -137,15 +126,19 @@ open class CompetitionRun(override var id: UID, val name: String, val competitio
         @Transient
         val validator: SubmissionValidator = this.task.newValidator()
 
-        /** The position of this [TaskRun] within the [CompetitionRun]. */
-        private val position: Int
-            get() = this@CompetitionRun.runs.indexOf(this)
+        /** Timestamp of when this [TaskRun] was started. */
+        @Volatile
+        override var started: Long? = null
+            private set
 
-        init {
-            if (this@CompetitionRun.competitionDescription.tasks.size < this.taskId) {
-                throw IllegalArgumentException("There is no task with ID $taskId.")
-            }
-        }
+        /** Timestamp of when this [TaskRun] was ended. */
+        @Volatile
+        override var ended: Long? = null
+            private set
+
+        /** Duration of this [TaskRun]. Defaults to the duration specified in the [TaskDescription]. */
+        @Volatile
+        var duration: Long = this.task.duration
 
         /**
          * Starts this [CompetitionRun.TaskRun].
@@ -180,8 +173,8 @@ open class CompetitionRun(override var id: UID, val name: String, val competitio
             if (!this.isRunning) {
                 throw IllegalStateException("Task run '${this@CompetitionRun.name}.${this.position}' is currently not running.")
             }
-            if (this@CompetitionRun.competitionDescription.teams.size < submission.team) {
-                throw IllegalStateException("Team ${submission.team} does not exists for competition run ${this@CompetitionRun.name}.")
+            if (this@CompetitionRun.competitionDescription.teams.any { it.uid == submission.teamId }) {
+                throw IllegalStateException("Team ${submission.teamId} does not exists for competition run ${this@CompetitionRun.name}.")
             }
             if (!this.filter.test(submission)) {
                 throw IllegalArgumentException("The provided submission $submission was rejected.")

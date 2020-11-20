@@ -21,7 +21,7 @@ import java.util.*
  * @see CompetitionRun
  *
  * @author Ralph Gasser
- * @version 1.3
+ * @version 1.4.0
  */
 interface RunManager : Runnable {
     /** Unique, public, numeric ID for this [RunManager]. */
@@ -36,14 +36,12 @@ interface RunManager : Runnable {
 
     /** The [ScoreboardsUpdatable] used to track the scores per team. */
     val scoreboards: ScoreboardsUpdatable
-
     /**
      * Reference to the currently active [TaskDescription].
      *
      * Part of the [RunManager]'s navigational state.
      */
     val currentTask: TaskDescription?
-        get() = currentTaskRun?.task
 
     /**
      * Reference to the [CompetitionRun.TaskRun] that is currently being executed OR that has just ended.
@@ -51,13 +49,6 @@ interface RunManager : Runnable {
      * Part of the [RunManager]'s execution state. Can be null!
      */
     val currentTaskRun: CompetitionRun.TaskRun?
-
-    /**
-     * Reference to the [TaskRunScorer] of the [CompetitionRun.TaskRun] that is currently being executed.
-     *
-     * Part of the [RunManager]'s execution state. Can be null!
-     */
-    val currentTaskScore: TaskRunScorer?
 
     /**
      * List of [Submission]s for the current [CompetitionRun.TaskRun].
@@ -74,9 +65,6 @@ interface RunManager : Runnable {
 
     /** [JudgementValidator]s for all tasks that use them */
     val judgementValidators: List<JudgementValidator>
-
-    /** determines if users with the role [RestApiRole.PARTICIPANT] have access to the task viewer */
-    val participantCanView: Boolean
 
     /**
      * Starts this [RunManager] moving [RunManager.status] from [RunManagerStatus.CREATED] to
@@ -178,11 +166,19 @@ interface RunManager : Runnable {
     fun timeLeft(): Long
 
     /**
-     * Returns [CompetitionRun.TaskRun]s for a specific task ID. May be empty.
+     * Returns [CompetitionRun.TaskRun]s for the specified index. The index is zero based, i.e.,
+     * an index of 0 returns the first [CompetitionRun.TaskRun], index of 1 the second etc.
      *
-     * @param taskId The ID of the [Task] for which [CompetitionRun.TaskRun]s should be retrieved.
+     * @param taskRunId The [UID] of the desired [CompetitionRun.TaskRun].
      */
-    fun taskRuns(taskId: Int): List<CompetitionRun.TaskRun>
+    fun taskRunForId(taskRunId: UID): CompetitionRun.TaskRun?
+
+    /**
+     * Returns the number of [CompetitionRun.TaskRun]s held by this [RunManager].
+     *
+     * @return The number of [CompetitionRun.TaskRun]s held by this [RunManager]
+     */
+    fun taskRuns(): Int
 
     /**
      * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.

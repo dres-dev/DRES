@@ -33,7 +33,7 @@ class EndTaskUpdatable(private val run: RunManager) : Updatable {
             /* fetch the correct submissions teams */
             val correctSubmissionTeams = run.currentTaskRun!!.submissions.filter {
                 it.status == SubmissionStatus.CORRECT
-            }.map { it.team }.toSet()
+            }.map { it.teamId }.toSet()
 
             /* Do all teams have a correct submission ? */
             if (run.timeLeft() > 5000 &&

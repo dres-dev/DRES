@@ -66,8 +66,13 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
 
     private fun toSubmission(ctx: Context, userId: UID, runManager: RunManager, submissionTime: Long): Submission {
         val map = ctx.queryParamMap()
-        val team = runManager.competitionDescription.teams.indexOf(runManager.competitionDescription.teams.first { it.users.contains(userId) })
 
+        /* Find team that the user belongs to. */
+        val team = runManager.competitionDescription.teams.find {
+            it.users.contains(userId)
+        }?.uid ?: throw ErrorStatusException(404, "No team for user '$userId' could not be found.", ctx)
+
+        /* Find collectionId the submission belongs to.. */
         val collectionParam = map[PARAMETER_NAME_COLLECTION]?.first()
         val collectionId: UID = when {
             collectionParam != null -> this.collections.find { it.name == collectionParam }?.id
@@ -84,19 +89,19 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) && item is MediaItem.VideoItem -> {
                 val time = this.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item, ctx)
-                Submission(team, userId, submissionTime, item, time.first, time.second)
+                Submission(teamId = team, memberId = userId, timestamp = submissionTime, item = item, start = time.first, end = time.second)
             }
             map.containsKey(PARAMETER_NAME_FRAME) && (item is PlayableMediaItem) -> {
                 val time = this.frameToTime(map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull() ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number.", ctx), item)
                 val range = if(mapToSegment && item is MediaItem.VideoItem) timeToSegment(time, item, ctx) else time to time
-                Submission(team, userId, submissionTime, item, range.first, range.second)
+                Submission(teamId = team, memberId = userId, timestamp = submissionTime, item = item, start = range.first, end = range.second)
             }
             map.containsKey(PARAMETER_NAME_TIMECODE) && (item is PlayableMediaItem) -> {
                 val time = this.timecodeToTime(map[PARAMETER_NAME_TIMECODE]?.first()!!, item, ctx)
                 val range = if(mapToSegment && item is MediaItem.VideoItem) timeToSegment(time, item, ctx) else time to time
-                Submission(team, userId, submissionTime, item, range.first, range.second)
+                Submission(teamId = team, memberId = userId, timestamp = submissionTime, item = item, start = range.first, end = range.second)
             }
-            else -> Submission(team, userId, submissionTime, item)
+            else -> Submission(teamId = team, memberId = userId, timestamp = submissionTime, item = item)
         }.also {
             it.taskRun = runManager.currentTaskRun
         }

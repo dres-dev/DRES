@@ -6,7 +6,7 @@ import dev.dres.data.model.run.Submission
 class DuplicateSubmissionFilter : SubmissionFilter {
     override fun test(submission: Submission): Boolean = submission.taskRun!!.submissions.none {
 
-        it.team == submission.team &&
+        it.teamId == submission.teamId &&
         it.item == submission.item &&
 
          if(submission.item is MediaItem.VideoItem) {

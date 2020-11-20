@@ -1,5 +1,6 @@
 package dev.dres.run.eventstream.handlers
 
+import dev.dres.data.model.UID
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.eventstream.*
@@ -10,9 +11,9 @@ class SubmissionStatisticsHandler : StreamEventHandler {
 
     private val writer = PrintWriter(File("statistics/submission_statistics_${System.currentTimeMillis()}.csv").also { it.parentFile.mkdirs() })
 
-    private val submissionTaskMap = mutableMapOf<String, MutableList<Submission>>()
-    private val taskStartMap = mutableMapOf<String, Long>()
-    private val taskNameMap = mutableMapOf<String, String>()
+    private val submissionTaskMap = mutableMapOf<UID, MutableList<Submission>>()
+    private val taskStartMap = mutableMapOf<UID, Long>()
+    private val taskNameMap = mutableMapOf<UID, String>()
 
     init {
         writer.println("task,team,type,value")
@@ -41,7 +42,7 @@ class SubmissionStatisticsHandler : StreamEventHandler {
 
     private fun computeStatistics(submissions: List<Submission>, taskStart: Long, task: String) {
 
-        val submissionsByTeam = submissions.groupBy { it.team }
+        val submissionsByTeam = submissions.groupBy { it.teamId }
 
         submissionsByTeam.mapValues { it.value.size }.forEach{
             (teamId, count) -> writer.println("$task,$teamId,\"totalSubmissionsPerTeam\",$count")

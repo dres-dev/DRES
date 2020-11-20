@@ -10,23 +10,23 @@ import org.mapdb.Serializer
 
 object SubmissionSerializer : Serializer<Submission> {
     override fun serialize(out: DataOutput2, value: Submission) {
-        out.packInt(value.team)
-        out.writeUID(value.member)
+        out.writeUID(value.uid)
+        out.writeUID(value.teamId)
+        out.writeUID(value.memberId)
         out.packLong(value.timestamp)
         MediaItemSerializer.serialize(out, value.item)
         out.packLong(value.start ?: -1L)
         out.packLong(value.end ?: -1L)
-        out.writeUTF(value.uid)
         out.packInt(value.status.ordinal)
     }
 
     override fun deserialize(input: DataInput2, available: Int): Submission = Submission(
-        input.unpackInt(),
+        input.readUID(),
+        input.readUID(),
         input.readUID(),
         input.unpackLong(),
         MediaItemSerializer.deserialize(input, available),
         input.unpackLong().let { if (it == -1L) { null } else { it } },
-        input.unpackLong().let { if (it == -1L) { null } else { it } },
-        input.readUTF()
+        input.unpackLong().let { if (it == -1L) { null } else { it } }
     ).apply { this.status = SubmissionStatus.values()[input.unpackInt()] }
 }

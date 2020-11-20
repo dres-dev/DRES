@@ -176,7 +176,8 @@ class SubmissionPreviewHandler(collections: DAO<MediaCollection>, itemIndex: Dao
 
             val runId = params["runId"]?.UID()
                     ?: throw ErrorStatusException(404, "Parameter 'runId' is invalid", ctx)
-            val submissionId = params["submissionId"]
+
+            val submissionId = params["submissionId"]?.UID()
                     ?: throw ErrorStatusException(404, "Parameter 'submissionId' is missing", ctx)
 
             val run = RunExecutor.managerForId(runId)

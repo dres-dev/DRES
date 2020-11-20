@@ -233,43 +233,51 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
             private val ids: List<String> by option("-i", "--ids", help = "UIDs of the submissions to reset").multiple()
 
             override fun run() {
-
+                /* Fetch competition run. */
                 val run = this@CompetitionRunCommand.runs[this.runId]
                 if (run == null) {
                     println("Run does not seem to exist.")
                     return
                 }
 
-                val submissions = run.runs.flatMap { it.submissions }.filter { it.uid in ids }
+                /* Fetch submissions and reset them. */
+                val submissions = run.runs.flatMap {
+                    it.submissions
+                }.filter {
+                    it.uid.string in ids
+                }
                 submissions.forEach { it.status = SubmissionStatus.INDETERMINATE }
 
+                /* Update competition run through dao. */
                 this@CompetitionRunCommand.runs.update(run)
-
-                println("reset ${submissions.size} submissions")
-
+                println("Successfully reset ${submissions.size} submissions.")
             }
         }
 
-        inner class ResetTaskSubmissionStatusCommand : CliktCommand(name = "task", help = "Resets the status of all submissions of specified tasks") {
+        inner class ResetTaskSubmissionStatusCommand : CliktCommand(name = "task", help = "Resets the status of all submissions of specified tasks.") {
 
-            private val runId: UID by option("-r", "--run", help = "Id of the run").convert { it.UID() }.required()
-            private val ids: List<String> by option("-i", "--ids", help = "UIDs of the tasks to reset").multiple()
+            private val runId: UID by option("-r", "--run", help = "UID of the runs").convert { it.UID() }.required()
+            private val ids: List<String> by option("-i", "--ids", help = "UIDs of the task runs to resets").multiple()
 
             override fun run() {
 
+                /* Fetch competition run. */
                 val run = this@CompetitionRunCommand.runs[this.runId]
                 if (run == null) {
                     println("Run does not seem to exist.")
                     return
                 }
 
-                val submissions = run.runs.filter { it.uid in ids }.flatMap { it.submissions }
+                /* Fetch submissions and reset them. */
+                val submissions = run.runs.filter {
+                    it.uid.string in ids
+                }.flatMap {
+                    it.submissions
+                }
                 submissions.forEach { it.status = SubmissionStatus.INDETERMINATE }
 
                 this@CompetitionRunCommand.runs.update(run)
-
-                println("reset ${submissions.size} submissions")
-
+                println("Successfully reset ${submissions.size} submissions.")
             }
         }
 

@@ -1,12 +1,14 @@
 package dev.dres.run.score.scoreboard
 
+import dev.dres.data.model.UID
 import dev.dres.data.model.competition.Team
 import dev.dres.data.model.run.CompetitionRun
+import org.checkerframework.checker.guieffect.qual.UI
 
 /**
  * Container for [Scoreboard].
  */
-data class Score(val teamId: Int, val score: Double)
+data class Score(val teamId: String, val score: Double)
 
 data class ScoreOverview(val name: String, val taskGroup: String?, val scores: List<Score>)
 
@@ -14,9 +16,14 @@ data class ScoreOverview(val name: String, val taskGroup: String?, val scores: L
  * A [Scoreboard] tracks the [Score]s for different [Teams]
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.0.1
  */
 interface Scoreboard {
+
+    /**
+     * Returns the name of the [Scoreboard]
+     */
+    val name: String
 
     /**
      * Returns all overall [Score]s tracked by this [Scoreboard].
@@ -24,22 +31,17 @@ interface Scoreboard {
     fun scores(): List<Score>
 
     /**
-     * Retrieves and returns the score of the given [Team]
+     * Retrieves and returns the score of the given [Team] [UID]
      *
-     * @param team The [Team]'s ID.
+     * @param teamId The [Team]'s [UID].
      * @return The score for the given [Team].
      */
-    fun score(teamId: Int): Double
+    fun score(teamId: UID): Double
 
     /**
      * Updates the [Scoreboard].
      */
     fun update(runs: List<CompetitionRun.TaskRun>)
-
-    /**
-     * Returns the name of the [Scoreboard]
-     */
-    fun name(): String
 
     /**
      * Returns a summary of all current scores in a [ScoreOverview]

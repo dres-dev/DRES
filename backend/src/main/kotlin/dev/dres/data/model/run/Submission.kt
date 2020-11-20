@@ -12,16 +12,17 @@ import java.util.*
  * A [Submission] as received by a competition participant.
  *
  * @author Ralph Gasser & Luca Rossetto
- * @version 1.0
+ * @version 1.0.1
  */
 
-data class Submission(val team: Int,
-                      val member: UID,
-                      val timestamp: Long,
-                      val item: MediaItem,
-                      val start: Long? = null, //in ms
-                      val end: Long? = null, //in ms
-                      val uid: String = UUID.randomUUID().toString()
+data class Submission(
+        val uid: UID = UID(),
+        val teamId: UID,
+        val memberId: UID,
+        val timestamp: Long,
+        val item: MediaItem,
+        val start: Long? = null, //in ms
+        val end: Long? = null, //in ms
 ) {
 
     var status: SubmissionStatus = SubmissionStatus.INDETERMINATE

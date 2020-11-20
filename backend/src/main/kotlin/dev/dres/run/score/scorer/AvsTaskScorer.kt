@@ -1,5 +1,6 @@
 package dev.dres.run.score.scorer
 
+import dev.dres.data.model.UID
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.score.interfaces.RecalculatingTaskRunScorer
@@ -9,16 +10,16 @@ import kotlin.concurrent.read
 
 class AvsTaskScorer: RecalculatingTaskRunScorer {
 
-    private var lastScores: Map<Int, Double> = emptyMap()
+    private var lastScores: Map<UID, Double> = emptyMap()
     private val lastScoresLock = ReentrantReadWriteLock()
 
-    override fun computeScores(submissions: Collection<Submission>, teamIds: Collection<Int>, taskStartTime: Long, taskDuration: Long, taskEndTime: Long): Map<Int, Double> {
+    override fun computeScores(submissions: Collection<Submission>, teamIds: Collection<UID>, taskStartTime: Long, taskDuration: Long, taskEndTime: Long): Map<UID, Double> {
 
         val correctSubmissions = submissions.filter { it.status == SubmissionStatus.CORRECT }
         val wrongSubmissions = submissions.filter { it.status == SubmissionStatus.WRONG }
 
-        val correctSubmissionsPerTeam = correctSubmissions.groupBy { it.team }
-        val wrongSubmissionsPerTeam = wrongSubmissions.groupBy { it.team }
+        val correctSubmissionsPerTeam = correctSubmissions.groupBy { it.teamId }
+        val wrongSubmissionsPerTeam = wrongSubmissions.groupBy { it.teamId }
 
         val temporal = correctSubmissions.all { it.start != null && it.end != null }
 
@@ -56,6 +57,5 @@ class AvsTaskScorer: RecalculatingTaskRunScorer {
         return lastScores
     }
 
-    override fun scores(): Map<Int, Double> = this.lastScoresLock.read { this.lastScores }
-
+    override fun scores(): Map<UID, Double> = this.lastScoresLock.read { this.lastScores }
 }

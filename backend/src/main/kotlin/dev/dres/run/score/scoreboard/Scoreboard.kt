@@ -13,7 +13,7 @@ data class Score(val teamId: String, val score: Double)
 data class ScoreOverview(val name: String, val taskGroup: String?, val scores: List<Score>)
 
 /**
- * A [Scoreboard] tracks the [Score]s for different [Teams]
+ * A [Scoreboard] tracks the [Score]s for different [Team]s
  *
  * @author Ralph Gasser
  * @version 1.0.1

@@ -36,6 +36,10 @@ interface RunManager : Runnable {
 
     /** The [ScoreboardsUpdatable] used to track the scores per team. */
     val scoreboards: ScoreboardsUpdatable
+
+    /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
+    val scoreHistory: List<ScoreTimePoint>
+
     /**
      * Reference to the currently active [TaskDescription].
      *

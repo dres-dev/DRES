@@ -99,7 +99,7 @@ object RestApi {
                 CurrentTaskInfoHandler(),
                 SubmissionInfoHandler(),
                 RecentSubmissionInfoHandler(),
-                PastSubmissionInfoHandler(),
+                HistorySubmissionInfoHandler(),
 
                 // Competition run scores
                 ListCompetitionScoreHandler(),
@@ -290,7 +290,6 @@ object RestApi {
                 })
             }
         } else {
-
             return Server().apply {
                 //HTTP Connector
                 addConnector(ServerConnector(server, HttpConnectionFactory(httpConfig), HTTP2ServerConnectionFactory(httpConfig)).apply {
@@ -298,10 +297,6 @@ object RestApi {
                 })
 
             }
-
         }
-
     }
-
-
 }

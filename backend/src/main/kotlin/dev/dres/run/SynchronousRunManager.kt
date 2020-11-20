@@ -17,6 +17,7 @@ import dev.dres.run.audit.LogEventSource
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
 import dev.dres.run.filter.SubmissionFilter
+import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.interfaces.TaskRunScorer
 import dev.dres.run.updatables.*
 import dev.dres.run.validation.interfaces.JudgementValidator
@@ -111,8 +112,14 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     /** Internal data structure that tracks all [WebSocketConnection]s and their ready state (for [RunManagerStatus.PREPARING_TASK]) */
     private val readyLatch = ReadyLatch<WebSocketConnection>()
 
+    /** History of scores over time*/
+    private val scoreTimeSeries = ArrayList<ScoreTimePoint>()
+
+    override val scoreHistory: List<ScoreTimePoint>
+        get() = scoreTimeSeries
+
     /** The internal [ScoreboardsUpdatable] instance for this [SynchronousRunManager]. */
-    override val scoreboards = ScoreboardsUpdatable(this.competitionDescription.generateDefaultScoreboards(), this.run)
+    override val scoreboards = ScoreboardsUpdatable(this.competitionDescription.generateDefaultScoreboards(), this.run, scoreTimeSeries)
 
     /** The internal [MessageQueueUpdatable] instance used by this [SynchronousRunManager]. */
     private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)

@@ -71,7 +71,7 @@ class ListCompetitionScoreHandler : AbstractScoreRestHandler(), GetRestHandler<L
     @OpenApi(
             summary = "Returns the score overviews of a specific competition run.",
             path = "/api/score/run/:runId",
-            tags = ["Competition Run"],
+            tags = ["Competition Run Scores"],
             pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<ScoreOverview>::class)]),
@@ -99,7 +99,7 @@ class CurrentTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
     @OpenApi(
             summary = "Returns the overviews of all score boards for the current task run, if it is either running or has just ended.",
             path = "/api/score/run/:runId/current",
-            tags = ["Competition Run"],
+            tags = ["Competition Run Scores"],
             pathParams = [OpenApiParam("runId", UID::class, "Competition run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(ScoreOverview::class)]),
@@ -135,12 +135,12 @@ class CurrentTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
  */
 class HistoryTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<ScoreOverview> {
 
-    override val route = "run/score/run/:runId/history/:taskId"
+    override val route = "score/run/:runId/history/:taskId"
 
     @OpenApi(
             summary = "Returns the overviews of all score boards for the specified task run.",
             path = "/api/score/run/:runId/history/:taskId",
-            tags = ["Competition Run"],
+            tags = ["Competition Run Scores"],
             pathParams = [
                 OpenApiParam("runId", String::class, "Competition run ID"),
                 OpenApiParam("taskId", String::class, "Task run ID")

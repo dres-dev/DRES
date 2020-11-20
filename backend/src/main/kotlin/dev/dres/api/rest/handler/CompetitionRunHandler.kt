@@ -280,10 +280,10 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
 
 
 class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
-    override val route = "run/:runId/task/submission/list"
+    override val route = "run/:runId/submissions"
     @OpenApi(
             summary = "Returns the submissions for the current task run, if it is either running or has just ended.",
-            path = "/api/run/:runId/task/submission/list",
+            path = "/api/run/:runId/submissions",
             tags = ["Competition Run"],
             pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             responses = [
@@ -315,14 +315,14 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
 }
 
 class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
-    override val route = "run/:runId/task/submission/list/after/:timestamp"
+    override val route = "run/:runId/submissions/after/:timestamp"
     @OpenApi(
             summary = "Returns the submissions for the current task that are newer than an indicated time, if it is either running or has just ended.",
-            path = "/api/run/:runId/task/submission/list/after/:timestamp",
+            path = "/api/run/:runId/submissions/after/:timestamp",
             tags = ["Competition Run"],
             pathParams = [
                 OpenApiParam("runId", UID::class, "Competition Run ID"),
-                OpenApiParam("timestamp", Long::class, "Minimum Timestamp for returned Submissions")
+                OpenApiParam("timestamp", Long::class, "Minimum Timestamp of returned submissions.")
             ],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
@@ -352,11 +352,13 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
     }
 }
 
-class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
+class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
+
     override val route = "run/:runId/task/:taskId/submissions"
+
     @OpenApi(
             summary = "Returns the submissions of a specific task run, regardless of whether it is currently running or has ended.",
-            path = "/api/run/:runId/task/:taskId/submissions/",
+            path = "/api/run/:runId/task/:taskId/submissions",
             tags = ["Competition Run"],
             pathParams = [
                 OpenApiParam("runId", String::class, "Competition Run ID"),

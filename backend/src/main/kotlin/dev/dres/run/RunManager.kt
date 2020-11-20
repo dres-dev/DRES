@@ -1,7 +1,7 @@
 package dev.dres.run
 
-import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.RestApiRole
+import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.run.websocket.ClientMessage
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
@@ -9,6 +9,7 @@ import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.run.CompetitionRun
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.interfaces.TaskRunScorer
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.ScoreboardsUpdatable
@@ -36,6 +37,9 @@ interface RunManager : Runnable {
 
     /** The [ScoreboardsUpdatable] used to track the scores per team. */
     val scoreboards: ScoreboardsUpdatable
+
+    /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
+    val scoreHistory: List<ScoreTimePoint>
 
     /**
      * Reference to the currently active [TaskDescription].

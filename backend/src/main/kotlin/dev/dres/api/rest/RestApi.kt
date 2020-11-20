@@ -13,7 +13,6 @@ import io.javalin.plugin.openapi.OpenApiPlugin
 import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.swagger.v3.oas.models.info.Info
-import jdk.internal.jline.console.history.History
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory
 import org.eclipse.jetty.http.HttpCookie
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory

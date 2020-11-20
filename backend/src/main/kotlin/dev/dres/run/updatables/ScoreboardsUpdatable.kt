@@ -30,7 +30,7 @@ class ScoreboardsUpdatable(val scoreboards: List<Scoreboard>, private val run: C
             this.dirty = false
             this.scoreboards.forEach {
                 it.update(this.run.runs)
-                it.scores().map{ score -> this.timeSeries.add(ScoreTimePoint(it.name(), score)) }
+                it.scores().map{ score -> this.timeSeries.add(ScoreTimePoint(it.name, score)) }
             }
         }
     }

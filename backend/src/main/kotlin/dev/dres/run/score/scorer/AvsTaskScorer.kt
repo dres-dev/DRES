@@ -3,6 +3,7 @@ package dev.dres.run.score.scorer
 import dev.dres.data.model.UID
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.run.TemporalSubmissionAspect
 import dev.dres.run.score.interfaces.RecalculatingTaskRunScorer
 import dev.dres.utilities.TimeUtil
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -21,12 +22,12 @@ class AvsTaskScorer: RecalculatingTaskRunScorer {
         val correctSubmissionsPerTeam = correctSubmissions.groupBy { it.teamId }
         val wrongSubmissionsPerTeam = wrongSubmissions.groupBy { it.teamId }
 
-        val temporal = correctSubmissions.all { it.start != null && it.end != null }
+        val temporal = correctSubmissions.all { it is TemporalSubmissionAspect }
 
         lastScores = if (temporal){
 
             val ranges = submissions.groupBy { it.item.id }.map { (item, submissions) ->
-                item to TimeUtil.merge(submissions.map { it.temporalRange() }, overlap = 1000)
+                item to TimeUtil.merge(submissions.map { (it as TemporalSubmissionAspect).temporalRange }, overlap = 1000)
             }.toMap()
 
             teamIds.map { team ->
@@ -37,7 +38,7 @@ class AvsTaskScorer: RecalculatingTaskRunScorer {
                     val rangesInItem = ranges[item.id]!!
 
                     subs.map {
-                        val tr = it.temporalRange()
+                        val tr = (it as TemporalSubmissionAspect).temporalRange
                         rangesInItem.find { it.contains(tr) }
                     }.toSet().size
                 }.sum()

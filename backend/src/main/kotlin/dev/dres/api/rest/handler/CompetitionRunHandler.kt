@@ -1,3 +1,4 @@
+
 package dev.dres.api.rest.handler
 
 import dev.dres.api.rest.AccessManager
@@ -18,6 +19,7 @@ import dev.dres.data.model.competition.TaskGroup
 import dev.dres.data.model.competition.TaskType
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.run.TemporalSubmissionAspect
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
@@ -393,8 +395,8 @@ class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
 }
 
 data class SubmissionInfo(val id: String? = null, val team: String, val member: String, val status: SubmissionStatus, val timestamp: Long,  val item: RestMediaItem? = null, val start: Long? = null, val end: Long? = null) {
-    constructor(submission: Submission) : this(submission.uid.string, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp, RestMediaItem.fromMediaItem(submission.item), submission.start, submission.end)
-
+    constructor(submission: Submission) : this(submission.uid.string, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp, RestMediaItem.fromMediaItem(submission.item), null, null)
+    constructor(submission: TemporalSubmissionAspect) : this(submission.uid.string, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp, RestMediaItem.fromMediaItem(submission.item), submission.start, submission.end)
     companion object {
         fun blind(submission: Submission): SubmissionInfo = SubmissionInfo(null, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp)
         fun withId(submission: Submission): SubmissionInfo = SubmissionInfo(submission.uid.string, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp)

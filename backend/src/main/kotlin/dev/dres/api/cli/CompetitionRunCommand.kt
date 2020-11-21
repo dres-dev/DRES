@@ -29,6 +29,15 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
         subcommands(OngoingCompetitionRunsCommand(), ListCompetitionRunsCommand(), DeleteRunCommand(), ExportRunCommand(), CompetitionRunsHistoryCommand(), ResetSubmissionStatusCommand())
     }
 
+    override fun aliases(): Map<String, List<String>> {
+        return mapOf(
+                "ls" to listOf("ongoing"),
+                "la" to listOf("list"),
+                "remove" to listOf("delete"),
+                "drop" to listOf("delete")
+        )
+    }
+
     /**
      * Helper class that contains all information regarding a [RunManager].
      */
@@ -60,7 +69,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                     }
                     body {
                         RunExecutor.managers().forEach {
-                            row(it.id, it.name, it.competitionDescription.description, it.currentTask?.name
+                            row(it.id.string, it.name, it.competitionDescription.description, it.currentTask?.name
                                     ?: "N/A", it.status)
                         }
                     }
@@ -126,7 +135,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
             if (deleted != null) {
                 println("Run $deleted deleted successfully!")
             } else {
-                println("Run with ID $id could not be deleted because it doesn't exist!")
+                println("Run with ID ${id.string} could not be deleted because it doesn't exist!")
             }
         }
     }

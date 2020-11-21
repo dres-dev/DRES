@@ -32,6 +32,15 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
         this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand(), PrepareCompetitionCommand(), DeleteCompetitionCommand(), CopyCompetitionCommand(), ExportCompetitionCommand(), ImportCompetitionCommand())
     }
 
+    override fun aliases(): Map<String, List<String>> {
+        return mapOf(
+                "ls" to listOf("list"),
+                "remove" to listOf("delete"),
+                "drop" to listOf("delete"),
+                "add" to listOf("create")
+        )
+    }
+
     private val taskCacheLocation = File(config.cachePath + "/tasks")
 
     abstract inner class AbstractCompetitionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {
@@ -58,7 +67,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
         override fun run() {
             val newCompetition = CompetitionDescription(id = UID.EMPTY, name = name, description = description, taskTypes = mutableListOf(), taskGroups = mutableListOf(), teams = mutableListOf(), tasks = mutableListOf(), participantCanView = true)
             val id = this@CompetitionCommand.competitions.append(newCompetition)
-            println("New competition '$newCompetition' created with ID=$id.")
+            println("New competition '$newCompetition' created with ID=${id.string}.")
         }
     }
 
@@ -77,7 +86,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                 }
                 body {
                     this@CompetitionCommand.competitions.forEach {
-                        row(it.name, it.id, it.teams.size, it.tasks.size, it.description, if(it.participantCanView){"x"}else{""}).also { no++ }
+                        row(it.name, it.id.string, it.teams.size, it.tasks.size, it.description, if(it.participantCanView){"x"}else{""}).also { no++ }
                     }
                 }
             })

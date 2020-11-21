@@ -40,7 +40,7 @@ class GetAuditLogInfoHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>)
 
 class LatestAuditLogHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>) : AuditLogHandler(auditTimes), GetRestHandler<Array<RestAuditLogEntry>> {
 
-    override val route = "audit/latest"
+    override val route = "audit/latest/"
 
     @OpenApi(
             summary = "Gives the latest audit log entires",

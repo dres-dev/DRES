@@ -82,7 +82,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             this@MediaCollectionCommand.collections.append(
                     MediaCollection(name = name.trim(), description = description, basePath = basePath.cleanPathString())
             )
-            println("added collection")
+            println("Successfully added collection")
         }
     }
 
@@ -128,7 +128,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 this@MediaCollectionCommand.collections.delete(id)
                 val newCollection = MediaCollection(id, newName, newDesc, newBasePath)
                 this@MediaCollectionCommand.collections.append(newCollection)
-                println("Updated collection with id $id")
+                println("Updated collection with id ${id.string}")
             }else{
                 println("Done. Nothing to update")
             }

@@ -23,6 +23,13 @@ object EventStreamProcessor {
     private val handlerLock = StampedLock()
     private val eventSink = PrintWriter(File("events/${System.currentTimeMillis()}.txt").also { it.parentFile.mkdirs() })
 
+    private val eventBuffer = mutableListOf<StreamEvent>()
+    private val eventBufferRetentionTime = 60_000 //TODO make configurable
+    private val eventBufferLock = StampedLock()
+
+    val recentEvents: List<StreamEvent>
+    get() = eventBufferLock.read {eventBuffer}
+
     fun event(event: StreamEvent) = eventQueue.add(event)
     fun register(vararg handler: StreamEventHandler) = handlerLock.write { eventHandlers.addAll(handler) }
 
@@ -59,7 +66,12 @@ object EventStreamProcessor {
                             LOGGER.error("Error while storing event $event", t)
                         }
 
+                        eventBufferLock.write { eventBuffer.add(event) }
                     }
+
+                    val removeThreshold = System.currentTimeMillis() - eventBufferRetentionTime
+                    eventBufferLock.write { eventBuffer.removeIf { it.timeStamp < removeThreshold } }
+
 
                 } catch (t : Throwable) {
                     LOGGER.error("Uncaught exception in EventStreamProcessor", t)

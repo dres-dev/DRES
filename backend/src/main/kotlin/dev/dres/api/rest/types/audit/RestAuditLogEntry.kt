@@ -1,7 +1,7 @@
 package dev.dres.api.rest.types.audit
 
-import dev.dres.api.rest.handler.SubmissionInfo
 import dev.dres.api.rest.types.AbstractRestEntity
+import dev.dres.api.rest.types.run.SubmissionInfo
 import dev.dres.data.model.UID
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus

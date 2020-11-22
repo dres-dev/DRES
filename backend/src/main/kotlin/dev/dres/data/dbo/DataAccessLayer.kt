@@ -29,10 +29,10 @@ class DataAccessLayer(private val basePath: Path) {
 
     private val competitionSerializer = CompetitionSerializer(mediaItems)
 
-    /** List of [dres.data.model.competition.CompetitionDescription]s managed by this DRES instance. */
+    /** List of [dev.dres.data.model.competition.CompetitionDescription]s managed by this DRES instance. */
     val competitions = DAO(this.basePath.resolve("competitions.db"), competitionSerializer)
 
-    /** List of [dres.data.model.run.CompetitionRun]s managed by this DRES instance. */
+    /** List of [dev.dres.data.model.run.CompetitionRun]s managed by this DRES instance. */
     val runs = DAO(this.basePath.resolve("runs.db"), CompetitionRunSerializer(competitionSerializer))
 
     val audit = DAO(this.basePath.resolve("auditLog.db"), AuditLogEntrySerializer, cacheDuration = 1440)

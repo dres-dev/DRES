@@ -1,5 +1,5 @@
 import {Component, Input, OnInit, ViewChild} from '@angular/core';
-import {CompetitionRunScoresService, CompetitionRunService, RunInfo, RunState, Score, ScoreOverview, TeamInfo} from '../../../../openapi';
+import {CompetitionRunScoresService, RunInfo, RunState, Score, ScoreOverview, TeamInfo} from '../../../../openapi';
 import {combineLatest, concat, Observable, of} from 'rxjs';
 import {
     ApexAxisChartSeries,
@@ -12,7 +12,7 @@ import {
     ApexTheme,
     ChartComponent
 } from 'ng-apexcharts';
-import {catchError, filter, map, switchMap} from 'rxjs/operators';
+import {catchError, map, switchMap} from 'rxjs/operators';
 
 
 /**

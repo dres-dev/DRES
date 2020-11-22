@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {interval, merge, Observable, of, Subscription} from 'rxjs';
 import {
     catchError,
@@ -61,7 +61,8 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
     /**
      * Constructor; extracts the runId and keeps a local reference.
      */
-    constructor(private activeRoute: ActivatedRoute,
+    constructor(private router: Router,
+                private activeRoute: ActivatedRoute,
                 private config: AppConfig,
                 private runService: CompetitionRunService,
                 private snackBar: MatSnackBar) {
@@ -90,10 +91,12 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         /* Basic observable for general run info; this information is static and does not change over the course of a run. */
         this.runInfo = this.runId.pipe(
             switchMap(runId => this.runService.getApiRunInfoWithRunid(runId).pipe(
-                retry(3),
                 catchError((err, o) => {
                     console.log(`[RunViewerComponent] There was an error while loading information in the current run: ${err?.message}`);
                     this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`);
+                    if (err.status === 404) {
+                        this.router.navigate(['/competition/list']);
+                    }
                     return of(null);
                 }),
                 filter(q => q != null)
@@ -136,9 +139,12 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         );
         this.runState = merge(this.runId, wsMessages).pipe(
             switchMap((runId) => this.runService.getApiRunStateWithRunid(runId).pipe(
-                retry(3),
                 catchError((err, o) => {
                     console.log(`[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`);
+                    this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`);
+                    if (err.status === 404) {
+                        this.router.navigate(['/competition/list']);
+                    }
                     return of(null);
                 }),
                 filter(q => q != null)

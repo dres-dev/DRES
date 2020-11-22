@@ -14,9 +14,9 @@
 export interface TaskDescriptionHint { 
     contentType?: TaskDescriptionHint.ContentTypeEnum;
     ordinal: number;
+    end?: number;
     contentType$backend: TaskDescriptionHint.ContentTypebackendEnum;
     start?: number;
-    end?: number;
 }
 export namespace TaskDescriptionHint {
     export type ContentTypeEnum = 'TEXT' | 'VIDEO' | 'IMAGE';

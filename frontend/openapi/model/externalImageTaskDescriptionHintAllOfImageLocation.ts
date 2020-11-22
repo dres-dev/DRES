@@ -13,8 +13,8 @@ import { ExternalImageTaskDescriptionHintAllOfImageLocationFileSystem } from './
 
 
 export interface ExternalImageTaskDescriptionHintAllOfImageLocation { 
+    nameCount?: number;
     absolute?: boolean;
     fileSystem?: ExternalImageTaskDescriptionHintAllOfImageLocationFileSystem;
-    nameCount?: number;
 }
 

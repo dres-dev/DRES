@@ -6,6 +6,7 @@ import dev.dres.api.rest.RestApiRole
 import dev.dres.api.rest.types.collection.RestMediaItem
 import dev.dres.api.rest.types.run.RunInfo
 import dev.dres.api.rest.types.run.RunState
+import dev.dres.api.rest.types.run.TaskInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.task.TaskHint
@@ -161,13 +162,6 @@ class GetCompetitionRunStateHandler : AbstractCompetitionRunRestHandler(), GetRe
     }
 }
 
-data class TaskInfo(val name: String, val taskGroup: TaskGroup, val duration: Long) {
-    companion object {
-        fun of(task: TaskDescription): TaskInfo = TaskInfo(task.name, task.taskGroup, task.duration)
-    }
-}
-
-
 class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<TaskInfo> {
 
     override val route = "run/:runId/task"
@@ -193,7 +187,7 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        return TaskInfo.of(run.currentTask ?: throw ErrorStatusException(404, "Run $runId has currently no active task.", ctx))
+        return TaskInfo(run.currentTask ?: throw ErrorStatusException(404, "Run $runId has currently no active task.", ctx))
     }
 }
 

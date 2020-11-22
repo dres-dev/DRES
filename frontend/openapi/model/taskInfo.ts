@@ -9,12 +9,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { TaskGroup } from './taskGroup';
 
 
 export interface TaskInfo { 
+    id: string;
     name: string;
-    taskGroup: TaskGroup;
+    taskGroup: string;
+    taskType: string;
     duration: number;
 }
 

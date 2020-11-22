@@ -12,11 +12,11 @@
 
 
 export interface ExternalImageTaskDescriptionHintAllOfImageLocationFileSystem { 
-    open?: boolean;
-    readOnly?: boolean;
-    separator?: string;
     rootDirectories?: object;
     fileStores?: object;
     userPrincipalLookupService?: object;
+    open?: boolean;
+    readOnly?: boolean;
+    separator?: string;
 }
 

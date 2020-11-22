@@ -20,10 +20,10 @@ export interface Submission {
     item: MediaItem;
     uid?: string;
     status: Submission.StatusEnum;
-    teamId_1rSl5jE: string;
-    taskRun$backend?: TaskRun;
-    memberId_1rSl5jE: string;
     uid_1rSl5jE: string;
+    teamId_1rSl5jE: string;
+    memberId_1rSl5jE: string;
+    taskRun$backend?: TaskRun;
 }
 export namespace Submission {
     export type StatusEnum = 'CORRECT' | 'WRONG' | 'INDETERMINATE' | 'UNDECIDABLE';

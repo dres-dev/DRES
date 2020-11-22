@@ -22,11 +22,11 @@ export interface TaskRun {
     started?: number;
     ended?: number;
     duration: number;
+    uid_1rSl5jE: string;
+    taskId_1rSl5jE: string;
     hasStarted?: boolean;
     hasEnded?: boolean;
     running?: boolean;
-    uid_1rSl5jE: string;
-    taskId_1rSl5jE: string;
     position: number;
 }
 

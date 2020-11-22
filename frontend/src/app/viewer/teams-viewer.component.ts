@@ -1,7 +1,16 @@
 import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
-import {CompetitionRunService, RunInfo, RunState, ScoreOverview, SubmissionInfo, TaskInfo, Team, TeamInfo} from '../../../openapi';
-import {BehaviorSubject, merge, Observable, of, Subscription} from 'rxjs';
-import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, tap, withLatestFrom, combineLatest} from 'rxjs/operators';
+import {
+    CompetitionRunScoresService,
+    CompetitionRunService,
+    RunInfo,
+    RunState,
+    ScoreOverview,
+    SubmissionInfo,
+    TaskInfo,
+    TeamInfo
+} from '../../../openapi';
+import {BehaviorSubject, combineLatest, merge, Observable, of, Subscription} from 'rxjs';
+import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, tap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
 import {animate, keyframes, style, transition, trigger} from '@angular/animations';
@@ -10,8 +19,8 @@ import {animate, keyframes, style, transition, trigger} from '@angular/animation
  * Internal helper interface.
  */
 interface SubmissionDelta {
-    correct: number[];
-    wrong: number [];
+    correct: number;
+    wrong: number ;
 }
 
 @Component({
@@ -40,14 +49,17 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     @Input() state: Observable<RunState>;
     @Input() taskEnded: Observable<TaskInfo>;
 
+    /** Observable that tracks all the submissions. */
+    submissions: Observable<SubmissionInfo[]>;
+
     /** Observable that tracks all the submissions per team. */
-    submissions: Observable<SubmissionInfo[][]>;
+    submissionsPerTeam: Observable<Map<string, SubmissionInfo[]>>;
 
     /** Observable that tracks the current score per team. */
     scores: Observable<ScoreOverview>;
 
     /** Observable that tracks whether a highlight animation should be played for the given team. */
-    highlight: Observable<string[]>;
+    highlight: Observable<Map<string, string>>;
 
     /** Behaviour subject used to reset highlight animation state. */
     resetHighlight: BehaviorSubject<void> = new BehaviorSubject(null);
@@ -59,6 +71,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     taskEndedSoundEffect: Subscription;
 
     constructor(private runService: CompetitionRunService,
+                private scoresService: CompetitionRunScoresService,
                 private ref: ChangeDetectorRef,
                 public config: AppConfig) {
 
@@ -69,9 +82,9 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     }
 
     ngAfterViewInit(): void {
-        /* Observable that tracks all the submissions per team. */
+        /* Create source observable; list of all submissions.  */
         this.submissions = this.state.pipe(
-            switchMap(st => this.runService.getApiRunWithRunidTaskSubmissionList(st.id).pipe(
+            switchMap(st => this.runService.getApiRunWithRunidSubmissions(st.id).pipe(
                 retry(3),
                 catchError((err, o) => {
                     console.log(`[TeamsViewerComponent] Error while loading submissions: ${err?.message}.`);
@@ -79,18 +92,24 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
                 }),
                 filter(sb => sb != null), /* Filter null responses. */
             )),
-            combineLatest(this.info),
+            shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading of submission. */
+        );
+
+        /* Observable that tracks all the submissions per team. */
+        this.submissionsPerTeam = combineLatest([this.submissions, this.info]).pipe(
             map(([submissions, info]) => {
-                return info.teams.map((v, i) => {
-                    return submissions.filter(s => s.team === i);
+                const submissionsPerTeam = new Map<string, SubmissionInfo[]>();
+                info.teams.forEach(t => {
+                    submissionsPerTeam.set(t.uid, submissions.filter(s => s.team === t.uid));
                 });
+                return submissionsPerTeam;
             }),
             shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading of submission. */
         );
 
         /* Observable that tracks the current score per team. */
         this.scores = this.state.pipe(
-            switchMap(st => this.runService.getApiRunScoreWithRunidTask(st.id).pipe(
+            switchMap(st => this.scoresService.getApiScoreRunWithRunidCurrent(st.id).pipe(
                 retry(3),
                 catchError((err, o) => {
                     console.log(`[TeamsViewerComponent] Error while loading scores: ${err?.message}.`);
@@ -101,63 +120,63 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
             shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading of score. */
         );
 
-        /* Observable that calculates changes to the submission per team every 250ms. */
-        const submissionDelta = this.submissions.pipe(
+        /* Observable that calculates changes to the submission every 250ms (for sound effects playback). */
+        const submissionDelta: Observable<Map<string, SubmissionDelta>> = this.submissionsPerTeam.pipe(
             pairwise(),
             map(([s1, s2]) => {
-                const delta = {
-                    s1_correct: s1.map(s => s.filter(ss => ss.status === 'CORRECT').length),
-                    s1_wrong: s1.map(s => s.filter(ss => ss.status === 'WRONG').length),
-
-                    s2_correct: s2.map(s => s.filter(ss => ss.status === 'CORRECT').length),
-                    s2_wrong: s2.map(s => s.filter(ss => ss.status === 'WRONG').length)
-                };
-                return {
-                    correct: delta.s1_correct.map((s, i) => delta.s2_correct[i] - s),
-                    wrong: delta.s1_wrong.map((s, i) => delta.s2_wrong[i] - s)
-                } as SubmissionDelta;
+                const delta = new Map<string, SubmissionDelta>();
+                for (const [key, value] of s1) {
+                    delta.set(key, {
+                        correct: Math.max(s2.get(key).filter(s => s.status === 'CORRECT').length -  value.filter(s => s.status === 'CORRECT').length, 0),
+                        wrong: Math.max(s2.get(key).filter(s => s.status === 'WRONG').length - value.filter(s => s.status === 'WRONG').length, 0),
+                    } as SubmissionDelta);
+                }
+                return delta;
             }));
-
 
         /* Observable that indicates whether a certain team has new submissions. */
         this.highlight = merge(submissionDelta.pipe(
             map(delta => {
-                const correct = delta.correct.map(s => s > 0);
-                const wrong = delta.wrong.map(s => s > 0);
-                return correct.map((s, i) => {
-                    if (s === true) {
-                        return 'correct';
-                    } else if (wrong[i]) {
-                        return 'wrong';
+                const highlight = new Map<string, string>();
+                for (const [key, value] of delta) {
+                    if (value.correct > value.wrong) {
+                        highlight.set(key, 'correct');
+                        AudioPlayerUtilities.playOnce('assets/audio/correct.ogg', this.audio.nativeElement);
+                    } else if (value.wrong > value.correct) {
+                        highlight.set(key, 'wrong');
+                        AudioPlayerUtilities.playOnce('assets/audio/wrong.ogg', this.audio.nativeElement);
                     } else {
-                        return 'nohighlight';
+                        highlight.set(key, 'nohighlight');
                     }
-                }); /* Zip two arrays and calculate logical OR. */
-            }),
-            tap(s => {
-                if (s.filter(e => e === 'correct').length > 0) {
-                    AudioPlayerUtilities.playOnce('assets/audio/correct.ogg', this.audio.nativeElement);
-                } else if (s.filter(e => e === 'wrong').length > 0) {
-                    AudioPlayerUtilities.playOnce('assets/audio/wrong.ogg', this.audio.nativeElement);
                 }
+                return highlight;
             })),
             this.resetHighlight.pipe(
-                flatMap(() => this.info.pipe(map(i => i.teams.map(t => 'nohighlight'))))
+                flatMap(() => this.info),
+                map(info => {
+                    const hightlight = new Map<string, string>();
+                    info.teams.forEach(t => hightlight.set(t.uid, 'nohighlight'));
+                    return hightlight;
+                })
             )
-        )
-        .pipe(shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading of score. */);
+        ).pipe(shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading of score. */);
 
-        /** Subscription for end of task (used to play sound effects). */
+        /* Subscription for end of task (used to play sound effects). */
         this.taskEndedSoundEffect = this.taskEnded.pipe(
             withLatestFrom(this.submissions),
-            map(([task, submission]) => {
-                return submission.filter(s => (s.filter(ss => ss.status === 'CORRECT').length) > 0).length > 0;
+            map(([ended, submissions]) => {
+                for (const s of submissions) {
+                    if (s.status === 'CORRECT') { return true; }
+                }
+                return false;
             })
         ).subscribe(success => {
-            if (success) {
-                AudioPlayerUtilities.playOnce('assets/audio/applause.ogg', this.audio.nativeElement);
-            } else {
-                AudioPlayerUtilities.playOnce('assets/audio/sad_trombone.ogg', this.audio.nativeElement);
+            if (this.audio) {
+                if (success) {
+                    AudioPlayerUtilities.playOnce('assets/audio/applause.ogg', this.audio.nativeElement);
+                } else {
+                    AudioPlayerUtilities.playOnce('assets/audio/sad_trombone.ogg', this.audio.nativeElement);
+                }
             }
         });
     }
@@ -183,15 +202,15 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     }
 
     /**
-     * Returns an obsevable for the {@link SubmissionInfo} for the given team.
+     * Returns an observable for the {@link SubmissionInfo} for the given team.
      *
-     * @param team The team's index.
+     * @param teamId The team's uid.
      */
-    public submissionForTeam(team: number): Observable<SubmissionInfo[]> {
-        return this.submissions.pipe(
+    public submissionForTeam(teamId: string): Observable<SubmissionInfo[]> {
+        return this.submissionsPerTeam.pipe(
             map(s => {
                 if (s != null) {
-                    return s[team];
+                    return s.get(teamId);
                 } else {
                     return [];
                 }
@@ -199,28 +218,32 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
         );
     }
 
-    public score(team: number): Observable<string> {
+    /**
+     * Returns an observable for the total for the given team.
+     *
+     * @param teamId The team's uid.
+     */
+    public score(teamId: string): Observable<string> {
         return this.scores.pipe(
-            filter(s => s != null),
-            map(scores => scores.scores.find(s => s.teamId === team)?.score.toFixed(0))
+            map(scores => scores.scores.find(s => s.teamId === teamId)?.score.toFixed(0))
         );
     }
 
-    public correctSubmissions(team: number): Observable<number> {
-        return this.submissions.pipe(
-            map(submissions => submissions[team].filter(s => s.status === 'CORRECT').length)
+    public correctSubmissions(teamId: string): Observable<number> {
+        return this.submissionsPerTeam.pipe(
+            map(submissions => submissions.get(teamId).filter(s => s.status === 'CORRECT').length)
         );
     }
 
-    public wrongSubmissions(team: number): Observable<number> {
-        return this.submissions.pipe(
-            map(submissions => submissions[team].filter(s => s.status === 'WRONG').length)
+    public wrongSubmissions(teamId: string): Observable<number> {
+        return this.submissionsPerTeam.pipe(
+            map(submissions => submissions.get(teamId).filter(s => s.status === 'WRONG').length)
         );
     }
 
-    public indeterminate(team: number): Observable<number> {
-        return this.submissions.pipe(
-            map(submissions => submissions[team].filter(s => s.status === 'INDETERMINATE').length)
+    public indeterminate(teamId: string): Observable<number> {
+        return this.submissionsPerTeam.pipe(
+            map(submissions => submissions.get(teamId).filter(s => s.status === 'INDETERMINATE').length)
         );
     }
 }

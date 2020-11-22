@@ -1,6 +1,7 @@
 package dev.dres.api.rest.types.audit
 
 import dev.dres.api.rest.types.AbstractRestEntity
+import dev.dres.api.rest.types.run.SubmissionInfo
 import dev.dres.data.model.UID
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
@@ -49,9 +50,9 @@ class RestTaskEndAuditLogEntry(id: UID, val competition: UID, val taskName: Stri
     constructor(log: TaskEndAuditLogEntry) : this(log.id, log.competition, log.taskName, log.api, log.user)
 }
 
-class RestSubmissionAuditLogEntry(id: UID, val competition: UID, val taskName: String, val submission: Submission, val api: LogEventSource, val user: String?, val address: String) : RestAuditLogEntry(AuditLogEntryType.SUBMISSION, id) {
-    constructor(competition: UID, taskName: String, submission: Submission, api: LogEventSource, user: String?, address: String) : this(UID.EMPTY, competition, taskName, submission, api, user, address)
-    constructor(log: SubmissionAuditLogEntry) : this(log.id, log.competition, log.taskName, log.submission, log.api, log.user, log.address)
+class RestSubmissionAuditLogEntry(id: UID, val competition: UID, val taskName: String, val submission: SubmissionInfo, val api: LogEventSource, val user: String?, val address: String) : RestAuditLogEntry(AuditLogEntryType.SUBMISSION, id) {
+    constructor(competition: UID, taskName: String, submission: Submission, api: LogEventSource, user: String?, address: String) : this(UID.EMPTY, competition, taskName, SubmissionInfo(submission), api, user, address)
+    constructor(log: SubmissionAuditLogEntry) : this(log.id, log.competition, log.taskName, SubmissionInfo(log.submission), log.api, log.user, log.address)
 }
 
 class RestJudgementAuditLogEntry(id: UID, val competition: UID, val validator: String, val token: String, val verdict: SubmissionStatus, val api: LogEventSource, val user: String?) : RestAuditLogEntry(AuditLogEntryType.JUDGEMENT, id) {

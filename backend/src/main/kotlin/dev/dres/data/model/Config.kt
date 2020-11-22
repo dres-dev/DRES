@@ -11,7 +11,7 @@ data class Config(
         val keystorePath: String = "keystore.jks",
         val keystorePassword: String = "password",
         val externalPath: String = "./external",
-        val dataPath: String = "./data_branch",
+        val dataPath: String = "./data",
         val cachePath: String = "./cache",
         val logoMaxSize: Int = 1000) {
 

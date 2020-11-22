@@ -508,6 +508,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
             this.stateLock.write {
                 this.currentTaskRun?.start()
                 this.status = RunManagerStatus.RUNNING_TASK
+                AuditLogger.taskStart(this.id, this.currentTask.name, LogEventSource.INTERNAL, null)
             }
 
             /* Mark DAO for update. */

@@ -8,6 +8,7 @@ import dev.dres.mgmt.admin.UserManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
+import dev.dres.run.eventstream.handlers.ResultLogStatisticsHandler
 import dev.dres.run.eventstream.handlers.SubmissionStatisticsHandler
 import dev.dres.utilities.FFmpegUtil
 import java.io.File
@@ -43,7 +44,7 @@ object DRES {
         AuditLogger.init(dataAccessLayer.audit)
 
         /* Initialize Event Stream Processor */
-        EventStreamProcessor.register(SubmissionStatisticsHandler())
+        EventStreamProcessor.register(SubmissionStatisticsHandler(), ResultLogStatisticsHandler(dataAccessLayer.mediaSegmentItemIdIndex))
         EventStreamProcessor.init()
 
         /* Initialize Rest API. */

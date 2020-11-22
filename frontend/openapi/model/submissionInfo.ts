@@ -13,11 +13,11 @@ import { RestMediaItem } from './restMediaItem';
 
 
 export interface SubmissionInfo { 
-    team: number;
+    id?: string;
+    team: string;
     member: string;
     status: SubmissionInfo.StatusEnum;
     timestamp: number;
-    id?: string;
     item?: RestMediaItem;
     start?: number;
     end?: number;

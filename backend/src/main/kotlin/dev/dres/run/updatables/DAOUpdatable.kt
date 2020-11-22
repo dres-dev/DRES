@@ -13,6 +13,16 @@ import dev.dres.run.RunManagerStatus
  */
 class DAOUpdatable<T: Entity>(val dao: DAO<T>, val obj: T): StatefulUpdatable {
 
+
+    companion object {
+        val ELIGIBLE_RUNNING_STATES = arrayOf(
+            RunManagerStatus.CREATED,
+            RunManagerStatus.ACTIVE,
+            RunManagerStatus.TASK_ENDED,
+            RunManagerStatus.TERMINATED
+        )
+    }
+
     /** The [Phase] this [DAOUpdatable] belongs to. */
     override val phase: Phase = Phase.FINALIZE
 
@@ -25,5 +35,13 @@ class DAOUpdatable<T: Entity>(val dao: DAO<T>, val obj: T): StatefulUpdatable {
         }
     }
 
-    override fun shouldBeUpdated(status: RunManagerStatus): Boolean = true
+    /**
+     * Checks if [RunManagerStatus] is contained in [ELIGIBLE_RUNNING_STATES]. This should prevent
+     * [DAOUpdatable] to be invoked while a task run is running, which potentially involves a lot
+     * of changes to the object and therefore a lot of unnecessar updates.
+     *
+     * @param status The [RunManagerStatus] to check.
+     * @return True if [DAOUpdatable] should be run, false otherwise.
+     */
+    override fun shouldBeUpdated(status: RunManagerStatus): Boolean = (status in ELIGIBLE_RUNNING_STATES)
 }

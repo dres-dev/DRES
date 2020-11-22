@@ -12,6 +12,7 @@
 
 
 export interface TeamInfo { 
+    uid: string;
     name: string;
     color: string;
     logoId: string;

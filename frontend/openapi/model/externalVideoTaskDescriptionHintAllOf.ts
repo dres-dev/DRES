@@ -9,14 +9,10 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { ExternalImageTaskDescriptionHintAllOfImageLocation } from './externalImageTaskDescriptionHintAllOfImageLocation';
 
 
-export interface RestTeam { 
-    uid?: string;
-    name: string;
-    color: string;
-    logoData?: string;
-    logoId?: string;
-    users: Array<string>;
+export interface ExternalVideoTaskDescriptionHintAllOf { 
+    videoLocation?: ExternalImageTaskDescriptionHintAllOfImageLocation;
 }
 

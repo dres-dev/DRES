@@ -9,14 +9,10 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { ImageItem } from './imageItem';
 
 
-export interface RestTeam { 
-    uid?: string;
-    name: string;
-    color: string;
-    logoData?: string;
-    logoId?: string;
-    users: Array<string>;
+export interface ImageItemTaskDescriptionHintAllOf { 
+    item?: ImageItem;
 }
 

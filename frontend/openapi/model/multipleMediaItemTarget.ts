@@ -9,14 +9,12 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { MultipleMediaItemTargetAllOf } from './multipleMediaItemTargetAllOf';
+import { MediaItem } from './mediaItem';
+import { TaskDescriptionTarget } from './taskDescriptionTarget';
 
 
-export interface RestTeam { 
-    uid?: string;
-    name: string;
-    color: string;
-    logoData?: string;
-    logoId?: string;
-    users: Array<string>;
+export interface MultipleMediaItemTarget { 
+    items: Array<MediaItem>;
 }
 

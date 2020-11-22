@@ -11,12 +11,12 @@
  */
 
 
-export interface RestTeam { 
-    uid?: string;
-    name: string;
-    color: string;
-    logoData?: string;
-    logoId?: string;
-    users: Array<string>;
+export interface ExternalImageTaskDescriptionHintAllOfImageLocationFileSystem { 
+    open?: boolean;
+    readOnly?: boolean;
+    separator?: string;
+    rootDirectories?: object;
+    fileStores?: object;
+    userPrincipalLookupService?: object;
 }
 

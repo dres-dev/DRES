@@ -9,14 +9,14 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { TaskRun } from './taskRun';
+import { Submission } from './submission';
+import { MediaItem } from './mediaItem';
 
 
-export interface RestTeam { 
-    uid?: string;
-    name: string;
-    color: string;
-    logoData?: string;
-    logoId?: string;
-    users: Array<string>;
+export interface ItemSubmission extends Submission { 
 }
+export namespace ItemSubmission {
+}
+
 

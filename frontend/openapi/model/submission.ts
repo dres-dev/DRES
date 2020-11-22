@@ -9,20 +9,23 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { RestMediaItem } from './restMediaItem';
+import { TaskRun } from './taskRun';
+import { MediaItem } from './mediaItem';
 
 
-export interface SubmissionInfo { 
-    id?: string;
-    team: string;
-    member: string;
-    status: SubmissionInfo.StatusEnum;
+export interface Submission { 
+    teamId?: string;
+    memberId?: string;
     timestamp: number;
-    item?: RestMediaItem;
-    start?: number;
-    end?: number;
+    item: MediaItem;
+    uid?: string;
+    status: Submission.StatusEnum;
+    teamId_1rSl5jE: string;
+    taskRun$backend?: TaskRun;
+    memberId_1rSl5jE: string;
+    uid_1rSl5jE: string;
 }
-export namespace SubmissionInfo {
+export namespace Submission {
     export type StatusEnum = 'CORRECT' | 'WRONG' | 'INDETERMINATE' | 'UNDECIDABLE';
     export const StatusEnum = {
         CORRECT: 'CORRECT' as StatusEnum,

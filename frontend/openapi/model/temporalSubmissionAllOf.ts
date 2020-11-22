@@ -9,14 +9,12 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { TemporalRange } from './temporalRange';
 
 
-export interface RestTeam { 
-    uid?: string;
-    name: string;
-    color: string;
-    logoData?: string;
-    logoId?: string;
-    users: Array<string>;
+export interface TemporalSubmissionAllOf { 
+    start?: number;
+    end?: number;
+    temporalRange?: TemporalRange;
 }
 

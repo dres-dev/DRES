@@ -11,12 +11,7 @@
  */
 
 
-export interface RestTeam { 
-    uid?: string;
-    name: string;
-    color: string;
-    logoData?: string;
-    logoId?: string;
-    users: Array<string>;
+export interface TextTaskDescriptionHintAllOf { 
+    text?: string;
 }
 

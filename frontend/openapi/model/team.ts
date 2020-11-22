@@ -15,8 +15,8 @@ import { UID } from './uID';
 export interface Team { 
     name: string;
     color: string;
-    logo: string;
     users: Array<UID>;
     logoId_1rSl5jE: string;
+    uid_1rSl5jE: string;
 }
 

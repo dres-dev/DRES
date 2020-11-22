@@ -11,12 +11,9 @@
  */
 
 
-export interface RestTeam { 
-    uid?: string;
-    name: string;
-    color: string;
-    logoData?: string;
-    logoId?: string;
-    users: Array<string>;
+export interface AuditLogInfo { 
+    timestamp: number;
+    size: number;
+    latest: number;
 }
 

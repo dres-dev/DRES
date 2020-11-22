@@ -11,12 +11,11 @@
  */
 
 
-export interface RestTeam { 
-    uid?: string;
+export interface MediaItem { 
     name: string;
-    color: string;
-    logoData?: string;
-    logoId?: string;
-    users: Array<string>;
+    location: string;
+    collection_1rSl5jE: string;
+    id_1rSl5jE: string;
+    id_Fwp7XY8?: string;
 }
 

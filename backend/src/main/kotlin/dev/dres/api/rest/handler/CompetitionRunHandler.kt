@@ -3,9 +3,9 @@ package dev.dres.api.rest.handler
 
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.RestApiRole
-import dev.dres.api.rest.types.collection.RestMediaItem
 import dev.dres.api.rest.types.run.RunInfo
 import dev.dres.api.rest.types.run.RunState
+import dev.dres.api.rest.types.run.SubmissionInfo
 import dev.dres.api.rest.types.run.TaskInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
@@ -15,12 +15,7 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
-import dev.dres.data.model.competition.TaskDescription
-import dev.dres.data.model.competition.TaskGroup
 import dev.dres.data.model.competition.TaskType
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
-import dev.dres.data.model.run.TemporalSubmissionAspect
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
@@ -387,14 +382,4 @@ class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
         }
     }
 }
-
-data class SubmissionInfo(val id: String? = null, val team: String, val member: String, val status: SubmissionStatus, val timestamp: Long,  val item: RestMediaItem? = null, val start: Long? = null, val end: Long? = null) {
-    constructor(submission: Submission) : this(submission.uid.string, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp, RestMediaItem.fromMediaItem(submission.item), null, null)
-    constructor(submission: TemporalSubmissionAspect) : this(submission.uid.string, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp, RestMediaItem.fromMediaItem(submission.item), submission.start, submission.end)
-    companion object {
-        fun blind(submission: Submission): SubmissionInfo = SubmissionInfo(null, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp)
-        fun withId(submission: Submission): SubmissionInfo = SubmissionInfo(submission.uid.string, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp)
-    }
-}
-
 

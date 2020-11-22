@@ -38,30 +38,8 @@ class GetAuditLogInfoHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>)
     }
 }
 
-class LatestAuditLogHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>) : AuditLogHandler(auditTimes), GetRestHandler<Array<RestAuditLogEntry>> {
 
-    override val route = "audit/latest/"
-
-    @OpenApi(
-            summary = "Gives the latest audit log entires",
-            path = "/api/audit/latest",
-            tags = ["Audit"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<AuditLogEntry>::class)], description = "The latest audit logs"),
-                OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)], description = "Whenever a non-admin user starts the call")
-            ]
-    )
-    override fun doGet(ctx: Context): Array<RestAuditLogEntry> {
-        val latest = auditTimes.index.keys.maxOrNull()
-        return if (latest != null) {
-            auditTimes[latest].map{RestAuditLogEntry.convert(it)}.toTypedArray()
-        } else {
-            emptyArray()
-        }
-    }
-}
-
-class ListAuditLogsInRange(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, val audit: DAO<AuditLogEntry>): AuditLogHandler(auditTimes), GetRestHandler<Array<RestAuditLogEntry>>{
+class ListAuditLogsInRangeHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, val audit: DAO<AuditLogEntry>): AuditLogHandler(auditTimes), GetRestHandler<Array<RestAuditLogEntry>>{
 
     override val route = "audit/logs/:since/:upto"
 

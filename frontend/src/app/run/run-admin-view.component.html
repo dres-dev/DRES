@@ -6,6 +6,7 @@
             <mat-card>
                 <div style="display: flex;">
                     <div>
+                        <app-back-button></app-back-button>
                         <h1>Run {{(run | async)?.info.id}} ({{(run | async)?.state.status}})</h1>
                         <p><strong>Name: </strong>{{(run | async)?.info.name}}</p>
                         <p><strong>Description: </strong>{{(run | async)?.info.description}}</p>

@@ -21,6 +21,7 @@ import {QueryObjectPreviewModule} from './query-object-preview/query-object-prev
 import {NgApexchartsModule} from 'ng-apexcharts';
 import { CompetitionScoreboardViewerComponent } from './competition-scoreboard-viewer/competition-scoreboard-viewer.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {SharedModule} from '../shared/shared.module';
 
 @NgModule({
     imports: [
@@ -42,7 +43,8 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
         MatCardModule,
         QueryObjectPreviewModule,
         NgApexchartsModule,
-        BrowserAnimationsModule
+        BrowserAnimationsModule,
+        SharedModule
     ],
     exports:      [ RunViewerComponent ],
     declarations: [ RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, CompetitionScoreboardViewerComponent ],

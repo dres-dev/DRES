@@ -14,6 +14,7 @@ import {RunAdminViewComponent} from './run/run-admin-view.component';
 import RoleEnum = UserDetails.RoleEnum;
 import {CollectionListComponent} from './collection/collection-list/collection-list.component';
 import {CollectionViewerComponent} from './collection/collection-viewer/collection-viewer.component';
+import {AdminAuditlogOverviewComponent} from './auditlog/admin-auditlog-overview/admin-auditlog-overview.component';
 
 
 const routes: Routes = [
@@ -78,6 +79,13 @@ const routes: Routes = [
     {
         path: 'collection/:collectionId',
         component: CollectionViewerComponent,
+        canActivate: [AuthenticationGuard],
+        data: {roles: [RoleEnum.ADMIN]}
+    },
+
+    {
+        path: 'logs/list',
+        component: AdminAuditlogOverviewComponent,
         canActivate: [AuthenticationGuard],
         data: {roles: [RoleEnum.ADMIN]}
     },

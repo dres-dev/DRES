@@ -1,5 +1,6 @@
 <div style="display: flex" class="header">
     <div>
+        <!-- <app-back-button></app-back-button> --> <!-- Needs to be preventable -->
         <h1 *ngIf="!dirty">Edit competition {{competitionId}}</h1>
         <h1 *ngIf="dirty">Edit competition {{competitionId}} <span class="warn-color">(unsaved changes)</span></h1>
     </div>

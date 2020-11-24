@@ -9,20 +9,21 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { SubmissionAuditLogEntryAllOf } from './submissionAuditLogEntryAllOf';
-import { Submission } from './submission';
+import { SubmissionInfo } from './submissionInfo';
+import { RestSubmissionAuditLogEntryAllOf } from './restSubmissionAuditLogEntryAllOf';
 import { RestAuditLogEntry } from './restAuditLogEntry';
 
 
 export interface RestSubmissionAuditLogEntry { 
     type: RestSubmissionAuditLogEntry.TypeEnum;
     id: string;
+    timestamp: number;
+    competition: string;
     taskName: string;
-    submission: Submission;
+    submission: SubmissionInfo;
     api: RestSubmissionAuditLogEntry.ApiEnum;
     user?: string;
     address: string;
-    competition_1rSl5jE: string;
 }
 export namespace RestSubmissionAuditLogEntry {
     export type TypeEnum = 'COMPETITION_START' | 'COMPETITION_END' | 'TASK_START' | 'TASK_MODIFIED' | 'TASK_END' | 'SUBMISSION' | 'JUDGEMENT' | 'LOGIN' | 'LOGOUT';

@@ -47,8 +47,8 @@ class ListAuditLogsInRangeHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, L
             summary = "Lists all audit logs matching the query",
             path = "/api/audit/logs/:since/:upto",
             pathParams = [
-                OpenApiParam(":since", Long::class, "Timestamp of the earliest audit log to include"),
-                OpenApiParam(":upto", Long::class, "Timestamp of the latest audit log to include.")
+                OpenApiParam("since", Long::class, "Timestamp of the earliest audit log to include"),
+                OpenApiParam("upto", Long::class, "Timestamp of the latest audit log to include.")
             ],
             tags = ["Audit"],
             responses = [

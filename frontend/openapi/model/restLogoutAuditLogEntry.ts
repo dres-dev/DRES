@@ -9,13 +9,14 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { LogoutAuditLogEntryAllOf } from './logoutAuditLogEntryAllOf';
+import { RestLogoutAuditLogEntryAllOf } from './restLogoutAuditLogEntryAllOf';
 import { RestAuditLogEntry } from './restAuditLogEntry';
 
 
 export interface RestLogoutAuditLogEntry { 
     type: RestLogoutAuditLogEntry.TypeEnum;
     id: string;
+    timestamp: number;
     session: string;
     api: RestLogoutAuditLogEntry.ApiEnum;
 }

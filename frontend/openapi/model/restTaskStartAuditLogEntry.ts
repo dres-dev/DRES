@@ -10,16 +10,17 @@
  * Do not edit the class manually.
  */
 import { RestAuditLogEntry } from './restAuditLogEntry';
-import { TaskEndAuditLogEntryAllOf } from './taskEndAuditLogEntryAllOf';
+import { RestTaskEndAuditLogEntryAllOf } from './restTaskEndAuditLogEntryAllOf';
 
 
 export interface RestTaskStartAuditLogEntry { 
     type: RestTaskStartAuditLogEntry.TypeEnum;
     id: string;
+    timestamp: number;
+    competition: string;
     taskName: string;
     api: RestTaskStartAuditLogEntry.ApiEnum;
     user?: string;
-    competition_1rSl5jE: string;
 }
 export namespace RestTaskStartAuditLogEntry {
     export type TypeEnum = 'COMPETITION_START' | 'COMPETITION_END' | 'TASK_START' | 'TASK_MODIFIED' | 'TASK_END' | 'SUBMISSION' | 'JUDGEMENT' | 'LOGIN' | 'LOGOUT';

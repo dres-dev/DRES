@@ -12,6 +12,7 @@ import {MatProgressBarModule} from '@angular/material/progress-bar';
 import { JudgementDialogComponent } from './judgement-dialog/judgement-dialog.component';
 import {MatCardModule} from '@angular/material/card';
 import {MatDialogModule} from '@angular/material/dialog';
+import {SharedModule} from '../shared/shared.module';
 
 
 
@@ -27,7 +28,8 @@ import {MatDialogModule} from '@angular/material/dialog';
         MatBadgeModule,
         MatProgressBarModule,
         MatCardModule,
-        MatDialogModule
+        MatDialogModule,
+        SharedModule
     ],
   exports: [ JudgementViewerComponent ]
 })

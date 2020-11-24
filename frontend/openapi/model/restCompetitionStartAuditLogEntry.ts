@@ -9,16 +9,17 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { CompetitionEndAuditLogEntryAllOf } from './competitionEndAuditLogEntryAllOf';
 import { RestAuditLogEntry } from './restAuditLogEntry';
+import { RestCompetitionEndAuditLogEntryAllOf } from './restCompetitionEndAuditLogEntryAllOf';
 
 
 export interface RestCompetitionStartAuditLogEntry { 
     type: RestCompetitionStartAuditLogEntry.TypeEnum;
     id: string;
+    timestamp: number;
+    competition: string;
     api: RestCompetitionStartAuditLogEntry.ApiEnum;
     user?: string;
-    competition_1rSl5jE: string;
 }
 export namespace RestCompetitionStartAuditLogEntry {
     export type TypeEnum = 'COMPETITION_START' | 'COMPETITION_END' | 'TASK_START' | 'TASK_MODIFIED' | 'TASK_END' | 'SUBMISSION' | 'JUDGEMENT' | 'LOGIN' | 'LOGOUT';

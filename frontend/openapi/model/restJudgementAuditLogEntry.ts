@@ -9,19 +9,20 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { JudgementAuditLogEntryAllOf } from './judgementAuditLogEntryAllOf';
 import { RestAuditLogEntry } from './restAuditLogEntry';
+import { RestJudgementAuditLogEntryAllOf } from './restJudgementAuditLogEntryAllOf';
 
 
 export interface RestJudgementAuditLogEntry { 
     type: RestJudgementAuditLogEntry.TypeEnum;
     id: string;
+    timestamp: number;
+    competition: string;
     validator: string;
     token: string;
     verdict: RestJudgementAuditLogEntry.VerdictEnum;
     api: RestJudgementAuditLogEntry.ApiEnum;
     user?: string;
-    competition_1rSl5jE: string;
 }
 export namespace RestJudgementAuditLogEntry {
     export type TypeEnum = 'COMPETITION_START' | 'COMPETITION_END' | 'TASK_START' | 'TASK_MODIFIED' | 'TASK_END' | 'SUBMISSION' | 'JUDGEMENT' | 'LOGIN' | 'LOGOUT';

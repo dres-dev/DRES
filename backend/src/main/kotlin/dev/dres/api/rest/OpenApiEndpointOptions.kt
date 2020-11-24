@@ -28,7 +28,7 @@ data class OpenApiEndpointOptions(
     val hasRedoc = redocUi != null
 
     companion object {
-        val dresDefaultOptions = OpenApiEndpointOptions("/swagger-doc", "/swagger-ui", "/redoc")
+        val dresDefaultOptions = OpenApiEndpointOptions("/swagger-docs", "/swagger-ui", "/redoc")
         val dresLogOnly = OpenApiEndpointOptions("/logging-oas", "/swagger-log",
                 ignores=listOf("/login", "/logout", "/user*", "/collection*", "/competition*", "/run*", "/submit"))
         val dresSubmissionOnly = OpenApiEndpointOptions("/logging-oas", "/swagger-log",

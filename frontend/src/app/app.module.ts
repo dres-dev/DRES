@@ -32,6 +32,8 @@ import {CollectionBuilderDialogComponent} from './collection/collection-builder/
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatSelectModule} from '@angular/material/select';
 import {MatPaginatorModule} from '@angular/material/paginator';
+import {AuditlogModule} from './auditlog/auditlog.module';
+import {SharedModule} from './shared/shared.module';
 
 
 /**
@@ -64,6 +66,7 @@ export function initializeApp(appConfig: AppConfig) {
 
         ServicesModule,
         UserModule,
+        AuditlogModule,
         CompetitionModule,
         ViewerModule,
         RunModule,
@@ -72,7 +75,8 @@ export function initializeApp(appConfig: AppConfig) {
         MatTableModule,
         MatDialogModule,
         MatSelectModule,
-        MatPaginatorModule
+        MatPaginatorModule,
+        SharedModule
     ],
   providers: [
       AppConfig,

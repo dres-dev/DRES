@@ -31,6 +31,7 @@ import {Ng5SliderModule} from 'ng5-slider';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatGridListModule} from '@angular/material/grid-list';
 import {AdvancedBuilderDialogComponent} from './competition-builder-task-dialog/advanced-builder-dialog/advanced-builder-dialog.component';
+import {SharedModule} from '../../shared/shared.module';
 
 @NgModule({
     imports: [
@@ -59,7 +60,8 @@ import {AdvancedBuilderDialogComponent} from './competition-builder-task-dialog/
         MatSlideToggleModule,
         Ng5SliderModule,
         MatButtonToggleModule,
-        MatGridListModule
+        MatGridListModule,
+        SharedModule
     ],
     exports: [CompetitionBuilderComponent],
     declarations: [

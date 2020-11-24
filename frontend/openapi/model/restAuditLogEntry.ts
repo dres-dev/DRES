@@ -14,6 +14,7 @@
 export interface RestAuditLogEntry { 
     type: RestAuditLogEntry.TypeEnum;
     id: string;
+    timestamp: number;
 }
 export namespace RestAuditLogEntry {
     export type TypeEnum = 'COMPETITION_START' | 'COMPETITION_END' | 'TASK_START' | 'TASK_MODIFIED' | 'TASK_END' | 'SUBMISSION' | 'JUDGEMENT' | 'LOGIN' | 'LOGOUT';

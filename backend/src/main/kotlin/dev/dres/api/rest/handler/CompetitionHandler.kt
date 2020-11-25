@@ -4,6 +4,7 @@ import dev.dres.api.rest.RestApiRole
 import dev.dres.api.rest.types.competition.RestCompetitionDescription
 import dev.dres.api.rest.types.competition.RestDetailedTeam
 import dev.dres.api.rest.types.competition.RestTaskDescription
+import dev.dres.api.rest.types.competition.RestTeam
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -124,7 +125,7 @@ class GetCompetitionHandler(competitions: DAO<CompetitionDescription>) : Competi
     override val route: String = "competition/:competitionId"
 }
 
-class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<Team>> {
+class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<RestTeam>> {
 
     override val route: String = "competition/:competitionId/team/list"
 
@@ -134,13 +135,13 @@ class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
             pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<Team>::class)]),
+                OpenApiResponse("200", [OpenApiContent(Array<RestTeam>::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context) = competitionFromContext(ctx).teams
+    override fun doGet(ctx: Context) = competitionFromContext(ctx).teams.map { RestTeam(it) }
 
 }
 

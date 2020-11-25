@@ -15,6 +15,7 @@ import RoleEnum = UserDetails.RoleEnum;
 import {CollectionListComponent} from './collection/collection-list/collection-list.component';
 import {CollectionViewerComponent} from './collection/collection-viewer/collection-viewer.component';
 import {AdminAuditlogOverviewComponent} from './auditlog/admin-auditlog-overview/admin-auditlog-overview.component';
+import {CanDeactivateGuard} from './services/can-deactivate.guard';
 
 
 const routes: Routes = [
@@ -28,6 +29,7 @@ const routes: Routes = [
         path: 'competition/builder/:competitionId',
         component: CompetitionBuilderComponent,
         canActivate: [AuthenticationGuard],
+        canDeactivate: [CanDeactivateGuard],
         data: {roles: [RoleEnum.ADMIN]}
     },
     {

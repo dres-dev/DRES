@@ -1,5 +1,5 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ActivatedRoute, Router, RouterStateSnapshot} from '@angular/router';
 import {filter} from 'rxjs/operators';
 import {
     CompetitionService,
@@ -11,7 +11,7 @@ import {
 } from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
-import {Subscription} from 'rxjs';
+import {Observable, Subscription} from 'rxjs';
 import {MatDialog} from '@angular/material/dialog';
 import {CompetitionBuilderTeamDialogComponent} from './competition-builder-team-dialog/competition-builder-team-dialog.component';
 import {
@@ -25,13 +25,14 @@ import {
     CompetitionBuilderTaskDialogData
 } from './competition-builder-task-dialog/competition-builder-task-dialog.component';
 import {AppConfig} from '../../app.config';
+import {DeactivationGuarded} from '../../services/can-deactivate.guard';
 
 @Component({
     selector: 'app-competition-builer',
     templateUrl: './competition-builder.component.html',
     styleUrls: ['./competition-builder.component.scss']
 })
-export class CompetitionBuilderComponent implements OnInit, OnDestroy {
+export class CompetitionBuilderComponent implements OnInit, OnDestroy, DeactivationGuarded {
 
     /**
      * The official VBS Textual Known Item Search task type template
@@ -344,5 +345,19 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy {
             return true;
         }
         return confirm('There are unsaved changes in this competition that will be lost. Do you really want to proceed?');
+    }
+
+    canDeactivate(nextState?: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
+        return this.checkDirty();
+    }
+
+    @HostListener('window:beforeunload', ['$event'])
+    handleBeforeUnload(event: BeforeUnloadEvent){
+        if(!this.checkDirty()){
+            event.preventDefault();
+            event.returnValue = '';
+            return;
+        }
+        delete event.returnValue;
     }
 }

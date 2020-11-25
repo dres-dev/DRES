@@ -8,6 +8,7 @@ import {NavigationService} from './navigation/navigation.service';
 import { BackButtonDirective } from './navigation/back-button.directive';
 import { ForwardButtonDirective } from './navigation/forward-button.directive';
 import { Epoch2DatePipePipe } from './pipes/epoch2date.pipe';
+import {CanDeactivateGuard} from './can-deactivate.guard';
 
 @NgModule({
   imports: [ApiModule.forRoot(() => {
@@ -18,6 +19,6 @@ import { Epoch2DatePipePipe } from './pipes/epoch2date.pipe';
   })],
   exports: [ApiModule, RoundPipePipe, FormatTimePipePipe, BackButtonDirective, ForwardButtonDirective, Epoch2DatePipePipe],
   declarations: [RoundPipePipe, FormatTimePipePipe, BackButtonDirective, ForwardButtonDirective, Epoch2DatePipePipe],
-  providers: [AuthenticationService, NavigationService]
+  providers: [AuthenticationService, NavigationService, CanDeactivateGuard]
 })
 export class ServicesModule {}

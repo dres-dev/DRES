@@ -3,6 +3,7 @@ package dev.dres.api.rest.handler
 import dev.dres.api.rest.RestApiRole
 import dev.dres.api.rest.types.competition.CompetitionStartMessage
 import dev.dres.api.rest.types.run.RunType
+import dev.dres.api.rest.types.run.SubmissionInfo
 import dev.dres.api.rest.types.run.ViewerInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
@@ -79,9 +80,10 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
         val competitionToStart = this.competitionById(competitionStartMessage.competitionId.UID(), ctx)
 
         /* ensure that only one synchronous run of a competition is happening at any given time */
-        if(competitionStartMessage.type == RunType.SYNCHRONOUS && RunExecutor.managers().any {
-                    it is SynchronousRunManager && it.competitionDescription.id == competitionToStart.id && it.status != RunManagerStatus.TERMINATED }
-        ){
+        if (competitionStartMessage.type == RunType.SYNCHRONOUS && RunExecutor.managers().any {
+                    it is SynchronousRunManager && it.competitionDescription.id == competitionToStart.id && it.status != RunManagerStatus.TERMINATED
+                }
+        ) {
             throw ErrorStatusException(400, "Synchronous run of competition ${competitionToStart.name} already exists", ctx)
         }
 
@@ -101,7 +103,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
             }
 
             val outputFile = File(cacheLocation, it.cacheItemName())
-            if(!outputFile.exists()){
+            if (!outputFile.exists()) {
                 logger.warn("query video file for item ${it.item} not found, rendering to ${outputFile.absolutePath}")
                 FFmpegUtil.prepareMediaSegmentTask(it, collection.basePath, cacheLocation)
             }
@@ -128,7 +130,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
 /**
  * REST handler to start a [CompetitionRun].
  */
-class StartCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/start"
 
     @OpenApi(
@@ -159,7 +161,7 @@ class StartCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(),
 /**
  * REST handler to move to the next task in a [CompetitionRun].
  */
-class NextTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class NextTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/task/next"
 
     @OpenApi(
@@ -192,7 +194,7 @@ class NextTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler
 /**
  * REST handler to move to the next task in a [CompetitionRun].
  */
-class SwitchTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class SwitchTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/task/switch/:idx"
 
     @OpenApi(
@@ -231,7 +233,7 @@ class SwitchTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandl
 /**
  * REST handler to move to the previous task in a [CompetitionRun].
  */
-class PreviousTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class PreviousTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/task/previous"
 
     @OpenApi(
@@ -264,7 +266,7 @@ class PreviousTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHan
 /**
  * REST handler to start the current task in a [CompetitionRun].
  */
-class StartTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/task/start"
 
     @OpenApi(
@@ -296,7 +298,7 @@ class StartTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
 /**
  * REST handler to abort the current task in a [CompetitionRun].
  */
-class AbortTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/task/abort"
 
     @OpenApi(
@@ -328,7 +330,7 @@ class AbortTaskCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandle
 /**
  * REST handler to terminate a [CompetitionRun].
  */
-class TerminateCompetitionRunAdminHandler: AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class TerminateCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/terminate"
 
     @OpenApi(
@@ -386,7 +388,8 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), 
         }.toInt()
         try {
             run.adjustDuration(duration)
-            AuditLogger.taskModified(run.id, run.currentTask?.name ?: "n/a","Task duration adjusted by ${duration}s.", LogEventSource.REST, ctx.sessionId())
+            AuditLogger.taskModified(run.id, run.currentTask?.name
+                    ?: "n/a", "Task duration adjusted by ${duration}s.", LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Duration for run $runId was successfully adjusted.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Duration for run $runId could not be adjusted because it is in the wrong state (state = ${run.status}).", ctx)
@@ -394,6 +397,37 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), 
             throw ErrorStatusException(400, "Duration for run $runId could not be adjusted because new duration would drop bellow zero (state = ${run.status}).", ctx)
         }
     }
+}
+
+class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), GetRestHandler<Array<SubmissionInfo>> {
+    override val route: String = "run/admin/:runId/submissions/list/:taskId"
+
+    @OpenApi(
+            summary = "Lists all submissions for a given task and run",
+            path = "/api/run/admin/:runId/submissions/list/:taskId",
+            method = HttpMethod.GET,
+            pathParams = [
+                OpenApiParam("runId", UID::class, "Competition Run ID"),
+                OpenApiParam("taskId", UID::class, "Task ID")
+            ],
+            tags = ["Competition Run Admin"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doGet(ctx: Context): Array<SubmissionInfo> {
+        val runId = runId(ctx)
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
+
+        val taskId = ctx.pathParamMap().getOrElse("taskId") {
+            throw ErrorStatusException(404, "Parameter 'taskId' is missing!'", ctx)
+        }.UID()
+        return run.submissions.filter { it.taskRun?.taskId?.equals(taskId) ?: false }.map { SubmissionInfo.withId(it) }.toTypedArray()
+    }
+
 }
 
 /**
@@ -418,9 +452,10 @@ class ListViewersRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), Get
     override fun doGet(ctx: Context): Array<ViewerInfo> {
         val runId = runId(ctx)
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
-        return run.viewers().map{ ViewerInfo(it.key.sessionId, it.key.userName, it.key.host, it.value) }.toTypedArray()
+        return run.viewers().map { ViewerInfo(it.key.sessionId, it.key.userName, it.key.host, it.value) }.toTypedArray()
     }
 }
+
 
 /**
  * REST handler to force the viewer state of a viewer instance registered for a [RunManager].

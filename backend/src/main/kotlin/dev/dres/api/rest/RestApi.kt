@@ -118,6 +118,7 @@ object RestApi {
                 AdjustDurationRunAdminHandler(),
                 ListViewersRunAdminHandler(),
                 ForceViewerRunAdminHandler(),
+                ListSubmissionsPerTaskRunAdminHandler(),
 
                 // Judgement
                 NextOpenJudgementHandler(dataAccessLayer.collections),

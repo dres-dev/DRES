@@ -427,7 +427,38 @@ class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHan
         }.UID()
         return run.submissions.filter { it.taskRun?.taskId?.equals(taskId) ?: false }.map { SubmissionInfo.withId(it) }.toTypedArray()
     }
+}
 
+class OverrideSubmissionStatusRunAdminHandler: AbstractCompetitionRunAdminRestHandler(), PatchRestHandler<SubmissionInfo>{
+    override val route: String = "run/admin/:runId/submissions/override"
+
+    @OpenApi(
+            summary = "Lists all submissions for a given task and run",
+            path = "/api/run/admin/:runId/submissions/override",
+            method = HttpMethod.PATCH,
+            pathParams = [
+                OpenApiParam("runId", UID::class, "Competition Run ID")
+            ],
+            requestBody = OpenApiRequestBody([OpenApiContent(SubmissionInfo::class)]),
+            tags = ["Competition Run Admin"],
+            responses = [
+                OpenApiResponse("200", [OpenApiContent(SubmissionInfo::class)]),
+                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            ]
+    )
+    override fun doPatch(ctx: Context): SubmissionInfo {
+        val runId = runId(ctx)
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
+
+        val toPatchRest = ctx.body<SubmissionInfo>()
+        val found = run.submissions.find { it.uid == (toPatchRest.id?.UID() ?: UID.EMPTY)}
+                ?: throw ErrorStatusException(404, "The given submission $toPatchRest was not found", ctx)
+        found.status = toPatchRest.status
+
+        return SubmissionInfo.withId(found)
+    }
 }
 
 /**

@@ -453,11 +453,16 @@ class OverrideSubmissionStatusRunAdminHandler: AbstractCompetitionRunAdminRestHa
         val run = getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
 
         val toPatchRest = ctx.body<SubmissionInfo>()
+        /* Sanity check to see, whether the submission exists */
         val found = run.submissions.find { it.uid == (toPatchRest.id?.UID() ?: UID.EMPTY)}
                 ?: throw ErrorStatusException(404, "The given submission $toPatchRest was not found", ctx)
-        found.status = toPatchRest.status
 
-        return SubmissionInfo.withId(found)
+        if(run.updateSubmission(toPatchRest.id!!.UID(), toPatchRest.status) ){
+            return SubmissionInfo.withId(run.submissions.find{it.uid == toPatchRest.id.UID() }!!)
+        }else{
+            throw ErrorStatusException(500, "Could not update the submission. Please see the backend's log", ctx)
+        }
+
     }
 }
 

@@ -158,6 +158,12 @@ export class RunAdminViewComponent {
         );
     }
 
+    public submissionsOf(task){
+        this.runId.subscribe(r => {
+            this.router.navigateByUrl(`run/admin/submissions/${r}/${task.taskId}`);
+        });
+    }
+
     public adjustDuration(duration: number) {
         this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidAdjustWithDuration(id, duration))).subscribe(
             (r) => {

@@ -227,4 +227,19 @@ interface RunManager : Runnable {
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
     fun postSubmission(sub: Submission): SubmissionStatus
+
+    /**
+     * Invoked by an external caller to update an existing [Submission] by its [Submission.uid] with a new [SubmissionStatus].
+     * [Submission]s usually cause updates to the internal state and/or
+     * the [Scoreboard] of this [RunManager].
+     *
+     * This method will not throw an exception and instead returns false if a [Submission] was
+     * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
+     * this method again.
+     *
+     * @param sub The [Submission] to be posted.
+     * @return Whether the update was successfuly or not
+     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
+     */
+    fun updateSubmission(suid: UID, newStatus: SubmissionStatus): Boolean
 }

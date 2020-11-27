@@ -6,6 +6,7 @@ import dev.dres.api.rest.types.run.websocket.ClientMessage
 import dev.dres.api.rest.types.run.websocket.ClientMessageType
 import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
+import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
@@ -23,6 +24,7 @@ import dev.dres.run.updatables.*
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import dev.dres.utilities.ReadyLatch
+import dev.dres.utilities.extensions.UID
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.*
@@ -418,6 +420,38 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_UPDATED))
 
         return sub.status
+    }
+
+    /**
+     * Processes incoming [Submission]s. If a [CompetitionRun.TaskRun] is running then that [Submission] will usually
+     * be associated with that [CompetitionRun.TaskRun].
+     *
+     * This method will not throw an exception and instead return false if a [Submission] was
+     * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
+     * this method again.
+     *
+     * @param sub [Submission] that should be registered.
+     */
+    override fun updateSubmission(suid: UID, newStatus: SubmissionStatus): Boolean = this.stateLock.read {
+        // We have to ignore anything state related, as we allow updates by admins regardless of state
+//        check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronizedRunManager is in status ${this.status} and can currently not accept submissions." }
+
+        /* Sanity check */
+        val found = submissions.find { it.uid == suid}
+                ?: return false
+        /* Actual update - currently, only status update is allowed */
+        found.status = newStatus
+
+        /* Mark dao for update. */
+        this.daoUpdatable.dirty = true
+
+        /* Enqueue submission for post-processing. */
+        this.scoresUpdatable.enqueue(Pair(found.taskRun!!, found))
+
+        /* Enqueue WS message for sending */
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_UPDATED))
+
+        return true
     }
 
     /**

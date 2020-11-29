@@ -1,10 +1,12 @@
 import {AfterViewInit, Component, OnDestroy, ViewChild} from '@angular/core';
-import {CompetitionRunAdminService, SubmissionInfo} from '../../../../openapi';
+import {CompetitionRunAdminService, RunState, SubmissionInfo} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatDialog} from '@angular/material/dialog';
 import {MatTable} from '@angular/material/table';
 import {interval, Subscription} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
+import {MatButtonToggleGroup} from '@angular/material/button-toggle';
+import StatusEnum = RunState.StatusEnum;
 
 @Component({
     selector: 'app-run-admin-submissions-list',
@@ -16,22 +18,23 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     /**
      * The base polling frequency of this polling is every half second
      */
-    static readonly BASE_POLLING_FREQUENCY = 500; // ms -> .5s
+    static readonly BASE_POLLING_FREQUENCY = 1000; // ms -> 1s
 
-    public readonly SUBMISSION_STATUS = Object.keys(SubmissionInfo.StatusEnum);
 
     public competitionRunId: string;
     public taskId: string;
+
+    @ViewChild('group', {static: true}) group: MatButtonToggleGroup;
 
     @ViewChild('table', {static: true}) table: MatTable<SubmissionInfo>;
     /**
      * The displayed columns
      */
-    displayColumns = ['id', 'timestamp', 'team', 'status', 'item', 'actions'];
+    displayColumns = ['id', 'timestamp', 'status', 'item', 'actions'];
 
     submissions: SubmissionInfo[] = [];
 
-    pollingFrequencyFactor = 1; // every half second, will be multiplied with BASE_POLLING_FREQUENCY
+    pollingFrequencyFactor = 60; // every 60 seconds
 
 
     private pollingSub: Subscription;
@@ -49,18 +52,13 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     }
 
     ngAfterViewInit(): void {
-        this.pollingSub = interval(this.pollingFrequencyFactor * RunAdminSubmissionsListComponent.BASE_POLLING_FREQUENCY)
-            .subscribe(_ => {
+        // this.pollingSub = interval(this.pollingFrequencyFactor * RunAdminSubmissionsListComponent.BASE_POLLING_FREQUENCY)
+        //     .subscribe(_ => {
                 this.runService.getApiRunAdminWithRunidSubmissionsListWithTaskid(this.competitionRunId, this.taskId)
                     .subscribe(subs => {
-                        if (subs.length > 1) {
-                            subs.forEach(s => this.submissions.push(s));
-                            if (this.table) {
-                                this.table.renderRows();
-                            }
-                        }
+                        this.submissions = subs;
                     });
-            });
+            // });
     }
 
     ngOnDestroy(): void {
@@ -68,5 +66,13 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
         this.submissions = [];
     }
 
-
+    update(submission: SubmissionInfo, status: SubmissionInfo.StatusEnum) {
+        console.log(submission);
+        console.log(status);
+        submission.status = status;
+        console.log(submission);
+        this.runService.patchApiRunAdminWithRunidSubmissionsOverride(this.competitionRunId, submission).subscribe(res => {
+            this.snackBar.open(`Result: ${res}`, null, {duration: 5000});
+        });
+    }
 }

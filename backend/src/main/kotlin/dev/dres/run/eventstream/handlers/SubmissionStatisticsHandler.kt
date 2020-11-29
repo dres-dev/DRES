@@ -50,11 +50,11 @@ class SubmissionStatisticsHandler : StreamEventHandler {
         submissionsByTeam.mapValues {
             it.value.firstOrNull { s -> s.status == SubmissionStatus.CORRECT }?.timestamp?.minus(taskStart) }
                 .filter { it.value != null }.forEach{
-                    (teamId, time) -> writer.println("$task,$teamId,\"timeUntilCorrectSubmission\",$time")
+                    (teamId, time) -> writer.println("$task,${teamId.string},\"timeUntilCorrectSubmission\",$time")
                 }
         submissionsByTeam.mapValues {
             it.value.indexOfFirst { s -> s.status == SubmissionStatus.CORRECT } }.forEach{
-            (teamId, count) -> writer.println("$task,$teamId,\"incorrectBeforeCorrectSubmissions\",$count")
+            (teamId, count) -> writer.println("$task,${teamId.string},\"incorrectBeforeCorrectSubmissions\",$count")
         }
         writer.flush()
 

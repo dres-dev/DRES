@@ -17,6 +17,6 @@ export interface QueryEventLog {
     events: Array<QueryEvent>;
     type: string;
     serverTimeStamp?: number;
-    serverTimeStamp$backend: number;
+    serverTimeStamp$dres: number;
 }
 

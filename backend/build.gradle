@@ -1,20 +1,18 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
 buildscript {
-    ext.kotlinVersion = '1.4.0'
+    ext.kotlinVersion = '1.4.10'
 
     repositories {
         mavenCentral()
     }
     dependencies {
-        classpath "com.google.protobuf:protobuf-gradle-plugin:0.8.8"
         classpath "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlinVersion"
     }
 }
 plugins {
-    // id 'com.moowork.node'     version '1.3.1' // see https://github.com/srs/gradle-node-plugin/issues/292#issuecomment-562848790
     id 'com.github.node-gradle.node' version '2.2.0'
     id 'de.undercouch.download' version '4.0.4'
 }
@@ -22,12 +20,9 @@ apply plugin: 'application'
 apply plugin: 'java'
 apply plugin: 'kotlin'
 apply plugin: 'kotlinx-serialization'
-apply plugin: 'com.google.protobuf'
 apply plugin: 'idea'
 
 mainClassName = 'dev.dres.DRES'
-
-def frontendLocation = '../frontend'
 
 sourceCompatibility = 1.8
 
@@ -48,7 +43,6 @@ compileTestKotlin {
 
 
 dependencies {
-
     def jettyVersion = '9.4.25.v20191220'
     def alpnApiVersion = '1.1.3.v20160715'
     def alpnBootVersion = '8.1.12.v20180117'
@@ -57,18 +51,18 @@ dependencies {
     compile group: 'org.mapdb', name: 'mapdb', version: '3.0.8'
 
 
-	////// JLine 3
-	compile group: 'org.jline', name: 'jline', version: '3.15.0'
-	
-	////// Javalin
-	compile group: 'io.javalin', name: 'javalin', version: '3.8.0'
+    ////// JLine 3
+    compile group: 'org.jline', name: 'jline', version: '3.15.0'
+
+    ////// Javalin
+    compile group: 'io.javalin', name: 'javalin', version: '3.8.0'
     compile group: 'io.swagger.core.v3', name: 'swagger-core', version: '2.1.5'
     compile group: 'org.webjars', name: 'swagger-ui', version: '3.24.3'
     compile group: 'org.webjars.npm', name: 'js-tokens', version: '3.0.2'
     compile group: 'org.webjars.npm', name: 'redoc', version: '2.0.0-rc.2'
     compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.10.1'
     compile group: 'io.github.classgraph', name: 'classgraph', version: '4.8.34'
-    compile group: 'org.eclipse.jetty.http2', name:'http2-server', version: jettyVersion
+    compile group: 'org.eclipse.jetty.http2', name: 'http2-server', version: jettyVersion
     compile group: 'org.eclipse.jetty', name: 'jetty-alpn-conscrypt-server', version: jettyVersion
     compile group: 'org.eclipse.jetty.alpn', name: 'alpn-api', version: alpnApiVersion
     runtime group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: alpnBootVersion
@@ -88,6 +82,9 @@ dependencies {
     ////// Jaffree ffmpeg wrapper
     compile group: 'com.github.kokorin.jaffree', name: 'jaffree', version: '0.9.3'
 
+    ////// Cache
+    compile group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '2.8.6'
+
     ////// Log4J
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.1'
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.13.1'
@@ -101,7 +98,6 @@ dependencies {
     ///// Kotlin
     compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlinVersion
     compile group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlinVersion
-
 }
 
 idea {
@@ -118,6 +114,15 @@ sourceSets {
     }
 }
 
+distributions {
+    main {
+        distributionBaseName = 'dres-dist'
+        contents {
+            from 'ext'
+        }
+    }
+}
+
 node {
     version = '12.18.3'
     npmVersion = '6.14.6'
@@ -128,27 +133,22 @@ node {
     nodeModulesDir = file("${project.projectDir}/../frontend")
 }
 
-task cleanFrontendResources(type: Delete){
-   delete 'src/main/resources/html'
-   doLast {
-	mkdir 'src/main/resources/html'
-	new File('src/main/resources/html/index.html').text = " "
-	}
+/** Custom tasks: Front building (npm / node). */
+
+task cleanFrontendResources(type: Delete) {
+    delete 'src/main/resources/html'
+    doLast {
+        mkdir 'src/main/resources/html'
+        new File('src/main/resources/html/index.html').text = " "
+    }
 }
 
-
-task buildFrontend(type: NpmTask){
+task buildFrontend(type: NpmTask) {
     args = ['run', 'pbuild']
     dependsOn 'npm_install'
-    /*command 'run'
-    cmdArgs 'pbuild'
-    npm {
-        homeDirectory = frontendLocation
-    }*/
 }
 
-
-task deployFrontend(type: Copy){
+task deployFrontend(type: Copy) {
     dependsOn 'cleanFrontendResources'
     dependsOn 'buildFrontend'
     tasks.findByName('buildFrontend').mustRunAfter 'cleanFrontendResources'
@@ -157,29 +157,78 @@ task deployFrontend(type: Copy){
     into('src/main/resources/html')
 }
 
-task deploy {
-    dependsOn 'deployFrontend'
-    dependsOn 'distZip'
-    tasks.findByName('distZip').mustRunAfter 'deployFrontend'
-}
+/** Custom tasks: FFmpeg Download and deployment. */
 
+task downloadFFmpeg(type: Download) {
+    def f = new File('ffmpeg.zip')
+    outputs.upToDateWhen {
+        return f.exists()
+    }
 
-task downloadFFMpeg(type: Download){
+    def os = ""
     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        src 'https://ffmpeg.zeranoe.com/builds/win64/shared/ffmpeg-4.2.3-win64-shared.zip'
+        os = "win"
     } else if (Os.isFamily(Os.FAMILY_MAC)) {
-        src 'https://ffmpeg.zeranoe.com/builds/macos64/shared/ffmpeg-4.2.3-macos64-shared.zip'
+        os = "osx"
     } else if (Os.isFamily(Os.FAMILY_UNIX)) {
-        src 'https://github.com/vot/ffbinaries-prebuilt/releases/download/v4.2.1/ffmpeg-4.2.1-linux-64.zip'
+        os = "linux"
     }
-    dest new File('ffmpeg.zip')
+
+    src "https://github.com/vot/ffbinaries-prebuilt/releases/download/v4.2.1/ffmpeg-4.2.1-$os-64.zip"
+    dest f
 }
 
-task setupFFMpeg(dependsOn: downloadFFMpeg, type: Copy) {
-    if (Os.isFamily(Os.FAMILY_WINDOWS) || Os.isFamily(Os.FAMILY_MAC)) {
-        from zipTree(downloadFFMpeg.dest).matching{ include '*/bin/*'}
-    } else if (Os.isFamily(Os.FAMILY_UNIX)) {
-        from zipTree(downloadFFMpeg.dest).matching { include '**ffmpeg' }
+task downloadFFprobe(type: Download) {
+    def f = new File('ffprobe.zip')
+    outputs.upToDateWhen {
+        return f.exists()
     }
-    into 'ext/ffmpeg'
+
+    def os = ""
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        os = "win"
+    } else if (Os.isFamily(Os.FAMILY_MAC)) {
+        os = "osx"
+    } else if (Os.isFamily(Os.FAMILY_UNIX)) {
+        os = "linux"
+    }
+
+    src "https://github.com/vot/ffbinaries-prebuilt/releases/download/v4.2.1/ffprobe-4.2.1-$os-64.zip"
+    dest f
 }
+
+task copyFFmpeg(type: Copy) {
+    dependsOn downloadFFmpeg
+    outputs.upToDateWhen {
+        return !fileTree('ext/ffmpeg').filter { it.isFile() && it.name.contains("ffmpeg")}.isEmpty()
+    }
+    from zipTree(downloadFFmpeg.dest)
+    into 'ext/ffmpeg'
+    include '*ffmpeg*'
+}
+
+task copyFFprobe(type: Copy) {
+    dependsOn downloadFFprobe
+    outputs.upToDateWhen {
+        return !fileTree('ext/ffmpeg').filter { it.isFile() && it.name.contains("ffprobe")}.isEmpty()
+    }
+    from zipTree(downloadFFprobe.dest)
+    into 'ext/ffmpeg'
+    include '*ffprobe*'
+}
+
+task setupFFMpeg(type: Copy) {
+    dependsOn downloadFFmpeg
+    dependsOn downloadFFprobe
+    dependsOn copyFFmpeg
+    dependsOn copyFFprobe
+}
+
+/** Jar task depends on frontend deployment. */
+jar.dependsOn deployFrontend
+
+/** Distribution tasks depend on Jar and setupFFMpeg. */
+distZip.dependsOn jar
+distZip.dependsOn setupFFMpeg
+distTar.dependsOn jar
+distTar.dependsOn setupFFMpeg

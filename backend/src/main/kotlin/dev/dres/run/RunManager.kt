@@ -9,6 +9,7 @@ import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.run.CompetitionRun
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.interfaces.TaskRunScorer
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.ScoreboardsUpdatable
@@ -21,7 +22,7 @@ import java.util.*
  * @see CompetitionRun
  *
  * @author Ralph Gasser
- * @version 1.3
+ * @version 1.4.0
  */
 interface RunManager : Runnable {
     /** Unique, public, numeric ID for this [RunManager]. */
@@ -37,13 +38,15 @@ interface RunManager : Runnable {
     /** The [ScoreboardsUpdatable] used to track the scores per team. */
     val scoreboards: ScoreboardsUpdatable
 
+    /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
+    val scoreHistory: List<ScoreTimePoint>
+
     /**
      * Reference to the currently active [TaskDescription].
      *
      * Part of the [RunManager]'s navigational state.
      */
     val currentTask: TaskDescription?
-        get() = currentTaskRun?.task
 
     /**
      * Reference to the [CompetitionRun.TaskRun] that is currently being executed OR that has just ended.
@@ -51,13 +54,6 @@ interface RunManager : Runnable {
      * Part of the [RunManager]'s execution state. Can be null!
      */
     val currentTaskRun: CompetitionRun.TaskRun?
-
-    /**
-     * Reference to the [TaskRunScorer] of the [CompetitionRun.TaskRun] that is currently being executed.
-     *
-     * Part of the [RunManager]'s execution state. Can be null!
-     */
-    val currentTaskScore: TaskRunScorer?
 
     /**
      * List of [Submission]s for the current [CompetitionRun.TaskRun].
@@ -74,9 +70,6 @@ interface RunManager : Runnable {
 
     /** [JudgementValidator]s for all tasks that use them */
     val judgementValidators: List<JudgementValidator>
-
-    /** determines if users with the role [RestApiRole.PARTICIPANT] have access to the task viewer */
-    val participantCanView: Boolean
 
     /**
      * Starts this [RunManager] moving [RunManager.status] from [RunManagerStatus.CREATED] to
@@ -178,11 +171,19 @@ interface RunManager : Runnable {
     fun timeLeft(): Long
 
     /**
-     * Returns [CompetitionRun.TaskRun]s for a specific task ID. May be empty.
+     * Returns [CompetitionRun.TaskRun]s for the specified index. The index is zero based, i.e.,
+     * an index of 0 returns the first [CompetitionRun.TaskRun], index of 1 the second etc.
      *
-     * @param taskId The ID of the [Task] for which [CompetitionRun.TaskRun]s should be retrieved.
+     * @param taskRunId The [UID] of the desired [CompetitionRun.TaskRun].
      */
-    fun taskRuns(taskId: Int): List<CompetitionRun.TaskRun>
+    fun taskRunForId(taskRunId: UID): CompetitionRun.TaskRun?
+
+    /**
+     * Returns the number of [CompetitionRun.TaskRun]s held by this [RunManager].
+     *
+     * @return The number of [CompetitionRun.TaskRun]s held by this [RunManager]
+     */
+    fun taskRuns(): Int
 
     /**
      * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.
@@ -226,4 +227,19 @@ interface RunManager : Runnable {
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
     fun postSubmission(sub: Submission): SubmissionStatus
+
+    /**
+     * Invoked by an external caller to update an existing [Submission] by its [Submission.uid] with a new [SubmissionStatus].
+     * [Submission]s usually cause updates to the internal state and/or
+     * the [Scoreboard] of this [RunManager].
+     *
+     * This method will not throw an exception and instead returns false if a [Submission] was
+     * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
+     * this method again.
+     *
+     * @param sub The [Submission] to be posted.
+     * @return Whether the update was successfuly or not
+     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
+     */
+    fun updateSubmission(suid: UID, newStatus: SubmissionStatus): Boolean
 }

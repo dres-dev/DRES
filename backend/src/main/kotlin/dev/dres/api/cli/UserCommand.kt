@@ -35,6 +35,15 @@ class UserCommand : NoOpCliktCommand(name = "user") {
         this.subcommands(CreateUserCommand(), UpdateUserCommand(), DeleteUserCommand(), ListUsers(), ListRoles(), ExportUserCommand(), ImportUserCommand())
     }
 
+    override fun aliases(): Map<String, List<String>> {
+        return mapOf(
+                "ls" to listOf("list"),
+                "remove" to listOf("delete"),
+                "drop" to listOf("delete"),
+                "add" to listOf("create")
+        )
+    }
+
     /**
      * [CliktCommand] to create a new [User].
      */
@@ -89,12 +98,12 @@ class UserCommand : NoOpCliktCommand(name = "user") {
                 val success = UserManager.update(id = id, username = username, password = password, role = role)
                 if (success) {
                     val updatedUser = UserManager.get(id = id, username = username)
-                    println("User $userId updated successfully (old: $currentUser, new: $updatedUser)!")
+                    println("User ${userId.string} updated successfully (old: $currentUser, new: $updatedUser)!")
                     return
                 }
             }
 
-            println("User[id=${id ?: "N/A"},username=${username
+            println("User[id=${id?.string ?: "N/A"},username=${username
                     ?: "N/A"}] could not be updated because it doesn't exist!")
         }
     }
@@ -121,7 +130,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
                     return
                 }
             }
-            println("User with ID $delId could not be deleted because it doesn't exist!")
+            println("User with ID ${delId?.string ?: "N/A"} could not be deleted because it doesn't exist!")
         }
     }
 
@@ -153,9 +162,9 @@ class UserCommand : NoOpCliktCommand(name = "user") {
                     Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
                         mapper.writeValue(it, user)
                     }
-                    println("Successfully wrote user ${user.id} to $path.")
+                    println("Successfully wrote user ${user.id.string} to $path.")
                 } else {
-                    println("User with ID $id does not exist.")
+                    println("User with ID ${id?.string ?: "N/A"} does not exist.")
                 }
             }
         }
@@ -164,7 +173,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * Imports a specific competition from JSON.
      */
-    inner class ImportUserCommand : CliktCommand(name = "import", help = "Imports a user description from JSON.") {
+    inner class ImportUserCommand : CliktCommand(name = "import", help = "Imports a user description from JSON. Either a single user or an array of users") {
 
         private val new: Boolean by option("-n", "--new", help = "Flag indicating whether users should be created anew.").flag("-u", "--update", default = true)
 
@@ -191,6 +200,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
                     UserManager.update(it.id, it.username, it.password, it.role)
                 }
             }
+            println("done")
         }
     }
 
@@ -220,7 +230,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
                             }
                             body {
                                 users.forEach {
-                                    row(it.id, it.username.name, it.role)
+                                    row(it.id.string, it.username.name, it.role)
                                 }
                             }
                         }

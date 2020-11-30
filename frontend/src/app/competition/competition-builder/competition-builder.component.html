@@ -1,5 +1,8 @@
 <div style="display: flex" class="header">
     <div>
+        <button mat-icon-button (click)="back()">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
         <h1 *ngIf="!dirty">Edit competition {{competitionId}}</h1>
         <h1 *ngIf="dirty">Edit competition {{competitionId}} <span class="warn-color">(unsaved changes)</span></h1>
     </div>
@@ -164,7 +167,7 @@
                 <!-- Name Column -->
                 <ng-container matColumnDef="group">
                     <th mat-header-cell *matHeaderCellDef> Group</th>
-                    <td mat-cell *matCellDef="let task"> {{task.taskGroup.name}} </td>
+                    <td mat-cell *matCellDef="let task"> {{task.taskGroup}} </td>
                 </ng-container>
 
                 <!-- Weight Column -->

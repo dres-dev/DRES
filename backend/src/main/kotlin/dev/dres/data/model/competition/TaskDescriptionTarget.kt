@@ -23,6 +23,12 @@ import java.util.*
  */
 sealed class TaskDescriptionTarget {
 
+
+    companion object {
+        const val IMAGE_CONTENT_ELEMENT_DURATION_S = 3L
+        const val EMPTY_CONTENT_ELEMENT_DURATION_S = 1L
+    }
+
     abstract val ordinal: Int
 
     internal abstract fun textDescription(): String
@@ -56,16 +62,22 @@ sealed class TaskDescriptionTarget {
         override fun toQueryContentElement(config: Config, collections: DAO<MediaCollection>): List<ContentElement>  {
             val collection = collections[this.item.collection]!!
             val file = File(File(collection.basePath), this.item.location)
-            return listOf(
-                    FileInputStream(file).use { imageInFile ->
+            val contentElements = mutableListOf<ContentElement>()
+            FileInputStream(file).use { imageInFile ->
                 val fileData = ByteArray(file.length().toInt())
                 imageInFile.read(fileData)
-                ContentElement(when(item){
-                    is MediaItem.VideoItem -> ContentType.VIDEO
-                    is MediaItem.ImageItem -> ContentType.IMAGE
-                }, Base64.getEncoder().encodeToString(fileData))
+                when(this.item) {
+                    is MediaItem.VideoItem -> {
+                        contentElements += ContentElement(ContentType.VIDEO, Base64.getEncoder().encodeToString(fileData), 0)
+                        contentElements += ContentElement(ContentType.EMPTY, null, Math.floorDiv(this.item.durationMs, 1000L) + 1L)
+                    }
+                    is MediaItem.ImageItem ->{
+                        contentElements += ContentElement(ContentType.IMAGE, Base64.getEncoder().encodeToString(fileData), 0)
+                        contentElements += ContentElement(ContentType.EMPTY, null, IMAGE_CONTENT_ELEMENT_DURATION_S)
+                    }
+                }
             }
-            )
+            return contentElements
         }
     }
 
@@ -77,11 +89,14 @@ sealed class TaskDescriptionTarget {
         override fun textDescription() = "Media Item ${item.name} @ ${temporalRange.start.niceText()} - ${temporalRange.end.niceText()}"
         override fun toQueryContentElement(config: Config, collections: DAO<MediaCollection>): List<ContentElement>  {
             val file = File(File(config.cachePath + "/tasks"), this.cacheItemName())
-            return listOf(FileInputStream(file).use { imageInFile ->
+            val contentElements = mutableListOf<ContentElement>()
+            FileInputStream(file).use { imageInFile ->
                 val fileData = ByteArray(file.length().toInt())
                 imageInFile.read(fileData)
-                ContentElement(ContentType.VIDEO, Base64.getEncoder().encodeToString(fileData))
-            })
+                contentElements += ContentElement(ContentType.VIDEO, Base64.getEncoder().encodeToString(fileData), 0)
+                contentElements += ContentElement(ContentType.EMPTY, null, Math.floorDiv(this.temporalRange.durationMs(this.item.fps), 1000L) + 1L)
+            }
+            return contentElements
         }
     }
 
@@ -92,25 +107,31 @@ sealed class TaskDescriptionTarget {
         override val ordinal: Int = 4
         override fun textDescription() = "Media Items"
         override fun toQueryContentElement(config: Config, collections: DAO<MediaCollection>): List<ContentElement> {
-
-            val delay = 20L
-            var i = 0
-
-            return this.items.map { item ->
+            var cummulativeOffset = 0L
+            val contentElements = mutableListOf<ContentElement>()
+            this.items.forEach { item ->
                 val collection = collections[item.collection]!!
                 val file = File(File(collection.basePath), item.location)
-
-                    FileInputStream(file).use { imageInFile ->
-                        val fileData = ByteArray(file.length().toInt())
-                        imageInFile.read(fileData)
-                        ContentElement(when(item){
-                            is MediaItem.VideoItem -> ContentType.VIDEO
-                            is MediaItem.ImageItem -> ContentType.IMAGE
-                        }, Base64.getEncoder().encodeToString(fileData), offset = i++ * delay)
+                FileInputStream(file).use { imageInFile ->
+                    val fileData = ByteArray(file.length().toInt())
+                    imageInFile.read(fileData)
+                    when(item) {
+                        is MediaItem.VideoItem -> {
+                            contentElements += ContentElement(ContentType.VIDEO, Base64.getEncoder().encodeToString(fileData), cummulativeOffset)
+                            cummulativeOffset += Math.floorDiv(item.durationMs, 1000L) + 1L
+                        }
+                        is MediaItem.ImageItem -> {
+                            contentElements += ContentElement(ContentType.IMAGE, Base64.getEncoder().encodeToString(fileData), IMAGE_CONTENT_ELEMENT_DURATION_S)
+                            cummulativeOffset += IMAGE_CONTENT_ELEMENT_DURATION_S
+                        }
                     }
 
+                    /* Add pause in between. */
+                    contentElements += ContentElement(ContentType.EMPTY, null, cummulativeOffset)
+                    cummulativeOffset += EMPTY_CONTENT_ELEMENT_DURATION_S
+                }
             }
-
+            return contentElements
         }
     }
 }

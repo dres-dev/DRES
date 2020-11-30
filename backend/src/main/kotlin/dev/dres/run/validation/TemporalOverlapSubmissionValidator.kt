@@ -1,9 +1,10 @@
 package dev.dres.run.validation
 
-import dev.dres.data.model.competition.VideoSegment
 import dev.dres.data.model.competition.TaskDescription
+import dev.dres.data.model.competition.VideoSegment
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.run.TemporalSubmissionAspect
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import dev.dres.utilities.TimeUtil
 
@@ -23,8 +24,11 @@ class TemporalOverlapSubmissionValidator(private val task: VideoSegment) : Submi
      * @param submission The [Submission] to validate.
      */
     override fun validate(submission: Submission){
+        if (submission !is TemporalSubmissionAspect){
+            submission.status = SubmissionStatus.WRONG
+            return
+        }
         submission.status = when {
-            submission.start == null || submission.end == null -> SubmissionStatus.WRONG
             submission.start > submission.end -> SubmissionStatus.WRONG
             submission.item != task.item ->  SubmissionStatus.WRONG
             else -> {

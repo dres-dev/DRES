@@ -3,6 +3,7 @@ package dev.dres.data.serializers
 import dev.dres.data.model.run.CompetitionRun
 import dev.dres.data.model.run.Submission
 import dev.dres.utilities.extensions.UID
+import dev.dres.utilities.extensions.readUID
 import dev.dres.utilities.extensions.writeUID
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
@@ -17,8 +18,8 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
         out.writeLong(value.ended ?: -1)
         out.writeInt(value.runs.size)
         for (taskRun in value.runs) {
-            out.writeInt(taskRun.taskId)
-            out.writeUTF(taskRun.uid)
+            out.writeUID(taskRun.uid)
+            out.writeUID(taskRun.taskId)
             out.writeLong(taskRun.started ?: -1)
             out.writeLong(taskRun.ended ?: -1)
             out.writeInt(taskRun.submissions.size)
@@ -31,7 +32,7 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
     override fun deserialize(input: DataInput2, available: Int): CompetitionRun {
         val run = CompetitionRun(input.readUTF().UID(), input.readUTF(), competitionSerializer.deserialize(input, available), input.readLong(), input.readLong())
         for (i in 0 until input.readInt()) {
-            val taskRun = run.TaskRun(input.readInt(), input.readUTF(), input.readLong(), input.readLong())
+            val taskRun = run.TaskRun(input.readUID(), input.readUID(), input.readLong(), input.readLong())
             for (j in 0 until input.readInt()) {
                 (taskRun.submissions as MutableList<Submission>).add(SubmissionSerializer.deserialize(input,available))
             }

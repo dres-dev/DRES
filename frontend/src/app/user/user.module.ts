@@ -18,6 +18,7 @@ import {MatDialogModule} from '@angular/material/dialog';
 import {MatSelectModule} from '@angular/material/select';
 import {LoginComponent} from './login/login.component';
 import {ClipboardModule} from '@angular/cdk/clipboard';
+import {SharedModule} from '../shared/shared.module';
 
 
 @NgModule({
@@ -37,7 +38,8 @@ import {ClipboardModule} from '@angular/cdk/clipboard';
         MatTableModule,
         MatDialogModule,
         MatSelectModule,
-        ClipboardModule
+        ClipboardModule,
+        SharedModule
     ]
 })
 export class UserModule {

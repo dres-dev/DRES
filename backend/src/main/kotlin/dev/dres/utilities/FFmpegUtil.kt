@@ -11,13 +11,19 @@ import dev.dres.data.model.competition.CachedVideoItem
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Future
 
 object FFmpegUtil {
 
-    private val ffmpegBin = Path.of("ext/ffmpeg/") //TODO make configurable
+    /** Path to FFMPEG binary; TODO: Make configurable. */
+    private val ffmpegBin = when {
+        Files.exists(Path.of("ext/ffmpeg/")) -> Path.of("ext/ffmpeg/") /* Runtime */
+        Files.exists(Path.of("../ffmpeg/")) -> Path.of("../ffmpeg/") /* Deployment. */
+        else -> throw IllegalStateException("Could not find valid FFmpeg binary path.")
+    }
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
     private val logMarker = MarkerFactory.getMarker("FFMPEG")

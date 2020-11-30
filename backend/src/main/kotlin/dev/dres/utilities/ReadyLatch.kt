@@ -20,6 +20,8 @@ class ReadyLatch<T> {
     /** Internal lock to mediate access to map. */
     private val lock = StampedLock()
 
+    private var timeout: Long? = null
+
     /**
      * Registers a new object [T] with this [ReadyLatch].
      *
@@ -71,9 +73,12 @@ class ReadyLatch<T> {
 
     /**
      * Resets this [ReadyLatch] and thus moves all registered objects to unready state.
+     *
+     * @param timeout specifies an optional timeout in seconds after which [allReadyOrTimedOut] is considered to be true in any case
      */
-    fun reset() = this.lock.write {
+    fun reset(timeout: Long? = null) = this.lock.write {
         this.map.updateValues { _, _ -> false }
+        this.timeout = if (timeout != null) (1000L * timeout) + System.currentTimeMillis() else null
     }
 
     /**
@@ -89,4 +94,9 @@ class ReadyLatch<T> {
     fun allReady() = this.lock.read {
         this.map.allSatisfy { it }
     }
+
+    /**
+     * Equivalent to [allReady] in case no timeout was set in [reset]
+     */
+    fun allReadyOrTimedOut() = allReady() || if (timeout != null) timeout ?: Long.MAX_VALUE <= System.currentTimeMillis() else false
 }

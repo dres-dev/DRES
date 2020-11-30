@@ -18,6 +18,11 @@ import {AdminRunListComponent} from './admin-run-list.component';
 import {ViewerRunListComponent} from './viewer-run-list.component';
 import {RunAdminViewComponent} from './run-admin-view.component';
 import {MatCardModule} from '@angular/material/card';
+import {SharedModule} from '../shared/shared.module';
+import { RunAdminSubmissionsListComponent } from './run-admin-submissions-list/run-admin-submissions-list.component';
+import { SubmissionOverrideDialogComponent } from './submission-override-dialog/submission-override-dialog.component';
+import {ClipboardModule} from '@angular/cdk/clipboard';
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
 
 @NgModule({
     imports: [
@@ -36,10 +41,13 @@ import {MatCardModule} from '@angular/material/card';
         MatMenuModule,
         CompetitionBuilderModule,
         MatSelectModule,
-        MatCardModule
+        MatCardModule,
+        SharedModule,
+        ClipboardModule,
+        MatButtonToggleModule
     ],
     exports:      [ RunListComponent, RunAdminViewComponent ],
-    declarations: [ RunListComponent, RunAdminViewComponent, AdminRunListComponent, ViewerRunListComponent ],
+    declarations: [ RunListComponent, RunAdminViewComponent, AdminRunListComponent, ViewerRunListComponent, RunAdminSubmissionsListComponent, SubmissionOverrideDialogComponent ],
     providers:    [ ]
 })
 export class RunModule { }

@@ -6,6 +6,7 @@
             <mat-card>
                 <div style="display: flex;">
                     <div>
+                        <app-back-button></app-back-button>
                         <h1>Run {{(run | async)?.info.id}} ({{(run | async)?.state.status}})</h1>
                         <p><strong>Name: </strong>{{(run | async)?.info.name}}</p>
                         <p><strong>Description: </strong>{{(run | async)?.info.description}}</p>
@@ -111,10 +112,13 @@
 
                         <!-- Symbol Column -->
                         <ng-container matColumnDef="action">
-                            <th mat-header-cell *matHeaderCellDef> GoTo </th>
+                            <th mat-header-cell *matHeaderCellDef> Actions </th>
                             <td mat-cell *matCellDef="let task; let i = index">
-                                <button mat-icon-button aria-label="Switch to task." matTooltip="witch to task." (click)="switchTask(i)" *ngIf="task.name !== (run | async).state.currentTask.name">
+                                <button mat-icon-button aria-label="Switch to task." matTooltip="Switch to task." (click)="switchTask(i)" *ngIf="task.name !== (run | async).state.currentTask.name">
                                     <mat-icon>directions</mat-icon>
+                                </button>
+                                <button mat-icon-button aria-label="See submissions" matTooltip="See submissions" (click)="submissionsOf(task)">
+                                    <mat-icon>assignment_turned_in</mat-icon>
                                 </button>
                             </td>
                         </ng-container>

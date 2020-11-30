@@ -11,18 +11,20 @@ import javax.imageio.ImageIO
 import javax.xml.bind.DatatypeConverter
 
 
-data class RestTeam(val name: String,
+data class RestTeam(val uid: String? = null,
+                    val name: String,
                     val color: String,
                     val logoData: String?,
                     val logoId: String?,
                     val users: List<String>) {
 
     constructor(team: Team) : this(
-            name = team.name,
-            color = team.color,
-            logoData = null,
-            logoId = team.logoId.string,
-            users = team.users.map { it.string }
+        uid = team.uid.string,
+        name = team.name,
+        color = team.color,
+        logoData = null,
+        logoId = team.logoId.string,
+        users = team.users.map { it.string }
     )
 
 
@@ -83,6 +85,6 @@ data class RestTeam(val name: String,
         if (this.logoData != null) {
             storeLogo(config, this.logoData, logoId)
         }
-        return Team(this.name, this.color, logoId.string, this.users.map { it.UID() }.toMutableList())
+        return Team(this.uid?.UID() ?: UID(), this.name, this.color, logoId, this.users.map { it.UID() }.toMutableList())
     }
 }

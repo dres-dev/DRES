@@ -21,6 +21,6 @@ export interface QueryResultLog {
     resultSetAvailability: string;
     results: Array<QueryResult>;
     serverTimeStamp?: number;
-    serverTimeStamp$backend: number;
+    serverTimeStamp$dres: number;
 }
 

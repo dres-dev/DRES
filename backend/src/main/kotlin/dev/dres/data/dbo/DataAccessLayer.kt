@@ -10,8 +10,8 @@ import java.nio.file.Path
  * @version 1.0
  */
 class DataAccessLayer(private val basePath: Path) {
-    /** List of [dres.data.model.admin.User]s managed by this DRES instance. */
-    val users = DAO(this.basePath.resolve("users.db"), UserSerializer)
+    /** List of [dev.dres.data.model.admin.User]s managed by this DRES instance. */
+    val users = DAO(this.basePath.resolve("users.db"), UserSerializer, cacheDuration = 1440)
 
     val collections = DAO(this.basePath.resolve("collections.db"), MediaCollectionSerializer)
     val collectionNameIndex = DaoIndexer(collections){it.name}
@@ -23,16 +23,18 @@ class DataAccessLayer(private val basePath: Path) {
     val mediaItemCollectionUidIndex = DaoIndexer(mediaItems){it.collection to it.id}
     val mediaItemPathIndex = DaoIndexer(mediaItems){it.location}
 
-    val mediaSegments = DAO(this.basePath.resolve("mediaSegments.db"), MediaItemSegmentListSerializer)
+
+    val mediaSegments = DAO(this.basePath.resolve("mediaSegments.db"), MediaItemSegmentListSerializer, cacheSize = 10_000)
     val mediaSegmentItemIdIndex = DaoIndexer(mediaSegments){it.mediaItemId}
 
     private val competitionSerializer = CompetitionSerializer(mediaItems)
 
-    /** List of [dres.data.model.competition.CompetitionDescription]s managed by this DRES instance. */
+    /** List of [dev.dres.data.model.competition.CompetitionDescription]s managed by this DRES instance. */
     val competitions = DAO(this.basePath.resolve("competitions.db"), competitionSerializer)
 
-    /** List of [dres.data.model.run.CompetitionRun]s managed by this DRES instance. */
+    /** List of [dev.dres.data.model.run.CompetitionRun]s managed by this DRES instance. */
     val runs = DAO(this.basePath.resolve("runs.db"), CompetitionRunSerializer(competitionSerializer))
 
-    val audit = DAO(this.basePath.resolve("auditLog.db"), AuditLogEntrySerializer)
+    val audit = DAO(this.basePath.resolve("auditLog.db"), AuditLogEntrySerializer, cacheDuration = 1440)
+    val auditTimes = NumericDaoIndexer(audit){it.timestamp}
 }

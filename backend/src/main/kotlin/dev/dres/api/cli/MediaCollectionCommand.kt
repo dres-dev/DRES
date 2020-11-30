@@ -1,5 +1,6 @@
 package dev.dres.api.cli
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
@@ -21,13 +22,25 @@ import dev.dres.data.model.basics.time.TemporalRange
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.cleanPathString
+import org.slf4j.LoggerFactory
+import org.slf4j.MarkerFactory
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.util.concurrent.TimeUnit
 
-class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val itemPathIndex: DaoIndexer<MediaItem, String>, val segments: DAO<MediaItemSegmentList>) :
+class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val itemPathIndex: DaoIndexer<MediaItem, String>, val mediaItemCollectionIndex: DaoIndexer<MediaItem, UID>, val segments: DAO<MediaItemSegmentList>) :
         NoOpCliktCommand(name = "collection") {
+    private val logMarker = MarkerFactory.getMarker("CLI")
+    private val logger = LoggerFactory.getLogger(this.javaClass)
+
+    override fun aliases(): Map<String, List<String>> {
+        return mapOf(
+                "ls" to listOf("list"),
+                "remove" to listOf("delete"),
+                "drop" to listOf("delete")
+        )
+    }
 
     companion object {
         enum class SortField {
@@ -40,10 +53,10 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
     }
 
     init {
-        this.subcommands(CreateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), CheckCollectionCommand(), ScanCollectionCommand(), AddMediaItemCommand(), DeleteItemCommand(), ExportCollectionCommand(), ImportCollectionCommand(), DeleteCollectionCommand(), ImportMediaSegmentsCommand())
+        this.subcommands(CreateCollectionCommand(),UpdateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), CheckCollectionCommand(), ScanCollectionCommand(), AddMediaItemCommand(), DeleteItemCommand(), ExportCollectionCommand(), ImportCollectionCommand(), DeleteCollectionCommand(), ImportMediaSegmentsCommand())
     }
 
-    abstract inner class AbstractCollectionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {
+    abstract inner class AbstractCollectionCommand(name: String, help: String) : CliktCommand(name = name, help = help, printHelpOnEmptyArgs = true) {
         private val collectionNameInput: String? by option("-c", "--collection", help = "Name of the Collection")
 
         private val collectionIdInput: UID? by option("-i", "--id", help = "Id of the Collection").convert { it.UID() }
@@ -69,12 +82,64 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             this@MediaCollectionCommand.collections.append(
                     MediaCollection(name = name.trim(), description = description, basePath = basePath.cleanPathString())
             )
-            println("added collection")
+            println("Successfully added collection")
         }
     }
 
+    inner class UpdateCollectionCommand : AbstractCollectionCommand(name = "update", help = "Updates an existing Collection") {
+
+        private val name: String? by option("-n", "--name", help = "The new name of the collection")
+                .validate { require(!this@MediaCollectionCommand.collections.any { c -> c.name == it }) { "collection with name '$it' already exists" } }
+
+        private val description: String? by option("-d", "--description", help = "Description of the Collection to be created")
+
+
+        private val basePath: String? by option("-p", "--path", help = "Base path of the Collection all contained Items will be specified relative to")
+
+
+        override fun run() {
+            val id = actualCollectionId()
+            if (id == null) {
+                System.err.println("Couldn't find the given collection")
+                return
+            }
+            var dirty = false
+            val collection = this@MediaCollectionCommand.collections[id]!!
+            val newName = if(name != null){
+                dirty = true
+                name!!
+            }else{
+                collection.name
+            }
+            val newDesc =if(description != null){
+                dirty = true
+                description
+            }else{
+                collection.description ?: ""
+            }
+            val newBasePath = if(basePath != null){
+                dirty = true
+                basePath!!
+            }else{
+                collection.basePath
+            }
+
+            if(dirty){
+                this@MediaCollectionCommand.collections.delete(id)
+                val newCollection = MediaCollection(id, newName, newDesc, newBasePath)
+                this@MediaCollectionCommand.collections.append(newCollection)
+                println("Updated collection with id ${id.string}")
+            }else{
+                println("Done. Nothing to update")
+            }
+        }
+
+    }
+
+
     inner class ListCollectionsCommand : CliktCommand(name = "list", help = "Lists all Collections") {
         val plain by option("-p", "--plain", help = "Plain print: No fancy table presentation for machine readable output").flag(default = false)
+
         override fun run() {
             println("Available media collections ${this@MediaCollectionCommand.collections.toSet().size}")
             if (plain) {
@@ -90,11 +155,11 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                                 paddingRight = 1
                             }
                             header {
-                                row("id", "name", "description", "basePath")
+                                row("id", "name", "description", "basePath", "# items")
                             }
                             body {
                                 this@MediaCollectionCommand.collections.forEach {
-                                    row(it.id, it.name, it.description ?: "", it.basePath)
+                                    row(it.id.string, it.name, it.description ?: "", it.basePath, this@MediaCollectionCommand.mediaItemCollectionIndex.filter { uid -> it.id.equals(uid) }.size)
                                 }
                             }
                         }
@@ -250,6 +315,8 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
             val buffer = mutableListOf<MediaItem>()
 
+            val issues = mutableMapOf<String, String>()
+
             files.forEach { file ->
 
                 println("found ${file.absolutePath}")
@@ -257,51 +324,55 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 val relativePath = file.relativeTo(base).path
 
                 val existing = this@MediaCollectionCommand.itemPathIndex[relativePath].find { it.collection == collectionId }
+                try {
+                    when (file.extension.toLowerCase()) {
+                        in imageTypes -> {
 
-                when (file.extension.toLowerCase()) {
-                    in imageTypes -> {
-
-                        if (existing == null) { //add
-                            val newItem = MediaItem.ImageItem(UID.EMPTY, file.nameWithoutExtension, relativePath, collection.id)
-                            buffer.add(newItem)
-                        } else { //skip
-                            println("Image ${existing.name} already present")
-                        }
-
-
-                    }
-                    in videoTypes -> {
-
-                        println("Analyzing ${file.absolutePath}")
-
-                        val result = FFmpegUtil.analyze(file.toPath()).streams.first()
-                        val fps = (result.rFrameRate ?: result.avgFrameRate!!).toFloat()
-                        val duration = result.getDuration(TimeUnit.MILLISECONDS).let {
-                            if (it != null) {
-                                it
-                            } else {
-                                println("Cannot read duration from file, counting frames")
-                                val analysis = FFmpegUtil.analyze(file.toPath(), countFrames = true)
-                                val frames = analysis.streams.first().nbReadFrames
-                                println("Counted $frames frames")
-                                ((frames * 1000) / fps).toLong()
+                            if (existing == null) { //add
+                                val newItem = MediaItem.ImageItem(UID.EMPTY, file.nameWithoutExtension, relativePath, collection.id)
+                                buffer.add(newItem)
+                            } else { //skip
+                                println("Image ${existing.name} already present")
                             }
+
+
                         }
+                        in videoTypes -> {
 
-                        println("Found frame rate to be $fps frames per seconds and duration $duration ms")
+                            println("Analyzing ${file.absolutePath}")
 
-                        if (existing == null) { //add
-                            val newItem = MediaItem.VideoItem(UID.EMPTY, file.nameWithoutExtension, relativePath, collection.id, duration, fps)
-                            buffer.add(newItem)
-                        } else { //skip
-                            val newItem = MediaItem.VideoItem(existing.id, existing.name, relativePath, collection.id, duration, fps)
-                            this@MediaCollectionCommand.items.update(newItem)
-                            println("Updated Video ${newItem.name}")
+                            val result = FFmpegUtil.analyze(file.toPath()).streams.first()
+                            val fps = (result.rFrameRate ?: result.avgFrameRate!!).toFloat()
+                            val duration = result.getDuration(TimeUnit.MILLISECONDS).let {
+                                if (it != null) {
+                                    it
+                                } else {
+                                    println("Cannot read duration from file, counting frames")
+                                    val analysis = FFmpegUtil.analyze(file.toPath(), countFrames = true)
+                                    val frames = analysis.streams.first().nbReadFrames
+                                    println("Counted $frames frames")
+                                    ((frames * 1000) / fps).toLong()
+                                }
+                            }
+
+                            println("Found frame rate to be $fps frames per seconds and duration $duration ms")
+
+                            if (existing == null) { //add
+                                val newItem = MediaItem.VideoItem(UID.EMPTY, file.nameWithoutExtension, relativePath, collection.id, duration, fps)
+                                buffer.add(newItem)
+                            } else { //skip
+                                val newItem = MediaItem.VideoItem(existing.id, existing.name, relativePath, collection.id, duration, fps)
+                                this@MediaCollectionCommand.items.update(newItem)
+                                println("Updated Video ${newItem.name}")
+                            }
+
                         }
-
                     }
+                }catch(e:Throwable){
+                    this@MediaCollectionCommand.logger.error("An error occurred with $file. Noting and skipping...")
+                    println("An error occurred with $file. Noting and skipping...")
+                    issues[file.path] = e.stackTraceToString()
                 }
-
                 println()
 
                 if (buffer.size >= 1000) {
@@ -320,7 +391,14 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 this@MediaCollectionCommand.items.batchAppend(buffer)
                 println("done")
             }
-
+            if(issues.isNotEmpty()){
+                val file = File("issues-scan-${collection.name}-${System.currentTimeMillis()}.json")
+                println("There have been ${issues.size} issues while scanning. You might want to check them at ${file.path}")
+                val om = ObjectMapper()
+                om.writeValue(file, issues)
+                println("done")
+            }
+            println()
 
         }
 

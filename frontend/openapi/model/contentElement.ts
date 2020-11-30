@@ -17,8 +17,9 @@ export interface ContentElement {
     offset: number;
 }
 export namespace ContentElement {
-    export type ContentTypeEnum = 'TEXT' | 'VIDEO' | 'IMAGE';
+    export type ContentTypeEnum = 'EMPTY' | 'TEXT' | 'VIDEO' | 'IMAGE';
     export const ContentTypeEnum = {
+        EMPTY: 'EMPTY' as ContentTypeEnum,
         TEXT: 'TEXT' as ContentTypeEnum,
         VIDEO: 'VIDEO' as ContentTypeEnum,
         IMAGE: 'IMAGE' as ContentTypeEnum

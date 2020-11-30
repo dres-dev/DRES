@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {AppConfig} from '../app.config';
 import {
     CompetitionRunAdminService,
@@ -10,8 +10,8 @@ import {
     RunState, TeamInfo,
     ViewerInfo
 } from '../../../openapi';
-import {combineLatest, merge, Observable, Subject, timer} from 'rxjs';
-import {flatMap, map, shareReplay, switchMap} from 'rxjs/operators';
+import {combineLatest, merge, Observable, of, Subject, timer} from 'rxjs';
+import {catchError, filter, flatMap, map, shareReplay, switchMap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
 
 
@@ -34,7 +34,8 @@ export class RunAdminViewComponent {
     displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'action'];
     teams: Observable<RestDetailedTeam[]>;
 
-    constructor(private activeRoute: ActivatedRoute,
+    constructor(private router: Router,
+                private activeRoute: ActivatedRoute,
                 private config: AppConfig,
                 private runService: CompetitionRunService,
                 private competitionService: CompetitionService,
@@ -44,7 +45,17 @@ export class RunAdminViewComponent {
         this.run = this.runId.pipe(
             switchMap(runId =>
                 combineLatest([
-                    this.runService.getApiRunInfoWithRunid(runId),
+                    this.runService.getApiRunInfoWithRunid(runId).pipe(
+                        catchError((err, o) => {
+                            console.log(`[RunAdminViewComponent] There was an error while loading information in the current run state: ${err?.message}`);
+                            this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`);
+                            if (err.status === 404) {
+                                this.router.navigate(['/competition/list']);
+                            }
+                            return of(null);
+                        }),
+                        filter(q => q != null)
+                    ),
                     merge(timer(0, 1000), this.update).pipe(
                         switchMap(index => this.runService.getApiRunStateWithRunid(runId))
                     )
@@ -145,6 +156,12 @@ export class RunAdminViewComponent {
                 this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
             }
         );
+    }
+
+    public submissionsOf(task){
+        this.runId.subscribe(r => {
+            this.router.navigateByUrl(`run/admin/submissions/${r}/${task.id}`);
+        });
     }
 
     public adjustDuration(duration: number) {

@@ -1,7 +1,7 @@
 <mat-card>
     <mat-card-content>
         <div class="flex" [style.overflow-x]="'auto'">
-            <div *ngFor="let team of (info|async)?.teams; let i = index" [style.background-color]="team.color + '44'" class="tile" [@highlight]="(highlight | async)[i]" (@highlight.done)="resetHighlight.next()">
+            <div *ngFor="let team of (info|async)?.teams" [style.background-color]="team.color + '44'" class="tile" [@highlight]="(highlight | async).get(team.uid)" (@highlight.done)="resetHighlight.next()">
 
                 <h3 [style.text-align]="'center'">{{team.name}}</h3>
 
@@ -13,17 +13,17 @@
                 </div>
                 <div *ngIf="(state | async)?.status === 'TASK_ENDED' || (state | async)?.status === 'RUNNING_TASK'" >
                     <p class="score">
-                        {{(score(i) | async)}}
+                        {{(score(team.uid) | async)}}
                     </p>
 
                     <p class="counter">
-                        <span class="CORRECT">{{(correctSubmissions(i) | async)}}</span> |
-                        <span class="WRONG">{{(wrongSubmissions(i) | async)}}</span> |
-                        <span class="INDETERMINATE">{{(indeterminate(i) | async)}}</span>
+                        <span class="CORRECT">{{(correctSubmissions(team.uid) | async)}}</span> |
+                        <span class="WRONG">{{(wrongSubmissions(team.uid) | async)}}</span> |
+                        <span class="INDETERMINATE">{{(indeterminate(team.uid) | async)}}</span>
                     </p>
 
                     <div class="submissions">
-                        <div *ngFor="let submission of (submissionForTeam(i) | async)" [className]="'submission ' + submission.status">
+                        <div *ngFor="let submission of (submissionForTeam(team.uid) | async)" [className]="'submission ' + submission.status">
                             <img class="placeholder" *ngIf="submission.id" [src]="previewForSubmission(submission) | async"/>
                             <p *ngIf="!submission.id">?</p>
                         </div>

@@ -47,7 +47,7 @@ object RestApi {
          */
         val apiRestHandlers = listOf(
 
-                //user
+                // User
                 LoginHandler(dataAccessLayer.audit),
                 LogoutHandler(dataAccessLayer.audit),
                 ListUsersHandler(),
@@ -59,12 +59,12 @@ object RestApi {
                 UserDetailsHandler(), // Must be AFTER CurrentUserHandler
                 ActiveSessionsHandler(dataAccessLayer.users),
 
-                //media
+                // Media
                 MediaPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
                 SubmissionPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
                 GetMediaHandler(dataAccessLayer.mediaItemCollectionUidIndex, dataAccessLayer.collectionUidIndex),
 
-                //collection
+                // Collection
                 ListCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 ShowCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
                 AddCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
@@ -78,7 +78,7 @@ object RestApi {
                 ListMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionNameIndex),
                 ListExternalItemHandler(config),
 
-                //competition
+                // Competition
                 ListCompetitionHandler(dataAccessLayer.competitions),
                 CreateCompetitionHandler(dataAccessLayer.competitions),
                 UpdateCompetitionHandler(dataAccessLayer.competitions, config, dataAccessLayer.mediaItems),
@@ -89,21 +89,24 @@ object RestApi {
                 ListTaskHandler(dataAccessLayer.competitions),
                 GetTeamLogoHandler(config),
 
-                //competition run
+                // Competition run
                 ListCompetitionRunInfosHandler(),
                 ListCompetitionRunStatesHandler(),
                 GetCompetitionRunInfoHandler(),
                 GetCompetitionRunStateHandler(),
-                ListCompetitionScoreHandler(),
-                CurrentTaskScoreHandler(),
                 CurrentTaskHintHandler(config),
                 CurrentTaskTargetHandler(config, dataAccessLayer.collections),
                 CurrentTaskInfoHandler(),
                 SubmissionInfoHandler(),
                 RecentSubmissionInfoHandler(),
-                PastSubmissionInfoHandler(),
+                HistorySubmissionInfoHandler(),
 
-                //Competition run admin
+                // Competition run scores
+                ListCompetitionScoreHandler(),
+                CurrentTaskScoreHandler(),
+                HistoryTaskScoreHandler(),
+
+                // Competition run admin
                 CreateCompetitionRunAdminHandler(dataAccessLayer.competitions, dataAccessLayer.collections, config),
                 StartCompetitionRunAdminHandler(),
                 NextTaskCompetitionRunAdminHandler(),
@@ -115,16 +118,26 @@ object RestApi {
                 AdjustDurationRunAdminHandler(),
                 ListViewersRunAdminHandler(),
                 ForceViewerRunAdminHandler(),
+                ListSubmissionsPerTaskRunAdminHandler(),
+                OverrideSubmissionStatusRunAdminHandler(),
 
+                // Judgement
                 NextOpenJudgementHandler(dataAccessLayer.collections),
                 PostJudgementHandler(),
-                JudgementStatusHandler()
+                JudgementStatusHandler(),
+
+                // Audit Log
+                GetAuditLogInfoHandler(dataAccessLayer.auditTimes),
+                ListAuditLogsInRangeHandler(dataAccessLayer.auditTimes, dataAccessLayer.audit),
+                ListAuditLogsHandler(dataAccessLayer.auditTimes, dataAccessLayer.audit)
         )
 
         javalin = Javalin.create {
             it.enableCorsForAllOrigins()
             it.server { setupHttpServer(config) }
             it.registerPlugin(getConfiguredOpenApiPlugin())
+//            it.registerPlugin(getConfiguredOpenApiPlugin(OpenApiEndpointOptions.dresLogOnly)) // not allowed. see https://github.com/dres-dev/DRES/issues/197
+            //it.registerPlugin(getConfiguredOpenApiPlugin(OpenApiEndpointOptions.dresSubmissionOnly)) // not allowed. see https://github.com/dres-dev/DRES/issues/197
             it.defaultContentType = "application/json"
             it.prefer405over404 = true
             it.sessionHandler { fileSessionHandler(config) }
@@ -196,7 +209,8 @@ object RestApi {
         javalin = null
     }
 
-    private fun getConfiguredOpenApiPlugin() = OpenApiPlugin(
+
+    private fun getConfiguredOpenApiPlugin(options: OpenApiEndpointOptions = OpenApiEndpointOptions.dresDefaultOptions) = OpenApiPlugin(
             OpenApiOptions(
                     Info().apply {
                         title("DRES API")
@@ -204,12 +218,18 @@ object RestApi {
                         description("API for DRES (Distributed Retrieval Evaluation Server), Version 1.0")
                     }
             ).apply {
-                path("/swagger-docs") // endpoint for OpenAPI json
-                swagger(SwaggerOptions("/swagger-ui")) // endpoint for swagger-ui
-                reDoc(ReDocOptions("/redoc")) // endpoint for redoc
+                path(options.oasPath) // endpoint for OpenAPI json
+                swagger(SwaggerOptions(options.swaggerUi)) // endpoint for swagger-ui
+                if(options.hasRedoc){
+                    reDoc(ReDocOptions(options.redocUi!!)) // endpoint for redoc
+                }
                 activateAnnotationScanningFor("dev.dres.api.rest.handler")
+                if(options.ignored.isNotEmpty()){
+                    ignoredPaths = options.ignored.toMutableList()
+                }
             }
     )
+
 
     private fun fileSessionHandler(config: Config) = SessionHandler().apply {
         sessionCache = DefaultSessionCache(this).apply {
@@ -272,7 +292,6 @@ object RestApi {
                 })
             }
         } else {
-
             return Server().apply {
                 //HTTP Connector
                 addConnector(ServerConnector(server, HttpConnectionFactory(httpConfig), HTTP2ServerConnectionFactory(httpConfig)).apply {
@@ -280,10 +299,6 @@ object RestApi {
                 })
 
             }
-
         }
-
     }
-
-
 }

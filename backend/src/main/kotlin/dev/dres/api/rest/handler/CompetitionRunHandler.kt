@@ -1,10 +1,12 @@
+
 package dev.dres.api.rest.handler
 
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.RestApiRole
-import dev.dres.api.rest.types.collection.RestMediaItem
 import dev.dres.api.rest.types.run.RunInfo
 import dev.dres.api.rest.types.run.RunState
+import dev.dres.api.rest.types.run.SubmissionInfo
+import dev.dres.api.rest.types.run.TaskInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.task.TaskHint
@@ -13,17 +15,10 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
-import dev.dres.data.model.competition.TaskDescription
-import dev.dres.data.model.competition.TaskGroup
 import dev.dres.data.model.competition.TaskType
-import dev.dres.data.model.competition.Team
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
-import dev.dres.run.score.scoreboard.Score
-import dev.dres.run.score.scoreboard.ScoreOverview
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
@@ -34,7 +29,6 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import java.io.FileNotFoundException
 import java.io.IOException
-import java.nio.file.Files
 
 
 abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRestHandler {
@@ -127,7 +121,7 @@ class GetCompetitionRunInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
-        if (!run.participantCanView && isParticipant(ctx)){
+        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access Denied", ctx)
         }
 
@@ -155,75 +149,13 @@ class GetCompetitionRunStateHandler : AbstractCompetitionRunRestHandler(), GetRe
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
-        if (!run.participantCanView && isParticipant(ctx)){
+        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access Denied", ctx)
         }
 
         return RunState(run)
     }
 }
-
-
-class ListCompetitionScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<ScoreOverview>> {
-
-    override val route = "run/score/:runId"
-
-    @OpenApi(
-            summary = "Returns the score overviews of a specific competition run.",
-            path = "/api/run/score/:runId",
-            tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<ScoreOverview>::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
-    )
-    override fun doGet(ctx: Context): List<ScoreOverview> {
-        val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
-        return run.scoreboards.scoreboards.map { it.overview() }
-    }
-}
-
-class CurrentTaskScoreHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<ScoreOverview> {
-
-    override val route = "run/score/:runId/task"
-
-    @OpenApi(
-            summary = "Returns the overviews of all score boards for the current task run, if it is either running or has just ended.",
-            path = "/api/run/score/:runId/task",
-            tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", UID::class, "Competition run ID")],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(ScoreOverview::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
-    )
-    override fun doGet(ctx: Context): ScoreOverview {
-        val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
-
-        if (!run.participantCanView && isParticipant(ctx)){
-            throw ErrorStatusException(403, "Access denied.", ctx)
-        }
-
-        val scores = run.currentTaskScore?.scores() ?: throw ErrorStatusException(404, "No active task run in run $runId.", ctx)
-        return ScoreOverview("task",
-                run.currentTask?.taskGroup?.name,
-                run.competitionDescription.teams.indices.sorted().map { Score(it, scores[it] ?: 0.0) }
-        )
-    }
-}
-
-data class TaskInfo(val name: String, val taskGroup: TaskGroup, val duration: Long) {
-    companion object {
-        fun of(task: TaskDescription): TaskInfo = TaskInfo(task.name, task.taskGroup, task.duration)
-    }
-}
-
 
 class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<TaskInfo> {
 
@@ -246,11 +178,11 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
-        if (!run.participantCanView && isParticipant(ctx)){
+        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        return TaskInfo.of(run.currentTask ?: throw ErrorStatusException(404, "Run $runId has currently no active task.", ctx))
+        return TaskInfo(run.currentTask ?: throw ErrorStatusException(404, "Run $runId has currently no active task.", ctx))
     }
 }
 
@@ -274,7 +206,7 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
-        if (!run.participantCanView && isParticipant(ctx)){
+        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
@@ -310,7 +242,7 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
         /* Test for access rights. */
-        if (!run.participantCanView && isParticipant(ctx)){
+        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
@@ -339,10 +271,10 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
 
 
 class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
-    override val route = "run/:runId/task/submission/list"
+    override val route = "run/:runId/submissions"
     @OpenApi(
             summary = "Returns the submissions for the current task run, if it is either running or has just ended.",
-            path = "/api/run/:runId/task/submission/list",
+            path = "/api/run/:runId/submissions",
             tags = ["Competition Run"],
             pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             responses = [
@@ -356,7 +288,7 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
-        if (!run.participantCanView && isParticipant(ctx)){
+        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
@@ -374,14 +306,14 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
 }
 
 class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
-    override val route = "run/:runId/task/submission/list/after/:timestamp"
+    override val route = "run/:runId/submissions/after/:timestamp"
     @OpenApi(
             summary = "Returns the submissions for the current task that are newer than an indicated time, if it is either running or has just ended.",
-            path = "/api/run/:runId/task/submission/list/after/:timestamp",
+            path = "/api/run/:runId/submissions/after/:timestamp",
             tags = ["Competition Run"],
             pathParams = [
                 OpenApiParam("runId", UID::class, "Competition Run ID"),
-                OpenApiParam("timestamp", Long::class, "Minimum Timestamp for returned Submissions")
+                OpenApiParam("timestamp", Long::class, "Minimum Timestamp of returned submissions.")
             ],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
@@ -394,7 +326,7 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
-        if (!run.participantCanView && isParticipant(ctx)){
+        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied", ctx)
         }
 
@@ -411,15 +343,17 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
     }
 }
 
-class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
-    override val route = "run/:runId/task/submissions/list/task/:taskId"
+class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
+
+    override val route = "run/:runId/task/:taskId/submissions"
+
     @OpenApi(
             summary = "Returns the submissions of a specific task run, regardless of whether it is currently running or has ended.",
-            path = "/api/run/:runId/task/submissions/list/task/:taskId",
+            path = "/api/run/:runId/task/:taskId/submissions",
             tags = ["Competition Run"],
             pathParams = [
-                OpenApiParam("runId", UID::class, "Competition Run ID"),
-                OpenApiParam("taskId", UID::class, "Task ID")
+                OpenApiParam("runId", String::class, "Competition Run ID"),
+                OpenApiParam("taskId", String::class, "Task run ID")
             ],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
@@ -432,12 +366,11 @@ class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHa
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
-        if (!run.participantCanView && isParticipant(ctx)){
+        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied", ctx)
         }
 
-        val taskId = ctx.pathParamMap()["taskId"]?.toInt() ?: throw ErrorStatusException(404, "Missing task id", ctx)
-
+        val taskId = ctx.pathParamMap()["taskId"]?.UID() ?: throw ErrorStatusException(404, "Missing task id", ctx)
         return if (run.currentTaskRun?.taskId == taskId && run.status == RunManagerStatus.RUNNING_TASK) {
             if (run.currentTaskRun?.task?.taskType?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) {
                 run.submissions.map { SubmissionInfo.blind(it) }
@@ -445,19 +378,8 @@ class PastSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHa
                 run.submissions.map { SubmissionInfo.withId(it) }
             }
         } else {
-            val taskRun = run.taskRuns(taskId).lastOrNull()
-            taskRun?.submissions?.map { SubmissionInfo(it) } ?: emptyList()
+            run.taskRunForId(taskId)?.submissions?.map { SubmissionInfo(it) } ?: emptyList()
         }
     }
 }
-
-data class SubmissionInfo(val team: Int, val member: String, val status: SubmissionStatus, val timestamp: Long, val id: String? = null, val item: RestMediaItem? = null, val start: Long? = null, val end: Long? = null) {
-    constructor(submission: Submission) : this(submission.team, submission.member.string, submission.status, submission.timestamp, submission.uid, RestMediaItem.fromMediaItem(submission.item), submission.start, submission.end)
-
-    companion object {
-        fun blind(submission: Submission): SubmissionInfo = SubmissionInfo(submission.team, submission.member.string, submission.status, submission.timestamp)
-        fun withId(submission: Submission): SubmissionInfo = SubmissionInfo(submission.team, submission.member.string, submission.status, submission.timestamp, submission.uid)
-    }
-}
-
 

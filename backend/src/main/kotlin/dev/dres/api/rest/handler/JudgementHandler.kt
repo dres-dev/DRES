@@ -7,6 +7,7 @@ import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.run.TemporalSubmissionAspect
 import dev.dres.run.RunExecutor
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
@@ -56,7 +57,12 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
 
         val taskDescription = next.second.taskRun?.task?.textualDescription() ?: next.second.taskRun?.task?.name ?: "no task description available"
 
-        return JudgementRequest(next.first, validator.id, collection.id.string, next.second.item.id.string, taskDescription, next.second.start?.toString(), next.second.end?.toString())
+        return if (next.second is TemporalSubmissionAspect){
+            val tsa = next.second as TemporalSubmissionAspect
+            JudgementRequest(next.first, validator.id, collection.id.string, tsa.item.id.string, taskDescription, tsa.start.toString(), tsa.end.toString())
+        } else {
+            JudgementRequest(next.first, validator.id, collection.id.string, next.second.item.id.string, taskDescription, null, null)
+        }
     }
 }
 

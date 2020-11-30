@@ -23,8 +23,8 @@ import { ErrorStatus } from '../model/models';
 import { RestCompetitionDescription } from '../model/models';
 import { RestDetailedTeam } from '../model/models';
 import { RestTaskDescription } from '../model/models';
+import { RestTeam } from '../model/models';
 import { SuccessStatus } from '../model/models';
-import { Team } from '../model/models';
 
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
 import { Configuration }                                     from '../configuration';
@@ -274,9 +274,9 @@ export class CompetitionService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getApiCompetitionWithCompetitionidTeamList(competitionId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<Team>>;
-    public getApiCompetitionWithCompetitionidTeamList(competitionId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<Team>>>;
-    public getApiCompetitionWithCompetitionidTeamList(competitionId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<Team>>>;
+    public getApiCompetitionWithCompetitionidTeamList(competitionId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Array<RestTeam>>;
+    public getApiCompetitionWithCompetitionidTeamList(competitionId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Array<RestTeam>>>;
+    public getApiCompetitionWithCompetitionidTeamList(competitionId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Array<RestTeam>>>;
     public getApiCompetitionWithCompetitionidTeamList(competitionId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
         if (competitionId === null || competitionId === undefined) {
             throw new Error('Required parameter competitionId was null or undefined when calling getApiCompetitionWithCompetitionidTeamList.');
@@ -302,7 +302,7 @@ export class CompetitionService {
             responseType = 'text';
         }
 
-        return this.httpClient.get<Array<Team>>(`${this.configuration.basePath}/api/competition/${encodeURIComponent(String(competitionId))}/team/list`,
+        return this.httpClient.get<Array<RestTeam>>(`${this.configuration.basePath}/api/competition/${encodeURIComponent(String(competitionId))}/team/list`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

@@ -12,6 +12,7 @@
 
 
 export interface RestTeam { 
+    uid?: string;
     name: string;
     color: string;
     logoData?: string;

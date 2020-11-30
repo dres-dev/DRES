@@ -1,5 +1,7 @@
 package dev.dres.data.dbo
 
+import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.benmanes.caffeine.cache.LoadingCache
 import dev.dres.data.model.Entity
 import dev.dres.data.model.UID
 import dev.dres.data.serializers.UIDSerializer
@@ -9,6 +11,7 @@ import org.mapdb.DB
 import org.mapdb.DBMaker
 import org.mapdb.Serializer
 import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.StampedLock
 
 /**
@@ -17,7 +20,7 @@ import java.util.concurrent.locks.StampedLock
  * @author Ralph Gasser
  * @version 1.0
  */
-class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterable<T>, AutoCloseable {
+class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>, cacheSize: Long = 100, cacheDuration: Long = 30) : Iterable<T>, AutoCloseable {
 
     init {
         path.parent.toFile().mkdirs()
@@ -34,6 +37,12 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
 
     private val indexers = mutableListOf<DaoIndexer<T, *>>()
 
+    /** Internal cache */
+    private val cache: LoadingCache<UID, T> = Caffeine.newBuilder()
+            .maximumSize(cacheSize)
+            .expireAfterAccess(cacheDuration, TimeUnit.MINUTES)
+            .build { key -> data[key]}
+
     /** Name of the entity accessed through this [DAO]. */
     val name = path.fileName.toString().replace(".db","")
 
@@ -47,7 +56,9 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      * @param id The ID of the entry.
      * @return Entry [T]
      */
-    operator fun get(id: UID) = this.lock.optimisticRead { this.data[id] }
+    operator fun get(id: UID) = this.lock.optimisticRead {
+        cache[id]
+    }
 
     /**
      * Returns true if value for given key exists and false otherwise.
@@ -67,6 +78,7 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
         try {
             val deleted = this.data.remove(id)
             this.db.commit()
+            this.cache.invalidate(id)
             if (deleted != null){
                 this.indexers.forEach {
                     it.delete(deleted)
@@ -92,20 +104,24 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
      * Deletes all values with given ids
      */
     fun batchDelete(ids: Iterable<UID>) = this.lock.write {
+        val toDelete = mutableListOf<T>()
         try {
             for (id in ids){
                 val t = data[id]
                 if (t != null){
-                    this.indexers.forEach {
-                        it.delete(t)
-                    }
+                    toDelete.add(t)
                 }
                 this.data.remove(id)
             }
             this.db.commit()
+            this.cache.invalidate(ids)
+            toDelete.forEach { t ->
+                this.indexers.forEach {
+                    it.delete(t)
+                }
+            }
         } catch (e: Throwable) {
             this.db.rollback()
-            this.indexers.forEach { it.rebuild() }
             throw e
         }
     }
@@ -122,6 +138,7 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
             try {
                 this.data[id] = value
                 this.db.commit()
+                this.cache.put(id, value)
                 this.indexers.forEach {
                     it.delete(old)
                     it.append(value)
@@ -154,6 +171,7 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
         try {
             this.data[next] = value
             this.db.commit()
+            this.cache.put(value.id, value)
             this.indexers.forEach {
                 it.append(value)
             }
@@ -175,6 +193,7 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
                 val next = UID()
                 value.id = next
                 this.data[next] = value
+                this.cache.put(value.id, value)
                 this.indexers.forEach {
                     it.append(value)
                 }
@@ -184,6 +203,7 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
         } catch (e: Throwable) {
             this.db.rollback()
             this.indexers.forEach { it.rebuild() }
+            this.cache.invalidateAll(values)
             throw e
         }
     }
@@ -195,6 +215,7 @@ class DAO<T: Entity>(path: Path, private val serializer: Serializer<T>) : Iterab
         if (!this.db.isClosed()) {
             this.data.close()
             this.db.close()
+            this.cache.invalidateAll()
         }
     }
 

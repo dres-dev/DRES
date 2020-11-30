@@ -1,8 +1,12 @@
 package dev.dres.utilities
 
+import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.basics.media.MediaItemSegmentList
+import dev.dres.data.model.basics.media.PlayableMediaItem
 import dev.dres.data.model.basics.time.TemporalPoint
 import dev.dres.data.model.basics.time.TemporalRange
 import dev.dres.data.model.basics.time.TemporalUnit
+import kotlin.math.abs
 
 object TimeUtil {
 
@@ -72,4 +76,36 @@ object TimeUtil {
 
         return hours * msPerHour + minutes * msPerMinute + seconds * 1000 + (1000 * frames / fps).toLong()
     }
+
+    fun timeCodeToMilliseconds(timecode: String, item: PlayableMediaItem): Long? = timeCodeToMilliseconds(timecode, item.fps)
+
+    /**
+     * Converts a frame number to a timestamp in milliseconds.
+     */
+    fun frameToTime(frame: Int, item: PlayableMediaItem): Long {
+        return ((frame / item.fps) * 1000.0).toLong()
+    }
+
+    /**
+     * Converts a shot number to a timestamp in milliseconds.
+     */
+    fun shotToTime(shot: String, item: MediaItem.VideoItem, segmentList: MediaItemSegmentList): Pair<Long,Long>? {
+        val segment = segmentList.segments.find { it.name == shot } ?: return null
+        return toMilliseconds(segment.range, item.fps)
+    }
+
+
+    fun timeToSegment(time: Long, item: MediaItem.VideoItem, segmentList: MediaItemSegmentList): Pair<Long,Long>? {
+        if (segmentList.segments.isEmpty()) {
+            return null
+        }
+        val segment = segmentList.segments.find {
+            val range = TimeUtil.toMilliseconds(it.range, item.fps)
+            range.first <= time && range.second >= time
+        } ?: segmentList.segments.minByOrNull { abs(it.range.center - time) }!!
+
+        return toMilliseconds(segment.range, item.fps)
+    }
+
+
 }

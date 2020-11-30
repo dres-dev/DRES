@@ -1,4 +1,4 @@
-## @dres-openapi/api@1.0-SNAPSHOT.202010211113
+## @dres-openapi/api@1.0-SNAPSHOT.202011301532
 
 ### Building
 
@@ -19,7 +19,7 @@ Navigate to the folder of your consuming project and run one of next commands.
 _published:_
 
 ```
-npm install @dres-openapi/api@1.0-SNAPSHOT.202010211113 --save
+npm install @dres-openapi/api@1.0-SNAPSHOT.202011301532 --save
 ```
 
 _without publishing (not recommended):_

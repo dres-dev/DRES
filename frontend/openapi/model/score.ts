@@ -12,7 +12,7 @@
 
 
 export interface Score { 
-    teamId: number;
+    teamId: string;
     score: number;
 }
 

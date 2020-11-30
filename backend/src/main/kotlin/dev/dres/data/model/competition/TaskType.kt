@@ -42,11 +42,9 @@ data class TaskType(
     }
 
     enum class SubmissionFilterType(internal val filter: () -> SubmissionFilter){
-
-        NO_DUPLICATES( ::DuplicateSubmissionFilter),
+        NO_DUPLICATES(::DuplicateSubmissionFilter),
         ONE_CORRECT_PER_TEAM(::OneCorrectSubmissionPerTeamFilter),
         TEMPORAL_SUBMISSION(::TemporalSubmissionFilter)
-
     }
 
     /**

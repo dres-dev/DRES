@@ -16,6 +16,6 @@ data class SubmissionInfo(val id: String? = null, val team: String, val member: 
     constructor(submission: TemporalSubmissionAspect) : this(submission.uid.string, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp, RestMediaItem.fromMediaItem(submission.item), submission.start, submission.end)
     companion object {
         fun blind(submission: Submission): SubmissionInfo = SubmissionInfo(null, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp)
-        fun withId(submission: Submission): SubmissionInfo = SubmissionInfo(submission.uid.string, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp)
+        fun withId(submission: Submission): SubmissionInfo = SubmissionInfo(submission.uid.string, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp, RestMediaItem.fromMediaItem(submission.item))
     }
 }

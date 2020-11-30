@@ -12,7 +12,10 @@ import java.util.concurrent.locks.StampedLock
 
 object EventStreamProcessor {
 
+    private const val flushInterval = 30_000
+
     private var active = false
+    private var flushTimer = 0L
 
     private lateinit var processorThread: Thread
     private val mapper = ObjectMapper().apply { registerModule(KotlinModule()) }
@@ -78,6 +81,12 @@ object EventStreamProcessor {
                 } finally {
                     Thread.sleep(10)
                 }
+
+                if (flushTimer < System.currentTimeMillis()){
+                    eventSink.flush()
+                    flushTimer = System.currentTimeMillis() + flushInterval
+                }
+
             }
 
             eventSink.flush()

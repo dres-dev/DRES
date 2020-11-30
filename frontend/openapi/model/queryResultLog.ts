@@ -9,7 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import {QueryResult} from './queryResult';
+import { QueryResult } from './queryResult';
 
 
 export interface QueryResultLog { 

@@ -65,8 +65,6 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     }
 
     update(submission: SubmissionInfo, status: SubmissionInfo.StatusEnum) {
-        console.log(submission);
-        console.log(status);
         submission.status = status;
         console.log(submission);
         this.runService.patchApiRunAdminWithRunidSubmissionsOverride(this.competitionRunId, submission).subscribe(res => {

@@ -3,7 +3,7 @@ import {CompetitionRunAdminService, SubmissionInfo} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatDialog} from '@angular/material/dialog';
 import {MatTable} from '@angular/material/table';
-import {Subscription} from 'rxjs';
+import {interval, Subscription} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {MatButtonToggleGroup} from '@angular/material/button-toggle';
 
@@ -33,9 +33,8 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
 
     submissions: SubmissionInfo[] = [];
 
-    pollingFrequencyFactor = 60; // every 60 seconds
-
-
+    pollingFrequencyFactor = 30; // every 60 seconds
+    polling = true;
     private pollingSub: Subscription;
 
     constructor(
@@ -51,10 +50,12 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     }
 
     ngAfterViewInit(): void {
-        // this.pollingSub = interval(this.pollingFrequencyFactor * RunAdminSubmissionsListComponent.BASE_POLLING_FREQUENCY)
-        //     .subscribe(_ => {
-        this.refresh();
-        // });
+        this.pollingSub = interval(this.pollingFrequencyFactor * RunAdminSubmissionsListComponent.BASE_POLLING_FREQUENCY)
+            .subscribe(_ => {
+                if (this.polling) {
+                    this.refresh();
+                }
+            });
     }
 
     ngOnDestroy(): void {

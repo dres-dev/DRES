@@ -23,6 +23,7 @@ import { RunAdminSubmissionsListComponent } from './run-admin-submissions-list/r
 import { SubmissionOverrideDialogComponent } from './submission-override-dialog/submission-override-dialog.component';
 import {ClipboardModule} from '@angular/cdk/clipboard';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 
 @NgModule({
     imports: [
@@ -44,7 +45,8 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
         MatCardModule,
         SharedModule,
         ClipboardModule,
-        MatButtonToggleModule
+        MatButtonToggleModule,
+        MatSlideToggleModule
     ],
     exports:      [ RunListComponent, RunAdminViewComponent ],
     declarations: [ RunListComponent, RunAdminViewComponent, AdminRunListComponent, ViewerRunListComponent, RunAdminSubmissionsListComponent, SubmissionOverrideDialogComponent ],

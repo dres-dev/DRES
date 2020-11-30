@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
-import {CompetitionRunService, ContentElement, RunState, TaskHint, TaskInfo} from '../../../openapi';
+import {CompetitionRunService, ContentElement, RunState, TaskHint, TaskInfo, TaskTarget} from '../../../openapi';
 import {BehaviorSubject, combineLatest, interval, Observable, of, Subscription, timer, zip} from 'rxjs';
 import {
     catchError,
@@ -8,6 +8,7 @@ import {
     filter,
     flatMap,
     map,
+    repeat,
     share,
     shareReplay,
     switchMap,
@@ -57,7 +58,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     /** Reference to the current {@link TaskHint}. */
     currentTaskHint = new BehaviorSubject<TaskHint>(null);
 
-    /** Reference to the current {@link TaskHint}. */
+    /** Reference to the  {@link TaskTarget}. */
     currentTaskTarget: Observable<ContentElement>;
 
     /** Subscription for the current {@link TaskHint}. */
@@ -100,11 +101,14 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
                 }),
                 shareReplay({bufferSize: 1, refCount: true})
             )),
-            flatMap(h => {
+            flatMap((h: TaskTarget) => {
                 if (!h) {
                     return [];
                 }
-                return fromArray(h.sequence).pipe(delayWhen<any>(c => interval(c.offset * 1000)));
+                return fromArray(h.sequence).pipe(
+                    delayWhen<any>((c: ContentElement) => interval(1000 * c.offset)),
+                    repeat(-1),
+                );
             })
         );
 

@@ -9,7 +9,7 @@ import kotlin.math.min
  * Notion of a [TemporalRange] within a [MediaItem] that exhibits temporal development (e.g. [VideoItem].
  *
  * @author Ralph Gasser
- * @version 1.1
+ * @version 1.1.1
  *
  * @param start The start of the [TemporalRange]
  * @param end The end of the [TemporalRange]
@@ -22,6 +22,14 @@ data class TemporalRange constructor(val start: TemporalPoint, val end: Temporal
     init {
         require(TimeUtil.toMilliseconds(start) <= TimeUtil.toMilliseconds(end)) {"Start point must be before End point in TemporalRange"}
     }
+
+    /**
+     * Returns the duration of this [TemporalRange] in milliseconds.
+     *
+     * @param fps The fps based used for converting [TemporalUnit.FRAME_NUMBER]
+     * @return The duration of this [TemporalRange] in milliseconds.
+     */
+    fun durationMs(fps: Float): Long = TimeUtil.toMilliseconds(this.end, fps) - TimeUtil.toMilliseconds(this.start, fps)
 
     fun contains(inner: TemporalRange, outerFps: Float = 24.0f, innerFps: Float = 24.0f): Boolean =
             TimeUtil.toMilliseconds(start, outerFps) <= TimeUtil.toMilliseconds(inner.start, innerFps) &&

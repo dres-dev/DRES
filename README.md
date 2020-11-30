@@ -17,10 +17,10 @@ However, the entire setup process is Gradle based. To setup DRES, follow these s
 
 1. Clone or Download this repository
 2. Navigate to the [backend](backend/)
-3. Setup FFMpeg using Gradle `$> ./gradlew setupFFMpeg`
-4. Build the frontend using Gradle `$> ./gradlew deployFrontend`
-5. Build the backend using Gradle `$> ./gradlew distZip` (alternatively `$> ./gradlew distTar`)
-6. Extract and run the backend (it serves the frontend)
+3. Build the backend using Gradle `$> ./gradlew distZip` (alternatively `$> ./gradlew distTar`)
+4. Extract and run the backend (it serves the frontend)
+
+If you want to run DRES from your IDE (e.g. for debuging or development), please remember to run `$> ./gradlew setupFFMpeg` to download the required FFMpeg dependencies!
 
 ## Configuration
 

@@ -1,12 +1,11 @@
 import {AfterViewInit, Component, OnDestroy, ViewChild} from '@angular/core';
-import {CompetitionRunAdminService, RunState, SubmissionInfo} from '../../../../openapi';
+import {CompetitionRunAdminService, SubmissionInfo} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatDialog} from '@angular/material/dialog';
 import {MatTable} from '@angular/material/table';
-import {interval, Subscription} from 'rxjs';
+import {Subscription} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {MatButtonToggleGroup} from '@angular/material/button-toggle';
-import StatusEnum = RunState.StatusEnum;
 
 @Component({
     selector: 'app-run-admin-submissions-list',
@@ -54,15 +53,14 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     ngAfterViewInit(): void {
         // this.pollingSub = interval(this.pollingFrequencyFactor * RunAdminSubmissionsListComponent.BASE_POLLING_FREQUENCY)
         //     .subscribe(_ => {
-                this.runService.getApiRunAdminWithRunidSubmissionsListWithTaskid(this.competitionRunId, this.taskId)
-                    .subscribe(subs => {
-                        this.submissions = subs;
-                    });
-            // });
+        this.refresh();
+        // });
     }
 
     ngOnDestroy(): void {
-        this.pollingSub.unsubscribe();
+        if (this.pollingSub) {
+            this.pollingSub.unsubscribe();
+        }
         this.submissions = [];
     }
 
@@ -74,5 +72,17 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
         this.runService.patchApiRunAdminWithRunidSubmissionsOverride(this.competitionRunId, submission).subscribe(res => {
             this.snackBar.open(`Result: ${res}`, null, {duration: 5000});
         });
+    }
+
+    public refresh() {
+        this.runService.getApiRunAdminWithRunidSubmissionsListWithTaskid(this.competitionRunId, this.taskId)
+            .subscribe(subs => {
+                    this.submissions = subs;
+                },
+                (error) => {
+                    this.submissions = [];
+                    this.snackBar.open(`Error: ${error.error.description}`, null, {duration: 5000});
+                    console.error(error);
+                });
     }
 }

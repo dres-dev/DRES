@@ -9,7 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { QueryEvent } from './queryEvent';
+import {QueryEvent} from './queryEvent';
 
 
 export interface QueryEventLog { 
@@ -17,6 +17,6 @@ export interface QueryEventLog {
     events: Array<QueryEvent>;
     type: string;
     serverTimeStamp?: number;
-    serverTimeStamp$backend: number;
+    serverTimeStamp$dres: number;
 }
 

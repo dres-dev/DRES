@@ -24,7 +24,7 @@ class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemS
 
 
     init {
-        writer.println("task,session,item,segment,frame,reportedRank,listRank,inTime")
+        writer.println("timestamp,task,session,item,segment,frame,reportedRank,listRank,inTime")
     }
 
     override fun handle(event: StreamEvent) {
@@ -57,7 +57,7 @@ class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemS
 
                 if (temporalTargets.isEmpty()) { //consider only items
                     correctItems.forEach {
-                        writer.println("${relevantTask.name},${event.session},${it.second.video},${it.second.shot},${it.second.frame},${it.second.rank},${it.first},n/a")
+                        writer.println("${System.currentTimeMillis()},${relevantTask.name},${event.session},${it.second.video},${it.second.shot},${it.second.frame},${it.second.rank},${it.first},n/a")
                     }
                 } else { // consider also temporal range
                     val relevantTemporalTargets = temporalTargets.filter { it.first.name == relevantTask.name }
@@ -73,7 +73,7 @@ class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemS
 
                             segment.overlaps(target.second!!)
                         }
-                        writer.println("${relevantTask.name},${event.session},${it.second.video},${it.second.shot},${it.second.frame},${it.second.rank},${it.first},$correctTime")
+                        writer.println("${System.currentTimeMillis()},${relevantTask.name},${event.session},${it.second.video},${it.second.shot},${it.second.frame},${it.second.rank},${it.first},$correctTime")
                     }
                 }
 

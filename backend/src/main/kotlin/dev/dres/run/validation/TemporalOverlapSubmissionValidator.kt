@@ -41,4 +41,7 @@ class TemporalOverlapSubmissionValidator(private val task: VideoSegment) : Submi
             }
         }
     }
+
+    override val deferring: Boolean
+        get() = false
 }

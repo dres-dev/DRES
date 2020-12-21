@@ -6,7 +6,6 @@ import dev.dres.api.rest.types.run.websocket.ClientMessage
 import dev.dres.api.rest.types.run.websocket.ClientMessageType
 import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
-import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
@@ -17,12 +16,9 @@ import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
-import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.score.ScoreTimePoint
-import dev.dres.run.score.interfaces.TaskRunScorer
 import dev.dres.run.updatables.*
 import dev.dres.run.validation.interfaces.JudgementValidator
-import dev.dres.run.validation.interfaces.SubmissionValidator
 import dev.dres.utilities.ReadyLatch
 import dev.dres.utilities.extensions.UID
 import org.slf4j.LoggerFactory
@@ -138,8 +134,8 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     /** List of [Updatable] held by this [SynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
 
-    /** The pipeline for [Submission] processing. All [Submission]s undergo three steps: filter, validation and score update. */
-    private val submissionPipeline: List<Triple<SubmissionFilter,SubmissionValidator, TaskRunScorer>> = LinkedList()
+    ///** The pipeline for [Submission] processing. All [Submission]s undergo three steps: filter, validation and score update. */
+    //private val submissionPipeline: List<Triple<SubmissionFilter,SubmissionValidator, TaskRunScorer>> = LinkedList()
 
     /** A lock for state changes to this [SynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
@@ -255,10 +251,11 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     override fun startTask() = this.stateLock.write {
         check(this.status == RunManagerStatus.ACTIVE || this.status == RunManagerStatus.TASK_ENDED) { "SynchronizedRunManager is in status ${this.status}. Tasks can therefore not be started." }
 
+        //FIXME is this used anywhere?!
         /* Create and prepare pipeline for submission. */
-        val ret = this.run.newTaskRun(this.currentTask.id)
-        val pipeline = Triple(ret.task.newFilter(), ret.task.newValidator(), ret.task.newScorer())
-        (this.submissionPipeline as MutableList).add(pipeline)
+        //val ret = this.run.newTaskRun(this.currentTask.id)
+        //val pipeline = Triple(ret.task.newFilter(), ret.task.newValidator(), ret.task.newScorer())
+        //(this.submissionPipeline as MutableList).add(pipeline)
 
         /* Update status. */
         this.status = RunManagerStatus.PREPARING_TASK

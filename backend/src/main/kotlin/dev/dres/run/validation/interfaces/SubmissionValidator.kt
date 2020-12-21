@@ -16,4 +16,10 @@ interface SubmissionValidator {
      * @param submission The [Submission] to validate.
      */
     fun validate(submission: Submission)
+
+    /**
+     * Indicates whether this [SubmissionValidator] needs to defer the validation to some later point in time
+     * or changes the status of a submission immediately
+     */
+    val deferring: Boolean
 }

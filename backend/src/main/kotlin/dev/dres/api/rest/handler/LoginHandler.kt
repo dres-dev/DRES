@@ -7,16 +7,18 @@ import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.admin.PlainPassword
 import dev.dres.data.model.admin.UserName
+import dev.dres.mgmt.admin.UserManager
 import dev.dres.mgmt.admin.UserManager.getMatchingUser
 import dev.dres.run.audit.AuditLogEntry
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
+import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
 
-class LoginHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, PostRestHandler<SuccessStatus> {
+class LoginHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, PostRestHandler<UserDetails> {
 
 
     data class LoginRequest(var username: String, var password: String)
@@ -26,11 +28,11 @@ class LoginHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, PostRes
             tags = ["User"],
             requestBody = OpenApiRequestBody([OpenApiContent(LoginRequest::class)]),
             responses = [
-                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
             ])
-    override fun doPost(ctx: Context) : SuccessStatus{
+    override fun doPost(ctx: Context) : UserDetails{
 
         val loginRequest = try {
             ctx.bodyAsClass(LoginRequest::class.java)
@@ -46,7 +48,8 @@ class LoginHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, PostRes
 
         AccessManager.setUserForSession(ctx.sessionId(), user)
         AuditLogger.login(loginRequest.username, ctx.sessionId(), LogEventSource.REST)
-        return SuccessStatus("Login of '${user.username}' successful!")
+
+        return UserDetails.create(UserManager.get(username)!!, ctx)
 
     }
 

@@ -4,6 +4,7 @@ import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.data.model.run.TemporalSubmissionAspect
+import dev.dres.run.audit.AuditLogger
 import dev.dres.run.validation.interfaces.JudgementValidator
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -112,6 +113,7 @@ class BasicJudgementValidator(): JudgementValidator { //TODO better name
             val token = UUID.randomUUID().toString()
             this.waiting[token] = next
             this.timeouts.add((System.currentTimeMillis() + judgementTimeout) to token)
+            AuditLogger.prepareJudgement(this.id, token, next)
             Pair(token, next)
         } else {
             null
@@ -139,7 +141,7 @@ class BasicJudgementValidator(): JudgementValidator { //TODO better name
     /**
      * Clears this [JudgementValidator] and all the associated queues and maps.
      */
-    fun clear()= updateLock.write {
+    fun clear() = updateLock.write {
         this.waiting.clear()
         this.queue.clear()
     }

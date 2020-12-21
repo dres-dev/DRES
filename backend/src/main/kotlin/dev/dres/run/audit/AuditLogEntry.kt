@@ -13,6 +13,7 @@ enum class AuditLogEntryType {
     TASK_MODIFIED,
     TASK_END,
     SUBMISSION,
+    PREPARE_JUDGEMENT,
     JUDGEMENT,
     LOGIN,
     LOGOUT
@@ -55,6 +56,10 @@ data class TaskEndAuditLogEntry(override var id: UID, val competition: UID, val 
 
 data class SubmissionAuditLogEntry(override var id: UID, val competition: UID, val taskName: String, val submission: Submission, val api: LogEventSource, val user: String?, val address: String) : AuditLogEntry(AuditLogEntryType.SUBMISSION){
     constructor(competition: UID, taskName: String, submission: Submission, api: LogEventSource, user: String?, address: String): this(UID.EMPTY, competition, taskName, submission, api, user, address)
+}
+
+data class PrepareJudgementAuditLogEntry(override var id: UID, val validator: String, val token: String, val submission: Submission) : AuditLogEntry(AuditLogEntryType.PREPARE_JUDGEMENT){
+    constructor(validator: String, token: String, submission: Submission): this(UID.EMPTY, validator, token, submission)
 }
 
 data class JudgementAuditLogEntry(override var id: UID, val competition: UID, val validator: String, val token: String, val verdict: SubmissionStatus, val api: LogEventSource, val user: String?) : AuditLogEntry(AuditLogEntryType.JUDGEMENT) {

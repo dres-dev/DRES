@@ -48,6 +48,9 @@ class QueryLogHandler : LogHandler() {
             method = HttpMethod.POST,
             requestBody = OpenApiRequestBody([OpenApiContent(QueryEventLog::class)]),
             tags = ["Log"],
+            queryParams = [
+                OpenApiParam("session", String::class, "Session Token", required = true, allowEmptyValue = false)
+            ],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
@@ -82,6 +85,9 @@ class ResultLogHandler : LogHandler() {
             method = HttpMethod.POST,
             requestBody = OpenApiRequestBody([OpenApiContent(QueryResultLog::class)]),
             tags = ["Log"],
+            queryParams = [
+                OpenApiParam("session", String::class, "Session Token", required = true, allowEmptyValue = false)
+            ],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),

@@ -9,11 +9,11 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlin.math.max
 
-class KisTaskScorer : RecalculatingTaskRunScorer {
-
-    private val maxPointsPerTask = 100.0
-    private val maxPointsAtTaskEnd = 50.0
-    private val penaltyPerWrongSubmission = 10.0
+class KisTaskScorer(
+        private val maxPointsPerTask: Double = 100.0,
+        private val maxPointsAtTaskEnd: Double = 50.0,
+        private val penaltyPerWrongSubmission: Double = 10.0
+) : RecalculatingTaskRunScorer {
 
     private var lastScores: Map<UID, Double> = emptyMap()
     private val lastScoresLock = ReentrantReadWriteLock()

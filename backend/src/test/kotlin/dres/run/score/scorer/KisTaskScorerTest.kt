@@ -5,9 +5,9 @@ import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.run.ItemSubmission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.score.scorer.KisTaskScorer
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class KisTaskScorerTest {
 

@@ -54,7 +54,7 @@ class AvsTaskScorer: RecalculatingTaskRunScorer {
 
                     val ranges = it.value.map { s -> (s as TemporalSubmission).temporalRange }
 
-                    TimeUtil.merge(ranges).size
+                    TimeUtil.merge(ranges, overlap = 1).size
                 }
             }
         }.sum()

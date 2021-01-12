@@ -171,3 +171,45 @@ class HistoryTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
         )
     }
 }
+
+class RunScoreSeriesHandler : AbstractScoreRestHandler(), GetRestHandler<RunScoreSeries> {
+    override val route = "score/run/:runId/series"
+
+    @OpenApi(
+        summary = "Returns a time series of all scores for a given run.",
+        path = "/api/score/run/:runId/series",
+        tags = ["Competition Run Scores"],
+        pathParams = [
+            OpenApiParam("runId", String::class, "Competition run ID")
+        ],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(ScoreOverview::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
+    )
+    override fun doGet(ctx: Context): RunScoreSeries {
+
+        val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()
+
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
+
+        return RunScoreSeries(
+            run.scoreHistory.groupBy { it.team to it.name }
+                .mapValues { it.value.map { p -> ScoreSeriesPoint(p.score, p.timestamp) } }
+                .map { ScoreSeries(it.key.first, it.key.second, it.value) }
+        )
+
+
+    }
+
+}
+
+data class RunScoreSeries(val teams: List<String>, val names: List<String>, val series: List<ScoreSeries>) {
+    constructor(series: List<ScoreSeries>) : this(series.map { it.team }.toSet().toList(), series.map { it.name }.toSet().toList(), series)
+}
+
+data class ScoreSeries(val team: String, val name: String, val points: List<ScoreSeriesPoint>)
+
+data class ScoreSeriesPoint(val score: Double, val timestamp: Long)

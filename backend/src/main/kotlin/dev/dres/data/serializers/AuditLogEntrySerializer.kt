@@ -58,6 +58,12 @@ object AuditLogEntrySerializer: Serializer<AuditLogEntry> {
                 out.writeUTF(submission.user ?: "")
                 out.writeUTF(submission.address)
             }
+            AuditLogEntryType.PREPARE_JUDGEMENT -> {
+                val judgement = value as PrepareJudgementAuditLogEntry
+                out.writeUTF(judgement.validator)
+                out.writeUTF(judgement.token)
+                SubmissionSerializer.serialize(out, judgement.submission)
+            }
             AuditLogEntryType.JUDGEMENT -> {
                 val judgement = value as JudgementAuditLogEntry
                 out.writeUID(judgement.competition)
@@ -91,6 +97,7 @@ object AuditLogEntrySerializer: Serializer<AuditLogEntry> {
             AuditLogEntryType.TASK_MODIFIED -> TaskModifiedAuditLogEntry(id, input.readUID(), input.readUTF(), input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
             AuditLogEntryType.TASK_END -> TaskEndAuditLogEntry(id, input.readUID(), input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
             AuditLogEntryType.SUBMISSION -> SubmissionAuditLogEntry(id, input.readUID(), input.readUTF(), SubmissionSerializer.deserialize(input, available), LogEventSource.values()[input.unpackInt()], input.readUTF(), input.readUTF()).also { it.timestamp = timestamp }
+            AuditLogEntryType.PREPARE_JUDGEMENT -> PrepareJudgementAuditLogEntry(id, input.readUTF(), input.readUTF(), SubmissionSerializer.deserialize(input, available))
             AuditLogEntryType.JUDGEMENT -> JudgementAuditLogEntry(id, input.readUID(), input.readUTF(), input.readUTF(), SubmissionStatus.values()[input.unpackInt()], LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
             AuditLogEntryType.LOGIN -> LoginAuditLogEntry(id, input.readUTF(), input.readUTF(), LogEventSource.values()[input.unpackInt()]).also { it.timestamp = timestamp }
             AuditLogEntryType.LOGOUT -> LogoutAuditLogEntry(id, input.readUTF(), LogEventSource.values()[input.unpackInt()]).also { it.timestamp = timestamp }

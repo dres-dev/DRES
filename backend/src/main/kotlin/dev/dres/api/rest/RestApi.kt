@@ -105,6 +105,7 @@ object RestApi {
                 ListCompetitionScoreHandler(),
                 CurrentTaskScoreHandler(),
                 HistoryTaskScoreHandler(),
+                RunScoreSeriesHandler(),
 
                 // Competition run admin
                 CreateCompetitionRunAdminHandler(dataAccessLayer.competitions, dataAccessLayer.collections, config),
@@ -129,7 +130,10 @@ object RestApi {
                 // Audit Log
                 GetAuditLogInfoHandler(dataAccessLayer.auditTimes),
                 ListAuditLogsInRangeHandler(dataAccessLayer.auditTimes, dataAccessLayer.audit),
-                ListAuditLogsHandler(dataAccessLayer.auditTimes, dataAccessLayer.audit)
+                ListAuditLogsHandler(dataAccessLayer.auditTimes, dataAccessLayer.audit),
+
+                // Status
+                CurrentTimeHandler()
         )
 
         javalin = Javalin.create {

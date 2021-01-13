@@ -45,7 +45,7 @@ class SubmissionStatisticsHandler : StreamEventHandler {
         val submissionsByTeam = submissions.groupBy { it.teamId }
 
         submissionsByTeam.mapValues { it.value.size }.forEach{
-            (teamId, count) -> writer.println("$task,$teamId,\"totalSubmissionsPerTeam\",$count")
+            (teamId, count) -> writer.println("$task,${teamId.string},\"totalSubmissionsPerTeam\",$count")
         }
         submissionsByTeam.mapValues {
             it.value.firstOrNull { s -> s.status == SubmissionStatus.CORRECT }?.timestamp?.minus(taskStart) }

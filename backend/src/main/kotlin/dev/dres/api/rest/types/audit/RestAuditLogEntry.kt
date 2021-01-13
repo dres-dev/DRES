@@ -3,7 +3,6 @@ package dev.dres.api.rest.types.audit
 import dev.dres.api.rest.types.AbstractRestEntity
 import dev.dres.api.rest.types.run.SubmissionInfo
 import dev.dres.data.model.UID
-import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.audit.*
 
@@ -17,6 +16,7 @@ sealed class RestAuditLogEntry(val type: AuditLogEntryType, id: UID, val timesta
                 is TaskModifiedAuditLogEntry -> RestTaskModifiedAuditLogEntry(log)
                 is TaskEndAuditLogEntry -> RestTaskEndAuditLogEntry(log)
                 is SubmissionAuditLogEntry -> RestSubmissionAuditLogEntry(log)
+                is PrepareJudgementAuditLogEntry -> RestPrepareJudgementAuditLogEntry(log)
                 is JudgementAuditLogEntry -> RestJudgementAuditLogEntry(log)
                 is LoginAuditLogEntry -> RestLoginAuditLogEntry(log)
                 is LogoutAuditLogEntry -> RestLogoutAuditLogEntry(log)
@@ -47,6 +47,10 @@ class RestTaskEndAuditLogEntry(id: UID, timestamp: Long, val competition: String
 
 class RestSubmissionAuditLogEntry(id: UID, timestamp: Long, val competition: String, val taskName: String, val submission: SubmissionInfo, val api: LogEventSource, val user: String?, val address: String) : RestAuditLogEntry(AuditLogEntryType.SUBMISSION, id, timestamp) {
     constructor(log: SubmissionAuditLogEntry) : this(log.id, log.timestamp, log.competition.string, log.taskName, SubmissionInfo(log.submission), log.api, log.user, log.address)
+}
+
+class RestPrepareJudgementAuditLogEntry(id: UID, timestamp: Long, val validator: String, val token: String, val submission: SubmissionInfo): RestAuditLogEntry(AuditLogEntryType.PREPARE_JUDGEMENT, id, timestamp){
+    constructor(log: PrepareJudgementAuditLogEntry): this(log.id, log.timestamp, log.validator, log.token, SubmissionInfo(log.submission))
 }
 
 class RestJudgementAuditLogEntry(id: UID, timestamp: Long, val competition: String, val validator: String, val token: String, val verdict: SubmissionStatus, val api: LogEventSource, val user: String?) : RestAuditLogEntry(AuditLogEntryType.JUDGEMENT, id, timestamp) {

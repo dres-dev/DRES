@@ -14,5 +14,8 @@ class MediaItemsSubmissionValidator(private val items : Set<MediaItem>) : Submis
         }
     }
 
+    override val deferring: Boolean
+        get() = false
+
 
 }

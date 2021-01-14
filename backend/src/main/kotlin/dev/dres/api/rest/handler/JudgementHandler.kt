@@ -28,6 +28,8 @@ abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler 
 
 data class Judgement(val token: String, val validator: String, val verdict: SubmissionStatus)
 
+data class JudgementVote(val token: String, val verdict: SubmissionStatus)
+
 data class JudgementRequest(val token: String, val validator: String, val collection: String, val item: String, val taskDescription: String, val startTime: String?, val endTime: String?)
 
 class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : AbstractJudgementHandler(), GetRestHandler<JudgementRequest> {
@@ -131,3 +133,30 @@ class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, A
 }
 
 data class JudgementValidatorStatus(val validator: String, val pending: Int, val open: Int)
+
+class JudgementVoteHandler : PostRestHandler<SuccessStatus> {
+    override val route = "run/:runId/judge/vote"
+
+
+    override fun doPost(ctx: Context): SuccessStatus {
+
+        val runId = try{
+            ctx.pathParamMap().getOrElse("runId") {
+                throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx)
+            }.UID()
+        } catch (e: IllegalArgumentException) {
+            throw ErrorStatusException(400, "Parameter 'runId' is invalid!'", ctx)
+        }
+        val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
+        val vote = try {
+            ctx.bodyAsClass(JudgementVote::class.java)
+        } catch (e: BadRequestResponse) {
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
+        }
+
+        //TODO process vote
+
+        return SuccessStatus("vote received")
+    }
+
+}

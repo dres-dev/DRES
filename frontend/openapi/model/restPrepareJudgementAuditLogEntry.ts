@@ -10,22 +10,19 @@
  * Do not edit the class manually.
  */
 import { SubmissionInfo } from './submissionInfo';
-import { RestSubmissionAuditLogEntryAllOf } from './restSubmissionAuditLogEntryAllOf';
+import { RestPrepareJudgementAuditLogEntryAllOf } from './restPrepareJudgementAuditLogEntryAllOf';
 import { RestAuditLogEntry } from './restAuditLogEntry';
 
 
-export interface RestSubmissionAuditLogEntry { 
-    type: RestSubmissionAuditLogEntry.TypeEnum;
+export interface RestPrepareJudgementAuditLogEntry { 
+    type: RestPrepareJudgementAuditLogEntry.TypeEnum;
     id: string;
     timestamp: number;
-    competition: string;
-    taskName: string;
+    validator: string;
+    token: string;
     submission: SubmissionInfo;
-    api: RestSubmissionAuditLogEntry.ApiEnum;
-    user?: string;
-    address: string;
 }
-export namespace RestSubmissionAuditLogEntry {
+export namespace RestPrepareJudgementAuditLogEntry {
     export type TypeEnum = 'COMPETITION_START' | 'COMPETITION_END' | 'TASK_START' | 'TASK_MODIFIED' | 'TASK_END' | 'SUBMISSION' | 'PREPARE_JUDGEMENT' | 'JUDGEMENT' | 'LOGIN' | 'LOGOUT';
     export const TypeEnum = {
         COMPETITIONSTART: 'COMPETITION_START' as TypeEnum,
@@ -38,12 +35,6 @@ export namespace RestSubmissionAuditLogEntry {
         JUDGEMENT: 'JUDGEMENT' as TypeEnum,
         LOGIN: 'LOGIN' as TypeEnum,
         LOGOUT: 'LOGOUT' as TypeEnum
-    };
-    export type ApiEnum = 'REST' | 'CLI' | 'INTERNAL';
-    export const ApiEnum = {
-        REST: 'REST' as ApiEnum,
-        CLI: 'CLI' as ApiEnum,
-        INTERNAL: 'INTERNAL' as ApiEnum
     };
 }
 

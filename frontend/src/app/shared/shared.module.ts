@@ -4,14 +4,15 @@ import { BackButtonComponent } from './back-button/back-button.component';
 import {MatButtonModule} from '@angular/material/button';
 import {ServicesModule} from '../services/services.module';
 import {MatIconModule} from '@angular/material/icon';
+import { ApiStatusComponent } from './api-status/api-status.component';
 
 
 
 @NgModule({
-  declarations: [BackButtonComponent],
-  exports: [
-    BackButtonComponent, MatButtonModule, ServicesModule, MatIconModule
-  ],
+  declarations: [BackButtonComponent, ApiStatusComponent],
+    exports: [
+        BackButtonComponent, MatButtonModule, ServicesModule, MatIconModule, ApiStatusComponent
+    ],
   imports: [
     CommonModule,
     MatButtonModule,

@@ -46,7 +46,7 @@ export function initializeApp(appConfig: AppConfig) {
 }
 
 @NgModule({
-  declarations: [AppComponent, CollectionListComponent, CollectionViewerComponent, MediaItemBuilderDialogComponent, CollectionBuilderDialogComponent],
+    declarations: [AppComponent, CollectionListComponent, CollectionViewerComponent, MediaItemBuilderDialogComponent, CollectionBuilderDialogComponent],
     imports: [
         BrowserModule,
         AppRoutingModule,
@@ -78,11 +78,12 @@ export function initializeApp(appConfig: AppConfig) {
         MatPaginatorModule,
         SharedModule
     ],
-  providers: [
-      AppConfig,
-      {provide: APP_INITIALIZER, useFactory: initializeApp, deps: [AppConfig], multi: true },
-      AccessRoleService
-  ],
-  bootstrap: [AppComponent]
+    providers: [
+        AppConfig,
+        {provide: APP_INITIALIZER, useFactory: initializeApp, deps: [AppConfig], multi: true},
+        AccessRoleService
+    ],
+    bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+}

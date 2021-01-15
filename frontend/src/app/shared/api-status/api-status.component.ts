@@ -12,6 +12,7 @@ export class ApiStatusComponent implements OnInit, OnDestroy {
 
     @Input() public pingFrequency = 1000; // ms
     rtt: BehaviorSubject<number> = new BehaviorSubject<number>(-1);
+    clockDiff: BehaviorSubject<number>;
     error = false;
     private subscription: Subscription;
     private now = Date.now();
@@ -30,8 +31,10 @@ export class ApiStatusComponent implements OnInit, OnDestroy {
                 return null;
             }),
             filter(x => x != null)
-        ).subscribe(time => {
-            this.rtt.next(((time as CurrentTime).timeStamp - this.now));
+        ).subscribe((time: CurrentTime) => {
+            const newNow = Date.now();
+            this.rtt.next((newNow - this.now));
+            this.clockDiff = new BehaviorSubject<number>(Math.abs(time.timeStamp - (this.now + this.rtt.getValue() / 2)));
         });
         /*this.subscription = interval(this.pingFrequency).subscribe(_ => {
             this.statusService.getApiStatusTime().pipe(

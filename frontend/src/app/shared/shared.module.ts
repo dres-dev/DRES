@@ -5,6 +5,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {ServicesModule} from '../services/services.module';
 import {MatIconModule} from '@angular/material/icon';
 import { ApiStatusComponent } from './api-status/api-status.component';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 
 
@@ -13,11 +14,12 @@ import { ApiStatusComponent } from './api-status/api-status.component';
     exports: [
         BackButtonComponent, MatButtonModule, ServicesModule, MatIconModule, ApiStatusComponent
     ],
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    ServicesModule,
-    MatIconModule
-  ]
+    imports: [
+        CommonModule,
+        MatButtonModule,
+        ServicesModule,
+        MatIconModule,
+        MatTooltipModule
+    ]
 })
 export class SharedModule { }

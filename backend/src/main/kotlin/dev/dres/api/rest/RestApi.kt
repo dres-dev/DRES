@@ -126,6 +126,7 @@ object RestApi {
                 NextOpenJudgementHandler(dataAccessLayer.collections),
                 PostJudgementHandler(),
                 JudgementStatusHandler(),
+                JudgementVoteHandler(),
 
                 // Audit Log
                 GetAuditLogInfoHandler(dataAccessLayer.auditTimes),
@@ -147,6 +148,7 @@ object RestApi {
             it.sessionHandler { fileSessionHandler(config) }
             it.accessManager(AccessManager::manage)
             it.addStaticFiles("html")
+            it.addSinglePageRoot("/vote", "vote/index.html")
             it.addSinglePageRoot("/", "html/index.html")
             it.enforceSsl = config.enableSsl
         }.routes {

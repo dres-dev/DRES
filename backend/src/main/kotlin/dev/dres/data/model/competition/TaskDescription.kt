@@ -65,7 +65,7 @@ class TaskDescription(
      *
      * @return [SubmissionValidator].
      */
-    fun newValidator(): SubmissionValidator = when(taskType.targetType){
+    fun newValidator(): SubmissionValidator = when(taskType.targetType.option){
         TaskType.TargetType.SINGLE_MEDIA_ITEM -> MediaItemsSubmissionValidator(setOf((target as TaskDescriptionTarget.MediaItemTarget).item))
         TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionValidator(target as TaskDescriptionTarget.VideoSegmentTarget)
         TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> MediaItemsSubmissionValidator((target as TaskDescriptionTarget.MultipleMediaItemTarget).items.toSet())

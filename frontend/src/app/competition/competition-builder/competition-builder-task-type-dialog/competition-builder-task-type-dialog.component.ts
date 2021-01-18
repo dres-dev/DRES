@@ -1,7 +1,8 @@
 import {AfterViewInit, Component, Inject, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {
-    ConfiguredOptionOptions, ConfiguredOptionQueryComponentType,
+    ConfiguredOptionOptions,
+    ConfiguredOptionQueryComponentType,
     ConfiguredOptionScoringType,
     ConfiguredOptionSubmissionFilterType,
     ConfiguredOptionTargetType,
@@ -9,8 +10,6 @@ import {
 } from '../../../../../openapi';
 import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {MatCheckboxChange} from '@angular/material/checkbox';
-
-
 
 
 /**
@@ -39,18 +38,18 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
     componentTypes = Object.values(ConfiguredOptionQueryComponentType.OptionEnum)
         .sort((a, b) => a.localeCompare(b))
         .map((v) => {
-            return <ConfiguredOptionQueryComponentType>{type: {option: v, parameters: []}, activated: false} as ActivatedType<ConfiguredOptionQueryComponentType>;
+            return {type: v, activated: false} as ActivatedType<ConfiguredOptionQueryComponentType.OptionEnum>;
         });
     scoreTypes = Object.values(ConfiguredOptionScoringType.OptionEnum).sort((a, b) => a.localeCompare(b));
     filterTypes = Object.values(ConfiguredOptionSubmissionFilterType.OptionEnum)
         .sort((a, b) => a.localeCompare(b))
         .map((v) => {
-            return <ConfiguredOptionSubmissionFilterType>{type: {option: v, parameters: []}, activated: false} as ActivatedType<ConfiguredOptionSubmissionFilterType>;
+            return {type: v, activated: false} as ActivatedType<ConfiguredOptionSubmissionFilterType.OptionEnum>;
         });
     options = Object.values(ConfiguredOptionOptions.OptionEnum)
         .sort((a, b) => a.localeCompare(b))
         .map((v) => {
-            return {type: <ConfiguredOptionOptions>{option: v, parameters: []}, activated: false} as ActivatedType<ConfiguredOptionOptions>;
+            return {type: v, activated: false} as ActivatedType<ConfiguredOptionOptions.OptionEnum>;
         });
 
 
@@ -154,19 +153,19 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
         // Loop over all enums
         this.componentTypes.forEach(ct => {
             // if its in data, set to true to render it as checked
-            if (this.data?.components.find(p => p.option === ct.type.option)) {
+            if (this.data?.components.find(p => p.option === ct.type)) {
                 ct.activated = true;
             }
         });
 
         this.filterTypes.forEach(t => {
-            if (this.data?.filter?.find(p => p.option === t.type.option)) {
+            if (this.data?.filter?.find(p => p.option === t.type)) {
                 t.activated = true;
             }
         });
 
         this.options.forEach(t => {
-            if (this.data?.options?.find(p => p.option === t.type.option)) {
+            if (this.data?.options?.find(p => p.option === t.type)) {
                 t.activated = true;
             }
         });

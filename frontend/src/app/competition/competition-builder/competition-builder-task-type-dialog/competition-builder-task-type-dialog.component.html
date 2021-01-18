@@ -34,24 +34,24 @@
 
         <h3>Used Task Components</h3>
         <section class="checkbox-section">
-            <mat-checkbox *ngFor="let type of componentTypes" [value]="type.type.option" (change)="onCheckboxChange($event, 'components')" [checked]="type.activated">
-                {{type.type.option}}
+            <mat-checkbox *ngFor="let type of componentTypes" [value]="type.type" (change)="onCheckboxChange($event, 'components')" [checked]="type.activated">
+                {{type.type}}
             </mat-checkbox>
         </section>
 
 
         <h3>Submission Filters</h3>
         <section class="checkbox-section">
-            <mat-checkbox *ngFor="let type of filterTypes" [value]="type.type.option" (change)="onCheckboxChange($event, 'filters')" [checked]="type.activated">
-                {{type.type.option}}
+            <mat-checkbox *ngFor="let type of filterTypes" [value]="type.type" (change)="onCheckboxChange($event, 'filters')" [checked]="type.activated">
+                {{type.type}}
             </mat-checkbox>
         </section>
 
 
         <h3>Options</h3>
         <section class="checkbox-section">
-            <mat-checkbox *ngFor="let type of options" [value]="type.type.option" (change)="onCheckboxChange($event, 'options')" [checked]="type.activated">
-                {{type.type.option}}
+            <mat-checkbox *ngFor="let type of options" [value]="type.type" (change)="onCheckboxChange($event, 'options')" [checked]="type.activated">
+                {{type.type}}
             </mat-checkbox>
         </section>
 

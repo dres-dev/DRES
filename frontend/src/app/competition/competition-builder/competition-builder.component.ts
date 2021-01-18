@@ -1,19 +1,7 @@
 import {Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router, RouterStateSnapshot} from '@angular/router';
 import {filter} from 'rxjs/operators';
-import {
-    CompetitionService,
-    ConfiguredOptionOptions,
-    ConfiguredOptionQueryComponentType,
-    ConfiguredOptionScoringType,
-    ConfiguredOptionSubmissionFilterType,
-    ConfiguredOptionTargetType,
-    RestCompetitionDescription,
-    RestTaskDescription,
-    RestTeam,
-    TaskGroup,
-    TaskType
-} from '../../../../openapi';
+import {CompetitionService, RestCompetitionDescription, RestTaskDescription, RestTeam, TaskGroup, TaskType} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Observable, Subscription} from 'rxjs';
@@ -45,17 +33,19 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static TKIS_TEMPLATE = {
         name: 'Textual KIS',
         taskDuration: 420,
-        targetType: <ConfiguredOptionTargetType>{option: 'SINGLE_MEDIA_SEGMENT', parameters: {}},
-        components: [<ConfiguredOptionQueryComponentType>{option: 'TEXT', parameters: {}}],
-        score: <ConfiguredOptionScoringType>{option: 'KIS', parameters: {}},
+        targetType: {option: 'SINGLE_MEDIA_SEGMENT', parameters: {}},
+        score: {option: 'KIS', parameters: {}},
+        components: [
+            {option: 'TEXT', parameters: {}}
+        ],
         filter: [
-            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: {}},
-            <ConfiguredOptionSubmissionFilterType>{option: 'ONE_CORRECT_PER_TEAM', parameters: {}},
-            <ConfiguredOptionSubmissionFilterType>{option: 'TEMPORAL_SUBMISSION', parameters: {}}
+            {option: 'NO_DUPLICATES', parameters: {}},
+            {option: 'ONE_CORRECT_PER_TEAM', parameters: {}},
+            {option: 'TEMPORAL_SUBMISSION', parameters: {}}
         ],
         options: [
-           <ConfiguredOptionOptions> {option: 'HIDDEN_RESULTS', parameters: {}},
-           <ConfiguredOptionOptions> {option: 'MAP_TO_SEGMENT',  parameters: {}}
+            {option: 'HIDDEN_RESULTS', parameters: {}},
+            {option: 'MAP_TO_SEGMENT',  parameters: {}}
         ]
     } as TaskType;
 
@@ -65,16 +55,18 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static VKIS_TEMPLATE = {
         name: 'VISUAL',
         taskDuration: 300,
-        targetType: <ConfiguredOptionTargetType>{option: 'SINGLE_MEDIA_SEGMENT', parameters: {}},
-        components: [<ConfiguredOptionQueryComponentType>{option: 'VIDEO_ITEM_SEGMENT', parameters: {}}],
-        score: <ConfiguredOptionScoringType>{option: 'KIS', parameters: {}},
+        targetType: {option: 'SINGLE_MEDIA_SEGMENT', parameters: {}},
+        score: {option: 'KIS', parameters: {}},
+        components: [
+            {option: 'VIDEO_ITEM_SEGMENT', parameters: {}}
+        ],
         filter: [
-            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: {}},
-            <ConfiguredOptionSubmissionFilterType>{option: 'ONE_CORRECT_PER_TEAM', parameters: {}},
-            <ConfiguredOptionSubmissionFilterType>{option: 'TEMPORAL_SUBMISSION', parameters: {}}
+            {option: 'NO_DUPLICATES', parameters: {}},
+            {option: 'ONE_CORRECT_PER_TEAM', parameters: {}},
+            {option: 'TEMPORAL_SUBMISSION', parameters: {}}
         ],
         options: [
-            <ConfiguredOptionOptions> {option: 'MAP_TO_SEGMENT',  parameters: {}}
+            {option: 'MAP_TO_SEGMENT',  parameters: {}}
         ]
     } as TaskType;
 
@@ -84,15 +76,17 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static AVS_TEMPLATE = {
         name: 'Ad-hoc Video Search',
         taskDuration: 300,
-        targetType: <ConfiguredOptionTargetType>{option: 'JUDGEMENT', parameters: {}},
-        components: [<ConfiguredOptionQueryComponentType>{option: 'TEXT', parameters: {}}],
-        score: <ConfiguredOptionScoringType>{option: 'AVS', parameters: {}},
+        targetType: {option: 'JUDGEMENT', parameters: {}},
+        score: {option: 'AVS', parameters: {}},
+        components: [
+            {option: 'TEXT', parameters: {}}
+        ],
         filter: [
-            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: {}},
-            <ConfiguredOptionSubmissionFilterType>{option: 'TEMPORAL_SUBMISSION', parameters: {}}
+            {option: 'NO_DUPLICATES', parameters: {}},
+            {option: 'TEMPORAL_SUBMISSION', parameters: {}}
         ],
         options: [
-            <ConfiguredOptionOptions> {option: 'MAP_TO_SEGMENT',  parameters: {}}
+            {option: 'MAP_TO_SEGMENT',  parameters: {}}
         ]
     } as TaskType;
 
@@ -102,15 +96,17 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static LSC_TEMPLATE = {
         name: 'LSC',
         taskDuration: 300,
-        targetType: <ConfiguredOptionTargetType>{option: 'MULTIPLE_MEDIA_ITEMS', parameters: {}},
-        components: [<ConfiguredOptionQueryComponentType>{option: 'TEXT', parameters: {}}],
-        score: <ConfiguredOptionScoringType>{option: 'KIS', parameters: {}},
+        targetType: {option: 'MULTIPLE_MEDIA_ITEMS', parameters: {}},
+        score: {option: 'KIS', parameters: {}},
+        components: [
+            {option: 'TEXT', parameters: {}}
+        ],
         filter: [
-            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: {}},
-            <ConfiguredOptionSubmissionFilterType>{option: 'ONE_CORRECT_PER_TEAM', parameters: {}}
+            {option: 'NO_DUPLICATES', parameters: {}},
+            {option: 'ONE_CORRECT_PER_TEAM', parameters: {}}
         ],
         options: [
-            <ConfiguredOptionOptions> {option: 'HIDDEN_RESULTS',  parameters: {}}
+            {option: 'HIDDEN_RESULTS',  parameters: {}}
         ]
     } as TaskType;
 
@@ -309,7 +305,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     /**
      * Removes the selected {@link RestTaskDescription} from the list of {@link RestTaskDescription}s.
      *
-     * @param task {@link RestTaskDescription} to remove.
+     * @param task The {@link RestTaskDescription} to remove.
      */
     public removeTask(task: RestTaskDescription) {
         this.competition.tasks.splice(this.competition.tasks.indexOf(task), 1);
@@ -361,12 +357,12 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     }
 
     /**
-     * Summarises a task type to present detailed info as tootlip
+     * Summarises a task type to present detailed info as tooltip.
      *
-     * @param taskType
+     * @param taskType The {@link TaskType} to summarize.
      */
     summariseTaskType(taskType: TaskType): string {
-        return `Consits of ${taskType.components.join(', ')}, has filters: ${taskType.filter.join(', ')} and options: ${taskType.options.join(', ')}`;
+        return `Consists of ${taskType.components.join(', ')}, has filters: ${taskType.filter.join(', ')} and options: ${taskType.options.join(', ')}`;
     }
 
     /**
@@ -385,7 +381,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
 
     @HostListener('window:beforeunload', ['$event'])
     handleBeforeUnload(event: BeforeUnloadEvent){
-        if(!this.checkDirty()){
+        if (!this.checkDirty()){
             event.preventDefault();
             event.returnValue = '';
             return;

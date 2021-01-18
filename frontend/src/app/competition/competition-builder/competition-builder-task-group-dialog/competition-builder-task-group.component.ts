@@ -30,10 +30,6 @@ export class CompetitionBuilderTaskGroupDialogComponent {
         });
     }
 
-    private typeFromName(name){
-        return this.supportedTaskTypes.find(t => t.name === name);
-    }
-
     public save(): void {
         if (this.form.valid) {
             this.dialogRef.close(this.fetchFormData());
@@ -47,11 +43,15 @@ export class CompetitionBuilderTaskGroupDialogComponent {
         } as TaskGroup;
     }
 
-    export(){
-        console.log(JSON.stringify(this.fetchFormData()));
-    }
+    fileProvider = () => this.fetchFormData()?.name ? this.fetchFormData().name : 'task-group-download.json';
+
+    downloadProvider = () => JSON.stringify(this.fetchFormData());
 
     public close(): void {
         this.dialogRef.close(null);
+    }
+
+    private typeFromName(name) {
+        return this.supportedTaskTypes.find(t => t.name === name);
     }
 }

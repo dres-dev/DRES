@@ -141,12 +141,9 @@ export class CompetitionBuilderTaskDialogComponent {
         return JSON.stringify(this.builder.fetchFormData());
     }
 
-    /**
-     * Prints the JSONified form data to console
-     */
-    export() {
-        console.log(this.asJson());
-    }
+    fileProvider = () => this.builder.fetchFormData()?.name ? this.builder.fetchFormData().name : 'task-download.json';
+
+    downloadProvider = () => this.asJson();
 
     /**
      * Picks a ranomd {@link MediaItem} from the list.

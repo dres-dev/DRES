@@ -127,10 +127,8 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
         this.dialogRef.close(null);
     }
 
-    export(): void {
-        // Currently on ly debug
-        console.log(JSON.stringify(this.fetchFromForm()));
-    }
+    fileProvider = () => this.fetchFromForm()?.name ? this.fetchFromForm().name : 'tasktype-download.json';
+    downloadProvider = () => JSON.stringify(this.fetchFromForm());
 
     import(): void {
         // TODO

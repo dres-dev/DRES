@@ -6,13 +6,14 @@ import {ServicesModule} from '../services/services.module';
 import {MatIconModule} from '@angular/material/icon';
 import { ApiStatusComponent } from './api-status/api-status.component';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import { DownloadJsonButtonComponent } from './download-json-button/download-json-button.component';
 
 
 
 @NgModule({
-  declarations: [BackButtonComponent, ApiStatusComponent],
+  declarations: [BackButtonComponent, ApiStatusComponent, DownloadJsonButtonComponent],
     exports: [
-        BackButtonComponent, MatButtonModule, ServicesModule, MatIconModule, ApiStatusComponent
+        BackButtonComponent, MatButtonModule, ServicesModule, MatIconModule, ApiStatusComponent, DownloadJsonButtonComponent
     ],
     imports: [
         CommonModule,

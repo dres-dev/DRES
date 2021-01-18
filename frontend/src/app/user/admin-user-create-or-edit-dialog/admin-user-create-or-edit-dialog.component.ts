@@ -26,6 +26,10 @@ export class AdminUserCreateOrEditDialogComponent {
         public dialogRef: MatDialogRef<AdminUserCreateOrEditDialogComponent>,
         @Inject(MAT_DIALOG_DATA) public usr?: UserDetails
     ) {
+        this.init();
+    }
+
+    private init(){
         if (this.isEdit()) {
             console.log('User.Edit');
             this.form.controls.username.setValue(this.usr.username);
@@ -37,10 +41,15 @@ export class AdminUserCreateOrEditDialogComponent {
 
     downloadProvider = () => this.asJson();
 
-    nameProvider = () => this?.usr?.username ? this.usr.username : 'user-download.json';
+    nameProvider = () => this.fetchData()?.username ? this.fetchData().username + '.json' : 'user-download.json';
 
     public isEdit() {
         return this.usr != null;
+    }
+
+    uploaded = (userData: string) => {
+        this.usr = JSON.parse(userData) as UserDetails;
+        this.init();
     }
 
     public create(): void {
@@ -59,7 +68,8 @@ export class AdminUserCreateOrEditDialogComponent {
     }
 
     asJson(): string {
-        return JSON.stringify(this.fetchData());
+        const user = this.fetchData();
+        return JSON.stringify({id: this?.usr?.id, username: user.username, role: user.role} as UserDetails);
     }
 
     public close(): void {

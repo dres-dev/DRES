@@ -1,0 +1,4 @@
+<button mat-button (click)="fileInput.click()">
+    <mat-icon style="vertical-align: middle;">cloud_upload</mat-icon> {{name}}
+</button>
+<input type="file" hidden #fileInput id="fileInput" name="fileInput" (change)="onFileSelected()">

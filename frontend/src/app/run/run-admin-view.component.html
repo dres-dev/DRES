@@ -86,7 +86,7 @@
                 </mat-card-header>
                 <mat-card-content>
 
-                    <table #taskTable mat-table [dataSource]="(run | async).info.tasks" [style.width]="'100%'">
+                    <table #taskTable mat-table [dataSource]="(run | async)?.info.tasks" [style.width]="'100%'">
                         <ng-container matColumnDef="name">
                             <th mat-header-cell *matHeaderCellDef> Name </th>
                             <td mat-cell *matCellDef="let task"> {{task.name}} </td>

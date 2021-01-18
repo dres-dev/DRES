@@ -474,6 +474,9 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
 
                 /* 3) Yield to other threads. */
                 Thread.sleep(10)
+
+                /* Reset error counter. */
+                errorCounter = 0
             } catch (ie: InterruptedException) {
                 LOGGER.info("Interrupted SynchronousRunManager, exiting")
                 return
@@ -487,9 +490,6 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
                     this.persistCurrentRunInformation()
                     break //terminate loop
                 }
-
-            } finally {
-                errorCounter = 0
             }
         }
 

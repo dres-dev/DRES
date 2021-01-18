@@ -362,7 +362,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
      * @param taskType The {@link TaskType} to summarize.
      */
     summariseTaskType(taskType: TaskType): string {
-        return `Consists of ${taskType.components.join(', ')}, has filters: ${taskType.filter.join(', ')} and options: ${taskType.options.join(', ')}`;
+        return `Consists of ${taskType.components.map(c => c.option).join(', ')}, has filters: ${taskType.filter.map(f => f.option).join(', ')} and options: ${taskType.options.map(o => o.option).join(', ')}`;
     }
 
     /**

@@ -49,7 +49,8 @@ data class TaskType(
 
     enum class SubmissionFilterType(internal val filter: (parameters: Map<String, String>) -> SubmissionFilter) : Option{
         NO_DUPLICATES({_ -> DuplicateSubmissionFilter()}),
-        ONE_CORRECT_PER_TEAM({_ -> OneCorrectSubmissionPerTeamFilter()}),
+        LIMIT_CORRECT_PER_TEAM({params -> CorrectSubmissionPerTeamFilter(params)}),
+        LIMIT_CORRECT_PER_MEMBER({params -> CorrectSubmissionPerTeamMemberFilter(params)}),
         TEMPORAL_SUBMISSION({_ ->TemporalSubmissionFilter()})
     }
 

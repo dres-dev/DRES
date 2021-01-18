@@ -55,7 +55,33 @@
             </mat-checkbox>
         </section>
 
-        <h3>Parameters</h3>
+        <h3>Parameters
+            <button mat-button aria-label="Adds a named parameter." matTooltip="Adds a named parameter." (click)="addParameter()">
+                <mat-icon>add</mat-icon>
+            </button>
+        </h3>
+        <section>
+            <mat-list>
+                <mat-list-item *ngFor="let parameter of form.get('parameters')['controls']">
+                    <mat-form-field style="width: 33%">
+                        <mat-select placeholder="Domain" [formControl]="parameter.controls[0]">
+                            <mat-option *ngFor="let domain of availableDomains()" [value]="domain">
+                                {{domain}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-form-field style="width: 33%">
+                        <input type="text" matInput placeholder="Key" [formControl]="parameter.controls[1]"/>
+                    </mat-form-field>
+                    <mat-form-field style="width: 33%">
+                        <input type="text" matInput placeholder="Value" [formControl]="parameter.controls[2]"/>
+                    </mat-form-field>
+                    <button mat-button aria-label="Removes the named parameter." matTooltip="Removes the named parameter." (click)="removeParameter(parameter)">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </mat-list-item>
+            </mat-list>
+        </section>
     </form>
 </div>
 <div mat-dialog-actions>

@@ -52,47 +52,42 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
             return {type: v, activated: false} as ActivatedType<ConfiguredOptionOptions.OptionEnum>;
         });
 
-
-    /**
-     * List of named configuration parameters from the different domais (filter, score, options etc.).
-     *
-     * Each entry has the form [DOMAIN, KEY, VALUE]
-     */
-    private parameters: Array<[string, string, string]> = [];
-
     constructor(
         public dialogRef: MatDialogRef<CompetitionBuilderTaskTypeDialogComponent>,
         private formBuilder: FormBuilder,
         @Inject(MAT_DIALOG_DATA) public data: TaskType) {
 
+
+
         /* Load all configuration parameters. */
+        const parameters: Array<[string, string, string]> = [];
         if (this.data?.targetType?.parameters) {
             Object.keys(this.data?.targetType?.parameters).forEach(key => {
-                this.parameters.push([this.data.score.option, key, this.data.score.parameters[key]]);
+                parameters.push([this.data.score.option, key, this.data.score.parameters[key]]);
             });
         }
 
         if (this.data?.score?.parameters) {
             Object.keys(this.data?.score?.parameters).forEach(key => {
-                this.parameters.push([this.data.score.option, key, this.data.score.parameters[key]]);
+                parameters.push([this.data.score.option, key, this.data.score.parameters[key]]);
             });
         }
 
         this.data?.components?.forEach(domain => {
-            Object.keys(domain).forEach(key => {
-                this.parameters.push([domain.option, key, domain.parameters[key]]);
+            Object.keys(domain.parameters).forEach(key => {
+                parameters.push([domain.option, key, domain.parameters[key]]);
             });
         });
 
         this.data?.filter?.forEach(domain => {
-            Object.keys(domain).forEach(key => {
-                this.parameters.push([domain.option, key, domain.parameters[key]]);
+            Object.keys(domain.parameters).forEach(key => {
+                parameters.push([domain.option, key, domain.parameters[key]]);
             });
         });
 
         this.data?.options?.forEach(domain => {
-            Object.keys(domain).forEach(key => {
-                this.parameters.push([domain.option, key, domain.parameters[key]]);
+            Object.keys(domain.parameters).forEach(key => {
+                parameters.push([domain.option, key, domain.parameters[key]]);
             });
         });
 
@@ -100,6 +95,7 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
         this.form = new FormGroup({
             /* Name. Required */
             name: new FormControl(this.data?.name, [Validators.required, Validators.minLength(3)]),
+
             /* Default Duration. Required */
             defaultTaskDuration: new FormControl(this.data?.taskDuration, [Validators.required, Validators.min(1)]),
 
@@ -122,7 +118,7 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
                 new FormControl(v.option))) : new FormArray([]),
 
             /* Parameters: Optional */
-            parameters: new FormArray(this.parameters.map((v) =>
+            parameters: new FormArray(parameters.map((v) =>
                 new FormArray([new FormControl(v[0]), new FormControl(v[1]), new FormControl(v[2])])))
         });
     }
@@ -171,6 +167,45 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
         });
     }
 
+    /**
+     * Adds a new parameter entry to the list of parameter entries.
+     */
+    public addParameter() {
+        (this.form.get('parameters') as FormArray).controls.push(
+           new FormArray([
+               new FormControl(null),
+               new FormControl(null),
+               new FormControl(null)
+           ])
+        );
+    }
+
+    /**
+     * Removes a parameter entry from the list of parameter entries.
+     */
+    public removeParameter(entry: FormArray) {
+        const array = (this.form.get('parameters') as FormArray).controls;
+        const index = array.indexOf(entry);
+        if (index >= 0) {
+            array.splice(index, 1);
+        }
+    }
+
+
+    /**
+     * Returns a list of all available domains.
+     */
+    public availableDomains(): string[] {
+        const array = [];
+        array.push(this.form.get('target').value);
+        array.push(this.form.get('scoring').value);
+        (this.form.get('components') as FormArray).controls.forEach(c => array.push(c.value));
+        (this.form.get('filters') as FormArray).controls.forEach(c => array.push(c.value));
+        (this.form.get('options') as FormArray).controls.forEach(c => array.push(c.value));
+        return array;
+    }
+
+
     ngAfterViewInit(): void {
     }
 
@@ -193,9 +228,8 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
         // TODO
     }
 
-
     /**
-     * Fetches the resulting [TaskType] from the form data
+     * Creates the [TaskType] object from the form data and returns it.
      */
     private fetchFromForm(): TaskType {
         return {
@@ -213,20 +247,28 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
                 parameters: this.fetchConfigurationParameters(this.form.get('scoring').value)
             } as ConfiguredOptionScoringType,
             filter: (this.form.get('filters') as FormArray).controls.map(c => {
-                return {option: c.value, parameters: this.fetchConfigurationParameters(c.value)}
+                return {option: c.value, parameters: this.fetchConfigurationParameters(c.value)};
             }) as Array<ConfiguredOptionSubmissionFilterType>,
             options: (this.form.get('options') as FormArray).controls.map(c => {
-                return {option: c.value, parameters: this.fetchConfigurationParameters(c.value)}
+                return {option: c.value, parameters: this.fetchConfigurationParameters(c.value)};
             }) as Array<ConfiguredOptionOptions>
         } as TaskType;
     }
 
     /**
+     * Fetches the named configuration parameters for the given domain.
      *
-     * @param parameter
-     * @private
+     * @param domain The domain to fetch the parameters for.
+     * @private The object encoding the named paramters.
      */
-    private fetchConfigurationParameters(parameter: string): any {
-        return {};
+    private fetchConfigurationParameters(domain: string): any {
+        const obj = {};
+        (this.form.get('parameters') as FormArray).controls.forEach(c => {
+            const cast = (c as FormArray).controls;
+            if (cast[0].value === domain) {
+                obj[cast[1].value] = cast[2].value;
+            }
+        });
+        return obj;
     }
 }

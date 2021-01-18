@@ -1,8 +1,9 @@
-import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router, RouterStateSnapshot} from '@angular/router';
 import {filter} from 'rxjs/operators';
 import {
-    CompetitionService, ConfiguredOptionOptions,
+    CompetitionService,
+    ConfiguredOptionOptions,
     ConfiguredOptionQueryComponentType,
     ConfiguredOptionScoringType,
     ConfiguredOptionSubmissionFilterType,
@@ -44,17 +45,17 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static TKIS_TEMPLATE = {
         name: 'Textual KIS',
         taskDuration: 420,
-        targetType: <ConfiguredOptionTargetType>{option: 'SINGLE_MEDIA_SEGMENT', parameters: []},
-        components: [<ConfiguredOptionQueryComponentType>{option: 'TEXT', parameters: []}],
-        score: <ConfiguredOptionScoringType>{option: 'KIS', parameters: []},
+        targetType: <ConfiguredOptionTargetType>{option: 'SINGLE_MEDIA_SEGMENT', parameters: {}},
+        components: [<ConfiguredOptionQueryComponentType>{option: 'TEXT', parameters: {}}],
+        score: <ConfiguredOptionScoringType>{option: 'KIS', parameters: {}},
         filter: [
-            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: []},
-            <ConfiguredOptionSubmissionFilterType>{option: 'ONE_CORRECT_PER_TEAM', parameters: []},
-            <ConfiguredOptionSubmissionFilterType>{option: 'TEMPORAL_SUBMISSION', parameters: []}
+            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: {}},
+            <ConfiguredOptionSubmissionFilterType>{option: 'ONE_CORRECT_PER_TEAM', parameters: {}},
+            <ConfiguredOptionSubmissionFilterType>{option: 'TEMPORAL_SUBMISSION', parameters: {}}
         ],
         options: [
-           <ConfiguredOptionOptions> {option: 'HIDDEN_RESULTS', parameters: []},
-           <ConfiguredOptionOptions> {option: 'MAP_TO_SEGMENT',  parameters: []}
+           <ConfiguredOptionOptions> {option: 'HIDDEN_RESULTS', parameters: {}},
+           <ConfiguredOptionOptions> {option: 'MAP_TO_SEGMENT',  parameters: {}}
         ]
     } as TaskType;
 
@@ -64,16 +65,16 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static VKIS_TEMPLATE = {
         name: 'VISUAL',
         taskDuration: 300,
-        targetType: <ConfiguredOptionTargetType>{option: 'SINGLE_MEDIA_SEGMENT', parameters: []},
-        components: [<ConfiguredOptionQueryComponentType>{option: 'VIDEO_ITEM_SEGMENT', parameters: []}],
-        score: <ConfiguredOptionScoringType>{option: 'KIS', parameters: []},
+        targetType: <ConfiguredOptionTargetType>{option: 'SINGLE_MEDIA_SEGMENT', parameters: {}},
+        components: [<ConfiguredOptionQueryComponentType>{option: 'VIDEO_ITEM_SEGMENT', parameters: {}}],
+        score: <ConfiguredOptionScoringType>{option: 'KIS', parameters: {}},
         filter: [
-            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: []},
-            <ConfiguredOptionSubmissionFilterType>{option: 'ONE_CORRECT_PER_TEAM', parameters: []},
-            <ConfiguredOptionSubmissionFilterType>{option: 'TEMPORAL_SUBMISSION', parameters: []}
+            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: {}},
+            <ConfiguredOptionSubmissionFilterType>{option: 'ONE_CORRECT_PER_TEAM', parameters: {}},
+            <ConfiguredOptionSubmissionFilterType>{option: 'TEMPORAL_SUBMISSION', parameters: {}}
         ],
         options: [
-            <ConfiguredOptionOptions> {option: 'MAP_TO_SEGMENT',  parameters: []}
+            <ConfiguredOptionOptions> {option: 'MAP_TO_SEGMENT',  parameters: {}}
         ]
     } as TaskType;
 
@@ -83,15 +84,15 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static AVS_TEMPLATE = {
         name: 'Ad-hoc Video Search',
         taskDuration: 300,
-        targetType: <ConfiguredOptionTargetType>{option: 'JUDGEMENT', parameters: []},
-        components: [<ConfiguredOptionQueryComponentType>{option: 'TEXT', parameters: []}],
-        score: <ConfiguredOptionScoringType>{option: 'AVS', parameters: []},
+        targetType: <ConfiguredOptionTargetType>{option: 'JUDGEMENT', parameters: {}},
+        components: [<ConfiguredOptionQueryComponentType>{option: 'TEXT', parameters: {}}],
+        score: <ConfiguredOptionScoringType>{option: 'AVS', parameters: {}},
         filter: [
-            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: []},
-            <ConfiguredOptionSubmissionFilterType>{option: 'TEMPORAL_SUBMISSION', parameters: []}
+            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: {}},
+            <ConfiguredOptionSubmissionFilterType>{option: 'TEMPORAL_SUBMISSION', parameters: {}}
         ],
         options: [
-            <ConfiguredOptionOptions> {option: 'MAP_TO_SEGMENT',  parameters: []}
+            <ConfiguredOptionOptions> {option: 'MAP_TO_SEGMENT',  parameters: {}}
         ]
     } as TaskType;
 
@@ -101,15 +102,15 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static LSC_TEMPLATE = {
         name: 'LSC',
         taskDuration: 300,
-        targetType: <ConfiguredOptionTargetType>{option: 'MULTIPLE_MEDIA_ITEMS', parameters: []},
-        components: [<ConfiguredOptionQueryComponentType>{option: 'TEXT', parameters: []}],
-        score: <ConfiguredOptionScoringType>{option: 'KIS', parameters: []},
+        targetType: <ConfiguredOptionTargetType>{option: 'MULTIPLE_MEDIA_ITEMS', parameters: {}},
+        components: [<ConfiguredOptionQueryComponentType>{option: 'TEXT', parameters: {}}],
+        score: <ConfiguredOptionScoringType>{option: 'KIS', parameters: {}},
         filter: [
-            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: []},
-            <ConfiguredOptionSubmissionFilterType>{option: 'ONE_CORRECT_PER_TEAM', parameters: []}
+            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: {}},
+            <ConfiguredOptionSubmissionFilterType>{option: 'ONE_CORRECT_PER_TEAM', parameters: {}}
         ],
         options: [
-            <ConfiguredOptionOptions> {option: 'HIDDEN_RESULTS',  parameters: []}
+            <ConfiguredOptionOptions> {option: 'HIDDEN_RESULTS',  parameters: {}}
         ]
     } as TaskType;
 

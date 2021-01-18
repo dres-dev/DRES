@@ -250,9 +250,10 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
 
     override fun startTask() = this.stateLock.write {
         check(this.status == RunManagerStatus.ACTIVE || this.status == RunManagerStatus.TASK_ENDED) { "SynchronizedRunManager is in status ${this.status}. Tasks can therefore not be started." }
-
-        //FIXME is this used anywhere?!
         /* Create and prepare pipeline for submission. */
+        this.run.newTaskRun(this.currentTask.id)
+
+        /* Create and prepare pipeline for submission (FIXME: is this used?). */
         //val ret = this.run.newTaskRun(this.currentTask.id)
         //val pipeline = Triple(ret.task.newFilter(), ret.task.newValidator(), ret.task.newScorer())
         //(this.submissionPipeline as MutableList).add(pipeline)

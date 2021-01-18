@@ -11,7 +11,7 @@
 
             <mat-form-field style="width: 40%;" *ngIf="form.get('mediaCollection')">
                 <mat-select
-                        [placeholder]="(data.taskType.targetType === 'JUDGEMENT' ? 'Default ': '') + 'Media Collection'"
+                        [placeholder]="(data.taskType.targetType.option === 'JUDGEMENT' ? 'Default ': '') + 'Media Collection'"
                         [formControl]="form.get('mediaCollection')">
                     <mat-option *ngFor="let mediaCollection of (mediaCollectionSource | async)"
                                 [value]="mediaCollection.id">
@@ -28,13 +28,13 @@
 
         <div *ngIf="form.get('mediaCollection').value">
             <h2>Target
-                <button *ngIf="data.taskType.targetType == 'MULTIPLE_MEDIA_ITEMS'"
+                <button *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'"
                         mat-button aria-label="Add query target."
                         matTooltip="Add query target."
                         (click)="addQueryTarget('MULTIPLE_MEDIA_ITEMS')">
                     <mat-icon>add</mat-icon>
                 </button>
-                <mat-button-toggle-group *ngIf="data.taskType.targetType == 'MULTIPLE_MEDIA_ITEMS'" #group="matButtonToggleGroup" [(value)]="viewLayout">
+                <mat-button-toggle-group *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'" #group="matButtonToggleGroup" [(value)]="viewLayout">
                     <mat-button-toggle value="list" aria-label="Display targets as list">
                         <mat-icon>list</mat-icon>
                     </mat-button-toggle>
@@ -42,7 +42,7 @@
                         <mat-icon>grid_on</mat-icon>
                     </mat-button-toggle>
                 </mat-button-toggle-group>
-                <button *ngIf="data.taskType.targetType == 'MULTIPLE_MEDIA_ITEMS'"
+                <button *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'"
                         mat-button aria-label="Batch Target Add"
                         matTooltip="Batch Target Add"
                         (click)="batchAddTargets()">
@@ -112,7 +112,7 @@
                         </mat-grid-tile-footer>
                         <mat-grid-tile-header style="text-align: right">
                             <!-- remove button -->
-                            <div *ngIf="data.taskType.targetType == 'MULTIPLE_MEDIA_ITEMS'">
+                            <div *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'">
                                 <button mat-icon-button (click)="removeQueryTarget(i)" aria-label="Remove query target." matTooltip="Remove query target.">
                                     <mat-icon>remove</mat-icon>
                                 </button>
@@ -188,8 +188,8 @@
                             <img style="max-width: 100%;" [src]="getImageUrl(target.get('mediaItem').value)" [alt]="'Preview of '+target.get('mediaItem').value?.name">
                         </p>
                     </div>
-                    <div class="spacer-flex" *ngIf="data.taskType.targetType == 'MULTIPLE_MEDIA_ITEMS'"></div>
-                    <div *ngIf="data.taskType.targetType == 'MULTIPLE_MEDIA_ITEMS'">
+                    <div class="spacer-flex" *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'"></div>
+                    <div *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'">
                         <button mat-icon-button (click)="removeQueryTarget(i)" aria-label="Remove query target." matTooltip="Remove query target.">
                             <mat-icon>remove</mat-icon>
                         </button>
@@ -204,7 +204,7 @@
                     <mat-icon>add</mat-icon>
                 </button>
                 <mat-menu #componentsMenu="matMenu">
-                    <button *ngFor="let compType of data.taskType.components" mat-menu-item (click)="addQueryComponent(compType)">Add {{compType | titlecase}}</button>
+                    <button *ngFor="let compType of data.taskType.components" mat-menu-item (click)="addQueryComponent(compType.option)">Add {{compType.option | titlecase}}</button>
                 </mat-menu>
             </h2>
             <div *ngFor="let description of form.get('components')['controls']; let i = index" style="display: flex">

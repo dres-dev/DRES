@@ -14,31 +14,15 @@
         </p>
 
         <p>
-            <mat-form-field style="width: 100%">
+            <mat-form-field style="width: 50%">
                 <mat-select placeholder="Target" formControlName="target">
                     <mat-option *ngFor="let type of targetTypes" [value]="type">
                         {{type}}
                     </mat-option>
                 </mat-select>
             </mat-form-field>
-        </p>
 
-
-        <section>
-            Used Task Components
-
-            <ul>
-                <li *ngFor="let type of componentTypes">
-                    <mat-checkbox  [value]="type.type" (change)="onCheckboxChange($event, 'components')" [checked]="type.activated">
-                        {{type.type}}
-                    </mat-checkbox>
-                </li>
-            </ul>
-        </section>
-
-
-        <p>
-            <mat-form-field style="width: 100%">
+            <mat-form-field style="width: 50%">
                 <mat-select placeholder="Scoring" formControlName="scoring">
                     <mat-option *ngFor="let type of scoreTypes" [value]="type">
                         {{type}}
@@ -47,28 +31,31 @@
             </mat-form-field>
         </p>
 
-        <section>
-            Submission Filter
-        <ul>
-            <li *ngFor="let type of filterTypes">
-                <mat-checkbox  [value]="type.type" (change)="onCheckboxChange($event, 'filters')" [checked]="type.activated">
-                    {{type.type}}
-                </mat-checkbox>
-            </li>
-        </ul>
+
+        <h3>Used Task Components</h3>
+        <section class="checkbox-section">
+            <mat-checkbox *ngFor="let type of componentTypes" [value]="type.type.option" (change)="onCheckboxChange($event, 'components')" [checked]="type.activated">
+                {{type.type.option}}
+            </mat-checkbox>
         </section>
 
-        <section>
-            Options
-        <ul>
-            <li *ngFor="let type of options">
-                <mat-checkbox  [value]="type.type" (change)="onCheckboxChange($event, 'options')" [checked]="type.activated">
-                    {{type.type}}
-                </mat-checkbox>
-            </li>
-        </ul>
+
+        <h3>Submission Filters</h3>
+        <section class="checkbox-section">
+            <mat-checkbox *ngFor="let type of filterTypes" [value]="type.type.option" (change)="onCheckboxChange($event, 'filters')" [checked]="type.activated">
+                {{type.type.option}}
+            </mat-checkbox>
         </section>
 
+
+        <h3>Options</h3>
+        <section class="checkbox-section">
+            <mat-checkbox *ngFor="let type of options" [value]="type.type.option" (change)="onCheckboxChange($event, 'options')" [checked]="type.activated">
+                {{type.type.option}}
+            </mat-checkbox>
+        </section>
+
+        <h3>Parameters</h3>
     </form>
 </div>
 <div mat-dialog-actions>

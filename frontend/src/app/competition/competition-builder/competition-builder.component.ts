@@ -2,7 +2,11 @@ import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild
 import {ActivatedRoute, Router, RouterStateSnapshot} from '@angular/router';
 import {filter} from 'rxjs/operators';
 import {
-    CompetitionService,
+    CompetitionService, ConfiguredOptionOptions,
+    ConfiguredOptionQueryComponentType,
+    ConfiguredOptionScoringType,
+    ConfiguredOptionSubmissionFilterType,
+    ConfiguredOptionTargetType,
     RestCompetitionDescription,
     RestTaskDescription,
     RestTeam,
@@ -40,48 +44,75 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static TKIS_TEMPLATE = {
         name: 'Textual KIS',
         taskDuration: 420,
-        targetType: 'SINGLE_MEDIA_SEGMENT',
-        components: ['TEXT'],
-        score: 'KIS',
-        filter: ['NO_DUPLICATES', 'ONE_CORRECT_PER_TEAM', 'TEMPORAL_SUBMISSION'],
-        options: ['HIDDEN_RESULTS', 'MAP_TO_SEGMENT']
+        targetType: <ConfiguredOptionTargetType>{option: 'SINGLE_MEDIA_SEGMENT', parameters: []},
+        components: [<ConfiguredOptionQueryComponentType>{option: 'TEXT', parameters: []}],
+        score: <ConfiguredOptionScoringType>{option: 'KIS', parameters: []},
+        filter: [
+            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: []},
+            <ConfiguredOptionSubmissionFilterType>{option: 'ONE_CORRECT_PER_TEAM', parameters: []},
+            <ConfiguredOptionSubmissionFilterType>{option: 'TEMPORAL_SUBMISSION', parameters: []}
+        ],
+        options: [
+           <ConfiguredOptionOptions> {option: 'HIDDEN_RESULTS', parameters: []},
+           <ConfiguredOptionOptions> {option: 'MAP_TO_SEGMENT',  parameters: []}
+        ]
     } as TaskType;
+
     /**
      * The official VBS Visual Known Item Search task type template
      */
     public static VKIS_TEMPLATE = {
-        name: 'VISUAL KIS',
+        name: 'VISUAL',
         taskDuration: 300,
-        targetType: 'SINGLE_MEDIA_SEGMENT',
-        components: ['VIDEO_ITEM_SEGMENT'],
-        score: 'KIS',
-        filter: ['NO_DUPLICATES', 'ONE_CORRECT_PER_TEAM', 'TEMPORAL_SUBMISSION'],
-        options: ['MAP_TO_SEGMENT']
+        targetType: <ConfiguredOptionTargetType>{option: 'SINGLE_MEDIA_SEGMENT', parameters: []},
+        components: [<ConfiguredOptionQueryComponentType>{option: 'VIDEO_ITEM_SEGMENT', parameters: []}],
+        score: <ConfiguredOptionScoringType>{option: 'KIS', parameters: []},
+        filter: [
+            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: []},
+            <ConfiguredOptionSubmissionFilterType>{option: 'ONE_CORRECT_PER_TEAM', parameters: []},
+            <ConfiguredOptionSubmissionFilterType>{option: 'TEMPORAL_SUBMISSION', parameters: []}
+        ],
+        options: [
+            <ConfiguredOptionOptions> {option: 'MAP_TO_SEGMENT',  parameters: []}
+        ]
     } as TaskType;
+
     /**
      * The official VBS Ad-hoc Video Search task type template
      */
     public static AVS_TEMPLATE = {
         name: 'Ad-hoc Video Search',
         taskDuration: 300,
-        targetType: 'JUDGEMENT',
-        components: ['TEXT'],
-        score: 'AVS',
-        filter: ['NO_DUPLICATES', 'TEMPORAL_SUBMISSION'],
-        options: ['MAP_TO_SEGMENT']
+        targetType: <ConfiguredOptionTargetType>{option: 'JUDGEMENT', parameters: []},
+        components: [<ConfiguredOptionQueryComponentType>{option: 'TEXT', parameters: []}],
+        score: <ConfiguredOptionScoringType>{option: 'AVS', parameters: []},
+        filter: [
+            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: []},
+            <ConfiguredOptionSubmissionFilterType>{option: 'TEMPORAL_SUBMISSION', parameters: []}
+        ],
+        options: [
+            <ConfiguredOptionOptions> {option: 'MAP_TO_SEGMENT',  parameters: []}
+        ]
     } as TaskType;
+
     /**
-     * The official LSC taskt ype template
+     * The official LSC task type template
      */
     public static LSC_TEMPLATE = {
         name: 'LSC',
         taskDuration: 300,
-        targetType: 'MULTIPLE_MEDIA_ITEMS',
-        components: ['TEXT'],
-        score: 'KIS',
-        filter: ['NO_DUPLICATES', 'ONE_CORRECT_PER_TEAM'],
-        options: ['HIDDEN_RESULTS']
+        targetType: <ConfiguredOptionTargetType>{option: 'MULTIPLE_MEDIA_ITEMS', parameters: []},
+        components: [<ConfiguredOptionQueryComponentType>{option: 'TEXT', parameters: []}],
+        score: <ConfiguredOptionScoringType>{option: 'KIS', parameters: []},
+        filter: [
+            <ConfiguredOptionSubmissionFilterType>{option: 'NO_DUPLICATES', parameters: []},
+            <ConfiguredOptionSubmissionFilterType>{option: 'ONE_CORRECT_PER_TEAM', parameters: []}
+        ],
+        options: [
+            <ConfiguredOptionOptions> {option: 'HIDDEN_RESULTS',  parameters: []}
+        ]
     } as TaskType;
+
     competitionId: string;
     competition: RestCompetitionDescription;
     @ViewChild('taskTable')

@@ -15,9 +15,6 @@ import { RestAuditLogEntry } from './restAuditLogEntry';
 
 
 export interface RestSubmissionAuditLogEntry { 
-    type: RestSubmissionAuditLogEntry.TypeEnum;
-    id: string;
-    timestamp: number;
     competition: string;
     taskName: string;
     submission: SubmissionInfo;
@@ -26,19 +23,6 @@ export interface RestSubmissionAuditLogEntry {
     address: string;
 }
 export namespace RestSubmissionAuditLogEntry {
-    export type TypeEnum = 'COMPETITION_START' | 'COMPETITION_END' | 'TASK_START' | 'TASK_MODIFIED' | 'TASK_END' | 'SUBMISSION' | 'PREPARE_JUDGEMENT' | 'JUDGEMENT' | 'LOGIN' | 'LOGOUT';
-    export const TypeEnum = {
-        COMPETITIONSTART: 'COMPETITION_START' as TypeEnum,
-        COMPETITIONEND: 'COMPETITION_END' as TypeEnum,
-        TASKSTART: 'TASK_START' as TypeEnum,
-        TASKMODIFIED: 'TASK_MODIFIED' as TypeEnum,
-        TASKEND: 'TASK_END' as TypeEnum,
-        SUBMISSION: 'SUBMISSION' as TypeEnum,
-        PREPAREJUDGEMENT: 'PREPARE_JUDGEMENT' as TypeEnum,
-        JUDGEMENT: 'JUDGEMENT' as TypeEnum,
-        LOGIN: 'LOGIN' as TypeEnum,
-        LOGOUT: 'LOGOUT' as TypeEnum
-    };
     export type ApiEnum = 'REST' | 'CLI' | 'INTERNAL';
     export const ApiEnum = {
         REST: 'REST' as ApiEnum,

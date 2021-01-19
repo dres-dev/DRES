@@ -5,15 +5,16 @@ import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
 import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
+import java.util.*
 
 /**
  * This is a holder for all the [Scoreboard]s maintained by a [RunManager].
  * Implements the [Updatable] interface.
  *
- * @author Ralph Gasser
- * @version 1.0
+ * @author Ralph Gasser & Luca Rossetto
+ * @version 1.1.0
  */
-class ScoreboardsUpdatable(val scoreboards: List<Scoreboard>, private val run: CompetitionRun, private val timeSeries: MutableList<ScoreTimePoint>): StatefulUpdatable {
+class ScoreboardsUpdatable(val scoreboards: List<Scoreboard>, val updateIntervalMs: Long, private val run: CompetitionRun): StatefulUpdatable {
 
     companion object {
        val ELIGIBLE_STATUS = arrayOf(RunManagerStatus.ACTIVE, RunManagerStatus.RUNNING_TASK, RunManagerStatus.TASK_ENDED, RunManagerStatus.PREPARING_TASK)
@@ -25,12 +26,22 @@ class ScoreboardsUpdatable(val scoreboards: List<Scoreboard>, private val run: C
     @Volatile
     override var dirty: Boolean = false
 
+    /** Timestamp of the last update. */
+    private var lastUpdate: Long = System.currentTimeMillis()
+
+    /** List of all [ScoreTimePoint]s tracked by this [ScoreboardsUpdatable]. */
+    private val _timeSeries: MutableList<ScoreTimePoint> = LinkedList()
+    val timeSeries: List<ScoreTimePoint>
+        get() = Collections.unmodifiableList(this._timeSeries)
+
     override fun update(status: RunManagerStatus) {
-        if (this.dirty) {
+        val now = System.currentTimeMillis()
+        if (this.dirty && (now - lastUpdate) > this.updateIntervalMs) {
             this.dirty = false
+            this.lastUpdate = now
             this.scoreboards.forEach {
                 it.update(this.run.runs)
-                it.scores().map{ score -> this.timeSeries.add(ScoreTimePoint(it.name, score)) }
+                it.scores().map{ score -> this._timeSeries.add(ScoreTimePoint(it.name, score)) }
             }
         }
     }

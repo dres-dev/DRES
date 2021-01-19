@@ -82,7 +82,7 @@ class ListCompetitionScoreHandler : AbstractScoreRestHandler(), GetRestHandler<L
     override fun doGet(ctx: Context): List<ScoreOverview> {
         val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
-        return run.scoreboards.scoreboards.map { it.overview() }
+        return run.scoreboards.map { it.overview() }
     }
 }
 
@@ -200,8 +200,6 @@ class RunScoreSeriesHandler : AbstractScoreRestHandler(), GetRestHandler<RunScor
                 .mapValues { it.value.map { p -> ScoreSeriesPoint(p.score, p.timestamp) } }
                 .map { ScoreSeries(it.key.first, it.key.second, it.value) }
         )
-
-
     }
 
 }

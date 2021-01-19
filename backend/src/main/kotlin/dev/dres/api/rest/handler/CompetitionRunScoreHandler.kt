@@ -173,30 +173,31 @@ class HistoryTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
 }
 
 class RunScoreSeriesHandler : AbstractScoreRestHandler(), GetRestHandler<RunScoreSeries> {
-    override val route = "score/run/:runId/series"
+    override val route = "score/run/:runId/series/:since"
 
     @OpenApi(
         summary = "Returns a time series of all scores for a given run.",
-        path = "/api/score/run/:runId/series",
+        path = "/api/score/run/:runId/series/:since",
         tags = ["Competition Run Scores"],
         pathParams = [
-            OpenApiParam("runId", String::class, "Competition run ID")
+            OpenApiParam("runId", String::class, "ID of the competition run.", required = true),
+            OpenApiParam("since", Long::class, "Time stamp after which to consider time points.", required = false)
         ],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(ScoreOverview::class)]),
+            OpenApiResponse("200", [OpenApiContent(RunScoreSeries::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
         ]
     )
     override fun doGet(ctx: Context): RunScoreSeries {
-
         val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()
-
+        val since = ctx.pathParamMap().getOrDefault("since", "0").toLong()
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
-
         return RunScoreSeries(
-            run.scoreHistory.groupBy { it.team to it.name }
+            run.scoreHistory
+                .filter { it.timestamp >= since }
+                .groupBy { it.team to it.name }
                 .mapValues { it.value.map { p -> ScoreSeriesPoint(p.score, p.timestamp) } }
                 .map { ScoreSeries(it.key.first, it.key.second, it.value) }
         )

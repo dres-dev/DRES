@@ -41,8 +41,9 @@ class MaxNormalizingScoreBoard(override val name: String, teams: List<Team>, pri
 
     override fun update(runs: List<CompetitionRun.TaskRun>) {
         update(
-            runs.filter { it.started != null && taskFilter(it.task) }
-                .map { it.task.id to it.scorer }.toMap()
+            runs
+            .filter { it.started != null && taskFilter(it.task) }
+            .map { it.uid to it.scorer }.toMap()
         )
     }
 

@@ -3,7 +3,7 @@ package dev.dres.run.score.scoreboard
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.Team
 import dev.dres.data.model.run.CompetitionRun
-import org.checkerframework.checker.guieffect.qual.UI
+import dev.dres.run.score.interfaces.TaskRunScorer
 
 /**
  * Container for [Scoreboard].
@@ -42,6 +42,11 @@ interface Scoreboard {
      * Updates the [Scoreboard].
      */
     fun update(runs: List<CompetitionRun.TaskRun>)
+
+    /**
+     * Updates using a map of the [TaskRun] ids to the corresponding [TaskRunScorer]s
+     */
+    fun update(scorers: Map<UID, TaskRunScorer>)
 
     /**
      * Returns a summary of all current scores in a [ScoreOverview]

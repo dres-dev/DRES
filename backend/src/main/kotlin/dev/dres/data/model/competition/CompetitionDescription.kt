@@ -4,8 +4,8 @@ package dev.dres.data.model.competition
 import dev.dres.data.model.Entity
 import dev.dres.data.model.UID
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
-import dev.dres.run.score.scoreboard.MeanAggregateScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
+import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
 
 
 data class CompetitionDescription(
@@ -50,7 +50,7 @@ data class CompetitionDescription(
         val groupBoards = this.taskGroups.map { group ->
             MaxNormalizingScoreBoard(group.name, this.teams, {task -> task.taskGroup == group}, group.name)
         }
-        val aggregateScoreBoard = MeanAggregateScoreBoard("average", groupBoards)
+        val aggregateScoreBoard = SumAggregateScoreBoard("sum", groupBoards)
         return groupBoards.plus(aggregateScoreBoard)
     }
 

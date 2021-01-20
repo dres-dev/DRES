@@ -1,6 +1,7 @@
 package dev.dres.run.score.interfaces
 
 import dev.dres.data.model.UID
+import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.CompetitionRun
 import dev.dres.data.model.run.Submission
 
@@ -12,6 +13,6 @@ import dev.dres.data.model.run.Submission
  */
 interface RecalculatingTaskRunScorer: TaskRunScorer {
 
-    fun computeScores(submissions: Collection<Submission>, teamIds: Collection<UID>, taskStartTime: Long, taskDuration: Long, taskEndTime: Long = 0): Map<UID, Double>
+    fun computeScores(submissions: Collection<Submission>, teamIds: Collection<TeamId>, taskStartTime: Long, taskDuration: Long, taskEndTime: Long = 0): Map<UID, Double>
 
 }

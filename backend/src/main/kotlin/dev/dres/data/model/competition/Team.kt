@@ -2,8 +2,11 @@ package dev.dres.data.model.competition
 
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
+import dev.dres.data.model.admin.UserId
 import java.nio.file.Path
 import java.nio.file.Paths
+
+typealias TeamId = UID
 
 /**
  * Represents a [Team] that takes part in a competition managed by DRES.
@@ -12,11 +15,11 @@ import java.nio.file.Paths
  * @version 1.2.0
  */
 data class Team constructor(
-        val uid: UID,
+        val uid: TeamId,
         val name: String,
         val color: String,
         val logoId: UID,
-        val users: MutableList<UID>) {
+        val users: MutableList<UserId>) {
 
     companion object {
         /**

@@ -6,9 +6,10 @@ import dev.dres.data.model.Entity
 import dev.dres.data.model.UID
 import org.mindrot.jbcrypt.BCrypt
 
+typealias UserId = UID
 
 data class User constructor(
-        override var id: UID = UID.EMPTY,
+        override var id: UserId = UID.EMPTY,
         val username: UserName,
         val password: HashedPassword,
         val role: Role) : Entity {

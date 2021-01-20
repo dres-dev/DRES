@@ -63,13 +63,6 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
         }
     } as ApexPlotOptions;
 
-    plotOptionsAlt: ApexPlotOptions = {
-        bar: {
-            horizontal: true,
-            distributed: true
-        }
-    };
-
     stroke: ApexStroke = {
         width: 1,
         colors: ['#fff']
@@ -84,10 +77,6 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
         horizontalAlign: 'left',
         showForSingleSeries: false
     } as ApexLegend;
-
-    legendNone: ApexLegend = {
-        show: false
-    };
 
     theme: ApexTheme = {
         mode: 'dark',

@@ -32,7 +32,7 @@ class ScoreboardsUpdatable(val scoreboards: List<Scoreboard>, val updateInterval
     /** List of all [ScoreTimePoint]s tracked by this [ScoreboardsUpdatable]. */
     private val _timeSeries: MutableList<ScoreTimePoint> = LinkedList()
     val timeSeries: List<ScoreTimePoint>
-        get() = Collections.unmodifiableList(this._timeSeries)
+        get() = this._timeSeries
 
     override fun update(status: RunManagerStatus) {
         val now = System.currentTimeMillis()

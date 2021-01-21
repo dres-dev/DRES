@@ -22,12 +22,8 @@ export class CompetitionBuilderTaskGroupDialogComponent {
 
     constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskGroupDialogComponent>,
                 @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskGroupDialogData) {
-        this.supportedTaskTypes = data?.types;
-
-        this.form = new FormGroup({
-            name: new FormControl(data?.group?.name, [Validators.required, Validators.minLength(3)]),
-            type: new FormControl(this.typeFromName(data?.group?.type), [Validators.required])
-        });
+        this.supportedTaskTypes = this.data?.types;
+        this.init();
     }
 
     public save(): void {
@@ -47,8 +43,22 @@ export class CompetitionBuilderTaskGroupDialogComponent {
 
     downloadProvider = () => JSON.stringify(this.fetchFormData());
 
+    uploaded = (data: string) => {
+        const parsed = JSON.parse(data) as TaskGroup;
+        this.data.group = parsed;
+        this.init();
+        console.log('Loaded task group: ' + JSON.stringify(parsed));
+    }
+
     public close(): void {
         this.dialogRef.close(null);
+    }
+
+    private init() {
+        this.form = new FormGroup({
+            name: new FormControl(this.data?.group?.name, [Validators.required, Validators.minLength(3)]),
+            type: new FormControl(this.typeFromName(this.data?.group?.type), [Validators.required])
+        });
     }
 
     private typeFromName(name) {

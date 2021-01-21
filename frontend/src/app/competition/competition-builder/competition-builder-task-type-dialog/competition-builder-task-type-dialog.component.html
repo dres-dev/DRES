@@ -14,31 +14,15 @@
         </p>
 
         <p>
-            <mat-form-field style="width: 100%">
+            <mat-form-field style="width: 50%">
                 <mat-select placeholder="Target" formControlName="target">
                     <mat-option *ngFor="let type of targetTypes" [value]="type">
                         {{type}}
                     </mat-option>
                 </mat-select>
             </mat-form-field>
-        </p>
 
-
-        <section>
-            Used Task Components
-
-            <ul>
-                <li *ngFor="let type of componentTypes">
-                    <mat-checkbox  [value]="type.type" (change)="onCheckboxChange($event, 'components')" [checked]="type.activated">
-                        {{type.type}}
-                    </mat-checkbox>
-                </li>
-            </ul>
-        </section>
-
-
-        <p>
-            <mat-form-field style="width: 100%">
+            <mat-form-field style="width: 50%">
                 <mat-select placeholder="Scoring" formControlName="scoring">
                     <mat-option *ngFor="let type of scoreTypes" [value]="type">
                         {{type}}
@@ -47,28 +31,57 @@
             </mat-form-field>
         </p>
 
-        <section>
-            Submission Filter
-        <ul>
-            <li *ngFor="let type of filterTypes">
-                <mat-checkbox  [value]="type.type" (change)="onCheckboxChange($event, 'filters')" [checked]="type.activated">
-                    {{type.type}}
-                </mat-checkbox>
-            </li>
-        </ul>
+
+        <h3>Used Task Components</h3>
+        <section class="checkbox-section">
+            <mat-checkbox *ngFor="let type of componentTypes" [value]="type.type" (change)="onCheckboxChange($event, 'components')" [checked]="type.activated">
+                {{type.type}}
+            </mat-checkbox>
         </section>
 
-        <section>
-            Options
-        <ul>
-            <li *ngFor="let type of options">
-                <mat-checkbox  [value]="type.type" (change)="onCheckboxChange($event, 'options')" [checked]="type.activated">
-                    {{type.type}}
-                </mat-checkbox>
-            </li>
-        </ul>
+
+        <h3>Submission Filters</h3>
+        <section class="checkbox-section">
+            <mat-checkbox *ngFor="let type of filterTypes" [value]="type.type" (change)="onCheckboxChange($event, 'filters')" [checked]="type.activated">
+                {{type.type}}
+            </mat-checkbox>
         </section>
 
+
+        <h3>Options</h3>
+        <section class="checkbox-section">
+            <mat-checkbox *ngFor="let type of options" [value]="type.type" (change)="onCheckboxChange($event, 'options')" [checked]="type.activated">
+                {{type.type}}
+            </mat-checkbox>
+        </section>
+
+        <h3>Parameters
+            <button mat-button aria-label="Adds a named parameter." matTooltip="Adds a named parameter." (click)="addParameter()">
+                <mat-icon>add</mat-icon>
+            </button>
+        </h3>
+        <section>
+            <mat-list>
+                <mat-list-item *ngFor="let parameter of form.get('parameters')['controls']">
+                    <mat-form-field style="width: 33%">
+                        <mat-select placeholder="Domain" [formControl]="parameter.controls[0]">
+                            <mat-option *ngFor="let domain of availableDomains()" [value]="domain">
+                                {{domain}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-form-field style="width: 33%">
+                        <input type="text" matInput placeholder="Key" [formControl]="parameter.controls[1]"/>
+                    </mat-form-field>
+                    <mat-form-field style="width: 33%">
+                        <input type="text" matInput placeholder="Value" [formControl]="parameter.controls[2]"/>
+                    </mat-form-field>
+                    <button mat-button aria-label="Removes the named parameter." matTooltip="Removes the named parameter." (click)="removeParameter(parameter)">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </mat-list-item>
+            </mat-list>
+        </section>
     </form>
 </div>
 <div mat-dialog-actions>
@@ -78,5 +91,7 @@
         [fileName]="fileProvider"
         [downloadable]="downloadProvider"
         matTooltip="Download task type as JSON"></app-download-json-button>
-    <!-- <button mat-button (click)="import()" matTooltip="not yet implemented">Import</button> -->
+    <app-upload-json-button
+            matTooltip="Upload task type JSON"
+            [handler]="uploaded"></app-upload-json-button>
 </div>

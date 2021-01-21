@@ -70,7 +70,7 @@
                                     [removable]="true" (removed)="removeTaskType(taskType)"
                                     [matTooltip]="summariseTaskType(taskType)"
                                     (click)="addTaskType(taskType)">
-                                {{taskType.name}} ({{taskType.targetType}} | {{taskType.score}})
+                                {{taskType.name}} ({{taskType.targetType.option}} | {{taskType.score.option}})
                                 <mat-icon matChipRemove>cancel</mat-icon>
                             </mat-chip>
                         </mat-chip-list>

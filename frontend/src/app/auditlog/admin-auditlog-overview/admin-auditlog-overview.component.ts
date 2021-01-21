@@ -2,7 +2,7 @@ import {AfterViewInit, Component, OnDestroy, ViewChild} from '@angular/core';
 import {
     AuditService,
     RestAuditLogEntry,
-    RestCompetitionEndAuditLogEntry,
+    RestCompetitionEndAuditLogEntry, RestCompetitionStartAuditLogEntry,
     RestJudgementAuditLogEntry,
     RestLoginAuditLogEntry,
     RestLogoutAuditLogEntry,
@@ -50,7 +50,7 @@ export class AdminAuditlogOverviewComponent implements AfterViewInit, OnDestroy 
     public detailsOf(log: RestAuditLogEntry): string {
         switch (log.type) {
             case 'COMPETITION_START':
-                const cs = log as RestCompetitionEndAuditLogEntry;
+                const cs = log as RestCompetitionStartAuditLogEntry;
                 return `Competition ${cs.competition} has been started by user ${cs.user}`;
             case 'COMPETITION_END':
                 const ce = log as RestCompetitionEndAuditLogEntry;

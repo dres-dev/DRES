@@ -9,49 +9,20 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { ConfiguredOptionOptions } from './configuredOptionOptions';
+import { ConfiguredOptionQueryComponentType } from './configuredOptionQueryComponentType';
+import { ConfiguredOptionScoringType } from './configuredOptionScoringType';
+import { ConfiguredOptionSubmissionFilterType } from './configuredOptionSubmissionFilterType';
+import { ConfiguredOptionTargetType } from './configuredOptionTargetType';
 
 
 export interface TaskType { 
     name: string;
     taskDuration: number;
-    targetType: TaskType.TargetTypeEnum;
-    components: Array<TaskType.ComponentsEnum>;
-    score: TaskType.ScoreEnum;
-    filter: Array<TaskType.FilterEnum>;
-    options: Array<TaskType.OptionsEnum>;
+    targetType: ConfiguredOptionTargetType;
+    components: Array<ConfiguredOptionQueryComponentType>;
+    score: ConfiguredOptionScoringType;
+    filter: Array<ConfiguredOptionSubmissionFilterType>;
+    options: Array<ConfiguredOptionOptions>;
 }
-export namespace TaskType {
-    export type TargetTypeEnum = 'SINGLE_MEDIA_ITEM' | 'SINGLE_MEDIA_SEGMENT' | 'MULTIPLE_MEDIA_ITEMS' | 'JUDGEMENT';
-    export const TargetTypeEnum = {
-        SINGLEMEDIAITEM: 'SINGLE_MEDIA_ITEM' as TargetTypeEnum,
-        SINGLEMEDIASEGMENT: 'SINGLE_MEDIA_SEGMENT' as TargetTypeEnum,
-        MULTIPLEMEDIAITEMS: 'MULTIPLE_MEDIA_ITEMS' as TargetTypeEnum,
-        JUDGEMENT: 'JUDGEMENT' as TargetTypeEnum
-    };
-    export type ComponentsEnum = 'IMAGE_ITEM' | 'VIDEO_ITEM_SEGMENT' | 'TEXT' | 'EXTERNAL_IMAGE' | 'EXTERNAL_VIDEO';
-    export const ComponentsEnum = {
-        IMAGEITEM: 'IMAGE_ITEM' as ComponentsEnum,
-        VIDEOITEMSEGMENT: 'VIDEO_ITEM_SEGMENT' as ComponentsEnum,
-        TEXT: 'TEXT' as ComponentsEnum,
-        EXTERNALIMAGE: 'EXTERNAL_IMAGE' as ComponentsEnum,
-        EXTERNALVIDEO: 'EXTERNAL_VIDEO' as ComponentsEnum
-    };
-    export type ScoreEnum = 'KIS' | 'AVS';
-    export const ScoreEnum = {
-        KIS: 'KIS' as ScoreEnum,
-        AVS: 'AVS' as ScoreEnum
-    };
-    export type FilterEnum = 'NO_DUPLICATES' | 'ONE_CORRECT_PER_TEAM' | 'TEMPORAL_SUBMISSION';
-    export const FilterEnum = {
-        NODUPLICATES: 'NO_DUPLICATES' as FilterEnum,
-        ONECORRECTPERTEAM: 'ONE_CORRECT_PER_TEAM' as FilterEnum,
-        TEMPORALSUBMISSION: 'TEMPORAL_SUBMISSION' as FilterEnum
-    };
-    export type OptionsEnum = 'HIDDEN_RESULTS' | 'MAP_TO_SEGMENT';
-    export const OptionsEnum = {
-        HIDDENRESULTS: 'HIDDEN_RESULTS' as OptionsEnum,
-        MAPTOSEGMENT: 'MAP_TO_SEGMENT' as OptionsEnum
-    };
-}
-
 

@@ -12,7 +12,7 @@
             <mat-form-field style="width: 100%">
                 <mat-select placeholder="Type" [formControl]="form.get('type')">
                     <mat-option *ngFor="let type of supportedTaskTypes" [value]="type">
-                        {{type.name}} ({{type.targetType}} | {{type.score}})
+                        {{type.name}} ({{type.targetType.option}} | {{type.score.option}})
                     </mat-option>
                 </mat-select>
             </mat-form-field>
@@ -26,4 +26,7 @@
         [fileName]="fileProvider"
         [downloadable]="downloadProvider"
         matTooltip="Download task group as JSON"></app-download-json-button>
+    <app-upload-json-button
+            matTooltip="Upload task group JSON"
+            [handler]="uploaded"></app-upload-json-button>
 </div>

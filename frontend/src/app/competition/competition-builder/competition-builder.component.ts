@@ -1,14 +1,7 @@
-import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router, RouterStateSnapshot} from '@angular/router';
 import {filter} from 'rxjs/operators';
-import {
-    CompetitionService,
-    RestCompetitionDescription,
-    RestTaskDescription,
-    RestTeam,
-    TaskGroup,
-    TaskType
-} from '../../../../openapi';
+import {CompetitionService, RestCompetitionDescription, RestTaskDescription, RestTeam, TaskGroup, TaskType} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Observable, Subscription} from 'rxjs';
@@ -40,48 +33,83 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static TKIS_TEMPLATE = {
         name: 'Textual KIS',
         taskDuration: 420,
-        targetType: 'SINGLE_MEDIA_SEGMENT',
-        components: ['TEXT'],
-        score: 'KIS',
-        filter: ['NO_DUPLICATES', 'ONE_CORRECT_PER_TEAM', 'TEMPORAL_SUBMISSION'],
-        options: ['HIDDEN_RESULTS', 'MAP_TO_SEGMENT']
+        targetType: {option: 'SINGLE_MEDIA_SEGMENT', parameters: {}},
+        score: {option: 'KIS', parameters: {}},
+        components: [
+            {option: 'TEXT', parameters: {}}
+        ],
+        filter: [
+            {option: 'NO_DUPLICATES', parameters: {}},
+            {option: 'ONE_CORRECT_PER_TEAM', parameters: {}},
+            {option: 'TEMPORAL_SUBMISSION', parameters: {}}
+        ],
+        options: [
+            {option: 'HIDDEN_RESULTS', parameters: {}},
+            {option: 'MAP_TO_SEGMENT',  parameters: {}}
+        ]
     } as TaskType;
+
     /**
      * The official VBS Visual Known Item Search task type template
      */
     public static VKIS_TEMPLATE = {
-        name: 'VISUAL KIS',
+        name: 'VISUAL',
         taskDuration: 300,
-        targetType: 'SINGLE_MEDIA_SEGMENT',
-        components: ['VIDEO_ITEM_SEGMENT'],
-        score: 'KIS',
-        filter: ['NO_DUPLICATES', 'ONE_CORRECT_PER_TEAM', 'TEMPORAL_SUBMISSION'],
-        options: ['MAP_TO_SEGMENT']
+        targetType: {option: 'SINGLE_MEDIA_SEGMENT', parameters: {}},
+        score: {option: 'KIS', parameters: {}},
+        components: [
+            {option: 'VIDEO_ITEM_SEGMENT', parameters: {}}
+        ],
+        filter: [
+            {option: 'NO_DUPLICATES', parameters: {}},
+            {option: 'ONE_CORRECT_PER_TEAM', parameters: {}},
+            {option: 'TEMPORAL_SUBMISSION', parameters: {}}
+        ],
+        options: [
+            {option: 'MAP_TO_SEGMENT',  parameters: {}}
+        ]
     } as TaskType;
+
     /**
      * The official VBS Ad-hoc Video Search task type template
      */
     public static AVS_TEMPLATE = {
         name: 'Ad-hoc Video Search',
         taskDuration: 300,
-        targetType: 'JUDGEMENT',
-        components: ['TEXT'],
-        score: 'AVS',
-        filter: ['NO_DUPLICATES', 'TEMPORAL_SUBMISSION'],
-        options: ['MAP_TO_SEGMENT']
+        targetType: {option: 'JUDGEMENT', parameters: {}},
+        score: {option: 'AVS', parameters: {}},
+        components: [
+            {option: 'TEXT', parameters: {}}
+        ],
+        filter: [
+            {option: 'NO_DUPLICATES', parameters: {}},
+            {option: 'TEMPORAL_SUBMISSION', parameters: {}}
+        ],
+        options: [
+            {option: 'MAP_TO_SEGMENT',  parameters: {}}
+        ]
     } as TaskType;
+
     /**
-     * The official LSC taskt ype template
+     * The official LSC task type template
      */
     public static LSC_TEMPLATE = {
         name: 'LSC',
         taskDuration: 300,
-        targetType: 'MULTIPLE_MEDIA_ITEMS',
-        components: ['TEXT'],
-        score: 'KIS',
-        filter: ['NO_DUPLICATES', 'ONE_CORRECT_PER_TEAM'],
-        options: ['HIDDEN_RESULTS']
+        targetType: {option: 'MULTIPLE_MEDIA_ITEMS', parameters: {}},
+        score: {option: 'KIS', parameters: {}},
+        components: [
+            {option: 'TEXT', parameters: {}}
+        ],
+        filter: [
+            {option: 'NO_DUPLICATES', parameters: {}},
+            {option: 'ONE_CORRECT_PER_TEAM', parameters: {}}
+        ],
+        options: [
+            {option: 'HIDDEN_RESULTS',  parameters: {}}
+        ]
     } as TaskType;
+
     competitionId: string;
     competition: RestCompetitionDescription;
     @ViewChild('taskTable')
@@ -291,7 +319,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     /**
      * Removes the selected {@link RestTaskDescription} from the list of {@link RestTaskDescription}s.
      *
-     * @param task {@link RestTaskDescription} to remove.
+     * @param task The {@link RestTaskDescription} to remove.
      */
     public removeTask(task: RestTaskDescription) {
         this.competition.tasks.splice(this.competition.tasks.indexOf(task), 1);
@@ -343,12 +371,12 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     }
 
     /**
-     * Summarises a task type to present detailed info as tootlip
+     * Summarises a task type to present detailed info as tooltip.
      *
-     * @param taskType
+     * @param taskType The {@link TaskType} to summarize.
      */
     summariseTaskType(taskType: TaskType): string {
-        return `Consits of ${taskType.components.join(', ')}, has filters: ${taskType.filter.join(', ')} and options: ${taskType.options.join(', ')}`;
+        return `Consists of ${taskType.components.map(c => c.option).join(', ')}, has filters: ${taskType.filter.map(f => f.option).join(', ')} and options: ${taskType.options.map(o => o.option).join(', ')}`;
     }
 
     /**
@@ -367,7 +395,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
 
     @HostListener('window:beforeunload', ['$event'])
     handleBeforeUnload(event: BeforeUnloadEvent){
-        if(!this.checkDirty()){
+        if (!this.checkDirty()){
             event.preventDefault();
             event.returnValue = '';
             return;

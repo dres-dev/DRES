@@ -51,6 +51,8 @@ export * from './runInfo';
 export * from './runState';
 export * from './score';
 export * from './scoreOverview';
+export * from './scoreSeries';
+export * from './scoreSeriesPoint';
 export * from './sessionId';
 export * from './submissionInfo';
 export * from './successStatus';

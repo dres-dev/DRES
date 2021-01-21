@@ -17,6 +17,7 @@ import dev.dres.run.audit.LogEventSource
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
 import dev.dres.run.score.ScoreTimePoint
+import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.*
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.ReadyLatch
@@ -39,6 +40,8 @@ import kotlin.math.max
 class SynchronousRunManager(val run: CompetitionRun) : RunManager {
 
     private val VIEWER_TIME_OUT = 30L //TODO make configurable
+
+    private val SCOREBOARD_UPDATE_INTERVAL_MS = 1000L // TODO make configurable
 
     private val LOGGER = LoggerFactory.getLogger(this.javaClass)
 
@@ -107,23 +110,25 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     override val judgementValidators: List<JudgementValidator>
         get() = this.run.runs.mapNotNull { if (it.hasStarted && it.validator is JudgementValidator) it.validator else null }
 
+    /** List of [Scoreboard]s for this [SynchronousRunManager]. */
+    override val scoreboards: List<Scoreboard>
+        get() = this._scoreboards.scoreboards
+
+    /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time. */
+    override val scoreHistory: List<ScoreTimePoint>
+        get() = this._scoreboards.timeSeries
+
     /** Internal data structure that tracks all [WebSocketConnection]s and their ready state (for [RunManagerStatus.PREPARING_TASK]) */
     private val readyLatch = ReadyLatch<WebSocketConnection>()
 
-    /** History of scores over time*/
-    private val scoreTimeSeries = ArrayList<ScoreTimePoint>()
-
-    override val scoreHistory: List<ScoreTimePoint>
-        get() = scoreTimeSeries
-
     /** The internal [ScoreboardsUpdatable] instance for this [SynchronousRunManager]. */
-    override val scoreboards = ScoreboardsUpdatable(this.competitionDescription.generateDefaultScoreboards(), this.run, scoreTimeSeries)
+    private val _scoreboards = ScoreboardsUpdatable(this.competitionDescription.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
 
     /** The internal [MessageQueueUpdatable] instance used by this [SynchronousRunManager]. */
     private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
 
     /** The internal [ScoresUpdatable] instance for this [SynchronousRunManager]. */
-    private val scoresUpdatable = ScoresUpdatable(this.id, this.scoreboards, this.messageQueueUpdatable)
+    private val scoresUpdatable = ScoresUpdatable(this.id, this._scoreboards, this.messageQueueUpdatable)
 
     /** The internal [DAOUpdatable] instance used by this [SynchronousRunManager]. */
     private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
@@ -143,7 +148,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     init {
         /* Register relevant Updatables. */
         this.updatables.add(this.scoresUpdatable)
-        this.updatables.add(this.scoreboards)
+        this.updatables.add(this._scoreboards)
         this.updatables.add(this.messageQueueUpdatable)
         this.updatables.add(this.daoUpdatable)
         this.updatables.add(this.endTaskUpdatable)
@@ -237,7 +242,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
             this.status = RunManagerStatus.ACTIVE
 
             /* Mark scoreboards for update. */
-            this.scoreboards.dirty = true
+            this._scoreboards.dirty = true
 
             /* Enqueue WS message for sending */
             this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.COMPETITION_UPDATE))
@@ -250,9 +255,10 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
 
     override fun startTask() = this.stateLock.write {
         check(this.status == RunManagerStatus.ACTIVE || this.status == RunManagerStatus.TASK_ENDED) { "SynchronizedRunManager is in status ${this.status}. Tasks can therefore not be started." }
-
-        //FIXME is this used anywhere?!
         /* Create and prepare pipeline for submission. */
+        this.run.newTaskRun(this.currentTask.id)
+
+        /* Create and prepare pipeline for submission (FIXME: is this used?). */
         //val ret = this.run.newTaskRun(this.currentTask.id)
         //val pipeline = Triple(ret.task.newFilter(), ret.task.newValidator(), ret.task.newScorer())
         //(this.submissionPipeline as MutableList).add(pipeline)
@@ -261,7 +267,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         this.status = RunManagerStatus.PREPARING_TASK
 
         /* Mark scoreboards and dao for update. */
-        this.scoreboards.dirty = true
+        this._scoreboards.dirty = true
         this.daoUpdatable.dirty = true
 
         /* Reset the ReadyLatch. */
@@ -285,7 +291,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         this.status = RunManagerStatus.TASK_ENDED
 
         /* Mark scoreboards and dao for update. */
-        this.scoreboards.dirty = true
+        this._scoreboards.dirty = true
         this.daoUpdatable.dirty = true
 
         /* Enqueue WS message for sending */
@@ -474,6 +480,9 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
 
                 /* 3) Yield to other threads. */
                 Thread.sleep(10)
+
+                /* Reset error counter. */
+                errorCounter = 0
             } catch (ie: InterruptedException) {
                 LOGGER.info("Interrupted SynchronousRunManager, exiting")
                 return
@@ -487,9 +496,6 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
                     this.persistCurrentRunInformation()
                     break //terminate loop
                 }
-
-            } finally {
-                errorCounter = 0
             }
         }
 

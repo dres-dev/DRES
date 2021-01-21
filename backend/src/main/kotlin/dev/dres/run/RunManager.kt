@@ -10,9 +10,7 @@ import dev.dres.data.model.run.CompetitionRun
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.score.ScoreTimePoint
-import dev.dres.run.score.interfaces.TaskRunScorer
 import dev.dres.run.score.scoreboard.Scoreboard
-import dev.dres.run.updatables.ScoreboardsUpdatable
 import dev.dres.run.validation.interfaces.JudgementValidator
 import java.util.*
 
@@ -28,15 +26,14 @@ interface RunManager : Runnable {
     /** Unique, public, numeric ID for this [RunManager]. */
     val id: UID
 
-
     /** A name for identifying this [RunManager]. */
     val name: String
 
     /** The [CompetitionDescription] that is executed / run by this [RunManager]. */
     val competitionDescription: CompetitionDescription
 
-    /** The [ScoreboardsUpdatable] used to track the scores per team. */
-    val scoreboards: ScoreboardsUpdatable
+    /** List of [Scoreboard]s for this [RunManager]. */
+    val scoreboards: List<Scoreboard>
 
     /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
     val scoreHistory: List<ScoreTimePoint>

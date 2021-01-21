@@ -1,5 +1,5 @@
 import {
-    CollectionService,
+    CollectionService, ConfiguredOptionQueryComponentType, ConfiguredOptionTargetType,
     RestMediaItem,
     RestTaskDescription,
     RestTaskDescriptionComponent,
@@ -47,11 +47,11 @@ export class CompetitionFormBuilder {
     }
 
     /**
-     * Adds a new {@link FormGroup} for the given {@link TaskType.ComponentsEnum}.
+     * Adds a new {@link FormGroup} for the given {@link ConfiguredOptionQueryComponentType.OptionEnum}.
      *
-     * @param type The {@link TaskType.ComponentsEnum} to add a {@link FormGroup} for.
+     * @param type The {@link ConfiguredOptionQueryComponentType.OptionEnum} to add a {@link FormGroup} for.
      */
-    public addComponentForm(type: TaskType.ComponentsEnum) {
+    public addComponentForm(type: ConfiguredOptionQueryComponentType.OptionEnum) {
         const array = this.form.get('components') as FormArray;
         const newIndex = array.length;
         switch (type) {
@@ -78,7 +78,7 @@ export class CompetitionFormBuilder {
      *
      * @param type The {@link TaskType.TargetTypeEnum} to add a {@link FormGroup} for.
      */
-    public addTargetForm(type: TaskType.TargetTypeEnum) {
+    public addTargetForm(type: ConfiguredOptionTargetType.OptionEnum) {
         const array = this.form.get('target') as FormArray;
         const newIndex = array.length;
         switch (type) {
@@ -140,7 +140,7 @@ export class CompetitionFormBuilder {
                 } as RestTaskDescriptionComponent;
             }),
             target: {
-                type: this.taskType.targetType,
+                type: this.taskType.targetType.option,
                 mediaItems: (this.form.get('target') as FormArray).controls.map(t => {
                     return {
                         mediaItem: t.get('mediaItem').value.id,
@@ -193,7 +193,7 @@ export class CompetitionFormBuilder {
      * Returns the target form for the given {TaskType}
      */
     private formForTarget() {
-        switch (this.taskType.targetType) {
+        switch (this.taskType.targetType.option) {
             case 'SINGLE_MEDIA_ITEM':
                 return new FormArray([this.singleMediaItemTargetForm(0, this.data?.target?.mediaItems[0])]);
             case 'MULTIPLE_MEDIA_ITEMS':
@@ -305,7 +305,7 @@ export class CompetitionFormBuilder {
      */
     private imageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
         const mediaItemFormControl =  new FormControl(null, [Validators.required, RequireMatch]);
-        if (!initialize?.mediaItem && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
+        if (!initialize?.mediaItem && (this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType.option === 'SINGLE_MEDIA_ITEM')) {
             mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
         }
 
@@ -340,7 +340,7 @@ export class CompetitionFormBuilder {
     private videoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
         /* Initialize media item based on target. */
         const mediaItemFormControl =  new FormControl(null, [Validators.required, RequireMatch]);
-        if (!initialize?.mediaItem && (this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType === 'SINGLE_MEDIA_ITEM')) {
+        if (!initialize?.mediaItem && (this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType.option === 'SINGLE_MEDIA_ITEM')) {
             mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
         }
 
@@ -371,15 +371,15 @@ export class CompetitionFormBuilder {
         });
 
         /* Initialize start, end and time unit based on target. */
-        if (!group.get('segment_start').value && this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT') {
+        if (!group.get('segment_start').value && this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT') {
             group.get('segment_start').setValue((this.form.get('target') as FormArray).controls[0].get('segment_start').value);
         }
 
-        if (!group.get('segment_end').value && this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT') {
+        if (!group.get('segment_end').value && this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT') {
             group.get('segment_end').setValue((this.form.get('target') as FormArray).controls[0].get('segment_end').value);
         }
 
-        if (!group.get('segment_time_unit').value && this.taskType.targetType === 'SINGLE_MEDIA_SEGMENT') {
+        if (!group.get('segment_time_unit').value && this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT') {
             group.get('segment_time_unit').setValue((this.form.get('target') as FormArray).controls[0].get('segment_time_unit').value);
         }
 

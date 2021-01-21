@@ -1,7 +1,9 @@
 import {Component, ElementRef, Inject, ViewChild} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialog, MatDialogConfig, MatDialogRef} from '@angular/material/dialog';
 import {
-    CollectionService, ConfiguredOptionTargetType,
+    CollectionService,
+    ConfiguredOptionQueryComponentType,
+    ConfiguredOptionTargetType,
     RestMediaCollection,
     RestMediaItem,
     RestTaskDescription,
@@ -105,7 +107,7 @@ export class CompetitionBuilderTaskDialogComponent {
     /**
      * Handler for (+) button for query hint form component.
      */
-    public addQueryComponent(componentType: ConfiguredOptionTargetType.OptionEnum) {
+    public addQueryComponent(componentType: ConfiguredOptionQueryComponentType.OptionEnum) {
         this.builder.addComponentForm(componentType);
     }
 

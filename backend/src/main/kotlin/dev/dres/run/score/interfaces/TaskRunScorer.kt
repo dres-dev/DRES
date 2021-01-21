@@ -1,6 +1,7 @@
 package dev.dres.run.score.interfaces
 
 import dev.dres.data.model.UID
+import dev.dres.data.model.competition.TeamId
 
 /**
  * A scorer for a [TaskRunScorer]
@@ -14,5 +15,5 @@ interface TaskRunScorer {
      *
      * @return Map of team [UID] to team score
      */
-    fun scores(): Map<UID, Double>
+    fun scores(): Map<TeamId, Double>
 }

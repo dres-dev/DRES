@@ -16,10 +16,11 @@ export interface ConfiguredOptionSubmissionFilterType {
     parameters: { [key: string]: string; };
 }
 export namespace ConfiguredOptionSubmissionFilterType {
-    export type OptionEnum = 'NO_DUPLICATES' | 'ONE_CORRECT_PER_TEAM' | 'TEMPORAL_SUBMISSION';
+    export type OptionEnum = 'NO_DUPLICATES' | 'LIMIT_CORRECT_PER_TEAM' | 'LIMIT_CORRECT_PER_MEMBER' | 'TEMPORAL_SUBMISSION';
     export const OptionEnum = {
         NODUPLICATES: 'NO_DUPLICATES' as OptionEnum,
-        ONECORRECTPERTEAM: 'ONE_CORRECT_PER_TEAM' as OptionEnum,
+        LIMITCORRECTPERTEAM: 'LIMIT_CORRECT_PER_TEAM' as OptionEnum,
+        LIMITCORRECTPERMEMBER: 'LIMIT_CORRECT_PER_MEMBER' as OptionEnum,
         TEMPORALSUBMISSION: 'TEMPORAL_SUBMISSION' as OptionEnum
     };
 }

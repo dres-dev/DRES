@@ -1,6 +1,7 @@
 package dev.dres.run.score.scorer
 
 import dev.dres.data.model.UID
+import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.score.interfaces.RecalculatingTaskRunScorer
@@ -27,7 +28,7 @@ class KisTaskScorer(
         private const val defaultpenaltyPerWrongSubmission: Double = 10.0
     }
 
-    private var lastScores: Map<UID, Double> = emptyMap()
+    private var lastScores: Map<TeamId, Double> = emptyMap()
     private val lastScoresLock = ReentrantReadWriteLock()
 
     override fun computeScores(submissions: Collection<Submission>, teamIds: Collection<UID>, taskStartTime: Long, taskDuration: Long, taskEndTime: Long): Map<UID, Double> = this.lastScoresLock.write {

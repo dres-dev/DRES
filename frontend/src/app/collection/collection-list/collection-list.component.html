@@ -18,7 +18,10 @@
         <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Actions</th>
             <td mat-cell *matCellDef="let row">
-                <button mat-icon-button aria-label="Edit collection." matTooltip="Edit competition." (click)="edit(row.id)">
+                <button mat-icon-button aria-label="View collection." matTooltip="View collection"  [routerLink]="['/collection/', row.id]">
+                    <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button aria-label="Edit collection." matTooltip="Edit collection." (click)="edit(row.id)">
                     <mat-icon>edit</mat-icon>
                 </button>
                 <button mat-icon-button aria-label="Delete collection." matTooltip="Delete competition." (click)="delete(row.id)">
@@ -30,25 +33,25 @@
         <!-- Id column -->
         <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef>ID</th>
-            <td mat-cell *matCellDef="let row" [routerLink]="['/collection/', row.id]">{{row.id.substring(0,8)}}</td>
+            <td mat-cell *matCellDef="let row" matTooltip="Click to copy to clipboard id: {{row.id}}" [cdkCopyToClipboard]="row.id">{{row.id.substring(0,8)}}</td>
         </ng-container>
 
         <!-- Name column -->
         <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef>Name</th>
-            <td mat-cell *matCellDef="let row" [routerLink]="['/collection/', row.id]">{{row.name}}</td>
+            <td mat-cell *matCellDef="let row">{{row.name}}</td>
         </ng-container>
 
         <!-- Description column -->
         <ng-container matColumnDef="description">
             <th mat-header-cell *matHeaderCellDef>Description</th>
-            <td mat-cell *matCellDef="let row" [routerLink]="['/collection/', row.id]">{{row.description}}</td>
+            <td mat-cell *matCellDef="let row">{{row.description}}</td>
         </ng-container>
 
         <!-- BasePath column -->
         <ng-container matColumnDef="basePath">
             <th mat-header-cell *matHeaderCellDef>Base Path</th>
-            <td mat-cell *matCellDef="let row" [routerLink]="['/collection/', row.id]">{{row.basePath}}</td>
+            <td mat-cell *matCellDef="let row">{{row.basePath}}</td>
         </ng-container>
 
         <!-- Headers & Data -->

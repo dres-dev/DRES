@@ -144,10 +144,8 @@ object RestApi {
             it.registerPlugin(OpenApiPlugin(
                 /* "Internal" DRES openapi (<host>/swagger-ui) */
                 getOpenApiOptionsFor(),
-                /* "Public" Logging Endpoint (<host>/swagger-log) */
-                getOpenApiOptionsFor(OpenApiEndpointOptions.dresLogOnly),
-                /* "Public" submission endpoint (<host>/swagger-submit */
-                getOpenApiOptionsFor(OpenApiEndpointOptions.dresSubmissionOnly)))
+                /* "Public" client endpoint (<host>/swagger-client */
+                getOpenApiOptionsFor(OpenApiEndpointOptions.dresSubmittingClientOptions)))
             it.defaultContentType = "application/json"
             it.prefer405over404 = true
             it.sessionHandler { fileSessionHandler(config) }

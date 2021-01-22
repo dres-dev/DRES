@@ -37,8 +37,8 @@ data class OpenApiEndpointOptions(
 
     companion object {
         val commonIgnores = mutableListOf(
-            "/login", "/logout", "/status/*", "/external/*",
-            "/user*", "/user/*",
+             "/external/*",
+            "/user*",
             "/collection*", "/collection/*",
             "/competition*", "/competition/*",
             "/run*", "/run/*",
@@ -46,11 +46,16 @@ data class OpenApiEndpointOptions(
             "/mediaItem*", "/mediaItem/*",
             "/score*", "/score/*"
         )
+        val lessCommonIgnores = listOf(
+            "/login", "/logout", "/status/*", "/user/*"
+        )
         val dresDefaultOptions = OpenApiEndpointOptions("/swagger-docs", "/swagger-ui", "/redoc")
         val dresLogOnly = OpenApiEndpointOptions("/logging-oas", "/swagger-log",
             ignores = commonIgnores +  listOf("#/submit"))
         val dresSubmissionOnly = OpenApiEndpointOptions("/submission-oas", "/swagger-submit",
             ignores = commonIgnores + listOf("#/log*", "#/log/*") )
+
+        val dresSubmittingClientOptions = OpenApiEndpointOptions("/client-oas", "/swagger-client", ignores= commonIgnores + listOf("/user/list", "/user/session/*"))
     }
 
     constructor(oasPath: String, swaggerUi: String, ignores: List<String>) : this(

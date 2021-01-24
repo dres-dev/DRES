@@ -11,6 +11,7 @@ import dev.dres.data.model.run.TemporalSubmissionAspect
 import dev.dres.run.RunExecutor
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
+import dev.dres.run.validation.interfaces.VoteValidator
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.core.security.Role
@@ -28,7 +29,7 @@ abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler 
 
 data class Judgement(val token: String, val validator: String, val verdict: SubmissionStatus)
 
-data class JudgementVote(val token: String, val verdict: SubmissionStatus)
+data class JudgementVote(val verdict: SubmissionStatus)
 
 data class JudgementRequest(val token: String, val validator: String, val collection: String, val item: String, val taskDescription: String, val startTime: String?, val endTime: String?)
 
@@ -154,9 +155,51 @@ class JudgementVoteHandler : PostRestHandler<SuccessStatus> {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        //TODO process vote
+        //gets the first active VoteValidator
+        val validator = run.judgementValidators.find { it is VoteValidator && it.isActive } ?: throw ErrorStatusException(404, "There is currently no voting going on in run $runId", ctx)
+        validator as VoteValidator
+        validator.vote(vote.verdict)
 
         return SuccessStatus("vote received")
     }
 
+}
+
+class NextOpenVoteJudgementHandler(val collections: DAO<MediaCollection>) : AbstractJudgementHandler(), GetRestHandler<JudgementRequest> {
+    override val route = "run/:runId/vote/next"
+
+    @OpenApi(
+        summary = "Gets the next open Submission to voted on.",
+        path = "/api/run/:runId/vote/next",
+        pathParams = [OpenApiParam("runId", dev.dres.data.model.UID::class, "Run ID")],
+        tags = ["Judgement"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(JudgementRequest::class)]),
+            OpenApiResponse("202", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
+    )
+    override fun doGet(ctx: Context): JudgementRequest {
+        val runId = this.runId(ctx)
+        val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
+
+        val validator = run.judgementValidators.find { it is VoteValidator && it.isActive } ?: throw ErrorStatusException(202, "There is currently no voting going on in run", ctx, true)
+
+        validator as VoteValidator
+
+        val next = validator.nextSubmissionToVoteOn() ?: throw ErrorStatusException(202, "There is currently no voting going on in run", ctx)
+
+        val collection = this.collections[next.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.item.collection}", ctx)
+
+        val taskDescription = next.taskRun?.task?.textualDescription() ?: next.taskRun?.task?.name ?: "no task description available"
+
+        return if (next is TemporalSubmissionAspect){
+            val tsa = next as TemporalSubmissionAspect
+            JudgementRequest("vote", validator.id, collection.id.string, tsa.item.id.string, taskDescription, tsa.start.toString(), tsa.end.toString())
+        } else {
+            JudgementRequest("vote", validator.id, collection.id.string, next.item.id.string, taskDescription, null, null)
+        }
+    }
 }

@@ -125,6 +125,7 @@ object RestApi {
 
                 // Judgement
                 NextOpenJudgementHandler(dataAccessLayer.collections),
+                NextOpenVoteJudgementHandler(dataAccessLayer.collections),
                 PostJudgementHandler(),
                 JudgementStatusHandler(),
                 JudgementVoteHandler(),

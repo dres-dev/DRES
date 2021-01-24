@@ -48,30 +48,40 @@
     </style>
     <script>
 
-        function vote(verdict) {
-            var runId = window.location.hash.substr(1)
-            fetch(window.location.origin + '/api/run/' + runId + '/judge/vote', {method: "POST", body: JSON.stringify(
-            {
-                token: 'todo',
-                verdict: verdict
-            }
-            )}).then( res => {
-                    document.getElementById("content").innerHTML = res.ok ?
-                        "Vote received, thank you!"
-                    :
-                        "There was a problem, please try again."
-                    ;
-                }
-            );
-        }
+    const voteOk = "Vote received, thank you!";
+    const voteFailed = "There was a problem, please try again.";
+    const goBack = "<br><a href=\"javascript:reset()\">Go back</a>";
+    const buttons = "<a class=\"button\" href=\"javascript:vote('CORRECT')\" id=\"correct\"></a> <a class=\"button\" href=\"javascript:vote('WRONG')\" id=\"wrong\"></a>"
 
+    function reset() {
+        document.getElementById("content").innerHTML = buttons;
+    }
+
+    function vote(verdict) {
+        var runId = window.location.hash.substr(1)
+        fetch(window.location.origin + '/api/run/' + runId + '/judge/vote', {method: "POST", body: JSON.stringify(
+        {
+            verdict: verdict
+        }
+        )}).then( res => {
+                document.getElementById("content").innerHTML = res.ok ?
+                    voteOk + goBack
+                :
+                    voteFailed + goBack
+                ;
+            }
+        );
+    }
 
     </script>
 </head>
-<body>
-<div id="content">
-    <a class="button" href="javascript:vote('CORRECT')" id="correct"></a>
-    <a class="button" href="javascript:vote('WRONG')" id="wrong"></a>
-</div>
+<body><div id="content"> </div>
+<script>
+    if (window.location.hash.length > 10) {
+        reset();
+    } else {
+        document.getElementById("content").innerHTML = "Invalid request, no run specified";
+    }
+</script>
 </body>
 </html>

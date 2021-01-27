@@ -45,7 +45,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
     fun getRelevantManagers(ctx: Context): List<RunManager> {
         if (isParticipant(ctx)) {
             val userId = userId(ctx)
-            return RunExecutor.managers().filter { it.competitionDescription.teams.any { it.users.contains(userId) } }
+            return RunExecutor.managers().filter { m -> m.competitionDescription.teams.any { it.users.contains(userId) } }
         }
         return RunExecutor.managers()
     }
@@ -294,7 +294,7 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
 
         /* Obtain current task run and check status. */
         return if (run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTaskRun?.task?.taskType?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) {
+            if (run.currentTask?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
                 run.submissions.map { SubmissionInfo.blind(it) }
             } else {
                 run.submissions.map { SubmissionInfo.withId(it) }
@@ -332,7 +332,7 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
 
         val timestamp = ctx.pathParamMap().getOrDefault("timestamp", "0").toLong()
         return if (run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTaskRun?.task?.taskType?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) {
+            if (run.currentTask?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
                 run.submissions.filter { it.timestamp >= timestamp }.map { SubmissionInfo.blind(it) }
             } else {
                 run.submissions.filter { it.timestamp >= timestamp }.map { SubmissionInfo.withId(it) }
@@ -372,7 +372,7 @@ class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
 
         val taskId = ctx.pathParamMap()["taskId"]?.UID() ?: throw ErrorStatusException(404, "Missing task id", ctx)
         return if (run.currentTaskRun?.taskId == taskId && run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTaskRun?.task?.taskType?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) {
+            if (run.currentTask?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
                 run.submissions.map { SubmissionInfo.blind(it) }
             } else {
                 run.submissions.map { SubmissionInfo.withId(it) }

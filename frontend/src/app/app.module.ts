@@ -34,6 +34,7 @@ import {MatSelectModule} from '@angular/material/select';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {AuditlogModule} from './auditlog/auditlog.module';
 import {SharedModule} from './shared/shared.module';
+import {ClipboardModule} from '@angular/cdk/clipboard';
 
 
 /**
@@ -76,7 +77,8 @@ export function initializeApp(appConfig: AppConfig) {
         MatDialogModule,
         MatSelectModule,
         MatPaginatorModule,
-        SharedModule
+        SharedModule,
+        ClipboardModule
     ],
     providers: [
         AppConfig,

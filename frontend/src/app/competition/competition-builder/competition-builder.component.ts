@@ -172,11 +172,15 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
         this.changeSubscription.unsubscribe();
     }
 
+    private fetchDataToCompetition(){
+        this.competition.name = this.form.get('name').value;
+        this.competition.description = this.form.get('description').value;
+        // TODO fetch other stuff
+    }
+
     public save() {
         if (this.form.valid) {
-            this.competition.name = this.form.get('name').value;
-            this.competition.description = this.form.get('description').value;
-            // TODO fetch other stuff
+            this.fetchDataToCompetition();
             this.competitionService.patchApiCompetition(this.competition).subscribe(
                 (c) => {
                     this.snackBar.open(c.description, null, {duration: 5000});
@@ -187,6 +191,16 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
                 }
             );
         }
+    }
+
+    fileProvider = () => {
+        this.fetchDataToCompetition();
+        return this.competition?.name ? this.competition.name : 'competition-download.json';
+    }
+
+    downloadProvider = () => {
+        this.fetchDataToCompetition();
+        return JSON.stringify(this.competition);
     }
 
     public back() {

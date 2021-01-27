@@ -5,11 +5,15 @@ import dev.dres.data.model.Entity
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
+import dev.dres.data.model.competition.TaskDescriptionId
 import dev.dres.data.model.run.CompetitionRun.TaskRun
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.score.interfaces.TaskRunScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import java.util.*
+
+typealias CompetitionRunId = UID
+typealias TaskRunId = UID
 
 /**
  * Represents a concrete [Run] of a [CompetitionDescription]. [CompetitionRun]s can be started and
@@ -18,9 +22,9 @@ import java.util.*
  * @author Ralph Gasser
  * @param 1.2.1
  */
-open class CompetitionRun(override var id: UID, val name: String, val competitionDescription: CompetitionDescription): Run, Entity {
+open class CompetitionRun(override var id: CompetitionRunId, val name: String, val competitionDescription: CompetitionDescription): Run, Entity {
 
-    internal constructor(id: UID, name: String, competitionDescription: CompetitionDescription, started: Long, ended: Long) : this(id, name, competitionDescription) {
+    internal constructor(id: CompetitionRunId, name: String, competitionDescription: CompetitionDescription, started: Long, ended: Long) : this(id, name, competitionDescription) {
         this.started = if (started == -1L) { null } else { started }
         this.ended = if (ended == -1L) { null } else { ended }
     }
@@ -72,7 +76,7 @@ open class CompetitionRun(override var id: UID, val name: String, val competitio
      *
      * @param taskId [UID] of the [TaskDescription] to start a [TaskRun] for.
      */
-    fun newTaskRun(taskId: UID): TaskRun {
+    fun newTaskRun(taskId: TaskDescriptionId): TaskRun {
         if (this@CompetitionRun.runs.isEmpty() || this@CompetitionRun.runs.last().hasEnded) {
             val ret = TaskRun(taskId = taskId)
             (this.runs as MutableList<TaskRun>).add(ret)
@@ -84,6 +88,9 @@ open class CompetitionRun(override var id: UID, val name: String, val competitio
 
     override fun toString(): String = "CompetitionRun(id=$id, name=${name})"
 
+
+
+
     /**
      * Represents a concrete [Run] of a [TaskDescription]. [TaskRun]s always exist within a [CompetitionRun].
      * As a [CompetitionRun], [TaskRun]s can be started and ended and they can be used to register [Submission]s.
@@ -92,9 +99,9 @@ open class CompetitionRun(override var id: UID, val name: String, val competitio
      * @author Ralph Gasser
      */
     @JsonIgnoreProperties(value = ["competition"])
-    inner class TaskRun (val uid: UID = UID(), val taskId: UID): Run {
+    inner class TaskRun (val uid: TaskRunId = UID(), val taskId: UID): Run {
 
-        internal constructor(uid: UID, taskId: UID, started: Long, ended: Long): this(uid, taskId) {
+        internal constructor(uid: TaskRunId, taskId: TaskDescriptionId, started: Long, ended: Long): this(uid, taskId) {
             this.started =  if (started == -1L) { null } else { started }
             this.ended = if (ended == -1L) { null } else { ended }
         }

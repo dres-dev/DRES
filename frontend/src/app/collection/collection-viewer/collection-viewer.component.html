@@ -53,42 +53,42 @@
         <!-- Id column -->
         <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef>ID</th>
-            <td mat-cell *matCellDef="let row" (click)="show(row.id)">{{row.id.substring(0, 8)}}</td>
+            <td mat-cell *matCellDef="let row" matTooltip="Click to copy to clipboard id: {{row.id}}" [cdkCopyToClipboard]="row.id">{{row.id.substring(0, 8)}}</td>
         </ng-container>
 
         <!-- Name column -->
         <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef>Name</th>
-            <td mat-cell *matCellDef="let row" (click)="show(row.id)">{{row.name}}</td>
+            <td mat-cell *matCellDef="let row" >{{row.name}}</td>
         </ng-container>
 
         <!-- Location column -->
         <ng-container matColumnDef="location">
             <th mat-header-cell *matHeaderCellDef>Relative Location</th>
-            <td mat-cell *matCellDef="let row" (click)="show(row.id)">{{row.location}}</td>
+            <td mat-cell *matCellDef="let row" >{{row.location}}</td>
         </ng-container>
 
         <!-- Type column -->
         <ng-container matColumnDef="type">
             <th mat-header-cell *matHeaderCellDef>Type</th>
-            <td mat-cell *matCellDef="let row" (click)="show(row.id)">{{row.type}}</td>
+            <td mat-cell *matCellDef="let row">{{row.type}}</td>
         </ng-container>
 
         <!-- durationMs column -->
         <ng-container matColumnDef="durationMs">
             <th mat-header-cell *matHeaderCellDef>Duration [ms]</th>
-            <td mat-cell *matCellDef="let row" (click)="show(row.id)">{{row?.durationMs}}</td>
+            <td mat-cell *matCellDef="let row">{{row?.durationMs}}</td>
         </ng-container>
 
         <!-- FPS column -->
         <ng-container matColumnDef="fps">
             <th mat-header-cell *matHeaderCellDef>FPS</th>
-            <td mat-cell *matCellDef="let row" (click)="show(row.id)">{{row?.fps}}</td>
+            <td mat-cell *matCellDef="let row">{{row?.fps}}</td>
         </ng-container>
 
         <!-- Headers & Data -->
         <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns" matTooltip="Click to show media item."></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
     </table>
     <!-- Pagination -->

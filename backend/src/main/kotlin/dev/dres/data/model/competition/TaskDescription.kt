@@ -18,6 +18,8 @@ import java.io.IOException
 import java.io.PrintStream
 import kotlin.math.max
 
+typealias TaskDescriptionId = UID
+
 /**
  * Basic description of a [TaskDescription].
  *
@@ -27,7 +29,7 @@ import kotlin.math.max
 class TaskDescription(
 
     /** Internal, unique ID of this [TaskDescription]. */
-    val id: UID,
+    val id: TaskDescriptionId,
 
     /** The name of the task */
     val name: String,

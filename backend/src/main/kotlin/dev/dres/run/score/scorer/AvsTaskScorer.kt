@@ -2,6 +2,7 @@ package dev.dres.run.score.scorer
 
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.data.model.run.TemporalSubmission
@@ -13,10 +14,10 @@ import kotlin.concurrent.write
 
 class AvsTaskScorer: RecalculatingTaskRunScorer {
 
-    private var lastScores: Map<UID, Double> = emptyMap()
+    private var lastScores: Map<TeamId, Double> = emptyMap()
     private val lastScoresLock = ReentrantReadWriteLock()
 
-    override fun computeScores(submissions: Collection<Submission>, teamIds: Collection<UID>, taskStartTime: Long, taskDuration: Long, taskEndTime: Long): Map<UID, Double> {
+    override fun computeScores(submissions: Collection<Submission>, teamIds: Collection<TeamId>, taskStartTime: Long, taskDuration: Long, taskEndTime: Long): Map<UID, Double> {
 
         val correctSubmissions = submissions.filter { it.status == SubmissionStatus.CORRECT }
         val wrongSubmissions = submissions.filter { it.status == SubmissionStatus.WRONG }

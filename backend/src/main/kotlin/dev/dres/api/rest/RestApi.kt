@@ -125,6 +125,7 @@ object RestApi {
 
                 // Judgement
                 NextOpenJudgementHandler(dataAccessLayer.collections),
+                NextOpenVoteJudgementHandler(dataAccessLayer.collections),
                 PostJudgementHandler(),
                 JudgementStatusHandler(),
                 JudgementVoteHandler(),
@@ -141,9 +142,11 @@ object RestApi {
         javalin = Javalin.create {
             it.enableCorsForAllOrigins()
             it.server { setupHttpServer(config) }
-            it.registerPlugin(getConfiguredOpenApiPlugin())
-//            it.registerPlugin(getConfiguredOpenApiPlugin(OpenApiEndpointOptions.dresLogOnly)) // not allowed. see https://github.com/dres-dev/DRES/issues/197
-            //it.registerPlugin(getConfiguredOpenApiPlugin(OpenApiEndpointOptions.dresSubmissionOnly)) // not allowed. see https://github.com/dres-dev/DRES/issues/197
+            it.registerPlugin(OpenApiPlugin(
+                /* "Internal" DRES openapi (<host>/swagger-ui) */
+                getOpenApiOptionsFor(),
+                /* "Public" client endpoint (<host>/swagger-client */
+                getOpenApiOptionsFor(OpenApiEndpointOptions.dresSubmittingClientOptions)))
             it.defaultContentType = "application/json"
             it.prefer405over404 = true
             it.sessionHandler { fileSessionHandler(config) }
@@ -217,7 +220,7 @@ object RestApi {
     }
 
 
-    private fun getConfiguredOpenApiPlugin(options: OpenApiEndpointOptions = OpenApiEndpointOptions.dresDefaultOptions) = OpenApiPlugin(
+    private fun getOpenApiOptionsFor(options: OpenApiEndpointOptions = OpenApiEndpointOptions.dresDefaultOptions) =
             OpenApiOptions(
                     Info().apply {
                         title("DRES API")
@@ -231,11 +234,8 @@ object RestApi {
                     reDoc(ReDocOptions(options.redocUi!!)) // endpoint for redoc
                 }
                 activateAnnotationScanningFor("dev.dres.api.rest.handler")
-                if(options.ignored.isNotEmpty()){
-                    ignoredPaths = options.ignored.toMutableList()
-                }
+                options.ignored.forEach { ignorePath(it.first) }
             }
-    )
 
 
     private fun fileSessionHandler(config: Config) = SessionHandler().apply {

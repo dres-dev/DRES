@@ -158,6 +158,16 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
         this.video.nativeElement.currentTime = this.startInSeconds;
     }
 
+    setStart(){
+        this.startInSeconds = this.video.nativeElement.currentTime;
+        this.recalcVideoTime(null);
+    }
+
+    setEnd(){
+        this.endInSeconds = this.video.nativeElement.currentTime;
+        this.recalcVideoTime(null);
+    }
+
     private fetchData() {
         const out = {
             start: {value: this.startInSeconds, unit: 'SECONDS'},

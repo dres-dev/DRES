@@ -87,6 +87,11 @@
 <div mat-dialog-actions>
     <button mat-button (click)="close()">Cancel</button>
     <button mat-button (click)="save()">Save</button>
-    <button mat-button (click)="export()" matTooltip="Not yet implemented -- Debug only currently">Export</button>
-    <!-- <button mat-button (click)="import()" matTooltip="not yet implemented">Import</button> -->
+    <app-download-json-button
+        [fileName]="fileProvider"
+        [downloadable]="downloadProvider"
+        matTooltip="Download task type as JSON"></app-download-json-button>
+    <app-upload-json-button
+            matTooltip="Upload task type JSON"
+            [handler]="uploaded"></app-upload-json-button>
 </div>

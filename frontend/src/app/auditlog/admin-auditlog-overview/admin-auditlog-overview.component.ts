@@ -2,7 +2,7 @@ import {AfterViewInit, Component, OnDestroy, ViewChild} from '@angular/core';
 import {
     AuditService,
     RestAuditLogEntry,
-    RestCompetitionEndAuditLogEntry,
+    RestCompetitionEndAuditLogEntry, RestCompetitionStartAuditLogEntry,
     RestJudgementAuditLogEntry,
     RestLoginAuditLogEntry,
     RestLogoutAuditLogEntry,

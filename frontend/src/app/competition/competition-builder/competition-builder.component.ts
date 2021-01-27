@@ -2,8 +2,12 @@ import {Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/co
 import {ActivatedRoute, Router, RouterStateSnapshot} from '@angular/router';
 import {filter} from 'rxjs/operators';
 import {
-    CompetitionService, ConfiguredOptionOptions, ConfiguredOptionQueryComponentType, ConfiguredOptionScoringType,
-    ConfiguredOptionSubmissionFilterType, ConfiguredOptionTargetType,
+    CompetitionService,
+    ConfiguredOptionOptions,
+    ConfiguredOptionQueryComponentType,
+    ConfiguredOptionScoringType,
+    ConfiguredOptionSubmissionFilterType,
+    ConfiguredOptionTargetType,
     RestCompetitionDescription,
     RestTaskDescription,
     RestTeam,
@@ -53,7 +57,6 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
         ],
         options: [
             {option: ConfiguredOptionOptions.OptionEnum.HIDDENRESULTS, parameters: {}},
-            {option: ConfiguredOptionOptions.OptionEnum.MAPTOSEGMENT,  parameters: {}}
         ]
     } as TaskType;
 
@@ -61,7 +64,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
      * The official VBS Visual Known Item Search task type template
      */
     public static VKIS_TEMPLATE = {
-        name: 'VISUAL',
+        name: 'Visual KIS',
         taskDuration: 300,
         targetType: {option: ConfiguredOptionTargetType.OptionEnum.SINGLEMEDIASEGMENT, parameters: {}},
         score: {option: ConfiguredOptionScoringType.OptionEnum.KIS, parameters: {}},
@@ -73,9 +76,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
             {option: ConfiguredOptionSubmissionFilterType.OptionEnum.LIMITCORRECTPERTEAM, parameters: {limit: 1}},
             {option: ConfiguredOptionSubmissionFilterType.OptionEnum.TEMPORALSUBMISSION, parameters: {}}
         ],
-        options: [
-            {option: ConfiguredOptionOptions.OptionEnum.MAPTOSEGMENT,  parameters: {}}
-        ]
+        options: []
     } as TaskType;
 
     /**

@@ -340,7 +340,11 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
      * Generates a URL for the logo of the team.
      */
     public teamLogo(team: RestTeam): string {
-        return this.config.resolveApiUrl(`/competition/logo/${team.logoId}`);
+        if (team.logoData != null) {
+            return team.logoData;
+        } else {
+            return this.config.resolveApiUrl(`/competition/logo/${team.logoId}`);
+        }
     }
 
     public addTeam() {

@@ -53,7 +53,8 @@ openApiGenerate {
     configOptions = [
             npmName: '@dres-openapi/api',
             ngVersion: '9.1.0',
-            snapshot: 'true' /// I suggest to remove this, as soon as we automate this
+            snapshot: 'true', /// I suggest to remove this, as soon as we automate this,
+            enumPropertyNaming: 'original'
     ]
 }
 
@@ -108,6 +109,9 @@ dependencies {
 
     ///// Picnic
     compile group: 'com.jakewharton.picnic', name: 'picnic', version: '0.3.1'
+
+    ///// Fuel
+    compile group: 'com.github.kittinunf.fuel', name: 'fuel', version: '2.3.1'
 
     ////// CSV
     compile group: 'com.github.doyaaaaaken', name: 'kotlin-csv-jvm', version: '0.7.3'

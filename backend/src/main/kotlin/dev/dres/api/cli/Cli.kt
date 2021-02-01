@@ -30,15 +30,18 @@ object Cli {
     fun loop(dataAccessLayer: DataAccessLayer, config: Config) {
 
         val clikt = DRESBaseCommand().subcommands(
-                CompetitionCommand(dataAccessLayer.competitions, dataAccessLayer.collections, config),
-                UserCommand(),
-                MediaCollectionCommand(
-                        dataAccessLayer.collections,
-                        dataAccessLayer.mediaItems,
-                        dataAccessLayer.mediaItemPathIndex,
-                        dataAccessLayer.mediaItemCollectionIndex,
-                        dataAccessLayer.mediaSegments),
-                CompetitionRunCommand(dataAccessLayer.runs))
+            CompetitionCommand(dataAccessLayer.competitions, dataAccessLayer.collections, config),
+            UserCommand(),
+            MediaCollectionCommand(
+                dataAccessLayer.collections,
+                dataAccessLayer.mediaItems,
+                dataAccessLayer.mediaItemPathIndex,
+                dataAccessLayer.mediaItemCollectionIndex,
+                dataAccessLayer.mediaSegments
+            ),
+            CompetitionRunCommand(dataAccessLayer.runs),
+            OpenApiCommand()
+        )
 
         var terminal: Terminal? = null
         try {
@@ -50,7 +53,8 @@ object Cli {
             System.exit(-1)
         }
 
-        val completer = DelegateCompleter(AggregateCompleter(
+        val completer = DelegateCompleter(
+            AggregateCompleter(
                 StringsCompleter("quit", "exit", "help"),
                 // Based on https://github.com/jline/jline3/wiki/Completion
                 // However, this is not working as subcommands are not completed
@@ -67,16 +71,18 @@ object Cli {
                 ),*/
                 // Pseudo-solution. Not ideal, as all subcommands are flattened
                 AggregateCompleter(
-                        StringsCompleter(clikt.registeredSubcommandNames()),
-                        StringsCompleter(clikt.registeredSubcommands().flatMap { it.registeredSubcommandNames() })
+                    StringsCompleter(clikt.registeredSubcommandNames()),
+                    StringsCompleter(
+                        clikt.registeredSubcommands().flatMap { it.registeredSubcommandNames() })
                 ),
                 Completers.FileNameCompleter()
-        ))
+            )
+        )
 
         val lineReader = LineReaderBuilder.builder()
-                .terminal(terminal)
-                .completer(completer)
-                .build()
+            .terminal(terminal)
+            .completer(completer)
+            .build()
 
         while (true) {
 
@@ -88,7 +94,7 @@ object Cli {
                 println(clikt.getFormattedHelp()) //TODO overwrite with something more useful in a cli context
                 continue
             }
-            if (line.isBlank()){
+            if (line.isBlank()) {
                 continue
             }
 
@@ -135,10 +141,10 @@ object Cli {
         return matchList
     }
 
-    class DRESBaseCommand : NoOpCliktCommand(name = "dres"){
+    class DRESBaseCommand : NoOpCliktCommand(name = "dres") {
 
         init {
-            context { helpFormatter = CliHelpFormatter()}
+            context { helpFormatter = CliHelpFormatter() }
         }
 
     }
@@ -147,18 +153,22 @@ object Cli {
      * Delegate for [Completer] to dynamically exchange and / or adapt a completer.
      * Delegates incoming completion requests to the delegate
      */
-    class DelegateCompleter(var delegate: Completer):Completer{
-        override fun complete(reader: LineReader?, line: ParsedLine?, candidates: MutableList<Candidate>?) {
+    class DelegateCompleter(var delegate: Completer) : Completer {
+        override fun complete(
+            reader: LineReader?,
+            line: ParsedLine?,
+            candidates: MutableList<Candidate>?
+        ) {
             delegate.complete(reader, line, candidates)
         }
     }
 
     class CliHelpFormatter : CliktHelpFormatter() {
         override fun formatHelp(
-                prolog: String,
-                epilog: String,
-                parameters: List<HelpFormatter.ParameterHelp>,
-                programName: String
+            prolog: String,
+            epilog: String,
+            parameters: List<HelpFormatter.ParameterHelp>,
+            programName: String
         ) = buildString {
             addOptions(parameters)
             addArguments(parameters)

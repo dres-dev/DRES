@@ -1,6 +1,7 @@
 package dev.dres
 
 import dev.dres.api.cli.Cli
+import dev.dres.api.cli.OpenApiCommand
 import dev.dres.api.rest.RestApi
 import dev.dres.data.dbo.DataAccessLayer
 import dev.dres.data.model.Config
@@ -53,7 +54,12 @@ object DRES {
 
         println("done")
 
-        Cli.loop(dataAccessLayer, config) //blocks until quit command is given
+        if(args.first() == "openapi"){
+            OpenApiCommand().parse(args)
+        }else{
+            Cli.loop(dataAccessLayer, config) //blocks until quit command is given
+        }
+
         RestApi.stop()
         RunExecutor.stop()
         EventStreamProcessor.stop()

@@ -3,6 +3,11 @@
     <div><h1>Submission Overview</h1></div>
     <div class="spacer-flex"></div>
     <div>
+        <mat-slide-toggle [(ngModel)]="polling" (change)="refresh()">
+            <mat-icon>sync</mat-icon>
+        </mat-slide-toggle>
+    </div>
+    <div>
         <button mat-icon-button aria-label="Refresh list of submissions" matTooltip="Refresh list of submissions" (click)="refresh()">
             <mat-icon>refresh</mat-icon>
         </button>

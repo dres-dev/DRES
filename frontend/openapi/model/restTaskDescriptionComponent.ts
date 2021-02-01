@@ -25,11 +25,11 @@ export interface RestTaskDescriptionComponent {
 export namespace RestTaskDescriptionComponent {
     export type TypeEnum = 'IMAGE_ITEM' | 'VIDEO_ITEM_SEGMENT' | 'TEXT' | 'EXTERNAL_IMAGE' | 'EXTERNAL_VIDEO';
     export const TypeEnum = {
-        IMAGEITEM: 'IMAGE_ITEM' as TypeEnum,
-        VIDEOITEMSEGMENT: 'VIDEO_ITEM_SEGMENT' as TypeEnum,
+        IMAGE_ITEM: 'IMAGE_ITEM' as TypeEnum,
+        VIDEO_ITEM_SEGMENT: 'VIDEO_ITEM_SEGMENT' as TypeEnum,
         TEXT: 'TEXT' as TypeEnum,
-        EXTERNALIMAGE: 'EXTERNAL_IMAGE' as TypeEnum,
-        EXTERNALVIDEO: 'EXTERNAL_VIDEO' as TypeEnum
+        EXTERNAL_IMAGE: 'EXTERNAL_IMAGE' as TypeEnum,
+        EXTERNAL_VIDEO: 'EXTERNAL_VIDEO' as TypeEnum
     };
 }
 

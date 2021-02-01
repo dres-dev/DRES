@@ -23,6 +23,9 @@ import { RunAdminSubmissionsListComponent } from './run-admin-submissions-list/r
 import { SubmissionOverrideDialogComponent } from './submission-override-dialog/submission-override-dialog.component';
 import {ClipboardModule} from '@angular/cdk/clipboard';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {RunScoreHistoryComponent} from './score-history/run-score-history.component';
+import {NgApexchartsModule} from 'ng-apexcharts';
 
 @NgModule({
     imports: [
@@ -44,10 +47,12 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
         MatCardModule,
         SharedModule,
         ClipboardModule,
-        MatButtonToggleModule
+        MatButtonToggleModule,
+        MatSlideToggleModule,
+        NgApexchartsModule
     ],
-    exports:      [ RunListComponent, RunAdminViewComponent ],
-    declarations: [ RunListComponent, RunAdminViewComponent, AdminRunListComponent, ViewerRunListComponent, RunAdminSubmissionsListComponent, SubmissionOverrideDialogComponent ],
+    exports:      [ RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent ],
+    declarations: [ RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent, AdminRunListComponent, ViewerRunListComponent, RunAdminSubmissionsListComponent, SubmissionOverrideDialogComponent ],
     providers:    [ ]
 })
 export class RunModule { }

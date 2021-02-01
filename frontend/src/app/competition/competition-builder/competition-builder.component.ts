@@ -1,8 +1,13 @@
-import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router, RouterStateSnapshot} from '@angular/router';
 import {filter} from 'rxjs/operators';
 import {
     CompetitionService,
+    ConfiguredOptionOptions,
+    ConfiguredOptionQueryComponentType,
+    ConfiguredOptionScoringType,
+    ConfiguredOptionSubmissionFilterType,
+    ConfiguredOptionTargetType,
     RestCompetitionDescription,
     RestTaskDescription,
     RestTeam,
@@ -40,48 +45,80 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static TKIS_TEMPLATE = {
         name: 'Textual KIS',
         taskDuration: 420,
-        targetType: 'SINGLE_MEDIA_SEGMENT',
-        components: ['TEXT'],
-        score: 'KIS',
-        filter: ['NO_DUPLICATES', 'ONE_CORRECT_PER_TEAM', 'TEMPORAL_SUBMISSION'],
-        options: ['HIDDEN_RESULTS', 'MAP_TO_SEGMENT']
+        targetType: {option: ConfiguredOptionTargetType.OptionEnum.SINGLE_MEDIA_SEGMENT, parameters: {}},
+        score: {option: ConfiguredOptionScoringType.OptionEnum.KIS, parameters: {}},
+        components: [
+            {option: ConfiguredOptionQueryComponentType.OptionEnum.TEXT, parameters: {}}
+        ],
+        filter: [
+            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.NO_DUPLICATES, parameters: {}},
+            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.LIMIT_CORRECT_PER_TEAM, parameters: {limit: 1}},
+            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.TEMPORAL_SUBMISSION, parameters: {}}
+        ],
+        options: [
+            {option: ConfiguredOptionOptions.OptionEnum.HIDDEN_RESULTS, parameters: {}},
+        ]
     } as TaskType;
+
     /**
      * The official VBS Visual Known Item Search task type template
      */
     public static VKIS_TEMPLATE = {
-        name: 'VISUAL KIS',
+        name: 'Visual KIS',
         taskDuration: 300,
-        targetType: 'SINGLE_MEDIA_SEGMENT',
-        components: ['VIDEO_ITEM_SEGMENT'],
-        score: 'KIS',
-        filter: ['NO_DUPLICATES', 'ONE_CORRECT_PER_TEAM', 'TEMPORAL_SUBMISSION'],
-        options: ['MAP_TO_SEGMENT']
+        targetType: {option: ConfiguredOptionTargetType.OptionEnum.SINGLE_MEDIA_SEGMENT, parameters: {}},
+        score: {option: ConfiguredOptionScoringType.OptionEnum.KIS, parameters: {}},
+        components: [
+            {option: ConfiguredOptionQueryComponentType.OptionEnum.VIDEO_ITEM_SEGMENT, parameters: {}}
+        ],
+        filter: [
+            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.NO_DUPLICATES, parameters: {}},
+            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.LIMIT_CORRECT_PER_TEAM, parameters: {limit: 1}},
+            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.TEMPORAL_SUBMISSION, parameters: {}}
+        ],
+        options: []
     } as TaskType;
+
     /**
      * The official VBS Ad-hoc Video Search task type template
      */
     public static AVS_TEMPLATE = {
         name: 'Ad-hoc Video Search',
         taskDuration: 300,
-        targetType: 'JUDGEMENT',
-        components: ['TEXT'],
-        score: 'AVS',
-        filter: ['NO_DUPLICATES', 'TEMPORAL_SUBMISSION'],
-        options: ['MAP_TO_SEGMENT']
+        targetType: {option: ConfiguredOptionTargetType.OptionEnum.JUDGEMENT, parameters: {}},
+        score: {option: ConfiguredOptionScoringType.OptionEnum.AVS, parameters: {}},
+        components: [
+            {option: ConfiguredOptionQueryComponentType.OptionEnum.TEXT, parameters: {}}
+        ],
+        filter: [
+            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.NO_DUPLICATES, parameters: {limit: 1}},
+            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.TEMPORAL_SUBMISSION, parameters: {}}
+        ],
+        options: [
+            {option: ConfiguredOptionOptions.OptionEnum.MAP_TO_SEGMENT,  parameters: {}}
+        ]
     } as TaskType;
+
     /**
-     * The official LSC taskt ype template
+     * The official LSC task type template
      */
     public static LSC_TEMPLATE = {
         name: 'LSC',
         taskDuration: 300,
-        targetType: 'MULTIPLE_MEDIA_ITEMS',
-        components: ['TEXT'],
-        score: 'KIS',
-        filter: ['NO_DUPLICATES', 'ONE_CORRECT_PER_TEAM'],
-        options: ['HIDDEN_RESULTS']
+        targetType: {option: ConfiguredOptionTargetType.OptionEnum.MULTIPLE_MEDIA_ITEMS, parameters: {}},
+        score: {option: ConfiguredOptionScoringType.OptionEnum.KIS, parameters: {}},
+        components: [
+            {option: ConfiguredOptionQueryComponentType.OptionEnum.TEXT, parameters: {}}
+        ],
+        filter: [
+            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.NO_DUPLICATES, parameters: {}},
+            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.LIMIT_CORRECT_PER_TEAM, parameters: {}}
+        ],
+        options: [
+            {option: ConfiguredOptionOptions.OptionEnum.HIDDEN_RESULTS,  parameters: {}}
+        ]
     } as TaskType;
+
     competitionId: string;
     competition: RestCompetitionDescription;
     @ViewChild('taskTable')
@@ -135,11 +172,15 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
         this.changeSubscription.unsubscribe();
     }
 
+    private fetchDataToCompetition(){
+        this.competition.name = this.form.get('name').value;
+        this.competition.description = this.form.get('description').value;
+        // TODO fetch other stuff
+    }
+
     public save() {
         if (this.form.valid) {
-            this.competition.name = this.form.get('name').value;
-            this.competition.description = this.form.get('description').value;
-            // TODO fetch other stuff
+            this.fetchDataToCompetition();
             this.competitionService.patchApiCompetition(this.competition).subscribe(
                 (c) => {
                     this.snackBar.open(c.description, null, {duration: 5000});
@@ -150,6 +191,16 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
                 }
             );
         }
+    }
+
+    fileProvider = () => {
+        this.fetchDataToCompetition();
+        return this.competition?.name ? this.competition.name : 'competition-download.json';
+    }
+
+    downloadProvider = () => {
+        this.fetchDataToCompetition();
+        return JSON.stringify(this.competition);
     }
 
     public back() {
@@ -258,7 +309,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
                     data: {
                         taskGroup: this.competition.taskGroups.find(g => g.name === task.taskGroup),
                         taskType: this.competition.taskTypes.find(g => g.name === task.taskType),
-                        task: task
+                        task
                     } as CompetitionBuilderTaskDialogData, width: `${width}px`
                 }
             );
@@ -277,7 +328,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     /**
      * Removes the selected {@link RestTaskDescription} from the list of {@link RestTaskDescription}s.
      *
-     * @param task {@link RestTaskDescription} to remove.
+     * @param task The {@link RestTaskDescription} to remove.
      */
     public removeTask(task: RestTaskDescription) {
         this.competition.tasks.splice(this.competition.tasks.indexOf(task), 1);
@@ -289,7 +340,11 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
      * Generates a URL for the logo of the team.
      */
     public teamLogo(team: RestTeam): string {
-        return this.config.resolveApiUrl(`/competition/logo/${team.logoId}`);
+        if (team.logoData != null) {
+            return team.logoData;
+        } else {
+            return this.config.resolveApiUrl(`/competition/logo/${team.logoId}`);
+        }
     }
 
     public addTeam() {
@@ -329,12 +384,12 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     }
 
     /**
-     * Summarises a task type to present detailed info as tootlip
+     * Summarises a task type to present detailed info as tooltip.
      *
-     * @param taskType
+     * @param taskType The {@link TaskType} to summarize.
      */
     summariseTaskType(taskType: TaskType): string {
-        return `Consits of ${taskType.components.join(', ')}, has filters: ${taskType.filter.join(', ')} and options: ${taskType.options.join(', ')}`;
+        return `Consists of ${taskType.components.map(c => c.option).join(', ')}, has filters: ${taskType.filter.map(f => f.option).join(', ')} and options: ${taskType.options.map(o => o.option).join(', ')}`;
     }
 
     /**
@@ -353,7 +408,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
 
     @HostListener('window:beforeunload', ['$event'])
     handleBeforeUnload(event: BeforeUnloadEvent){
-        if(!this.checkDirty()){
+        if (!this.checkDirty()){
             event.preventDefault();
             event.returnValue = '';
             return;

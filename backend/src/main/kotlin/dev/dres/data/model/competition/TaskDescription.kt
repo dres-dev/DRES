@@ -18,6 +18,8 @@ import java.io.IOException
 import java.io.PrintStream
 import kotlin.math.max
 
+typealias TaskDescriptionId = UID
+
 /**
  * Basic description of a [TaskDescription].
  *
@@ -27,7 +29,7 @@ import kotlin.math.max
 class TaskDescription(
 
     /** Internal, unique ID of this [TaskDescription]. */
-    val id: UID,
+    val id: TaskDescriptionId,
 
     /** The name of the task */
     val name: String,
@@ -65,7 +67,7 @@ class TaskDescription(
      *
      * @return [SubmissionValidator].
      */
-    fun newValidator(): SubmissionValidator = when(taskType.targetType){
+    fun newValidator(): SubmissionValidator = when(taskType.targetType.option){
         TaskType.TargetType.SINGLE_MEDIA_ITEM -> MediaItemsSubmissionValidator(setOf((target as TaskDescriptionTarget.MediaItemTarget).item))
         TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionValidator(target as TaskDescriptionTarget.VideoSegmentTarget)
         TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> MediaItemsSubmissionValidator((target as TaskDescriptionTarget.MultipleMediaItemTarget).items.toSet())

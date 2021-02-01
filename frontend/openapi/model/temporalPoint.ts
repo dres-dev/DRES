@@ -18,7 +18,7 @@ export interface TemporalPoint {
 export namespace TemporalPoint {
     export type UnitEnum = 'FRAME_NUMBER' | 'SECONDS' | 'MILLISECONDS';
     export const UnitEnum = {
-        FRAMENUMBER: 'FRAME_NUMBER' as UnitEnum,
+        FRAME_NUMBER: 'FRAME_NUMBER' as UnitEnum,
         SECONDS: 'SECONDS' as UnitEnum,
         MILLISECONDS: 'MILLISECONDS' as UnitEnum
     };

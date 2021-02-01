@@ -1,4 +1,4 @@
-## @dres-openapi/api@1.0-SNAPSHOT.202011301532
+## @dres-openapi/api@1.0-SNAPSHOT.202102011229
 
 ### Building
 
@@ -19,7 +19,7 @@ Navigate to the folder of your consuming project and run one of next commands.
 _published:_
 
 ```
-npm install @dres-openapi/api@1.0-SNAPSHOT.202011301532 --save
+npm install @dres-openapi/api@1.0-SNAPSHOT.202102011229 --save
 ```
 
 _without publishing (not recommended):_
@@ -56,7 +56,6 @@ In your Angular project:
 // without configuring providers
 import { ApiModule } from '@dres-openapi/api';
 import { HttpClientModule } from '@angular/common/http';
-
 
 @NgModule({
     imports: [
@@ -136,7 +135,6 @@ in order to avoid naming conflicts:
 import { ApiModule } from 'my-api-path';
 import { ApiModule as OtherApiModule } from 'my-other-api-path';
 import { HttpClientModule } from '@angular/common/http';
-
 
 @NgModule({
   imports: [

@@ -63,13 +63,6 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
         }
     } as ApexPlotOptions;
 
-    plotOptionsAlt: ApexPlotOptions = {
-        bar: {
-            horizontal: true,
-            distributed: true
-        }
-    };
-
     stroke: ApexStroke = {
         width: 1,
         colors: ['#fff']
@@ -84,10 +77,6 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
         horizontalAlign: 'left',
         showForSingleSeries: false
     } as ApexLegend;
-
-    legendNone: ApexLegend = {
-        show: false
-    };
 
     theme: ApexTheme = {
         mode: 'dark',
@@ -218,7 +207,9 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
                 }).sort((t1, t2) => t2.score.score - t1.score.score);
 
                 /* Array of per category scores for each team. */
-                return scores.map(s => {
+                return scores.filter(s => {
+                    return s.name !== 'sum';
+                }).map(s => {
                     /* In case there is no value, specifically set 0 as score for each team*/
                     if (s.scores.length === 0) {
                         return {

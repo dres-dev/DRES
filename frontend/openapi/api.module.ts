@@ -2,15 +2,16 @@ import { NgModule, ModuleWithProviders, SkipSelf, Optional } from '@angular/core
 import { Configuration } from './configuration';
 import { HttpClient } from '@angular/common/http';
 
-
 import { AuditService } from './api/audit.service';
 import { CollectionService } from './api/collection.service';
 import { CompetitionService } from './api/competition.service';
 import { CompetitionRunService } from './api/competitionRun.service';
 import { CompetitionRunAdminService } from './api/competitionRunAdmin.service';
 import { CompetitionRunScoresService } from './api/competitionRunScores.service';
+import { DefaultService } from './api/default.service';
 import { JudgementService } from './api/judgement.service';
 import { LogService } from './api/log.service';
+import { StatusService } from './api/status.service';
 import { SubmissionService } from './api/submission.service';
 import { UserService } from './api/user.service';
 

@@ -23,9 +23,9 @@ export namespace RunState {
     export const StatusEnum = {
         CREATED: 'CREATED' as StatusEnum,
         ACTIVE: 'ACTIVE' as StatusEnum,
-        PREPARINGTASK: 'PREPARING_TASK' as StatusEnum,
-        RUNNINGTASK: 'RUNNING_TASK' as StatusEnum,
-        TASKENDED: 'TASK_ENDED' as StatusEnum,
+        PREPARING_TASK: 'PREPARING_TASK' as StatusEnum,
+        RUNNING_TASK: 'RUNNING_TASK' as StatusEnum,
+        TASK_ENDED: 'TASK_ENDED' as StatusEnum,
         TERMINATED: 'TERMINATED' as StatusEnum
     };
 }

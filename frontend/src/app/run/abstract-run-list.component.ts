@@ -77,4 +77,13 @@ export class AbstractRunListComponent {
     public navigateToAdmin(runId: string) {
         this.router.navigate(['/run/admin', runId]);
     }
+
+    /**
+     * Navigates to score history (for admins).
+     *
+     * @param runId ID of the run to navigate to.
+     */
+    public navigateToScoreHistory(runId: string) {
+        this.router.navigate(['/run/scores', runId]);
+    }
 }

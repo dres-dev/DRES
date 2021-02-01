@@ -26,7 +26,7 @@ sealed class TaskDescriptionTarget {
 
     companion object {
         const val IMAGE_CONTENT_ELEMENT_DURATION_S = 3L
-        const val EMPTY_CONTENT_ELEMENT_DURATION_S = 1L
+        const val EMPTY_CONTENT_ELEMENT_DURATION_S = 0L
     }
 
     abstract val ordinal: Int

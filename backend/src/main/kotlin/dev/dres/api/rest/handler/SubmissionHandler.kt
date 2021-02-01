@@ -141,7 +141,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         AuditLogger.submission(run.id, run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId(), ctx.req.remoteAddr)
         EventStreamProcessor.event(SubmissionEvent(ctx.sessionId(), run.id, run.currentTaskRun?.uid, submission))
 
-        if (run.currentTask?.taskType?.options?.contains(TaskType.Options.HIDDEN_RESULTS) == true) { //pre-generate preview
+        if (run.currentTask?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) { //pre-generate preview
             generatePreview(submission)
         }
 

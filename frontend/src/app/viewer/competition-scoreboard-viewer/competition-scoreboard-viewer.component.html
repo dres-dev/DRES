@@ -1,6 +1,6 @@
 <mat-card>
     <mat-card-title>
-        <span *ngIf="competitionOverview">Competition Scores</span>
+        <span *ngIf="competitionOverview">Normalized Competition Scores</span>
         <span *ngIf="!competitionOverview">Scores of {{currentTaskGroup | async}}</span>
     </mat-card-title>
     <mat-card-content id="chart">
@@ -8,10 +8,10 @@
             [series] = "(series | async)"
             [dataLabels]="dataLabels"
             [chart]= "chart"
-            [plotOptions]="competitionOverview ? plotOptions : plotOptionsAlt"
+            [plotOptions]="plotOptions"
             [stroke]="stroke"
             [fill]="fill"
-            [legend]="competitionOverview ? legend : legendNone"
+            [legend]="legend"
             [theme]="theme">
         </apx-chart>
     </mat-card-content>

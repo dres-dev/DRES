@@ -17,6 +17,7 @@ import {CollectionViewerComponent} from './collection/collection-viewer/collecti
 import {AdminAuditlogOverviewComponent} from './auditlog/admin-auditlog-overview/admin-auditlog-overview.component';
 import {CanDeactivateGuard} from './services/can-deactivate.guard';
 import {RunAdminSubmissionsListComponent} from './run/run-admin-submissions-list/run-admin-submissions-list.component';
+import {RunScoreHistoryComponent} from './run/score-history/run-score-history.component';
 
 
 const routes: Routes = [
@@ -42,6 +43,12 @@ const routes: Routes = [
     {
         path: 'run/admin/:runId',
         component: RunAdminViewComponent,
+        canActivate: [AuthenticationGuard],
+        data: {roles: [RoleEnum.ADMIN]}
+    },
+    {
+        path: 'run/scores/:runId',
+        component: RunScoreHistoryComponent,
         canActivate: [AuthenticationGuard],
         data: {roles: [RoleEnum.ADMIN]}
     },

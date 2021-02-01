@@ -41,4 +41,7 @@ class TemporalContainmentSubmissionValidator(private val task: VideoSegment) : S
             }
         }
     }
+
+    override val deferring: Boolean
+        get() = false
 }

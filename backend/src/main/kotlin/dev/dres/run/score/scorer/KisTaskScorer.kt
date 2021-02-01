@@ -1,6 +1,7 @@
 package dev.dres.run.score.scorer
 
 import dev.dres.data.model.UID
+import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.score.interfaces.RecalculatingTaskRunScorer
@@ -9,13 +10,25 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlin.math.max
 
-class KisTaskScorer : RecalculatingTaskRunScorer {
+class KisTaskScorer(
+        private val maxPointsPerTask: Double = defaultmaxPointsPerTask,
+        private val maxPointsAtTaskEnd: Double = defaultmaxPointsAtTaskEnd,
+        private val penaltyPerWrongSubmission: Double = defaultpenaltyPerWrongSubmission
+) : RecalculatingTaskRunScorer {
 
-    private val maxPointsPerTask = 100.0
-    private val maxPointsAtTaskEnd = 50.0
-    private val penaltyPerWrongSubmission = 10.0
+    constructor(parameters: Map<String, String>) : this(
+        parameters.getOrDefault("maxPointsPerTask", "$defaultmaxPointsPerTask").toDoubleOrNull() ?: defaultmaxPointsPerTask,
+        parameters.getOrDefault("maxPointsAtTaskEnd", "$defaultmaxPointsAtTaskEnd").toDoubleOrNull() ?: defaultmaxPointsAtTaskEnd,
+        parameters.getOrDefault("penaltyPerWrongSubmission", "$defaultpenaltyPerWrongSubmission").toDoubleOrNull() ?: defaultpenaltyPerWrongSubmission
+    )
 
-    private var lastScores: Map<UID, Double> = emptyMap()
+    companion object {
+        private const val defaultmaxPointsPerTask: Double = 100.0
+        private const val defaultmaxPointsAtTaskEnd: Double = 50.0
+        private const val defaultpenaltyPerWrongSubmission: Double = 10.0
+    }
+
+    private var lastScores: Map<TeamId, Double> = emptyMap()
     private val lastScoresLock = ReentrantReadWriteLock()
 
     override fun computeScores(submissions: Collection<Submission>, teamIds: Collection<UID>, taskStartTime: Long, taskDuration: Long, taskEndTime: Long): Map<UID, Double> = this.lastScoresLock.write {

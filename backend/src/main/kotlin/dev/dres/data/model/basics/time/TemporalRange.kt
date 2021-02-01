@@ -2,8 +2,6 @@ package dev.dres.data.model.basics.time
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.utilities.TimeUtil
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * Notion of a [TemporalRange] within a [MediaItem] that exhibits temporal development (e.g. [VideoItem].
@@ -41,7 +39,7 @@ data class TemporalRange constructor(val start: TemporalPoint, val end: Temporal
         val e1 = TimeUtil.toMilliseconds(end, otherFps)
         val e2 = TimeUtil.toMilliseconds(other.end, otherFps)
 
-        return  min(e1, e2) < max(s1, s2)
+        return s1 <= e2 && s2 <= e1
     }
 
     val center

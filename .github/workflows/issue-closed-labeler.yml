@@ -1,0 +1,21 @@
+# A workflow to use https://github.com/marketplace/actions/fixed-issues-labeler
+
+name: Label Closed Issues on Branches
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push on all but the master branch
+  push:
+    branches-ignore:
+      - 'master'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Label Fixed Issues
+        uses: gh-bot/fix-labeler@master
+        with:
+          token: ${{ github.token }}
+          label: 'dev'

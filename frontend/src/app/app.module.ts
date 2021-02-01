@@ -34,6 +34,7 @@ import {MatSelectModule} from '@angular/material/select';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {AuditlogModule} from './auditlog/auditlog.module';
 import {SharedModule} from './shared/shared.module';
+import {ClipboardModule} from '@angular/cdk/clipboard';
 
 
 /**
@@ -46,7 +47,7 @@ export function initializeApp(appConfig: AppConfig) {
 }
 
 @NgModule({
-  declarations: [AppComponent, CollectionListComponent, CollectionViewerComponent, MediaItemBuilderDialogComponent, CollectionBuilderDialogComponent],
+    declarations: [AppComponent, CollectionListComponent, CollectionViewerComponent, MediaItemBuilderDialogComponent, CollectionBuilderDialogComponent],
     imports: [
         BrowserModule,
         AppRoutingModule,
@@ -76,13 +77,15 @@ export function initializeApp(appConfig: AppConfig) {
         MatDialogModule,
         MatSelectModule,
         MatPaginatorModule,
-        SharedModule
+        SharedModule,
+        ClipboardModule
     ],
-  providers: [
-      AppConfig,
-      {provide: APP_INITIALIZER, useFactory: initializeApp, deps: [AppConfig], multi: true },
-      AccessRoleService
-  ],
-  bootstrap: [AppComponent]
+    providers: [
+        AppConfig,
+        {provide: APP_INITIALIZER, useFactory: initializeApp, deps: [AppConfig], multi: true},
+        AccessRoleService
+    ],
+    bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+}

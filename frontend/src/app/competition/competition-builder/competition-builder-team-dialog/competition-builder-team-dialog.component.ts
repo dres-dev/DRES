@@ -46,6 +46,10 @@ export class CompetitionBuilderTeamDialogComponent {
         return color;
     }
 
+    fileProvider = () => this.fetchData()?.name ? this.fetchData().name : 'team-download.json';
+
+    downloadProvider = () => this.asJson();
+
     /**
      * Adds the selected user to the list of users.
      *
@@ -84,14 +88,22 @@ export class CompetitionBuilderTeamDialogComponent {
      */
     public save(): void {
         if (this.form.valid) {
-            this.dialogRef.close({
-                name: this.form.get('name').value,
-                color: this.form.get('color').value,
-                logoData: this.form.get('logoData').value,
-                logoId: this.form.get('logoId').value,
-                users: this.form.get('users').value
-            } as RestTeam);
+            this.dialogRef.close(this.fetchData());
         }
+    }
+
+    asJson(): string {
+        return JSON.stringify(this.fetchData());
+    }
+
+    fetchData() {
+        return {
+            name: this.form.get('name').value,
+            color: this.form.get('color').value,
+            logoData: this.form.get('logoData').value,
+            logoId: this.form.get('logoId').value,
+            users: this.form.get('users').value
+        } as RestTeam;
     }
 
     /**

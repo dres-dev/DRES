@@ -1,15 +1,17 @@
 package dev.dres.run.score.scoreboard
 
 import dev.dres.data.model.UID
-import dev.dres.data.model.competition.Team
 import dev.dres.data.model.competition.TaskDescription
+import dev.dres.data.model.competition.Team
 import dev.dres.data.model.run.CompetitionRun
+import dev.dres.data.model.run.TaskRunId
+import dev.dres.run.score.interfaces.TaskRunScorer
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
 class MaxNormalizingScoreBoard(override val name: String, teams: List<Team>, private val taskFilter: (TaskDescription) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 100.0) : Scoreboard {
 
-    private val scorePerTaskMap = ConcurrentHashMap<TaskDescription, Map<UID, Double>>()
+    private val scorePerTaskMap = ConcurrentHashMap<UID, Map<UID, Double>>()
 
     private val teamIds = teams.map { it.uid }
 
@@ -32,11 +34,18 @@ class MaxNormalizingScoreBoard(override val name: String, teams: List<Team>, pri
 
     override fun score(teamId: UID) = overallScoreMap()[teamId] ?: 0.0
 
-    override fun update(runs: List<CompetitionRun.TaskRun>) {
-        val filteredRuns = runs.filter { it.started != null && taskFilter(it.task) }
-        val scoresPerTask = filteredRuns.map { it.task to it.scorer.scores() }
+
+    override fun update(scorers: Map<TaskRunId, TaskRunScorer>) {
         this.scorePerTaskMap.clear()
-        this.scorePerTaskMap.putAll(scoresPerTask)
+        this.scorePerTaskMap.putAll(scorers.map { it.key to it.value.scores() }.toMap())
+    }
+
+    override fun update(runs: List<CompetitionRun.TaskRun>) {
+        update(
+            runs
+            .filter { it.started != null && taskFilter(it.task) }
+            .map { it.uid to it.scorer }.toMap()
+        )
     }
 
     override fun overview() = ScoreOverview(name, taskGroupName, scores())

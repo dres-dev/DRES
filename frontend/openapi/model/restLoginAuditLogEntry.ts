@@ -22,7 +22,7 @@ export interface RestLoginAuditLogEntry {
     api: RestLoginAuditLogEntry.ApiEnum;
 }
 export namespace RestLoginAuditLogEntry {
-    export type TypeEnum = 'COMPETITION_START' | 'COMPETITION_END' | 'TASK_START' | 'TASK_MODIFIED' | 'TASK_END' | 'SUBMISSION' | 'JUDGEMENT' | 'LOGIN' | 'LOGOUT';
+    export type TypeEnum = 'COMPETITION_START' | 'COMPETITION_END' | 'TASK_START' | 'TASK_MODIFIED' | 'TASK_END' | 'SUBMISSION' | 'PREPARE_JUDGEMENT' | 'JUDGEMENT' | 'LOGIN' | 'LOGOUT';
     export const TypeEnum = {
         COMPETITIONSTART: 'COMPETITION_START' as TypeEnum,
         COMPETITIONEND: 'COMPETITION_END' as TypeEnum,
@@ -30,6 +30,7 @@ export namespace RestLoginAuditLogEntry {
         TASKMODIFIED: 'TASK_MODIFIED' as TypeEnum,
         TASKEND: 'TASK_END' as TypeEnum,
         SUBMISSION: 'SUBMISSION' as TypeEnum,
+        PREPAREJUDGEMENT: 'PREPARE_JUDGEMENT' as TypeEnum,
         JUDGEMENT: 'JUDGEMENT' as TypeEnum,
         LOGIN: 'LOGIN' as TypeEnum,
         LOGOUT: 'LOGOUT' as TypeEnum

@@ -1,0 +1,5 @@
+<div style="width: 4em;">
+<mat-icon style="vertical-align: middle;">{{(rtt | async) > 0 ? "sensors" : "sensors_off"}}</mat-icon>
+&#x02004;
+<span matTooltip="RTT. Server to client clock Diff: {{clockDiff | async}}ms" style="font-size: 10pt;">{{rtt | async}}ms</span>
+</div>

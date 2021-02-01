@@ -21,6 +21,13 @@
             <mat-icon>refresh</mat-icon>
         </button>
     </div>
+    <div>
+        <app-download-json-button
+            [name]="''"
+            [fileName]="fileProvider"
+            [downloadable]="downloadProvider"
+            matTooltip="Download the entire competition as JSON"></app-download-json-button>
+    </div>
 </div>
 
 <div *ngIf="competition">
@@ -63,7 +70,7 @@
                                     [removable]="true" (removed)="removeTaskType(taskType)"
                                     [matTooltip]="summariseTaskType(taskType)"
                                     (click)="addTaskType(taskType)">
-                                {{taskType.name}} ({{taskType.targetType}} | {{taskType.score}})
+                                {{taskType.name}} ({{taskType.targetType.option}} | {{taskType.score.option}})
                                 <mat-icon matChipRemove>cancel</mat-icon>
                             </mat-chip>
                         </mat-chip-list>
@@ -122,7 +129,7 @@
                 <ng-container matColumnDef="action">
                     <th mat-header-cell *matHeaderCellDef> Action</th>
                     <td mat-cell *matCellDef="let team" [style.color]="team.color">
-                        <button mat-icon-button aria-label="Edit task." matTooltip="Edit task."
+                        <button mat-icon-button aria-label="Edit task." matTooltip="Edit team."
                                 (click)="editTeam(team)">
                             <mat-icon>edit</mat-icon>
                         </button>

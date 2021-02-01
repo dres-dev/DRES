@@ -31,6 +31,8 @@ interface JudgementValidator : SubmissionValidator {
      * @param submission The [Submission] to validate.
      */
     override fun validate(submission: Submission)
+    override val deferring: Boolean
+        get() = true
 
     /**
      * Retrieves and returns the next element that requires a verdict from this [JudgementValidator]'

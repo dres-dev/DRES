@@ -1,20 +1,23 @@
 package dev.dres.run.score.scorer
 
 import dev.dres.data.model.UID
+import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
-import dev.dres.data.model.run.TemporalSubmissionAspect
+import dev.dres.data.model.run.TemporalSubmission
 import dev.dres.run.score.interfaces.RecalculatingTaskRunScorer
 import dev.dres.utilities.TimeUtil
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 class AvsTaskScorer: RecalculatingTaskRunScorer {
 
-    private var lastScores: Map<UID, Double> = emptyMap()
+    private var lastScores: Map<TeamId, Double> = emptyMap()
     private val lastScoresLock = ReentrantReadWriteLock()
 
-    override fun computeScores(submissions: Collection<Submission>, teamIds: Collection<UID>, taskStartTime: Long, taskDuration: Long, taskEndTime: Long): Map<UID, Double> {
+    override fun computeScores(submissions: Collection<Submission>, teamIds: Collection<TeamId>, taskStartTime: Long, taskDuration: Long, taskEndTime: Long): Map<UID, Double> {
 
         val correctSubmissions = submissions.filter { it.status == SubmissionStatus.CORRECT }
         val wrongSubmissions = submissions.filter { it.status == SubmissionStatus.WRONG }
@@ -22,40 +25,41 @@ class AvsTaskScorer: RecalculatingTaskRunScorer {
         val correctSubmissionsPerTeam = correctSubmissions.groupBy { it.teamId }
         val wrongSubmissionsPerTeam = wrongSubmissions.groupBy { it.teamId }
 
-        val temporal = correctSubmissions.all { it is TemporalSubmissionAspect }
+        val totalCorrectQuantized = countQuantized(correctSubmissions).toDouble()
 
-        lastScores = if (temporal){
+        lastScores = this.lastScoresLock.write {
+            teamIds.map { teamid ->
 
-            val ranges = submissions.groupBy { it.item.id }.map { (item, submissions) ->
-                item to TimeUtil.merge(submissions.map { (it as TemporalSubmissionAspect).temporalRange }, overlap = 1000)
+                val correctSubs = correctSubmissionsPerTeam[teamid] ?: return@map teamid to 0.0
+
+                val correct = correctSubs.size
+
+                val wrong = wrongSubmissionsPerTeam[teamid]?.size ?: 0
+
+                teamid to 100.0 *
+                        (correct / (correct + wrong / 2.0)) *
+                        (countQuantized(correctSubs).toDouble() / totalCorrectQuantized)
             }.toMap()
+        }
 
-            teamIds.map { team ->
-                val correct = correctSubmissionsPerTeam[team]?.size ?: return@map team to 0.0
-                val wrong = wrongSubmissionsPerTeam[team]?.size ?: 0
 
-                val teamRanges = correctSubmissionsPerTeam[team]!!.groupBy { it.item }.map {(item, subs) ->
-                    val rangesInItem = ranges[item.id]!!
+        return scores()
+    }
 
-                    subs.map {
-                        val tr = (it as TemporalSubmissionAspect).temporalRange
-                        rangesInItem.find { it.contains(tr) }
-                    }.toSet().size
-                }.sum()
+    private fun countQuantized(submissions: Collection<Submission>): Int {
 
-                return@map team to 50.0 * ((correct / (correct + wrong / 2.0)) + (teamRanges / ranges.size))
+        return submissions.groupBy { it.item }.map {
+            when(it.key) {
+                is MediaItem.ImageItem -> 1
+                is MediaItem.VideoItem -> {
 
+                    val ranges = it.value.map { s -> (s as TemporalSubmission).temporalRange }
+
+                    TimeUtil.merge(ranges, overlap = 1).size
+                }
             }
+        }.sum()
 
-        } else {
-            teamIds.map { team ->
-                val correct = correctSubmissionsPerTeam[team]?.size ?: return@map team to 0.0
-                val wrong = wrongSubmissionsPerTeam[team]?.size ?: 0
-                return@map team to 100.0 * (correct / (correct + wrong / 2.0))
-            }
-        }.toMap()
-
-        return lastScores
     }
 
     override fun scores(): Map<UID, Double> = this.lastScoresLock.read { this.lastScores }

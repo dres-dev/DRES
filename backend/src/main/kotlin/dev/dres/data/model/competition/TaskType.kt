@@ -6,29 +6,35 @@ import dev.dres.run.score.scorer.AvsTaskScorer
 import dev.dres.run.score.scorer.KisTaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
 
+interface Option {
+    val ordinal: Int
+}
+
+data class ConfiguredOption<T: Option>(val option: T, val parameters : Map<String, String> = emptyMap())
+
 data class TaskType(
         val name: String,
         val taskDuration: Long, //in ms
-        val targetType: TargetType,
-        val components: Set<QueryComponentType>,
-        val score: ScoringType,
-        val filter: Set<SubmissionFilterType>,
-        val options: Set<Options>
+        val targetType: ConfiguredOption<TargetType>,
+        val components: Collection<ConfiguredOption<QueryComponentType>>,
+        val score: ConfiguredOption<ScoringType>,
+        val filter: Collection<ConfiguredOption<SubmissionFilterType>>,
+        val options: Collection<ConfiguredOption<Options>>
 ) {
 
-    enum class Options{
+    enum class Options : Option{
         HIDDEN_RESULTS, //Do not show submissions while task is running
         MAP_TO_SEGMENT //Map the time of a submission to a pre-defined segment
     }
 
-    enum class TargetType{
+    enum class TargetType : Option{
         SINGLE_MEDIA_ITEM, // Whole Media Item"
         SINGLE_MEDIA_SEGMENT, //Part of a Media Item
         MULTIPLE_MEDIA_ITEMS, //Multiple Media Items
         JUDGEMENT //Judgement
     }
 
-    enum class QueryComponentType{
+    enum class QueryComponentType : Option{
         IMAGE_ITEM, //Image Media Item
         VIDEO_ITEM_SEGMENT, //Part of a Video Media Item
         TEXT,
@@ -36,15 +42,18 @@ data class TaskType(
         EXTERNAL_VIDEO
     }
 
-    enum class ScoringType{
+    enum class ScoringType : Option{
         KIS,
         AVS
     }
 
-    enum class SubmissionFilterType(internal val filter: () -> SubmissionFilter){
-        NO_DUPLICATES(::DuplicateSubmissionFilter),
-        ONE_CORRECT_PER_TEAM(::OneCorrectSubmissionPerTeamFilter),
-        TEMPORAL_SUBMISSION(::TemporalSubmissionFilter)
+    enum class SubmissionFilterType(internal val filter: (parameters: Map<String, String>) -> SubmissionFilter) : Option{
+        NO_DUPLICATES({_ -> DuplicateSubmissionFilter()}),
+        LIMIT_CORRECT_PER_TEAM({params -> CorrectSubmissionPerTeamFilter(params)}),
+        LIMIT_WRONG_PER_TEAM({params ->  MaximumWrongSubmissionsPerTeam(params)}),
+        LIMIT_TOTAL_PER_TEAM({params ->  MaximumTotalSubmissionsPerTeam(params)}),
+        LIMIT_CORRECT_PER_MEMBER({params -> CorrectSubmissionPerTeamMemberFilter(params)}),
+        TEMPORAL_SUBMISSION({_ ->TemporalSubmissionFilter()})
     }
 
     /**
@@ -53,8 +62,8 @@ data class TaskType(
      *
      * @return [TaskRunScorer].
      */
-    fun newScorer(): TaskRunScorer = when(score){
-        ScoringType.KIS -> KisTaskScorer()
+    fun newScorer(): TaskRunScorer = when(score.option){
+        ScoringType.KIS -> KisTaskScorer(score.parameters)
         ScoringType.AVS -> AvsTaskScorer()
     }
 
@@ -69,7 +78,7 @@ data class TaskType(
             return AllSubmissionFilter
         }
 
-        return filter.map { it.filter() }.reduceRight(SubmissionFilter::and)
+        return filter.map { it.option.filter(it.parameters) }.reduceRight(SubmissionFilter::and)
     }
 
 }

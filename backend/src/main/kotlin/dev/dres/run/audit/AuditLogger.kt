@@ -37,6 +37,8 @@ object AuditLogger {
 
     fun submission(competitionRunUid: UID, taskName: String, submission: Submission, api: LogEventSource, session: String?, address: String) = log(SubmissionAuditLogEntry(competitionRunUid, taskName, submission, api, session, address))
 
+    fun prepareJudgement(validator: String, token: String, submission: Submission) = log(PrepareJudgementAuditLogEntry(validator, token, submission))
+
     fun judgement(competitionRunUid: UID, validator: String, token: String, verdict: SubmissionStatus, api: LogEventSource, session: String?) = log(JudgementAuditLogEntry(competitionRunUid, validator, token, verdict, api, session))
 
     fun login(user: String, session: String, api: LogEventSource) = log(LoginAuditLogEntry(user, session, api))

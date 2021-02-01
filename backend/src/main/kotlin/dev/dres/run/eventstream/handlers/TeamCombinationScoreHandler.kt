@@ -52,8 +52,8 @@ class TeamCombinationScoreHandler : StreamEventHandler {
                     combinations.map {
                         if (it.value.first == submission.teamId || it.value.second == submission.teamId) {
                             when (submission) {
-                                is ItemSubmission -> submission.copy(teamId = it.key)
-                                is TemporalSubmission -> submission.copy(teamId = it.key)
+                                is ItemSubmission -> submission.copy(teamId = it.key).apply { this.status = submission.status }
+                                is TemporalSubmission -> submission.copy(teamId = it.key).apply { this.status = submission.status }
                             }
                         } else {
                             null

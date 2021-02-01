@@ -2,6 +2,8 @@ import {Component, ElementRef, Inject, ViewChild} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialog, MatDialogConfig, MatDialogRef} from '@angular/material/dialog';
 import {
     CollectionService,
+    ConfiguredOptionQueryComponentType,
+    ConfiguredOptionTargetType,
     RestMediaCollection,
     RestMediaItem,
     RestTaskDescription,
@@ -20,7 +22,6 @@ import {
     VideoPlayerSegmentBuilderData
 } from './video-player-segment-builder/video-player-segment-builder.component';
 import {AdvancedBuilderDialogComponent, AdvancedBuilderDialogData} from './advanced-builder-dialog/advanced-builder-dialog.component';
-import TargetTypeEnum = TaskType.TargetTypeEnum;
 
 
 /**
@@ -74,6 +75,13 @@ export class CompetitionBuilderTaskDialogComponent {
         this.mediaCollectionSource = this.collectionService.getApiCollectionList();
     }
 
+    uploaded = (taskData: string) => {
+        const task = JSON.parse(taskData) as RestTaskDescription;
+        this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, task);
+        this.form = this.builder.form;
+        console.log("Loaded task: "+JSON.stringify(task));
+    };
+
     private static randInt(min: number, max: number): number {
         min = Math.floor(min);
         max = Math.ceil(max);
@@ -83,7 +91,7 @@ export class CompetitionBuilderTaskDialogComponent {
     /**
      * Handler for (+) button for query target form component.
      */
-    public addQueryTarget(targetType: TaskType.TargetTypeEnum) {
+    public addQueryTarget(targetType: ConfiguredOptionTargetType.OptionEnum) {
         this.builder.addTargetForm(targetType);
     }
 
@@ -99,7 +107,7 @@ export class CompetitionBuilderTaskDialogComponent {
     /**
      * Handler for (+) button for query hint form component.
      */
-    public addQueryComponent(componentType: TaskType.ComponentsEnum) {
+    public addQueryComponent(componentType: ConfiguredOptionQueryComponentType.OptionEnum) {
         this.builder.addComponentForm(componentType);
     }
 
@@ -141,12 +149,9 @@ export class CompetitionBuilderTaskDialogComponent {
         return JSON.stringify(this.builder.fetchFormData());
     }
 
-    /**
-     * Prints the JSONified form data to console
-     */
-    export() {
-        console.log(this.asJson());
-    }
+    fileProvider = () => this.builder.fetchFormData()?.name ? this.builder.fetchFormData().name : 'task-download.json';
+
+    downloadProvider = () => this.asJson();
 
     /**
      * Picks a ranomd {@link MediaItem} from the list.
@@ -220,6 +225,7 @@ export class CompetitionBuilderTaskDialogComponent {
 
     /**
      * Check whether the given index is currently listed as active preview
+     *
      * @param index
      */
     isPreviewActive(index: number): boolean {
@@ -259,7 +265,7 @@ export class CompetitionBuilderTaskDialogComponent {
                 this.builder.removeTargetForm(0);
                 const mediaCollectionId = this.builder.form.get('mediaCollection').value;
                 r.forEach((name, idx) => {
-                    const form = this.builder.addTargetForm(TargetTypeEnum.MULTIPLEMEDIAITEMS);
+                    const form = this.builder.addTargetForm(ConfiguredOptionTargetType.OptionEnum.MULTIPLEMEDIAITEMS);
                     console.log(`${mediaCollectionId} ? ${name}`);
                     const nameNoExt = name.substring(0, name.lastIndexOf('.'));
                     this.collectionService.getApiCollectionWithCollectionidWithStartswith(mediaCollectionId, nameNoExt)

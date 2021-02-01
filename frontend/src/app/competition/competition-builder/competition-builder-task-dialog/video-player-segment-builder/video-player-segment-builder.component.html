@@ -12,6 +12,18 @@
                     [matTooltip]="(this.video.nativeElement.paused ? 'Play' : 'Pause') + ' the video'">
                 <mat-icon>{{this.video.nativeElement.paused ? "play_arrow" : "pause"}}</mat-icon>
             </button>
+
+
+        </div>
+        <div fxFlex="15">
+            <button mat-flat-button (click)="setStart()" matTooltip="Set current time as start time">
+                <mat-icon>first_page</mat-icon>
+            </button>
+        </div>
+        <div fxFlex="15">
+            <button mat-flat-button (click)="setEnd()" matTooltip="Set current time as end time">
+                <mat-icon>last_page</mat-icon>
+            </button>
         </div>
         <!--<div fxFlex>
             <mat-progress-bar mode="determinate" [value]="(playtimeRelative | async)"

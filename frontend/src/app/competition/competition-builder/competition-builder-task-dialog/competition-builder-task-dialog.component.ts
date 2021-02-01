@@ -55,6 +55,17 @@ export function RequireMatch(control: AbstractControl) {
 })
 export class CompetitionBuilderTaskDialogComponent {
 
+    constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskDialogComponent>,
+                public collectionService: CollectionService,
+                @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData,
+                private dialog: MatDialog,
+                public config: AppConfig) {
+
+        this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.data.task);
+        this.form = this.builder.form;
+        this.mediaCollectionSource = this.collectionService.getApiCollectionList();
+    }
+
     form: FormGroup;
     units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
     /** Data source for list of {@link MediaCollection}. Loaded upon construction of the dialog. */
@@ -67,28 +78,17 @@ export class CompetitionBuilderTaskDialogComponent {
     videoSegmentData: VideoPlayerSegmentBuilderData;
     private imagePreviewMap = new Set<number>();
 
-    constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskDialogComponent>,
-                public collectionService: CollectionService,
-                @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData,
-                private dialog: MatDialog,
-                public config: AppConfig) {
-
-        this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.data.task);
-        this.form = this.builder.form;
-        this.mediaCollectionSource = this.collectionService.getApiCollectionList();
+    private static randInt(min: number, max: number): number {
+        min = Math.floor(min);
+        max = Math.ceil(max);
+        return Math.round(Math.random() * (max - min + 1) + min);
     }
 
     uploaded = (taskData: string) => {
         const task = JSON.parse(taskData) as RestTaskDescription;
         this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, task);
         this.form = this.builder.form;
-        console.log("Loaded task: "+JSON.stringify(task));
-    };
-
-    private static randInt(min: number, max: number): number {
-        min = Math.floor(min);
-        max = Math.ceil(max);
-        return Math.round(Math.random() * (max - min + 1) + min);
+        console.log('Loaded task: ' + JSON.stringify(task));
     }
 
     /**
@@ -203,9 +203,9 @@ export class CompetitionBuilderTaskDialogComponent {
         if (endControl && endControl.value) {
             end = Number.parseInt(endControl.value, 10);
         }
-        const config = {
-            width: '800px', data: {mediaItem, segmentStart: start, segmentEnd: end}
-        } as MatDialogConfig<VideoPlayerSegmentBuilderData>;
+        // const config = {
+        //     width: '800px', data: {mediaItem, segmentStart: start, segmentEnd: end}
+        // } as MatDialogConfig<VideoPlayerSegmentBuilderData>;
         // const dialogRef = this.dialog.open(VideoPlayerSegmentBuilderDialogComponent, config);
         /*dialogRef.afterClosed().pipe(
             filter(r => r != null))
@@ -217,6 +217,13 @@ export class CompetitionBuilderTaskDialogComponent {
             });*/
         this.videoSegmentData = {mediaItem, segmentStart: start, segmentEnd: end} as VideoPlayerSegmentBuilderData;
         this.showVideo = !this.showVideo;
+    }
+
+    onRangeChange( range: TemporalRange, startControl?: FormControl, endControl?: FormControl, unitControl?: FormControl){
+        startControl?.setValue(range.start.value);
+        endControl?.setValue(range.end.value);
+        unitControl?.setValue(TemporalPoint.UnitEnum.SECONDS);
+        console.log('Range updated');
     }
 
     isImageMediaItem(mi: RestMediaItem): boolean {

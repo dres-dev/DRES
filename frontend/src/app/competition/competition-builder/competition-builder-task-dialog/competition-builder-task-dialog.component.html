@@ -205,6 +205,9 @@
                             <img style="max-width: 100%;" [src]="getImageUrl(target.get('mediaItem').value)"
                                  [alt]="'Preview of '+target.get('mediaItem').value?.name">
                         </p>
+                        <div *ngIf="showVideo">
+                            <app-video-player-segment-builder [data]="this.videoSegmentData" (rangeChange)="onRangeChange($event,target.get('segment_start'), target.get('segment_end'), target.get('segment_time_unit'))"></app-video-player-segment-builder>
+                        </div>
                     </div>
                     <div class="spacer-flex" *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'"></div>
                     <div *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'">
@@ -216,9 +219,7 @@
                 </div>
             </div>
         </div>
-        <div *ngIf="showVideo">
-            <app-video-player-segment-builder [data]="this.videoSegmentData"></app-video-player-segment-builder>
-        </div>
+
         <div *ngIf="form.get('mediaCollection').value">
             <h2>Query description
                 <button mat-button aria-label="Add query description component."

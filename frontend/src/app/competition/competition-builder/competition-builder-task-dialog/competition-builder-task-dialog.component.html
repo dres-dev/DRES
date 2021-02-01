@@ -216,6 +216,9 @@
                 </div>
             </div>
         </div>
+        <div *ngIf="showVideo">
+            <app-video-player-segment-builder [data]="this.videoSegmentData"></app-video-player-segment-builder>
+        </div>
         <div *ngIf="form.get('mediaCollection').value">
             <h2>Query description
                 <button mat-button aria-label="Add query description component."

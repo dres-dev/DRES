@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Inject, OnDestroy, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Inject, Input, OnDestroy, ViewChild} from '@angular/core';
 import {Observable, of, Subscription} from 'rxjs';
 import {RestMediaItem, TemporalRange} from '../../../../../../openapi';
 import {AppConfig} from '../../../../app.config';
@@ -19,6 +19,8 @@ export interface VideoPlayerSegmentBuilderData {
 export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDestroy {
 
 
+    @Input() data: VideoPlayerSegmentBuilderData;
+
     @ViewChild('videoPlayer', {static: false}) video: ElementRef;
     videoUrl: Observable<string>;
     playtimeRelative: Observable<number>;
@@ -38,9 +40,9 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
 
     private requestSub: Subscription;
 
-    constructor(public config: AppConfig,
+    constructor(public config: AppConfig/*,
                 public dialogRef: MatDialogRef<VideoPlayerSegmentBuilderData>,
-                @Inject(MAT_DIALOG_DATA) public data: VideoPlayerSegmentBuilderData) {
+                @Inject(MAT_DIALOG_DATA) public data: VideoPlayerSegmentBuilderData*/) {
 
     }
 
@@ -132,14 +134,16 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
      * Fetches the data from the form, returns it to the dialog openeer and cloeses this dialog
      */
     save(): void {
-        this.dialogRef.close(this.fetchData());
+        console.log("save");
+        // this.dialogRef.close(this.fetchData());
     }
 
     /**
      * Closes this dialog without saving
      */
     close(): void {
-        this.dialogRef.close(null);
+        console.log("close");
+        // this.dialogRef.close(null);
     }
 
     /**
@@ -168,7 +172,7 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
         this.recalcVideoTime(null);
     }
 
-    private fetchData() {
+    public fetchData() {
         const out = {
             start: {value: this.startInSeconds, unit: 'SECONDS'},
             end: {value: this.endInSeconds, unit: 'SECONDS'}

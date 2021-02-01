@@ -32,6 +32,7 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatGridListModule} from '@angular/material/grid-list';
 import {AdvancedBuilderDialogComponent} from './competition-builder-task-dialog/advanced-builder-dialog/advanced-builder-dialog.component';
 import {SharedModule} from '../../shared/shared.module';
+import { VideoPlayerSegmentBuilderDialogComponent } from './competition-builder-task-dialog/video-player-segment-builder-dialog/video-player-segment-builder-dialog.component';
 
 @NgModule({
     imports: [
@@ -71,7 +72,8 @@ import {SharedModule} from '../../shared/shared.module';
         CompetitionBuilderTaskGroupDialogComponent,
         CompetitionBuilderTaskTypeDialogComponent,
         VideoPlayerSegmentBuilderComponent,
-        AdvancedBuilderDialogComponent
+        AdvancedBuilderDialogComponent,
+        VideoPlayerSegmentBuilderDialogComponent
     ],
     providers: []
 })

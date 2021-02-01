@@ -87,6 +87,7 @@ export class SubmissionService {
 
     /**
      * Endpoint to accept submissions
+     * @param session Session Token
      * @param collection Collection identifier. Optional, in which case the default collection for the run will be considered.
      * @param item Identifier for the actual media object or media file.
      * @param frame Frame number for media with temporal progression (e.g. video).
@@ -95,10 +96,13 @@ export class SubmissionService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getSubmit(collection?: string, item?: string, frame?: number, shot?: number, timecode?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public getSubmit(collection?: string, item?: string, frame?: number, shot?: number, timecode?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public getSubmit(collection?: string, item?: string, frame?: number, shot?: number, timecode?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public getSubmit(collection?: string, item?: string, frame?: number, shot?: number, timecode?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public getSubmit(session: string, collection?: string, item?: string, frame?: number, shot?: number, timecode?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public getSubmit(session: string, collection?: string, item?: string, frame?: number, shot?: number, timecode?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public getSubmit(session: string, collection?: string, item?: string, frame?: number, shot?: number, timecode?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public getSubmit(session: string, collection?: string, item?: string, frame?: number, shot?: number, timecode?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (session === null || session === undefined) {
+            throw new Error('Required parameter session was null or undefined when calling getSubmit.');
+        }
 
         let queryParameters = new HttpParams({encoder: this.encoder});
         if (collection !== undefined && collection !== null) {
@@ -120,6 +124,10 @@ export class SubmissionService {
         if (timecode !== undefined && timecode !== null) {
           queryParameters = this.addToHttpParams(queryParameters,
             <any>timecode, 'timecode');
+        }
+        if (session !== undefined && session !== null) {
+          queryParameters = this.addToHttpParams(queryParameters,
+            <any>session, 'session');
         }
 
         let headers = this.defaultHeaders;

@@ -8,7 +8,6 @@ api/competition.service.ts
 api/competitionRun.service.ts
 api/competitionRunAdmin.service.ts
 api/competitionRunScores.service.ts
-api/default.service.ts
 api/judgement.service.ts
 api/log.service.ts
 api/status.service.ts
@@ -33,6 +32,7 @@ model/errorStatus.ts
 model/judgement.ts
 model/judgementRequest.ts
 model/judgementValidatorStatus.ts
+model/judgementVote.ts
 model/loginRequest.ts
 model/models.ts
 model/queryEvent.ts

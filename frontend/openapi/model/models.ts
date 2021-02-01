@@ -13,6 +13,7 @@ export * from './errorStatus';
 export * from './judgement';
 export * from './judgementRequest';
 export * from './judgementValidatorStatus';
+export * from './judgementVote';
 export * from './loginRequest';
 export * from './queryEvent';
 export * from './queryEventLog';

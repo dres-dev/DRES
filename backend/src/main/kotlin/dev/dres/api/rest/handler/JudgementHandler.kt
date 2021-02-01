@@ -139,6 +139,19 @@ class JudgementVoteHandler : PostRestHandler<SuccessStatus> {
     override val route = "run/:runId/judge/vote"
 
 
+    @OpenApi(
+        summary = "Returns a Vote.",
+        path = "/api/run/:runId/judge/vote", method = HttpMethod.POST,
+        pathParams = [OpenApiParam("runId", dev.dres.data.model.UID::class, "Run ID")],
+        requestBody = OpenApiRequestBody([OpenApiContent(JudgementVote::class)]),
+        tags = ["Judgement"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
+    )
     override fun doPost(ctx: Context): SuccessStatus {
 
         val runId = try{

@@ -265,3 +265,5 @@ nodejs
 npm-*
 backend/ext/ffmpeg
 events/
+backend/data*
+backend/statistics

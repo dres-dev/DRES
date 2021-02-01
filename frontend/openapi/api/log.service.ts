@@ -89,14 +89,24 @@ export class LogService {
 
     /**
      * Accepts query logs from participants
+     * @param session Session Token
      * @param queryEventLog 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postLogQuery(queryEventLog?: QueryEventLog, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public postLogQuery(queryEventLog?: QueryEventLog, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public postLogQuery(queryEventLog?: QueryEventLog, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public postLogQuery(queryEventLog?: QueryEventLog, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public postLogQuery(session: string, queryEventLog?: QueryEventLog, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postLogQuery(session: string, queryEventLog?: QueryEventLog, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postLogQuery(session: string, queryEventLog?: QueryEventLog, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postLogQuery(session: string, queryEventLog?: QueryEventLog, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (session === null || session === undefined) {
+            throw new Error('Required parameter session was null or undefined when calling postLogQuery.');
+        }
+
+        let queryParameters = new HttpParams({encoder: this.encoder});
+        if (session !== undefined && session !== null) {
+          queryParameters = this.addToHttpParams(queryParameters,
+            <any>session, 'session');
+        }
 
         let headers = this.defaultHeaders;
 
@@ -130,6 +140,7 @@ export class LogService {
         return this.httpClient.post<SuccessStatus>(`${this.configuration.basePath}/log/query`,
             queryEventLog,
             {
+                params: queryParameters,
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
@@ -141,14 +152,24 @@ export class LogService {
 
     /**
      * Accepts result logs from participants
+     * @param session Session Token
      * @param queryResultLog 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public postLogResult(queryResultLog?: QueryResultLog, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
-    public postLogResult(queryResultLog?: QueryResultLog, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
-    public postLogResult(queryResultLog?: QueryResultLog, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
-    public postLogResult(queryResultLog?: QueryResultLog, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+    public postLogResult(session: string, queryResultLog?: QueryResultLog, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<SuccessStatus>;
+    public postLogResult(session: string, queryResultLog?: QueryResultLog, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<SuccessStatus>>;
+    public postLogResult(session: string, queryResultLog?: QueryResultLog, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<SuccessStatus>>;
+    public postLogResult(session: string, queryResultLog?: QueryResultLog, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        if (session === null || session === undefined) {
+            throw new Error('Required parameter session was null or undefined when calling postLogResult.');
+        }
+
+        let queryParameters = new HttpParams({encoder: this.encoder});
+        if (session !== undefined && session !== null) {
+          queryParameters = this.addToHttpParams(queryParameters,
+            <any>session, 'session');
+        }
 
         let headers = this.defaultHeaders;
 
@@ -182,6 +203,7 @@ export class LogService {
         return this.httpClient.post<SuccessStatus>(`${this.configuration.basePath}/log/result`,
             queryResultLog,
             {
+                params: queryParameters,
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,

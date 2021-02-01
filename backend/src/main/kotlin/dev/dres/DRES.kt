@@ -54,7 +54,7 @@ object DRES {
 
         println("done")
 
-        if(args.first() == "openapi"){
+        if(args.isNotEmpty() && args.first() == "openapi"){
             OpenApiCommand().parse(args)
         }else{
             Cli.loop(dataAccessLayer, config) //blocks until quit command is given

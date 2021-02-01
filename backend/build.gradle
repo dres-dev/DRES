@@ -13,9 +13,14 @@ buildscript {
     }
 }
 plugins {
+    /// Frontend compilation & deployment
     id 'com.github.node-gradle.node' version '2.2.0'
+    /// Download task for FFMPEG binaries download
     id 'de.undercouch.download' version '4.0.4'
+    /// OpenAPI Generator for Frontend internal api generation
+    id 'org.openapi.generator' version '5.0.0'
 }
+
 apply plugin: 'application'
 apply plugin: 'java'
 apply plugin: 'kotlin'
@@ -25,6 +30,34 @@ apply plugin: 'idea'
 mainClassName = 'dev.dres.DRES'
 
 sourceCompatibility = 1.8
+
+/// Default OpenAPI Specifications of dres
+def fullOAS = "http://localhost:8080/swagger-docs"
+/// Provide ability to override with gradle command line input
+/// call gradle with -Poas="<uri>" to specify non-default OAS location
+if(project.hasProperty('oas')){
+    fullOAS = oas
+}
+
+/// Generates the openapi frontend bindings
+openApiGenerate {
+    /// Source command:
+    /// openapi-generator generate -g typescript-angular -i http://localhost:8080/swagger-docs -o openapi --skip-validate-spec --additional-properties npmName=@dres-openapi/api,snapshot=true,ngVersion=9.1.0
+    generateApiTests = false // No tests please
+    generateModelTests = false // No tests please
+    validateSpec = false // No validation please (as in command above)
+
+    generatorName = 'typescript-angular'
+    inputSpec = "$buildDir/oas.json"
+    outputDir = file("${project.projectDir}/../frontend/openapi").toString()
+    configOptions = [
+            npmName: '@dres-openapi/api',
+            ngVersion: '9.1.0',
+            snapshot: 'true' /// I suggest to remove this, as soon as we automate this
+    ]
+}
+
+
 
 repositories {
     mavenCentral()
@@ -166,6 +199,12 @@ task deployFrontend(type: Copy) {
     into('src/main/resources/html')
 }
 
+task downloadOAS(type: Download) {
+    def f = new File("$buildDir/oas.json")
+    src "$fullOAS"
+    dest f
+}
+
 /** Custom tasks: FFmpeg Download and deployment. */
 
 task downloadFFmpeg(type: Download) {
@@ -241,3 +280,5 @@ distZip.dependsOn jar
 distZip.dependsOn setupFFMpeg
 distTar.dependsOn jar
 distTar.dependsOn setupFFMpeg
+
+tasks.openApiGenerate.dependsOn downloadOAS

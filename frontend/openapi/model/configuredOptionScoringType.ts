@@ -18,8 +18,8 @@ export interface ConfiguredOptionScoringType {
 export namespace ConfiguredOptionScoringType {
     export type OptionEnum = 'KIS' | 'AVS';
     export const OptionEnum = {
-        KIS: 'KIS' as OptionEnum,
-        AVS: 'AVS' as OptionEnum
+        Kis: 'KIS' as OptionEnum,
+        Avs: 'AVS' as OptionEnum
     };
 }
 

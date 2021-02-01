@@ -20,8 +20,8 @@ export interface CompetitionStartMessage {
 export namespace CompetitionStartMessage {
     export type TypeEnum = 'SYNCHRONOUS' | 'ASYNCHRONOUS';
     export const TypeEnum = {
-        SYNCHRONOUS: 'SYNCHRONOUS' as TypeEnum,
-        ASYNCHRONOUS: 'ASYNCHRONOUS' as TypeEnum
+        Synchronous: 'SYNCHRONOUS' as TypeEnum,
+        Asynchronous: 'ASYNCHRONOUS' as TypeEnum
     };
 }
 

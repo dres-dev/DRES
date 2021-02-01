@@ -2,7 +2,6 @@ import { NgModule, ModuleWithProviders, SkipSelf, Optional } from '@angular/core
 import { Configuration } from './configuration';
 import { HttpClient } from '@angular/common/http';
 
-
 import { AuditService } from './api/audit.service';
 import { CollectionService } from './api/collection.service';
 import { CompetitionService } from './api/competition.service';

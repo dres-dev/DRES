@@ -20,10 +20,10 @@ export interface UserDetails {
 export namespace UserDetails {
     export type RoleEnum = 'ADMIN' | 'JUDGE' | 'VIEWER' | 'PARTICIPANT';
     export const RoleEnum = {
-        ADMIN: 'ADMIN' as RoleEnum,
-        JUDGE: 'JUDGE' as RoleEnum,
-        VIEWER: 'VIEWER' as RoleEnum,
-        PARTICIPANT: 'PARTICIPANT' as RoleEnum
+        Admin: 'ADMIN' as RoleEnum,
+        Judge: 'JUDGE' as RoleEnum,
+        Viewer: 'VIEWER' as RoleEnum,
+        Participant: 'PARTICIPANT' as RoleEnum
     };
 }
 

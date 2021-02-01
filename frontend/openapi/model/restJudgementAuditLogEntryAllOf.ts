@@ -22,16 +22,16 @@ export interface RestJudgementAuditLogEntryAllOf {
 export namespace RestJudgementAuditLogEntryAllOf {
     export type VerdictEnum = 'CORRECT' | 'WRONG' | 'INDETERMINATE' | 'UNDECIDABLE';
     export const VerdictEnum = {
-        CORRECT: 'CORRECT' as VerdictEnum,
-        WRONG: 'WRONG' as VerdictEnum,
-        INDETERMINATE: 'INDETERMINATE' as VerdictEnum,
-        UNDECIDABLE: 'UNDECIDABLE' as VerdictEnum
+        Correct: 'CORRECT' as VerdictEnum,
+        Wrong: 'WRONG' as VerdictEnum,
+        Indeterminate: 'INDETERMINATE' as VerdictEnum,
+        Undecidable: 'UNDECIDABLE' as VerdictEnum
     };
     export type ApiEnum = 'REST' | 'CLI' | 'INTERNAL';
     export const ApiEnum = {
-        REST: 'REST' as ApiEnum,
-        CLI: 'CLI' as ApiEnum,
-        INTERNAL: 'INTERNAL' as ApiEnum
+        Rest: 'REST' as ApiEnum,
+        Cli: 'CLI' as ApiEnum,
+        Internal: 'INTERNAL' as ApiEnum
     };
 }
 

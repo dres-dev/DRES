@@ -23,8 +23,8 @@ export interface RestMediaItem {
 export namespace RestMediaItem {
     export type TypeEnum = 'IMAGE' | 'VIDEO';
     export const TypeEnum = {
-        IMAGE: 'IMAGE' as TypeEnum,
-        VIDEO: 'VIDEO' as TypeEnum
+        Image: 'IMAGE' as TypeEnum,
+        Video: 'VIDEO' as TypeEnum
     };
 }
 

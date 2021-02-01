@@ -18,9 +18,9 @@ export interface RestLogoutAuditLogEntryAllOf {
 export namespace RestLogoutAuditLogEntryAllOf {
     export type ApiEnum = 'REST' | 'CLI' | 'INTERNAL';
     export const ApiEnum = {
-        REST: 'REST' as ApiEnum,
-        CLI: 'CLI' as ApiEnum,
-        INTERNAL: 'INTERNAL' as ApiEnum
+        Rest: 'REST' as ApiEnum,
+        Cli: 'CLI' as ApiEnum,
+        Internal: 'INTERNAL' as ApiEnum
     };
 }
 

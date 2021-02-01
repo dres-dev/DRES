@@ -19,10 +19,10 @@ export interface RestTaskDescriptionTarget {
 export namespace RestTaskDescriptionTarget {
     export type TypeEnum = 'SINGLE_MEDIA_ITEM' | 'SINGLE_MEDIA_SEGMENT' | 'MULTIPLE_MEDIA_ITEMS' | 'JUDGEMENT';
     export const TypeEnum = {
-        SingleMediaItem: 'SINGLE_MEDIA_ITEM' as TypeEnum,
-        SingleMediaSegment: 'SINGLE_MEDIA_SEGMENT' as TypeEnum,
-        MultipleMediaItems: 'MULTIPLE_MEDIA_ITEMS' as TypeEnum,
-        Judgement: 'JUDGEMENT' as TypeEnum
+        SINGLE_MEDIA_ITEM: 'SINGLE_MEDIA_ITEM' as TypeEnum,
+        SINGLE_MEDIA_SEGMENT: 'SINGLE_MEDIA_SEGMENT' as TypeEnum,
+        MULTIPLE_MEDIA_ITEMS: 'MULTIPLE_MEDIA_ITEMS' as TypeEnum,
+        JUDGEMENT: 'JUDGEMENT' as TypeEnum
     };
 }
 

@@ -18,10 +18,10 @@ export interface ConfiguredOptionTargetType {
 export namespace ConfiguredOptionTargetType {
     export type OptionEnum = 'SINGLE_MEDIA_ITEM' | 'SINGLE_MEDIA_SEGMENT' | 'MULTIPLE_MEDIA_ITEMS' | 'JUDGEMENT';
     export const OptionEnum = {
-        SingleMediaItem: 'SINGLE_MEDIA_ITEM' as OptionEnum,
-        SingleMediaSegment: 'SINGLE_MEDIA_SEGMENT' as OptionEnum,
-        MultipleMediaItems: 'MULTIPLE_MEDIA_ITEMS' as OptionEnum,
-        Judgement: 'JUDGEMENT' as OptionEnum
+        SINGLE_MEDIA_ITEM: 'SINGLE_MEDIA_ITEM' as OptionEnum,
+        SINGLE_MEDIA_SEGMENT: 'SINGLE_MEDIA_SEGMENT' as OptionEnum,
+        MULTIPLE_MEDIA_ITEMS: 'MULTIPLE_MEDIA_ITEMS' as OptionEnum,
+        JUDGEMENT: 'JUDGEMENT' as OptionEnum
     };
 }
 

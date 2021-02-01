@@ -25,16 +25,16 @@ export interface RestPrepareJudgementAuditLogEntry {
 export namespace RestPrepareJudgementAuditLogEntry {
     export type TypeEnum = 'COMPETITION_START' | 'COMPETITION_END' | 'TASK_START' | 'TASK_MODIFIED' | 'TASK_END' | 'SUBMISSION' | 'PREPARE_JUDGEMENT' | 'JUDGEMENT' | 'LOGIN' | 'LOGOUT';
     export const TypeEnum = {
-        CompetitionStart: 'COMPETITION_START' as TypeEnum,
-        CompetitionEnd: 'COMPETITION_END' as TypeEnum,
-        TaskStart: 'TASK_START' as TypeEnum,
-        TaskModified: 'TASK_MODIFIED' as TypeEnum,
-        TaskEnd: 'TASK_END' as TypeEnum,
-        Submission: 'SUBMISSION' as TypeEnum,
-        PrepareJudgement: 'PREPARE_JUDGEMENT' as TypeEnum,
-        Judgement: 'JUDGEMENT' as TypeEnum,
-        Login: 'LOGIN' as TypeEnum,
-        Logout: 'LOGOUT' as TypeEnum
+        COMPETITION_START: 'COMPETITION_START' as TypeEnum,
+        COMPETITION_END: 'COMPETITION_END' as TypeEnum,
+        TASK_START: 'TASK_START' as TypeEnum,
+        TASK_MODIFIED: 'TASK_MODIFIED' as TypeEnum,
+        TASK_END: 'TASK_END' as TypeEnum,
+        SUBMISSION: 'SUBMISSION' as TypeEnum,
+        PREPARE_JUDGEMENT: 'PREPARE_JUDGEMENT' as TypeEnum,
+        JUDGEMENT: 'JUDGEMENT' as TypeEnum,
+        LOGIN: 'LOGIN' as TypeEnum,
+        LOGOUT: 'LOGOUT' as TypeEnum
     };
 }
 

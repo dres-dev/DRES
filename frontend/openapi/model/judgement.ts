@@ -19,10 +19,10 @@ export interface Judgement {
 export namespace Judgement {
     export type VerdictEnum = 'CORRECT' | 'WRONG' | 'INDETERMINATE' | 'UNDECIDABLE';
     export const VerdictEnum = {
-        Correct: 'CORRECT' as VerdictEnum,
-        Wrong: 'WRONG' as VerdictEnum,
-        Indeterminate: 'INDETERMINATE' as VerdictEnum,
-        Undecidable: 'UNDECIDABLE' as VerdictEnum
+        CORRECT: 'CORRECT' as VerdictEnum,
+        WRONG: 'WRONG' as VerdictEnum,
+        INDETERMINATE: 'INDETERMINATE' as VerdictEnum,
+        UNDECIDABLE: 'UNDECIDABLE' as VerdictEnum
     };
 }
 

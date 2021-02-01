@@ -18,11 +18,11 @@ export interface ConfiguredOptionQueryComponentType {
 export namespace ConfiguredOptionQueryComponentType {
     export type OptionEnum = 'IMAGE_ITEM' | 'VIDEO_ITEM_SEGMENT' | 'TEXT' | 'EXTERNAL_IMAGE' | 'EXTERNAL_VIDEO';
     export const OptionEnum = {
-        ImageItem: 'IMAGE_ITEM' as OptionEnum,
-        VideoItemSegment: 'VIDEO_ITEM_SEGMENT' as OptionEnum,
-        Text: 'TEXT' as OptionEnum,
-        ExternalImage: 'EXTERNAL_IMAGE' as OptionEnum,
-        ExternalVideo: 'EXTERNAL_VIDEO' as OptionEnum
+        IMAGE_ITEM: 'IMAGE_ITEM' as OptionEnum,
+        VIDEO_ITEM_SEGMENT: 'VIDEO_ITEM_SEGMENT' as OptionEnum,
+        TEXT: 'TEXT' as OptionEnum,
+        EXTERNAL_IMAGE: 'EXTERNAL_IMAGE' as OptionEnum,
+        EXTERNAL_VIDEO: 'EXTERNAL_VIDEO' as OptionEnum
     };
 }
 

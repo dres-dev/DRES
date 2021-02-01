@@ -19,10 +19,10 @@ export interface ContentElement {
 export namespace ContentElement {
     export type ContentTypeEnum = 'EMPTY' | 'TEXT' | 'VIDEO' | 'IMAGE';
     export const ContentTypeEnum = {
-        Empty: 'EMPTY' as ContentTypeEnum,
-        Text: 'TEXT' as ContentTypeEnum,
-        Video: 'VIDEO' as ContentTypeEnum,
-        Image: 'IMAGE' as ContentTypeEnum
+        EMPTY: 'EMPTY' as ContentTypeEnum,
+        TEXT: 'TEXT' as ContentTypeEnum,
+        VIDEO: 'VIDEO' as ContentTypeEnum,
+        IMAGE: 'IMAGE' as ContentTypeEnum
     };
 }
 

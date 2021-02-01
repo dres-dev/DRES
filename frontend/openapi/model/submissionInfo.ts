@@ -25,10 +25,10 @@ export interface SubmissionInfo {
 export namespace SubmissionInfo {
     export type StatusEnum = 'CORRECT' | 'WRONG' | 'INDETERMINATE' | 'UNDECIDABLE';
     export const StatusEnum = {
-        Correct: 'CORRECT' as StatusEnum,
-        Wrong: 'WRONG' as StatusEnum,
-        Indeterminate: 'INDETERMINATE' as StatusEnum,
-        Undecidable: 'UNDECIDABLE' as StatusEnum
+        CORRECT: 'CORRECT' as StatusEnum,
+        WRONG: 'WRONG' as StatusEnum,
+        INDETERMINATE: 'INDETERMINATE' as StatusEnum,
+        UNDECIDABLE: 'UNDECIDABLE' as StatusEnum
     };
 }
 

@@ -18,12 +18,12 @@ export interface ConfiguredOptionSubmissionFilterType {
 export namespace ConfiguredOptionSubmissionFilterType {
     export type OptionEnum = 'NO_DUPLICATES' | 'LIMIT_CORRECT_PER_TEAM' | 'LIMIT_WRONG_PER_TEAM' | 'LIMIT_TOTAL_PER_TEAM' | 'LIMIT_CORRECT_PER_MEMBER' | 'TEMPORAL_SUBMISSION';
     export const OptionEnum = {
-        NoDuplicates: 'NO_DUPLICATES' as OptionEnum,
-        LimitCorrectPerTeam: 'LIMIT_CORRECT_PER_TEAM' as OptionEnum,
-        LimitWrongPerTeam: 'LIMIT_WRONG_PER_TEAM' as OptionEnum,
-        LimitTotalPerTeam: 'LIMIT_TOTAL_PER_TEAM' as OptionEnum,
-        LimitCorrectPerMember: 'LIMIT_CORRECT_PER_MEMBER' as OptionEnum,
-        TemporalSubmission: 'TEMPORAL_SUBMISSION' as OptionEnum
+        NO_DUPLICATES: 'NO_DUPLICATES' as OptionEnum,
+        LIMIT_CORRECT_PER_TEAM: 'LIMIT_CORRECT_PER_TEAM' as OptionEnum,
+        LIMIT_WRONG_PER_TEAM: 'LIMIT_WRONG_PER_TEAM' as OptionEnum,
+        LIMIT_TOTAL_PER_TEAM: 'LIMIT_TOTAL_PER_TEAM' as OptionEnum,
+        LIMIT_CORRECT_PER_MEMBER: 'LIMIT_CORRECT_PER_MEMBER' as OptionEnum,
+        TEMPORAL_SUBMISSION: 'TEMPORAL_SUBMISSION' as OptionEnum
     };
 }
 

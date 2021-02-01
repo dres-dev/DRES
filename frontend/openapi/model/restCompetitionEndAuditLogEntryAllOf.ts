@@ -19,9 +19,9 @@ export interface RestCompetitionEndAuditLogEntryAllOf {
 export namespace RestCompetitionEndAuditLogEntryAllOf {
     export type ApiEnum = 'REST' | 'CLI' | 'INTERNAL';
     export const ApiEnum = {
-        Rest: 'REST' as ApiEnum,
-        Cli: 'CLI' as ApiEnum,
-        Internal: 'INTERNAL' as ApiEnum
+        REST: 'REST' as ApiEnum,
+        CLI: 'CLI' as ApiEnum,
+        INTERNAL: 'INTERNAL' as ApiEnum
     };
 }
 

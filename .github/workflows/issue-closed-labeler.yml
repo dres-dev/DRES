@@ -18,3 +18,4 @@ jobs:
         uses: gh-bot/fix-labeler@master
         with:
           token: ${{ github.token }}
+          label: 'dev'

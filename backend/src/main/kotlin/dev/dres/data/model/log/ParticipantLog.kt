@@ -2,10 +2,15 @@ package dev.dres.data.model.log
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSetter
+import com.fasterxml.jackson.annotation.Nulls
+
+enum class QueryEventCategory {
+    TEXT, IMAGE, SKETCH, FILTER, BROWSING, COOPERATION, OTHER
+}
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class QueryEvent(val timestamp: Long = -1,
-                      val category: String = "",
+                      val category: QueryEventCategory = QueryEventCategory.OTHER,
                       val type: String = "",
                       val value: String = "")
 

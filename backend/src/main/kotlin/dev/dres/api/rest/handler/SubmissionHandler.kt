@@ -82,7 +82,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         val item = this.itemIndex[collectionId to itemParam].firstOrNull() ?:
             throw ErrorStatusException(404, "Media item '$itemParam (collection = $collectionId)' could not be found.", ctx)
 
-        val mapToSegment = runManager.currentTask?.taskType?.options?.contains(TaskType.Options.MAP_TO_SEGMENT) == true
+        val mapToSegment = runManager.currentTask?.taskType?.options?.any { it.option == TaskType.Options.MAP_TO_SEGMENT } == true
 
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) && item is MediaItem.VideoItem -> {

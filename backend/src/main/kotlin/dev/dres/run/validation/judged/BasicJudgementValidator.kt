@@ -1,9 +1,7 @@
 package dev.dres.run.validation.judged
 
-import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
-import dev.dres.data.model.run.TemporalSubmissionAspect
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.validation.interfaces.JudgementValidator
 import java.util.*
@@ -17,12 +15,11 @@ import kotlin.concurrent.write
 /**
  * A validator class that checks, if a submission is correct based on a manual judgement by a user.
  *
- * TODO: Track these in the RunExecutor
  *
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */
-class BasicJudgementValidator(): JudgementValidator { //TODO better name
+class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList()): JudgementValidator {
 
     companion object {
         private val counter = AtomicInteger()
@@ -30,12 +27,6 @@ class BasicJudgementValidator(): JudgementValidator { //TODO better name
     }
 
     override val id = "bjv${counter.incrementAndGet()}"
-
-    /** Helper class to store submission information independent of source */
-    private data class ItemRange(val item: MediaItem, val start: Long, val end: Long){
-        constructor(submission: TemporalSubmissionAspect): this(submission.item, submission.start, submission.end)
-        constructor(submission: Submission): this(submission.item, 0, 0)
-    }
 
     private val updateLock = ReentrantReadWriteLock()
 
@@ -50,6 +41,11 @@ class BasicJudgementValidator(): JudgementValidator { //TODO better name
 
     /** Internal map of already judged [Submission]s, independent of their source. */
     private val cache: MutableMap<ItemRange, SubmissionStatus> = ConcurrentHashMap()
+
+    init {
+        knownCorrectRanges.forEach { cache[it] = SubmissionStatus.CORRECT }
+        knownWrongRanges.forEach { cache[it] = SubmissionStatus.WRONG }
+    }
 
     private fun checkTimeOuts() = updateLock.write {
         val now = System.currentTimeMillis()

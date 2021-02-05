@@ -3,7 +3,6 @@ package dev.dres.data.serializers
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.*
-import dev.dres.data.model.competition.TaskDescription
 import dev.dres.utilities.extensions.readUID
 import dev.dres.utilities.extensions.writeUID
 import org.mapdb.DataInput2
@@ -50,7 +49,16 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
     private fun writeTaskDescriptionTarget(out: DataOutput2, target: TaskDescriptionTarget) {
         out.packInt(target.ordinal)
         when(target) {
-            is TaskDescriptionTarget.JudgementTaskDescriptionTarget -> {}
+            is TaskDescriptionTarget.JudgementTaskDescriptionTarget -> {
+                out.packInt(target.targets.size)
+                target.targets.forEach {
+                    out.writeUID(it.first.id)
+                    out.writeBoolean(it.second != null)
+                    if (it.second != null){
+                        TemporalRangeSerializer.serialize(out, it.second!!)
+                    }
+                }
+            }
             is TaskDescriptionTarget.VideoSegmentTarget -> {
                 out.writeUID(target.item.id)
                 TemporalRangeSerializer.serialize(out, target.temporalRange)
@@ -108,7 +116,13 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
      */
     private fun readTaskDescriptionTarget(input: DataInput2, available: Int, mediaItems: DAO<MediaItem>) : TaskDescriptionTarget {
         return when(val ordinal = input.unpackInt()) {
-            1 -> TaskDescriptionTarget.JudgementTaskDescriptionTarget
+            1 -> TaskDescriptionTarget.JudgementTaskDescriptionTarget(
+                (0 until input.unpackInt()).map {
+                    Pair(mediaItems[input.readUID()]!!, if (input.readBoolean()) {
+                        TemporalRangeSerializer.deserialize(input, available)
+                    } else null)
+                }
+            )
             2 -> TaskDescriptionTarget.MediaItemTarget(mediaItems[input.readUID()]!!)
             3 -> TaskDescriptionTarget.VideoSegmentTarget(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
             4 -> TaskDescriptionTarget.MultipleMediaItemTarget((0 until input.unpackInt()).map { mediaItems[input.readUID()]!! })

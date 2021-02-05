@@ -7,12 +7,15 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
+import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.score.interfaces.TaskRunScorer
 import dev.dres.run.validation.MediaItemsSubmissionValidator
 import dev.dres.run.validation.TemporalOverlapSubmissionValidator
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import dev.dres.run.validation.judged.BasicJudgementValidator
+import dev.dres.run.validation.judged.ItemRange
+import dev.dres.utilities.TimeUtil
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.PrintStream
@@ -71,7 +74,19 @@ class TaskDescription(
         TaskType.TargetType.SINGLE_MEDIA_ITEM -> MediaItemsSubmissionValidator(setOf((target as TaskDescriptionTarget.MediaItemTarget).item))
         TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionValidator(target as TaskDescriptionTarget.VideoSegmentTarget)
         TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> MediaItemsSubmissionValidator((target as TaskDescriptionTarget.MultipleMediaItemTarget).items.toSet())
-        TaskType.TargetType.JUDGEMENT -> BasicJudgementValidator()
+        TaskType.TargetType.JUDGEMENT -> BasicJudgementValidator(knownCorrectRanges =
+            (target as TaskDescriptionTarget.JudgementTaskDescriptionTarget).targets.map {
+                if (it.second == null){
+                    ItemRange(it.first)
+                } else {
+                    val item = it.first
+                    val range = if (item is MediaItem.VideoItem) {
+                        TimeUtil.toMilliseconds(it.second!!, item.fps)
+                    } else {
+                        TimeUtil.toMilliseconds(it.second!!)
+                    }
+                    ItemRange(item, range.first, range.second)
+                } })
     }
 
     /**

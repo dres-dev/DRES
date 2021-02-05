@@ -19,7 +19,7 @@ import kotlin.concurrent.write
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */
-class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList()): JudgementValidator {
+open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList()): JudgementValidator {
 
     companion object {
         private val counter = AtomicInteger()
@@ -122,9 +122,13 @@ class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = emptyL
      * @param token The token used to identify the [Submission].
      * @param verdict The verdict of the judge.
      */
-    override fun judge(token: String, verdict: SubmissionStatus) = updateLock.write {
+    override fun judge(token: String, verdict: SubmissionStatus) {
+        doJudge(token, verdict)
+    }
+
+    internal fun doJudge(token: String, verdict: SubmissionStatus) : Submission? = updateLock.write {
         require(this.waiting.containsKey(token)) { "This JudgementValidator does not contain a submission for the token '$token'." }
-        val submission = this.waiting[token] ?: return@write //submission with token not found TODO: this should be logged
+        val submission = this.waiting[token] ?: return@write null //submission with token not found TODO: this should be logged
         submission.status = verdict
 
         //add to cache
@@ -132,6 +136,8 @@ class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = emptyL
 
         //remove from waiting map
         this.waiting.remove(token)
+
+        return@write submission
     }
 
     /**

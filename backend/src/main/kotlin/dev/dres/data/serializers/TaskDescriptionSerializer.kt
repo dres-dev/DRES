@@ -59,6 +59,16 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
                     }
                 }
             }
+            is TaskDescriptionTarget.VoteTaskDescriptionTarget-> {
+                out.packInt(target.targets.size)
+                target.targets.forEach {
+                    out.writeUID(it.first.id)
+                    out.writeBoolean(it.second != null)
+                    if (it.second != null){
+                        TemporalRangeSerializer.serialize(out, it.second!!)
+                    }
+                }
+            }
             is TaskDescriptionTarget.VideoSegmentTarget -> {
                 out.writeUID(target.item.id)
                 TemporalRangeSerializer.serialize(out, target.temporalRange)
@@ -126,6 +136,13 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
             2 -> TaskDescriptionTarget.MediaItemTarget(mediaItems[input.readUID()]!!)
             3 -> TaskDescriptionTarget.VideoSegmentTarget(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
             4 -> TaskDescriptionTarget.MultipleMediaItemTarget((0 until input.unpackInt()).map { mediaItems[input.readUID()]!! })
+            5 -> TaskDescriptionTarget.VoteTaskDescriptionTarget(
+                (0 until input.unpackInt()).map {
+                    Pair(mediaItems[input.readUID()]!!, if (input.readBoolean()) {
+                        TemporalRangeSerializer.deserialize(input, available)
+                    } else null)
+                }
+            )
             else -> throw IllegalStateException("Failed to deserialize Task Description Target for ordinal $ordinal; not implemented.")
         }
     }

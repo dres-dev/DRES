@@ -134,4 +134,10 @@ sealed class TaskDescriptionTarget {
             return contentElements
         }
     }
+
+    data class VoteTaskDescriptionTarget(val targets: List<Pair<MediaItem, TemporalRange?>>) : TaskDescriptionTarget() {
+        override val ordinal: Int = 5
+        override fun textDescription() = "Judgement with voting"
+        override fun toQueryContentElement(config: Config, collections: DAO<MediaCollection>): List<ContentElement> = emptyList()
+    }
 }

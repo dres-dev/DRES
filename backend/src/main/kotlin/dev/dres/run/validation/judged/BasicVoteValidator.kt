@@ -8,7 +8,22 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.write
 
-class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList()) : BasicJudgementValidator(knownCorrectRanges, knownWrongRanges), VoteValidator {
+class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList(), val minimumVotes: Int = defaultMinimimVotes, val voteDifference: Int = defaultVoteDifference) : BasicJudgementValidator(knownCorrectRanges, knownWrongRanges), VoteValidator {
+
+    constructor(knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList(), parameters: Map<String, String>): this(
+        knownCorrectRanges, knownWrongRanges,
+        parameters.getOrDefault("minimumVotes", "$defaultMinimimVotes").toIntOrNull() ?: defaultMinimimVotes,
+        parameters.getOrDefault("voteDifference", "$defaultVoteDifference").toIntOrNull() ?: defaultVoteDifference
+    )
+
+    init {
+        require(minimumVotes > 0) {"minimum vote count cannot be <= 0"}
+    }
+
+    companion object {
+        private val defaultMinimimVotes = 5
+        private val defaultVoteDifference = 1
+    }
 
     private val submissionQueue = ConcurrentLinkedQueue<Submission>()
     private val voteCountMap = ConcurrentHashMap<SubmissionStatus, Int>()
@@ -42,7 +57,10 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
     }
 
     private fun enoughVotes() : Boolean {
-        return voteCountMap.values.sum() > 5 //TODO make configurable
+        val sum = voteCountMap.values.sum()
+        if (sum < minimumVotes) return false
+        val max = voteCountMap.values.maxOrNull() ?: 0
+        return (sum - max) >= voteDifference
     }
 
     override fun nextSubmissionToVoteOn(): Submission? = submissionQueue.firstOrNull() //TODO maybe add timeout mechanism?

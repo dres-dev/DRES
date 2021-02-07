@@ -33,7 +33,7 @@ class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemS
             is TaskStartEvent -> {
                 lastActiveTask[event.runId] = event.taskDescription
                 lastActiveTargets[event.runId] = when(event.taskDescription.target) {
-                    is TaskDescriptionTarget.JudgementTaskDescriptionTarget -> return //no analysis possible
+                    is TaskDescriptionTarget.JudgementTaskDescriptionTarget, is TaskDescriptionTarget.VoteTaskDescriptionTarget, -> return //no analysis possible
                     is TaskDescriptionTarget.MediaItemTarget -> listOf(event.taskDescription.target.item to null)
                     is TaskDescriptionTarget.VideoSegmentTarget ->  listOf(event.taskDescription.target.item to event.taskDescription.target.temporalRange)
                     is TaskDescriptionTarget.MultipleMediaItemTarget -> event.taskDescription.target.items.map { it to null }

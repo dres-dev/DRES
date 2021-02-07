@@ -14,6 +14,7 @@ import dev.dres.run.validation.MediaItemsSubmissionValidator
 import dev.dres.run.validation.TemporalOverlapSubmissionValidator
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import dev.dres.run.validation.judged.BasicJudgementValidator
+import dev.dres.run.validation.judged.BasicVoteValidator
 import dev.dres.run.validation.judged.ItemRange
 import dev.dres.utilities.TimeUtil
 import java.io.FileNotFoundException
@@ -87,6 +88,23 @@ class TaskDescription(
                     }
                     ItemRange(item, range.first, range.second)
                 } })
+        TaskType.TargetType.VOTE -> BasicVoteValidator(
+            knownCorrectRanges =
+            (target as TaskDescriptionTarget.VoteTaskDescriptionTarget).targets.map {
+                if (it.second == null){
+                    ItemRange(it.first)
+                } else {
+                    val item = it.first
+                    val range = if (item is MediaItem.VideoItem) {
+                        TimeUtil.toMilliseconds(it.second!!, item.fps)
+                    } else {
+                        TimeUtil.toMilliseconds(it.second!!)
+                    }
+                    ItemRange(item, range.first, range.second)
+                } },
+            parameters = taskType.targetType.parameters
+
+        )
     }
 
     /**
@@ -134,7 +152,7 @@ class TaskDescription(
      * @throws FileNotFoundException
      * @throws IOException
      */
-    fun toTaskTarget(config: Config, collections: DAO<MediaCollection>): TaskTarget? = this.target.toQueryContentElement(config, collections).let { TaskTarget(this.id.string, it) }
+    fun toTaskTarget(config: Config, collections: DAO<MediaCollection>): TaskTarget = this.target.toQueryContentElement(config, collections).let { TaskTarget(this.id.string, it) }
 
     /** Produces a Textual description of the content of the task if possible */
     fun textualDescription(): String = hints.filterIsInstance(TaskDescriptionHint.TextTaskDescriptionHint::class.java)

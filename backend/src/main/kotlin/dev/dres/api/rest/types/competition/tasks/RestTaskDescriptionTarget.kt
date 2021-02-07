@@ -22,10 +22,11 @@ data class RestTaskDescriptionTarget(val type: TaskType.TargetType, val mediaIte
          * @param target The [TaskDescriptionTarget] to convert.
          */
         fun fromTarget(target: TaskDescriptionTarget) = when(target) {
-            is TaskDescriptionTarget.JudgementTaskDescriptionTarget -> RestTaskDescriptionTarget(TaskType.TargetType.JUDGEMENT)
+            is TaskDescriptionTarget.JudgementTaskDescriptionTarget -> RestTaskDescriptionTarget(TaskType.TargetType.JUDGEMENT, target.targets.map { RestTaskDescriptionTargetItem(it.first.id.string, it.second) })
             is TaskDescriptionTarget.VideoSegmentTarget -> RestTaskDescriptionTarget(TaskType.TargetType.SINGLE_MEDIA_SEGMENT, listOf(RestTaskDescriptionTargetItem(target.item.id.string, target.temporalRange)))
             is TaskDescriptionTarget.MediaItemTarget -> RestTaskDescriptionTarget(TaskType.TargetType.SINGLE_MEDIA_ITEM, listOf(RestTaskDescriptionTargetItem(target.item.id.string)))
             is TaskDescriptionTarget.MultipleMediaItemTarget -> RestTaskDescriptionTarget(TaskType.TargetType.MULTIPLE_MEDIA_ITEMS, target.items.map { RestTaskDescriptionTargetItem(it.id.string) })
+            is TaskDescriptionTarget.VoteTaskDescriptionTarget -> RestTaskDescriptionTarget(TaskType.TargetType.VOTE, target.targets.map { RestTaskDescriptionTargetItem(it.first.id.string, it.second) })
         }
     }
 
@@ -39,5 +40,6 @@ data class RestTaskDescriptionTarget(val type: TaskType.TargetType, val mediaIte
         TaskType.TargetType.JUDGEMENT -> TaskDescriptionTarget.JudgementTaskDescriptionTarget(this.mediaItems.map { mediaItems[it.mediaItem.UID()]!! to it.temporalRange })
         TaskType.TargetType.SINGLE_MEDIA_ITEM -> TaskDescriptionTarget.MediaItemTarget(mediaItems[this.mediaItems.first().mediaItem.UID()]!!)
         TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> TaskDescriptionTarget.MultipleMediaItemTarget(this.mediaItems.map { mediaItems[it.mediaItem.UID()]!! })
+        TaskType.TargetType.VOTE -> TaskDescriptionTarget.VoteTaskDescriptionTarget(this.mediaItems.map { mediaItems[it.mediaItem.UID()]!! to it.temporalRange })
     }
 }

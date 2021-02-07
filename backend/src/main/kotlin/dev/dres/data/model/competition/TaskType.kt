@@ -31,7 +31,8 @@ data class TaskType(
         SINGLE_MEDIA_ITEM, // Whole Media Item"
         SINGLE_MEDIA_SEGMENT, //Part of a Media Item
         MULTIPLE_MEDIA_ITEMS, //Multiple Media Items
-        JUDGEMENT //Judgement
+        JUDGEMENT, //Judgement
+        VOTE //Judgement with audience voting
     }
 
     enum class QueryComponentType : Option{

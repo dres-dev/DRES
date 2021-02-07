@@ -14,10 +14,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.CompetitionRun
-import dev.dres.run.RunExecutor
-import dev.dres.run.RunManager
-import dev.dres.run.RunManagerStatus
-import dev.dres.run.SynchronousRunManager
+import dev.dres.run.*
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
 import dev.dres.run.eventstream.EventStreamProcessor
@@ -37,7 +34,13 @@ abstract class AbstractCompetitionRunAdminRestHandler : RestHandler, AccessManag
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.ADMIN)
 
-    fun getRun(runId: UID): RunManager? = RunExecutor.managerForId(runId)
+    fun getRun(runId: UID): InteractiveRunManager? {
+        val run = RunExecutor.managerForId(runId)
+        if (run != null && run is InteractiveRunManager){
+            return run
+        }
+        return null
+    }
 
     fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
         throw ErrorStatusException(404, "Parameter 'runId' is missing!'", ctx)
@@ -81,7 +84,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
 
         /* ensure that only one synchronous run of a competition is happening at any given time */
         if (competitionStartMessage.type == RunType.SYNCHRONOUS && RunExecutor.managers().any {
-                    it is SynchronousRunManager && it.competitionDescription.id == competitionToStart.id && it.status != RunManagerStatus.TERMINATED
+                    it is SynchronousInteractiveRunManager && it.competitionDescription.id == competitionToStart.id && it.status != RunManagerStatus.TERMINATED
                 }
         ) {
             throw ErrorStatusException(400, "Synchronous run of competition ${competitionToStart.name} already exists", ctx)
@@ -114,7 +117,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
         try {
             val manager = when (competitionStartMessage.type) {
                 RunType.ASYNCHRONOUS -> TODO()
-                RunType.SYNCHRONOUS -> SynchronousRunManager(competitionToStart, competitionStartMessage.name)
+                RunType.SYNCHRONOUS -> SynchronousInteractiveRunManager(competitionToStart, competitionStartMessage.name)
             }
 
             /**... and schedule RunManager. */

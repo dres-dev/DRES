@@ -16,8 +16,8 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.competition.TaskType
+import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
-import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
@@ -42,24 +42,29 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
     //private fun isViewer(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.VIEWER) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
     fun isParticipant(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.PARTICIPANT) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
 
-    fun getRelevantManagers(ctx: Context): List<RunManager> {
+    fun getRelevantManagers(ctx: Context): List<InteractiveRunManager> {
         if (isParticipant(ctx)) {
             val userId = userId(ctx)
-            return RunExecutor.managers().filter { m -> m.competitionDescription.teams.any { it.users.contains(userId) } }
+            return RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java).filter { m -> m.competitionDescription.teams.any { it.users.contains(userId) } }
         }
-        return RunExecutor.managers()
+        return RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java)
     }
 
-    fun getRun(ctx: Context, runId: UID): RunManager? {
+    fun getRun(ctx: Context, runId: UID): InteractiveRunManager? {
         if (isParticipant(ctx)) {
             val userId = userId(ctx)
             val run = RunExecutor.managerForId(runId) ?: return null
-            if (run.competitionDescription.teams.any { it.users.contains(userId) }) {
+            if (run is InteractiveRunManager && run.competitionDescription.teams.any { it.users.contains(userId) }) {
                 return run
             }
             return null
         }
-        return RunExecutor.managerForId(runId)
+        val run =  RunExecutor.managerForId(runId)
+        if (run != null && run is InteractiveRunManager){
+            return run
+        }
+        return null
+
     }
 
     fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {

@@ -37,7 +37,7 @@ import kotlin.math.max
  * @version 2.1.0
  * @author Ralph Gasser
  */
-class SynchronousRunManager(val run: CompetitionRun) : RunManager {
+class SynchronousInteractiveRunManager(val run: CompetitionRun) : InteractiveRunManager {
 
     private val VIEWER_TIME_OUT = 30L //TODO make configurable
 
@@ -55,15 +55,15 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
      */
     constructor(description: CompetitionDescription, name: String) : this(CompetitionRun(UID.EMPTY, name, description).apply { RunExecutor.runs.append(this) })
 
-    /** Run ID of this [SynchronousRunManager]. */
+    /** Run ID of this [SynchronousInteractiveRunManager]. */
     override val id: UID
         get() = this.run.id
 
-    /** Name of this [SynchronousRunManager]. */
+    /** Name of this [SynchronousInteractiveRunManager]. */
     override val name: String
         get() = this.run.name
 
-    /** The [CompetitionDescription] executed by this [SynchronousRunManager]. */
+    /** The [CompetitionDescription] executed by this [SynchronousInteractiveRunManager]. */
     override val competitionDescription: CompetitionDescription
         get() = this.run.competitionDescription
 
@@ -88,7 +88,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
             this.currentTaskRun?.submissions ?: emptyList()
         }
 
-    /** The list of all [Submission]s tracked ever received by this [SynchronousRunManager]. */
+    /** The list of all [Submission]s tracked ever received by this [SynchronousInteractiveRunManager]. */
     override val allSubmissions: List<Submission>
         get() = this.stateLock.read {
             this.run.runs.flatMap { it.submissions }
@@ -106,11 +106,11 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
         }
         private set
 
-    /** Returns list [JudgementValidator]s associated with this [SynchronousRunManager]. May be empty*/
+    /** Returns list [JudgementValidator]s associated with this [SynchronousInteractiveRunManager]. May be empty*/
     override val judgementValidators: List<JudgementValidator>
         get() = this.run.runs.mapNotNull { if (it.hasStarted && it.validator is JudgementValidator) it.validator else null }
 
-    /** List of [Scoreboard]s for this [SynchronousRunManager]. */
+    /** List of [Scoreboard]s for this [SynchronousInteractiveRunManager]. */
     override val scoreboards: List<Scoreboard>
         get() = this._scoreboards.scoreboards
 
@@ -121,28 +121,28 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     /** Internal data structure that tracks all [WebSocketConnection]s and their ready state (for [RunManagerStatus.PREPARING_TASK]) */
     private val readyLatch = ReadyLatch<WebSocketConnection>()
 
-    /** The internal [ScoreboardsUpdatable] instance for this [SynchronousRunManager]. */
+    /** The internal [ScoreboardsUpdatable] instance for this [SynchronousInteractiveRunManager]. */
     private val _scoreboards = ScoreboardsUpdatable(this.competitionDescription.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
 
-    /** The internal [MessageQueueUpdatable] instance used by this [SynchronousRunManager]. */
+    /** The internal [MessageQueueUpdatable] instance used by this [SynchronousInteractiveRunManager]. */
     private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
 
-    /** The internal [ScoresUpdatable] instance for this [SynchronousRunManager]. */
+    /** The internal [ScoresUpdatable] instance for this [SynchronousInteractiveRunManager]. */
     private val scoresUpdatable = ScoresUpdatable(this.id, this._scoreboards, this.messageQueueUpdatable)
 
-    /** The internal [DAOUpdatable] instance used by this [SynchronousRunManager]. */
+    /** The internal [DAOUpdatable] instance used by this [SynchronousInteractiveRunManager]. */
     private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
 
     /** The internal [DAOUpdatable] used to end a task once no more submissions are possible */
     private val endTaskUpdatable = EndTaskUpdatable(this)
 
-    /** List of [Updatable] held by this [SynchronousRunManager]. */
+    /** List of [Updatable] held by this [SynchronousInteractiveRunManager]. */
     private val updatables = mutableListOf<Updatable>()
 
     ///** The pipeline for [Submission] processing. All [Submission]s undergo three steps: filter, validation and score update. */
     //private val submissionPipeline: List<Triple<SubmissionFilter,SubmissionValidator, TaskRunScorer>> = LinkedList()
 
-    /** A lock for state changes to this [SynchronousRunManager]. */
+    /** A lock for state changes to this [SynchronousInteractiveRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
 
     init {
@@ -350,7 +350,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     }
 
     /**
-     * Lists  all WebsSocket session IDs for viewer instances currently registered to this [SynchronousRunManager].
+     * Lists  all WebsSocket session IDs for viewer instances currently registered to this [SynchronousInteractiveRunManager].
      *
      * @return Map of session ID to ready state.
      */
@@ -466,7 +466,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
 
         var errorCounter = 0
 
-        /** Start [SynchronousRunManager] . */
+        /** Start [SynchronousInteractiveRunManager] . */
         while (this.status != RunManagerStatus.TERMINATED) {
             try {
                 /* Obtain lock on current state. */
@@ -521,7 +521,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     }
 
     /**
-     * Invokes all [Updatable]s registered with this [SynchronousRunManager].
+     * Invokes all [Updatable]s registered with this [SynchronousInteractiveRunManager].
      */
     private fun invokeUpdatables() {
         this.updatables.forEach {
@@ -536,7 +536,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
     }
 
     /**
-     * This is an internal method that facilitates internal state updates to this [SynchronousRunManager],
+     * This is an internal method that facilitates internal state updates to this [SynchronousInteractiveRunManager],
      * i.e., status updates that are not triggered by an outside interaction.
      */
     private fun internalStateUpdate() {
@@ -563,7 +563,7 @@ class SynchronousRunManager(val run: CompetitionRun) : RunManager {
                     val task = this.currentTaskRun!!
                     task.end()
                     this.status = RunManagerStatus.TASK_ENDED
-                    AuditLogger.taskEnd(this.id, this.currentTask.name, LogEventSource.INTERNAL, null);
+                    AuditLogger.taskEnd(this.id, this.currentTask.name, LogEventSource.INTERNAL, null)
                     EventStreamProcessor.event(TaskEndEvent(this.id, task.uid))
                 }
 

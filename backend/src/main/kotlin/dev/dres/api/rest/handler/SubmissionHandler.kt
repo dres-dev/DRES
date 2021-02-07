@@ -16,6 +16,7 @@ import dev.dres.data.model.basics.media.MediaItemSegmentList
 import dev.dres.data.model.basics.media.PlayableMediaItem
 import dev.dres.data.model.competition.TaskType
 import dev.dres.data.model.run.*
+import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
 import dev.dres.run.audit.AuditLogger
@@ -49,8 +50,8 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
 
     private fun getRelevantManagers(userId: UID): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
-    private fun getActiveRun(userId: UID, ctx: Context): RunManager {
-        val managers = getRelevantManagers(userId).filter { it.status == RunManagerStatus.RUNNING_TASK }
+    private fun getActiveRun(userId: UID, ctx: Context): InteractiveRunManager {
+        val managers = getRelevantManagers(userId).filterIsInstance(InteractiveRunManager::class.java).filter { it.status == RunManagerStatus.RUNNING_TASK }
         if (managers.isEmpty()) {
             throw ErrorStatusException(404, "There is currently no eligible competition with an active task.", ctx)
         }
@@ -62,7 +63,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         return managers.first()
     }
 
-    private fun toSubmission(ctx: Context, userId: UID, runManager: RunManager, submissionTime: Long): Submission {
+    private fun toSubmission(ctx: Context, userId: UID, runManager: InteractiveRunManager, submissionTime: Long): Submission {
         val map = ctx.queryParamMap()
 
         /* Find team that the user belongs to. */

@@ -5,18 +5,13 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.parameters.options.flag
-import com.github.ajalt.clikt.parameters.options.convert
-import com.github.ajalt.clikt.parameters.options.multiple
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
-import com.github.ajalt.clikt.parameters.types.long
+import com.github.ajalt.clikt.parameters.options.*
 import com.jakewharton.picnic.table
-
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
 import dev.dres.data.model.run.CompetitionRun
 import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.utilities.extensions.UID
 import java.nio.file.Files
@@ -54,7 +49,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                 return
             }
             if (plain) {
-                RunExecutor.managers().forEach {
+                RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java).forEach {
                     println("${RunSummary(it.id.string, it.name, it.competitionDescription.description, it.currentTask?.name)} (${it.status})")
                 }
             } else {
@@ -68,7 +63,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                         row("id", "name", "description", "currentTask", "status")
                     }
                     body {
-                        RunExecutor.managers().forEach {
+                        RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java).forEach {
                             row(it.id.string, it.name, it.competitionDescription.description, it.currentTask?.name
                                     ?: "N/A", it.status)
                         }

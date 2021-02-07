@@ -69,7 +69,7 @@ object RunExecutor : Consumer<WsHandler> {
     fun init(runs: DAO<CompetitionRun>) {
         this.runs = runs
         this.runs.filter { !it.hasEnded }.forEach {
-            val run = SynchronousRunManager(it) /* TODO: Distinction between Synchronous and Asynchronous runs. */
+            val run = SynchronousInteractiveRunManager(it) /* TODO: Distinction between Synchronous and Asynchronous runs. */
             this.schedule(run)
         }
     }

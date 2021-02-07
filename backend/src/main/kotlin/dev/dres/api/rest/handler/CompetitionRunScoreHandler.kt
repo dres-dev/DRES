@@ -5,8 +5,8 @@ import dev.dres.api.rest.RestApiRole
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.UID
+import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
-import dev.dres.run.RunManager
 import dev.dres.run.score.scoreboard.Score
 import dev.dres.run.score.scoreboard.ScoreOverview
 import dev.dres.utilities.extensions.UID
@@ -45,16 +45,20 @@ abstract class AbstractScoreRestHandler : RestHandler, AccessManagedRestHandler 
      */
     fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
 
-    fun getRun(ctx: Context, runId: UID): RunManager? {
+    fun getRun(ctx: Context, runId: UID): InteractiveRunManager? {
         if (isParticipant(ctx)) {
             val userId = userId(ctx)
             val run = RunExecutor.managerForId(runId) ?: return null
-            if (run.competitionDescription.teams.any { it.users.contains(userId) }) {
+            if (run is InteractiveRunManager && run.competitionDescription.teams.any { it.users.contains(userId) }) {
                 return run
             }
             return null
         }
-        return RunExecutor.managerForId(runId)
+        val run =  RunExecutor.managerForId(runId)
+        if (run != null && run is InteractiveRunManager){
+            return run
+        }
+        return null
     }
 }
 

@@ -2,11 +2,11 @@ package dev.dres.run.updatables
 
 import dev.dres.data.model.competition.TaskType
 import dev.dres.data.model.run.SubmissionStatus
-import dev.dres.run.RunManager
+import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunManagerStatus
 import java.util.concurrent.atomic.AtomicInteger
 
-class EndTaskUpdatable(private val run: RunManager) : Updatable {
+class EndTaskUpdatable(private val run: InteractiveRunManager) : Updatable {
 
     override val phase: Phase = Phase.MAIN
 

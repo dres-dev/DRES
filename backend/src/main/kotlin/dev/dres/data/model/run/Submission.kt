@@ -6,7 +6,6 @@ import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.basics.time.TemporalPoint
 import dev.dres.data.model.basics.time.TemporalRange
 import dev.dres.data.model.basics.time.TemporalUnit
-import java.util.*
 
 /**
  * A [Submission] as received by a competition participant.
@@ -15,16 +14,25 @@ import java.util.*
  * @version 1.0.1
  */
 
-interface BaseSubmissionAspect {
-    val uid: UID
-    val teamId: UID
-    val memberId: UID
-    val timestamp: Long
-    val item: MediaItem
+interface StatusAspect {
     var status: SubmissionStatus
 }
 
-interface TemporalSubmissionAspect : BaseSubmissionAspect {
+interface ItemAspect {
+    val item: MediaItem
+}
+
+interface OriginAspect {
+    val uid: UID
+    val teamId: UID
+    val memberId: UID
+}
+
+interface BaseSubmissionAspect : StatusAspect, ItemAspect, OriginAspect {
+    val timestamp: Long
+}
+
+interface TemporalAspect {
 
     /** Start time in milliseconds */
     val start: Long
@@ -34,6 +42,8 @@ interface TemporalSubmissionAspect : BaseSubmissionAspect {
 
     val temporalRange: TemporalRange
 }
+
+interface TemporalSubmissionAspect : BaseSubmissionAspect, TemporalAspect
 
 interface SpatialSubmissionAspect : BaseSubmissionAspect {
     //TODO some spatial representation
@@ -76,3 +86,28 @@ data class TemporalSubmission(override val teamId: UID,
         get() = TemporalRange(TemporalPoint(start.toDouble(), TemporalUnit.MILLISECONDS), TemporalPoint(end.toDouble(), TemporalUnit.MILLISECONDS))
 
 }
+
+interface BaseBatch<T : ItemAspect> {
+    val task: TaskRunId
+    val name: String
+    val results: List<T>
+}
+
+data class TemporalBatchElement(
+    override val item: MediaItem,
+    override val start: Long,
+    override val end: Long,
+    override val temporalRange: TemporalRange
+) : ItemAspect, TemporalAspect
+
+interface BaseSubmissionBatch<R> : OriginAspect {
+    val results : Collection<R>
+}
+
+data class TemporalSubmissionBatch
+    (
+    override val teamId: UID,
+    override val memberId: UID,
+    override val uid: UID,
+    override val results: Collection<BaseBatch<TemporalBatchElement>>,
+) : BaseSubmissionBatch<BaseBatch<TemporalBatchElement>>

@@ -376,7 +376,7 @@ class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
         }
 
         val taskId = ctx.pathParamMap()["taskId"]?.UID() ?: throw ErrorStatusException(404, "Missing task id", ctx)
-        return if (run.currentTaskRun?.taskId == taskId && run.status == RunManagerStatus.RUNNING_TASK) {
+        return if (run.currentTaskRun?.taskDescriptionId == taskId && run.status == RunManagerStatus.RUNNING_TASK) {
             if (run.currentTask?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
                 run.submissions.map { SubmissionInfo.blind(it) }
             } else {

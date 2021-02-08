@@ -3,7 +3,7 @@ package dev.dres.run
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
-import dev.dres.data.model.run.CompetitionRun
+import dev.dres.data.model.run.InteractiveCompetitionRun
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.score.scoreboard.Scoreboard
@@ -18,11 +18,18 @@ interface InteractiveRunManager : RunManager {
     val currentTask: TaskDescription?
 
     /**
-     * Reference to the [CompetitionRun.TaskRun] that is currently being executed OR that has just ended.
+     * List of [Submission]s for the current [InteractiveCompetitionRun.TaskRun].
+     *
+     * Part of the [RunManager]'s execution state. Can be empty!
+     */
+    val submissions: List<Submission>
+
+    /**
+     * Reference to the [InteractiveCompetitionRun.TaskRun] that is currently being executed OR that has just ended.
      *
      * Part of the [RunManager]'s execution state. Can be null!
      */
-    val currentTaskRun: CompetitionRun.TaskRun?
+    val currentTaskRun: InteractiveCompetitionRun.TaskRun?
 
     /**
      * Prepares this [RunManager] for the execution of previous [Task] as per order defined in [CompetitionDescription.tasks].
@@ -102,12 +109,12 @@ interface InteractiveRunManager : RunManager {
     fun timeLeft(): Long
 
     /**
-     * Returns [CompetitionRun.TaskRun]s for the specified index. The index is zero based, i.e.,
-     * an index of 0 returns the first [CompetitionRun.TaskRun], index of 1 the second etc.
+     * Returns [InteractiveCompetitionRun.TaskRun]s for the specified index. The index is zero based, i.e.,
+     * an index of 0 returns the first [InteractiveCompetitionRun.TaskRun], index of 1 the second etc.
      *
-     * @param taskRunId The [UID] of the desired [CompetitionRun.TaskRun].
+     * @param taskRunId The [UID] of the desired [InteractiveCompetitionRun.TaskRun].
      */
-    fun taskRunForId(taskRunId: UID): CompetitionRun.TaskRun?
+    fun taskRunForId(taskRunId: UID): InteractiveCompetitionRun.TaskRun?
 
     /**
      * Override the ready state for a given viewer ID.

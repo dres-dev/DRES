@@ -4,7 +4,7 @@ import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.run.websocket.ClientMessage
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.run.CompetitionRun
+import dev.dres.data.model.run.InteractiveCompetitionRun
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.score.ScoreTimePoint
@@ -13,9 +13,9 @@ import dev.dres.run.validation.interfaces.JudgementValidator
 import java.util.*
 
 /**
- * A managing class for concrete executions of [CompetitionDescription], i.e. [CompetitionRun]s.
+ * A managing class for concrete executions of [CompetitionDescription], i.e. [InteractiveCompetitionRun]s.
  *
- * @see CompetitionRun
+ * @see InteractiveCompetitionRun
  *
  * @author Ralph Gasser
  * @version 1.4.0
@@ -36,14 +36,7 @@ interface RunManager : Runnable {
     /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
     val scoreHistory: List<ScoreTimePoint>
 
-    /**
-     * List of [Submission]s for the current [CompetitionRun.TaskRun].
-     *
-     * Part of the [RunManager]'s execution state. Can be empty!
-     */
-    val submissions: List<Submission>
-
-    /** List of all [Submission]s for this [RunManager], irrespective of the [CompetitionRun.TaskRun] it belongs to. */
+    /** List of all [Submission]s for this [RunManager], irrespective of the [InteractiveCompetitionRun.TaskRun] it belongs to. */
     val allSubmissions: List<Submission>
 
     /** Current [RunManagerStatus] of the [RunManager]. */
@@ -76,11 +69,11 @@ interface RunManager : Runnable {
 
 
     /**
-     * Returns the number of [CompetitionRun.TaskRun]s held by this [RunManager].
+     * Returns the number of [InteractiveCompetitionRun.TaskRun]s held by this [RunManager].
      *
-     * @return The number of [CompetitionRun.TaskRun]s held by this [RunManager]
+     * @return The number of [InteractiveCompetitionRun.TaskRun]s held by this [RunManager]
      */
-    fun taskRuns(): Int
+    fun tasks(): Int
 
     /**
      * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.

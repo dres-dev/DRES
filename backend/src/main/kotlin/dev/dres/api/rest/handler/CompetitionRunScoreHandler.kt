@@ -20,7 +20,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiResponse
 
 /**
  * A collection of [RestHandler]s that deal with [ScoreOverview]s for ongoing
- * [dev.dres.data.model.run.CompetitionRun]s.
+ * [dev.dres.data.model.run.InteractiveCompetitionRun]s.
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -63,7 +63,7 @@ abstract class AbstractScoreRestHandler : RestHandler, AccessManagedRestHandler 
 }
 
 /**
- * Generates and lists all [ScoreOverview]s for the provided [dev.dres.data.model.run.CompetitionRun].
+ * Generates and lists all [ScoreOverview]s for the provided [dev.dres.data.model.run.InteractiveCompetitionRun].
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -91,7 +91,7 @@ class ListCompetitionScoreHandler : AbstractScoreRestHandler(), GetRestHandler<L
 }
 
 /**
- * Generates and lists the [ScoreOverview] for the currently active [dev.dres.data.model.run.CompetitionRun.TaskRun].
+ * Generates and lists the [ScoreOverview] for the currently active [dev.dres.data.model.run.InteractiveCompetitionRun.TaskRun].
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -131,7 +131,7 @@ class CurrentTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
 }
 
 /**
- * Generates and lists the [ScoreOverview] for the specified [dev.dres.data.model.run.CompetitionRun.TaskRun].
+ * Generates and lists the [ScoreOverview] for the specified [dev.dres.data.model.run.InteractiveCompetitionRun.TaskRun].
  * Can only be invoked by admins.
  *
  * @author Ralph Gasser

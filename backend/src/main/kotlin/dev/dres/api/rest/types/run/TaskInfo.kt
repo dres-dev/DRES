@@ -1,12 +1,11 @@
 package dev.dres.api.rest.types.run
 
 import dev.dres.data.model.competition.TaskDescription
-import dev.dres.data.model.competition.TaskType
-import dev.dres.data.model.run.CompetitionRun
+import dev.dres.data.model.run.InteractiveCompetitionRun
 
 /**
  * Basic and most importantly static information about the [dres.data.model.competition.TaskDescription]
- * of a [CompetitionRun]. Since this information usually doesn't change in the course of a run, it
+ * of a [InteractiveCompetitionRun]. Since this information usually doesn't change in the course of a run, it
  * allows for local caching  and other optimizations.
  *
  * @author Ralph Gasser

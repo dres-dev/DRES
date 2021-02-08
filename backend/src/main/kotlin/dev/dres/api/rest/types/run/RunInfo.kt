@@ -1,10 +1,10 @@
 package dev.dres.api.rest.types.run
 
-import dev.dres.data.model.run.CompetitionRun
+import dev.dres.data.model.run.InteractiveCompetitionRun
 import dev.dres.run.RunManager
 
 /**
- * Contains the basic and most importantly static information about a [CompetitionRun] and the
+ * Contains the basic and most importantly static information about a [InteractiveCompetitionRun] and the
  * associated [RunManager]. Since this information usually doesn't change in the course of a run,
  * it allows for local caching and other optimizations.
  *

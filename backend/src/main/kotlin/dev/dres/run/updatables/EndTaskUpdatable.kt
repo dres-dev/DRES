@@ -14,7 +14,7 @@ class EndTaskUpdatable(private val run: InteractiveRunManager) : Updatable {
     private var submissions = AtomicInteger(0)
 
     override fun update(status: RunManagerStatus) {
-        val limitingFilter = run.currentTaskRun?.task?.taskType?.filter?.find{ it.option == TaskType.SubmissionFilterType.LIMIT_CORRECT_PER_TEAM } ?: return
+        val limitingFilter = run.currentTaskRun?.taskDescription?.taskType?.filter?.find{ it.option == TaskType.SubmissionFilterType.LIMIT_CORRECT_PER_TEAM } ?: return
         val limit = limitingFilter.parameters.getOrDefault("limit", "1").toIntOrNull() ?: 1
         if (this.run.timeLeft() > 0) {
             val taskRun = this.run.currentTaskRun

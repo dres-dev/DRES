@@ -10,6 +10,7 @@ import com.jakewharton.picnic.table
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
 import dev.dres.data.model.run.CompetitionRun
+import dev.dres.data.model.run.InteractiveCompetitionRun
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
@@ -81,7 +82,8 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
         override fun run() {
             if (plain) {
                 this@CompetitionRunCommand.runs.forEach {
-                    println("${RunSummary(it.id.string, it.name, it.competitionDescription.description, it.lastTask?.task?.name)}")
+                    println("${RunSummary(it.id.string, it.name, it.competitionDescription.description, if (it is InteractiveCompetitionRun) it.lastTask?.taskDescription?.name
+                        ?: "N/A" else "N/A")}")
                 }
             } else {
                 table {
@@ -106,8 +108,8 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                             }else{
                                 "unkown"
                             }
-                            row(it.id, it.name, it.competitionDescription.description, it.lastTask?.task?.name
-                                    ?: "N/A", status)
+                            row(it.id, it.name, it.competitionDescription.description, if (it is InteractiveCompetitionRun) it.lastTask?.taskDescription?.name
+                                ?: "N/A" else "N/A", status)
                         }
                     }
                 }
@@ -210,11 +212,15 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
 
                 println()
                 println("Evaluated Tasks:")
-                it.runs.forEach {
-                    println(it.task)
+                it.tasks.forEach {t ->
+                    println(t.taskDescription)
 
-                    println("Submissions")
-                    it.submissions.forEach { println(it) }
+                    if (t is InteractiveCompetitionRun.TaskRun){
+                        println("Submissions")
+                        t.submissions.forEach { println(it) }
+                    }
+
+
                 }
                 println()
             }
@@ -244,17 +250,22 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                     return
                 }
 
-                /* Fetch submissions and reset them. */
-                val submissions = run.runs.flatMap {
-                    it.submissions
-                }.filter {
-                    it.uid.string in ids
-                }
-                submissions.forEach { it.status = SubmissionStatus.INDETERMINATE }
+                if (run is InteractiveCompetitionRun) {
 
-                /* Update competition run through dao. */
-                this@CompetitionRunCommand.runs.update(run)
-                println("Successfully reset ${submissions.size} submissions.")
+                    /* Fetch submissions and reset them. */
+                    val submissions = run.tasks.flatMap {
+                        it.submissions
+                    }.filter {
+                        it.uid.string in ids
+                    }
+                    submissions.forEach { it.status = SubmissionStatus.INDETERMINATE }
+
+                    /* Update competition run through dao. */
+                    this@CompetitionRunCommand.runs.update(run)
+                    println("Successfully reset ${submissions.size} submissions.")
+                } else {
+                    println("Operation not supported for run type")
+                }
             }
         }
 
@@ -272,16 +283,20 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                     return
                 }
 
-                /* Fetch submissions and reset them. */
-                val submissions = run.runs.filter {
-                    it.uid.string in ids
-                }.flatMap {
-                    it.submissions
-                }
-                submissions.forEach { it.status = SubmissionStatus.INDETERMINATE }
+                if (run is InteractiveCompetitionRun) {
+                    /* Fetch submissions and reset them. */
+                    val submissions = run.tasks.filter {
+                        it.uid.string in ids
+                    }.flatMap {
+                        it.submissions
+                    }
+                    submissions.forEach { it.status = SubmissionStatus.INDETERMINATE }
 
-                this@CompetitionRunCommand.runs.update(run)
-                println("Successfully reset ${submissions.size} submissions.")
+                    this@CompetitionRunCommand.runs.update(run)
+                    println("Successfully reset ${submissions.size} submissions.")
+                } else {
+                    println("Operation not supported for run type")
+                }
             }
         }
 
@@ -298,12 +313,18 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                     return
                 }
 
-                val submissions = run.runs.filter { it.task.taskGroup.name == taskGroup }.flatMap { it.submissions }
-                submissions.forEach { it.status = SubmissionStatus.INDETERMINATE }
+                if (run is InteractiveCompetitionRun) {
 
-                this@CompetitionRunCommand.runs.update(run)
+                    val submissions =
+                        run.tasks.filter { it.taskDescription.taskGroup.name == taskGroup }.flatMap { it.submissions }
+                    submissions.forEach { it.status = SubmissionStatus.INDETERMINATE }
 
-                println("reset ${submissions.size} submissions")
+                    this@CompetitionRunCommand.runs.update(run)
+
+                    println("reset ${submissions.size} submissions")
+                } else {
+                    println("Operation not supported for run type")
+                }
 
             }
         }

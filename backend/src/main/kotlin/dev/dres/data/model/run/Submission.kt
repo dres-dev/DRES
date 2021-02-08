@@ -60,7 +60,7 @@ sealed class Submission(override val teamId: UID,
 
     @Transient
     @JsonIgnore
-    var taskRun: CompetitionRun.TaskRun? = null
+    var taskRun: InteractiveCompetitionRun.TaskRun? = null
         internal set
 
 

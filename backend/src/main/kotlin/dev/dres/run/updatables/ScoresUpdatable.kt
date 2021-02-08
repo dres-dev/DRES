@@ -3,7 +3,7 @@ package dev.dres.run.updatables
 import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.model.UID
-import dev.dres.data.model.run.CompetitionRun
+import dev.dres.data.model.run.InteractiveCompetitionRun
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.RunManagerStatus
@@ -13,7 +13,7 @@ import java.util.*
 
 /**
  * This is a [Updatable] that runs necessary post-processing after a [Submission] has been validated;
- * it update the scores for the respective [CompetitionRun.TaskRun].
+ * it update the scores for the respective [InteractiveCompetitionRun.TaskRun].
  *
  * @author Ralph Gasser
  * @version 1.0
@@ -25,17 +25,17 @@ class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdat
     }
 
     /** Internal list of [Submission] that pend processing. */
-    private val list = LinkedList<Pair<CompetitionRun.TaskRun,Submission>>()
+    private val list = LinkedList<Pair<InteractiveCompetitionRun.TaskRun,Submission>>()
 
     /** The [Phase] this [ScoresUpdatable] belongs to. */
     override val phase: Phase = Phase.MAIN
 
     /** Enqueues a new [Submission] for post-processing. */
-    fun enqueue(submission: Pair<CompetitionRun.TaskRun,Submission>) = this.list.add(submission)
+    fun enqueue(submission: Pair<InteractiveCompetitionRun.TaskRun,Submission>) = this.list.add(submission)
 
     override fun update(status: RunManagerStatus) {
         if (!this.list.isEmpty()) {
-            val scorersToUpdate = mutableSetOf<Pair<CompetitionRun.TaskRun,RecalculatingTaskRunScorer>>()
+            val scorersToUpdate = mutableSetOf<Pair<InteractiveCompetitionRun.TaskRun,RecalculatingTaskRunScorer>>()
             val removed = this.list.removeIf {
                 val scorer = it.first.scorer
                 if (it.second.status != SubmissionStatus.INDETERMINATE) {

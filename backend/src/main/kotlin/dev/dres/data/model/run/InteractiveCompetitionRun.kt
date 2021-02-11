@@ -61,9 +61,9 @@ open class InteractiveCompetitionRun(override var id: CompetitionRunId, name: St
      * @author Ralph Gasser
      */
     @JsonIgnoreProperties(value = ["competition"])
-    inner class TaskRun (val uid: TaskRunId = UID(), val taskDescriptionId: TaskDescriptionId): Run, Task() {
+    inner class TaskRun (override val uid: TaskId = UID(), val taskDescriptionId: TaskDescriptionId): Run, InteractiveTask() {
 
-        internal constructor(uid: TaskRunId, taskId: TaskDescriptionId, started: Long, ended: Long): this(uid, taskId) {
+        internal constructor(uid: TaskId, taskId: TaskDescriptionId, started: Long, ended: Long): this(uid, taskId) {
             this.started =  if (started == -1L) { null } else { started }
             this.ended = if (ended == -1L) { null } else { ended }
         }
@@ -126,7 +126,7 @@ open class InteractiveCompetitionRun(override var id: CompetitionRunId, name: St
          * @param submission The [Submission] to add.
          */
         @Synchronized
-        fun addSubmission(submission: Submission) {
+        override fun addSubmission(submission: Submission) {
             if (!this.isRunning) {
                 throw IllegalStateException("Task run '${this@InteractiveCompetitionRun.name}.${this.position}' is currently not running.")
             }

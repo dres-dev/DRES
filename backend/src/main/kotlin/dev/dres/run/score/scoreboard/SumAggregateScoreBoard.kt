@@ -2,7 +2,7 @@ package dev.dres.run.score.scoreboard
 
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.InteractiveCompetitionRun
-import dev.dres.data.model.run.TaskRunId
+import dev.dres.data.model.run.TaskId
 import dev.dres.run.score.interfaces.TaskRunScorer
 
 class SumAggregateScoreBoard(override val name: String, private val boards: List<Scoreboard>, private val taskGroupName: String? = null) : Scoreboard {
@@ -18,7 +18,7 @@ class SumAggregateScoreBoard(override val name: String, private val boards: List
         //since calls are delegated, nothing needs to be done here
     }
 
-    override fun update(scorers: Map<TaskRunId, TaskRunScorer>) {
+    override fun update(scorers: Map<TaskId, TaskRunScorer>) {
         //since calls are delegated, nothing needs to be done here
     }
 

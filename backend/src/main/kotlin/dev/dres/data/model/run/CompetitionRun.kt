@@ -6,7 +6,7 @@ import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.InteractiveCompetitionRun.TaskRun
 
 typealias CompetitionRunId = UID
-typealias TaskRunId = UID
+
 
 abstract class CompetitionRun(override var id: CompetitionRunId, val name: String, val competitionDescription: CompetitionDescription): Run, Entity {
 

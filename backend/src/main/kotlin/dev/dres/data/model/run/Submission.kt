@@ -88,7 +88,7 @@ data class TemporalSubmission(override val teamId: UID,
 }
 
 interface BaseBatch<T : ItemAspect> {
-    val task: TaskRunId
+    val task: TaskId
     val name: String
     val results: List<T>
 }
@@ -100,7 +100,7 @@ data class TemporalBatchElement(
     override val temporalRange: TemporalRange
 ) : ItemAspect, TemporalAspect
 
-interface BaseSubmissionBatch<R> : OriginAspect {
+interface BaseSubmissionBatch<R: BaseBatch<*>> : OriginAspect {
     val results : Collection<R>
 }
 

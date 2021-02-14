@@ -3,6 +3,7 @@ package dev.dres.data.model.log
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonSetter
+import com.fasterxml.jackson.annotation.Nulls
 
 enum class QueryEventCategory {
     TEXT, IMAGE, SKETCH, FILTER, BROWSING, COOPERATION, OTHER

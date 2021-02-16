@@ -53,96 +53,101 @@ object RestApi {
          */
         val apiRestHandlers = listOf(
 
-                // User
-                LoginHandler(dataAccessLayer.audit),
-                LogoutHandler(dataAccessLayer.audit),
-                ListUsersHandler(),
-                CurrentUsersHandler(),
-                DeleteUsersHandler(),
-                CreateUsersHandler(),
-                UpdateUsersHandler(),
-                CurrentUsersSessionIdHandler(),
-                UserDetailsHandler(), // Must be AFTER CurrentUserHandler
-                ActiveSessionsHandler(dataAccessLayer.users),
+            // User
+            LoginHandler(dataAccessLayer.audit),
+            LogoutHandler(dataAccessLayer.audit),
+            ListUsersHandler(),
+            CurrentUsersHandler(),
+            DeleteUsersHandler(),
+            CreateUsersHandler(),
+            UpdateUsersHandler(),
+            CurrentUsersSessionIdHandler(),
+            UserDetailsHandler(), // Must be AFTER CurrentUserHandler
+            ActiveSessionsHandler(dataAccessLayer.users),
 
-                // Media
-                MediaPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
-                SubmissionPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
-                GetMediaHandler(dataAccessLayer.mediaItemCollectionUidIndex, dataAccessLayer.collectionUidIndex),
+            // Media
+            MediaPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
+            SubmissionPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
+            GetMediaHandler(dataAccessLayer.mediaItemCollectionUidIndex, dataAccessLayer.collectionUidIndex),
 
-                // Collection
-                ListCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-                ShowCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-                AddCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-                UpdateCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-                DeleteCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-                AddMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-                UpdateMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-                DeleteMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-                GetMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-                RandomMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionUidIndex), // Must be before ListMediaItem
-                ListMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionNameIndex),
-                ListExternalItemHandler(config),
+            // Collection
+            ListCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+            ShowCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+            AddCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+            UpdateCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+            DeleteCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+            AddMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+            UpdateMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+            DeleteMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+            GetMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
+            RandomMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionUidIndex), // Must be before ListMediaItem
+            ListMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionNameIndex),
+            ListExternalItemHandler(config),
 
-                // Competition
-                ListCompetitionHandler(dataAccessLayer.competitions),
-                CreateCompetitionHandler(dataAccessLayer.competitions),
-                UpdateCompetitionHandler(dataAccessLayer.competitions, config, dataAccessLayer.mediaItems),
-                GetCompetitionHandler(dataAccessLayer.competitions),
-                DeleteCompetitionHandler(dataAccessLayer.competitions),
-                ListTeamHandler(dataAccessLayer.competitions),
-                ListDetailedTeamHandler(dataAccessLayer.competitions),
-                ListTaskHandler(dataAccessLayer.competitions),
-                GetTeamLogoHandler(config),
+            // Competition
+            ListCompetitionHandler(dataAccessLayer.competitions),
+            CreateCompetitionHandler(dataAccessLayer.competitions),
+            UpdateCompetitionHandler(dataAccessLayer.competitions, config, dataAccessLayer.mediaItems),
+            GetCompetitionHandler(dataAccessLayer.competitions),
+            DeleteCompetitionHandler(dataAccessLayer.competitions),
+            ListTeamHandler(dataAccessLayer.competitions),
+            ListDetailedTeamHandler(dataAccessLayer.competitions),
+            ListTaskHandler(dataAccessLayer.competitions),
+            GetTeamLogoHandler(config),
 
-                // Competition run
-                ListCompetitionRunInfosHandler(),
-                ListCompetitionRunStatesHandler(),
-                GetCompetitionRunInfoHandler(),
-                GetCompetitionRunStateHandler(),
-                CurrentTaskHintHandler(config),
-                CurrentTaskTargetHandler(config, dataAccessLayer.collections),
-                CurrentTaskInfoHandler(),
-                SubmissionInfoHandler(),
-                RecentSubmissionInfoHandler(),
-                HistorySubmissionInfoHandler(),
+            // Competition run
+            ListCompetitionRunInfosHandler(),
+            ListCompetitionRunStatesHandler(),
+            GetCompetitionRunInfoHandler(),
+            GetCompetitionRunStateHandler(),
+            CurrentTaskHintHandler(config),
+            CurrentTaskTargetHandler(config, dataAccessLayer.collections),
+            CurrentTaskInfoHandler(),
+            SubmissionInfoHandler(),
+            RecentSubmissionInfoHandler(),
+            HistorySubmissionInfoHandler(),
 
-                // Competition run scores
-                ListCompetitionScoreHandler(),
-                CurrentTaskScoreHandler(),
-                HistoryTaskScoreHandler(),
-                ListScoreSeriesHandler(),
-                ListScoreboardsHandler(),
+            // Competition run scores
+            ListCompetitionScoreHandler(),
+            CurrentTaskScoreHandler(),
+            HistoryTaskScoreHandler(),
+            ListScoreSeriesHandler(),
+            ListScoreboardsHandler(),
 
-                // Competition run admin
-                CreateCompetitionRunAdminHandler(dataAccessLayer.competitions, dataAccessLayer.collections, config),
-                StartCompetitionRunAdminHandler(),
-                NextTaskCompetitionRunAdminHandler(),
-                PreviousTaskCompetitionRunAdminHandler(),
-                SwitchTaskCompetitionRunAdminHandler(),
-                StartTaskCompetitionRunAdminHandler(),
-                AbortTaskCompetitionRunAdminHandler(),
-                TerminateCompetitionRunAdminHandler(),
-                AdjustDurationRunAdminHandler(),
-                ListViewersRunAdminHandler(),
-                ForceViewerRunAdminHandler(),
-                ListSubmissionsPerTaskRunAdminHandler(),
-                OverrideSubmissionStatusRunAdminHandler(),
+            // Competition run admin
+            CreateCompetitionRunAdminHandler(dataAccessLayer.competitions, dataAccessLayer.collections, config),
+            StartCompetitionRunAdminHandler(),
+            NextTaskCompetitionRunAdminHandler(),
+            PreviousTaskCompetitionRunAdminHandler(),
+            SwitchTaskCompetitionRunAdminHandler(),
+            StartTaskCompetitionRunAdminHandler(),
+            AbortTaskCompetitionRunAdminHandler(),
+            TerminateCompetitionRunAdminHandler(),
+            AdjustDurationRunAdminHandler(),
+            ListViewersRunAdminHandler(),
+            ForceViewerRunAdminHandler(),
+            ListSubmissionsPerTaskRunAdminHandler(),
+            OverrideSubmissionStatusRunAdminHandler(),
 
-                // Judgement
-                NextOpenJudgementHandler(dataAccessLayer.collections),
-                NextOpenVoteJudgementHandler(dataAccessLayer.collections),
-                PostJudgementHandler(),
-                JudgementStatusHandler(),
-                JudgementVoteHandler(),
+            // Judgement
+            NextOpenJudgementHandler(dataAccessLayer.collections),
+            NextOpenVoteJudgementHandler(dataAccessLayer.collections),
+            PostJudgementHandler(),
+            JudgementStatusHandler(),
+            JudgementVoteHandler(),
 
-                // Audit Log
-                GetAuditLogInfoHandler(dataAccessLayer.auditTimes),
-                ListAuditLogsInRangeHandler(dataAccessLayer.auditTimes, dataAccessLayer.audit),
-                ListAuditLogsHandler(dataAccessLayer.auditTimes, dataAccessLayer.audit),
+            // Audit Log
+            GetAuditLogInfoHandler(dataAccessLayer.auditTimes),
+            ListAuditLogsInRangeHandler(dataAccessLayer.auditTimes, dataAccessLayer.audit),
+            ListAuditLogsHandler(dataAccessLayer.auditTimes, dataAccessLayer.audit),
 
-                // Status
-                CurrentTimeHandler()
+            // Status
+            CurrentTimeHandler(),
+
+            //API Client
+            ListCompetitionRunClientInfoHandler(),
+            CompetitionRunClientCurrentTaskInfoHandler()
+
         )
 
         javalin = Javalin.create {

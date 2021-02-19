@@ -30,6 +30,14 @@ abstract class Task {
 }
 
 abstract class InteractiveTask : Task() {
+
+    abstract var started: Long?
+        internal set
+
+    abstract var ended: Long?
+        internal set
+
+
     abstract fun addSubmission(submission: Submission)
 }
 

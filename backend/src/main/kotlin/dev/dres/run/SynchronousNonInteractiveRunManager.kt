@@ -2,19 +2,21 @@ package dev.dres.run
 
 import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.run.websocket.ClientMessage
+import dev.dres.api.rest.types.run.websocket.ClientMessageType
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.BaseSubmissionBatch
 import dev.dres.data.model.run.NonInteractiveCompetitionRun
-import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
-import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
+import dev.dres.run.updatables.ScoreboardsUpdatable
 import dev.dres.run.validation.interfaces.JudgementValidator
-import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
 
 class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun) : NonInteractiveRunManager {
+
+    private val SCOREBOARD_UPDATE_INTERVAL_MS = 10_000L // TODO make configurable
 
     /** A lock for state changes to this [SynchronousInteractiveRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
@@ -31,22 +33,25 @@ class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun)
     override val competitionDescription: CompetitionDescription
         get() = this.run.competitionDescription
 
+    /** The internal [ScoreboardsUpdatable] instance for this [SynchronousInteractiveRunManager]. */
+    private val scoreboardsUpdatable = ScoreboardsUpdatable(this.competitionDescription.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
 
     override val scoreboards: List<Scoreboard>
-        get() = TODO("Not yet implemented")
+        get() = this.scoreboardsUpdatable.scoreboards
 
-    override val scoreHistory: List<ScoreTimePoint>
-        get() = TODO("Not yet implemented")
-
-
-    override val allSubmissions: List<Submission>
-        get() = TODO("Not yet implemented")
-
-    override val status: RunManagerStatus
-        get() = TODO("Not yet implemented")
+    @Volatile
+    override var status: RunManagerStatus = if (this.run.hasStarted) {
+        RunManagerStatus.ACTIVE
+    } else {
+        RunManagerStatus.CREATED
+    }
+        get() = this.stateLock.read {
+            return field
+        }
+        private set
 
     override val judgementValidators: List<JudgementValidator>
-        get() = TODO("Not yet implemented")
+        get() = this.run.tasks.map{ it.validator }.filterIsInstance(JudgementValidator::class.java)
 
     override fun start() {
         TODO("Not yet implemented")
@@ -56,16 +61,19 @@ class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun)
         TODO("Not yet implemented")
     }
 
-    override fun tasks(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun tasks(): Int = this.run.tasks.size
 
-    override fun viewers(): HashMap<WebSocketConnection, Boolean> {
-        TODO("Not yet implemented")
-    }
+    private val viewerMap: MutableMap<WebSocketConnection, Boolean> = mutableMapOf()
+
+    override fun viewers(): Map<WebSocketConnection, Boolean> = viewerMap
 
     override fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean {
-        TODO("Not yet implemented")
+        when (message.type) {
+            ClientMessageType.REGISTER -> this.viewerMap[connection] = true
+            ClientMessageType.UNREGISTER -> this.viewerMap.remove(connection)
+            ClientMessageType.ACK, ClientMessageType.PING -> {} //nop
+        }
+        return true
     }
 
     override fun updateSubmission(suid: UID, newStatus: SubmissionStatus): Boolean {

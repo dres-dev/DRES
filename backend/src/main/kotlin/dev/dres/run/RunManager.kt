@@ -7,7 +7,6 @@ import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.InteractiveCompetitionRun
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
-import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
 import java.util.*
@@ -32,12 +31,6 @@ interface RunManager : Runnable {
 
     /** List of [Scoreboard]s for this [RunManager]. */
     val scoreboards: List<Scoreboard>
-
-    /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
-    val scoreHistory: List<ScoreTimePoint>
-
-    /** List of all [Submission]s for this [RunManager], irrespective of the [InteractiveCompetitionRun.TaskRun] it belongs to. */
-    val allSubmissions: List<Submission>
 
     /** Current [RunManagerStatus] of the [RunManager]. */
     val status: RunManagerStatus
@@ -80,7 +73,7 @@ interface RunManager : Runnable {
      *
      * @return List of viewer [WebSocketConnection]s for this [RunManager].
      */
-    fun viewers(): HashMap<WebSocketConnection,Boolean>
+    fun viewers(): Map<WebSocketConnection,Boolean>
 
 
     /**

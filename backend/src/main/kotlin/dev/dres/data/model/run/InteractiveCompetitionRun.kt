@@ -86,12 +86,10 @@ open class InteractiveCompetitionRun(override var id: CompetitionRunId, name: St
         /** Timestamp of when this [TaskRun] was started. */
         @Volatile
         override var started: Long? = null
-            private set
 
         /** Timestamp of when this [TaskRun] was ended. */
         @Volatile
         override var ended: Long? = null
-            private set
 
         /** Duration of this [TaskRun]. Defaults to the duration specified in the [TaskDescription]. */
         @Volatile

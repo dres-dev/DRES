@@ -112,23 +112,23 @@ class SynchronousInteractiveRunManager(val run: InteractiveCompetitionRun) : Int
 
     /** List of [Scoreboard]s for this [SynchronousInteractiveRunManager]. */
     override val scoreboards: List<Scoreboard>
-        get() = this._scoreboards.scoreboards
+        get() = this.scoreboardsUpdatable.scoreboards
 
     /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time. */
     override val scoreHistory: List<ScoreTimePoint>
-        get() = this._scoreboards.timeSeries
+        get() = this.scoreboardsUpdatable.timeSeries
 
     /** Internal data structure that tracks all [WebSocketConnection]s and their ready state (for [RunManagerStatus.PREPARING_TASK]) */
     private val readyLatch = ReadyLatch<WebSocketConnection>()
 
     /** The internal [ScoreboardsUpdatable] instance for this [SynchronousInteractiveRunManager]. */
-    private val _scoreboards = ScoreboardsUpdatable(this.competitionDescription.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
+    private val scoreboardsUpdatable = ScoreboardsUpdatable(this.competitionDescription.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
 
     /** The internal [MessageQueueUpdatable] instance used by this [SynchronousInteractiveRunManager]. */
     private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
 
     /** The internal [ScoresUpdatable] instance for this [SynchronousInteractiveRunManager]. */
-    private val scoresUpdatable = ScoresUpdatable(this.id, this._scoreboards, this.messageQueueUpdatable)
+    private val scoresUpdatable = ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable)
 
     /** The internal [DAOUpdatable] instance used by this [SynchronousInteractiveRunManager]. */
     private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
@@ -148,7 +148,7 @@ class SynchronousInteractiveRunManager(val run: InteractiveCompetitionRun) : Int
     init {
         /* Register relevant Updatables. */
         this.updatables.add(this.scoresUpdatable)
-        this.updatables.add(this._scoreboards)
+        this.updatables.add(this.scoreboardsUpdatable)
         this.updatables.add(this.messageQueueUpdatable)
         this.updatables.add(this.daoUpdatable)
         this.updatables.add(this.endTaskUpdatable)
@@ -242,7 +242,7 @@ class SynchronousInteractiveRunManager(val run: InteractiveCompetitionRun) : Int
             this.status = RunManagerStatus.ACTIVE
 
             /* Mark scoreboards for update. */
-            this._scoreboards.dirty = true
+            this.scoreboardsUpdatable.dirty = true
 
             /* Enqueue WS message for sending */
             this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.COMPETITION_UPDATE))
@@ -267,7 +267,7 @@ class SynchronousInteractiveRunManager(val run: InteractiveCompetitionRun) : Int
         this.status = RunManagerStatus.PREPARING_TASK
 
         /* Mark scoreboards and dao for update. */
-        this._scoreboards.dirty = true
+        this.scoreboardsUpdatable.dirty = true
         this.daoUpdatable.dirty = true
 
         /* Reset the ReadyLatch. */
@@ -291,7 +291,7 @@ class SynchronousInteractiveRunManager(val run: InteractiveCompetitionRun) : Int
         this.status = RunManagerStatus.TASK_ENDED
 
         /* Mark scoreboards and dao for update. */
-        this._scoreboards.dirty = true
+        this.scoreboardsUpdatable.dirty = true
         this.daoUpdatable.dirty = true
 
         /* Enqueue WS message for sending */

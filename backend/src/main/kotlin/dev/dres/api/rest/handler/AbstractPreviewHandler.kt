@@ -9,6 +9,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.run.TemporalSubmissionAspect
+import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.extensions.*
@@ -183,6 +184,10 @@ class SubmissionPreviewHandler(collections: DAO<MediaCollection>, itemIndex: Dao
 
             val run = RunExecutor.managerForId(runId)
                     ?: throw ErrorStatusException(404, "Competition Run $runId not found", ctx)
+
+            if(run !is InteractiveRunManager) {
+                throw ErrorStatusException(404, "Competition Run $runId is not interactive", ctx)
+            }
 
             val submission = run.allSubmissions.find { it.uid == submissionId }
                     ?: throw ErrorStatusException(404, "Submission '$submissionId' not found", ctx)

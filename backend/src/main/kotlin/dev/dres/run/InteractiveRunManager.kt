@@ -6,6 +6,7 @@ import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.run.InteractiveCompetitionRun
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
 
 interface InteractiveRunManager : RunManager {
@@ -23,6 +24,12 @@ interface InteractiveRunManager : RunManager {
      * Part of the [RunManager]'s execution state. Can be empty!
      */
     val submissions: List<Submission>
+
+    /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
+    val scoreHistory: List<ScoreTimePoint>
+
+    /** List of all [Submission]s for this [RunManager], irrespective of the [InteractiveCompetitionRun.TaskRun] it belongs to. */
+    val allSubmissions: List<Submission>
 
     /**
      * Reference to the [InteractiveCompetitionRun.TaskRun] that is currently being executed OR that has just ended.

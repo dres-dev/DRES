@@ -1,3 +1,9 @@
 package dev.dres.run.validation.interfaces
 
-interface SubmissionBatchValidator
+import dev.dres.data.model.run.ResultBatch
+
+interface SubmissionBatchValidator {
+
+    fun validate(batch: ResultBatch<*>)
+
+}

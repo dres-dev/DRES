@@ -89,7 +89,7 @@ data class TemporalSubmission(override val teamId: UID,
 
 }
 
-interface BaseBatch<T : ItemAspect> {
+interface ResultBatch<T> where T : ItemAspect, T : StatusAspect {
     val task: TaskId
     val name: String
     val results: List<T>
@@ -99,10 +99,12 @@ data class TemporalBatchElement(
     override val item: MediaItem,
     override val start: Long,
     override val end: Long,
-    override val temporalRange: TemporalRange
-) : ItemAspect, TemporalAspect
+    override val temporalRange: TemporalRange,
+) : ItemAspect, TemporalAspect, StatusAspect {
+    override var status: SubmissionStatus = SubmissionStatus.INDETERMINATE
+}
 
-interface BaseSubmissionBatch<R: BaseBatch<*>> : OriginAspect {
+interface BaseSubmissionBatch<R: ResultBatch<*>> : OriginAspect {
     val results : Collection<R>
 }
 
@@ -111,5 +113,5 @@ data class TemporalSubmissionBatch
     override val teamId: UID,
     override val memberId: UID,
     override val uid: UID,
-    override val results: Collection<BaseBatch<TemporalBatchElement>>,
-) : BaseSubmissionBatch<BaseBatch<TemporalBatchElement>>
+    override val results: Collection<ResultBatch<TemporalBatchElement>>,
+) : BaseSubmissionBatch<ResultBatch<TemporalBatchElement>>

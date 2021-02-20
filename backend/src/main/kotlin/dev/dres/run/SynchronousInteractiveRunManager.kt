@@ -139,8 +139,6 @@ class SynchronousInteractiveRunManager(val run: InteractiveCompetitionRun) : Int
     /** List of [Updatable] held by this [SynchronousInteractiveRunManager]. */
     private val updatables = mutableListOf<Updatable>()
 
-    ///** The pipeline for [Submission] processing. All [Submission]s undergo three steps: filter, validation and score update. */
-    //private val submissionPipeline: List<Triple<SubmissionFilter,SubmissionValidator, TaskRunScorer>> = LinkedList()
 
     /** A lock for state changes to this [SynchronousInteractiveRunManager]. */
     private val stateLock = ReentrantReadWriteLock()

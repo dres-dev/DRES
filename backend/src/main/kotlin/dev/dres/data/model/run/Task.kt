@@ -1,11 +1,20 @@
 package dev.dres.data.model.run
 
 import dev.dres.data.model.UID
+import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.TaskDescription
+import dev.dres.data.model.competition.TaskDescriptionTarget
+import dev.dres.data.model.competition.TaskType
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.score.interfaces.TaskRunScorer
+import dev.dres.run.validation.MediaItemsSubmissionValidator
+import dev.dres.run.validation.TemporalOverlapSubmissionValidator
 import dev.dres.run.validation.interfaces.SubmissionBatchValidator
 import dev.dres.run.validation.interfaces.SubmissionValidator
+import dev.dres.run.validation.judged.BasicJudgementValidator
+import dev.dres.run.validation.judged.BasicVoteValidator
+import dev.dres.run.validation.judged.ItemRange
+import dev.dres.utilities.TimeUtil
 
 typealias TaskId = UID
 
@@ -36,26 +45,65 @@ abstract class InteractiveTask : Task() {
 
     /** The [SubmissionValidator] used to validate [Submission]s. */
     @Transient
-    val validator: SubmissionValidator = taskDescription.newValidator()
+    val validator: SubmissionValidator = newValidator()
+
+    /**
+     * Generates and returns a new [SubmissionValidator] for this [TaskDescription]. Depending
+     * on the implementation, the returned instance is a new instance or being re-use.
+     *
+     * @return [SubmissionValidator].
+     */
+    internal fun newValidator(): SubmissionValidator = when(taskDescription.taskType.targetType.option){
+        TaskType.TargetType.SINGLE_MEDIA_ITEM -> MediaItemsSubmissionValidator(setOf((taskDescription.target as TaskDescriptionTarget.MediaItemTarget).item))
+        TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionValidator(taskDescription.target as TaskDescriptionTarget.VideoSegmentTarget)
+        TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> MediaItemsSubmissionValidator((taskDescription.target as TaskDescriptionTarget.MultipleMediaItemTarget).items.toSet())
+        TaskType.TargetType.JUDGEMENT -> BasicJudgementValidator(knownCorrectRanges =
+        (taskDescription.target as TaskDescriptionTarget.JudgementTaskDescriptionTarget).targets.map {
+            if (it.second == null){
+                ItemRange(it.first)
+            } else {
+                val item = it.first
+                val range = if (item is MediaItem.VideoItem) {
+                    TimeUtil.toMilliseconds(it.second!!, item.fps)
+                } else {
+                    TimeUtil.toMilliseconds(it.second!!)
+                }
+                ItemRange(item, range.first, range.second)
+            } })
+        TaskType.TargetType.VOTE -> BasicVoteValidator(
+            knownCorrectRanges =
+            (taskDescription.target as TaskDescriptionTarget.VoteTaskDescriptionTarget).targets.map {
+                if (it.second == null){
+                    ItemRange(it.first)
+                } else {
+                    val item = it.first
+                    val range = if (item is MediaItem.VideoItem) {
+                        TimeUtil.toMilliseconds(it.second!!, item.fps)
+                    } else {
+                        TimeUtil.toMilliseconds(it.second!!)
+                    }
+                    ItemRange(item, range.first, range.second)
+                } },
+            parameters = taskDescription.taskType.targetType.parameters
+
+        )
+    }
 
     abstract fun addSubmission(submission: Submission)
 }
 
 abstract class NonInteractiveTask : Task() {
 
-    /**
-     * @return true if results were added to the task
-     */
-    fun  addSubmissionBatch(batch: BaseSubmissionBatch<*>) : Boolean {
-        val batches = batch.results.filter { it.task == this.uid }
-        if (batches.isNotEmpty()){
-            addSubmissionBatch(batch, batches)
-            return true
-        }
-        return false
-    }
+    @Transient
+    val validator: SubmissionBatchValidator = newValidator()
 
-    abstract val validator: SubmissionBatchValidator
+    internal fun newValidator(): SubmissionBatchValidator = when(taskDescription.taskType.targetType.option){
+        TaskType.TargetType.SINGLE_MEDIA_ITEM -> TODO()
+        TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TODO()
+        TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> TODO()
+        TaskType.TargetType.JUDGEMENT -> TODO()
+        TaskType.TargetType.VOTE -> TODO()
+    }
     
-    abstract fun addSubmissionBatch(origin: OriginAspect, batches: List<BaseBatch<*>>)
+    abstract fun addSubmissionBatch(origin: OriginAspect, batches: List<ResultBatch<*>>)
 }

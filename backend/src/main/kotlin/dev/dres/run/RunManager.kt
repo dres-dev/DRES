@@ -6,10 +6,8 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.InteractiveCompetitionRun
 import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
-import java.util.*
 
 /**
  * A managing class for concrete executions of [CompetitionDescription], i.e. [InteractiveCompetitionRun]s.
@@ -89,19 +87,4 @@ interface RunManager : Runnable {
      */
     fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean
 
-
-    /**
-     * Invoked by an external caller to update an existing [Submission] by its [Submission.uid] with a new [SubmissionStatus].
-     * [Submission]s usually cause updates to the internal state and/or
-     * the [Scoreboard] of this [RunManager].
-     *
-     * This method will not throw an exception and instead returns false if a [Submission] was
-     * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
-     * this method again.
-     *
-     * @param sub The [Submission] to be posted.
-     * @return Whether the update was successfuly or not
-     * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
-     */
-    fun updateSubmission(suid: UID, newStatus: SubmissionStatus): Boolean
 }

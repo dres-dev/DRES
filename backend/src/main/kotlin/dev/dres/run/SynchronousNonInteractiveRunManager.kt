@@ -5,9 +5,9 @@ import dev.dres.api.rest.types.run.websocket.ClientMessage
 import dev.dres.api.rest.types.run.websocket.ClientMessageType
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
+import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.BaseSubmissionBatch
 import dev.dres.data.model.run.NonInteractiveCompetitionRun
-import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.data.model.run.TaskId
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.ScoreboardsUpdatable
@@ -82,9 +82,6 @@ class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun)
         return true
     }
 
-    override fun updateSubmission(suid: UID, newStatus: SubmissionStatus): Boolean {
-        TODO("Not yet implemented")
-    }
 
     override fun run() {
 
@@ -93,23 +90,33 @@ class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun)
             try {
                 this.stateLock.read {
                     while (updatedTasks.isNotEmpty()) {
-                        val taskId = updatedTasks.poll(1, TimeUnit.SECONDS)
+                        val idNamePair = updatedTasks.poll(1, TimeUnit.SECONDS)
 
-                        if (taskId == null) {
+                        if (idNamePair == null) {
                             LOGGER.error("Unable to retrieve task id from queue despite it being indicated not to be empty")
                             break
                         }
 
-                        val task = this.run.tasks.find { it.uid == taskId }
+                        val task = this.run.tasks.find { it.uid == idNamePair.first }
 
                         if (task == null) {
-                            LOGGER.error("Unable to retrieve task with changed id $taskId")
+                            LOGGER.error("Unable to retrieve task with changed id ${idNamePair.first}")
                             break
                         }
 
+                        val batches = idNamePair.second.mapNotNull { task.submissions[it] }
 
-                        //TODO
+                        val validator = task.validator
 
+                        batches.forEach {
+                            validator.validate(it)
+                        }
+
+
+                        //TODO scoring
+
+
+                        scoreboardsUpdatable.update(this.status)
 
 
                     }
@@ -131,15 +138,17 @@ class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun)
 
     }
 
-    private val updatedTasks = LinkedBlockingQueue<TaskId>()
+    private val updatedTasks = LinkedBlockingQueue<Pair<TaskId, List<Pair<TeamId, String>>>>()
 
     override fun addSubmissionBatch(batch: BaseSubmissionBatch<*>) = this.stateLock.read{
 
         check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronousNonInteractiveRunManager is in status ${this.status} and can currently not accept submissions." }
 
-        this.run.tasks.forEach {
-            if (it.addSubmissionBatch(batch)) {
-                updatedTasks.add(it.uid)
+        this.run.tasks.forEach { task ->
+            val taskResultBatches = batch.results.filter { it.task == task.uid }
+            if (taskResultBatches.isNotEmpty()){
+                task.addSubmissionBatch(batch, taskResultBatches)
+                updatedTasks.add(task.uid to taskResultBatches.map { batch.teamId to it.name })
             }
         }
 

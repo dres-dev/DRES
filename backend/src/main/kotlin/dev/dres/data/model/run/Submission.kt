@@ -30,6 +30,7 @@ interface OriginAspect {
 
 interface BaseSubmissionAspect : StatusAspect, ItemAspect, OriginAspect {
     val timestamp: Long
+    fun task(): Task?
 }
 
 interface TemporalAspect {
@@ -60,8 +61,9 @@ sealed class Submission(override val teamId: UID,
 
     @Transient
     @JsonIgnore
-    var taskRun: InteractiveCompetitionRun.TaskRun? = null
-        internal set
+    internal var task: InteractiveCompetitionRun.TaskRun? = null
+
+    override fun task(): InteractiveCompetitionRun.TaskRun? = task
 
 
 }

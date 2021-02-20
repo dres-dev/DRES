@@ -4,7 +4,7 @@ import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.TemporalSubmissionAspect
 
 class DuplicateSubmissionFilter : SubmissionFilter {
-    override fun test(submission: Submission): Boolean = submission.taskRun!!.submissions.none {
+    override fun test(submission: Submission): Boolean = submission.task!!.submissions.none {
 
         it.teamId == submission.teamId &&
         it.item == submission.item &&

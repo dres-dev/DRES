@@ -1,5 +1,6 @@
 package dev.dres.run.validation.interfaces
 
+import dev.dres.data.model.run.BaseSubmissionAspect
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 
@@ -10,7 +11,7 @@ import dev.dres.data.model.run.SubmissionStatus
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */
-interface JudgementValidator : SubmissionValidator {
+interface JudgementValidator {
     /** unique id to identify the [JudgementValidator]*/
     val id: String
 
@@ -24,15 +25,7 @@ interface JudgementValidator : SubmissionValidator {
     val hasOpen: Boolean
         get() = open > 0
 
-    /**
-     * Enqueues a [Submission] with the internal judgment queue and updates its [SubmissionStatus]
-     * to [SubmissionStatus.INDETERMINATE].
-     *
-     * @param submission The [Submission] to validate.
-     */
-    override fun validate(submission: Submission)
-    override val deferring: Boolean
-        get() = true
+
 
     /**
      * Retrieves and returns the next element that requires a verdict from this [JudgementValidator]'
@@ -41,7 +34,7 @@ interface JudgementValidator : SubmissionValidator {
      *
      * @return Optional [Pair] containing a string token and the [Submission] that should be judged.
      */
-    fun next(queue: String): Pair<String, Submission>?
+    fun next(queue: String): Pair<String, BaseSubmissionAspect>?
 
     /**
      * Places a verdict for the [Submission] identified by the given token.

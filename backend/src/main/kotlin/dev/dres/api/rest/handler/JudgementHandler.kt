@@ -58,7 +58,7 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
 
         val collection = this.collections[next.second.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.second.item.collection}", ctx)
 
-        val taskDescription = next.second.taskRun?.taskDescription?.textualDescription() ?: next.second.taskRun?.taskDescription?.name ?: "no task description available"
+        val taskDescription = next.second.task()?.taskDescription?.textualDescription() ?: next.second.task()?.taskDescription?.name ?: "no task description available"
 
         return if (next.second is TemporalSubmissionAspect){
             val tsa = next.second as TemporalSubmissionAspect
@@ -206,7 +206,7 @@ class NextOpenVoteJudgementHandler(val collections: DAO<MediaCollection>) : Abst
 
         val collection = this.collections[next.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.item.collection}", ctx)
 
-        val taskDescription = next.taskRun?.taskDescription?.textualDescription() ?: next.taskRun?.taskDescription?.name ?: "no task description available"
+        val taskDescription = next.task?.taskDescription?.textualDescription() ?: next.task?.taskDescription?.name ?: "no task description available"
 
         return if (next is TemporalSubmissionAspect){
             val tsa = next as TemporalSubmissionAspect

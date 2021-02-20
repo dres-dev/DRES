@@ -407,7 +407,7 @@ class SynchronousInteractiveRunManager(val run: InteractiveCompetitionRun) : Int
      * @param sub [Submission] that should be registered.
      */
     override fun postSubmission(sub: Submission): SubmissionStatus = this.stateLock.read {
-        check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronizedRunManager is in status ${this.status} and can currently not accept submissions." }
+        check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronousInteractiveRunManager is in status ${this.status} and can currently not accept submissions." }
 
         /* Register submission. */
         val task = this.currentTaskRun!!
@@ -449,7 +449,7 @@ class SynchronousInteractiveRunManager(val run: InteractiveCompetitionRun) : Int
         this.daoUpdatable.dirty = true
 
         /* Enqueue submission for post-processing. */
-        this.scoresUpdatable.enqueue(Pair(found.taskRun!!, found))
+        this.scoresUpdatable.enqueue(Pair(found.task!!, found))
 
         /* Enqueue WS message for sending */
         this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_UPDATED))

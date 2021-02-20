@@ -4,6 +4,7 @@ import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.validation.interfaces.JudgementValidator
+import dev.dres.run.validation.interfaces.SubmissionJudgementValidator
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -19,7 +20,8 @@ import kotlin.concurrent.write
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */
-open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList()): JudgementValidator {
+open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList()):
+    SubmissionJudgementValidator {
 
     companion object {
         private val counter = AtomicInteger()

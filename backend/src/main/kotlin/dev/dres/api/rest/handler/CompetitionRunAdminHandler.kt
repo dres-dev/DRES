@@ -402,7 +402,7 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), 
     }
 }
 
-class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), GetRestHandler<Array<SubmissionInfo>> {
+class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), GetRestHandler<List<SubmissionInfo>> {
     override val route: String = "run/admin/:runId/submissions/list/:taskId"
 
     @OpenApi(
@@ -421,14 +421,14 @@ class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHan
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): Array<SubmissionInfo> {
+    override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
         val run = getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
 
         val taskId = ctx.pathParamMap().getOrElse("taskId") {
             throw ErrorStatusException(404, "Parameter 'taskId' is missing!'", ctx)
         }.UID()
-        return run.submissions.filter { it.taskRun?.taskDescriptionId?.equals(taskId) ?: false }.map { SubmissionInfo.withId(it) }.toTypedArray()
+        return run.submissions.filter { it.task()?.taskDescription?.id?.equals(taskId) ?: false }.map { SubmissionInfo.withId(it) }
     }
 }
 

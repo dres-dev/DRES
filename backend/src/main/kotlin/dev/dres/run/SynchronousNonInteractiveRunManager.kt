@@ -8,15 +8,21 @@ import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.BaseSubmissionBatch
 import dev.dres.data.model.run.NonInteractiveCompetitionRun
 import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.run.TaskId
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.ScoreboardsUpdatable
 import dev.dres.run.validation.interfaces.JudgementValidator
+import org.slf4j.LoggerFactory
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 
 class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun) : NonInteractiveRunManager {
 
     private val SCOREBOARD_UPDATE_INTERVAL_MS = 10_000L // TODO make configurable
+
+    private val LOGGER = LoggerFactory.getLogger(this.javaClass)
 
     /** A lock for state changes to this [SynchronousInteractiveRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
@@ -51,7 +57,7 @@ class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun)
         private set
 
     override val judgementValidators: List<JudgementValidator>
-        get() = this.run.tasks.map{ it.validator }.filterIsInstance(JudgementValidator::class.java)
+        get() = this.run.tasks.map { it.validator }.filterIsInstance(JudgementValidator::class.java)
 
     override fun start() {
         TODO("Not yet implemented")
@@ -81,10 +87,61 @@ class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun)
     }
 
     override fun run() {
-        TODO("Not yet implemented")
+
+        while (this.status != RunManagerStatus.TERMINATED) {
+
+            try {
+                this.stateLock.read {
+                    while (updatedTasks.isNotEmpty()) {
+                        val taskId = updatedTasks.poll(1, TimeUnit.SECONDS)
+
+                        if (taskId == null) {
+                            LOGGER.error("Unable to retrieve task id from queue despite it being indicated not to be empty")
+                            break
+                        }
+
+                        val task = this.run.tasks.find { it.uid == taskId }
+
+                        if (task == null) {
+                            LOGGER.error("Unable to retrieve task with changed id $taskId")
+                            break
+                        }
+
+
+                        //TODO
+
+
+
+                    }
+                }
+            } catch (ie: InterruptedException) {
+                LOGGER.info("Interrupted SynchronousRunManager, exiting")
+                return
+            }
+
+
+
+
+
+
+            Thread.sleep(100)
+
+        }
+
+
     }
 
-    override fun addSubmissionBatch(batch: BaseSubmissionBatch<*>) {
-        TODO("Not yet implemented")
+    private val updatedTasks = LinkedBlockingQueue<TaskId>()
+
+    override fun addSubmissionBatch(batch: BaseSubmissionBatch<*>) = this.stateLock.read{
+
+        check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronousNonInteractiveRunManager is in status ${this.status} and can currently not accept submissions." }
+
+        this.run.tasks.forEach {
+            if (it.addSubmissionBatch(batch)) {
+                updatedTasks.add(it.uid)
+            }
+        }
+
     }
 }

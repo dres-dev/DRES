@@ -105,7 +105,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             }
             else -> ItemSubmission(team, userId, submissionTime, item)
         }.also {
-            it.taskRun = runManager.currentTaskRun
+            it.task = runManager.currentTaskRun
         }
     }
 

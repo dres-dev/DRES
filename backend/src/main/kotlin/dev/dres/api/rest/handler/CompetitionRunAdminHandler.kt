@@ -75,7 +75,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
     override fun doPost(ctx: Context): SuccessStatus {
 
         val competitionStartMessage = try {
-            ctx.bodyAsClass(CompetitionStartMessage::class.java)
+            ctx.body<CompetitionStartMessage>()
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }

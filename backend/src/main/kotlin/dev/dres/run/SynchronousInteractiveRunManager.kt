@@ -10,6 +10,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.run.InteractiveCompetitionRun
+import dev.dres.data.model.run.InteractiveTask
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.audit.AuditLogger
@@ -81,6 +82,8 @@ class SynchronousInteractiveRunManager(val run: InteractiveCompetitionRun) : Int
                 else -> null
             }
         }
+
+    override fun tasks(): List<InteractiveTask> = this.run.tasks
 
     /** The list of [Submission]s for the current [InteractiveCompetitionRun.TaskRun]. */
     override val submissions: List<Submission>
@@ -310,7 +313,7 @@ class SynchronousInteractiveRunManager(val run: InteractiveCompetitionRun) : Int
      *
      * @return The number of [InteractiveCompetitionRun.TaskRun]s held by this [RunManager]
      */
-    override fun tasks(): Int = this.run.tasks.size
+    override fun taskCount(): Int = this.run.tasks.size
 
     /**
      * Adjusts the duration of the current [InteractiveCompetitionRun.TaskRun] by the specified amount. Amount can be either positive or negative.

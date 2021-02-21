@@ -3,9 +3,7 @@ package dev.dres.run
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
-import dev.dres.data.model.run.InteractiveCompetitionRun
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.run.*
 import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
 
@@ -37,6 +35,8 @@ interface InteractiveRunManager : RunManager {
      * Part of the [RunManager]'s execution state. Can be null!
      */
     val currentTaskRun: InteractiveCompetitionRun.TaskRun?
+
+    override fun tasks(): List<InteractiveTask>
 
     /**
      * Prepares this [RunManager] for the execution of previous [Task] as per order defined in [CompetitionDescription.tasks].

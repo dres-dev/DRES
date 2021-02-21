@@ -95,13 +95,20 @@ interface ResultBatch<T> where T : ItemAspect, T : StatusAspect {
     val results: List<T>
 }
 
+data class TemporalResultBatch(
+    override val task: TaskId,
+    override val name: String,
+    override val results: List<TemporalBatchElement>
+) : ResultBatch<TemporalBatchElement>
+
 data class TemporalBatchElement(
     override val item: MediaItem,
     override val start: Long,
     override val end: Long,
-    override val temporalRange: TemporalRange,
 ) : ItemAspect, TemporalAspect, StatusAspect {
     override var status: SubmissionStatus = SubmissionStatus.INDETERMINATE
+    override val temporalRange: TemporalRange
+        get() = TemporalRange(TemporalPoint(start.toDouble(), TemporalUnit.MILLISECONDS), TemporalPoint(end.toDouble(), TemporalUnit.MILLISECONDS))
 }
 
 interface BaseSubmissionBatch<R: ResultBatch<*>> : OriginAspect {

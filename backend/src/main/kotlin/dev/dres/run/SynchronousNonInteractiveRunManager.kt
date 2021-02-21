@@ -8,6 +8,7 @@ import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.BaseSubmissionBatch
 import dev.dres.data.model.run.NonInteractiveCompetitionRun
+import dev.dres.data.model.run.NonInteractiveTask
 import dev.dres.data.model.run.TaskId
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.ScoreboardsUpdatable
@@ -67,7 +68,7 @@ class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun)
         TODO("Not yet implemented")
     }
 
-    override fun tasks(): Int = this.run.tasks.size
+    override fun taskCount(): Int = this.run.tasks.size
 
     private val viewerMap: MutableMap<WebSocketConnection, Boolean> = mutableMapOf()
 
@@ -153,4 +154,6 @@ class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun)
         }
 
     }
+
+    override fun tasks(): List<NonInteractiveTask> = this.run.tasks
 }

@@ -6,6 +6,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.InteractiveCompetitionRun
 import dev.dres.data.model.run.Submission
+import dev.dres.data.model.run.Task
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
 
@@ -64,7 +65,9 @@ interface RunManager : Runnable {
      *
      * @return The number of [InteractiveCompetitionRun.TaskRun]s held by this [RunManager]
      */
-    fun tasks(): Int
+    fun taskCount(): Int
+
+    fun tasks(): List<Task>
 
     /**
      * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.

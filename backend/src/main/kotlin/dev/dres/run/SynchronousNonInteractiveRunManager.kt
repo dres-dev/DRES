@@ -6,9 +6,9 @@ import dev.dres.api.rest.types.run.websocket.ClientMessageType
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TeamId
-import dev.dres.data.model.run.BaseSubmissionBatch
 import dev.dres.data.model.run.NonInteractiveCompetitionRun
 import dev.dres.data.model.run.NonInteractiveTask
+import dev.dres.data.model.run.SubmissionBatch
 import dev.dres.data.model.run.TaskId
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.ScoreboardsUpdatable
@@ -141,7 +141,7 @@ class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun)
 
     private val updatedTasks = LinkedBlockingQueue<Pair<TaskId, List<Pair<TeamId, String>>>>()
 
-    override fun addSubmissionBatch(batch: BaseSubmissionBatch<*>) = this.stateLock.read{
+    override fun addSubmissionBatch(batch: SubmissionBatch<*>) = this.stateLock.read{
 
         check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronousNonInteractiveRunManager is in status ${this.status} and can currently not accept submissions." }
 

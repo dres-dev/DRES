@@ -25,7 +25,8 @@ open class NonInteractiveCompetitionRun(override var id: CompetitionRunId, name:
 
         }
 
-        override val taskDescription: TaskDescription = this@NonInteractiveCompetitionRun.competitionDescription.tasks.find { it.id == this.taskDescriptionId } ?: throw IllegalArgumentException("There is no task with ID ${this.taskDescriptionId}.")
+        override val taskDescription: TaskDescription = this@NonInteractiveCompetitionRun.competitionDescription.tasks
+            .find { it.id == this.taskDescriptionId } ?: throw IllegalArgumentException("There is no task with ID ${this.taskDescriptionId}.")
 
     }
 

@@ -11,9 +11,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.basics.media.MediaItemSegmentList
-import dev.dres.data.model.run.TemporalBatchElement
-import dev.dres.data.model.run.TemporalResultBatch
-import dev.dres.data.model.run.TemporalSubmissionBatch
+import dev.dres.data.model.run.*
 import dev.dres.run.NonInteractiveRunManager
 import dev.dres.utilities.TimeUtil
 import dev.dres.utilities.extensions.UID
@@ -92,18 +90,28 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
                     TemporalBatchElement(mediaItem, time.first, time.second)
 
                 } else {
-                    return@mapNotNull null //TODO handle non-temporal results
+                    ItemBatchElement(mediaItem)
                 }
 
             }
 
-            TemporalResultBatch(task.uid, batch.resultName, results)
+            if (results.all { it is TemporalBatchElement }) {
+                @Suppress("UNCHECKED_CAST")
+                BaseResultBatch(mediaCollectionId, batch.resultName, results as List<TemporalBatchElement>)
+            } else {
+                BaseResultBatch(mediaCollectionId, batch.resultName, results)
+            }
 
         }
 
-        val tsb = TemporalSubmissionBatch(team, userId, UID(), resultBatches)
+        val submissionBatch = if (resultBatches.all { it.results.first() is TemporalBatchElement }) {
+            @Suppress("UNCHECKED_CAST")
+            TemporalSubmissionBatch(team, userId, UID(), resultBatches as List<BaseResultBatch<TemporalBatchElement>>)
+        } else {
+            BaseSubmissionBatch(team, userId, UID(), resultBatches as List<BaseResultBatch<BaseResultBatchElement>>)
+        }
 
-        runManager.addSubmissionBatch(tsb)
+        runManager.addSubmissionBatch(submissionBatch)
 
         return SuccessStatus("Submission batch received")
 

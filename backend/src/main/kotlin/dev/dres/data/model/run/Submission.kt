@@ -89,36 +89,53 @@ data class TemporalSubmission(override val teamId: UID,
 
 }
 
-interface ResultBatch<T> where T : ItemAspect, T : StatusAspect {
-    val task: TaskId
-    val name: String
-    val results: List<T>
-}
+/******************************************************************/
+interface BaseResultBatchElement : ItemAspect, StatusAspect
 
-data class TemporalResultBatch(
-    override val task: TaskId,
-    override val name: String,
-    override val results: List<TemporalBatchElement>
-) : ResultBatch<TemporalBatchElement>
+data class ItemBatchElement(override val item: MediaItem): BaseResultBatchElement {
+    override var status: SubmissionStatus = SubmissionStatus.INDETERMINATE
+}
 
 data class TemporalBatchElement(
     override val item: MediaItem,
     override val start: Long,
     override val end: Long,
-) : ItemAspect, TemporalAspect, StatusAspect {
+) : BaseResultBatchElement, TemporalAspect {
     override var status: SubmissionStatus = SubmissionStatus.INDETERMINATE
     override val temporalRange: TemporalRange
         get() = TemporalRange(TemporalPoint(start.toDouble(), TemporalUnit.MILLISECONDS), TemporalPoint(end.toDouble(), TemporalUnit.MILLISECONDS))
 }
 
-interface BaseSubmissionBatch<R: ResultBatch<*>> : OriginAspect {
+/******************************************************************/
+
+interface ResultBatch<T: BaseResultBatchElement> {
+    val task: TaskId
+    val name: String
+    val results: List<T>
+}
+
+data class BaseResultBatch<T: BaseResultBatchElement>(
+    override val task: TaskId,
+    override val name: String,
+    override val results: List<T>
+) : ResultBatch<T>
+
+/******************************************************************/
+
+interface SubmissionBatch<R: ResultBatch<*>> : OriginAspect {
     val results : Collection<R>
 }
 
-data class TemporalSubmissionBatch
-    (
+data class BaseSubmissionBatch(
+    override val uid: UID,
+    override val teamId: UID,
+    override val memberId: UID,
+    override val results: Collection<ResultBatch<BaseResultBatchElement>>
+) : SubmissionBatch<ResultBatch<BaseResultBatchElement>>
+
+data class TemporalSubmissionBatch(
     override val teamId: UID,
     override val memberId: UID,
     override val uid: UID,
-    override val results: Collection<ResultBatch<TemporalBatchElement>>,
-) : BaseSubmissionBatch<ResultBatch<TemporalBatchElement>>
+    override val results: List<BaseResultBatch<TemporalBatchElement>>,
+) : SubmissionBatch<ResultBatch<TemporalBatchElement>>

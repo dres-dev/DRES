@@ -61,9 +61,9 @@ sealed class Submission(override val teamId: UID,
 
     @Transient
     @JsonIgnore
-    internal var task: InteractiveCompetitionRun.TaskRun? = null
+    internal var task: InteractiveSynchronousCompetitionRun.TaskRun? = null
 
-    override fun task(): InteractiveCompetitionRun.TaskRun? = task
+    override fun task(): InteractiveSynchronousCompetitionRun.TaskRun? = task
 
 
 }

@@ -3,14 +3,14 @@ package dev.dres.data.model.run
 import dev.dres.data.model.Entity
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.run.InteractiveCompetitionRun.TaskRun
+import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun.TaskRun
 
 typealias CompetitionRunId = UID
 
 
 abstract class CompetitionRun(override var id: CompetitionRunId, val name: String, val competitionDescription: CompetitionDescription): Run, Entity {
 
-    /** Timestamp of when this [InteractiveCompetitionRun] was started. */
+    /** Timestamp of when this [InteractiveSynchronousCompetitionRun] was started. */
     @Volatile
     override var started: Long? = null
         protected set
@@ -21,7 +21,7 @@ abstract class CompetitionRun(override var id: CompetitionRunId, val name: Strin
         protected set
 
     /**
-     * Starts this [InteractiveCompetitionRun].
+     * Starts this [InteractiveSynchronousCompetitionRun].
      */
     open fun start() {
         if (this.hasStarted) {
@@ -31,7 +31,7 @@ abstract class CompetitionRun(override var id: CompetitionRunId, val name: Strin
     }
 
     /**
-     * Ends this [InteractiveCompetitionRun].
+     * Ends this [InteractiveSynchronousCompetitionRun].
      */
     open fun end() {
         if (!this.isRunning) {

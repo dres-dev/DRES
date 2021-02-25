@@ -1,7 +1,7 @@
 package dev.dres.data.serializers
 
 import dev.dres.data.model.run.CompetitionRun
-import dev.dres.data.model.run.InteractiveCompetitionRun
+import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun
 import dev.dres.data.model.run.NonInteractiveCompetitionRun
 import dev.dres.data.model.run.Submission
 import dev.dres.utilities.extensions.UID
@@ -14,7 +14,7 @@ import org.mapdb.Serializer
 class CompetitionRunSerializer(private val competitionSerializer: CompetitionSerializer): Serializer<CompetitionRun> {
     override fun serialize(out: DataOutput2, value: CompetitionRun) {
         when(value) {
-            is InteractiveCompetitionRun -> out.packInt(1)
+            is InteractiveSynchronousCompetitionRun -> out.packInt(1)
             is NonInteractiveCompetitionRun -> out.packInt(2)
         }
         out.writeUID(value.id)
@@ -25,7 +25,7 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
         out.writeInt(value.tasks.size)
 
         when(value){
-            is InteractiveCompetitionRun -> {
+            is InteractiveSynchronousCompetitionRun -> {
                 for (taskRun in value.tasks) {
                     out.writeUID(taskRun.uid)
                     out.writeUID(taskRun.taskDescriptionId)
@@ -48,13 +48,13 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
     override fun deserialize(input: DataInput2, available: Int): CompetitionRun {
         return when(val type = input.unpackInt()) {
             1 -> {
-                val run = InteractiveCompetitionRun(input.readUTF().UID(), input.readUTF(), competitionSerializer.deserialize(input, available), input.readLong(), input.readLong())
+                val run = InteractiveSynchronousCompetitionRun(input.readUTF().UID(), input.readUTF(), competitionSerializer.deserialize(input, available), input.readLong(), input.readLong())
                 for (i in 0 until input.readInt()) {
                     val taskRun = run.TaskRun(input.readUID(), input.readUID(), input.readLong(), input.readLong())
                     for (j in 0 until input.readInt()) {
                         (taskRun.submissions as MutableList<Submission>).add(SubmissionSerializer.deserialize(input,available))
                     }
-                    (run.tasks as MutableList<InteractiveCompetitionRun.TaskRun>).add(taskRun)
+                    (run.tasks as MutableList<InteractiveSynchronousCompetitionRun.TaskRun>).add(taskRun)
                 }
                 run
             }

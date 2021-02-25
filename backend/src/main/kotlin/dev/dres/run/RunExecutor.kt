@@ -9,7 +9,7 @@ import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
 import dev.dres.data.model.run.CompetitionRun
-import dev.dres.data.model.run.InteractiveCompetitionRun
+import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun
 import dev.dres.data.model.run.NonInteractiveCompetitionRun
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.extensions.UID
@@ -60,19 +60,19 @@ object RunExecutor : Consumer<WsHandler> {
     /** Internal array of [Future]s for cleaning after [RunManager]s. See [RunExecutor.cleanerThread]*/
     private val results = HashMap<Future<*>, UID>()
 
-    /** Instance of shared [DAO] used to access [InteractiveCompetitionRun]s. */
+    /** Instance of shared [DAO] used to access [InteractiveSynchronousCompetitionRun]s. */
     lateinit var runs: DAO<CompetitionRun>
 
     /**
      * Initializes this [RunExecutor].
      *
-     * @param runs The shared [DAO] used to access [InteractiveCompetitionRun]s.
+     * @param runs The shared [DAO] used to access [InteractiveSynchronousCompetitionRun]s.
      */
     fun init(runs: DAO<CompetitionRun>) {
         this.runs = runs
         this.runs.filter { !it.hasEnded }.forEach { //TODO needs more distinction
             val run = when(it) {
-                is InteractiveCompetitionRun -> SynchronousInteractiveRunManager(it)
+                is InteractiveSynchronousCompetitionRun -> SynchronousInteractiveRunManager(it)
                 is NonInteractiveCompetitionRun -> SynchronousNonInteractiveRunManager(it)
                 else -> throw NotImplementedError("No matching run manager found for $it")
             }

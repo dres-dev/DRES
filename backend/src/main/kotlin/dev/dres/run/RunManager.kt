@@ -4,16 +4,16 @@ import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.run.websocket.ClientMessage
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.run.InteractiveCompetitionRun
+import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.Task
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
 
 /**
- * A managing class for concrete executions of [CompetitionDescription], i.e. [InteractiveCompetitionRun]s.
+ * A managing class for concrete executions of [CompetitionDescription], i.e. [InteractiveSynchronousCompetitionRun]s.
  *
- * @see InteractiveCompetitionRun
+ * @see InteractiveSynchronousCompetitionRun
  *
  * @author Ralph Gasser
  * @version 1.4.0
@@ -61,9 +61,9 @@ interface RunManager : Runnable {
 
 
     /**
-     * Returns the number of [InteractiveCompetitionRun.TaskRun]s held by this [RunManager].
+     * Returns the number of [InteractiveSynchronousCompetitionRun.TaskRun]s held by this [RunManager].
      *
-     * @return The number of [InteractiveCompetitionRun.TaskRun]s held by this [RunManager]
+     * @return The number of [InteractiveSynchronousCompetitionRun.TaskRun]s held by this [RunManager]
      */
     fun taskCount(): Int
 

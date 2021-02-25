@@ -5,6 +5,7 @@ import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TaskDescriptionTarget
 import dev.dres.data.model.competition.TaskType
+import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun.TaskRun
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.score.interfaces.TaskRunScorer
 import dev.dres.run.validation.MediaItemsSubmissionValidator
@@ -33,11 +34,15 @@ abstract class Task {
 
 abstract class InteractiveTask : Task() {
 
-    abstract var started: Long?
-        internal set
+    /** Timestamp of when this [TaskRun] was started. */
+    @Volatile
+    var started: Long? = null
+    internal set
 
-    abstract var ended: Long?
-        internal set
+    /** Timestamp of when this [TaskRun] was ended. */
+    @Volatile
+    var ended: Long? = null
+    internal set
 
     /** The [SubmissionFilter] used to filter [Submission]s. */
     @Transient

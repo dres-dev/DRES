@@ -13,7 +13,7 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.run.InteractiveCompetitionRun
+import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun
 import dev.dres.run.*
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
@@ -48,7 +48,7 @@ abstract class AbstractCompetitionRunAdminRestHandler : RestHandler, AccessManag
 }
 
 /**
- * REST handler to create a [InteractiveCompetitionRun].
+ * REST handler to create a [InteractiveSynchronousCompetitionRun].
  */
 class CreateCompetitionRunAdminHandler(private val competitions: DAO<CompetitionDescription>, private val collections: DAO<MediaCollection>, config: Config) : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
 
@@ -131,7 +131,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
 }
 
 /**
- * REST handler to start a [InteractiveCompetitionRun].
+ * REST handler to start a [InteractiveSynchronousCompetitionRun].
  */
 class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/start"
@@ -162,7 +162,7 @@ class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler()
 }
 
 /**
- * REST handler to move to the next task in a [InteractiveCompetitionRun].
+ * REST handler to move to the next task in a [InteractiveSynchronousCompetitionRun].
  */
 class NextTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/task/next"
@@ -195,7 +195,7 @@ class NextTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandle
 }
 
 /**
- * REST handler to move to the next task in a [InteractiveCompetitionRun].
+ * REST handler to move to the next task in a [InteractiveSynchronousCompetitionRun].
  */
 class SwitchTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/task/switch/:idx"
@@ -234,7 +234,7 @@ class SwitchTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHand
 }
 
 /**
- * REST handler to move to the previous task in a [InteractiveCompetitionRun].
+ * REST handler to move to the previous task in a [InteractiveSynchronousCompetitionRun].
  */
 class PreviousTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/task/previous"
@@ -267,7 +267,7 @@ class PreviousTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHa
 }
 
 /**
- * REST handler to start the current task in a [InteractiveCompetitionRun].
+ * REST handler to start the current task in a [InteractiveSynchronousCompetitionRun].
  */
 class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/task/start"
@@ -299,7 +299,7 @@ class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
 }
 
 /**
- * REST handler to abort the current task in a [InteractiveCompetitionRun].
+ * REST handler to abort the current task in a [InteractiveSynchronousCompetitionRun].
  */
 class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/task/abort"
@@ -331,7 +331,7 @@ class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
 }
 
 /**
- * REST handler to terminate a [InteractiveCompetitionRun].
+ * REST handler to terminate a [InteractiveSynchronousCompetitionRun].
  */
 class TerminateCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/terminate"
@@ -362,7 +362,7 @@ class TerminateCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
 }
 
 /**
- * REST handler to adjust a [InteractiveCompetitionRun.TaskRun]'s duration.
+ * REST handler to adjust a [InteractiveSynchronousCompetitionRun.TaskRun]'s duration.
  */
 class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/:runId/adjust/:duration"
@@ -470,7 +470,7 @@ class OverrideSubmissionStatusRunAdminHandler: AbstractCompetitionRunAdminRestHa
 }
 
 /**
- * REST handler to list all viewers for a [InteractiveCompetitionRun].
+ * REST handler to list all viewers for a [InteractiveSynchronousCompetitionRun].
  */
 class ListViewersRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), GetRestHandler<Array<ViewerInfo>> {
     override val route: String = "run/admin/:runId/viewer/list"

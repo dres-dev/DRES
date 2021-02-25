@@ -17,7 +17,7 @@ interface InteractiveRunManager : RunManager {
     val currentTask: TaskDescription?
 
     /**
-     * List of [Submission]s for the current [InteractiveCompetitionRun.TaskRun].
+     * List of [Submission]s for the current [InteractiveSynchronousCompetitionRun.TaskRun].
      *
      * Part of the [RunManager]'s execution state. Can be empty!
      */
@@ -26,15 +26,15 @@ interface InteractiveRunManager : RunManager {
     /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
     val scoreHistory: List<ScoreTimePoint>
 
-    /** List of all [Submission]s for this [RunManager], irrespective of the [InteractiveCompetitionRun.TaskRun] it belongs to. */
+    /** List of all [Submission]s for this [RunManager], irrespective of the [InteractiveSynchronousCompetitionRun.TaskRun] it belongs to. */
     val allSubmissions: List<Submission>
 
     /**
-     * Reference to the [InteractiveCompetitionRun.TaskRun] that is currently being executed OR that has just ended.
+     * Reference to the [InteractiveSynchronousCompetitionRun.TaskRun] that is currently being executed OR that has just ended.
      *
      * Part of the [RunManager]'s execution state. Can be null!
      */
-    val currentTaskRun: InteractiveCompetitionRun.TaskRun?
+    val currentTaskRun: InteractiveSynchronousCompetitionRun.TaskRun?
 
     override fun tasks(): List<InteractiveTask>
 
@@ -116,12 +116,12 @@ interface InteractiveRunManager : RunManager {
     fun timeLeft(): Long
 
     /**
-     * Returns [InteractiveCompetitionRun.TaskRun]s for the specified index. The index is zero based, i.e.,
-     * an index of 0 returns the first [InteractiveCompetitionRun.TaskRun], index of 1 the second etc.
+     * Returns [InteractiveSynchronousCompetitionRun.TaskRun]s for the specified index. The index is zero based, i.e.,
+     * an index of 0 returns the first [InteractiveSynchronousCompetitionRun.TaskRun], index of 1 the second etc.
      *
-     * @param taskRunId The [UID] of the desired [InteractiveCompetitionRun.TaskRun].
+     * @param taskRunId The [UID] of the desired [InteractiveSynchronousCompetitionRun.TaskRun].
      */
-    fun taskRunForId(taskRunId: UID): InteractiveCompetitionRun.TaskRun?
+    fun taskRunForId(taskRunId: UID): InteractiveSynchronousCompetitionRun.TaskRun?
 
     /**
      * Override the ready state for a given viewer ID.

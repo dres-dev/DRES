@@ -52,6 +52,10 @@ export class AppConfig {
         return `${AppConfig.settings.endpoint.tls ? 'https://' : 'http://'}${AppConfig.settings.endpoint.host}:${AppConfig.settings.endpoint.port}/api${path.startsWith('/') ? '' : '/'}${path}`;
     }
 
+    public resolveUrl(path: string) {
+        return `${AppConfig.settings.endpoint.tls ? 'https://' : 'http://'}${AppConfig.settings.endpoint.host}:${AppConfig.settings.endpoint.port}${path.startsWith('/') ? '' : '/'}${path}`;
+    }
+
     /**
      * Loads the default configuration from a JSON file.
      */

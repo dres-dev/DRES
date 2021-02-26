@@ -70,6 +70,15 @@ export class AbstractRunListComponent {
     }
 
     /**
+     * Navigates to audience voting judgment viewer.
+     *
+     * @param runId ID of the run to navigate to.
+     */
+    public navigateToVoting(runId: string) {
+        this.router.navigate(['/vote', runId]);
+    }
+
+    /**
      * Navigates to admin viewer (for admins).
      *
      * @param runId ID of the run to navigate to.

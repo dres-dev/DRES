@@ -17,6 +17,10 @@
                     <mat-icon>gavel</mat-icon>
                 </button>
 
+                <button mat-icon-button aria-label="Go to audience voting viewer." matTooltip="Go to audience voting viewer." (click)="navigateToVoting(row.id)">
+                    <mat-icon>flaky</mat-icon>
+                </button>
+
                 <button mat-icon-button aria-label="Go to score history." matTooltip="Go to score history." (click)="navigateToScoreHistory(row.id)">
                     <mat-icon>stacked_line_chart</mat-icon>
                 </button>

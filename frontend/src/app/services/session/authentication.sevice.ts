@@ -18,7 +18,7 @@ export class AuthenticationService {
      * Constructor
      */
     constructor(@Inject(UserService) private userService: UserService) {
-        this.userService.getApiUserSession().pipe(
+        this.userService.getApiUserSession('').pipe(
             catchError(e => of(null)),
             filter(s => s != null),
             flatMap(s => this.userService.getApiUser()),
@@ -61,7 +61,7 @@ export class AuthenticationService {
      * Tries to logout the current user. Returns an Observable!
      */
     public logout() {
-        return this.userService.getApiLogout().pipe(
+        return this.userService.getApiLogout('').pipe(
             catchError(e => of(null)),
             tap(() => {
                 this.userDetails.next(null);

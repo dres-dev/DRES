@@ -18,6 +18,11 @@
                 <button *ngIf="hasAccessFor(judgeGroup)" mat-icon-button aria-label="Go to judgement viewer." matTooltip="Go to judgement viewer." (click)="navigateToJudgement(row.id)">
                     <mat-icon>gavel</mat-icon>
                 </button>
+
+                <button mat-icon-button aria-label="Go to audience voting viewer." matTooltip="Go to audience voting viewer." (click)="navigateToVoting(row.id)">
+                    <mat-icon>flaky</mat-icon>
+                </button>
+
             </td>
         </ng-container>
 

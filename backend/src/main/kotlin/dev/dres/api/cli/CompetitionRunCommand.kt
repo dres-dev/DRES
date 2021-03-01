@@ -11,6 +11,7 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
 import dev.dres.data.model.run.CompetitionRun
 import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun
+import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.SubmissionStatus
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
@@ -51,7 +52,8 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
             }
             if (plain) {
                 RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java).forEach {
-                    println("${RunSummary(it.id.string, it.name, it.competitionDescription.description, it.currentTask?.name)} (${it.status})")
+                    println("${RunSummary(it.id.string, it.name, it.competitionDescription.description, it.currentTask(
+                        RunActionContext.DUMMY_ADMIN)?.name)} (${it.status})")
                 }
             } else {
                 table {
@@ -65,7 +67,8 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                     }
                     body {
                         RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java).forEach {
-                            row(it.id.string, it.name, it.competitionDescription.description, it.currentTask?.name
+                            row(it.id.string, it.name, it.competitionDescription.description, it.currentTask(
+                                RunActionContext.DUMMY_ADMIN)?.name
                                     ?: "N/A", it.status)
                         }
                     }

@@ -14,14 +14,14 @@ interface InteractiveRunManager : RunManager {
      *
      * Part of the [RunManager]'s navigational state.
      */
-    val currentTask: TaskDescription?
+    fun currentTask(context: RunActionContext): TaskDescription?
 
     /**
      * List of [Submission]s for the current [InteractiveSynchronousCompetitionRun.TaskRun].
      *
      * Part of the [RunManager]'s execution state. Can be empty!
      */
-    val submissions: List<Submission>
+    val submissions: List<Submission> //TODO needs to be changed to work with asynchronous runs
 
     /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
     val scoreHistory: List<ScoreTimePoint>
@@ -36,7 +36,7 @@ interface InteractiveRunManager : RunManager {
      */
     val currentTaskRun: InteractiveSynchronousCompetitionRun.TaskRun?
 
-    override fun tasks(): List<InteractiveTask>
+    override fun tasks(context: RunActionContext): List<InteractiveTask>
 
     /**
      * Prepares this [RunManager] for the execution of previous [Task] as per order defined in [CompetitionDescription.tasks].
@@ -48,7 +48,7 @@ interface InteractiveRunManager : RunManager {
      * @return True if [Task] was moved, false otherwise. Usually happens if last [Task] has been reached.
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
-    fun previousTask(): Boolean
+    fun previousTask(context: RunActionContext): Boolean
 
     /**
      * Prepares this [RunManager] for the execution of next [Task] as per order defined in [CompetitionDescription.tasks].
@@ -60,7 +60,7 @@ interface InteractiveRunManager : RunManager {
      * @return True if [Task] was moved, false otherwise. Usually happens if last [Task] has been reached.
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
-    fun nextTask(): Boolean
+    fun nextTask(context: RunActionContext): Boolean
 
     /**
      * Prepares this [RunManager] for the execution of the [Task] given by the index as per order
@@ -71,7 +71,7 @@ interface InteractiveRunManager : RunManager {
      *
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
-    fun goToTask(index: Int)
+    fun goToTask(context: RunActionContext, index: Int)
 
     /**
      * Starts the [RunManager.currentTask] and thus moves the [RunManager.status] from
@@ -82,7 +82,7 @@ interface InteractiveRunManager : RunManager {
      *
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE] or [RunManager.currentTask] is not set.
      */
-    fun startTask()
+    fun startTask(context: RunActionContext)
 
     /**
      * Force-abort the [RunManager.currentTask] and thus moves the [RunManager.status] from
@@ -93,7 +93,7 @@ interface InteractiveRunManager : RunManager {
      *
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    fun abortTask()
+    fun abortTask(context: RunActionContext)
 
     /**
      * Adjusts the duration of the current [TaskRun] by the specified amount. Amount can be positive or negative.
@@ -104,7 +104,7 @@ interface InteractiveRunManager : RunManager {
      * @throws IllegalArgumentException If the specified correction cannot be applied.
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    fun adjustDuration(s: Int): Long
+    fun adjustDuration(context: RunActionContext, s: Int): Long
 
     /**
      * Returns the time in milliseconds that is left until the end of the currently running task.
@@ -113,7 +113,7 @@ interface InteractiveRunManager : RunManager {
      *
      * @return Time remaining until the task will end or -1, if no task is running.
      */
-    fun timeLeft(): Long
+    fun timeLeft(context: RunActionContext): Long
 
     /**
      * Returns [InteractiveSynchronousCompetitionRun.TaskRun]s for the specified index. The index is zero based, i.e.,
@@ -121,7 +121,7 @@ interface InteractiveRunManager : RunManager {
      *
      * @param taskRunId The [UID] of the desired [InteractiveSynchronousCompetitionRun.TaskRun].
      */
-    fun taskRunForId(taskRunId: UID): InteractiveSynchronousCompetitionRun.TaskRun?
+    fun taskRunForId(context: RunActionContext, taskRunId: UID): InteractiveSynchronousCompetitionRun.TaskRun?
 
     /**
      * Override the ready state for a given viewer ID.
@@ -129,7 +129,7 @@ interface InteractiveRunManager : RunManager {
      * @param viewerId The ID of the viewer that should be overridden.
      * @return true on success, false otherwise
      */
-    fun overrideReadyState(viewerId: String): Boolean
+    fun overrideReadyState(context: RunActionContext, viewerId: String): Boolean
 
     /**
      * Invoked by an external caller to post a new [Submission] for the [Task] that is currently being

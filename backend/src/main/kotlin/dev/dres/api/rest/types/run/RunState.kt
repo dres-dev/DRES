@@ -1,6 +1,7 @@
 package dev.dres.api.rest.types.run
 
 import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun
+import dev.dres.data.model.run.RunActionContext
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
@@ -14,6 +15,6 @@ import dev.dres.run.RunManagerStatus
  * @version 1.0.2
  */
 data class RunState(val id: String, val status: RunManagerStatus, val currentTask: TaskInfo?, val timeLeft: Long) {
-    constructor(run: InteractiveRunManager) : this(run.id.string, run.status, run.currentTask?.let { TaskInfo(it) }, run.timeLeft() / 1000)
+    constructor(run: InteractiveRunManager, context: RunActionContext) : this(run.id.string, run.status, run.currentTask(context)?.let { TaskInfo(it) }, run.timeLeft(context) / 1000)
 }
 

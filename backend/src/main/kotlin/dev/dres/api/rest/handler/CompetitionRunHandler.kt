@@ -16,6 +16,7 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.competition.TaskType
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManagerStatus
@@ -70,6 +71,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
     fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
         throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx)
     }.UID()
+
 }
 
 class ListCompetitionRunInfosHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<RunInfo>> {
@@ -101,7 +103,12 @@ class ListCompetitionRunStatesHandler : AbstractCompetitionRunRestHandler(), Get
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): List<RunState> = getRelevantManagers(ctx).map { RunState(it) }
+    override fun doGet(ctx: Context): List<RunState> =
+         getRelevantManagers(ctx).map {
+             val rac = runActionContext(ctx, it)
+             RunState(it, rac)
+         }
+
 
 }
 
@@ -158,7 +165,9 @@ class GetCompetitionRunStateHandler : AbstractCompetitionRunRestHandler(), GetRe
             throw ErrorStatusException(403, "Access Denied", ctx)
         }
 
-        return RunState(run)
+        val rac = runActionContext(ctx, run)
+
+        return RunState(run, rac)
     }
 }
 
@@ -183,11 +192,13 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
+        val rac = runActionContext(ctx, run)
+
         if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        return TaskInfo(run.currentTask ?: throw ErrorStatusException(404, "Run $runId has currently no active task.", ctx))
+        return TaskInfo(run.currentTask(rac) ?: throw ErrorStatusException(404, "Run $runId has currently no active task.", ctx))
     }
 }
 
@@ -215,7 +226,9 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId.", ctx)
+        val rac = runActionContext(ctx, run)
+
+        val task = run.currentTask(rac) ?: throw ErrorStatusException(404, "No active task in run $runId.", ctx)
         try {
             return task.toTaskHint(config)
         } catch (e: FileNotFoundException) {
@@ -256,8 +269,10 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
             throw ErrorStatusException(400, "Query target can only be loaded if task has just ended.", ctx)
         }
 
+        val rac = runActionContext(ctx, run)
+
         /* Fetch query target and transform it. */
-        val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId.", ctx)
+        val task = run.currentTask(rac) ?: throw ErrorStatusException(404, "No active task in run $runId.", ctx)
         try {
             val target = task.toTaskTarget(config, collections)
             if (target != null) {
@@ -297,9 +312,11 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
+        val rac = runActionContext(ctx, run)
+
         /* Obtain current task run and check status. */
         return if (run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTask?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
+            if (run.currentTask(rac)?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
                 run.submissions.map { SubmissionInfo.blind(it) }
             } else {
                 run.submissions.map { SubmissionInfo.withId(it) }
@@ -335,9 +352,11 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
             throw ErrorStatusException(403, "Access denied", ctx)
         }
 
+        val rac = runActionContext(ctx, run)
+
         val timestamp = ctx.pathParamMap().getOrDefault("timestamp", "0").toLong()
         return if (run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTask?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
+            if (run.currentTask(rac)?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
                 run.submissions.filter { it.timestamp >= timestamp }.map { SubmissionInfo.blind(it) }
             } else {
                 run.submissions.filter { it.timestamp >= timestamp }.map { SubmissionInfo.withId(it) }
@@ -375,15 +394,17 @@ class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
             throw ErrorStatusException(403, "Access denied", ctx)
         }
 
+
         val taskId = ctx.pathParamMap()["taskId"]?.UID() ?: throw ErrorStatusException(404, "Missing task id", ctx)
+        val rac = runActionContext(ctx, run)
         return if (run.currentTaskRun?.taskDescriptionId == taskId && run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTask?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
+            if (run.currentTask(rac)?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
                 run.submissions.map { SubmissionInfo.blind(it) }
             } else {
                 run.submissions.map { SubmissionInfo.withId(it) }
             }
         } else {
-            run.taskRunForId(taskId)?.submissions?.map { SubmissionInfo(it) } ?: emptyList()
+            run.taskRunForId(rac, taskId)?.submissions?.map { SubmissionInfo(it) } ?: emptyList()
         }
     }
 }

@@ -5,6 +5,7 @@ import dev.dres.api.rest.types.run.websocket.ClientMessage
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun
+import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.Submission
 import dev.dres.data.model.run.Task
 import dev.dres.run.score.scoreboard.Scoreboard
@@ -46,7 +47,7 @@ interface RunManager : Runnable {
      *
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.CREATED]
      */
-    fun start()
+    fun start(context: RunActionContext)
 
     /**
      * Ends this [RunManager] moving [RunManager.status] from [RunManagerStatus.ACTIVE] to
@@ -57,7 +58,7 @@ interface RunManager : Runnable {
      *
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
-    fun end()
+    fun end(context: RunActionContext)
 
 
     /**
@@ -65,9 +66,9 @@ interface RunManager : Runnable {
      *
      * @return The number of [InteractiveSynchronousCompetitionRun.TaskRun]s held by this [RunManager]
      */
-    fun taskCount(): Int
+    fun taskCount(context: RunActionContext): Int
 
-    fun tasks(): List<Task>
+    fun tasks(context: RunActionContext): List<Task>
 
     /**
      * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.

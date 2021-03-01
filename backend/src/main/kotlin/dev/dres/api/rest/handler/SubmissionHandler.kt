@@ -71,11 +71,13 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             it.users.contains(userId)
         }?.uid ?: throw ErrorStatusException(404, "No team for user '$userId' could not be found.", ctx)
 
+        val rac = RunActionContext.runActionContext(ctx, runManager)
+
         /* Find collectionId the submission belongs to.. */
         val collectionParam = map[PARAMETER_NAME_COLLECTION]?.first()
         val collectionId: UID = when {
             collectionParam != null -> this.collections.find { it.name == collectionParam }?.id
-            else -> runManager.currentTask?.mediaCollectionId
+            else -> runManager.currentTask(rac)?.mediaCollectionId
         } ?: throw ErrorStatusException(404, "Media collection '$collectionParam' could not be found.", ctx)
 
         /* Find media item. */
@@ -83,7 +85,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         val item = this.itemIndex[collectionId to itemParam].firstOrNull() ?:
             throw ErrorStatusException(404, "Media item '$itemParam (collection = $collectionId)' could not be found.", ctx)
 
-        val mapToSegment = runManager.currentTask?.taskType?.options?.any { it.option == TaskType.Options.MAP_TO_SEGMENT } == true
+        val mapToSegment = runManager.currentTask(rac)?.taskType?.options?.any { it.option == TaskType.Options.MAP_TO_SEGMENT } == true
 
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) && item is MediaItem.VideoItem -> {
@@ -140,13 +142,14 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             throw ErrorStatusException(208, "Submission rejected", ctx)
         }
 
-        AuditLogger.submission(run.id, run.currentTask?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId(), ctx.req.remoteAddr)
+        val rac = RunActionContext.runActionContext(ctx, run)
+
+        AuditLogger.submission(run.id, run.currentTask(rac)?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId(), ctx.req.remoteAddr)
         EventStreamProcessor.event(SubmissionEvent(ctx.sessionId(), run.id, run.currentTaskRun?.uid, submission))
 
-        if (run.currentTask?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) { //pre-generate preview
+        if (run.currentTask(rac)?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) { //pre-generate preview
             generatePreview(submission)
         }
-
 
         return when (result) {
             SubmissionStatus.CORRECT -> SuccessStatus("Submission correct!")

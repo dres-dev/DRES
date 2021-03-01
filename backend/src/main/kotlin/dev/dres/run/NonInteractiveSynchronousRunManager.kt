@@ -6,10 +6,7 @@ import dev.dres.api.rest.types.run.websocket.ClientMessageType
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TeamId
-import dev.dres.data.model.run.NonInteractiveCompetitionRun
-import dev.dres.data.model.run.NonInteractiveTask
-import dev.dres.data.model.run.SubmissionBatch
-import dev.dres.data.model.run.TaskId
+import dev.dres.data.model.run.*
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.ScoreboardsUpdatable
 import dev.dres.run.validation.interfaces.JudgementValidator
@@ -19,28 +16,28 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 
-class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun) : NonInteractiveRunManager {
+class NonInteractiveSynchronousRunManager(val run: NonInteractiveCompetitionRun) : RunManager {
 
     private val SCOREBOARD_UPDATE_INTERVAL_MS = 10_000L // TODO make configurable
 
     private val LOGGER = LoggerFactory.getLogger(this.javaClass)
 
-    /** A lock for state changes to this [SynchronousInteractiveRunManager]. */
+    /** A lock for state changes to this [InteractiveSynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
 
-    /** Run ID of this [SynchronousInteractiveRunManager]. */
+    /** Run ID of this [InteractiveSynchronousRunManager]. */
     override val id: UID
         get() = this.run.id
 
-    /** Name of this [SynchronousInteractiveRunManager]. */
+    /** Name of this [InteractiveSynchronousRunManager]. */
     override val name: String
         get() = this.run.name
 
-    /** The [CompetitionDescription] executed by this [SynchronousInteractiveRunManager]. */
+    /** The [CompetitionDescription] executed by this [InteractiveSynchronousRunManager]. */
     override val competitionDescription: CompetitionDescription
         get() = this.run.competitionDescription
 
-    /** The internal [ScoreboardsUpdatable] instance for this [SynchronousInteractiveRunManager]. */
+    /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
     private val scoreboardsUpdatable = ScoreboardsUpdatable(this.competitionDescription.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
 
     override val scoreboards: List<Scoreboard>
@@ -60,15 +57,15 @@ class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun)
     override val judgementValidators: List<JudgementValidator>
         get() = this.run.tasks.map { it.validator }.filterIsInstance(JudgementValidator::class.java)
 
-    override fun start() {
+    override fun start(context: RunActionContext) {
         TODO("Not yet implemented")
     }
 
-    override fun end() {
+    override fun end(context: RunActionContext) {
         TODO("Not yet implemented")
     }
 
-    override fun taskCount(): Int = this.run.tasks.size
+    override fun taskCount(context: RunActionContext): Int = this.run.tasks.size
 
     private val viewerMap: MutableMap<WebSocketConnection, Boolean> = mutableMapOf()
 
@@ -141,7 +138,7 @@ class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun)
 
     private val updatedTasks = LinkedBlockingQueue<Pair<TaskId, List<Pair<TeamId, String>>>>()
 
-    override fun addSubmissionBatch(batch: SubmissionBatch<*>) = this.stateLock.read{
+    fun addSubmissionBatch(batch: SubmissionBatch<*>) = this.stateLock.read{
 
         check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronousNonInteractiveRunManager is in status ${this.status} and can currently not accept submissions." }
 
@@ -155,5 +152,5 @@ class SynchronousNonInteractiveRunManager(val run: NonInteractiveCompetitionRun)
 
     }
 
-    override fun tasks(): List<NonInteractiveTask> = this.run.tasks
+    override fun tasks(context: RunActionContext): List<NonInteractiveTask> = this.run.tasks
 }

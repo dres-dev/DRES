@@ -72,8 +72,8 @@ object RunExecutor : Consumer<WsHandler> {
         this.runs = runs
         this.runs.filter { !it.hasEnded }.forEach { //TODO needs more distinction
             val run = when(it) {
-                is InteractiveSynchronousCompetitionRun -> SynchronousInteractiveRunManager(it)
-                is NonInteractiveCompetitionRun -> SynchronousNonInteractiveRunManager(it)
+                is InteractiveSynchronousCompetitionRun -> InteractiveSynchronousRunManager(it)
+                is NonInteractiveCompetitionRun -> NonInteractiveSynchronousRunManager(it)
                 else -> throw NotImplementedError("No matching run manager found for $it")
             }
             this.schedule(run)

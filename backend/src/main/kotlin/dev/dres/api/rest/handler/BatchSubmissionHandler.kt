@@ -12,7 +12,7 @@ import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.basics.media.MediaItemSegmentList
 import dev.dres.data.model.run.*
-import dev.dres.run.NonInteractiveRunManager
+import dev.dres.run.NonInteractiveSynchronousRunManager
 import dev.dres.utilities.TimeUtil
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
@@ -30,8 +30,8 @@ abstract class BatchSubmissionHandler(internal val collections: DAO<MediaCollect
         throw ErrorStatusException(404, "Parameter 'runId' is missing!'", ctx)
     }.UID()
 
-    internal fun getRelevantManager(userId: UID, runId: UID): NonInteractiveRunManager? = AccessManager.getRunManagerForUser(userId)
-        .filterIsInstance<NonInteractiveRunManager>().find { it.id == runId }
+    internal fun getRelevantManager(userId: UID, runId: UID): NonInteractiveSynchronousRunManager? = AccessManager.getRunManagerForUser(userId)
+        .filterIsInstance<NonInteractiveSynchronousRunManager>().find { it.id == runId }
 
 }
 
@@ -65,6 +65,8 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
 
         val runManager = getRelevantManager(userId, runId) ?: throw ErrorStatusException(404, "Run ${runId.string} not found", ctx)
 
+        val rac = RunActionContext.runActionContext(ctx, runManager)
+
         val jsonBatch = try{
             ctx.body<JsonBatchSubmission>()
         } catch (e: Exception) {
@@ -77,7 +79,7 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
 
         val resultBatches = jsonBatch.batches.mapNotNull { batch ->
 
-            val task = runManager.tasks().find { it.taskDescription.name == batch.taskName } ?: return@mapNotNull null
+            val task = runManager.tasks(rac).find { it.taskDescription.name == batch.taskName } ?: return@mapNotNull null
             val mediaCollectionId = task.taskDescription.mediaCollectionId
 
             val results = batch.results.map { result ->

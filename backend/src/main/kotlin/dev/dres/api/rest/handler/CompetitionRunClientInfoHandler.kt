@@ -5,6 +5,7 @@ import dev.dres.api.rest.RestApiRole
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.UID
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager
@@ -119,6 +120,8 @@ class CompetitionRunClientCurrentTaskInfoHandler : AbstractCompetitionRunClientI
 
         val task = run.currentTaskRun ?: throw ErrorStatusException(404, "Specified run has no active task", ctx)
 
+        val rac = runActionContext(ctx, run)
+
         return ClientTaskInfo(
             task.uid.string,
             task.taskDescription.name,
@@ -127,7 +130,7 @@ class CompetitionRunClientCurrentTaskInfoHandler : AbstractCompetitionRunClientI
                 RunManagerStatus.CREATED -> 0
                 RunManagerStatus.ACTIVE,
                 RunManagerStatus.PREPARING_TASK -> task.duration
-                RunManagerStatus.RUNNING_TASK -> run.timeLeft() / 1000
+                RunManagerStatus.RUNNING_TASK -> run.timeLeft(rac) / 1000
                 RunManagerStatus.TASK_ENDED -> 0
                 RunManagerStatus.TERMINATED -> 0
             },

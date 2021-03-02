@@ -6,6 +6,9 @@ import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TaskDescriptionId
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun.TaskRun
+import dev.dres.run.filter.SubmissionFilter
+import dev.dres.run.score.interfaces.TaskRunScorer
+import dev.dres.run.validation.interfaces.SubmissionValidator
 
 class InteractiveAsynchronousCompetitionRun(override var id: CompetitionRunId, name: String, competitionDescription: CompetitionDescription): CompetitionRun(id, name, competitionDescription)  {
 
@@ -25,6 +28,8 @@ class InteractiveAsynchronousCompetitionRun(override var id: CompetitionRunId, n
         /** List of [Submission]s* registered for this [TaskRun]. */
         val submissions: List<Submission> = mutableListOf()
 
+
+
         override fun addSubmission(submission: Submission) {
             TODO("Not yet implemented")
         }
@@ -33,6 +38,14 @@ class InteractiveAsynchronousCompetitionRun(override var id: CompetitionRunId, n
             get() = this@InteractiveAsynchronousCompetitionRun.competitionDescription
                 .tasks.find { it.id == this.taskDescriptionId } ?: throw IllegalArgumentException("There is no task with ID ${this.taskDescriptionId}.")
 
+        @Transient
+        override val filter: SubmissionFilter = taskDescription.newFilter()
+
+        @Transient
+        override val scorer: TaskRunScorer = taskDescription.newScorer()
+
+        @Transient
+        override val validator: SubmissionValidator = newValidator()
 
 
     }

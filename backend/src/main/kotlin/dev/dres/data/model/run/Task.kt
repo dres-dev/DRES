@@ -27,8 +27,7 @@ abstract class Task {
     abstract val taskDescription: TaskDescription
 
     /** The [TaskRunScorer] used to update score for this [Task]. */
-    @Transient
-    val scorer: TaskRunScorer = taskDescription.newScorer()
+    abstract val scorer: TaskRunScorer
 
 }
 
@@ -45,12 +44,10 @@ abstract class InteractiveTask : Task() {
     internal set
 
     /** The [SubmissionFilter] used to filter [Submission]s. */
-    @Transient
-    val filter: SubmissionFilter = taskDescription.newFilter()
+    abstract val filter: SubmissionFilter
 
     /** The [SubmissionValidator] used to validate [Submission]s. */
-    @Transient
-    val validator: SubmissionValidator = newValidator()
+    abstract val validator: SubmissionValidator
 
     /**
      * Generates and returns a new [SubmissionValidator] for this [TaskDescription]. Depending

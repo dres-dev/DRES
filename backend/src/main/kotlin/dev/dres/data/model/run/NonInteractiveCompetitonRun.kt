@@ -5,6 +5,7 @@ import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TaskDescriptionId
 import dev.dres.data.model.competition.TeamId
+import dev.dres.run.score.interfaces.TaskRunScorer
 
 
 open class NonInteractiveCompetitionRun(override var id: CompetitionRunId, name: String, competitionDescription: CompetitionDescription): CompetitionRun(id, name, competitionDescription) {
@@ -27,6 +28,9 @@ open class NonInteractiveCompetitionRun(override var id: CompetitionRunId, name:
 
         override val taskDescription: TaskDescription = this@NonInteractiveCompetitionRun.competitionDescription.tasks
             .find { it.id == this.taskDescriptionId } ?: throw IllegalArgumentException("There is no task with ID ${this.taskDescriptionId}.")
+
+        @Transient
+        override val scorer: TaskRunScorer = taskDescription.newScorer()
 
     }
 

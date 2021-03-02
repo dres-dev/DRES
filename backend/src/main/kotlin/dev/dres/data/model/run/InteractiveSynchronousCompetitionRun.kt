@@ -6,6 +6,9 @@ import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TaskDescriptionId
 import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun.TaskRun
+import dev.dres.run.filter.SubmissionFilter
+import dev.dres.run.score.interfaces.TaskRunScorer
+import dev.dres.run.validation.interfaces.SubmissionValidator
 import java.util.*
 
 
@@ -83,6 +86,15 @@ class InteractiveSynchronousCompetitionRun(override var id: CompetitionRunId, na
         @Transient
         override val taskDescription: TaskDescription = this@InteractiveSynchronousCompetitionRun.competitionDescription.tasks.find { it.id == this.taskDescriptionId } ?: throw IllegalArgumentException("There is no task with ID ${this.taskDescriptionId}.")
 
+
+        @Transient
+        override val filter: SubmissionFilter = taskDescription.newFilter()
+
+        @Transient
+        override val scorer: TaskRunScorer = taskDescription.newScorer()
+
+        @Transient
+        override val validator: SubmissionValidator = newValidator()
 
 
         /** Duration of this [TaskRun]. Defaults to the duration specified in the [TaskDescription]. */

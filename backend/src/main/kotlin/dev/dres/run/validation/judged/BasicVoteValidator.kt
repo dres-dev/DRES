@@ -60,7 +60,7 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
         val sum = voteCountMap.values.sum()
         if (sum < minimumVotes) return false
         val max = voteCountMap.values.maxOrNull() ?: 0
-        return (sum - max) >= voteDifference
+        return (sum - max) <= voteDifference
     }
 
     override fun nextSubmissionToVoteOn(): Submission? = submissionQueue.firstOrNull() //TODO maybe add timeout mechanism?

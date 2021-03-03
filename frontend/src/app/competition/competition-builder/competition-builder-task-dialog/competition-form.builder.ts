@@ -208,6 +208,8 @@ export class CompetitionFormBuilder {
                 return new FormArray([this.singleMediaSegmentTargetForm(this.data?.target?.mediaItems[0])]);
             case 'JUDGEMENT':
                 return new FormArray([]);
+            case 'VOTE':
+                return new FormArray([]);
         }
     }
 

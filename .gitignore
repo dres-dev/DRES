@@ -267,3 +267,6 @@ backend/ext/ffmpeg
 events/
 backend/data*
 backend/statistics
+
+## Do not include the generated client bindings
+frontend/openapi/

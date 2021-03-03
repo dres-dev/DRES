@@ -33,6 +33,9 @@ sourceCompatibility = 1.8
 
 /// Default OpenAPI Specifications of dres
 def fullOAS = "http://localhost:8080/swagger-docs"
+def clientOAS = "http://localhost:8080/client-oas"
+def oasFile = "${project.projectDir}/../doc/oas.json"
+def clientOasFile = "${project.projectDir}/../doc/oas-client.json"
 /// Provide ability to override with gradle command line input
 /// call gradle with -Poas="<uri>" to specify non-default OAS location
 if(project.hasProperty('oas')){
@@ -48,7 +51,7 @@ openApiGenerate {
     validateSpec = false // No validation please (as in command above)
 
     generatorName = 'typescript-angular'
-    inputSpec = "$buildDir/oas.json"
+    inputSpec = oasFile
     outputDir = file("${project.projectDir}/../frontend/openapi").toString()
     configOptions = [
             npmName: '@dres-openapi/api',
@@ -203,9 +206,19 @@ task deployFrontend(type: Copy) {
     into('src/main/resources/html')
 }
 
-task downloadOAS(type: Download) {
-    def f = new File("$buildDir/oas.json")
+
+task generateOAS(type: Download) {
+    /* Requires DRES running on default port */
+    // TODO Direct write to file instead of download
+    def f = new File(oasFile)
     src "$fullOAS"
+    dest f
+}
+
+task generateClientOAS(type: Download){
+    /* Requires DRES running on default port */
+    def f = new File(clientOasFile)
+    src "$clientOAS"
     dest f
 }
 
@@ -285,4 +298,4 @@ distZip.dependsOn setupFFMpeg
 distTar.dependsOn jar
 distTar.dependsOn setupFFMpeg
 
-tasks.openApiGenerate.dependsOn downloadOAS
+//tasks.openApiGenerate.dependsOn downloadOAS

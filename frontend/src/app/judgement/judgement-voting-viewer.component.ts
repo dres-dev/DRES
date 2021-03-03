@@ -20,7 +20,7 @@ export class JudgementVotingViewerComponent implements OnInit {
   private requestSub: Subscription;
 
   isJudgmentAvailable = false;
-  judgementRequest: JudgementRequest;
+  judgementRequest: JudgementRequest = null;
 
   observableJudgementRequest: BehaviorSubject<JudgementRequest> = new BehaviorSubject<JudgementRequest>(null);
   voteClientPath: Observable<string>;
@@ -42,21 +42,26 @@ export class JudgementVotingViewerComponent implements OnInit {
     this.requestSub = interval(this.pollingFrequency).pipe(
         withLatestFrom(this.runId),
         switchMap(([i, runId]) => {
-          if (this.runId && !this.isJudgmentAvailable) {
+          if (this.runId) {
             return this.judgementService.getApiRunWithRunidVoteNext(runId, 'response').pipe(
                 map((req: HttpResponse<JudgementRequest>) => {
                   if (req.status === 202) {
                     this.isJudgmentAvailable = false;
+                    this.judgementRequest = null;
                     console.log('currently nothing for audience to vote on');
                     return null;
                   } else {
-                    return req.body;
+                    const lastRequest = req.body;
+                    if (this.judgementRequest !== null && lastRequest.token === this.judgementRequest.token) {
+                      return of(null); // still the same, no action required
+                    }
+                    return lastRequest;
                   }
                 }),
                 catchError(err => {
-                  const httperr = err as HttpErrorResponse;
-                  if (httperr) {
-                    if (httperr.status === 404) {
+                  const httpErr = err as HttpErrorResponse;
+                  if (httpErr) {
+                    if (httpErr.status === 404) {
                       const snack = this.snackBar.open(`Invalid runId: ${runId}`, null, {duration: 2000});
                       snack.afterDismissed().subscribe(() => {
                         this.router.navigate(['/run/list']);
@@ -78,7 +83,7 @@ export class JudgementVotingViewerComponent implements OnInit {
       console.log(req);
       this.judgementRequest = req;
       this.observableJudgementRequest.next(req);
-      this.isJudgmentAvailable = true; //TODO figure out mechanism to reset this
+      this.isJudgmentAvailable = true;
     });
   }
 

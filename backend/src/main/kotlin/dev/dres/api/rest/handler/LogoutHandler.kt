@@ -19,7 +19,7 @@ class LogoutHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, GetRes
     @OpenApi(summary = "Clears all user roles of the current session.", path = "/api/logout",
             tags = ["User"],
             queryParams = [
-                OpenApiParam("session", String::class, "Session Token", required = true, allowEmptyValue = false)
+                OpenApiParam("session", String::class, "Session Token")
             ],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),

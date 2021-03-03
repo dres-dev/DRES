@@ -225,7 +225,7 @@ class CurrentUsersSessionIdHandler : UserHandler(), GetRestHandler<SessionId>, A
             path = "/api/user/session",
             tags = ["User"],
             queryParams = [
-                OpenApiParam("session", String::class, "Session Token", required = true, allowEmptyValue = false)
+                OpenApiParam("session", String::class, "Session Token")
             ],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SessionId::class)]),

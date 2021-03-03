@@ -10,17 +10,14 @@
  * Do not edit the class manually.
  */
 import { QueryResult } from './queryResult';
+import { QueryEvent } from './queryEvent';
 
 
 export interface QueryResultLog { 
     timestamp: number;
-    values: Array<string>;
-    usedCategories: Array<string>;
-    usedTypes: Array<string>;
-    sortType: Array<string>;
+    sortType: string;
     resultSetAvailability: string;
     results: Array<QueryResult>;
-    serverTimeStamp?: number;
-    serverTimeStamp$dres: number;
+    events: Array<QueryEvent>;
 }
 

@@ -16,12 +16,13 @@ export interface ConfiguredOptionTargetType {
     parameters: { [key: string]: string; };
 }
 export namespace ConfiguredOptionTargetType {
-    export type OptionEnum = 'SINGLE_MEDIA_ITEM' | 'SINGLE_MEDIA_SEGMENT' | 'MULTIPLE_MEDIA_ITEMS' | 'JUDGEMENT';
+    export type OptionEnum = 'SINGLE_MEDIA_ITEM' | 'SINGLE_MEDIA_SEGMENT' | 'MULTIPLE_MEDIA_ITEMS' | 'JUDGEMENT' | 'VOTE';
     export const OptionEnum = {
         SINGLE_MEDIA_ITEM: 'SINGLE_MEDIA_ITEM' as OptionEnum,
         SINGLE_MEDIA_SEGMENT: 'SINGLE_MEDIA_SEGMENT' as OptionEnum,
         MULTIPLE_MEDIA_ITEMS: 'MULTIPLE_MEDIA_ITEMS' as OptionEnum,
-        JUDGEMENT: 'JUDGEMENT' as OptionEnum
+        JUDGEMENT: 'JUDGEMENT' as OptionEnum,
+        VOTE: 'VOTE' as OptionEnum
     };
 }
 

@@ -3,6 +3,7 @@ README.md
 api.module.ts
 api/api.ts
 api/audit.service.ts
+api/clientRunInfo.service.ts
 api/collection.service.ts
 api/competition.service.ts
 api/competitionRun.service.ts
@@ -18,6 +19,9 @@ encoder.ts
 git_push.sh
 index.ts
 model/auditLogInfo.ts
+model/clientRunInfo.ts
+model/clientRunInfoList.ts
+model/clientTaskInfo.ts
 model/competitionCreate.ts
 model/competitionOverview.ts
 model/competitionStartMessage.ts

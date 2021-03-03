@@ -17,12 +17,13 @@ export interface RestTaskDescriptionTarget {
     mediaItems: Array<RestTaskDescriptionTargetItem>;
 }
 export namespace RestTaskDescriptionTarget {
-    export type TypeEnum = 'SINGLE_MEDIA_ITEM' | 'SINGLE_MEDIA_SEGMENT' | 'MULTIPLE_MEDIA_ITEMS' | 'JUDGEMENT';
+    export type TypeEnum = 'SINGLE_MEDIA_ITEM' | 'SINGLE_MEDIA_SEGMENT' | 'MULTIPLE_MEDIA_ITEMS' | 'JUDGEMENT' | 'VOTE';
     export const TypeEnum = {
         SINGLE_MEDIA_ITEM: 'SINGLE_MEDIA_ITEM' as TypeEnum,
         SINGLE_MEDIA_SEGMENT: 'SINGLE_MEDIA_SEGMENT' as TypeEnum,
         MULTIPLE_MEDIA_ITEMS: 'MULTIPLE_MEDIA_ITEMS' as TypeEnum,
-        JUDGEMENT: 'JUDGEMENT' as TypeEnum
+        JUDGEMENT: 'JUDGEMENT' as TypeEnum,
+        VOTE: 'VOTE' as TypeEnum
     };
 }
 

@@ -1,4 +1,7 @@
 export * from './auditLogInfo';
+export * from './clientRunInfo';
+export * from './clientRunInfoList';
+export * from './clientTaskInfo';
 export * from './competitionCreate';
 export * from './competitionOverview';
 export * from './competitionStartMessage';

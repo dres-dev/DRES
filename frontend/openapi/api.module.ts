@@ -3,6 +3,7 @@ import { Configuration } from './configuration';
 import { HttpClient } from '@angular/common/http';
 
 import { AuditService } from './api/audit.service';
+import { ClientRunInfoService } from './api/clientRunInfo.service';
 import { CollectionService } from './api/collection.service';
 import { CompetitionService } from './api/competition.service';
 import { CompetitionRunService } from './api/competitionRun.service';

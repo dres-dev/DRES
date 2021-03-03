@@ -9,11 +9,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { QueryEvent } from './queryEvent';
 
 
-export interface QueryEventLog { 
-    timestamp: number;
-    events: Array<QueryEvent>;
+export interface ClientTaskInfo { 
+    id: string;
+    name: string;
+    taskGroup: string;
+    remainingTime: number;
+    running: boolean;
 }
 

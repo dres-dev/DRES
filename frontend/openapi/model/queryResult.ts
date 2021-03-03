@@ -12,8 +12,8 @@
 
 
 export interface QueryResult { 
-    video: string;
-    shot?: number;
+    item: string;
+    segment?: number;
     frame?: number;
     score?: number;
     rank?: number;

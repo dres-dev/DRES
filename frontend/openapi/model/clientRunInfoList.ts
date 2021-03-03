@@ -9,11 +9,10 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { QueryEvent } from './queryEvent';
+import { ClientRunInfo } from './clientRunInfo';
 
 
-export interface QueryEventLog { 
-    timestamp: number;
-    events: Array<QueryEvent>;
+export interface ClientRunInfoList { 
+    runs: Array<ClientRunInfo>;
 }
 

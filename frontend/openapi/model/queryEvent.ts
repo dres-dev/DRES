@@ -13,8 +13,21 @@
 
 export interface QueryEvent { 
     timestamp: number;
-    category: string;
-    type: Array<string>;
+    category: QueryEvent.CategoryEnum;
+    type: string;
     value: string;
 }
+export namespace QueryEvent {
+    export type CategoryEnum = 'TEXT' | 'IMAGE' | 'SKETCH' | 'FILTER' | 'BROWSING' | 'COOPERATION' | 'OTHER';
+    export const CategoryEnum = {
+        TEXT: 'TEXT' as CategoryEnum,
+        IMAGE: 'IMAGE' as CategoryEnum,
+        SKETCH: 'SKETCH' as CategoryEnum,
+        FILTER: 'FILTER' as CategoryEnum,
+        BROWSING: 'BROWSING' as CategoryEnum,
+        COOPERATION: 'COOPERATION' as CategoryEnum,
+        OTHER: 'OTHER' as CategoryEnum
+    };
+}
+
 

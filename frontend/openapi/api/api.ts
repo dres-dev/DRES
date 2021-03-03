@@ -1,5 +1,7 @@
 export * from './audit.service';
 import { AuditService } from './audit.service';
+export * from './clientRunInfo.service';
+import { ClientRunInfoService } from './clientRunInfo.service';
 export * from './collection.service';
 import { CollectionService } from './collection.service';
 export * from './competition.service';
@@ -20,4 +22,4 @@ export * from './submission.service';
 import { SubmissionService } from './submission.service';
 export * from './user.service';
 import { UserService } from './user.service';
-export const APIS = [AuditService, CollectionService, CompetitionService, CompetitionRunService, CompetitionRunAdminService, CompetitionRunScoresService, JudgementService, LogService, StatusService, SubmissionService, UserService];
+export const APIS = [AuditService, ClientRunInfoService, CollectionService, CompetitionService, CompetitionRunService, CompetitionRunAdminService, CompetitionRunScoresService, JudgementService, LogService, StatusService, SubmissionService, UserService];

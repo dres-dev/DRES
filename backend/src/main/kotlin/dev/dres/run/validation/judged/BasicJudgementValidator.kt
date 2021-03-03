@@ -125,13 +125,12 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
      * @param verdict The verdict of the judge.
      */
     override fun judge(token: String, verdict: SubmissionStatus) {
-        doJudge(token, verdict)
+        processSubmission(token, verdict)?.status = verdict
     }
 
-    internal fun doJudge(token: String, verdict: SubmissionStatus) : Submission? = updateLock.write {
+    internal fun processSubmission(token: String, verdict: SubmissionStatus) : Submission? = updateLock.write {
         require(this.waiting.containsKey(token)) { "This JudgementValidator does not contain a submission for the token '$token'." }
         val submission = this.waiting[token] ?: return@write null //submission with token not found TODO: this should be logged
-        submission.status = verdict
 
         //add to cache
         this.cache[ItemRange(submission)] = verdict

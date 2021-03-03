@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, interval, Observable, of, Subscription} from 'rxjs';
 import {JudgementRequest, JudgementService} from '../../../openapi';
 import {catchError, filter, map, switchMap, withLatestFrom} from 'rxjs/operators';
@@ -6,15 +6,16 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {AppConfig} from '../app.config';
 import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
 
 @Component({
   selector: 'app-judgement-voting-viewer',
   templateUrl: './judgement-voting-viewer.component.html',
   styleUrls: ['./judgement-voting-viewer.component.scss']
 })
-export class JudgementVotingViewerComponent implements OnInit {
+export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
 
-  @Input() pollingFrequency = 10_000;
+  @Input() pollingFrequency = 1000;
 
   private runId: Observable<string>;
   private requestSub: Subscription;
@@ -24,6 +25,8 @@ export class JudgementVotingViewerComponent implements OnInit {
 
   observableJudgementRequest: BehaviorSubject<JudgementRequest> = new BehaviorSubject<JudgementRequest>(null);
   voteClientPath: Observable<string>;
+
+  @ViewChild(JudgementMediaViewerComponent) judgePlayer: JudgementMediaViewerComponent;
 
   constructor(
       private judgementService: JudgementService,
@@ -48,12 +51,13 @@ export class JudgementVotingViewerComponent implements OnInit {
                   if (req.status === 202) {
                     this.isJudgmentAvailable = false;
                     this.judgementRequest = null;
+                    this.judgePlayer.stop();
                     console.log('currently nothing for audience to vote on');
                     return null;
                   } else {
                     const lastRequest = req.body;
                     if (this.judgementRequest !== null && lastRequest.token === this.judgementRequest.token) {
-                      return of(null); // still the same, no action required
+                      return null; // still the same, no action required
                     }
                     return lastRequest;
                   }
@@ -85,6 +89,14 @@ export class JudgementVotingViewerComponent implements OnInit {
       this.observableJudgementRequest.next(req);
       this.isJudgmentAvailable = true;
     });
+  }
+
+  ngOnDestroy(): void {
+    this.requestSub.unsubscribe();
+    this.requestSub = null;
+    if (this.judgePlayer) {
+      this.judgePlayer.stop();
+    }
   }
 
 }

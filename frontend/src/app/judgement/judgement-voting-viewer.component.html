@@ -12,9 +12,10 @@
     </div>
     <div class="body">
 
-        <app-judgement-media-viewer id="judge-media-viewer"
-                                    [req]="observableJudgementRequest"></app-judgement-media-viewer>
+        <app-judgement-media-viewer id="judge-media-viewer" [req]="observableJudgementRequest">
+        </app-judgement-media-viewer>
 
+        <br>
 
         <div fxLayoutAlign="center" fxFlex="100">
             <qrcode [qrdata]="voteClientPath | async" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>

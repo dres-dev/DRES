@@ -67,10 +67,16 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
 
     //siphon of undecidable submission from logic of super class
     override fun judge(token: String, verdict: SubmissionStatus) {
-        val submission = super.doJudge(token, verdict)
+        val submission = super.processSubmission(token, verdict)
 
-        if (submission != null && verdict == SubmissionStatus.UNDECIDABLE) {
-            submissionQueue.add(submission)
+        if (submission != null) {
+            when(verdict){
+                SubmissionStatus.CORRECT,
+                SubmissionStatus.WRONG -> submission.status = verdict
+                SubmissionStatus.INDETERMINATE -> {}
+                SubmissionStatus.UNDECIDABLE -> submissionQueue.add(submission)
+            }
+
         }
 
     }

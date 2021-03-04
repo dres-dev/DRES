@@ -113,6 +113,7 @@ object RestApi {
             HistoryTaskScoreHandler(),
             ListScoreSeriesHandler(),
             ListScoreboardsHandler(),
+            TaskScoreListCSVHandler(),
 
             // Competition run admin
             CreateCompetitionRunAdminHandler(dataAccessLayer.competitions, dataAccessLayer.collections, config),

@@ -177,6 +177,24 @@ class HistoryTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
     }
 }
 
+class TaskScoreListCSVHandler : AbstractScoreRestHandler(), GetRestHandler<String> {
+
+    override val route = "score/run/:runId/tasks/csv"
+
+    override fun doGet(ctx: Context): String {
+
+        val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
+        val rac = RunActionContext.runActionContext(ctx, run)
+
+        return "task,group,team,score\n" + run.tasks(rac).filter { it.started != null}.sortedBy { it.started }.flatMap { task ->
+            task.scorer.scores().map { "${task.taskDescription.name},${task.taskDescription.taskGroup.name},${run.competitionDescription.teams.find { t -> t.uid == it.key }?.name ?: "???"},${it.value}" }
+        }.joinToString(separator = "\n")
+
+    }
+
+}
+
 /**
  * A [GetRestHandler] that returns the names of all available scoreboards for a given run.
  */

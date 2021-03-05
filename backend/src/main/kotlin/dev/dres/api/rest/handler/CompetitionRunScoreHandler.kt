@@ -110,16 +110,15 @@ class CurrentTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
     override fun doGet(ctx: Context): ScoreOverview {
         val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
+        val rac = RunActionContext.runActionContext(ctx, run)
 
         if (!run.competitionDescription.participantCanView && isParticipant(ctx)) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        val rac = RunActionContext.runActionContext(ctx, run)
-
-        val scores = run.currentTaskRun?.scorer?.scores() ?: throw ErrorStatusException(404, "No active task run in run $runId.", ctx)
+        val scores = run.currentTask(rac)?.scorer?.scores() ?: throw ErrorStatusException(404, "No active task run in run $runId.", ctx)
         return ScoreOverview("task",
-            run.currentTask(rac)?.taskGroup?.name,
+            run.currentTaskDescription(rac).taskGroup.name,
             run.competitionDescription.teams.map { team ->
                 Score(team.uid.string, scores[team.uid] ?: 0.0)
             }
@@ -167,9 +166,9 @@ class HistoryTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
 
 
         /* Fetch the relevant scores and generate score overview. */
-        val scores = run.taskRunForId(rac, taskId)?.scorer?.scores() ?: throw ErrorStatusException(404, "No task run with ID $taskId in run $runId.", ctx)
+        val scores = run.taskForId(rac, taskId)?.scorer?.scores() ?: throw ErrorStatusException(404, "No task run with ID $taskId in run $runId.", ctx)
         return ScoreOverview("task",
-            run.currentTask(rac)?.taskGroup?.name,
+            run.currentTaskDescription(rac)?.taskGroup?.name,
             run.competitionDescription.teams.map {
                 Score(it.uid.string, scores[it.uid] ?: 0.0)
             }

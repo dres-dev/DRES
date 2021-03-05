@@ -80,7 +80,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         val collectionParam = map[PARAMETER_NAME_COLLECTION]?.first()
         val collectionId: UID = when {
             collectionParam != null -> this.collections.find { it.name == collectionParam }?.id
-            else -> runManager.currentTask(rac)?.mediaCollectionId
+            else -> runManager.currentTaskDescription(rac).mediaCollectionId
         } ?: throw ErrorStatusException(404, "Media collection '$collectionParam' could not be found.", ctx)
 
         /* Find media item. */
@@ -88,7 +88,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         val item = this.itemIndex[collectionId to itemParam].firstOrNull() ?:
             throw ErrorStatusException(404, "Media item '$itemParam (collection = $collectionId)' could not be found.", ctx)
 
-        val mapToSegment = runManager.currentTask(rac)?.taskType?.options?.any { it.option == TaskType.Options.MAP_TO_SEGMENT } == true
+        val mapToSegment = runManager.currentTaskDescription(rac).taskType.options.any { it.option == TaskType.Options.MAP_TO_SEGMENT } == true
 
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) && item is MediaItem.VideoItem -> {
@@ -110,7 +110,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             }
             else -> Submission.Item(team, userId, submissionTime, item)
         }.also {
-            it.task = runManager.currentTaskRun
+            it.task = runManager.currentTask(rac)
         }
     }
 
@@ -139,18 +139,19 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         val run = getActiveRun(userId, ctx)
         val time = System.currentTimeMillis()
         val submission = toSubmission(ctx, userId, run, time)
+        val rac = RunActionContext.runActionContext(ctx, run)
+
         val result = try {
-            run.postSubmission(submission)
+            run.postSubmission(rac, submission)
         } catch (e: IllegalArgumentException) { //is only thrown by submission filter TODO: nicer exception type
             throw ErrorStatusException(208, "Submission rejected", ctx)
         }
 
-        val rac = RunActionContext.runActionContext(ctx, run)
 
-        AuditLogger.submission(run.id, run.currentTask(rac)?.name ?: "no task", submission, LogEventSource.REST, ctx.sessionId(), ctx.req.remoteAddr)
-        EventStreamProcessor.event(SubmissionEvent(ctx.sessionId(), run.id, run.currentTaskRun?.uid, submission))
+        AuditLogger.submission(run.id, run.currentTaskDescription(rac).name, submission, LogEventSource.REST, ctx.sessionId(), ctx.req.remoteAddr)
+        EventStreamProcessor.event(SubmissionEvent(ctx.sessionId(), run.id, run.currentTask(rac)?.uid, submission))
 
-        if (run.currentTask(rac)?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) { //pre-generate preview
+        if (run.currentTaskDescription(rac).taskType.options.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) { //pre-generate preview
             generatePreview(submission)
         }
 

@@ -15,20 +15,22 @@ class EndTaskUpdatable(private val run: InteractiveRunManager, private val conte
     private var submissions = AtomicInteger(0)
 
     override fun update(status: RunManagerStatus) {
-        val limitingFilter = run.currentTaskRun?.description?.taskType?.filter?.find{ it.option == TaskType.SubmissionFilterType.LIMIT_CORRECT_PER_TEAM } ?: return
-        val limit = limitingFilter.parameters.getOrDefault("limit", "1").toIntOrNull() ?: 1
-        if (this.run.timeLeft(context) > 0) {
-            val taskRun = this.run.currentTaskRun
-            if (taskRun != null && this.submissions.getAndSet(taskRun.submissions.size) < taskRun.submissions.size) {
-                /* Determine of all teams have submitted . */
-                val allDone = this.run.competitionDescription.teams.all { team ->
-                    this.run.submissions.count { it.teamId == team.uid && it.status == SubmissionStatus.CORRECT  } >= limit
-                }
+        val taskRun = this.run.currentTask(this.context)
+        if (taskRun != null) {
+            val limitingFilter = taskRun.description.taskType.filter.find{ it.option == TaskType.SubmissionFilterType.LIMIT_CORRECT_PER_TEAM } ?: return
+            val limit = limitingFilter.parameters.getOrDefault("limit", "1").toIntOrNull() ?: 1
+            if (this.run.timeLeft(context) > 0) {
+                if (this.submissions.getAndSet(taskRun.submissions.size) < taskRun.submissions.size) {
+                    /* Determine of all teams have submitted . */
+                    val allDone = this.run.competitionDescription.teams.all { team ->
+                        this.run.submissions(this.context).count { it.teamId == team.uid && it.status == SubmissionStatus.CORRECT  } >= limit
+                    }
 
-                /* Do all teams have reached the limit of correct submissions ? */
-                if (allDone) {
-                    this.run.abortTask(context)
-                    this.submissions.set(0)
+                    /* Do all teams have reached the limit of correct submissions ? */
+                    if (allDone) {
+                        this.run.abortTask(context)
+                        this.submissions.set(0)
+                    }
                 }
             }
         }

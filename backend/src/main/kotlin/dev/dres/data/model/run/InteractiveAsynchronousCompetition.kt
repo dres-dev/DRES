@@ -35,8 +35,15 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
     private val tasksMap = ConcurrentHashMap<TeamId,MutableList<Task>>()
 
     /** A [List] of all active [Task]s.*/
-    override val tasks: List<dev.dres.data.model.run.interfaces.Task>
+    override val tasks: List<Task>
         get() = this.tasksMap.values.flatten()
+
+    /**
+     * Returns the current [Task] for the given [TeamId].
+     *
+     * @param teamId The [TeamId] to lookup.
+     */
+    fun currentTaskForTeam(teamId: TeamId): Task? = this.tasksMap[teamId]?.last()
 
     /**
      * Generates and returns a [String] representation for this [InteractiveAsynchronousCompetition].
@@ -49,7 +56,7 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
      * @author Ralph Gasser
      * @version 1.0.0
      */
-    inner class Task internal constructor (override val uid: TaskId = UID(), val teamId: TeamId, val taskDescriptionId: TaskDescriptionId): AbstractInteractiveTask() {
+    inner class Task internal constructor (override val uid: TaskId = UID(), val teamId: TeamId, val descriptionId: TaskDescriptionId): AbstractInteractiveTask() {
 
         internal constructor(uid: TaskId, teamId: TeamId, taskId: TaskDescriptionId, started: Long, ended: Long): this(uid, teamId, taskId) {
             this.started =  if (started == -1L) { null } else { started }
@@ -65,8 +72,8 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
             get() = this@InteractiveAsynchronousCompetition.tasksMap[this.teamId]?.indexOf(this) ?: -1
 
         @Transient
-        override val description: TaskDescription = this@InteractiveAsynchronousCompetition.description.tasks.find { it.id == this.taskDescriptionId }
-            ?: throw IllegalArgumentException("Task with taskId ${this.taskDescriptionId} not found.")
+        override val description: TaskDescription = this@InteractiveAsynchronousCompetition.description.tasks.find { it.id == this.descriptionId }
+            ?: throw IllegalArgumentException("Task with taskId ${this.descriptionId} not found.")
 
         @Transient
         override val filter: SubmissionFilter = this.description.newFilter()

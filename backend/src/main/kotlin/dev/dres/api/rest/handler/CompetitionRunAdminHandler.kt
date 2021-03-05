@@ -191,8 +191,8 @@ class NextTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandle
         val rac = runActionContext(ctx, run)
 
         try {
-            if (run.nextTask(rac)) {
-                return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTask(rac)!!.name}'.")
+            if (run.next(rac)) {
+                return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTaskDescription(rac)!!.name}'.")
             } else {
                 throw ErrorStatusException(400, "Task for run $runId could not be changed because there are no tasks left.", ctx)
             }
@@ -235,8 +235,8 @@ class SwitchTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHand
         val rac = runActionContext(ctx, run)
 
         try {
-            run.goToTask(rac, idx)
-            return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTask(rac)!!.name}'.")
+            run.goTo(rac, idx)
+            return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTaskDescription(rac)!!.name}'.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).", ctx)
         } catch (e: IndexOutOfBoundsException) {
@@ -270,8 +270,8 @@ class PreviousTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHa
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
         val rac = runActionContext(ctx, run)
         try {
-            if (run.previousTask(rac)) {
-                return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTask(rac)!!.name}'.")
+            if (run.previous(rac)) {
+                return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTaskDescription(rac)!!.name}'.")
             } else {
                 throw ErrorStatusException(400, "Task for run $runId could not be changed because there are no tasks left.", ctx)
             }
@@ -307,11 +307,11 @@ class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
         val rac = runActionContext(ctx, run)
         try {
             run.startTask(rac)
-            AuditLogger.taskStart(run.id, run.currentTask(rac)?.name ?: "n/a", LogEventSource.REST, ctx.sessionId())
-            EventStreamProcessor.event(TaskStartEvent(runId, run.currentTaskRun!!.uid, run.currentTask(rac)!!))
-            return SuccessStatus("Task '${run.currentTask(rac)!!.name}' for run $runId was successfully started.")
+            AuditLogger.taskStart(run.id, run.currentTaskDescription(rac).name, LogEventSource.REST, ctx.sessionId())
+            EventStreamProcessor.event(TaskStartEvent(runId, run.currentTask(rac)!!.uid, run.currentTaskDescription(rac)))
+            return SuccessStatus("Task '${run.currentTaskDescription(rac).name}' for run $runId was successfully started.")
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Task '${run.currentTask(rac)!!.name}' for run $runId could not be started because run is in the wrong state (state = ${run.status}).", ctx)
+            throw ErrorStatusException(400, "Task '${run.currentTaskDescription(rac).name}' for run $runId could not be started because run is in the wrong state (state = ${run.status}).", ctx)
         } catch (e: IllegalAccessError) {
             throw ErrorStatusException(403, e.message!!, ctx)
         }
@@ -341,12 +341,12 @@ class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
         val rac = runActionContext(ctx, run)
         try {
-            val task = run.currentTask(rac)
+            val task = run.currentTaskDescription(rac)
             run.abortTask(rac)
             AuditLogger.taskEnd(run.id, task?.name ?: "n/a", LogEventSource.REST, ctx.sessionId())
-            return SuccessStatus("Task '${run.currentTask(rac)!!.name}' for run $runId was successfully aborted.")
+            return SuccessStatus("Task '${run.currentTaskDescription(rac)!!.name}' for run $runId was successfully aborted.")
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Task '${run.currentTask(rac)!!.name}' for run $runId could not be aborted because run is in the wrong state (state = ${run.status}).", ctx)
+            throw ErrorStatusException(400, "Task '${run.currentTaskDescription(rac)!!.name}' for run $runId could not be aborted because run is in the wrong state (state = ${run.status}).", ctx)
         } catch (e: IllegalAccessError) {
             throw ErrorStatusException(403, e.message!!, ctx)
         }
@@ -418,7 +418,7 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(set
         val rac = runActionContext(ctx, run)
         try {
             run.adjustDuration(rac, duration)
-            AuditLogger.taskModified(run.id, run.currentTask(rac)?.name
+            AuditLogger.taskModified(run.id, run.currentTaskDescription(rac)?.name
                     ?: "n/a", "Task duration adjusted by ${duration}s.", LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Duration for run $runId was successfully adjusted.")
         } catch (e: IllegalStateException) {
@@ -453,11 +453,12 @@ class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHan
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
         val run = getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
+        val rac = runActionContext(ctx, run)
 
         val taskId = ctx.pathParamMap().getOrElse("taskId") {
             throw ErrorStatusException(404, "Parameter 'taskId' is missing!'", ctx)
         }.UID()
-        return run.submissions.filter { it.task?.description?.id?.equals(taskId) ?: false }.map { SubmissionInfo.withId(it) }
+        return run.submissions(rac).filter { it.task?.description?.id?.equals(taskId) ?: false }.map { SubmissionInfo.withId(it) }
     }
 }
 
@@ -483,15 +484,15 @@ class OverrideSubmissionStatusRunAdminHandler: AbstractCompetitionRunAdminRestHa
     override fun doPatch(ctx: Context): SubmissionInfo {
         val runId = runId(ctx)
         val run = getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
+        val rac = runActionContext(ctx, run)
 
         val toPatchRest = ctx.body<SubmissionInfo>()
         /* Sanity check to see, whether the submission exists */
-        run.submissions.find { it.uid == (toPatchRest.id?.UID() ?: UID.EMPTY)}
-                ?: throw ErrorStatusException(404, "The given submission $toPatchRest was not found", ctx)
+        run.allSubmissions.find { it.uid == (toPatchRest.id?.UID() ?: UID.EMPTY)} ?: throw ErrorStatusException(404, "The given submission $toPatchRest was not found", ctx)
 
-        if(run.updateSubmission(toPatchRest.id!!.UID(), toPatchRest.status) ){
-            return SubmissionInfo.withId(run.submissions.find{it.uid == toPatchRest.id.UID() }!!)
-        }else{
+        if (run.updateSubmission(rac, toPatchRest.id!!.UID(), toPatchRest.status)){
+            return SubmissionInfo.withId(run.submissions(rac).find{it.uid == toPatchRest.id.UID() }!!)
+        } else {
             throw ErrorStatusException(500, "Could not update the submission. Please see the backend's log", ctx)
         }
 

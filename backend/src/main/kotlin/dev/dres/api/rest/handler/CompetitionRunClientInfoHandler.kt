@@ -113,14 +113,14 @@ class CompetitionRunClientCurrentTaskInfoHandler : AbstractCompetitionRunClientI
     override fun doGet(ctx: Context): ClientTaskInfo {
 
         val run = getRun(ctx, runId(ctx)) ?: throw ErrorStatusException(404, "Specified run not found", ctx)
+        val rac = runActionContext(ctx, run)
 
         if (run !is InteractiveRunManager) {
             throw ErrorStatusException(404, "Specified run is not interactive", ctx)
         }
 
-        val task = run.currentTaskRun ?: throw ErrorStatusException(404, "Specified run has no active task", ctx)
+        val task = run.currentTask(rac) ?: throw ErrorStatusException(404, "Specified run has no active task", ctx)
 
-        val rac = runActionContext(ctx, run)
 
         return ClientTaskInfo(
             task.uid.string,

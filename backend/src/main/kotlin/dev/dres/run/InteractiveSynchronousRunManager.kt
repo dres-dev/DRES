@@ -117,7 +117,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
 
     /** The internal [DAOUpdatable] used to end a task once no more submissions are possible */
-    private val endTaskUpdatable = EndTaskUpdatable(this, RunActionContext.DUMMY_ADMIN )
+    private val endTaskUpdatable = EndTaskUpdatable(this, RunActionContext.INTERNAL )
 
     /** List of [Updatable] held by this [InteractiveSynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()

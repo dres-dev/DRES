@@ -2,9 +2,7 @@ package dev.dres.run.eventstream.handlers
 
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.TaskDescription
-import dev.dres.data.model.run.ItemSubmission
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.TemporalSubmission
+import dev.dres.data.model.submissions.Submission
 import dev.dres.run.eventstream.*
 import dev.dres.run.score.interfaces.IncrementalTaskRunScorer
 import dev.dres.run.score.interfaces.RecalculatingTaskRunScorer
@@ -52,8 +50,8 @@ class TeamCombinationScoreHandler : StreamEventHandler {
                     combinations.map {
                         if (it.value.first == submission.teamId || it.value.second == submission.teamId) {
                             when (submission) {
-                                is ItemSubmission -> submission.copy(teamId = it.key).apply { this.status = submission.status }
-                                is TemporalSubmission -> submission.copy(teamId = it.key).apply { this.status = submission.status }
+                                is Submission.Item -> submission.copy(teamId = it.key).apply { this.status = submission.status }
+                                is Submission.Temporal -> submission.copy(teamId = it.key).apply { this.status = submission.status }
                             }
                         } else {
                             null

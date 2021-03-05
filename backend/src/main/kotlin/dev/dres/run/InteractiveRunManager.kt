@@ -4,6 +4,8 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.run.*
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
 
@@ -17,7 +19,7 @@ interface InteractiveRunManager : RunManager {
     fun currentTask(context: RunActionContext): TaskDescription?
 
     /**
-     * List of [Submission]s for the current [InteractiveSynchronousCompetitionRun.TaskRun].
+     * List of [Submission]s for the current [InteractiveSynchronousCompetition.Task].
      *
      * Part of the [RunManager]'s execution state. Can be empty!
      */
@@ -26,17 +28,20 @@ interface InteractiveRunManager : RunManager {
     /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
     val scoreHistory: List<ScoreTimePoint>
 
-    /** List of all [Submission]s for this [RunManager], irrespective of the [InteractiveSynchronousCompetitionRun.TaskRun] it belongs to. */
+    /** List of all [Submission]s for this [RunManager], irrespective of the [InteractiveSynchronousCompetition.Task] it belongs to. */
     val allSubmissions: List<Submission>
 
     /**
-     * Reference to the [InteractiveSynchronousCompetitionRun.TaskRun] that is currently being executed OR that has just ended.
+     * Reference to the [InteractiveSynchronousCompetition.Task] that is currently being executed OR that has just ended.
      *
      * Part of the [RunManager]'s execution state. Can be null!
      */
-    val currentTaskRun: InteractiveSynchronousCompetitionRun.TaskRun?
+    val currentTaskRun: InteractiveSynchronousCompetition.Task?
 
-    override fun tasks(context: RunActionContext): List<InteractiveTask>
+    /**
+     *
+     */
+    override fun tasks(context: RunActionContext): List<AbstractInteractiveTask>
 
     /**
      * Prepares this [RunManager] for the execution of previous [Task] as per order defined in [CompetitionDescription.tasks].
@@ -116,12 +121,12 @@ interface InteractiveRunManager : RunManager {
     fun timeLeft(context: RunActionContext): Long
 
     /**
-     * Returns [InteractiveSynchronousCompetitionRun.TaskRun]s for the specified index. The index is zero based, i.e.,
-     * an index of 0 returns the first [InteractiveSynchronousCompetitionRun.TaskRun], index of 1 the second etc.
+     * Returns [InteractiveSynchronousCompetition.Task]s for the specified index. The index is zero based, i.e.,
+     * an index of 0 returns the first [InteractiveSynchronousCompetition.Task], index of 1 the second etc.
      *
-     * @param taskRunId The [UID] of the desired [InteractiveSynchronousCompetitionRun.TaskRun].
+     * @param taskRunId The [UID] of the desired [InteractiveSynchronousCompetition.Task].
      */
-    fun taskRunForId(context: RunActionContext, taskRunId: UID): InteractiveSynchronousCompetitionRun.TaskRun?
+    fun taskRunForId(context: RunActionContext, taskRunId: UID): InteractiveSynchronousCompetition.Task?
 
     /**
      * Override the ready state for a given viewer ID.

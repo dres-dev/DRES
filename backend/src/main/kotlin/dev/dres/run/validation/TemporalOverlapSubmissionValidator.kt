@@ -2,9 +2,9 @@ package dev.dres.run.validation
 
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.VideoSegment
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
-import dev.dres.data.model.run.TemporalSubmissionAspect
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import dev.dres.utilities.TimeUtil
 

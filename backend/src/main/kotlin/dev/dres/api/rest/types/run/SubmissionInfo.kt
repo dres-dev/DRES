@@ -1,9 +1,9 @@
 package dev.dres.api.rest.types.run
 
 import dev.dres.api.rest.types.collection.RestMediaItem
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
-import dev.dres.data.model.run.TemporalSubmissionAspect
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 
 /**
  * Contains information about a [Submission].

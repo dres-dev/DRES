@@ -1,6 +1,7 @@
 package dev.dres.run.filter
 
-import dev.dres.data.model.run.Submission
+import dev.dres.data.model.submissions.Submission
+
 
 /**
  * A [SubmissionFilter] that lets all [Submission] pass.

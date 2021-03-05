@@ -1,4 +1,4 @@
-package dev.dres.data.model.run
+package dev.dres.data.model.submissions
 
 /**
  * Status of a [Submission] with respect to its validation.

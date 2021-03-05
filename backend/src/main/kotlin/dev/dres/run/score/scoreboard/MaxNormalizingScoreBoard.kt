@@ -3,9 +3,8 @@ package dev.dres.run.score.scoreboard
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.Team
-import dev.dres.data.model.run.InteractiveTask
-import dev.dres.data.model.run.Task
-import dev.dres.data.model.run.TaskId
+import dev.dres.data.model.run.AbstractInteractiveTask
+import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.run.score.interfaces.TaskRunScorer
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
@@ -41,10 +40,10 @@ class MaxNormalizingScoreBoard(override val name: String, teams: List<Team>, pri
         this.scorePerTaskMap.putAll(scorers.map { it.key to it.value.scores() }.toMap())
     }
 
-    override fun update(runs: List<Task>) {
+    override fun update(runs: List<AbstractInteractiveTask>) {
         update(
             runs
-            .filter { taskFilter(it.taskDescription) && if (it is InteractiveTask) (it.started != null) else true }
+            .filter { taskFilter(it.description) && (it.started != null) }
             .map { it.uid to it.scorer }.toMap()
         )
     }

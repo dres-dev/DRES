@@ -21,7 +21,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiResponse
 
 /**
  * A collection of [RestHandler]s that deal with [ScoreOverview]s for ongoing
- * [dev.dres.data.model.run.InteractiveSynchronousCompetitionRun]s.
+ * [dev.dres.data.model.run.InteractiveSynchronousCompetition]s.
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -58,7 +58,7 @@ abstract class AbstractScoreRestHandler : RestHandler, AccessManagedRestHandler 
 }
 
 /**
- * Generates and lists all [ScoreOverview]s for the provided [dev.dres.data.model.run.InteractiveSynchronousCompetitionRun].
+ * Generates and lists all [ScoreOverview]s for the provided [dev.dres.data.model.run.InteractiveSynchronousCompetition].
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -86,7 +86,7 @@ class ListCompetitionScoreHandler : AbstractScoreRestHandler(), GetRestHandler<L
 }
 
 /**
- * Generates and lists the [ScoreOverview] for the currently active [dev.dres.data.model.run.InteractiveSynchronousCompetitionRun.TaskRun].
+ * Generates and lists the [ScoreOverview] for the currently active [dev.dres.data.model.run.InteractiveSynchronousCompetition.Task].
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -128,7 +128,7 @@ class CurrentTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
 }
 
 /**
- * Generates and lists the [ScoreOverview] for the specified [dev.dres.data.model.run.InteractiveSynchronousCompetitionRun.TaskRun].
+ * Generates and lists the [ScoreOverview] for the specified [dev.dres.data.model.run.InteractiveSynchronousCompetition.Task].
  * Can only be invoked by admins.
  *
  * @author Ralph Gasser
@@ -188,7 +188,7 @@ class TaskScoreListCSVHandler : AbstractScoreRestHandler(), GetRestHandler<Strin
         val rac = RunActionContext.runActionContext(ctx, run)
 
         return "task,group,team,score\n" + run.tasks(rac).filter { it.started != null}.sortedBy { it.started }.flatMap { task ->
-            task.scorer.scores().map { "${task.taskDescription.name},${task.taskDescription.taskGroup.name},${run.competitionDescription.teams.find { t -> t.uid == it.key }?.name ?: "???"},${it.value}" }
+            task.scorer.scores().map { "${task.description.name},${task.description.taskGroup.name},${run.competitionDescription.teams.find { t -> t.uid == it.key }?.name ?: "???"},${it.value}" }
         }.joinToString(separator = "\n")
 
     }

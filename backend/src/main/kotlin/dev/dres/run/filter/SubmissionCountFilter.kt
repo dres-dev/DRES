@@ -1,7 +1,7 @@
 package dev.dres.run.filter
 
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
 
 class MaximumTotalSubmissionsPerTeam(private val max: Int = Int.MAX_VALUE) : SubmissionFilter {
     constructor(parameters: Map<String, String>) : this(parameters.getOrDefault("limit", "${Int.MAX_VALUE}").toIntOrNull() ?: Int.MAX_VALUE)

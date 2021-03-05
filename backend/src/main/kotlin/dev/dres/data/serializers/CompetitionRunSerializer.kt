@@ -1,9 +1,9 @@
 package dev.dres.data.serializers
 
-import dev.dres.data.model.run.CompetitionRun
-import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun
-import dev.dres.data.model.run.NonInteractiveCompetitionRun
-import dev.dres.data.model.run.Submission
+import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.NonInteractiveCompetition
+import dev.dres.data.model.run.interfaces.Competition
+import dev.dres.data.model.submissions.Submission
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.readUID
 import dev.dres.utilities.extensions.writeUID
@@ -11,21 +11,21 @@ import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer
 
-class CompetitionRunSerializer(private val competitionSerializer: CompetitionSerializer): Serializer<CompetitionRun> {
-    override fun serialize(out: DataOutput2, value: CompetitionRun) {
+class CompetitionRunSerializer(private val competitionSerializer: CompetitionSerializer): Serializer<Competition> {
+    override fun serialize(out: DataOutput2, value: Competition) {
         when(value) {
-            is InteractiveSynchronousCompetitionRun -> out.packInt(1)
-            is NonInteractiveCompetitionRun -> out.packInt(2)
+            is InteractiveSynchronousCompetition -> out.packInt(1)
+            is NonInteractiveCompetition -> out.packInt(2)
         }
         out.writeUID(value.id)
         out.writeUTF(value.name)
-        competitionSerializer.serialize(out, value.competitionDescription)
+        this.competitionSerializer.serialize(out, value.description)
         out.writeLong(value.started ?: -1)
         out.writeLong(value.ended ?: -1)
         out.writeInt(value.tasks.size)
 
         when(value){
-            is InteractiveSynchronousCompetitionRun -> {
+            is InteractiveSynchronousCompetition -> {
                 for (taskRun in value.tasks) {
                     out.writeUID(taskRun.uid)
                     out.writeUID(taskRun.taskDescriptionId)
@@ -37,7 +37,7 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
                     }
                 }
             }
-            is NonInteractiveCompetitionRun -> {
+            is NonInteractiveCompetition -> {
                 //TODO
             }
         }
@@ -45,16 +45,16 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
 
     }
 
-    override fun deserialize(input: DataInput2, available: Int): CompetitionRun {
+    override fun deserialize(input: DataInput2, available: Int): Competition {
         return when(val type = input.unpackInt()) {
             1 -> {
-                val run = InteractiveSynchronousCompetitionRun(input.readUTF().UID(), input.readUTF(), competitionSerializer.deserialize(input, available), input.readLong(), input.readLong())
+                val run = InteractiveSynchronousCompetition(input.readUTF().UID(), input.readUTF(), competitionSerializer.deserialize(input, available), input.readLong(), input.readLong())
                 for (i in 0 until input.readInt()) {
-                    val taskRun = run.TaskRun(input.readUID(), input.readUID(), input.readLong(), input.readLong())
+                    val taskRun = run.Task(input.readUID(), input.readUID(), input.readLong(), input.readLong())
                     for (j in 0 until input.readInt()) {
                         (taskRun.submissions as MutableList<Submission>).add(SubmissionSerializer.deserialize(input,available))
                     }
-                    (run.tasks as MutableList<InteractiveSynchronousCompetitionRun.TaskRun>).add(taskRun)
+                    (run.tasks as MutableList<InteractiveSynchronousCompetition.Task>).add(taskRun)
                 }
                 run
             }

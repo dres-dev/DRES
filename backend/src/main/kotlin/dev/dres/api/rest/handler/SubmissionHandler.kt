@@ -16,6 +16,9 @@ import dev.dres.data.model.basics.media.MediaItemSegmentList
 import dev.dres.data.model.basics.media.PlayableMediaItem
 import dev.dres.data.model.competition.TaskType
 import dev.dres.data.model.run.*
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
@@ -91,21 +94,21 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             map.containsKey(PARAMETER_NAME_SHOT) && item is MediaItem.VideoItem -> {
                 val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.", ctx)
                 val time = TimeUtil.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item, segmentList) ?: throw ErrorStatusException(400, "Shot '${item.name}.${map[PARAMETER_NAME_SHOT]?.first()!!}' not found.", ctx)
-                TemporalSubmission(team, userId, submissionTime, item, time.first, time.second)
+                Submission.Temporal(team, userId, submissionTime, item, time.first, time.second)
             }
             map.containsKey(PARAMETER_NAME_FRAME) && (item is PlayableMediaItem) -> {
                 val time = TimeUtil.frameToTime(map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull() ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number.", ctx), item)
                 val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.", ctx)
                 val range = if(mapToSegment && item is MediaItem.VideoItem) (TimeUtil.timeToSegment(time, item, segmentList) ?: throw ErrorStatusException(400, "No segments found for item '${item.name}'.", ctx)) else time to time
-                TemporalSubmission(team, userId, submissionTime, item, range.first, range.second)
+                Submission.Temporal(team, userId, submissionTime, item, range.first, range.second)
             }
             map.containsKey(PARAMETER_NAME_TIMECODE) && (item is PlayableMediaItem) -> {
                 val time = TimeUtil.timeCodeToMilliseconds(map[PARAMETER_NAME_TIMECODE]?.first()!!, item) ?: throw ErrorStatusException(400, "'${map[PARAMETER_NAME_TIMECODE]?.first()!!}' is not a valid time code", ctx)
                 val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.", ctx)
                 val range = if(mapToSegment && item is MediaItem.VideoItem) (TimeUtil.timeToSegment(time, item, segmentList) ?: throw ErrorStatusException(400, "No segments found for item '${item.name}'.", ctx)) else time to time
-                TemporalSubmission(team, userId, submissionTime, item, range.first, range.second)
+                Submission.Temporal(team, userId, submissionTime, item, range.first, range.second)
             }
-            else -> ItemSubmission(team, userId, submissionTime, item)
+            else -> Submission.Item(team, userId, submissionTime, item)
         }.also {
             it.task = runManager.currentTaskRun
         }

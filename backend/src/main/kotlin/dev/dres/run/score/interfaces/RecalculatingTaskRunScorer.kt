@@ -2,11 +2,11 @@ package dev.dres.run.score.interfaces
 
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.TeamId
-import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun
-import dev.dres.data.model.run.Submission
+import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.submissions.Submission
 
 /**
- * Computes the current scores of all teams for a given  [InteractiveSynchronousCompetitionRun.TaskRun]
+ * Computes the current scores of all teams for a given  [InteractiveSynchronousCompetition.Task]
  *
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0.1

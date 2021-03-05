@@ -1,6 +1,6 @@
 package dev.dres.run.score.interfaces
 
-import dev.dres.data.model.run.Submission
+import dev.dres.data.model.submissions.Submission
 
 /**
  * A [RecalculatingTaskRunScorer] that can update scores incrementally on a [Submission] by [Submission] basis.

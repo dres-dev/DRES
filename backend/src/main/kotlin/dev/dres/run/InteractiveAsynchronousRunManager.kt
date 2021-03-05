@@ -6,12 +6,25 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.run.*
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
+import java.util.*
 
-class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronousCompetitionRun) : InteractiveRunManager {
-
+/**
+ * An implementation of a [RunManager] aimed at distributed execution having a single DRES Server instance and
+ * multiple clients connected via WebSocket.
+ *
+ * As opposed to the [InteractiveSynchronousRunManager], competitions in the [InteractiveAsynchronousRunManager]
+ * can take place at different points in time for different teams and tasks, i.e., the competitions are executed
+ * asynchronously.
+ *
+ * @version 1.0.0
+ * @author Ralph Gasser
+ */
+class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronousCompetition) : InteractiveRunManager {
 
 
     override fun currentTask(context: RunActionContext): TaskDescription? {
@@ -27,10 +40,10 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
     override val allSubmissions: List<Submission>
         get() = TODO("Not yet implemented")
 
-    override val currentTaskRun: InteractiveSynchronousCompetitionRun.TaskRun?
+    override val currentTaskRun: InteractiveSynchronousCompetition.Task?
         get() = TODO("Not yet implemented")
 
-    override fun tasks(context: RunActionContext): List<InteractiveTask> {
+    override fun tasks(context: RunActionContext): List<AbstractInteractiveTask> {
         TODO("Not yet implemented")
     }
 
@@ -65,7 +78,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
     override fun taskRunForId(
         context: RunActionContext,
         taskRunId: UID
-    ): InteractiveSynchronousCompetitionRun.TaskRun? {
+    ): InteractiveSynchronousCompetition.Task? {
         TODO("Not yet implemented")
     }
 
@@ -88,7 +101,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         get() = TODO("Not yet implemented")
 
     override val competitionDescription: CompetitionDescription
-        get() = this.run.competitionDescription
+        get() = this.run.description
 
     override val scoreboards: List<Scoreboard>
         get() = TODO("Not yet implemented")

@@ -1,7 +1,7 @@
 package dev.dres.run.validation.judged
 
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.run.validation.interfaces.SubmissionJudgementValidator

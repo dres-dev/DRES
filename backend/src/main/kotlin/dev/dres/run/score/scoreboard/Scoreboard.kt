@@ -3,8 +3,9 @@ package dev.dres.run.score.scoreboard
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.Team
 import dev.dres.data.model.competition.TeamId
-import dev.dres.data.model.run.Task
-import dev.dres.data.model.run.TaskId
+import dev.dres.data.model.run.AbstractInteractiveTask
+import dev.dres.data.model.run.interfaces.Task
+import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.run.score.interfaces.TaskRunScorer
 
 /**
@@ -43,7 +44,7 @@ interface Scoreboard {
     /**
      * Updates the [Scoreboard].
      */
-    fun update(runs: List<Task>)
+    fun update(runs: List<AbstractInteractiveTask>)
 
     /**
      * Updates using a map of the [TaskRun] ids to the corresponding [TaskRunScorer]s

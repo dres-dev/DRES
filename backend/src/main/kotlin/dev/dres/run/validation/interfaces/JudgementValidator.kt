@@ -1,8 +1,7 @@
 package dev.dres.run.validation.interfaces
 
-import dev.dres.data.model.run.BaseSubmissionAspect
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.aspects.BaseSubmissionAspect
 
 /**
  * A [SubmissionValidator] that bases validation on human (manual) verdicts. This kind of [SubmissionValidator]

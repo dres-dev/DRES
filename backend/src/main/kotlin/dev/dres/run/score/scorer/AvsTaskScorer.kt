@@ -3,9 +3,8 @@ package dev.dres.run.score.scorer
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.TeamId
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
-import dev.dres.data.model.run.TemporalSubmission
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.score.interfaces.RecalculatingTaskRunScorer
 import dev.dres.utilities.TimeUtil
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -52,9 +51,7 @@ class AvsTaskScorer: RecalculatingTaskRunScorer {
             when(it.key) {
                 is MediaItem.ImageItem -> 1
                 is MediaItem.VideoItem -> {
-
-                    val ranges = it.value.map { s -> (s as TemporalSubmission).temporalRange }
-
+                    val ranges = it.value.map { s -> (s as Submission.Temporal).temporalRange }
                     TimeUtil.merge(ranges, overlap = 1).size
                 }
             }

@@ -8,9 +8,9 @@ import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
-import dev.dres.data.model.run.CompetitionRun
-import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun
-import dev.dres.data.model.run.NonInteractiveCompetitionRun
+import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.NonInteractiveCompetition
+import dev.dres.data.model.run.interfaces.Competition
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.read
@@ -60,20 +60,20 @@ object RunExecutor : Consumer<WsHandler> {
     /** Internal array of [Future]s for cleaning after [RunManager]s. See [RunExecutor.cleanerThread]*/
     private val results = HashMap<Future<*>, UID>()
 
-    /** Instance of shared [DAO] used to access [InteractiveSynchronousCompetitionRun]s. */
-    lateinit var runs: DAO<CompetitionRun>
+    /** Instance of shared [DAO] used to access [InteractiveSynchronousCompetition]s. */
+    lateinit var runs: DAO<Competition>
 
     /**
      * Initializes this [RunExecutor].
      *
-     * @param runs The shared [DAO] used to access [InteractiveSynchronousCompetitionRun]s.
+     * @param runs The shared [DAO] used to access [InteractiveSynchronousCompetition]s.
      */
-    fun init(runs: DAO<CompetitionRun>) {
+    fun init(runs: DAO<Competition>) {
         this.runs = runs
         this.runs.filter { !it.hasEnded }.forEach { //TODO needs more distinction
             val run = when(it) {
-                is InteractiveSynchronousCompetitionRun -> InteractiveSynchronousRunManager(it)
-                is NonInteractiveCompetitionRun -> NonInteractiveSynchronousRunManager(it)
+                is InteractiveSynchronousCompetition -> InteractiveSynchronousRunManager(it)
+                is NonInteractiveCompetition -> NonInteractiveRunManager(it)
                 else -> throw NotImplementedError("No matching run manager found for $it")
             }
             this.schedule(run)

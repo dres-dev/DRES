@@ -10,11 +10,7 @@ import dev.dres.run.RunManager
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.http.Context
 
-data class RunActionContext(
-    val userId: UserId,
-    val teamId: TeamId?,
-    val roles: Set<Role>
-) {
+data class RunActionContext(val userId: UserId, val teamId: TeamId?, val roles: Set<Role>) {
     val isAdmin: Boolean
     get() = roles.contains(Role.ADMIN)
 
@@ -28,7 +24,5 @@ data class RunActionContext(
         }
 
         val DUMMY_ADMIN = RunActionContext(UID.EMPTY, UID.EMPTY, setOf(Role.ADMIN))
-
     }
-
 }

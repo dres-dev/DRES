@@ -1,7 +1,7 @@
 package dev.dres.run.validation
 
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.validation.interfaces.SubmissionValidator
 
 class ChainedSubmissionValidator(private val firstValidator: SubmissionValidator, private val continueStates: Set<SubmissionStatus>, private val secondValidator: SubmissionValidator) : SubmissionValidator {

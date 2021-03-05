@@ -10,6 +10,8 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.run.*
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
 import dev.dres.run.eventstream.EventStreamProcessor
@@ -30,12 +32,12 @@ import kotlin.math.max
 
 /**
  * An implementation of [RunManager] aimed at distributed execution having a single DRES Server instance and multiple
- * viewers connected via WebSocket. Before starting a [InteractiveSynchronousCompetitionRun.TaskRun], all viewer instances are synchronized.
+ * viewers connected via WebSocket. Before starting a [InteractiveSynchronousCompetition.Task], all viewer instances are synchronized.
  *
  * @version 2.1.0
  * @author Ralph Gasser
  */
-class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitionRun) : InteractiveRunManager {
+class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetition) : InteractiveRunManager {
 
     private val VIEWER_TIME_OUT = 30L //TODO make configurable
 
@@ -43,15 +45,13 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
 
     private val LOGGER = LoggerFactory.getLogger(this.javaClass)
 
-    /**
-     * Number of consecutive errors which have to occur within the main execution loop before it tries to gracefully terminate
-     */
+    /** Number of consecutive errors which have to occur within the main execution loop before it tries to gracefully terminate */
     private val maxErrorCount = 5
 
     /**
-     * Alternative constructor from existing [InteractiveSynchronousCompetitionRun].
+     * Alternative constructor from existing [InteractiveSynchronousCompetition].
      */
-    constructor(description: CompetitionDescription, name: String) : this(InteractiveSynchronousCompetitionRun(UID.EMPTY, name, description).apply { RunExecutor.runs.append(this) })
+    constructor(description: CompetitionDescription, name: String) : this(InteractiveSynchronousCompetition(UID.EMPTY, name, description).apply { RunExecutor.runs.append(this) })
 
     /** Run ID of this [InteractiveSynchronousRunManager]. */
     override val id: UID
@@ -63,15 +63,15 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
 
     /** The [CompetitionDescription] executed by this [InteractiveSynchronousRunManager]. */
     override val competitionDescription: CompetitionDescription
-        get() = this.run.competitionDescription
+        get() = this.run.description
 
     /** Reference to the currently active [TaskDescription]. This is part of the task navigation. */
     private var currentTask = this.competitionDescription.tasks[0]
     override fun currentTask(context: RunActionContext): TaskDescription = currentTask
 
 
-    /** Reference to the currently active [InteractiveSynchronousCompetitionRun.TaskRun].*/
-    override val currentTaskRun: InteractiveSynchronousCompetitionRun.TaskRun?
+    /** Reference to the currently active [InteractiveSynchronousCompetition.Task].*/
+    override val currentTaskRun: InteractiveSynchronousCompetition.Task?
         get() = this.stateLock.read {
             return when (this.status) {
                 RunManagerStatus.PREPARING_TASK,
@@ -81,9 +81,10 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
             }
         }
 
-    override fun tasks(context: RunActionContext): List<InteractiveTask> = this.run.tasks
+    /** List of [InteractiveSynchronousCompetition.Task] for this [InteractiveSynchronousRunManager]. */
+    override fun tasks(context: RunActionContext): List<InteractiveSynchronousCompetition.Task> = this.run.tasks
 
-    /** The list of [Submission]s for the current [InteractiveSynchronousCompetitionRun.TaskRun]. */
+    /** The list of [Submission]s for the current [InteractiveSynchronousCompetition.Task]. */
     override val submissions: List<Submission>
         get() = this.stateLock.read {
             this.currentTaskRun?.submissions ?: emptyList()
@@ -271,12 +272,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
         checkContext(context)
 
         /* Create and prepare pipeline for submission. */
-        this.run.newTaskRun(this.currentTask(context).id)
-
-        /* Create and prepare pipeline for submission (FIXME: is this used?). */
-        //val ret = this.run.newTaskRun(this.currentTask.id)
-        //val pipeline = Triple(ret.task.newFilter(), ret.task.newValidator(), ret.task.newScorer())
-        //(this.submissionPipeline as MutableList).add(pipeline)
+        this.run.Task(taskDescriptionId = this.currentTask(context).id)
 
         /* Update status. */
         this.status = RunManagerStatus.PREPARING_TASK
@@ -317,21 +313,21 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     }
 
     /**
-     * Returns [InteractiveSynchronousCompetitionRun.TaskRun]s for a specific task [UID]. May be empty.
+     * Returns [InteractiveSynchronousCompetition.Task]s for a specific task [UID]. May be empty.
      *
-     * @param taskRunId The [UID] of the [InteractiveSynchronousCompetitionRun.TaskRun].
+     * @param taskRunId The [UID] of the [InteractiveSynchronousCompetition.Task].
      */
-    override fun taskRunForId(context: RunActionContext, taskRunId: UID): InteractiveSynchronousCompetitionRun.TaskRun? = this.run.tasks.find { it.uid == taskRunId }
+    override fun taskRunForId(context: RunActionContext, taskRunId: UID): InteractiveSynchronousCompetition.Task? = this.run.tasks.find { it.uid == taskRunId }
 
     /**
-     * Returns the number of [InteractiveSynchronousCompetitionRun.TaskRun]s held by this [RunManager].
+     * Returns the number of [InteractiveSynchronousCompetition.Task]s held by this [RunManager].
      *
-     * @return The number of [InteractiveSynchronousCompetitionRun.TaskRun]s held by this [RunManager]
+     * @return The number of [InteractiveSynchronousCompetition.Task]s held by this [RunManager]
      */
     override fun taskCount(context: RunActionContext): Int = this.run.tasks.size
 
     /**
-     * Adjusts the duration of the current [InteractiveSynchronousCompetitionRun.TaskRun] by the specified amount. Amount can be either positive or negative.
+     * Adjusts the duration of the current [InteractiveSynchronousCompetition.Task] by the specified amount. Amount can be either positive or negative.
      *
      * @param s The number of seconds to adjust the duration by.
      * @return Time remaining until the task will end in milliseconds
@@ -351,7 +347,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     }
 
     /**
-     * Returns the time in milliseconds that is left until the end of the current [InteractiveSynchronousCompetitionRun.TaskRun].
+     * Returns the time in milliseconds that is left until the end of the current [InteractiveSynchronousCompetition.Task].
      * Only works if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no task is running,
      * this method returns -1L.
      *
@@ -417,8 +413,8 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     }
 
     /**
-     * Processes incoming [Submission]s. If a [InteractiveSynchronousCompetitionRun.TaskRun] is running then that [Submission] will usually
-     * be associated with that [InteractiveSynchronousCompetitionRun.TaskRun].
+     * Processes incoming [Submission]s. If a [InteractiveSynchronousCompetition.Task] is running then that [Submission] will usually
+     * be associated with that [InteractiveSynchronousCompetition.Task].
      *
      * This method will not throw an exception and instead return false if a [Submission] was
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
@@ -446,22 +442,20 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     }
 
     /**
-     * Processes incoming [Submission]s. If a [InteractiveSynchronousCompetitionRun.TaskRun] is running then that [Submission] will usually
-     * be associated with that [InteractiveSynchronousCompetitionRun.TaskRun].
+     * Processes incoming [Submission]s. If a [InteractiveSynchronousCompetition.Task] is running then that [Submission] will usually
+     * be associated with that [InteractiveSynchronousCompetition.Task].
      *
      * This method will not throw an exception and instead return false if a [Submission] was
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
-     * @param sub [Submission] that should be registered.
+     * @param suid [UID] that identifies the [Submission].
+     * @param newStatus The new [SubmissionStatus] for the [Submission].
      */
     override fun updateSubmission(suid: UID, newStatus: SubmissionStatus): Boolean = this.stateLock.read {
-        // We have to ignore anything state related, as we allow updates by admins regardless of state
-//        check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronizedRunManager is in status ${this.status} and can currently not accept submissions." }
-
         /* Sanity check */
-        val found = submissions.find { it.uid == suid}
-                ?: return false
+        val found = this.submissions.find { it.uid == suid}  ?: return false
+
         /* Actual update - currently, only status update is allowed */
         found.status = newStatus
 
@@ -478,7 +472,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     }
 
     /**
-     * Internal method that orchestrates the internal progression of the [InteractiveSynchronousCompetitionRun].
+     * Internal method that orchestrates the internal progression of the [InteractiveSynchronousCompetition].
      */
     override fun run() {
         /** Sort list of by [Phase] in ascending order. */

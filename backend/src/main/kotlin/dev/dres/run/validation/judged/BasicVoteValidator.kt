@@ -1,7 +1,7 @@
 package dev.dres.run.validation.judged
 
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.validation.interfaces.VoteValidator
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -68,7 +68,6 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
     //siphon of undecidable submission from logic of super class
     override fun judge(token: String, verdict: SubmissionStatus) {
         val submission = super.processSubmission(token, verdict)
-
         if (submission != null) {
             when(verdict){
                 SubmissionStatus.CORRECT,
@@ -78,6 +77,5 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
             }
 
         }
-
     }
 }

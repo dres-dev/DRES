@@ -9,10 +9,10 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.jakewharton.picnic.table
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
-import dev.dres.data.model.run.CompetitionRun
-import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun
+import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.run.interfaces.Competition
+import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.utilities.extensions.UID
@@ -20,7 +20,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
-class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktCommand(name = "run") {
+class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktCommand(name = "run") {
 
     init {
         subcommands(OngoingCompetitionRunsCommand(), ListCompetitionRunsCommand(), DeleteRunCommand(), ExportRunCommand(), CompetitionRunsHistoryCommand(), ResetSubmissionStatusCommand())
@@ -85,7 +85,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
         override fun run() {
             if (plain) {
                 this@CompetitionRunCommand.runs.forEach {
-                    println("${RunSummary(it.id.string, it.name, it.competitionDescription.description, if (it is InteractiveSynchronousCompetitionRun) it.lastTask?.taskDescription?.name
+                    println("${RunSummary(it.id.string, it.name, it.description.description, if (it is InteractiveSynchronousCompetition) it.lastTask?.description?.name
                         ?: "N/A" else "N/A")}")
                 }
             } else {
@@ -111,7 +111,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                             }else{
                                 "unkown"
                             }
-                            row(it.id, it.name, it.competitionDescription.description, if (it is InteractiveSynchronousCompetitionRun) it.lastTask?.taskDescription?.name
+                            row(it.id, it.name, it.description.description, if (it is InteractiveSynchronousCompetition) it.lastTask?.description?.name
                                 ?: "N/A" else "N/A", status)
                         }
                     }
@@ -203,22 +203,22 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                 println(it.name)
 
                 println("Teams:")
-                it.competitionDescription.teams.forEach {
+                it.description.teams.forEach {
                     println(it)
                 }
 
                 println()
                 println("All Tasks:")
-                it.competitionDescription.tasks.forEach {
+                it.description.tasks.forEach {
                     println(it)
                 }
 
                 println()
                 println("Evaluated Tasks:")
                 it.tasks.forEach {t ->
-                    println(t.taskDescription)
+                    println(t.description)
 
-                    if (t is InteractiveSynchronousCompetitionRun.TaskRun){
+                    if (t is InteractiveSynchronousCompetition.Task){
                         println("Submissions")
                         t.submissions.forEach { println(it) }
                     }
@@ -253,7 +253,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                     return
                 }
 
-                if (run is InteractiveSynchronousCompetitionRun) {
+                if (run is InteractiveSynchronousCompetition) {
 
                     /* Fetch submissions and reset them. */
                     val submissions = run.tasks.flatMap {
@@ -286,7 +286,7 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                     return
                 }
 
-                if (run is InteractiveSynchronousCompetitionRun) {
+                if (run is InteractiveSynchronousCompetition) {
                     /* Fetch submissions and reset them. */
                     val submissions = run.tasks.filter {
                         it.uid.string in ids
@@ -316,10 +316,10 @@ class CompetitionRunCommand(internal val runs: DAO<CompetitionRun>) : NoOpCliktC
                     return
                 }
 
-                if (run is InteractiveSynchronousCompetitionRun) {
+                if (run is InteractiveSynchronousCompetition) {
 
                     val submissions =
-                        run.tasks.filter { it.taskDescription.taskGroup.name == taskGroup }.flatMap { it.submissions }
+                        run.tasks.filter { it.description.taskGroup.name == taskGroup }.flatMap { it.submissions }
                     submissions.forEach { it.status = SubmissionStatus.INDETERMINATE }
 
                     this@CompetitionRunCommand.runs.update(run)

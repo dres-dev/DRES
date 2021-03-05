@@ -4,20 +4,19 @@ import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.run.websocket.ClientMessage
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun
+import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.Task
+import dev.dres.data.model.run.interfaces.Task
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
 
 /**
- * A managing class for concrete executions of [CompetitionDescription], i.e. [InteractiveSynchronousCompetitionRun]s.
+ * A managing class for concrete executions of [CompetitionDescription], i.e. [InteractiveSynchronousCompetition]s.
  *
- * @see InteractiveSynchronousCompetitionRun
+ * @see InteractiveSynchronousCompetition
  *
  * @author Ralph Gasser
- * @version 1.4.0
+ * @version 1.5.0
  */
 interface RunManager : Runnable {
     /** Unique, public, numeric ID for this [RunManager]. */
@@ -45,6 +44,7 @@ interface RunManager : Runnable {
      * As all state affecting methods, this method throws an [IllegalStateException] if invocation
      * does not match the current state.
      *
+     * @param context The [RunActionContext] for this invocation.
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.CREATED]
      */
     fun start(context: RunActionContext)
@@ -56,18 +56,26 @@ interface RunManager : Runnable {
      * As all state affecting methods, this method throws an [IllegalStateException] if invocation
      * does not match the current state.
      *
+     * @param context The [RunActionContext] for this invocation.
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     fun end(context: RunActionContext)
 
 
     /**
-     * Returns the number of [InteractiveSynchronousCompetitionRun.TaskRun]s held by this [RunManager].
+     * Returns the number of [InteractiveSynchronousCompetition.Task]s held by this [RunManager].
      *
-     * @return The number of [InteractiveSynchronousCompetitionRun.TaskRun]s held by this [RunManager]
+     * @param context The [RunActionContext] for this invocation.
+     * @return The number of [InteractiveSynchronousCompetition.Task]s held by this [RunManager]
      */
     fun taskCount(context: RunActionContext): Int
 
+    /**
+     * Returns a list of all [Task]s that took or are taking place in the scope of this [RunManager].
+     *
+     * @param context The [RunActionContext] for this invocation.
+     * @return List of [Task] that took place (are taking place).
+     */
     fun tasks(context: RunActionContext): List<Task>
 
     /**
@@ -76,7 +84,6 @@ interface RunManager : Runnable {
      * @return List of viewer [WebSocketConnection]s for this [RunManager].
      */
     fun viewers(): Map<WebSocketConnection,Boolean>
-
 
     /**
      * Invoked by an external caller such in order to inform the [RunManager] that it has received a [ClientMessage].

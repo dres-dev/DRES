@@ -1,7 +1,7 @@
 package dev.dres.run.filter
 
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
 
 class CorrectSubmissionPerTeamFilter(private val limit: Int = 1) : SubmissionFilter {
     constructor(parameters: Map<String, String>) : this(parameters.getOrDefault("limit", "1").toIntOrNull() ?: 1)

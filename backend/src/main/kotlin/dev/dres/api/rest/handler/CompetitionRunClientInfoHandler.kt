@@ -124,8 +124,8 @@ class CompetitionRunClientCurrentTaskInfoHandler : AbstractCompetitionRunClientI
 
         return ClientTaskInfo(
             task.uid.string,
-            task.taskDescription.name,
-            task.taskDescription.taskGroup.name,
+            task.description.name,
+            task.description.taskGroup.name,
             when(run.status){
                 RunManagerStatus.CREATED -> 0
                 RunManagerStatus.ACTIVE,

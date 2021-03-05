@@ -8,7 +8,7 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.run.TemporalSubmissionAspect
+import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.utilities.FFmpegUtil

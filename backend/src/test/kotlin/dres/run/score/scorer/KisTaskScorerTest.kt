@@ -3,7 +3,7 @@ package dres.run.score.scorer
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.run.ItemSubmission
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.score.scorer.KisTaskScorer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach

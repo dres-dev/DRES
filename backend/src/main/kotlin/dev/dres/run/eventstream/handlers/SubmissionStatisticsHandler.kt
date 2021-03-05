@@ -1,8 +1,8 @@
 package dev.dres.run.eventstream.handlers
 
 import dev.dres.data.model.UID
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.eventstream.*
 import java.io.File
 import java.io.PrintWriter

@@ -12,7 +12,9 @@ import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.basics.media.MediaItemSegmentList
 import dev.dres.data.model.run.*
-import dev.dres.run.NonInteractiveSynchronousRunManager
+import dev.dres.data.model.submissions.batch.*
+import dev.dres.run.InteractiveRunManager
+import dev.dres.run.NonInteractiveRunManager
 import dev.dres.utilities.TimeUtil
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
@@ -30,9 +32,11 @@ abstract class BatchSubmissionHandler(internal val collections: DAO<MediaCollect
         throw ErrorStatusException(404, "Parameter 'runId' is missing!'", ctx)
     }.UID()
 
-    internal fun getRelevantManager(userId: UID, runId: UID): NonInteractiveSynchronousRunManager? = AccessManager.getRunManagerForUser(userId)
-        .filterIsInstance<NonInteractiveSynchronousRunManager>().find { it.id == runId }
+    protected fun getInteractiveManager(userId: UID, runId: UID): InteractiveRunManager?
+        = AccessManager.getRunManagerForUser(userId).filterIsInstance<InteractiveRunManager>().find { it.id == runId }
 
+    protected fun getNonInteractiveManager(userId: UID, runId: UID): NonInteractiveRunManager?
+            = AccessManager.getRunManagerForUser(userId).filterIsInstance<NonInteractiveRunManager>().find { it.id == runId }
 }
 
 data class JsonBatchSubmission(val batches : List<JsonTaskResultBatch>)
@@ -63,7 +67,7 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
         val userId = userId(ctx)
         val runId = runId(ctx)
 
-        val runManager = getRelevantManager(userId, runId) ?: throw ErrorStatusException(404, "Run ${runId.string} not found", ctx)
+        val runManager = getNonInteractiveManager(userId, runId) ?: throw ErrorStatusException(404, "Run ${runId.string} not found", ctx)
 
         val rac = RunActionContext.runActionContext(ctx, runManager)
 
@@ -78,28 +82,22 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
         }?.uid ?: throw ErrorStatusException(404, "No team for user '$userId' could not be found.", ctx)
 
         val resultBatches = jsonBatch.batches.mapNotNull { batch ->
-
-            val task = runManager.tasks(rac).find { it.taskDescription.name == batch.taskName } ?: return@mapNotNull null
-            val mediaCollectionId = task.taskDescription.mediaCollectionId
-
+            val task = runManager.tasks(rac).find { it.description.name == batch.taskName } ?: return@mapNotNull null
+            val mediaCollectionId = task.description.mediaCollectionId
             val results = batch.results.map { result ->
-
                 val mediaItem = this.itemIndex[mediaCollectionId to result.item].first() //TODO deal with invalid name
                 return@map if (mediaItem is MediaItem.VideoItem && result.segment != null) {
                     val segmentList = segmentIndex[mediaItem.id].first()
                     val time = TimeUtil.shotToTime(result.segment.toString(), mediaItem, segmentList)!!
-
                     TemporalBatchElement(mediaItem, time.first, time.second)
-
                 } else {
                     ItemBatchElement(mediaItem)
                 }
-
             }
 
             if (results.all { it is TemporalBatchElement }) {
                 @Suppress("UNCHECKED_CAST")
-                BaseResultBatch(mediaCollectionId, batch.resultName, results as List<TemporalBatchElement>)
+                (BaseResultBatch(mediaCollectionId, batch.resultName, results as List<TemporalBatchElement>))
             } else {
                 BaseResultBatch(mediaCollectionId, batch.resultName, results)
             }
@@ -108,7 +106,7 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
 
         val submissionBatch = if (resultBatches.all { it.results.first() is TemporalBatchElement }) {
             @Suppress("UNCHECKED_CAST")
-            TemporalSubmissionBatch(team, userId, UID(), resultBatches as List<BaseResultBatch<TemporalBatchElement>>)
+            (TemporalSubmissionBatch(team, userId, UID(), resultBatches as List<BaseResultBatch<TemporalBatchElement>>))
         } else {
             BaseSubmissionBatch(team, userId, UID(), resultBatches as List<BaseResultBatch<BaseResultBatchElement>>)
         }

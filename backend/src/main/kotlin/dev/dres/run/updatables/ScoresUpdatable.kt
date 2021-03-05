@@ -3,9 +3,11 @@ package dev.dres.run.updatables
 import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.model.UID
-import dev.dres.data.model.run.InteractiveSynchronousCompetitionRun
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.run.AbstractInteractiveTask
+import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.interfaces.Task
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.RunManagerStatus
 import dev.dres.run.score.interfaces.IncrementalTaskRunScorer
 import dev.dres.run.score.interfaces.RecalculatingTaskRunScorer
@@ -13,10 +15,10 @@ import java.util.*
 
 /**
  * This is a [Updatable] that runs necessary post-processing after a [Submission] has been validated;
- * it update the scores for the respective [InteractiveSynchronousCompetitionRun.TaskRun].
+ * it update the scores for the respective [InteractiveSynchronousCompetition.Task].
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.1.0
  */
 class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdatable, val messageQueueUpdatable: MessageQueueUpdatable): Updatable {
 
@@ -25,17 +27,17 @@ class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdat
     }
 
     /** Internal list of [Submission] that pend processing. */
-    private val list = LinkedList<Pair<InteractiveSynchronousCompetitionRun.TaskRun,Submission>>()
+    private val list = LinkedList<Pair<AbstractInteractiveTask, Submission>>()
 
     /** The [Phase] this [ScoresUpdatable] belongs to. */
     override val phase: Phase = Phase.MAIN
 
     /** Enqueues a new [Submission] for post-processing. */
-    fun enqueue(submission: Pair<InteractiveSynchronousCompetitionRun.TaskRun,Submission>) = this.list.add(submission)
+    fun enqueue(submission: Pair<AbstractInteractiveTask,Submission>) = this.list.add(submission)
 
     override fun update(status: RunManagerStatus) {
         if (!this.list.isEmpty()) {
-            val scorersToUpdate = mutableSetOf<Pair<InteractiveSynchronousCompetitionRun.TaskRun,RecalculatingTaskRunScorer>>()
+            val scorersToUpdate = mutableSetOf<Pair<AbstractInteractiveTask,RecalculatingTaskRunScorer>>()
             val removed = this.list.removeIf {
                 val scorer = it.first.scorer
                 if (it.second.status != SubmissionStatus.INDETERMINATE) {
@@ -54,7 +56,7 @@ class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdat
             scorersToUpdate.forEach {
                 val task = it.first
                 if (it.first.started != null) {
-                    it.second.computeScores(task.submissions, task.competition.competitionDescription.teams.map { t -> t.uid }, task.started!!, task.duration, task.ended ?: 0)
+                    it.second.computeScores(task.submissions, task.competition.description.teams.map { t -> t.uid }, task.started!!, task.description.duration, task.ended ?: 0)
                 }
             }
 

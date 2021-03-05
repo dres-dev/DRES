@@ -1,7 +1,7 @@
 package dev.dres.run.filter
 
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.TemporalSubmissionAspect
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 
 class DuplicateSubmissionFilter : SubmissionFilter {
     override fun test(submission: Submission): Boolean = submission.task!!.submissions.none {

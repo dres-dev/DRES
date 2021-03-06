@@ -5,13 +5,13 @@ import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
-import dev.dres.run.score.interfaces.RecalculatingTaskRunScorer
+import dev.dres.run.score.interfaces.RecalculatingTaskScorer
 import dev.dres.utilities.TimeUtil
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-class AvsTaskScorer: RecalculatingTaskRunScorer {
+class AvsTaskScorer: RecalculatingTaskScorer {
 
     private var lastScores: Map<TeamId, Double> = emptyMap()
     private val lastScoresLock = ReentrantReadWriteLock()

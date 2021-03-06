@@ -6,8 +6,6 @@ import dev.dres.data.model.admin.UserId
 import java.nio.file.Path
 import java.nio.file.Paths
 
-typealias TeamId = UID
-
 /**
  * Represents a [Team] that takes part in a competition managed by DRES.
  *

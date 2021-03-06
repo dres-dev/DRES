@@ -7,20 +7,22 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
+import dev.dres.data.model.competition.interfaces.SubmissionFilterFactory
+import dev.dres.data.model.competition.interfaces.TaskScorerFactory
+import dev.dres.data.model.run.interfaces.Task
 import dev.dres.run.filter.SubmissionFilter
-import dev.dres.run.score.interfaces.TaskRunScorer
+import dev.dres.run.score.interfaces.TaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.PrintStream
 import kotlin.math.max
 
-typealias TaskDescriptionId = UID
-
 /**
- * Basic description of a [TaskDescription].
+ * Basic description of a [Task] as executed in DRES. Defines basic attributes such as its name, its duration,
+ * the [TaskDescriptionTarget] and the [TaskDescriptionHint]s, that should be presented to the user.
  *
- * @version 1.0.1
+ * @version 1.0.2
  * @author Luca Rossetto & Ralph Gasser
  */
 class TaskDescription(
@@ -48,15 +50,15 @@ class TaskDescription(
 
     /** List of [TaskDescriptionHint]s that act as clues to find the target media. */
     val hints: List<TaskDescriptionHint>
-){
+): TaskScorerFactory, SubmissionFilterFactory {
 
     /**
-     * Generates a new [TaskRunScorer] for this [TaskDescription]. Depending
+     * Generates a new [TaskScorer] for this [TaskDescription]. Depending
      * on the implementation, the returned instance is a new instance or being re-use.
      *
-     * @return [TaskRunScorer].
+     * @return [TaskScorer].
      */
-    fun newScorer(): TaskRunScorer = taskType.newScorer()
+    override fun newScorer(): TaskScorer = taskType.newScorer()
 
 
     /**
@@ -65,7 +67,7 @@ class TaskDescription(
      *
      * @return [SubmissionFilter]
      */
-    fun newFilter(): SubmissionFilter = taskType.newFilter()
+    override fun newFilter(): SubmissionFilter = taskType.newFilter()
 
     /**
      * Generates and returns a [TaskHint] object to be used by the RESTful interface.
@@ -123,6 +125,7 @@ class TaskDescription(
 
     /**
      * Checks if no components of the same type overlap
+     *
      * @throws IllegalArgumentException
      */
     fun validate() {

@@ -11,7 +11,7 @@ import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.filter.SubmissionFilter
-import dev.dres.run.score.interfaces.TaskRunScorer
+import dev.dres.run.score.interfaces.TaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -79,7 +79,7 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
         override val filter: SubmissionFilter = this.description.newFilter()
 
         @Transient
-        override val scorer: TaskRunScorer = this.description.newScorer()
+        override val scorer: TaskScorer = this.description.newScorer()
 
         @Transient
         override val validator: SubmissionValidator = this.newValidator()

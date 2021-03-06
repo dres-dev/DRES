@@ -5,12 +5,11 @@ import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.model.UID
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
-import dev.dres.data.model.run.interfaces.Task
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.RunManagerStatus
-import dev.dres.run.score.interfaces.IncrementalTaskRunScorer
-import dev.dres.run.score.interfaces.RecalculatingTaskRunScorer
+import dev.dres.run.score.interfaces.IncrementalTaskScorer
+import dev.dres.run.score.interfaces.RecalculatingTaskScorer
 import java.util.*
 
 /**
@@ -37,13 +36,13 @@ class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdat
 
     override fun update(status: RunManagerStatus) {
         if (!this.list.isEmpty()) {
-            val scorersToUpdate = mutableSetOf<Pair<AbstractInteractiveTask,RecalculatingTaskRunScorer>>()
+            val scorersToUpdate = mutableSetOf<Pair<AbstractInteractiveTask,RecalculatingTaskScorer>>()
             val removed = this.list.removeIf {
                 val scorer = it.first.scorer
                 if (it.second.status != SubmissionStatus.INDETERMINATE) {
                     when(scorer) {
-                        is RecalculatingTaskRunScorer -> scorersToUpdate.add(Pair(it.first, scorer))
-                        is IncrementalTaskRunScorer -> scorer.update(it.second)
+                        is RecalculatingTaskScorer -> scorersToUpdate.add(Pair(it.first, scorer))
+                        is IncrementalTaskScorer -> scorer.update(it.second)
                         else -> { }
                     }
                     true

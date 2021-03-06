@@ -4,8 +4,8 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.eventstream.*
-import dev.dres.run.score.interfaces.IncrementalTaskRunScorer
-import dev.dres.run.score.interfaces.RecalculatingTaskRunScorer
+import dev.dres.run.score.interfaces.IncrementalTaskScorer
+import dev.dres.run.score.interfaces.RecalculatingTaskScorer
 import java.io.File
 import java.io.PrintWriter
 
@@ -60,7 +60,7 @@ class TeamCombinationScoreHandler : StreamEventHandler {
                 }
 
                 when(scorer) {
-                    is RecalculatingTaskRunScorer -> {
+                    is RecalculatingTaskScorer -> {
                         scorer.computeScores(
                                 combinedSubmissions,
                                 combinations.keys,
@@ -69,7 +69,7 @@ class TeamCombinationScoreHandler : StreamEventHandler {
                                 event.timeStamp
                         )
                     }
-                    is IncrementalTaskRunScorer -> {
+                    is IncrementalTaskScorer -> {
                         combinedSubmissions.forEach { scorer.update(it) }
                     }
                     else -> throw IllegalStateException("unsupported scorer type $scorer")

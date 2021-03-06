@@ -2,8 +2,7 @@ package dev.dres.data.model.run.interfaces
 
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.run.InteractiveAsynchronousCompetition.Task
-import dev.dres.data.model.submissions.Submission
-import dev.dres.run.score.interfaces.TaskRunScorer
+import dev.dres.run.score.interfaces.TaskScorer
 
 /**
  * Represents a [Task] solved by a DRES user or client.
@@ -24,6 +23,6 @@ interface Task: Run {
     /** Reference to the [TaskDescription] describing this [Task]. */
     val description: TaskDescription
 
-    /** The [TaskRunScorer] used to update score for this [Task]. */
-    val scorer: TaskRunScorer
+    /** The [TaskScorer] used to update score for this [Task]. */
+    val scorer: TaskScorer
 }

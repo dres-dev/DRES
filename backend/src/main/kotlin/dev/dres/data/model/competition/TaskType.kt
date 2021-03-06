@@ -1,7 +1,7 @@
 package dev.dres.data.model.competition
 
 import dev.dres.run.filter.*
-import dev.dres.run.score.interfaces.TaskRunScorer
+import dev.dres.run.score.interfaces.TaskScorer
 import dev.dres.run.score.scorer.AvsTaskScorer
 import dev.dres.run.score.scorer.KisTaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
@@ -58,12 +58,12 @@ data class TaskType(
     }
 
     /**
-     * Generates a new [TaskRunScorer] for this [TaskDescription]. Depending
+     * Generates a new [TaskScorer] for this [TaskDescription]. Depending
      * on the implementation, the returned instance is a new instance or being re-use.
      *
-     * @return [TaskRunScorer].
+     * @return [TaskScorer].
      */
-    fun newScorer(): TaskRunScorer = when(score.option){
+    fun newScorer(): TaskScorer = when(score.option){
         ScoringType.KIS -> KisTaskScorer(score.parameters)
         ScoringType.AVS -> AvsTaskScorer()
     }

@@ -4,7 +4,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
-import dev.dres.run.score.interfaces.RecalculatingTaskRunScorer
+import dev.dres.run.score.interfaces.RecalculatingTaskScorer
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -14,7 +14,7 @@ class KisTaskScorer(
         private val maxPointsPerTask: Double = defaultmaxPointsPerTask,
         private val maxPointsAtTaskEnd: Double = defaultmaxPointsAtTaskEnd,
         private val penaltyPerWrongSubmission: Double = defaultpenaltyPerWrongSubmission
-) : RecalculatingTaskRunScorer {
+) : RecalculatingTaskScorer {
 
     constructor(parameters: Map<String, String>) : this(
         parameters.getOrDefault("maxPointsPerTask", "$defaultmaxPointsPerTask").toDoubleOrNull() ?: defaultmaxPointsPerTask,

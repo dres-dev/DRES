@@ -60,7 +60,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         }
 
         if (managers.size > 1) {
-            throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.competitionDescription.name }}", ctx)
+            throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.description.name }}", ctx)
         }
 
         return managers.first()
@@ -70,7 +70,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         val map = ctx.queryParamMap()
 
         /* Find team that the user belongs to. */
-        val team = runManager.competitionDescription.teams.find {
+        val team = runManager.description.teams.find {
             it.users.contains(userId)
         }?.uid ?: throw ErrorStatusException(404, "No team for user '$userId' could not be found.", ctx)
 

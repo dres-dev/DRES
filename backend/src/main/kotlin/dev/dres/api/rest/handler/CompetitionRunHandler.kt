@@ -46,7 +46,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
     fun getRelevantManagers(ctx: Context): List<InteractiveRunManager> {
         if (isParticipant(ctx)) {
             val userId = userId(ctx)
-            return RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java).filter { m -> m.competitionDescription.teams.any { it.users.contains(userId) } }
+            return RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java).filter { m -> m.description.teams.any { it.users.contains(userId) } }
         }
         return RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java)
     }
@@ -55,7 +55,7 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
         if (isParticipant(ctx)) {
             val userId = userId(ctx)
             val run = RunExecutor.managerForId(runId) ?: return null
-            if (run is InteractiveRunManager && run.competitionDescription.teams.any { it.users.contains(userId) }) {
+            if (run is InteractiveRunManager && run.description.teams.any { it.users.contains(userId) }) {
                 return run
             }
             return null
@@ -133,7 +133,7 @@ class GetCompetitionRunInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access Denied", ctx)
         }
 
@@ -161,7 +161,7 @@ class GetCompetitionRunStateHandler : AbstractCompetitionRunRestHandler(), GetRe
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access Denied", ctx)
         }
 
@@ -194,7 +194,7 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
 
         val rac = runActionContext(ctx, run)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
@@ -222,7 +222,7 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
@@ -260,7 +260,7 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
         /* Test for access rights. */
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
@@ -309,7 +309,7 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
         val rac = runActionContext(ctx, run)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
@@ -348,7 +348,7 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
         val rac = runActionContext(ctx, run)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied", ctx)
         }
 
@@ -390,7 +390,7 @@ class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
         val rac = runActionContext(ctx, run)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied", ctx)
         }
 

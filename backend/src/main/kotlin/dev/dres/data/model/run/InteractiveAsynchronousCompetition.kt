@@ -26,11 +26,6 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class InteractiveAsynchronousCompetition(override var id: CompetitionId, override val name: String, override val description: CompetitionDescription): AbstractRun(), Competition {
 
-    init {
-        require(description.tasks.size > 0) { "Cannot create a run from a competition that doesn't have any tasks. "}
-        require(description.teams.size > 0) { "Cannot create a run from a competition that doesn't have any teams. "}
-    }
-
     /** A [ConcurrentHashMap] that maps a list of [Task]s to the [TeamId]s they belong to.*/
     private val tasksMap = ConcurrentHashMap<TeamId,MutableList<Task>>()
 
@@ -38,12 +33,26 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
     override val tasks: List<Task>
         get() = this.tasksMap.values.flatten()
 
+    init {
+        require(description.tasks.size > 0) { "Cannot create a run from a competition that doesn't have any tasks. "}
+        require(description.teams.size > 0) { "Cannot create a run from a competition that doesn't have any teams. "}
+        this.description.teams.forEach { this.tasksMap[it.uid] = LinkedList() }
+    }
+
     /**
      * Returns the current [Task] for the given [TeamId].
      *
      * @param teamId The [TeamId] to lookup.
      */
-    fun currentTaskForTeam(teamId: TeamId): Task? = this.tasksMap[teamId]?.last()
+    fun currentTaskForTeam(teamId: TeamId): Task? = this.tasksForTeam(teamId).lastOrNull()
+
+    /**
+     * Returns all [Task]s for the given [TeamId].
+     *
+     * @param teamId The [TeamId] to lookup.
+     * @return List []
+     */
+    fun tasksForTeam(teamId: TeamId) = this.tasksMap[teamId] ?: throw IllegalArgumentException("Given $teamId is unknown to this competition $id.")
 
     /**
      * Generates and returns a [String] representation for this [InteractiveAsynchronousCompetition].

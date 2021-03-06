@@ -26,7 +26,7 @@ interface RunManager : Runnable {
     val name: String
 
     /** The [CompetitionDescription] that is executed / run by this [RunManager]. */
-    val competitionDescription: CompetitionDescription
+    val description: CompetitionDescription
 
     /** List of [Scoreboard]s for this [RunManager]. */
     val scoreboards: List<Scoreboard>

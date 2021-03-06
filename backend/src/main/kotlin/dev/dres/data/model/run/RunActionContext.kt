@@ -36,7 +36,7 @@ data class RunActionContext(val userId: UserId, val teamId: TeamId?, val roles: 
         fun runActionContext(ctx: Context, runManager: RunManager) : RunActionContext {
             val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(403, "Unauthorized user.", ctx)
             val roles = AccessManager.rolesOfSession(ctx.sessionId()).map { Role.fromRestRole(it) }.toSet()
-            val teamId = runManager.competitionDescription.teams.find { it.users.contains(userId) }?.uid
+            val teamId = runManager.description.teams.find { it.users.contains(userId) }?.uid
             return RunActionContext(userId, teamId, roles)
         }
     }

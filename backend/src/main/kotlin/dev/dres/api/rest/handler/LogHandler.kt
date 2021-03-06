@@ -31,7 +31,7 @@ abstract class LogHandler : PostRestHandler<SuccessStatus>, AccessManagedRestHan
         }
 
         if (managers.size > 1) {
-            throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.competitionDescription.name }}", ctx)
+            throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.description.name }}", ctx)
         }
 
         return managers.first()

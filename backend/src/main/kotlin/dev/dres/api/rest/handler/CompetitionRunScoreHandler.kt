@@ -44,7 +44,7 @@ abstract class AbstractScoreRestHandler : RestHandler, AccessManagedRestHandler 
         if (isParticipant(ctx)) {
             val userId = userId(ctx)
             val run = RunExecutor.managerForId(runId) ?: return null
-            if (run is InteractiveRunManager && run.competitionDescription.teams.any { it.users.contains(userId) }) {
+            if (run is InteractiveRunManager && run.description.teams.any { it.users.contains(userId) }) {
                 return run
             }
             return null
@@ -112,14 +112,14 @@ class CurrentTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
         val rac = RunActionContext.runActionContext(ctx, run)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)) {
+        if (!run.description.participantCanView && isParticipant(ctx)) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
         val scores = run.currentTask(rac)?.scorer?.scores() ?: throw ErrorStatusException(404, "No active task run in run $runId.", ctx)
         return ScoreOverview("task",
             run.currentTaskDescription(rac).taskGroup.name,
-            run.competitionDescription.teams.map { team ->
+            run.description.teams.map { team ->
                 Score(team.uid.string, scores[team.uid] ?: 0.0)
             }
         )
@@ -169,7 +169,7 @@ class HistoryTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
         val scores = run.taskForId(rac, taskId)?.scorer?.scores() ?: throw ErrorStatusException(404, "No task run with ID $taskId in run $runId.", ctx)
         return ScoreOverview("task",
             run.currentTaskDescription(rac)?.taskGroup?.name,
-            run.competitionDescription.teams.map {
+            run.description.teams.map {
                 Score(it.uid.string, scores[it.uid] ?: 0.0)
             }
         )
@@ -187,7 +187,7 @@ class TaskScoreListCSVHandler : AbstractScoreRestHandler(), GetRestHandler<Strin
         val rac = RunActionContext.runActionContext(ctx, run)
 
         return "task,group,team,score\n" + run.tasks(rac).filter { it.started != null}.sortedBy { it.started }.flatMap { task ->
-            task.scorer.scores().map { "${task.description.name},${task.description.taskGroup.name},${run.competitionDescription.teams.find { t -> t.uid == it.key }?.name ?: "???"},${it.value}" }
+            task.scorer.scores().map { "${task.description.name},${task.description.taskGroup.name},${run.description.teams.find { t -> t.uid == it.key }?.name ?: "???"},${it.value}" }
         }.joinToString(separator = "\n")
 
     }

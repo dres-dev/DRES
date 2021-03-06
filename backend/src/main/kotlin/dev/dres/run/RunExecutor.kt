@@ -1,5 +1,6 @@
 package dev.dres.run
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.run.websocket.ClientMessage
@@ -18,6 +19,7 @@ import dev.dres.utilities.extensions.write
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsHandler
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
@@ -237,6 +239,22 @@ object RunExecutor : Consumer<WsHandler> {
      * Stops all runs
      */
     fun stop() {
-        executor.shutdownNow()
+        this.executor.shutdownNow()
+    }
+
+
+    /**
+     * Dumps the given [Competition] to a file.
+     *
+     * @param competition [Competition] that should be dumped.
+     */
+    fun dump(competition: Competition) {
+        try {
+            val file = File("run_dump_${competition.id.string}.json")
+            jacksonObjectMapper().writeValue(file, competition)
+            this.logger.info("Wrote current run state to ${file.absolutePath}")
+        } catch (e: Exception){
+            this.logger.error("Could not write run to disk: ", e)
+        }
     }
 }

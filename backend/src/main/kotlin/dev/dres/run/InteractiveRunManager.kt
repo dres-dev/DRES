@@ -19,13 +19,6 @@ interface InteractiveRunManager : RunManager {
     val allSubmissions: List<Submission>
 
     /**
-     *
-     * @param context The [RunActionContext] used for the invocation.
-     * @return [List] of [AbstractInteractiveTask]s
-     */
-    override fun tasks(context: RunActionContext): List<AbstractInteractiveTask>
-
-    /**
      * Prepares this [InteractiveRunManager] for the execution of previous [TaskDescription] as per order defined in
      * [CompetitionDescription.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
@@ -116,6 +109,15 @@ interface InteractiveRunManager : RunManager {
      * @return Time remaining until the task will end or -1, if no task is running.
      */
     fun timeLeft(context: RunActionContext): Long
+
+    /**
+     * Returns a list of all [AbstractInteractiveTask]s for this [InteractiveRunManager]. Depending on the
+     * implementation, that list may be filtered depending on the [RunActionContext].
+     *
+     * @param context The [RunActionContext] used for the invocation.
+     * @return [List] of [AbstractInteractiveTask]s
+     */
+    override fun tasks(context: RunActionContext): List<AbstractInteractiveTask>
 
     /**
      * Returns a reference to the currently active [AbstractInteractiveTask].

@@ -22,7 +22,7 @@ class EndTaskUpdatable(private val run: InteractiveRunManager, private val conte
             if (this.run.timeLeft(context) > 0) {
                 if (this.submissions.getAndSet(taskRun.submissions.size) < taskRun.submissions.size) {
                     /* Determine of all teams have submitted . */
-                    val allDone = this.run.competitionDescription.teams.all { team ->
+                    val allDone = this.run.description.teams.all { team ->
                         this.run.submissions(this.context).count { it.teamId == team.uid && it.status == SubmissionStatus.CORRECT  } >= limit
                     }
 

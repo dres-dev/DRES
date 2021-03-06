@@ -77,7 +77,7 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
             throw ErrorStatusException(400, "Error parsing json batch", ctx)
         }
 
-        val team = runManager.competitionDescription.teams.find {
+        val team = runManager.description.teams.find {
             it.users.contains(userId)
         }?.uid ?: throw ErrorStatusException(404, "No team for user '$userId' could not be found.", ctx)
 

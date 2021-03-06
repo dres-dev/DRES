@@ -52,7 +52,7 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
             }
             if (plain) {
                 RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java).forEach {
-                    println("${RunSummary(it.id.string, it.name, it.competitionDescription.description, it.currentTaskDescription(
+                    println("${RunSummary(it.id.string, it.name, it.description.description, it.currentTaskDescription(
                         RunActionContext.INTERNAL)?.name)} (${it.status})")
                 }
             } else {
@@ -67,7 +67,7 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
                     }
                     body {
                         RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java).forEach {
-                            row(it.id.string, it.name, it.competitionDescription.description, it.currentTaskDescription(
+                            row(it.id.string, it.name, it.description.description, it.currentTaskDescription(
                                 RunActionContext.INTERNAL)?.name
                                     ?: "N/A", it.status)
                         }

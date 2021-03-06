@@ -84,7 +84,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
 
         /* ensure that only one synchronous run of a competition is happening at any given time */
         if (competitionStartMessage.type == RunType.SYNCHRONOUS && RunExecutor.managers().any {
-                    it is InteractiveSynchronousRunManager && it.competitionDescription.id == competitionToStart.id && it.status != RunManagerStatus.TERMINATED
+                    it is InteractiveSynchronousRunManager && it.description.id == competitionToStart.id && it.status != RunManagerStatus.TERMINATED
                 }
         ) {
             throw ErrorStatusException(400, "Synchronous run of competition ${competitionToStart.name} already exists", ctx)

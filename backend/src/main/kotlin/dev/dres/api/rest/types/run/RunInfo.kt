@@ -22,10 +22,10 @@ data class RunInfo(
     constructor(run: RunManager) : this(
             run.id.string,
             run.name,
-            run.competitionDescription.description,
-            run.competitionDescription.teams.map { TeamInfo(it) },
-            run.competitionDescription.tasks.map { TaskInfo(it) },
-            run.competitionDescription.id.string,
-            run.competitionDescription.participantCanView
+            run.description.description,
+            run.description.teams.map { TeamInfo(it) },
+            run.description.tasks.map { TaskInfo(it) },
+            run.description.id.string,
+            run.description.participantCanView
     )
 }

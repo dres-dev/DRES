@@ -62,14 +62,11 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
         get() = this.run.name
 
     /** The [CompetitionDescription] executed by this [InteractiveSynchronousRunManager]. */
-    override val competitionDescription: CompetitionDescription
+    override val description: CompetitionDescription
         get() = this.run.description
 
     /** Reference to the currently active [TaskDescription]. This is part of the task navigation. */
-    private var currentTaskDescription = this.competitionDescription.tasks[0]
-
-    /** List of [InteractiveSynchronousCompetition.Task] for this [InteractiveSynchronousRunManager]. */
-    override fun tasks(context: RunActionContext): List<InteractiveSynchronousCompetition.Task> = this.run.tasks
+    private var currentTaskDescription = this.description.tasks[0]
 
     /** The list of all [Submission]s tracked ever received by this [InteractiveSynchronousRunManager]. */
     override val allSubmissions: List<Submission>
@@ -105,7 +102,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     private val readyLatch = ReadyLatch<WebSocketConnection>()
 
     /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable = ScoreboardsUpdatable(this.competitionDescription.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
+    private val scoreboardsUpdatable = ScoreboardsUpdatable(this.description.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
 
     /** The internal [MessageQueueUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
     private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
@@ -206,7 +203,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
 
     override fun previous(context: RunActionContext): Boolean = this.stateLock.write {
         checkContext(context)
-        val newIndex = this.competitionDescription.tasks.indexOf(this.currentTaskDescription) - 1
+        val newIndex = this.description.tasks.indexOf(this.currentTaskDescription) - 1
         return try {
             this.goToTask(newIndex)
             true
@@ -217,7 +214,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
 
     override fun next(context: RunActionContext): Boolean = this.stateLock.write {
         checkContext(context)
-        val newIndex = this.competitionDescription.tasks.indexOf(this.currentTaskDescription) + 1
+        val newIndex = this.description.tasks.indexOf(this.currentTaskDescription) + 1
         return try {
             this.goToTask(newIndex)
             true
@@ -233,10 +230,10 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
 
     private fun goToTask(index: Int) = this.stateLock.write {
         check(this.status == RunManagerStatus.ACTIVE || this.status == RunManagerStatus.TASK_ENDED) { "SynchronizedRunManager is in status ${this.status}. Tasks can therefore not be changed." }
-        if (index >= 0 && index < this.competitionDescription.tasks.size) {
+        if (index >= 0 && index < this.description.tasks.size) {
 
             /* Update active task. */
-            this.currentTaskDescription = this.competitionDescription.tasks[index]
+            this.currentTaskDescription = this.description.tasks[index]
 
             /* Update RunManager status. */
             this.status = RunManagerStatus.ACTIVE
@@ -297,6 +294,9 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
 
         LOGGER.info("SynchronousRunManager ${this.id} aborted task task ${this.currentTaskDescription}")
     }
+
+    /** List of [InteractiveSynchronousCompetition.Task] for this [InteractiveSynchronousRunManager]. */
+    override fun tasks(context: RunActionContext): List<InteractiveSynchronousCompetition.Task> = this.run.tasks
 
     /**
      * Returns the currently active [InteractiveSynchronousCompetition.Task]s or null, if no such task is active.
@@ -521,7 +521,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
                 // oh shit, something went horribly horribly wrong
                 if (errorCounter >= maxErrorCount){
                     LOGGER.error("Reached maximum consecutive error count, terminating loop")
-                    this.persistCurrentRunInformation()
+                    RunExecutor.dump(this.run)
                     break //terminate loop
                 }
             }
@@ -533,19 +533,6 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
         }
 
         LOGGER.info("SynchronousRunManager ${this.id} reached end of run logic.")
-    }
-
-    /**
-     * Tries to persist the information of a current run in case something goes horribly wrong
-     */
-    private fun persistCurrentRunInformation() {
-        try{
-            val file = File("run_dump_${this.run.id.string}.json")
-            jacksonObjectMapper().writeValue(file, this.run)
-            LOGGER.info("Wrote current run state to ${file.absolutePath}")
-        } catch (e: Exception){
-            LOGGER.error("Could not write run to disk: ", e)
-        }
     }
 
     /**

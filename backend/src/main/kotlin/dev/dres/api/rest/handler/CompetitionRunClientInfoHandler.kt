@@ -30,13 +30,13 @@ abstract class AbstractCompetitionRunClientInfoHandler : RestHandler, AccessMana
 
     fun getRelevantManagers(ctx: Context): List<RunManager> {
         val userId = userId(ctx)
-        return RunExecutor.managers().filter { m -> m.competitionDescription.teams.any { it.users.contains(userId) } }
+        return RunExecutor.managers().filter { m -> m.description.teams.any { it.users.contains(userId) } }
     }
 
     fun getRun(ctx: Context, runId: UID): RunManager? {
         val userId = userId(ctx)
         val run = RunExecutor.managerForId(runId) ?: return null
-        if (run.competitionDescription.teams.any { it.users.contains(userId) }) {
+        if (run.description.teams.any { it.users.contains(userId) }) {
             return run
         }
         return null
@@ -57,7 +57,7 @@ data class ClientRunInfo(
     constructor(runManager: RunManager) : this(
         runManager.id.string,
         runManager.name,
-        runManager.competitionDescription.description,
+        runManager.description.description,
         runManager.status
     )
 }

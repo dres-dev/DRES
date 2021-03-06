@@ -64,7 +64,7 @@ object AccessManager {
      * @param runManager The [RunManager] to register.
      */
     fun registerRunManager(runManager: RunManager)  {
-        runManager.competitionDescription.teams.flatMap { t -> t.users }.forEach {
+        runManager.description.teams.flatMap { t -> t.users }.forEach {
             if (this.usersToRunMap.containsKey(it)) {
                 this.usersToRunMap[it]?.add(runManager)
             } else {

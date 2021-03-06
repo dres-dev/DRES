@@ -36,11 +36,11 @@ class NonInteractiveRunManager(val run: NonInteractiveCompetition) : RunManager 
         get() = this.run.name
 
     /** The [CompetitionDescription] executed by this [InteractiveSynchronousRunManager]. */
-    override val competitionDescription: CompetitionDescription
+    override val description: CompetitionDescription
         get() = this.run.description
 
     /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable = ScoreboardsUpdatable(this.competitionDescription.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
+    private val scoreboardsUpdatable = ScoreboardsUpdatable(this.description.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
 
     override val scoreboards: List<Scoreboard>
         get() = this.scoreboardsUpdatable.scoreboards

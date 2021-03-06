@@ -15,7 +15,7 @@ import dev.dres.utilities.TimeUtil
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */
-class TemporalOverlapSubmissionValidator(private val task: VideoSegment) : SubmissionValidator {
+class TemporalOverlapSubmissionValidator(private val targetSegment: VideoSegment) : SubmissionValidator {
 
     /**
      * Validates a [Submission] based on the target segment and the temporal overlap of the
@@ -30,9 +30,9 @@ class TemporalOverlapSubmissionValidator(private val task: VideoSegment) : Submi
         }
         submission.status = when {
             submission.start > submission.end -> SubmissionStatus.WRONG
-            submission.item != task.item ->  SubmissionStatus.WRONG
+            submission.item != targetSegment.item ->  SubmissionStatus.WRONG
             else -> {
-                val outer = TimeUtil.toMilliseconds(this.task.temporalRange, this.task.item.fps)
+                val outer = TimeUtil.toMilliseconds(this.targetSegment.temporalRange, this.targetSegment.item.fps)
                 if ((outer.first <= submission.start && outer.second >= submission.start)  || (outer.first <= submission.end && outer.second >= submission.end)) {
                     SubmissionStatus.CORRECT
                 } else {

@@ -15,7 +15,7 @@ import java.util.*
  * @author Ralph Gasser & Luca Rossetto
  * @version 1.1.0
  */
-class ScoreboardsUpdatable(val scoreboards: List<Scoreboard>, val updateIntervalMs: Long, private val competition: Competition): StatefulUpdatable {
+class ScoreboardsUpdatable(val scoreboards: List<Scoreboard>, private val updateIntervalMs: Long, private val competition: Competition): StatefulUpdatable {
 
     companion object {
        val ELIGIBLE_STATUS = arrayOf(RunManagerStatus.ACTIVE, RunManagerStatus.RUNNING_TASK, RunManagerStatus.TASK_ENDED, RunManagerStatus.PREPARING_TASK)

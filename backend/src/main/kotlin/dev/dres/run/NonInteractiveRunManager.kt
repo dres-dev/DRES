@@ -6,7 +6,9 @@ import dev.dres.api.rest.types.run.websocket.ClientMessageType
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TeamId
-import dev.dres.data.model.run.*
+import dev.dres.data.model.run.AbstractNonInteractiveTask
+import dev.dres.data.model.run.NonInteractiveCompetition
+import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.batch.SubmissionBatch
 import dev.dres.run.score.scoreboard.Scoreboard
@@ -40,7 +42,7 @@ class NonInteractiveRunManager(val run: NonInteractiveCompetition) : RunManager 
         get() = this.run.description
 
     /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable = ScoreboardsUpdatable(this.description.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
+    private val scoreboardsUpdatable = ScoreboardsUpdatable(this.description.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run) //TODO requires some changes
 
     override val scoreboards: List<Scoreboard>
         get() = this.scoreboardsUpdatable.scoreboards
@@ -107,6 +109,7 @@ class NonInteractiveRunManager(val run: NonInteractiveCompetition) : RunManager 
                         val batches = idNamePair.second.mapNotNull { task.submissions[it] }
 
                         val validator = task.validator
+                        val scorer = task.scorer
 
                         batches.forEach {
                             validator.validate(it)

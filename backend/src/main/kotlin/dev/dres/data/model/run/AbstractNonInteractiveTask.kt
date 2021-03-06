@@ -1,10 +1,12 @@
 package dev.dres.data.model.run
 
+import dev.dres.data.model.competition.TaskDescriptionTarget
 import dev.dres.data.model.competition.TaskType
 import dev.dres.data.model.run.interfaces.Task
-import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.aspects.OriginAspect
 import dev.dres.data.model.submissions.batch.ResultBatch
+import dev.dres.run.validation.MediaItemsSubmissionBatchValidator
+import dev.dres.run.validation.TemporalOverlapSubmissionBatchValidator
 import dev.dres.run.validation.interfaces.SubmissionBatchValidator
 
 /**
@@ -19,9 +21,9 @@ abstract class AbstractNonInteractiveTask: AbstractRun(), Task {
     val validator: SubmissionBatchValidator = newValidator()
 
     internal fun newValidator(): SubmissionBatchValidator = when(this.description.taskType.targetType.option){
-        TaskType.TargetType.SINGLE_MEDIA_ITEM -> TODO()
-        TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TODO()
-        TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> TODO()
+        TaskType.TargetType.SINGLE_MEDIA_ITEM -> MediaItemsSubmissionBatchValidator(setOf((description.target as TaskDescriptionTarget.MediaItemTarget).item))
+        TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionBatchValidator(description.target as TaskDescriptionTarget.VideoSegmentTarget)
+        TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> MediaItemsSubmissionBatchValidator((description.target as TaskDescriptionTarget.MultipleMediaItemTarget).items.toSet())
         TaskType.TargetType.JUDGEMENT -> TODO()
         TaskType.TargetType.VOTE -> TODO()
     }

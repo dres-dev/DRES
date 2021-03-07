@@ -10,7 +10,7 @@ import dev.dres.data.model.run.interfaces.CompetitionId
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.aspects.OriginAspect
 import dev.dres.data.model.submissions.batch.ResultBatch
-import dev.dres.run.score.interfaces.TaskScorer
+import dev.dres.run.score.interfaces.ResultBatchTaskScorer
 
 
 class NonInteractiveCompetition(override var id: CompetitionId, override val name: String, override val description: CompetitionDescription): AbstractRun(), Competition {
@@ -42,6 +42,6 @@ class NonInteractiveCompetition(override var id: CompetitionId, override val nam
             .find { it.id == this.taskDescriptionId } ?: throw IllegalArgumentException("There is no task with ID ${this.taskDescriptionId}.")
 
         @Transient
-        override val scorer: TaskScorer = description.newScorer()
+        override val scorer: ResultBatchTaskScorer = description.newScorer() as? ResultBatchTaskScorer ?: throw IllegalArgumentException("specified scorer is not of type ResultBatchTaskScorer")
     }
 }

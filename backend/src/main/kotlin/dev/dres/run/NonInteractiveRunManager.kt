@@ -12,6 +12,7 @@ import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.batch.SubmissionBatch
 import dev.dres.run.score.scoreboard.Scoreboard
+import dev.dres.run.updatables.DAOUpdatable
 import dev.dres.run.updatables.ScoreboardsUpdatable
 import dev.dres.run.validation.interfaces.JudgementValidator
 import org.slf4j.LoggerFactory
@@ -28,6 +29,9 @@ class NonInteractiveRunManager(val run: NonInteractiveCompetition) : RunManager 
 
     /** A lock for state changes to this [InteractiveSynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
+
+    /** The internal [DAOUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
+    private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
 
     /** Run ID of this [InteractiveSynchronousRunManager]. */
     override val id: UID
@@ -62,11 +66,38 @@ class NonInteractiveRunManager(val run: NonInteractiveCompetition) : RunManager 
         get() = this.run.tasks.map { it.validator }.filterIsInstance(JudgementValidator::class.java)
 
     override fun start(context: RunActionContext) {
-        TODO("Not yet implemented")
+        check(this.status == RunManagerStatus.CREATED) { "NonInteractiveRunManager is in status ${this.status} and cannot be started." }
+        if (!context.isAdmin)
+            throw IllegalAccessError("functionality of NonInteractiveRunManager only available to administrators")
+
+        /* Start the run. */
+        this.run.start()
+
+        /* Update status. */
+        this.status = RunManagerStatus.ACTIVE
+
+        /* Mark DAO for update. */
+        this.daoUpdatable.dirty = true
+
+
+        LOGGER.info("NonInteractiveRunManager ${this.id} started")
     }
 
     override fun end(context: RunActionContext) {
-        TODO("Not yet implemented")
+        check(this.status != RunManagerStatus.TERMINATED) { "NonInteractiveRunManager is in status ${this.status} and cannot be terminated." }
+        if (!context.isAdmin)
+            throw IllegalAccessError("functionality of NonInteractiveRunManager only available to administrators")
+
+        /* End the run. */
+        this.run.end()
+
+        /* Update status. */
+        this.status = RunManagerStatus.TERMINATED
+
+        /* Mark DAO for update. */
+        this.daoUpdatable.dirty = true
+
+        LOGGER.info("SynchronousRunManager ${this.id} terminated")
     }
 
     override fun taskCount(context: RunActionContext): Int = this.run.tasks.size
@@ -91,6 +122,8 @@ class NonInteractiveRunManager(val run: NonInteractiveCompetition) : RunManager 
 
             try {
                 this.stateLock.read {
+
+
                     while (updatedTasks.isNotEmpty()) {
                         val idNamePair = updatedTasks.poll(1, TimeUnit.SECONDS)
 
@@ -113,31 +146,34 @@ class NonInteractiveRunManager(val run: NonInteractiveCompetition) : RunManager 
 
                         batches.forEach {
                             validator.validate(it)
+                            scorer.computeScores(it)
                         }
-
-
-                        //TODO scoring
-
 
                         scoreboardsUpdatable.update(this.status)
 
+                        this.daoUpdatable.dirty = true
 
                     }
+
+                    this.daoUpdatable.update(this.status)
+
+
                 }
             } catch (ie: InterruptedException) {
-                LOGGER.info("Interrupted SynchronousRunManager, exiting")
+                LOGGER.info("Interrupted NonInteractiveRunManager, exiting")
                 return
             }
-
-
-
-
 
 
             Thread.sleep(100)
 
         }
 
+        this.stateLock.read {
+            this.daoUpdatable.update(this.status)
+        }
+
+        LOGGER.info("NonInteractiveRunManager ${this.id} reached end of run logic.")
 
     }
 

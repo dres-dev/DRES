@@ -12,7 +12,7 @@ import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.filter.SubmissionFilter
-import dev.dres.run.score.interfaces.TaskScorer
+import dev.dres.run.score.interfaces.TeamTaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import java.util.*
 
@@ -77,7 +77,7 @@ class InteractiveSynchronousCompetition(override var id: CompetitionId, override
         override val filter: SubmissionFilter = description.newFilter()
 
         @Transient
-        override val scorer: TaskScorer = description.newScorer()
+        override val scorer: TeamTaskScorer = this.description.newScorer() as? TeamTaskScorer ?: throw IllegalArgumentException("specified scorer is not of type TeamTaskScorer")
 
         @Transient
         override val validator: SubmissionValidator = newValidator()

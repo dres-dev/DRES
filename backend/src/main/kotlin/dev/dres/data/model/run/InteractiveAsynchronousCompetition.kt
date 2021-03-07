@@ -1,17 +1,15 @@
 package dev.dres.data.model.run
 
 import dev.dres.data.model.UID
-import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.competition.TaskDescription
-import dev.dres.data.model.competition.TaskDescriptionId
-import dev.dres.data.model.competition.TeamId
+import dev.dres.data.model.competition.*
+import dev.dres.data.model.run.InteractiveAsynchronousCompetition.Task
 import dev.dres.data.model.run.interfaces.Competition
 import dev.dres.data.model.run.interfaces.CompetitionId
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.filter.SubmissionFilter
-import dev.dres.run.score.interfaces.TaskScorer
+import dev.dres.run.score.interfaces.TeamTaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -88,7 +86,7 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
         override val filter: SubmissionFilter = this.description.newFilter()
 
         @Transient
-        override val scorer: TaskScorer = this.description.newScorer()
+        override val scorer: TeamTaskScorer = this.description.newScorer() as? TeamTaskScorer ?: throw IllegalArgumentException("specified scorer is not of type TeamTaskScorer")
 
         @Transient
         override val validator: SubmissionValidator = this.newValidator()

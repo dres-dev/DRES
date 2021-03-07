@@ -8,11 +8,11 @@ import dev.dres.data.model.submissions.Submission
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0.0
  */
-interface IncrementalTaskScorer: TaskScorer {
+interface IncrementalSubmissionTaskScorer: TaskScorer {
     /**
-     * Updates this [IncrementalTaskScorer]'s score just using a single submission.
+     * Updates this [IncrementalSubmissionTaskScorer]'s score just using a single submission.
      *
-     * @param submission The [Submission] to update this [IncrementalTaskScorer] with.
+     * @param submission The [Submission] to update this [IncrementalSubmissionTaskScorer] with.
      */
     fun update(submission: Submission)
 }

@@ -8,6 +8,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
+import dev.dres.run.score.interfaces.TeamTaskScorer
 import dev.dres.run.score.scoreboard.Score
 import dev.dres.run.score.scoreboard.ScoreOverview
 import dev.dres.utilities.extensions.UID
@@ -116,7 +117,9 @@ class CurrentTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        val scores = run.currentTask(rac)?.scorer?.scores() ?: throw ErrorStatusException(404, "No active task run in run $runId.", ctx)
+        val scorer = run.currentTask(rac)?.scorer ?: throw ErrorStatusException(404, "No active task run in run $runId.", ctx)
+        val scores =  (scorer as? TeamTaskScorer)?.teamScoreMap() ?: throw ErrorStatusException(400, "Scorer has more than one score per team for run $runId.", ctx)
+
         return ScoreOverview("task",
             run.currentTaskDescription(rac).taskGroup.name,
             run.description.teams.map { team ->
@@ -166,9 +169,12 @@ class HistoryTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
 
 
         /* Fetch the relevant scores and generate score overview. */
-        val scores = run.taskForId(rac, taskId)?.scorer?.scores() ?: throw ErrorStatusException(404, "No task run with ID $taskId in run $runId.", ctx)
+
+        val scorer = run.currentTask(rac)?.scorer ?: throw ErrorStatusException(404, "No task run with ID $taskId in run $runId.", ctx)
+        val scores =  (scorer as? TeamTaskScorer)?.teamScoreMap() ?: throw ErrorStatusException(400, "Scorer has more than one score per team for run $runId.", ctx)
+
         return ScoreOverview("task",
-            run.currentTaskDescription(rac)?.taskGroup?.name,
+            run.currentTaskDescription(rac).taskGroup.name,
             run.description.teams.map {
                 Score(it.uid.string, scores[it.uid] ?: 0.0)
             }
@@ -186,8 +192,8 @@ class TaskScoreListCSVHandler : AbstractScoreRestHandler(), GetRestHandler<Strin
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
         val rac = RunActionContext.runActionContext(ctx, run)
 
-        return "task,group,team,score\n" + run.tasks(rac).filter { it.started != null}.sortedBy { it.started }.flatMap { task ->
-            task.scorer.scores().map { "${task.description.name},${task.description.taskGroup.name},${run.description.teams.find { t -> t.uid == it.key }?.name ?: "???"},${it.value}" }
+        return "task,group,team,resultName,score\n" + run.tasks(rac).filter { it.started != null}.sortedBy { it.started }.flatMap { task ->
+            task.scorer.scores().map { "${task.description.name},${task.description.taskGroup.name},${run.description.teams.find { t -> t.uid == it.first }?.name ?: "???"},${it.second ?: "n/a"},${it.third}" }
         }.joinToString(separator = "\n")
 
     }

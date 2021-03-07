@@ -1,11 +1,17 @@
 package dev.dres.run.score.scorer
 
+import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.StatusAspect
 import dev.dres.data.model.submissions.batch.ResultBatch
+import dev.dres.run.score.ScoreEntry
+import dev.dres.run.score.interfaces.ResultBatchTaskScorer
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
-class InferredAveragePrecisionScorer {
+class InferredAveragePrecisionScorer : ResultBatchTaskScorer {
 
     companion object {
 
@@ -63,6 +69,19 @@ class InferredAveragePrecisionScorer {
         fun score(submissions: List<Submission>): Double = infAP(submissions)
         fun score(batch: ResultBatch<*>): Double = infAP(batch.results)
 
+    }
+
+    private var lastScores: MutableMap<Pair<TeamId, String>, Double> = mutableMapOf()
+    private val lastScoresLock = ReentrantReadWriteLock()
+
+    override fun computeScores(batch: ResultBatch<*>): Double = this.lastScoresLock.write {
+        val score = score(batch)
+        this.lastScores[batch.teamId to batch.name] = score
+        return@write score
+    }
+
+    override fun scores(): List<ScoreEntry> = this.lastScoresLock.read {
+        this.lastScores.map { ScoreEntry(it.key.first, it.key.second, it.value) }
     }
 
 }

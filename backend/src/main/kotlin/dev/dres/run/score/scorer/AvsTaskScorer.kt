@@ -5,18 +5,21 @@ import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
-import dev.dres.run.score.interfaces.RecalculatingTaskScorer
+import dev.dres.run.score.ScoreEntry
+import dev.dres.run.score.TaskContext
+import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
+import dev.dres.run.score.interfaces.TeamTaskScorer
 import dev.dres.utilities.TimeUtil
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-class AvsTaskScorer: RecalculatingTaskScorer {
+class AvsTaskScorer: RecalculatingSubmissionTaskScorer, TeamTaskScorer {
 
     private var lastScores: Map<TeamId, Double> = emptyMap()
     private val lastScoresLock = ReentrantReadWriteLock()
 
-    override fun computeScores(submissions: Collection<Submission>, teamIds: Collection<TeamId>, taskStartTime: Long, taskDuration: Long, taskEndTime: Long): Map<UID, Double> {
+    override fun computeScores(submissions: Collection<Submission>, context: TaskContext): Map<UID, Double> {
 
         val correctSubmissions = submissions.filter { it.status == SubmissionStatus.CORRECT }
         val wrongSubmissions = submissions.filter { it.status == SubmissionStatus.WRONG }
@@ -27,7 +30,7 @@ class AvsTaskScorer: RecalculatingTaskScorer {
         val totalCorrectQuantized = countQuantized(correctSubmissions).toDouble()
 
         lastScores = this.lastScoresLock.write {
-            teamIds.map { teamid ->
+            context.teamIds.map { teamid ->
 
                 val correctSubs = correctSubmissionsPerTeam[teamid] ?: return@map teamid to 0.0
 
@@ -42,7 +45,7 @@ class AvsTaskScorer: RecalculatingTaskScorer {
         }
 
 
-        return scores()
+        return teamScoreMap()
     }
 
     private fun countQuantized(submissions: Collection<Submission>): Int {
@@ -59,5 +62,11 @@ class AvsTaskScorer: RecalculatingTaskScorer {
 
     }
 
-    override fun scores(): Map<UID, Double> = this.lastScoresLock.read { this.lastScores }
+    override fun teamScoreMap(): Map<TeamId, Double> = this.lastScoresLock.read { this.lastScores }
+
+    override fun scores(): List<ScoreEntry> = this.lastScoresLock.read {
+        this.lastScores.map { ScoreEntry(it.key, null, it.value) }
+    }
+
+
 }

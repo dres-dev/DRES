@@ -97,9 +97,9 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
 
             if (results.all { it is TemporalBatchElement }) {
                 @Suppress("UNCHECKED_CAST")
-                (BaseResultBatch(mediaCollectionId, batch.resultName, results as List<TemporalBatchElement>))
+                (BaseResultBatch(mediaCollectionId, batch.resultName, team, results as List<TemporalBatchElement>))
             } else {
-                BaseResultBatch(mediaCollectionId, batch.resultName, results)
+                BaseResultBatch(mediaCollectionId, batch.resultName, team, results)
             }
 
         }

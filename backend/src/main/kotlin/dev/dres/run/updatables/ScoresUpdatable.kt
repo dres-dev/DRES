@@ -8,8 +8,9 @@ import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.RunManagerStatus
-import dev.dres.run.score.interfaces.IncrementalTaskScorer
-import dev.dres.run.score.interfaces.RecalculatingTaskScorer
+import dev.dres.run.score.TaskContext
+import dev.dres.run.score.interfaces.IncrementalSubmissionTaskScorer
+import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
 import java.util.*
 
 /**
@@ -36,13 +37,13 @@ class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdat
 
     override fun update(status: RunManagerStatus) {
         if (!this.list.isEmpty()) {
-            val scorersToUpdate = mutableSetOf<Pair<AbstractInteractiveTask,RecalculatingTaskScorer>>()
+            val scorersToUpdate = mutableSetOf<Pair<AbstractInteractiveTask,RecalculatingSubmissionTaskScorer>>()
             val removed = this.list.removeIf {
                 val scorer = it.first.scorer
                 if (it.second.status != SubmissionStatus.INDETERMINATE) {
                     when(scorer) {
-                        is RecalculatingTaskScorer -> scorersToUpdate.add(Pair(it.first, scorer))
-                        is IncrementalTaskScorer -> scorer.update(it.second)
+                        is RecalculatingSubmissionTaskScorer -> scorersToUpdate.add(Pair(it.first, scorer))
+                        is IncrementalSubmissionTaskScorer -> scorer.update(it.second)
                         else -> { }
                     }
                     true
@@ -55,7 +56,7 @@ class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdat
             scorersToUpdate.forEach {
                 val task = it.first
                 if (it.first.started != null) {
-                    it.second.computeScores(task.submissions, task.competition.description.teams.map { t -> t.uid }, task.started!!, task.description.duration, task.ended ?: 0)
+                    it.second.computeScores(task.submissions, TaskContext(task.competition.description.teams.map { t -> t.uid }, task.started, task.description.duration, task.ended))
                 }
             }
 

@@ -1,5 +1,6 @@
 package dev.dres.data.model.submissions.batch
 
+import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.interfaces.TaskId
 
 /**
@@ -10,5 +11,6 @@ import dev.dres.data.model.run.interfaces.TaskId
 data class BaseResultBatch<T: BaseResultBatchElement>(
     override val task: TaskId,
     override val name: String,
+    override val teamId: TeamId,
     override val results: List<T>
 ) : ResultBatch<T>

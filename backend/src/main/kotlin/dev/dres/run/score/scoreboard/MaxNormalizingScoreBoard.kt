@@ -37,7 +37,12 @@ class MaxNormalizingScoreBoard(override val name: String, teams: List<Team>, pri
 
     override fun update(scorers: Map<TaskId, TaskScorer>) {
         this.scorePerTaskMap.clear()
-        this.scorePerTaskMap.putAll(scorers.map { it.key to it.value.scores() }.toMap())
+        this.scorePerTaskMap.putAll(scorers.map {
+            it.key to it.value.scores().groupBy { it.first }.mapValues {
+                it.value.maxByOrNull { it.third }?.third ?: 0.0
+            }
+        }.toMap()
+        )
     }
 
     override fun update(runs: List<AbstractInteractiveTask>) {

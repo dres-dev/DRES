@@ -16,6 +16,14 @@ data class ConfiguredOption<T: Option>(val option: T, val parameters : Map<Strin
     operator fun get(name: String): String? = this.parameters[name]
 
     /**
+     * Tries to parse a named parameter as [Boolean]. Returns null, if the parameter is not set or cannot be converted.
+     *
+     * @param name Name of the parameter to return.
+     * @return [Boolean] or null.
+     */
+    fun getAsBool(name: String): Boolean? = this.parameters[name]?.toBoolean()
+
+    /**
      * Tries to parse a named parameter as [Int]. Returns null, if the parameter is not set or cannot be converted.
      *
      * @param name Name of the parameter to return.

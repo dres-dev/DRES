@@ -1,6 +1,5 @@
 package dev.dres.run
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.run.websocket.ClientMessage
 import dev.dres.api.rest.types.run.websocket.ClientMessageType
@@ -9,7 +8,12 @@ import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
+import dev.dres.data.model.competition.options.ConfiguredOption
+import dev.dres.data.model.competition.options.Option
+import dev.dres.data.model.competition.options.SimpleOption
+import dev.dres.data.model.competition.options.SimpleOptionParameters
 import dev.dres.data.model.run.*
+import dev.dres.data.model.run.interfaces.Task
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.audit.AuditLogger
@@ -23,7 +27,6 @@ import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.ReadyLatch
 import dev.dres.utilities.extensions.UID
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -437,7 +440,13 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
         val task = this.currentTask(context) ?: throw IllegalStateException("Could not find ongoing task in run manager, despite correct status. This is a programmer's error!")
         task.addSubmission(sub)
 
-        /* Mark dao for update. */
+        /** Checks for the presence of the [SimpleOption.PROLONG_ON_SUBMISSION] and applies it. */
+        val option = task.description.taskType.options.find { it.option == SimpleOption.PROLONG_ON_SUBMISSION }
+        if (option != null) {
+            this.prolongOnSubmit(context, option, sub)
+        }
+
+        /* Mark DAO for update. */
         this.daoUpdatable.dirty = true
 
         /* Enqueue submission for post-processing. */
@@ -588,6 +597,26 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
                 /* Enqueue WS message for sending */
                 this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_END))
             }
+        }
+    }
+
+    /**
+     * Applies the [SimpleOption.PROLONG_ON_SUBMISSION] [Option].
+     *
+     * @param context [RunActionContext] used for invocation.
+     * @param task The [Task] to check for presence of [Option].
+     * @param sub The [Submission] to apply the [Option] for.
+     */
+    private fun prolongOnSubmit(context: RunActionContext, option: ConfiguredOption<SimpleOption>, sub: Submission) {
+        val limit = option.getAsInt(SimpleOptionParameters.PROLONG_ON_SUBMISSION_LIMIT_PARAM) ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_LIMIT_DEFAULT
+        val prolongBy = option.getAsInt(SimpleOptionParameters.PROLONG_ON_SUBMISSION_BY_PARAM) ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_BY_DEFAULT
+        val correctOnly = option.getAsBool(SimpleOptionParameters.PROLONG_ON_SUBMISSION_CORRECT_PARAM) ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_CORRECT_DEFAULT
+        if (correctOnly && sub.status != SubmissionStatus.CORRECT) {
+            return
+        }
+        val timeLeft = Math.floorDiv(this.timeLeft(context), 1000)
+        if (timeLeft in 0 until limit) {
+            this.adjustDuration(context, prolongBy)
         }
     }
 }

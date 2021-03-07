@@ -604,10 +604,11 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
      * Applies the [SimpleOption.PROLONG_ON_SUBMISSION] [Option].
      *
      * @param context [RunActionContext] used for invocation.
-     * @param task The [Task] to check for presence of [Option].
+     * @param option The [ConfiguredOption<SimpleOption>] option.
      * @param sub The [Submission] to apply the [Option] for.
      */
     private fun prolongOnSubmit(context: RunActionContext, option: ConfiguredOption<SimpleOption>, sub: Submission) {
+        require(option.option == SimpleOption.PROLONG_ON_SUBMISSION) { "Cannot process ${option.option} in prolongOnSubmit()." }
         val limit = option.getAsInt(SimpleOptionParameters.PROLONG_ON_SUBMISSION_LIMIT_PARAM) ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_LIMIT_DEFAULT
         val prolongBy = option.getAsInt(SimpleOptionParameters.PROLONG_ON_SUBMISSION_BY_PARAM) ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_BY_DEFAULT
         val correctOnly = option.getAsBool(SimpleOptionParameters.PROLONG_ON_SUBMISSION_CORRECT_PARAM) ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_CORRECT_DEFAULT

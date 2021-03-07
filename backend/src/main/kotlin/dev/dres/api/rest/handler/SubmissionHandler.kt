@@ -26,6 +26,7 @@ import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.SubmissionEvent
+import dev.dres.run.filter.SubmissionRejectedException
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.TimeUtil
 import dev.dres.utilities.extensions.sessionId
@@ -142,10 +143,9 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
 
         val result = try {
             run.postSubmission(rac, submission)
-        } catch (e: IllegalArgumentException) { //is only thrown by submission filter TODO: nicer exception type
-            throw ErrorStatusException(208, "Submission rejected", ctx)
+        } catch (e: SubmissionRejectedException) {
+            throw ErrorStatusException(208, "Submission rejected.", ctx)
         }
-
 
         AuditLogger.submission(run.id, run.currentTaskDescription(rac).name, submission, LogEventSource.REST, ctx.sessionId(), ctx.req.remoteAddr)
         EventStreamProcessor.event(SubmissionEvent(ctx.sessionId(), run.id, run.currentTask(rac)?.uid, submission))

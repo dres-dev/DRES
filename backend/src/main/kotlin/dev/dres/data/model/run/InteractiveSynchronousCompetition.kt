@@ -12,6 +12,7 @@ import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.filter.SubmissionFilter
+import dev.dres.run.filter.SubmissionRejectedException
 import dev.dres.run.score.interfaces.TeamTaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import java.util.*
@@ -103,7 +104,9 @@ class InteractiveSynchronousCompetition(override var id: CompetitionId, override
             check(this@InteractiveSynchronousCompetition.description.teams.any { it.uid == submission.teamId }) {
                 "Team ${submission.teamId} does not exists for competition run ${this@InteractiveSynchronousCompetition.name}."
             }
-            check(this.filter.test(submission)) { "The provided submission $submission was rejected by the filter." }
+
+            /* Execute submission filters. */
+            this.filter.acceptOrThrow(submission)
 
             /* Process Submission. */
             (this.submissions as MutableList).add(submission)

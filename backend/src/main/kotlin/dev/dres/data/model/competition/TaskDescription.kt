@@ -58,7 +58,7 @@ class TaskDescription(
      *
      * @return [TaskScorer].
      */
-    override fun newScorer(): TaskScorer = taskType.newScorer()
+    override fun newScorer(): TaskScorer = this.taskType.newScorer()
 
 
     /**
@@ -67,7 +67,7 @@ class TaskDescription(
      *
      * @return [SubmissionFilter]
      */
-    override fun newFilter(): SubmissionFilter = taskType.newFilter()
+    override fun newFilter(): SubmissionFilter = this.taskType.newFilter()
 
     /**
      * Generates and returns a [TaskHint] object to be used by the RESTful interface.

@@ -4,6 +4,7 @@ import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TaskDescriptionTarget
 import dev.dres.data.model.competition.TaskType
+import dev.dres.data.model.competition.options.TargetOption
 import dev.dres.data.model.run.interfaces.Task
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.filter.SubmissionFilter
@@ -42,10 +43,10 @@ abstract class AbstractInteractiveTask: AbstractRun(), Task {
      * @return [SubmissionValidator].
      */
     internal fun newValidator(): SubmissionValidator = when(description.taskType.targetType.option){
-        TaskType.TargetType.SINGLE_MEDIA_ITEM -> MediaItemsSubmissionValidator(setOf((description.target as TaskDescriptionTarget.MediaItemTarget).item))
-        TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionValidator(description.target as TaskDescriptionTarget.VideoSegmentTarget)
-        TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> MediaItemsSubmissionValidator((description.target as TaskDescriptionTarget.MultipleMediaItemTarget).items.toSet())
-        TaskType.TargetType.JUDGEMENT -> BasicJudgementValidator(knownCorrectRanges =
+        TargetOption.SINGLE_MEDIA_ITEM -> MediaItemsSubmissionValidator(setOf((description.target as TaskDescriptionTarget.MediaItemTarget).item))
+        TargetOption.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionValidator(description.target as TaskDescriptionTarget.VideoSegmentTarget)
+        TargetOption.MULTIPLE_MEDIA_ITEMS -> MediaItemsSubmissionValidator((description.target as TaskDescriptionTarget.MultipleMediaItemTarget).items.toSet())
+        TargetOption.JUDGEMENT -> BasicJudgementValidator(knownCorrectRanges =
         (description.target as TaskDescriptionTarget.JudgementTaskDescriptionTarget).targets.map {
             if (it.second == null) {
                 ItemRange(it.first)
@@ -58,7 +59,7 @@ abstract class AbstractInteractiveTask: AbstractRun(), Task {
                 }
                 ItemRange(item, range.first, range.second)
             } })
-        TaskType.TargetType.VOTE -> BasicVoteValidator(
+        TargetOption.VOTE -> BasicVoteValidator(
             knownCorrectRanges =
             (description.target as TaskDescriptionTarget.VoteTaskDescriptionTarget).targets.map {
                 if (it.second == null) {

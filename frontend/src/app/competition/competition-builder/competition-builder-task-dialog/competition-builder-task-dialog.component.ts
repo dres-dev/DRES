@@ -1,9 +1,8 @@
 import {Component, ElementRef, Inject, ViewChild} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialog, MatDialogConfig, MatDialogRef} from '@angular/material/dialog';
 import {
-    CollectionService,
-    ConfiguredOptionQueryComponentType,
-    ConfiguredOptionTargetType,
+    CollectionService, ConfiguredOptionQueryComponentOption,
+    ConfiguredOptionTargetOption,
     RestMediaCollection,
     RestMediaItem,
     RestTaskDescription,
@@ -18,11 +17,9 @@ import {filter, first} from 'rxjs/operators';
 import {AppConfig} from '../../../app.config';
 import {CompetitionFormBuilder} from './competition-form.builder';
 import {
-    VideoPlayerSegmentBuilderComponent,
     VideoPlayerSegmentBuilderData
 } from './video-player-segment-builder/video-player-segment-builder.component';
 import {AdvancedBuilderDialogComponent, AdvancedBuilderDialogData} from './advanced-builder-dialog/advanced-builder-dialog.component';
-import {VideoPlayerSegmentBuilderDialogComponent} from './video-player-segment-builder-dialog/video-player-segment-builder-dialog.component';
 
 
 /**
@@ -94,7 +91,7 @@ export class CompetitionBuilderTaskDialogComponent {
     /**
      * Handler for (+) button for query target form component.
      */
-    public addQueryTarget(targetType: ConfiguredOptionTargetType.OptionEnum) {
+    public addQueryTarget(targetType: ConfiguredOptionTargetOption.OptionEnum) {
         this.builder.addTargetForm(targetType);
     }
 
@@ -110,7 +107,7 @@ export class CompetitionBuilderTaskDialogComponent {
     /**
      * Handler for (+) button for query hint form component.
      */
-    public addQueryComponent(componentType: ConfiguredOptionQueryComponentType.OptionEnum) {
+    public addQueryComponent(componentType: ConfiguredOptionQueryComponentOption.OptionEnum) {
         this.builder.addComponentForm(componentType);
     }
 
@@ -276,7 +273,7 @@ export class CompetitionBuilderTaskDialogComponent {
                 this.builder.removeTargetForm(0);
                 const mediaCollectionId = this.builder.form.get('mediaCollection').value;
                 r.forEach((name, idx) => {
-                    const form = this.builder.addTargetForm(ConfiguredOptionTargetType.OptionEnum.MULTIPLE_MEDIA_ITEMS);
+                    const form = this.builder.addTargetForm(ConfiguredOptionTargetOption.OptionEnum.MULTIPLE_MEDIA_ITEMS);
                     console.log(`${mediaCollectionId} ? ${name}`);
                     const nameNoExt = name.substring(0, name.lastIndexOf('.'));
                     this.collectionService.getApiCollectionWithCollectionidWithStartswith(mediaCollectionId, nameNoExt)

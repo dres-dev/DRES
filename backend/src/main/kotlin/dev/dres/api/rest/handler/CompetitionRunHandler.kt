@@ -16,6 +16,7 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.competition.TaskType
+import dev.dres.data.model.competition.options.SimpleOption
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
@@ -315,7 +316,7 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
 
         /* Obtain current task run and check status. */
         return if (run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTaskDescription(rac).taskType.options.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
+            if (run.currentTaskDescription(rac).taskType.options.any{ it.option == SimpleOption.HIDDEN_RESULTS }) {
                 run.submissions(rac).map { SubmissionInfo.blind(it) }
             } else {
                 run.submissions(rac).map { SubmissionInfo.withId(it) }
@@ -355,7 +356,7 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
 
         val timestamp = ctx.pathParamMap().getOrDefault("timestamp", "0").toLong()
         return if (run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTaskDescription(rac).taskType.options.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
+            if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS}) {
                 run.submissions(rac).filter { it.timestamp >= timestamp }.map { SubmissionInfo.blind(it) }
             } else {
                 run.submissions(rac).filter { it.timestamp >= timestamp }.map { SubmissionInfo.withId(it) }
@@ -397,7 +398,7 @@ class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
 
         val taskId = ctx.pathParamMap()["taskId"]?.UID() ?: throw ErrorStatusException(404, "Missing task id", ctx)
         return if (run.currentTask(rac)?.description?.id == taskId && run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTaskDescription(rac).taskType.options.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
+            if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }) {
                 run.submissions(rac).map { SubmissionInfo.blind(it) }
             } else {
                 run.submissions(rac).map { SubmissionInfo.withId(it) }

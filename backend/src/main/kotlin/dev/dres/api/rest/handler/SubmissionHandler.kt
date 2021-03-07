@@ -14,7 +14,7 @@ import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.basics.media.MediaItemSegmentList
 import dev.dres.data.model.basics.media.PlayableMediaItem
-import dev.dres.data.model.competition.TaskType
+import dev.dres.data.model.competition.options.SimpleOption
 import dev.dres.data.model.run.*
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
@@ -88,8 +88,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         val item = this.itemIndex[collectionId to itemParam].firstOrNull() ?:
             throw ErrorStatusException(404, "Media item '$itemParam (collection = $collectionId)' could not be found.", ctx)
 
-        val mapToSegment = runManager.currentTaskDescription(rac).taskType.options.any { it.option == TaskType.Options.MAP_TO_SEGMENT } == true
-
+        val mapToSegment = runManager.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.MAP_TO_SEGMENT }
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) && item is MediaItem.VideoItem -> {
                 val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.", ctx)
@@ -151,7 +150,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         AuditLogger.submission(run.id, run.currentTaskDescription(rac).name, submission, LogEventSource.REST, ctx.sessionId(), ctx.req.remoteAddr)
         EventStreamProcessor.event(SubmissionEvent(ctx.sessionId(), run.id, run.currentTask(rac)?.uid, submission))
 
-        if (run.currentTaskDescription(rac).taskType.options.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) { //pre-generate preview
+        if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }) { //pre-generate preview
             generatePreview(submission)
         }
 

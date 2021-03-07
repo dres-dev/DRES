@@ -1,6 +1,6 @@
 package dev.dres.run.updatables
 
-import dev.dres.data.model.competition.TaskType
+import dev.dres.data.model.competition.options.SubmissionFilterOption
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.InteractiveRunManager
@@ -17,8 +17,8 @@ class EndTaskUpdatable(private val run: InteractiveRunManager, private val conte
     override fun update(status: RunManagerStatus) {
         val taskRun = this.run.currentTask(this.context)
         if (taskRun != null) {
-            val limitingFilter = taskRun.description.taskType.filter.find{ it.option == TaskType.SubmissionFilterType.LIMIT_CORRECT_PER_TEAM } ?: return
-            val limit = limitingFilter.parameters.getOrDefault("limit", "1").toIntOrNull() ?: 1
+            val limitingFilter = taskRun.description.taskType.filter.find{ it.option == SubmissionFilterOption.LIMIT_CORRECT_PER_TEAM } ?: return
+            val limit = limitingFilter.getAsInt("limit") ?: 1
             if (this.run.timeLeft(context) > 0) {
                 if (this.submissions.getAndSet(taskRun.submissions.size) < taskRun.submissions.size) {
                     /* Determine of all teams have submitted . */

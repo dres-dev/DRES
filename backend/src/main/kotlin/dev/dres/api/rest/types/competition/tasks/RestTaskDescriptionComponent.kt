@@ -4,8 +4,10 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.basics.time.TemporalRange
 import dev.dres.data.model.competition.*
+import dev.dres.data.model.competition.options.QueryComponentOption
 import dev.dres.utilities.extensions.UID
 import java.nio.file.Paths
+import javax.management.Query
 
 /**
  * The RESTful API equivalent for [TaskDescriptionHint].
@@ -17,7 +19,7 @@ data class RestTaskDescriptionComponent(
         /**
          * The type of this component
          */
-        val type: TaskType.QueryComponentType,
+        val type: QueryComponentOption,
 
         /**
          * Start time in seconds of when this component is active (Task time)
@@ -87,11 +89,11 @@ data class RestTaskDescriptionComponent(
                  * @param hint The [TaskDescriptionHint] to convert.
                  */
                 fun fromComponent(hint: TaskDescriptionHint) = when(hint) {
-                        is TaskDescriptionHint.TextTaskDescriptionHint -> RestTaskDescriptionComponent(type = TaskType.QueryComponentType.TEXT, start = hint.start, end = hint.end, description = hint.text)
-                        is TaskDescriptionHint.ImageItemTaskDescriptionHint -> RestTaskDescriptionComponent(type = TaskType.QueryComponentType.IMAGE_ITEM, start = hint.start, end = hint.end, mediaItem = hint.item.id.string)
-                        is TaskDescriptionHint.VideoItemSegmentTaskDescriptionHint -> RestTaskDescriptionComponent(type = TaskType.QueryComponentType.VIDEO_ITEM_SEGMENT, start = hint.start, end = hint.end, mediaItem = hint.item.id.string, range = hint.temporalRange)
-                        is TaskDescriptionHint.ExternalImageTaskDescriptionHint -> RestTaskDescriptionComponent(type = TaskType.QueryComponentType.EXTERNAL_IMAGE, path = hint.imageLocation.toString(), start = hint.start, end = hint.end)
-                        is TaskDescriptionHint.ExternalVideoTaskDescriptionHint -> RestTaskDescriptionComponent(type = TaskType.QueryComponentType.EXTERNAL_VIDEO, path = hint.videoLocation.toString(), start = hint.start, end = hint.end)
+                        is TaskDescriptionHint.TextTaskDescriptionHint -> RestTaskDescriptionComponent(type = QueryComponentOption.TEXT, start = hint.start, end = hint.end, description = hint.text)
+                        is TaskDescriptionHint.ImageItemTaskDescriptionHint -> RestTaskDescriptionComponent(type = QueryComponentOption.IMAGE_ITEM, start = hint.start, end = hint.end, mediaItem = hint.item.id.string)
+                        is TaskDescriptionHint.VideoItemSegmentTaskDescriptionHint -> RestTaskDescriptionComponent(type = QueryComponentOption.VIDEO_ITEM_SEGMENT, start = hint.start, end = hint.end, mediaItem = hint.item.id.string, range = hint.temporalRange)
+                        is TaskDescriptionHint.ExternalImageTaskDescriptionHint -> RestTaskDescriptionComponent(type = QueryComponentOption.EXTERNAL_IMAGE, path = hint.imageLocation.toString(), start = hint.start, end = hint.end)
+                        is TaskDescriptionHint.ExternalVideoTaskDescriptionHint -> RestTaskDescriptionComponent(type = QueryComponentOption.EXTERNAL_VIDEO, path = hint.videoLocation.toString(), start = hint.start, end = hint.end)
                 }
         }
 
@@ -101,10 +103,10 @@ data class RestTaskDescriptionComponent(
          * @param mediaItems [DAO] used to perform media item lookups.
          */
         fun toComponent(mediaItems: DAO<MediaItem>) = when(this.type){
-                TaskType.QueryComponentType.IMAGE_ITEM -> TaskDescriptionHint.ImageItemTaskDescriptionHint(mediaItems[this.mediaItem!!.UID()] as MediaItem.ImageItem, this.start, this.end)
-                TaskType.QueryComponentType.VIDEO_ITEM_SEGMENT -> TaskDescriptionHint.VideoItemSegmentTaskDescriptionHint(mediaItems[this.mediaItem!!.UID()] as MediaItem.VideoItem, this.range!!, this.start, this.end)
-                TaskType.QueryComponentType.TEXT -> TaskDescriptionHint.TextTaskDescriptionHint(this.description ?: "", this.start, this.end)
-                TaskType.QueryComponentType.EXTERNAL_IMAGE -> TaskDescriptionHint.ExternalImageTaskDescriptionHint(Paths.get(this.path ?: throw IllegalArgumentException("Field 'payload' is not specified but required for external image item.")), this.start, this.end)
-                TaskType.QueryComponentType.EXTERNAL_VIDEO -> TaskDescriptionHint.ExternalVideoTaskDescriptionHint(Paths.get(this.path ?: throw IllegalArgumentException("Field 'payload' is not specified but required for external video item.")), this.start, this.end)
+                QueryComponentOption.IMAGE_ITEM -> TaskDescriptionHint.ImageItemTaskDescriptionHint(mediaItems[this.mediaItem!!.UID()] as MediaItem.ImageItem, this.start, this.end)
+                QueryComponentOption.VIDEO_ITEM_SEGMENT -> TaskDescriptionHint.VideoItemSegmentTaskDescriptionHint(mediaItems[this.mediaItem!!.UID()] as MediaItem.VideoItem, this.range!!, this.start, this.end)
+                QueryComponentOption.TEXT -> TaskDescriptionHint.TextTaskDescriptionHint(this.description ?: "", this.start, this.end)
+                QueryComponentOption.EXTERNAL_IMAGE -> TaskDescriptionHint.ExternalImageTaskDescriptionHint(Paths.get(this.path ?: throw IllegalArgumentException("Field 'payload' is not specified but required for external image item.")), this.start, this.end)
+                QueryComponentOption.EXTERNAL_VIDEO -> TaskDescriptionHint.ExternalVideoTaskDescriptionHint(Paths.get(this.path ?: throw IllegalArgumentException("Field 'payload' is not specified but required for external video item.")), this.start, this.end)
         }
 }

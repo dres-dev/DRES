@@ -1,5 +1,5 @@
 import {
-    CollectionService, ConfiguredOptionQueryComponentType, ConfiguredOptionTargetType,
+    CollectionService, ConfiguredOptionQueryComponentOption, ConfiguredOptionTargetOption,
     RestMediaItem,
     RestTaskDescription,
     RestTaskDescriptionComponent,
@@ -51,7 +51,7 @@ export class CompetitionFormBuilder {
      *
      * @param type The {@link ConfiguredOptionQueryComponentType.OptionEnum} to add a {@link FormGroup} for.
      */
-    public addComponentForm(type: ConfiguredOptionQueryComponentType.OptionEnum) {
+    public addComponentForm(type: ConfiguredOptionQueryComponentOption.OptionEnum) {
         const array = this.form.get('components') as FormArray;
         const newIndex = array.length;
         switch (type) {
@@ -78,7 +78,7 @@ export class CompetitionFormBuilder {
      *
      * @param type The {@link TaskType.TargetTypeEnum} to add a {@link FormGroup} for.
      */
-    public addTargetForm(type: ConfiguredOptionTargetType.OptionEnum) {
+    public addTargetForm(type: ConfiguredOptionTargetOption.OptionEnum) {
         const array = this.form.get('target') as FormArray;
         const newIndex = array.length;
         switch (type) {

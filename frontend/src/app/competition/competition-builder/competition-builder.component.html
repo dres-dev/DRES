@@ -192,7 +192,8 @@
                 <!-- Symbol Column -->
                 <ng-container matColumnDef="action">
                     <th mat-header-cell *matHeaderCellDef> Action</th>
-                    <td mat-cell *matCellDef="let task">
+                    <td mat-cell *matCellDef="let task; let i = index;">
+
                         <button mat-icon-button aria-label="Edit task." matTooltip="Edit task."
                                 (click)="editTask(task)">
                             <mat-icon>edit</mat-icon>
@@ -200,6 +201,14 @@
                         <button mat-icon-button aria-label="Remove task." matTooltip="Remove task."
                                 (click)="removeTask(task)">
                             <mat-icon>remove</mat-icon>
+                        </button>
+                        <button *ngIf="i > 0" mat-icon-button aria-label="Move task up." matTooltip="Move task up."
+                                (click)="moveTaskUp(task)">
+                            <mat-icon>keyboard_arrow_up</mat-icon>
+                        </button>
+                        <button *ngIf="i < competition.tasks.length - 1" mat-icon-button aria-label="Move task down." matTooltip="Move task down."
+                                (click)="moveTaskDown(task)">
+                            <mat-icon>keyboard_arrow_down</mat-icon>
                         </button>
                     </td>
                 </ng-container>

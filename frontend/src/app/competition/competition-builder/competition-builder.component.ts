@@ -245,7 +245,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
      *
      * @param taskType The {@link TaskType} to remove.
      */
-    removeTaskType(taskType: TaskType) {
+    public removeTaskType(taskType: TaskType) {
         this.competition.taskTypes.splice(this.competition.taskTypes.indexOf(taskType), 1);
         this.competition.taskGroups.filter(t => t.type === taskType.name).forEach(g => {
             this.removeTaskGroup(g);
@@ -335,6 +335,35 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
         }
     }
 
+    /**
+     * Moves the selected task up in the list, thus changing the order of tasks.
+     *
+     * @param task The {@link RestTaskDescription} that should be moved.
+     */
+    public moveTaskUp(task: RestTaskDescription) {
+        const oldIndex = this.competition.tasks.indexOf(task);
+        if (oldIndex > 0) {
+            const buffer = this.competition.tasks[oldIndex - 1];
+            this.competition.tasks[oldIndex - 1] = task;
+            this.competition.tasks[oldIndex] = buffer;
+            this.taskTable.renderRows();
+        }
+    }
+
+    /**
+     * Moves the selected task down in the list, thus changing the order of tasks.
+     *
+     * @param task The {@link RestTaskDescription} that should be moved.
+     */
+    public moveTaskDown(task: RestTaskDescription) {
+        const oldIndex = this.competition.tasks.indexOf(task);
+        if (oldIndex < this.competition.tasks.length - 1) {
+            const buffer = this.competition.tasks[oldIndex + 1];
+            this.competition.tasks[oldIndex + 1] = task;
+            this.competition.tasks[oldIndex] = buffer;
+            this.taskTable.renderRows();
+        }
+    }
 
 
     /**

@@ -100,9 +100,9 @@ class InteractiveSynchronousCompetition(override var id: CompetitionId, override
          */
         @Synchronized
         override fun addSubmission(submission: Submission) {
-            check(this.isRunning) { "Task run '${this@InteractiveSynchronousCompetition.name}.${this.position}' is currently not running." }
+            check(this.isRunning) { "Task run '${this@InteractiveSynchronousCompetition.name}.${this.position}' is currently not running. This is a programmer's error!" }
             check(this@InteractiveSynchronousCompetition.description.teams.any { it.uid == submission.teamId }) {
-                "Team ${submission.teamId} does not exists for competition run ${this@InteractiveSynchronousCompetition.name}."
+                "Team ${submission.teamId} does not exists for competition run ${this@InteractiveSynchronousCompetition.name}. This is a programmer's error!"
             }
 
             /* Execute submission filters. */

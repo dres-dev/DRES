@@ -39,6 +39,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
         return mapOf(
                 "ls" to listOf("list"),
                 "remove" to listOf("delete"),
+                "rm" to listOf("delete"),
                 "drop" to listOf("delete"),
                 "add" to listOf("create")
         )

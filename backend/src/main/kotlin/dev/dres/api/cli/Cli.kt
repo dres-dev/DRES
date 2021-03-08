@@ -1,6 +1,7 @@
 package dev.dres.api.cli
 
 
+import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.subcommands
@@ -23,13 +24,14 @@ object Cli {
 
     private const val PROMPT = "DRES> "
 
+    private lateinit var clikt:CliktCommand
 
     /**
      * blocking call
      */
     fun loop(dataAccessLayer: DataAccessLayer, config: Config) {
 
-        val clikt = DRESBaseCommand().subcommands(
+        clikt = DRESBaseCommand().subcommands(
             CompetitionCommand(dataAccessLayer.competitions, dataAccessLayer.collections, config),
             UserCommand(),
             MediaCollectionCommand(
@@ -40,7 +42,8 @@ object Cli {
                 dataAccessLayer.mediaSegments
             ),
             CompetitionRunCommand(dataAccessLayer.runs),
-            OpenApiCommand()
+            OpenApiCommand(),
+            ExecutionCommand()
         )
 
         var terminal: Terminal? = null
@@ -99,7 +102,7 @@ object Cli {
             }
 
             try {
-                clikt.parse(splitLine(line))
+                execute(line)
             } catch (e: Exception) {
 
                 when (e) {
@@ -117,10 +120,18 @@ object Cli {
 
     }
 
+    fun execute(line: String){
+        if(!::clikt.isInitialized){
+            error("CLI not initialised. Aborting...") // Technically, this should never ever happen
+        }
+        clikt.parse(splitLine(line))
+    }
+
     val lineSplitRegex: Pattern = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'")
 
     //based on https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double/366532
-    private fun splitLine(line: String?): List<String> {
+    @JvmStatic
+    fun splitLine(line: String?): List<String> {
         if (line == null || line.isEmpty()) {
             return emptyList()
         }

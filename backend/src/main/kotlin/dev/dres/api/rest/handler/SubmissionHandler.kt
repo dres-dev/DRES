@@ -5,7 +5,7 @@ import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.RestApiRole
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.api.rest.types.status.SuccessStatus
+import dev.dres.api.rest.types.status.SuccessfulSubmissionsStatus
 import dev.dres.data.dbo.DAO
 import dev.dres.data.dbo.DaoIndexer
 import dev.dres.data.model.Config
@@ -26,6 +26,8 @@ import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.SubmissionEvent
+import dev.dres.run.exceptions.IllegalRunStateException
+import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionRejectedException
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.TimeUtil
@@ -39,7 +41,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-class SubmissionHandler (val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, private val segmentIndex: DaoIndexer<MediaItemSegmentList, UID>, private val config: Config): GetRestHandler<SuccessStatus>, AccessManagedRestHandler {
+class SubmissionHandler (val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, private val segmentIndex: DaoIndexer<MediaItemSegmentList, UID>, private val config: Config): GetRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
     override val route = "submit"
 
@@ -126,15 +128,15 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             ],
             tags = ["Submission"],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
-                OpenApiResponse("208", [OpenApiContent(SuccessStatus::class)]),
+                OpenApiResponse("200", [OpenApiContent(SuccessfulSubmissionsStatus::class)]),
+                OpenApiResponse("202", [OpenApiContent(SuccessfulSubmissionsStatus::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("409", [OpenApiContent(ErrorStatus::class)])
+                OpenApiResponse("412", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): SuccessStatus {
+    override fun doGet(ctx: Context): SuccessfulSubmissionsStatus {
         val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
         val run = getActiveRun(userId, ctx)
         val time = System.currentTimeMillis()
@@ -144,7 +146,11 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         val result = try {
             run.postSubmission(rac, submission)
         } catch (e: SubmissionRejectedException) {
-            throw ErrorStatusException(208, "Submission rejected.", ctx)
+            throw ErrorStatusException(412, "Submission rejected by submission filter.", ctx)
+        } catch (e: IllegalRunStateException) {
+            throw ErrorStatusException(400, "Run manager is in wrong state and cannot accept any more submission.", ctx)
+        } catch (e: IllegalTeamIdException) {
+            throw ErrorStatusException(400, "Run manager does not know the given teamId ${rac.teamId}.", ctx)
         }
 
         AuditLogger.submission(run.id, run.currentTaskDescription(rac).name, submission, LogEventSource.REST, ctx.sessionId(), ctx.req.remoteAddr)
@@ -155,15 +161,18 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         }
 
         return when (result) {
-            SubmissionStatus.CORRECT -> SuccessStatus("Submission correct!")
-            SubmissionStatus.WRONG -> SuccessStatus("Submission incorrect! Try again")
-            SubmissionStatus.INDETERMINATE -> SuccessStatus("Submission received. Waiting for verdict!")
-            SubmissionStatus.UNDECIDABLE -> SuccessStatus("Submission undecidable. Try again!")
+            SubmissionStatus.CORRECT -> SuccessfulSubmissionsStatus(SubmissionStatus.CORRECT, "Submission correct!")
+            SubmissionStatus.WRONG -> SuccessfulSubmissionsStatus(SubmissionStatus.WRONG, "Submission incorrect! Try again")
+            SubmissionStatus.INDETERMINATE -> {
+                ctx.status(202) /* HTTP Accepted. */
+                SuccessfulSubmissionsStatus(SubmissionStatus.INDETERMINATE, "Submission received. Waiting for verdict!")
+            }
+            SubmissionStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(SubmissionStatus.UNDECIDABLE,"Submission undecidable. Try again!")
         }
     }
 
     private fun generatePreview(submission: Submission) {
-        if (submission !is TemporalSubmissionAspect){
+        if (submission !is TemporalSubmissionAspect) {
             return
         }
         val collection = collections[submission.item.collection] ?: return

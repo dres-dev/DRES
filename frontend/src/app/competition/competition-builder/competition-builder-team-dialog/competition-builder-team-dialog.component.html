@@ -1,19 +1,10 @@
 <h1 mat-dialog-title>Add team</h1>
 <div mat-dialog-content>
     <form [formGroup]="form">
-        <p>
-            <mat-form-field style="width: 100%">
-                <mat-label>Name</mat-label>
-                <input type="text" matInput placeholder="Name" formControlName="name"/>
-            </mat-form-field>
-        </p>
-
-        <p>
-            <mat-form-field style="width: 100%">
-                <mat-label>Color</mat-label>
-                <input type="color" matInput placeholder="Color" formControlName="color"/>
-            </mat-form-field>
-        </p>
+        <mat-form-field style="width: 100%">
+            <mat-label>Name</mat-label>
+            <input type="text" matInput placeholder="Name" formControlName="name"/>
+        </mat-form-field>
 
         <mat-form-field class="user-chip-list">
             <mat-chip-list #chipList aria-label="Users">
@@ -21,7 +12,7 @@
                     {{(userForId(user) | async)?.username}}
                     <mat-icon matChipRemove>cancel</mat-icon>
                 </mat-chip>
-                <input placeholder="New user..." [formControl]="form.get('userInput')" [matAutocomplete]="auto" [matChipInputFor]="chipList">
+                <input placeholder="New user..."  [matAutocomplete]="auto" [matChipInputFor]="chipList">
             </mat-chip-list>
             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addUser($event)">
                 <mat-option *ngFor="let user of (availableUsers | async)" [value]="user">
@@ -30,15 +21,21 @@
             </mat-autocomplete>
         </mat-form-field>
 
+
         <p>
-            <input hidden type="file" #logoInput formControlName="logo" (change)="processImage($event)"/>
-            <button type="button" mat-button (click)="logoInput.click()">Select logo</button>
-            <span *ngIf="form.get('logoData').value" style="max-height: 25px; text-align: center">
-                <img [src]="form.get('logoData').value" style="height: 20px;">
-            </span>
-            <span *ngIf="form.get('logoId').value">
-                {{form.get('logoId').value}}
-            </span>
+            <label>Team color:
+                <input [style.background]="form.get('color').value"
+                       [style.width]="'50px'"
+                       [colorPicker]="form.get('color').value"
+                       [cpPresetColors]="colorPalette" (colorPickerChange)="onColorChange($event)"/>
+            </label>
+            <label>
+                <button type="button" mat-button (click)="logoInput.click()">Select logo</button>
+                <input hidden type="file" #logoInput formControlName="logo" (change)="processImage($event)"/>
+                <span style="text-align: center">
+                    <img [src]="teamLogo()" [alt]="form.get('logoId')" style="max-height: 75px; max-width: 150px;">
+                </span>
+            </label>
         </p>
     </form>
 </div>

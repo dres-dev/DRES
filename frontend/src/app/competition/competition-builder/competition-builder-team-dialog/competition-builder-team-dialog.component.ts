@@ -5,6 +5,7 @@ import {RestTeam, UserDetails, UserService} from '../../../../../openapi';
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
 import {map, shareReplay} from 'rxjs/operators';
 import {Observable} from 'rxjs';
+import {AppConfig} from '../../../app.config';
 
 
 @Component({
@@ -16,10 +17,16 @@ export class CompetitionBuilderTeamDialogComponent {
     form: FormGroup;
     logoName = '';
     availableUsers: Observable<UserDetails[]>;
+    colorPalette = [
+        '#FF0000',
+        '#00FF00',
+        '#0000FF'
+    ];
 
-    constructor(public dialogRef: MatDialogRef<CompetitionBuilderTeamDialogComponent>,
-                public userService: UserService,
-                @Inject(MAT_DIALOG_DATA) public team?: RestTeam) {
+    constructor(private dialogRef: MatDialogRef<CompetitionBuilderTeamDialogComponent>,
+                private userService: UserService,
+                private config: AppConfig,
+                @Inject(MAT_DIALOG_DATA) private team?: RestTeam) {
 
         this.form = new FormGroup({
             name: new FormControl(team?.name, [Validators.required, Validators.minLength(3)]),
@@ -53,7 +60,7 @@ export class CompetitionBuilderTeamDialogComponent {
     /**
      * Adds the selected user to the list of users.
      *
-     * @param event
+     * @param event @{MatAutocompleteSelectedEvent}
      */
     public addUser(event: MatAutocompleteSelectedEvent): void {
         this.form.get('users').value.push(event.option.value.id);
@@ -73,6 +80,15 @@ export class CompetitionBuilderTeamDialogComponent {
     }
 
     /**
+     * Called by the color picker when the selected color changes.
+     *
+     * @param color New color value (hex RGB).
+     */
+    public onColorChange(color: string) {
+        this.form.get('color').setValue(color);
+    }
+
+    /**
      * Returns the user for the given user id or null
      *
      * @param id User ID of the desired user.
@@ -81,6 +97,17 @@ export class CompetitionBuilderTeamDialogComponent {
         return this.availableUsers.pipe(
             map(users => users.find(u => u.id === id))
         );
+    }
+
+    /**
+     * Generates a URL for the logo of the team.
+     */
+    public teamLogo(): string {
+        if (this.form.get('logoData').value != null) {
+            return this.form.get('logoData').value;
+        } else {
+            return this.config.resolveApiUrl(`/competition/logo/${this.form.get('logoId').value}`);
+        }
     }
 
     /**

@@ -7,6 +7,13 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import com.jakewharton.picnic.table
 
+/**
+ * Simple batch execution command.
+ * Supports text files with line-separated DRES CLI commands.
+ * Pound (`#`) prefixed lines are ignored, i.e. treated as comments.
+ *
+ * For convention purposes, the file suffix `ds` could be used, since it's a `dres script`.
+ */
 class ExecutionCommand :
     CliktCommand(name = "exec", help = "Executes a set of DRES CLI commands in a file") {
 

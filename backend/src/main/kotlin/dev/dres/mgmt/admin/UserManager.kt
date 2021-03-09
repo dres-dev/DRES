@@ -29,34 +29,46 @@ object UserManager {
 
     fun create(username: UserName, password: HashedPassword, role: Role): Boolean {
         validateInitalised()
-        if(username.length < MIN_LENGTH_USERNAME){
-            throw RuntimeException("Username is less than $MIN_LENGTH_USERNAME characters")
-        }
+        validateUsernameLengthOrEscalate(username)
+        validateUsernameUniqueOrEscalate(username)
         val newUser = User(username = username, password = password, role = role)
-        for (existingUser in this.users) {
-            if (existingUser in this.users) {
-                return false
-            }
-        }
-        this.users.append(newUser)
-        return true
+        return create(newUser)
     }
 
     fun create(username: UserName, password: PlainPassword, role: Role): Boolean {
         validateInitalised()
-        if(password.length < MIN_LENGTH_PASSWORD){
-            throw RuntimeException("Password is less than $MIN_LENGTH_PASSWORD characters")
-        }
+        validateUsernameLengthOrEscalate(username)
+        validateUsernameUniqueOrEscalate(username)
+        validatePasswordLengthOrEscalate(password)
+        val newUser = User(username = username, password = password.hash(), role = role)
+        return create(newUser)
+    }
+
+    private fun validateUsernameLengthOrEscalate(username: UserName){
         if(username.length < MIN_LENGTH_USERNAME){
             throw RuntimeException("Username is less than $MIN_LENGTH_USERNAME characters")
         }
-        val newUser = User(username = username, password = password.hash(), role = role)
+    }
+
+    private fun validatePasswordLengthOrEscalate(password: PlainPassword){
+        if(password.length < MIN_LENGTH_PASSWORD){
+            throw RuntimeException("Password is less than $MIN_LENGTH_PASSWORD characters")
+        }
+    }
+
+    private fun validateUsernameUniqueOrEscalate(username: UserName){
+        if(username in users.map ( User::username )){
+            throw RuntimeException("Username is already taken: $username")
+        }
+    }
+
+    private fun create(user:User): Boolean{
         for (existingUser in this.users) {
             if (existingUser in users) {
                 return false
             }
         }
-        users.append(newUser)
+        users.append(user)
         return true
     }
 

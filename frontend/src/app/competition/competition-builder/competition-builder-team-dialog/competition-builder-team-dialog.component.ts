@@ -18,9 +18,11 @@ export class CompetitionBuilderTeamDialogComponent {
     logoName = '';
     availableUsers: Observable<UserDetails[]>;
     colorPalette = [
-        '#FF0000',
-        '#00FF00',
-        '#0000FF'
+        '#BF0000', '#BF3900', '#BF7200', '#BFAC00',
+        '#99BF00', '#5FBF00', '#26BF00', '#00BF13',
+        '#00BF4C', '#00BF85', '#00BFBF', '#0085BF',
+        '#004CBF', '#0013BF', '#2600BF', '#5F00BF',
+        '#9800BF', '#BF00AC', '#BF0072', '#BF0039'
     ];
 
     constructor(private dialogRef: MatDialogRef<CompetitionBuilderTeamDialogComponent>,

@@ -24,10 +24,12 @@
 
         <p>
             <label>Team color:
-                <input [style.background]="form.get('color').value"
-                       [style.width]="'50px'"
-                       [colorPicker]="form.get('color').value"
-                       [cpPresetColors]="colorPalette" (colorPickerChange)="onColorChange($event)"/>
+                <span [style.background]="form.get('color').value"
+                      [style.width]="'50px'"
+                      [style.height]="'20px'"
+                      [style.display]="'inline-block'"
+                      [colorPicker]="form.get('color').value"
+                      [cpPresetColors]="colorPalette" (colorPickerChange)="onColorChange($event)"> </span>
             </label>
             <label>
                 <button type="button" mat-button (click)="logoInput.click()">Select logo</button>

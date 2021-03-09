@@ -23,6 +23,7 @@ import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 sealed class Submission : BaseSubmissionAspect {
 
     /** The [AbstractInteractiveTask] this [Submission] belongs to. */
+    @JsonIgnore
     override var task: AbstractInteractiveTask? = null
 
     /** The [SubmissionStatus] of this [Submission]. */

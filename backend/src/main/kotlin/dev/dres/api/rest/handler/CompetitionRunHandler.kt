@@ -199,7 +199,7 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        return TaskInfo(run.currentTaskDescription(rac) ?: throw ErrorStatusException(404, "Run $runId has currently no active task.", ctx))
+        return TaskInfo(run.currentTaskDescription(rac))
     }
 }
 
@@ -229,7 +229,7 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
 
         val rac = runActionContext(ctx, run)
 
-        val task = run.currentTaskDescription(rac) ?: throw ErrorStatusException(404, "No active task in run $runId.", ctx)
+        val task = run.currentTaskDescription(rac)
         try {
             return task.toTaskHint(config)
         } catch (e: FileNotFoundException) {
@@ -273,14 +273,9 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
         val rac = runActionContext(ctx, run)
 
         /* Fetch query target and transform it. */
-        val task = run.currentTaskDescription(rac) ?: throw ErrorStatusException(404, "No active task in run $runId.", ctx)
+        val task = run.currentTaskDescription(rac)
         try {
-            val target = task.toTaskTarget(config, collections)
-            if (target != null) {
-                return target
-            } else {
-                throw ErrorStatusException(404, "Current task does not have a defined query target object.", ctx)
-            }
+            return task.toTaskTarget(config, collections)
         } catch (e: FileNotFoundException) {
             throw ErrorStatusException(404, "Query object cache file not found!", ctx)
         } catch (ioe: IOException) {

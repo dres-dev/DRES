@@ -33,7 +33,7 @@ class OpenApiCommand : CliktCommand(name="openapi",help =  "Generates and writes
         vprintln("Downloading from $src")
         val fileName = oas.oasPath.substring(1)+".json" // Remove "/" from name and add ".json"
         Fuel.download(src)
-            .fileDestination { response, request -> dir.resolve(fileName) }
+            .fileDestination { _, _ -> dir.resolve(fileName) }
             .progress{readBytes, totalBytes ->
                 val progress = readBytes.toFloat() / totalBytes.toFloat() * 100
                 vprintln("Bytes downloaded $readBytes / $totalBytes ($progress %)")

@@ -192,7 +192,7 @@ class NextTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandle
 
         try {
             if (run.next(rac)) {
-                return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTaskDescription(rac)!!.name}'.")
+                return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTaskDescription(rac).name}'.")
             } else {
                 throw ErrorStatusException(400, "Task for run $runId could not be changed because there are no tasks left.", ctx)
             }
@@ -236,7 +236,7 @@ class SwitchTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHand
 
         try {
             run.goTo(rac, idx)
-            return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTaskDescription(rac)!!.name}'.")
+            return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTaskDescription(rac).name}'.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).", ctx)
         } catch (e: IndexOutOfBoundsException) {
@@ -271,7 +271,7 @@ class PreviousTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHa
         val rac = runActionContext(ctx, run)
         try {
             if (run.previous(rac)) {
-                return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTaskDescription(rac)!!.name}'.")
+                return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTaskDescription(rac).name}'.")
             } else {
                 throw ErrorStatusException(400, "Task for run $runId could not be changed because there are no tasks left.", ctx)
             }
@@ -343,10 +343,10 @@ class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
         try {
             val task = run.currentTaskDescription(rac)
             run.abortTask(rac)
-            AuditLogger.taskEnd(run.id, task?.name ?: "n/a", LogEventSource.REST, ctx.sessionId())
-            return SuccessStatus("Task '${run.currentTaskDescription(rac)!!.name}' for run $runId was successfully aborted.")
+            AuditLogger.taskEnd(run.id, task.name, LogEventSource.REST, ctx.sessionId())
+            return SuccessStatus("Task '${run.currentTaskDescription(rac).name}' for run $runId was successfully aborted.")
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Task '${run.currentTaskDescription(rac)!!.name}' for run $runId could not be aborted because run is in the wrong state (state = ${run.status}).", ctx)
+            throw ErrorStatusException(400, "Task '${run.currentTaskDescription(rac).name}' for run $runId could not be aborted because run is in the wrong state (state = ${run.status}).", ctx)
         } catch (e: IllegalAccessError) {
             throw ErrorStatusException(403, e.message!!, ctx)
         }
@@ -418,8 +418,7 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(set
         val rac = runActionContext(ctx, run)
         try {
             run.adjustDuration(rac, duration)
-            AuditLogger.taskModified(run.id, run.currentTaskDescription(rac)?.name
-                    ?: "n/a", "Task duration adjusted by ${duration}s.", LogEventSource.REST, ctx.sessionId())
+            AuditLogger.taskModified(run.id, run.currentTaskDescription(rac).name, "Task duration adjusted by ${duration}s.", LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Duration for run $runId was successfully adjusted.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Duration for run $runId could not be adjusted because it is in the wrong state (state = ${run.status}).", ctx)

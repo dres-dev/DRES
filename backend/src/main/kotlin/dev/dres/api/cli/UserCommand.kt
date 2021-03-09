@@ -164,7 +164,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
                     }
                     println("Successfully wrote user ${user.id.string} to $path.")
                 } else {
-                    println("User with ID ${id?.string ?: "N/A"} does not exist.")
+                    println("User with ID ${id.string} does not exist.")
                 }
             }
         }

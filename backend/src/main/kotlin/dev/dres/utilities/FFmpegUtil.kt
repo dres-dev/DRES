@@ -7,6 +7,7 @@ import com.github.kokorin.jaffree.ffmpeg.UrlInput
 import com.github.kokorin.jaffree.ffmpeg.UrlOutput
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import com.github.kokorin.jaffree.ffprobe.FFprobeResult
+import dev.dres.DRES
 import dev.dres.data.model.competition.CachedVideoItem
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
@@ -19,9 +20,9 @@ import java.util.concurrent.Future
 object FFmpegUtil {
 
     /** Path to FFMPEG binary; TODO: Make configurable. */
-    private val ffmpegBin = when {
-        Files.exists(Path.of("ext/ffmpeg/")) -> Path.of("ext/ffmpeg/") /* Runtime */
-        Files.exists(Path.of("../ffmpeg/")) -> Path.of("../ffmpeg/") /* Deployment. */
+    val ffmpegBin = when {
+        Files.isDirectory(DRES.rootPath.parent.parent.parent.resolve("ext/ffmpeg")) -> DRES.rootPath.parent.parent.parent.resolve("ext/ffmpeg")
+        Files.isDirectory(DRES.rootPath.parent.resolve("ffmpeg")) -> DRES.rootPath.parent.resolve("ffmpeg") /* Distribution */
         else -> throw IllegalStateException("Could not find valid FFmpeg binary path.")
     }
 
@@ -39,7 +40,7 @@ object FFmpegUtil {
 
         val futureList = mutableListOf<Pair<FrameRequest, Future<FFmpegResult>>>()
 
-        while (threadRunning) {
+        while (this.threadRunning) {
 
             try {
                 futureList.removeIf {

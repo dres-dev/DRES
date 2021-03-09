@@ -18,6 +18,9 @@ import java.nio.file.Paths
 
 object DRES {
 
+    /** Application root; shoud pe relative to JAR file or classes path. */
+    val rootPath = File(FFmpegUtil::class.java.protectionDomain.codeSource.location.toURI()).toPath()
+
     init {
         //redirect log of JLine3 from jdk logger to log4j
         System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager")
@@ -31,7 +34,9 @@ object DRES {
             null
         } ?: Config()
 
-        println("initializing...")
+        println("Starting DRES at $rootPath")
+        println("Found FFmpeg at ${FFmpegUtil.ffmpegBin}")
+        println("Initializing...")
 
         /* Initialize data access layer. */
         val dataAccessLayer = DataAccessLayer(Paths.get(config.dataPath))

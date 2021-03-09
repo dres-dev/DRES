@@ -5,6 +5,7 @@ buildscript {
 }
 plugins {
     /// Plugin to handle NodeJS
+    id 'base'
     id 'com.github.node-gradle.node' version '3.0.1'
 }
 
@@ -24,13 +25,30 @@ node {
 }
 
 task buildFrontend(type: NpmTask) {
+    outputs.upToDateWhen {
+        return file("$buildDir/dist").isDirectory()
+    }
     args = ['run', 'pbuild']
     dependsOn npmInstall
     dependsOn rootProject.tasks.getByName('openApiGenerate')
 }
 
+task packageFrontend(type: Zip) {
+    outputs.upToDateWhen {
+        return file("$buildDir/lib/dres-frontend.jar").exists()
+    }
+    dependsOn buildFrontend
+    baseName 'dres-frontend'
+    extension 'jar'
+    destinationDir file("$buildDir/lib")
+    from("$buildDir/dist") {
+        into 'html'
+    }
+}
+
 artifacts {
-    frontendFiles(file('build/dist')) {
-        builtBy buildFrontend
+    frontendFiles(packageFrontend.archiveFile) {
+        builtBy packageFrontend
+        type "jar"
     }
 }

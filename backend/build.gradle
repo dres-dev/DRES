@@ -21,18 +21,11 @@ apply plugin: 'idea'
 mainClassName = 'dev.dres.DRES'
 sourceCompatibility = 1.8
 
-/* Configuration for frontent classpath files (see dependencies). */
+/* Configuration for frontend classpath files (see dependencies). */
 configurations {
     frontendClasspath {
         canBeConsumed = false
         canBeResolved = true
-    }
-}
-
-/* Includes the frontendClasspath files into the JAR. */
-jar {
-    into('html') {
-        from configurations.frontendClasspath
     }
 }
 
@@ -56,7 +49,11 @@ dependencies {
     def alpnApiVersion = '1.1.3.v20160715'
     def alpnBootVersion = '8.1.12.v20180117'
 
-    frontendClasspath(project(path: ":frontend", configuration: 'frontendFiles'))
+    ///// Frontend files (produced by sub-project).
+    implementation frontendClasspath(project(path: ":frontend", configuration: 'frontendFiles'))
+
+    ///// FFMpeg dependency
+    implementation files("$buildDir/ext") {builtBy 'setupFFMpeg'}
 
     ///// MapDB
     compile group: 'org.mapdb', name: 'mapdb', version: '3.0.8'
@@ -139,16 +136,13 @@ sourceSets {
 distributions {
     main {
         distributionBaseName = 'dres-dist'
-        contents {
-            from 'ext'
-        }
     }
 }
 
 /** Custom tasks: FFmpeg Download and deployment. */
 
 task downloadFFmpeg(type: Download) {
-    def f = new File('ffmpeg.zip')
+    def f = new File("$buildDir/build/cache/ffmpeg.zip")
     outputs.upToDateWhen {
         return f.exists()
     }
@@ -167,7 +161,7 @@ task downloadFFmpeg(type: Download) {
 }
 
 task downloadFFprobe(type: Download) {
-    def f = new File('ffprobe.zip')
+    def f = new File("$buildDir/cache/ffprobe.zip")
     outputs.upToDateWhen {
         return f.exists()
     }
@@ -188,21 +182,21 @@ task downloadFFprobe(type: Download) {
 task copyFFmpeg(type: Copy) {
     dependsOn downloadFFmpeg
     outputs.upToDateWhen {
-        return !fileTree('ext/ffmpeg').filter { it.isFile() && it.name.contains("ffmpeg")}.isEmpty()
+        return !fileTree("$buildDir/ext/ffmpeg").filter { it.isFile() && it.name== 'ffmpeg'}.isEmpty()
     }
     from zipTree(downloadFFmpeg.dest)
-    into 'ext/ffmpeg'
-    include '*ffmpeg*'
+    into "$buildDir/ext/ffmpeg"
+    include 'ffmpeg'
 }
 
 task copyFFprobe(type: Copy) {
     dependsOn downloadFFprobe
     outputs.upToDateWhen {
-        return !fileTree('ext/ffmpeg').filter { it.isFile() && it.name.contains("ffprobe")}.isEmpty()
+        return !fileTree("$buildDir/ext/ffmpeg").filter { it.isFile() && it.name == 'ffprobe' }.isEmpty()
     }
     from zipTree(downloadFFprobe.dest)
-    into 'ext/ffmpeg'
-    include '*ffprobe*'
+    into "$buildDir/ext/ffmpeg"
+    include 'ffprobe'
 }
 
 task setupFFMpeg(type: Copy) {
@@ -211,9 +205,3 @@ task setupFFMpeg(type: Copy) {
     dependsOn copyFFmpeg
     dependsOn copyFFprobe
 }
-
-/** Distribution tasks depend on Jar and setupFFMpeg. */
-distZip.dependsOn jar
-distZip.dependsOn setupFFMpeg
-distTar.dependsOn jar
-distTar.dependsOn setupFFMpeg

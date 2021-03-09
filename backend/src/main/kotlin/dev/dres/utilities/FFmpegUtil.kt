@@ -14,6 +14,7 @@ import org.slf4j.MarkerFactory
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Future
 
@@ -23,6 +24,8 @@ object FFmpegUtil {
     val ffmpegBin = when {
         Files.isDirectory(DRES.rootPath.parent.parent.parent.resolve("ext/ffmpeg")) -> DRES.rootPath.parent.parent.parent.resolve("ext/ffmpeg")
         Files.isDirectory(DRES.rootPath.parent.resolve("ffmpeg")) -> DRES.rootPath.parent.resolve("ffmpeg") /* Distribution */
+        Files.isDirectory(Paths.get("ext/ffmpeg")) -> Paths.get("ext/ffmpeg")
+        Files.isDirectory(Paths.get("ffmpeg")) -> Paths.get("ffmpeg")
         else -> throw IllegalStateException("Could not find valid FFmpeg binary path.")
     }
 

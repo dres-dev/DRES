@@ -13,7 +13,7 @@ import {
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {filter, first, switchMap} from 'rxjs/operators';
 import {Observable} from 'rxjs';
-import {RequireMatch} from './competition-builder-task-dialog.component';
+import {RequireMatch} from './require-match';
 
 export class CompetitionFormBuilder {
 

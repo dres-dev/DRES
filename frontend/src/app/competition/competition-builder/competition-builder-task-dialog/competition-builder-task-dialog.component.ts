@@ -11,7 +11,7 @@ import {
     TemporalPoint,
     TemporalRange
 } from '../../../../../openapi';
-import {AbstractControl, FormControl, FormGroup} from '@angular/forms';
+import {FormControl, FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs';
 import {filter, first} from 'rxjs/operators';
 import {AppConfig} from '../../../app.config';
@@ -31,20 +31,6 @@ export interface CompetitionBuilderTaskDialogData {
     taskType: TaskType;
     task?: RestTaskDescription;
 }
-
-/**
- * https://onthecode.co.uk/force-selection-angular-material-autocomplete/
- * @param control
- * @constructor
- */
-export function RequireMatch(control: AbstractControl) {
-    const selection: any = control.value;
-    if (typeof selection === 'string') {
-        return {incorrect: true};
-    }
-    return null;
-}
-
 
 @Component({
     selector: 'app-competition-builder-task-dialog',

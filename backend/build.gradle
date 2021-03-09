@@ -12,13 +12,6 @@ buildscript {
     }
 }
 
-plugins {
-    /// Download task for FFMPEG binaries download
-    id 'de.undercouch.download' version '4.0.4'
-    /// OpenAPI Generator for Frontend internal api generation
-    id 'org.openapi.generator' version '5.0.0'
-}
-
 apply plugin: 'application'
 apply plugin: 'java'
 apply plugin: 'kotlin'
@@ -41,34 +34,6 @@ jar {
     into('html') {
         from configurations.frontendClasspath
     }
-}
-
-/// Default OpenAPI Specifications of dres
-def fullOAS = "http://localhost:8080/swagger-docs"
-def clientOAS = "http://localhost:8080/client-oas"
-def oasFile = "${project.projectDir}/../doc/oas.json"
-def clientOasFile = "${project.projectDir}/../doc/oas-client.json"
-if(project.hasProperty('oas')){
-    fullOAS = oas
-}
-
-/// Generates the openapi frontend bindings
-openApiGenerate {
-    /// Source command:
-    /// openapi-generator generate -g typescript-angular -i http://localhost:8080/swagger-docs -o openapi --skip-validate-spec --additional-properties npmName=@dres-openapi/api,snapshot=true,ngVersion=9.1.0
-    generateApiTests = false // No tests please
-    generateModelTests = false // No tests please
-    validateSpec = false // No validation please (as in command above)
-
-    generatorName = 'typescript-angular'
-    inputSpec = oasFile
-    outputDir = file("${project.projectDir}/../frontend/openapi").toString()
-    configOptions = [
-        npmName: '@dres-openapi/api',
-        ngVersion: '9.1.0',
-        snapshot: 'true', /// I suggest to remove this, as soon as we automate this,
-        enumPropertyNaming: 'original'
-    ]
 }
 
 repositories {
@@ -180,21 +145,6 @@ distributions {
     }
 }
 
-task generateOAS(type: Download) {
-    /* Requires DRES running on default port */
-    // TODO Direct write to file instead of download
-    def f = new File(oasFile)
-    src "$fullOAS"
-    dest f
-}
-
-task generateClientOAS(type: Download){
-    /* Requires DRES running on default port */
-    def f = new File(clientOasFile)
-    src "$clientOAS"
-    dest f
-}
-
 /** Custom tasks: FFmpeg Download and deployment. */
 
 task downloadFFmpeg(type: Download) {
@@ -267,5 +217,3 @@ distZip.dependsOn jar
 distZip.dependsOn setupFFMpeg
 distTar.dependsOn jar
 distTar.dependsOn setupFFMpeg
-
-//tasks.openApiGenerate.dependsOn downloadOAS

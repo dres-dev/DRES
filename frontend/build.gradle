@@ -4,7 +4,7 @@ buildscript {
     }
 }
 plugins {
-    id 'base'
+    /// Plugin to handle NodeJS
     id 'com.github.node-gradle.node' version '3.0.1'
 }
 
@@ -25,10 +25,9 @@ node {
 
 task buildFrontend(type: NpmTask) {
     args = ['run', 'pbuild']
-    dependsOn 'npmInstall'
+    dependsOn npmInstall
+    dependsOn rootProject.tasks.getByName('openApiGenerate')
 }
-
-
 
 artifacts {
     frontendFiles(file('build/dist')) {

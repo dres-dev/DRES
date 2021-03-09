@@ -20,6 +20,8 @@ import {
     VideoPlayerSegmentBuilderData
 } from './video-player-segment-builder/video-player-segment-builder.component';
 import {AdvancedBuilderDialogComponent, AdvancedBuilderDialogData} from './advanced-builder-dialog/advanced-builder-dialog.component';
+import UnitEnum = TemporalPoint.UnitEnum;
+import {TimeUtilities} from '../../../utilities/time.utilities';
 
 
 /**
@@ -180,12 +182,16 @@ export class CompetitionBuilderTaskDialogComponent {
          */
         let start = -1;
         let end = -1;
+        const unit = unitControl?.value ? (unitControl.value as UnitEnum) : UnitEnum.SECONDS;
         if (startControl && startControl.value) {
-            start = Number.parseInt(startControl.value, 10);
+            start = TimeUtilities.point2Milliseconds({value: startControl.value, unit} as TemporalPoint, mediaItem.fps) / 1000;
+            // start = Number.parseInt(startControl.value, 10);
         }
         if (endControl && endControl.value) {
-            end = Number.parseInt(endControl.value, 10);
+            end = TimeUtilities.point2Milliseconds({value: endControl.value, unit} as TemporalPoint, mediaItem.fps) / 1000;
         }
+
+        console.log("Start="+start+", End="+end);
         // const config = {
         //     width: '800px', data: {mediaItem, segmentStart: start, segmentEnd: end}
         // } as MatDialogConfig<VideoPlayerSegmentBuilderData>;

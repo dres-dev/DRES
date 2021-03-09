@@ -1,7 +1,8 @@
 import {Component, ElementRef, Inject, ViewChild} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialog, MatDialogConfig, MatDialogRef} from '@angular/material/dialog';
 import {
-    CollectionService, ConfiguredOptionQueryComponentOption,
+    CollectionService,
+    ConfiguredOptionQueryComponentOption,
     ConfiguredOptionTargetOption,
     RestMediaCollection,
     RestMediaItem,
@@ -16,12 +17,10 @@ import {Observable} from 'rxjs';
 import {filter, first} from 'rxjs/operators';
 import {AppConfig} from '../../../app.config';
 import {CompetitionFormBuilder} from './competition-form.builder';
-import {
-    VideoPlayerSegmentBuilderData
-} from './video-player-segment-builder/video-player-segment-builder.component';
+import {VideoPlayerSegmentBuilderData} from './video-player-segment-builder/video-player-segment-builder.component';
 import {AdvancedBuilderDialogComponent, AdvancedBuilderDialogData} from './advanced-builder-dialog/advanced-builder-dialog.component';
-import UnitEnum = TemporalPoint.UnitEnum;
 import {TimeUtilities} from '../../../utilities/time.utilities';
+import UnitEnum = TemporalPoint.UnitEnum;
 
 
 /**
@@ -40,6 +39,20 @@ export interface CompetitionBuilderTaskDialogData {
 })
 export class CompetitionBuilderTaskDialogComponent {
 
+    form: FormGroup;
+    units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
+    /** Data source for list of {@link MediaCollection}. Loaded upon construction of the dialog. */
+    mediaCollectionSource: Observable<RestMediaCollection[]>;
+    /** The {@link CompetitionFormBuilder} used by this dialogue. */
+    builder: CompetitionFormBuilder;
+    @ViewChild('videoPlayer', {static: false}) video: ElementRef;
+    @ViewChild('targetStartIn', {static: false}) targetStartIn: HTMLInputElement;
+    @ViewChild('targetEndIn', {static: false}) targetEndIn: HTMLInputElement;
+    viewLayout = 'list';
+    showVideo = false;
+    videoSegmentData: VideoPlayerSegmentBuilderData;
+    private imagePreviewMap = new Set<number>();
+
     constructor(public dialogRef: MatDialogRef<CompetitionBuilderTaskDialogComponent>,
                 public collectionService: CollectionService,
                 @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData,
@@ -50,18 +63,6 @@ export class CompetitionBuilderTaskDialogComponent {
         this.form = this.builder.form;
         this.mediaCollectionSource = this.collectionService.getApiCollectionList();
     }
-
-    form: FormGroup;
-    units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
-    /** Data source for list of {@link MediaCollection}. Loaded upon construction of the dialog. */
-    mediaCollectionSource: Observable<RestMediaCollection[]>;
-    /** The {@link CompetitionFormBuilder} used by this dialogue. */
-    builder: CompetitionFormBuilder;
-    @ViewChild('videoPlayer', {static: false}) video: ElementRef;
-    viewLayout = 'list';
-    showVideo = false;
-    videoSegmentData: VideoPlayerSegmentBuilderData;
-    private imagePreviewMap = new Set<number>();
 
     private static randInt(min: number, max: number): number {
         min = Math.floor(min);
@@ -74,7 +75,7 @@ export class CompetitionBuilderTaskDialogComponent {
         this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, task);
         this.form = this.builder.form;
         console.log('Loaded task: ' + JSON.stringify(task));
-    }
+    };
 
     /**
      * Handler for (+) button for query target form component.
@@ -184,14 +185,22 @@ export class CompetitionBuilderTaskDialogComponent {
         let end = -1;
         const unit = unitControl?.value ? (unitControl.value as UnitEnum) : UnitEnum.SECONDS;
         if (startControl && startControl.value) {
-            start = TimeUtilities.point2Milliseconds({value: startControl.value, unit} as TemporalPoint, mediaItem.fps) / 1000;
+            if (startControl.value === 'TIMECODE') {
+                start = TimeUtilities.timeCode2Milliseconds(startControl.value, mediaItem.fps) / 1000;
+            } else {
+                start = TimeUtilities.point2Milliseconds({value: startControl.value, unit} as TemporalPoint, mediaItem.fps) / 1000;
+            }
             // start = Number.parseInt(startControl.value, 10);
         }
         if (endControl && endControl.value) {
-            end = TimeUtilities.point2Milliseconds({value: endControl.value, unit} as TemporalPoint, mediaItem.fps) / 1000;
+            if (endControl.value === 'TIMECODE') {
+                end = TimeUtilities.timeCode2Milliseconds(endControl.value, mediaItem.fps) / 1000;
+            } else {
+                end = TimeUtilities.point2Milliseconds({value: endControl.value, unit} as TemporalPoint, mediaItem.fps) / 1000;
+            }
         }
 
-        console.log("Start="+start+", End="+end);
+        console.log('Start=' + start + ', End=' + end);
         // const config = {
         //     width: '800px', data: {mediaItem, segmentStart: start, segmentEnd: end}
         // } as MatDialogConfig<VideoPlayerSegmentBuilderData>;
@@ -208,7 +217,7 @@ export class CompetitionBuilderTaskDialogComponent {
         this.showVideo = !this.showVideo;
     }
 
-    onRangeChange( range: TemporalRange, startControl?: FormControl, endControl?: FormControl, unitControl?: FormControl){
+    onRangeChange(range: TemporalRange, startControl?: FormControl, endControl?: FormControl, unitControl?: FormControl) {
         startControl?.setValue(range.start.value);
         endControl?.setValue(range.end.value);
         unitControl?.setValue(TemporalPoint.UnitEnum.SECONDS);
@@ -270,9 +279,21 @@ export class CompetitionBuilderTaskDialogComponent {
                     const nameNoExt = name.substring(0, name.lastIndexOf('.'));
                     this.collectionService.getApiCollectionWithCollectionidWithStartswith(mediaCollectionId, nameNoExt)
                         .subscribe(item =>
-                        form.get('mediaItem').setValue(item[0]));
+                            form.get('mediaItem').setValue(item[0]));
                 });
             });
+    }
+
+    targetTimeUnitChanged(unitControl: FormControl) {
+        const type = unitControl.value === 'TIMECODE' ? 'text' : 'number';
+        console.log("new type: "+type);
+        if (this.targetStartIn) {
+            this.targetStartIn.type = type;
+        }
+        if (this.targetEndIn) {
+            this.targetEndIn.type = type;
+        }
+        console.log(this.targetStartIn);
     }
 
     /**

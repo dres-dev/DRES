@@ -1,8 +1,7 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
 buildscript {
-    ext.kotlinVersion = '1.4.21'
-
+    ext.kotlinVersion = '1.4.31'
     repositories {
         mavenCentral()
     }
@@ -12,9 +11,8 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlinVersion"
     }
 }
+
 plugins {
-    /// Frontend compilation & deployment
-    id 'com.github.node-gradle.node' version '2.2.0'
     /// Download task for FFMPEG binaries download
     id 'de.undercouch.download' version '4.0.4'
     /// OpenAPI Generator for Frontend internal api generation
@@ -28,16 +26,28 @@ apply plugin: 'kotlinx-serialization'
 apply plugin: 'idea'
 
 mainClassName = 'dev.dres.DRES'
-
 sourceCompatibility = 1.8
+
+/* Configuration for frontent classpath files (see dependencies). */
+configurations {
+    frontendClasspath {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+}
+
+/* Includes the frontendClasspath files into the JAR. */
+jar {
+    into('html') {
+        from configurations.frontendClasspath
+    }
+}
 
 /// Default OpenAPI Specifications of dres
 def fullOAS = "http://localhost:8080/swagger-docs"
 def clientOAS = "http://localhost:8080/client-oas"
 def oasFile = "${project.projectDir}/../doc/oas.json"
 def clientOasFile = "${project.projectDir}/../doc/oas-client.json"
-/// Provide ability to override with gradle command line input
-/// call gradle with -Poas="<uri>" to specify non-default OAS location
 if(project.hasProperty('oas')){
     fullOAS = oas
 }
@@ -54,14 +64,12 @@ openApiGenerate {
     inputSpec = oasFile
     outputDir = file("${project.projectDir}/../frontend/openapi").toString()
     configOptions = [
-            npmName: '@dres-openapi/api',
-            ngVersion: '9.1.0',
-            snapshot: 'true', /// I suggest to remove this, as soon as we automate this,
-            enumPropertyNaming: 'original'
+        npmName: '@dres-openapi/api',
+        ngVersion: '9.1.0',
+        snapshot: 'true', /// I suggest to remove this, as soon as we automate this,
+        enumPropertyNaming: 'original'
     ]
 }
-
-
 
 repositories {
     mavenCentral()
@@ -78,15 +86,15 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-
 dependencies {
     def jettyVersion = '9.4.25.v20191220'
     def alpnApiVersion = '1.1.3.v20160715'
     def alpnBootVersion = '8.1.12.v20180117'
 
+    frontendClasspath(project(path: ":frontend", configuration: 'frontendFiles'))
+
     ///// MapDB
     compile group: 'org.mapdb', name: 'mapdb', version: '3.0.8'
-
 
     ////// JLine 3
     compile group: 'org.jline', name: 'jline', version: '3.15.0'
@@ -172,41 +180,6 @@ distributions {
     }
 }
 
-node {
-    version = '12.18.3'
-    npmVersion = '6.14.6'
-
-    download = true
-    workDir = file("${project.projectDir}/../frontend/nodejs")
-    npmWorkDir = file("${project.projectDir}/../frontend")
-    nodeModulesDir = file("${project.projectDir}/../frontend")
-}
-
-/** Custom tasks: Front building (npm / node). */
-
-task cleanFrontendResources(type: Delete) {
-    delete 'src/main/resources/html'
-    doLast {
-        mkdir 'src/main/resources/html'
-        new File('src/main/resources/html/index.html').text = " "
-    }
-}
-
-task buildFrontend(type: NpmTask) {
-    args = ['run', 'pbuild']
-    dependsOn 'npm_install'
-}
-
-task deployFrontend(type: Copy) {
-    dependsOn 'cleanFrontendResources'
-    dependsOn 'buildFrontend'
-    tasks.findByName('buildFrontend').mustRunAfter 'cleanFrontendResources'
-    from('../frontend/dist/dres-frontend')
-    exclude '**/config.json'
-    into('src/main/resources/html')
-}
-
-
 task generateOAS(type: Download) {
     /* Requires DRES running on default port */
     // TODO Direct write to file instead of download
@@ -288,9 +261,6 @@ task setupFFMpeg(type: Copy) {
     dependsOn copyFFmpeg
     dependsOn copyFFprobe
 }
-
-/** Jar task depends on frontend deployment. */
-jar.dependsOn deployFrontend
 
 /** Distribution tasks depend on Jar and setupFFMpeg. */
 distZip.dependsOn jar

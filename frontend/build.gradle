@@ -1,0 +1,37 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+plugins {
+    id 'base'
+    id 'com.github.node-gradle.node' version '3.0.1'
+}
+
+configurations {
+    frontendFiles {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+}
+
+node {
+    version = '12.18.3'
+    download = true
+    workDir = file("${project.projectDir}/.gradle/nodejs")
+    npmWorkDir = file("${project.projectDir}/.gradle/npm")
+    nodeProjectDir = file("${project.projectDir}")
+}
+
+task buildFrontend(type: NpmTask) {
+    args = ['run', 'pbuild']
+    dependsOn 'npmInstall'
+}
+
+
+
+artifacts {
+    frontendFiles(file('build/dist')) {
+        builtBy buildFrontend
+    }
+}

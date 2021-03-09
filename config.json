@@ -1,0 +1,6 @@
+{
+    "dataPath" : "/dres-data/data",
+    "cachePath" : "/dres-data/cache",
+    "externalPath": "/dres-data/external",
+    "enableSsl" : false
+}

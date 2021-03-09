@@ -12,9 +12,9 @@ import dev.dres.run.RunManagerStatus
  * This is information that changes in the course of a run an therefore must be updated frequently.
  *
  * @author Ralph Gasser
- * @version 1.0.2
+ * @version 1.0.3
  */
 data class RunState(val id: String, val status: RunManagerStatus, val currentTask: TaskInfo?, val timeLeft: Long) {
-    constructor(run: InteractiveRunManager, context: RunActionContext) : this(run.id.string, run.status, run.currentTaskDescription(context)?.let { TaskInfo(it) }, run.timeLeft(context) / 1000)
+    constructor(run: InteractiveRunManager, context: RunActionContext) : this(run.id.string, run.status, TaskInfo(run.currentTaskDescription(context)), run.timeLeft(context) / 1000)
 }
 

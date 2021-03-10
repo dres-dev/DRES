@@ -347,6 +347,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
             this.competition.tasks[oldIndex - 1] = task;
             this.competition.tasks[oldIndex] = buffer;
             this.taskTable.renderRows();
+            this.dirty = true;
         }
     }
 
@@ -362,6 +363,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
             this.competition.tasks[oldIndex + 1] = task;
             this.competition.tasks[oldIndex] = buffer;
             this.taskTable.renderRows();
+            this.dirty = true;
         }
     }
 

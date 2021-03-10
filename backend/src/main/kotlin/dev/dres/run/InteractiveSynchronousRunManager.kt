@@ -181,7 +181,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     }
 
     override fun end(context: RunActionContext) = this.stateLock.write {
-        checkStatus(RunManagerStatus.CREATED, RunManagerStatus.ACTIVE)
+        checkStatus(RunManagerStatus.CREATED, RunManagerStatus.ACTIVE, RunManagerStatus.TASK_ENDED)
         checkContext(context)
 
         /* End the run. */

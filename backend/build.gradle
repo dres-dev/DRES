@@ -137,7 +137,7 @@ distributions {
 /** Custom tasks: FFmpeg Download and deployment. */
 
 task downloadFFmpeg(type: Download) {
-    def f = new File("$buildDir/build/cache/ffmpeg.zip")
+    def f = new File("$buildDir/cache/ffmpeg.zip")
     outputs.upToDateWhen {
         return f.exists()
     }

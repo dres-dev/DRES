@@ -177,21 +177,21 @@ task downloadFFprobe(type: Download) {
 task copyFFmpeg(type: Copy) {
     dependsOn downloadFFmpeg
     outputs.upToDateWhen {
-        return !fileTree("$buildDir/ext/ffmpeg").filter { it.isFile() && it.name== 'ffmpeg'}.isEmpty()
+        return !fileTree("$buildDir/ext/ffmpeg").filter { it.isFile() && it.name.startsWith('ffmpeg')}.isEmpty()
     }
     from zipTree(downloadFFmpeg.dest)
     into "$buildDir/ext/ffmpeg"
-    include 'ffmpeg'
+    include '*ffmpeg*'
 }
 
 task copyFFprobe(type: Copy) {
     dependsOn downloadFFprobe
     outputs.upToDateWhen {
-        return !fileTree("$buildDir/ext/ffmpeg").filter { it.isFile() && it.name == 'ffprobe' }.isEmpty()
+        return !fileTree("$buildDir/ext/ffmpeg").filter { it.isFile() && it.name.startsWith('ffprobe') }.isEmpty()
     }
     from zipTree(downloadFFprobe.dest)
     into "$buildDir/ext/ffmpeg"
-    include 'ffprobe'
+    include '*ffprobe*'
 }
 
 task setupFFMpeg(type: Copy) {

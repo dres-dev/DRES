@@ -186,7 +186,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     override fun end(context: RunActionContext) {
-        checkGlobalStatus(RunManagerStatus.CREATED, RunManagerStatus.ACTIVE)
+        checkGlobalStatus(RunManagerStatus.CREATED, RunManagerStatus.ACTIVE, RunManagerStatus.TASK_ENDED)
         if (context.isAdmin) {
             /* End the run. */
             this.run.end()

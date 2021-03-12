@@ -57,6 +57,17 @@ export class CompetitionFormBuilder {
         };
     }
 
+    private temporalPointValidator(unitControl: FormControl): ValidatorFn{
+        return (control: AbstractControl): { [key: string]: any } | null => {
+            if (unitControl.value === 'TIMECODE'){
+                // TODO properly check format HH:MM:SS:fff
+                return `${control.value}`.length >= 5 && `${control.value}`.indexOf(':') > 0 ? null : {error: `${control.value} does not conform HH:MM:SS:fff format`};
+            }else{
+                return Validators.min(0);
+            }
+        };
+    }
+
     /**
      * Returns the {@link Observable<MediaItem[]>} for the given key.
      *
@@ -266,13 +277,20 @@ export class CompetitionFormBuilder {
             });
         }
 
-        return new FormGroup({
+        const formGroup = new FormGroup({
             mediaItem: mediaItemFormControl,
-            segment_start: new FormControl(initialize?.temporalRange.start.value, [Validators.required, this.orValidator(Validators.min(0), Validators.minLength(5))]),
-            segment_end: new FormControl(initialize?.temporalRange.end.value, [Validators.required, this.orValidator(Validators.min(0), Validators.minLength(5))]),
+            segment_start: new FormControl(initialize?.temporalRange.start.value, [Validators.required]),
+            segment_end: new FormControl(initialize?.temporalRange.end.value, [Validators.required]),
             segment_time_unit: new FormControl(initialize?.temporalRange.start.unit ?
                 initialize?.temporalRange.start.unit : 'SECONDS', [Validators.required])
         });
+
+        formGroup.get('segment_start').setValidators([Validators.required, this.temporalPointValidator(formGroup.get('segment_time_unit') as FormControl)]);
+        formGroup.get('segment_end').setValidators([Validators.required, this.temporalPointValidator(formGroup.get('segment_time_unit') as FormControl)]);
+        formGroup.get('segment_start').updateValueAndValidity();
+        formGroup.get('segment_end').updateValueAndValidity();
+
+        return formGroup;
     }
 
     /**
@@ -372,8 +390,8 @@ export class CompetitionFormBuilder {
             end: new FormControl(initialize?.end),
             type: new FormControl('VIDEO_ITEM_SEGMENT', [Validators.required]),
             mediaItem: mediaItemFormControl,
-            segment_start: new FormControl(initialize?.range.start.value, [Validators.required, this.orValidator(Validators.min(0), Validators.minLength(5))]),
-            segment_end: new FormControl(initialize?.range.end.value, [Validators.required, this.orValidator(Validators.min(0), Validators.minLength(5))]),
+            segment_start: new FormControl(initialize?.range.start.value, [Validators.required]),
+            segment_end: new FormControl(initialize?.range.end.value, [Validators.required]),
             segment_time_unit: new FormControl(initialize?.range.start.unit ?
                 initialize?.range.start.unit : 'SECONDS', Validators.required)
         });
@@ -390,6 +408,11 @@ export class CompetitionFormBuilder {
         if (!group.get('segment_time_unit').value && this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT') {
             group.get('segment_time_unit').setValue((this.form.get('target') as FormArray).controls[0].get('segment_time_unit').value);
         }
+
+        group.get('segment_start').setValidators([Validators.required, this.temporalPointValidator(group.get('segment_time_unit') as FormControl)]);
+        group.get('segment_end').setValidators([Validators.required, this.temporalPointValidator(group.get('segment_time_unit') as FormControl)]);
+        group.get('segment_start').updateValueAndValidity();
+        group.get('segment_end').updateValueAndValidity();
 
         return group;
     }

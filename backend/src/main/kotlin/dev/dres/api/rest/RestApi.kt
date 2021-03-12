@@ -1,5 +1,6 @@
 package dev.dres.api.rest
 
+import com.fasterxml.jackson.databind.SerializationFeature
 import dev.dres.api.rest.handler.*
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.dbo.DataAccessLayer
@@ -10,6 +11,7 @@ import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.core.security.SecurityUtil.roles
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
+import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
 import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.swagger.v3.oas.models.info.Info
@@ -33,6 +35,8 @@ object RestApi {
 
     private val logMarker = MarkerFactory.getMarker("REST")
     private val logger = LoggerFactory.getLogger(this.javaClass)
+
+    private val mapper = JacksonToJsonMapper.defaultObjectMapper.enable(SerializationFeature.INDENT_OUTPUT)
 
     fun getOpenApiPlugin(): OpenApiPlugin {
         return openApiPlugin
@@ -247,6 +251,7 @@ object RestApi {
                 }
                 activateAnnotationScanningFor("dev.dres.api.rest.handler")
                 options.ignored.forEach { ignorePath(it.first) }
+                toJsonMapper(JacksonToJsonMapper(jacksonMapper))
             }
 
 

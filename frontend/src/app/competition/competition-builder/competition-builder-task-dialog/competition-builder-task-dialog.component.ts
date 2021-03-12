@@ -185,7 +185,7 @@ export class CompetitionBuilderTaskDialogComponent {
         let end = -1;
         const unit = unitControl?.value ? (unitControl.value as UnitEnum) : UnitEnum.SECONDS;
         if (startControl && startControl.value) {
-            if (startControl.value === 'TIMECODE') {
+            if (unitControl.value === 'TIMECODE') {
                 start = TimeUtilities.timeCode2Milliseconds(startControl.value, mediaItem.fps) / 1000;
             } else {
                 start = TimeUtilities.point2Milliseconds({value: startControl.value, unit} as TemporalPoint, mediaItem.fps) / 1000;
@@ -193,7 +193,7 @@ export class CompetitionBuilderTaskDialogComponent {
             // start = Number.parseInt(startControl.value, 10);
         }
         if (endControl && endControl.value) {
-            if (endControl.value === 'TIMECODE') {
+            if (unitControl.value === 'TIMECODE') {
                 end = TimeUtilities.timeCode2Milliseconds(endControl.value, mediaItem.fps) / 1000;
             } else {
                 end = TimeUtilities.point2Milliseconds({value: endControl.value, unit} as TemporalPoint, mediaItem.fps) / 1000;
@@ -284,16 +284,16 @@ export class CompetitionBuilderTaskDialogComponent {
             });
     }
 
-    targetTimeUnitChanged(unitControl: FormControl) {
-        const type = unitControl.value === 'TIMECODE' ? 'text' : 'number';
+    timeUnitChanged($event, startElementRef: HTMLInputElement, endElementRef: HTMLInputElement) {
+        console.log($event);
+        const type = $event.value === 'TIMECODE' ? 'text' : 'number';
         console.log("new type: "+type);
-        if (this.targetStartIn) {
-            this.targetStartIn.type = type;
+        if (startElementRef) {
+            startElementRef.type = type;
         }
-        if (this.targetEndIn) {
-            this.targetEndIn.type = type;
+        if (endElementRef) {
+            endElementRef.type = type;
         }
-        console.log(this.targetStartIn);
     }
 
     /**

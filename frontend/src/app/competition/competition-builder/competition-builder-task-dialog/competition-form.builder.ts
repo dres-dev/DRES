@@ -1,5 +1,7 @@
 import {
-    CollectionService, ConfiguredOptionQueryComponentOption, ConfiguredOptionTargetOption,
+    CollectionService,
+    ConfiguredOptionQueryComponentOption,
+    ConfiguredOptionTargetOption,
     RestMediaItem,
     RestTaskDescription,
     RestTaskDescriptionComponent,
@@ -10,19 +12,18 @@ import {
     TemporalPoint,
     TemporalRange
 } from '../../../../../openapi';
-import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
+import {AbstractControl, FormArray, FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
 import {filter, first, switchMap} from 'rxjs/operators';
 import {Observable} from 'rxjs';
 import {RequireMatch} from './require-match';
 
 export class CompetitionFormBuilder {
 
-    /** List of data sources managed by this CompetitionFormBuilder. */
-    private dataSources = new Map<string, Observable<RestMediaItem[] | string[]>>();
-
+    private static function;
     /** The {@link FormGroup} held by this {@link CompetitionFormBuilder}. */
     public form: FormGroup;
-
+    /** List of data sources managed by this CompetitionFormBuilder. */
+    private dataSources = new Map<string, Observable<RestMediaItem[] | string[]>>();
 
     /**
      * Constructor for CompetitionFormBuilder.
@@ -35,6 +36,25 @@ export class CompetitionFormBuilder {
     constructor(private taskGroup: TaskGroup, private taskType: TaskType,
                 private collectionService: CollectionService, private data?: RestTaskDescription) {
         this.initializeForm();
+    }
+
+    /**
+     * Returns the duration value to init with:
+     * either the set task duration (if this is for editing)
+     * otherwise the default value based on the tasktype default
+     */
+    private get durationInitValue() {
+        if (this?.data?.duration) {
+            return this.data.duration;
+        } else {
+            return this.taskType.taskDuration;
+        }
+    }
+
+    private orValidator(validator1: ValidatorFn, validator2: ValidatorFn): ValidatorFn {
+        return (control: AbstractControl): { [key: string]: any } | null => {
+            return validator1(control) || validator2(control);
+        };
     }
 
     /**
@@ -132,8 +152,8 @@ export class CompetitionFormBuilder {
                     end: c.get('end').value,
                     mediaItem: c.get('mediaItem') ? c.get('mediaItem').value.id : null,
                     range: c.get('segment_start') && c.get('segment_end') ? {
-                        start: { value: c.get('segment_start').value, unit: c.get('segment_time_unit').value }  as TemporalPoint,
-                        end: { value: c.get('segment_end').value, unit: c.get('segment_time_unit').value }  as TemporalPoint,
+                        start: {value: c.get('segment_start').value, unit: c.get('segment_time_unit').value} as TemporalPoint,
+                        end: {value: c.get('segment_end').value, unit: c.get('segment_time_unit').value} as TemporalPoint,
                     } as TemporalRange : null,
                     description: c.get('description') ? c.get('description').value : null,
                     path: c.get('path') ? c.get('path').value : null
@@ -174,20 +194,6 @@ export class CompetitionFormBuilder {
         this.form.addControl('target', this.formForTarget());
         this.form.addControl('components', this.formForQueryComponents());
     }
-
-    /**
-     * Returns the duration value to init with:
-     * either the set task duration (if this is for editing)
-     * otherwise the default value based on the tasktype default
-     */
-    private get durationInitValue(){
-        if (this?.data?.duration) {
-            return this.data.duration;
-        }else{
-            return this.taskType.taskDuration;
-        }
-    }
-
 
     /**
      * Returns the target form for the given {TaskType}
@@ -231,8 +237,8 @@ export class CompetitionFormBuilder {
         if (initialize?.mediaItem && this.data?.mediaCollectionId) {
             this.collectionService.getApiMediaitemWithMediaid(initialize.mediaItem)
                 .pipe(first()).subscribe(s => {
-                    mediaItemFormControl.setValue(s);
-                });
+                mediaItemFormControl.setValue(s);
+            });
         }
 
         return new FormGroup({mediaItem: mediaItemFormControl}, [RequireMatch]);
@@ -245,7 +251,7 @@ export class CompetitionFormBuilder {
      */
     private singleMediaSegmentTargetForm(initialize?: RestTaskDescriptionTargetItem) {
         /* Prepare auto complete field. */
-        const mediaItemFormControl =  new FormControl(null, [Validators.required, RequireMatch]);
+        const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
 
         this.dataSources.set(`target.0.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
@@ -254,7 +260,7 @@ export class CompetitionFormBuilder {
 
         /* Load media item from API. */
         if (initialize?.mediaItem && this.data.mediaCollectionId) {
-            this.collectionService.getApiMediaitemWithMediaid( initialize.mediaItem)
+            this.collectionService.getApiMediaitemWithMediaid(initialize.mediaItem)
                 .pipe(first()).subscribe(s => {
                 mediaItemFormControl.setValue(s);
             });
@@ -262,10 +268,10 @@ export class CompetitionFormBuilder {
 
         return new FormGroup({
             mediaItem: mediaItemFormControl,
-            segment_start: new FormControl(initialize?.temporalRange.start.value, [Validators.required, Validators.min(0)]),
-            segment_end: new FormControl(initialize?.temporalRange.end.value, [Validators.required, Validators.min(0)]),
+            segment_start: new FormControl(initialize?.temporalRange.start.value, [Validators.required, this.orValidator(Validators.min(0), Validators.minLength(5))]),
+            segment_end: new FormControl(initialize?.temporalRange.end.value, [Validators.required, this.orValidator(Validators.min(0), Validators.minLength(5))]),
             segment_time_unit: new FormControl(initialize?.temporalRange.start.unit ?
-                initialize?.temporalRange.start.unit  : 'SECONDS', [Validators.required])
+                initialize?.temporalRange.start.unit : 'SECONDS', [Validators.required])
         });
     }
 
@@ -306,7 +312,7 @@ export class CompetitionFormBuilder {
      * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
      */
     private imageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
-        const mediaItemFormControl =  new FormControl(null, [Validators.required, RequireMatch]);
+        const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
         if (!initialize?.mediaItem && (this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType.option === 'SINGLE_MEDIA_ITEM')) {
             mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
         }
@@ -341,7 +347,7 @@ export class CompetitionFormBuilder {
      */
     private videoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
         /* Initialize media item based on target. */
-        const mediaItemFormControl =  new FormControl(null, [Validators.required, RequireMatch]);
+        const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
         if (!initialize?.mediaItem && (this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType.option === 'SINGLE_MEDIA_ITEM')) {
             mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
         }
@@ -366,10 +372,10 @@ export class CompetitionFormBuilder {
             end: new FormControl(initialize?.end),
             type: new FormControl('VIDEO_ITEM_SEGMENT', [Validators.required]),
             mediaItem: mediaItemFormControl,
-            segment_start: new FormControl(initialize?.range.start.value, [Validators.required, Validators.min(0)]),
-            segment_end: new FormControl(initialize?.range.end.value, [Validators.required, Validators.min(0)]),
+            segment_start: new FormControl(initialize?.range.start.value, [Validators.required, this.orValidator(Validators.min(0), Validators.minLength(5))]),
+            segment_end: new FormControl(initialize?.range.end.value, [Validators.required, this.orValidator(Validators.min(0), Validators.minLength(5))]),
             segment_time_unit: new FormControl(initialize?.range.start.unit ?
-                initialize?.range.start.unit  : 'SECONDS', Validators.required)
+                initialize?.range.start.unit : 'SECONDS', Validators.required)
         });
 
         /* Initialize start, end and time unit based on target. */

@@ -88,17 +88,17 @@
                             </p>
                             <p *ngIf="target.get('segment_start') && target.get('segment_end')">
                                 <mat-form-field style="width: 30%;">
-                                    <input #targetStartIn [type]="target.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'"
+                                    <input #targetGridStart [type]="target.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'"
                                            matInput placeholder="Segment start"
                                            [formControl]="target.get('segment_start')"/>
                                 </mat-form-field>
                                 <mat-form-field style="width: 30%;">
-                                    <input #targetEndIn [type]="target.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'"
+                                    <input #targetGridEnd [type]="target.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'"
                                            matInput placeholder="Segment end"
                                            [formControl]="target.get('segment_end')"/>
                                 </mat-form-field>
                                 <mat-form-field style="width: 30%;">
-                                    <mat-select [formControl]="target.get('segment_time_unit')" (change)="targetTimeUnitChanged(target.get('segment_time_unit'))">
+                                    <mat-select [formControl]="target.get('segment_time_unit')" (selectionChange)="timeUnitChanged($event, targetGridStart, targetGridEnd)">
                                         <mat-option *ngFor="let unit of units" [value]="unit">{{unit}}</mat-option>
                                     </mat-select>
                                     <span matSuffix>
@@ -170,17 +170,17 @@
 
                         <p *ngIf="target.get('segment_start') && target.get('segment_end')">
                             <mat-form-field style="width: 30%;">
-                                <input [type]="target.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'"
+                                <input #targetListStart [type]="target.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'"
                                        matInput placeholder="Segment start"
                                        [formControl]="target.get('segment_start')"/>
                             </mat-form-field>
                             <mat-form-field style="width: 30%;">
-                                <input [type]="target.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'"
+                                <input #targetListEnd [type]="target.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'"
                                        matInput placeholder="Segment end"
                                        [formControl]="target.get('segment_end')"/>
                             </mat-form-field>
                             <mat-form-field style="width: 30%;">
-                                <mat-select [formControl]="target.get('segment_time_unit')">
+                                <mat-select [formControl]="target.get('segment_time_unit')" (selectionChange)="timeUnitChanged($event, targetListStart, targetListEnd)">
                                     <mat-option *ngFor="let unit of units" [value]="unit">{{unit}}</mat-option>
                                 </mat-select>
                                 <span matSuffix>
@@ -306,17 +306,17 @@
                                 </mat-autocomplete>
                             </mat-form-field>
                             <mat-form-field style="width: 10%;">
-                                <input type="number" matInput placeholder="Segment start"
+                                <input #descStart [type]="description.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'" matInput placeholder="Segment start"
                                        [formControl]="description.get('segment_start')"/>
                             </mat-form-field>
                             <mat-form-field style="width: 10%;">
-                                <input type="number" matInput placeholder="Segment end"
+                                <input #descEnd [type]="description.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'" matInput placeholder="Segment end"
                                        [formControl]="description.get('segment_end')"/>
                             </mat-form-field>
                             <mat-form-field style="width: 20%;">
-                                <select matNativeControl [formControl]="description.get('segment_time_unit')">
+                                <mat-select [formControl]="description.get('segment_time_unit')" (selectionChange)="timeUnitChanged($event, descStart, descEnd)">
                                     <option *ngFor="let unit of units" [value]="unit">{{unit}}</option>
-                                </select>
+                                </mat-select>
                                 <span matSuffix>
                                     <button mat-icon-button
                                             aria-label="Show media item."

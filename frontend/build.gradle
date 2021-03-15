@@ -16,6 +16,9 @@ configurations {
     }
 }
 
+/** If the flag -DincludeConfig is passed, we include it */
+def includeConfig = project.hasProperty('includeConfig')
+
 node {
     version = '12.18.3'
     download = true
@@ -42,6 +45,10 @@ task packageFrontend(type: Zip) {
     extension 'jar'
     destinationDir file("$buildDir/lib")
     from("$buildDir/dist") {
+        println("includeConfig: "+includeConfig)
+        if(!includeConfig){
+            exclude '**/config.json'
+        }
         into 'html'
     }
 }

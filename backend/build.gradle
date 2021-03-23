@@ -59,7 +59,9 @@ dependencies {
     compile group: 'org.mapdb', name: 'mapdb', version: '3.0.8'
 
     ////// Javalin
-    compile group: 'io.javalin', name: 'javalin-bundle', version: '3.13.0'
+    compile ('io.javalin:javalin-bundle:3.13.0'){
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+    }
     compile group: 'io.swagger.core.v3', name: 'swagger-core', version: '2.1.5'
     compile group: 'org.webjars', name: 'swagger-ui', version: '3.24.3'
     compile group: 'org.webjars.npm', name: 'js-tokens', version: '3.0.2'

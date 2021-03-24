@@ -4,6 +4,33 @@ This is the frontend / UI code for DRES - the Distributed Retrieval Evaluation S
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 9.1.0.
 
+## Configuration Customisation
+
+It is possible to customise the configuration __before__ deoploying.
+The main reason for that is enabling TLS.
+
+Please modify the `src/config.json` accordingly and package
+the frontend using the corresponding gradle command:
+
+```
+./gradlew packageFrontend -DincludeConfig
+```
+
+The config is structured as follows:
+
+```json
+{
+  "endpoint": {           
+    "host": "localhost",  // When serving the frontend elsewhere, specify the backend host
+    "port": 8080,         // When serving the frontend elsewhere, specify the backend port
+    "tls": false          // Set to `true` when TLS should be enabled. Requires backend config with matching `"enableSsl":true`
+  },
+  "effects": {
+    "mute": false         // Whether to globally mute audio (fx and video)
+  }
+}
+```
+
 ## Development server
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.

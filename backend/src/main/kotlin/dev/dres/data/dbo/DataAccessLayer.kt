@@ -1,5 +1,7 @@
 package dev.dres.data.dbo
 
+import dev.dres.data.model.run.AbstractRun
+import dev.dres.data.model.run.interfaces.Competition
 import dev.dres.data.serializers.*
 import java.nio.file.Path
 
@@ -32,8 +34,8 @@ class DataAccessLayer(private val basePath: Path) {
     /** List of [dev.dres.data.model.competition.CompetitionDescription]s managed by this DRES instance. */
     val competitions = DAO(this.basePath.resolve("competitions.db"), competitionSerializer)
 
-    /** List of [dev.dres.data.model.run.CompetitionRun]s managed by this DRES instance. */
-    val runs = DAO(this.basePath.resolve("runs.db"), CompetitionRunSerializer(competitionSerializer))
+    /** List of [dev.dres.data.model.run.InteractiveSynchronousCompetition]s managed by this DRES instance. */
+    val runs: DAO<Competition> = DAO(this.basePath.resolve("runs.db"), CompetitionRunSerializer(competitionSerializer))
 
     val audit = DAO(this.basePath.resolve("auditLog.db"), AuditLogEntrySerializer, cacheDuration = 1440)
     val auditTimes = NumericDaoIndexer(audit){it.timestamp}

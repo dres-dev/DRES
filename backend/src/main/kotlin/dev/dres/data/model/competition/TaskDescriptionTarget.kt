@@ -47,7 +47,7 @@ sealed class TaskDescriptionTarget {
     /**
      * A [TaskDescriptionTarget] that is validated by human judges.
      */
-    object JudgementTaskDescriptionTarget : TaskDescriptionTarget() {
+    data class JudgementTaskDescriptionTarget(val targets: List<Pair<MediaItem, TemporalRange?>>) : TaskDescriptionTarget() {
         override val ordinal: Int = 1
         override fun textDescription() = "Judgement"
         override fun toQueryContentElement(config: Config, collections: DAO<MediaCollection>): List<ContentElement> = emptyList()
@@ -133,5 +133,11 @@ sealed class TaskDescriptionTarget {
             }
             return contentElements
         }
+    }
+
+    data class VoteTaskDescriptionTarget(val targets: List<Pair<MediaItem, TemporalRange?>>) : TaskDescriptionTarget() {
+        override val ordinal: Int = 5
+        override fun textDescription() = "Judgement with voting"
+        override fun toQueryContentElement(config: Config, collections: DAO<MediaCollection>): List<ContentElement> = emptyList()
     }
 }

@@ -1,7 +1,7 @@
 package dev.dres.data.serializers
 
-import dev.dres.data.model.competition.ConfiguredOption
 import dev.dres.data.model.competition.TaskType
+import dev.dres.data.model.competition.options.*
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer
@@ -36,11 +36,11 @@ object TaskTypeSerializer : Serializer<TaskType> {
         TaskType(
             input.readUTF(),
             input.unpackLong(),
-            ConfiguredOption(TaskType.TargetType.values()[input.unpackInt()], deserializeMap(input)),
-            (0 until input.unpackInt()).map { ConfiguredOption(TaskType.QueryComponentType.values()[input.unpackInt()], deserializeMap(input)) },
-            ConfiguredOption(TaskType.ScoringType.values()[input.unpackInt()], deserializeMap(input)),
-            (0 until input.unpackInt()).map { ConfiguredOption(TaskType.SubmissionFilterType.values()[input.unpackInt()], deserializeMap(input)) },
-            (0 until input.unpackInt()).map { ConfiguredOption(TaskType.Options.values()[input.unpackInt()], deserializeMap(input)) }
+            ConfiguredOption(TargetOption.values()[input.unpackInt()], deserializeMap(input)),
+            (0 until input.unpackInt()).map { ConfiguredOption(QueryComponentOption.values()[input.unpackInt()], deserializeMap(input)) },
+            ConfiguredOption(ScoringOption.values()[input.unpackInt()], deserializeMap(input)),
+            (0 until input.unpackInt()).map { ConfiguredOption(SubmissionFilterOption.values()[input.unpackInt()], deserializeMap(input)) },
+            (0 until input.unpackInt()).map { ConfiguredOption(SimpleOption.values()[input.unpackInt()], deserializeMap(input)) }
         )
 
 

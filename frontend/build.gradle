@@ -1,0 +1,61 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+plugins {
+    /// Plugin to handle NodeJS
+    id 'base'
+    id 'com.github.node-gradle.node' version '3.0.1'
+}
+
+configurations {
+    frontendFiles {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+}
+
+/** If the flag -DincludeConfig is passed, we include it */
+def includeConfig = project.hasProperty('includeConfig')
+
+node {
+    version = '12.18.3'
+    download = true
+    workDir = file("${project.projectDir}/.gradle/nodejs")
+    npmWorkDir = file("${project.projectDir}/.gradle/npm")
+    nodeProjectDir = file("${project.projectDir}")
+}
+
+task buildFrontend(type: NpmTask) {
+    outputs.upToDateWhen {
+        return file("$buildDir/dist").isDirectory()
+    }
+    args = ['run', 'pbuild']
+    dependsOn npmInstall
+    dependsOn rootProject.tasks.getByName('openApiGenerate')
+}
+
+task packageFrontend(type: Zip) {
+    outputs.upToDateWhen {
+        return file("$buildDir/lib/dres-frontend.jar").exists()
+    }
+    dependsOn buildFrontend
+    baseName 'dres-frontend'
+    extension 'jar'
+    destinationDir file("$buildDir/lib")
+    from("$buildDir/dist") {
+        println("includeConfig: "+includeConfig)
+        if(!includeConfig){
+            exclude '**/config.json'
+        }
+        into 'html'
+    }
+}
+
+artifacts {
+    frontendFiles(packageFrontend.archiveFile) {
+        builtBy packageFrontend
+        type "jar"
+    }
+}

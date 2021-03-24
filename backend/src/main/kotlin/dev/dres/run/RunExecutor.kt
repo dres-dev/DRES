@@ -1,5 +1,6 @@
 package dev.dres.run
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.run.websocket.ClientMessage
@@ -8,7 +9,9 @@ import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
-import dev.dres.data.model.run.CompetitionRun
+import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.NonInteractiveCompetition
+import dev.dres.data.model.run.interfaces.Competition
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.read
@@ -16,6 +19,7 @@ import dev.dres.utilities.extensions.write
 import io.javalin.websocket.WsContext
 import io.javalin.websocket.WsHandler
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
@@ -58,18 +62,22 @@ object RunExecutor : Consumer<WsHandler> {
     /** Internal array of [Future]s for cleaning after [RunManager]s. See [RunExecutor.cleanerThread]*/
     private val results = HashMap<Future<*>, UID>()
 
-    /** Instance of shared [DAO] used to access [CompetitionRun]s. */
-    lateinit var runs: DAO<CompetitionRun>
+    /** Instance of shared [DAO] used to access [InteractiveSynchronousCompetition]s. */
+    lateinit var runs: DAO<Competition>
 
     /**
      * Initializes this [RunExecutor].
      *
-     * @param runs The shared [DAO] used to access [CompetitionRun]s.
+     * @param runs The shared [DAO] used to access [InteractiveSynchronousCompetition]s.
      */
-    fun init(runs: DAO<CompetitionRun>) {
+    fun init(runs: DAO<Competition>) {
         this.runs = runs
-        this.runs.filter { !it.hasEnded }.forEach {
-            val run = SynchronousRunManager(it) /* TODO: Distinction between Synchronous and Asynchronous runs. */
+        this.runs.filter { !it.hasEnded }.forEach { //TODO needs more distinction
+            val run = when(it) {
+                is InteractiveSynchronousCompetition -> InteractiveSynchronousRunManager(it)
+                is NonInteractiveCompetition -> NonInteractiveRunManager(it)
+                else -> throw NotImplementedError("No matching run manager found for $it")
+            }
             this.schedule(run)
         }
     }
@@ -231,6 +239,22 @@ object RunExecutor : Consumer<WsHandler> {
      * Stops all runs
      */
     fun stop() {
-        executor.shutdownNow()
+        this.executor.shutdownNow()
+    }
+
+
+    /**
+     * Dumps the given [Competition] to a file.
+     *
+     * @param competition [Competition] that should be dumped.
+     */
+    fun dump(competition: Competition) {
+        try {
+            val file = File("run_dump_${competition.id.string}.json")
+            jacksonObjectMapper().writeValue(file, competition)
+            this.logger.info("Wrote current run state to ${file.absolutePath}")
+        } catch (e: Exception){
+            this.logger.error("Could not write run to disk: ", e)
+        }
     }
 }

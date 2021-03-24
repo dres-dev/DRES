@@ -3,7 +3,7 @@ package dev.dres.api.rest.types.audit
 import dev.dres.api.rest.types.AbstractRestEntity
 import dev.dres.api.rest.types.run.SubmissionInfo
 import dev.dres.data.model.UID
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.audit.*
 
 sealed class RestAuditLogEntry(val type: AuditLogEntryType, id: UID, val timestamp: Long) : AbstractRestEntity(id.string) {

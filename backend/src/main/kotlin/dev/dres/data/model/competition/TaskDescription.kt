@@ -7,23 +7,22 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
+import dev.dres.data.model.competition.interfaces.SubmissionFilterFactory
+import dev.dres.data.model.competition.interfaces.TaskScorerFactory
+import dev.dres.data.model.run.interfaces.Task
 import dev.dres.run.filter.SubmissionFilter
-import dev.dres.run.score.interfaces.TaskRunScorer
-import dev.dres.run.validation.MediaItemsSubmissionValidator
-import dev.dres.run.validation.TemporalOverlapSubmissionValidator
+import dev.dres.run.score.interfaces.TaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
-import dev.dres.run.validation.judged.BasicJudgementValidator
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.PrintStream
 import kotlin.math.max
 
-typealias TaskDescriptionId = UID
-
 /**
- * Basic description of a [TaskDescription].
+ * Basic description of a [Task] as executed in DRES. Defines basic attributes such as its name, its duration,
+ * the [TaskDescriptionTarget] and the [TaskDescriptionHint]s, that should be presented to the user.
  *
- * @version 1.0.1
+ * @version 1.0.2
  * @author Luca Rossetto & Ralph Gasser
  */
 class TaskDescription(
@@ -51,28 +50,16 @@ class TaskDescription(
 
     /** List of [TaskDescriptionHint]s that act as clues to find the target media. */
     val hints: List<TaskDescriptionHint>
-){
+): TaskScorerFactory, SubmissionFilterFactory {
 
     /**
-     * Generates a new [TaskRunScorer] for this [TaskDescription]. Depending
+     * Generates a new [TaskScorer] for this [TaskDescription]. Depending
      * on the implementation, the returned instance is a new instance or being re-use.
      *
-     * @return [TaskRunScorer].
+     * @return [TaskScorer].
      */
-    fun newScorer(): TaskRunScorer = taskType.newScorer()
+    override fun newScorer(): TaskScorer = this.taskType.newScorer()
 
-    /**
-     * Generates and returns a new [SubmissionValidator] for this [TaskDescription]. Depending
-     * on the implementation, the returned instance is a new instance or being re-use.
-     *
-     * @return [SubmissionValidator].
-     */
-    fun newValidator(): SubmissionValidator = when(taskType.targetType.option){
-        TaskType.TargetType.SINGLE_MEDIA_ITEM -> MediaItemsSubmissionValidator(setOf((target as TaskDescriptionTarget.MediaItemTarget).item))
-        TaskType.TargetType.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionValidator(target as TaskDescriptionTarget.VideoSegmentTarget)
-        TaskType.TargetType.MULTIPLE_MEDIA_ITEMS -> MediaItemsSubmissionValidator((target as TaskDescriptionTarget.MultipleMediaItemTarget).items.toSet())
-        TaskType.TargetType.JUDGEMENT -> BasicJudgementValidator()
-    }
 
     /**
      * Generates and returns a [SubmissionValidator] instance for this [TaskDescription]. Depending
@@ -80,7 +67,7 @@ class TaskDescription(
      *
      * @return [SubmissionFilter]
      */
-    fun newFilter(): SubmissionFilter = taskType.newFilter()
+    override fun newFilter(): SubmissionFilter = this.taskType.newFilter()
 
     /**
      * Generates and returns a [TaskHint] object to be used by the RESTful interface.
@@ -119,7 +106,7 @@ class TaskDescription(
      * @throws FileNotFoundException
      * @throws IOException
      */
-    fun toTaskTarget(config: Config, collections: DAO<MediaCollection>): TaskTarget? = this.target.toQueryContentElement(config, collections).let { TaskTarget(this.id.string, it) }
+    fun toTaskTarget(config: Config, collections: DAO<MediaCollection>): TaskTarget = this.target.toQueryContentElement(config, collections).let { TaskTarget(this.id.string, it) }
 
     /** Produces a Textual description of the content of the task if possible */
     fun textualDescription(): String = hints.filterIsInstance(TaskDescriptionHint.TextTaskDescriptionHint::class.java)
@@ -138,6 +125,7 @@ class TaskDescription(
 
     /**
      * Checks if no components of the same type overlap
+     *
      * @throws IllegalArgumentException
      */
     fun validate() {

@@ -1,11 +1,10 @@
 package dev.dres.run.validation.judged
 
-import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
-import dev.dres.data.model.run.TemporalSubmissionAspect
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.validation.interfaces.JudgementValidator
+import dev.dres.run.validation.interfaces.SubmissionJudgementValidator
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -17,12 +16,12 @@ import kotlin.concurrent.write
 /**
  * A validator class that checks, if a submission is correct based on a manual judgement by a user.
  *
- * TODO: Track these in the RunExecutor
  *
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0
  */
-class BasicJudgementValidator(): JudgementValidator { //TODO better name
+open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList()):
+    SubmissionJudgementValidator {
 
     companion object {
         private val counter = AtomicInteger()
@@ -30,12 +29,6 @@ class BasicJudgementValidator(): JudgementValidator { //TODO better name
     }
 
     override val id = "bjv${counter.incrementAndGet()}"
-
-    /** Helper class to store submission information independent of source */
-    private data class ItemRange(val item: MediaItem, val start: Long, val end: Long){
-        constructor(submission: TemporalSubmissionAspect): this(submission.item, submission.start, submission.end)
-        constructor(submission: Submission): this(submission.item, 0, 0)
-    }
 
     private val updateLock = ReentrantReadWriteLock()
 
@@ -50,6 +43,11 @@ class BasicJudgementValidator(): JudgementValidator { //TODO better name
 
     /** Internal map of already judged [Submission]s, independent of their source. */
     private val cache: MutableMap<ItemRange, SubmissionStatus> = ConcurrentHashMap()
+
+    init {
+        knownCorrectRanges.forEach { cache[it] = SubmissionStatus.CORRECT }
+        knownWrongRanges.forEach { cache[it] = SubmissionStatus.WRONG }
+    }
 
     private fun checkTimeOuts() = updateLock.write {
         val now = System.currentTimeMillis()
@@ -126,16 +124,21 @@ class BasicJudgementValidator(): JudgementValidator { //TODO better name
      * @param token The token used to identify the [Submission].
      * @param verdict The verdict of the judge.
      */
-    override fun judge(token: String, verdict: SubmissionStatus) = updateLock.write {
+    override fun judge(token: String, verdict: SubmissionStatus) {
+        processSubmission(token, verdict)?.status = verdict
+    }
+
+    internal fun processSubmission(token: String, verdict: SubmissionStatus) : Submission? = updateLock.write {
         require(this.waiting.containsKey(token)) { "This JudgementValidator does not contain a submission for the token '$token'." }
-        val submission = this.waiting[token] ?: return@write //submission with token not found TODO: this should be logged
-        submission.status = verdict
+        val submission = this.waiting[token] ?: return@write null //submission with token not found TODO: this should be logged
 
         //add to cache
         this.cache[ItemRange(submission)] = verdict
 
         //remove from waiting map
         this.waiting.remove(token)
+
+        return@write submission
     }
 
     /**

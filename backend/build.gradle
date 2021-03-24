@@ -1,8 +1,7 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
 buildscript {
-    ext.kotlinVersion = '1.4.21'
-
+    ext.kotlinVersion = '1.4.31'
     repositories {
         mavenCentral()
     }
@@ -12,10 +11,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlinVersion"
     }
 }
-plugins {
-    id 'com.github.node-gradle.node' version '2.2.0'
-    id 'de.undercouch.download' version '4.0.4'
-}
+
 apply plugin: 'application'
 apply plugin: 'java'
 apply plugin: 'kotlin'
@@ -23,8 +19,15 @@ apply plugin: 'kotlinx-serialization'
 apply plugin: 'idea'
 
 mainClassName = 'dev.dres.DRES'
-
 sourceCompatibility = 1.8
+
+/* Configuration for frontend classpath files (see dependencies). */
+configurations {
+    frontendClasspath {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+}
 
 repositories {
     mavenCentral()
@@ -41,21 +44,24 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-
 dependencies {
     def jettyVersion = '9.4.25.v20191220'
     def alpnApiVersion = '1.1.3.v20160715'
     def alpnBootVersion = '8.1.12.v20180117'
 
+    ///// Frontend files (produced by sub-project).
+    implementation frontendClasspath(project(path: ":frontend", configuration: 'frontendFiles'))
+
+    ///// FFMpeg dependency
+    implementation files("$buildDir/ext") {builtBy 'setupFFMpeg'}
+
     ///// MapDB
     compile group: 'org.mapdb', name: 'mapdb', version: '3.0.8'
 
-
-    ////// JLine 3
-    compile group: 'org.jline', name: 'jline', version: '3.15.0'
-
     ////// Javalin
-    compile group: 'io.javalin', name: 'javalin-bundle', version: '3.13.0'
+    compile ('io.javalin:javalin-bundle:3.13.0'){
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+    }
     compile group: 'io.swagger.core.v3', name: 'swagger-core', version: '2.1.5'
     compile group: 'org.webjars', name: 'swagger-ui', version: '3.24.3'
     compile group: 'org.webjars.npm', name: 'js-tokens', version: '3.0.2'
@@ -70,11 +76,13 @@ dependencies {
     ////// bcrypt
     compile group: 'org.mindrot', name: 'jbcrypt', version: '0.4'
 
-    ////// CLIKT
-    compile group: 'com.github.ajalt', name: 'clikt', version: '2.6.0'
+    ////// JLine 3, Clikt & Picnic for optimal terminal experience :-)
+    compile group: 'com.github.ajalt', name: 'clikt', version: '2.8.0'
+    compile group: 'org.jline', name: 'jline', version: '3.19.0'
+    compile group: 'com.jakewharton.picnic', name: 'picnic', version: '0.5.0'
 
-    ///// Picnic
-    compile group: 'com.jakewharton.picnic', name: 'picnic', version: '0.3.1'
+    ///// Fuel
+    compile group: 'com.github.kittinunf.fuel', name: 'fuel', version: '2.3.1'
 
     ////// CSV
     compile group: 'com.github.doyaaaaaken', name: 'kotlin-csv-jvm', version: '0.7.3'
@@ -92,7 +100,6 @@ dependencies {
     compile group: 'org.apache.logging.log4j', name: 'log4j-jul', version: '2.13.1'
 
     ///// JUnit 5
-
     testCompile "org.jetbrains.kotlin:kotlin-test"
     testCompile "org.jetbrains.kotlin:kotlin-test-junit5"
 
@@ -126,50 +133,13 @@ sourceSets {
 distributions {
     main {
         distributionBaseName = 'dres-dist'
-        contents {
-            from 'ext'
-        }
     }
-}
-
-node {
-    version = '12.18.3'
-    npmVersion = '6.14.6'
-
-    download = true
-    workDir = file("${project.projectDir}/../frontend/nodejs")
-    npmWorkDir = file("${project.projectDir}/../frontend")
-    nodeModulesDir = file("${project.projectDir}/../frontend")
-}
-
-/** Custom tasks: Front building (npm / node). */
-
-task cleanFrontendResources(type: Delete) {
-    delete 'src/main/resources/html'
-    doLast {
-        mkdir 'src/main/resources/html'
-        new File('src/main/resources/html/index.html').text = " "
-    }
-}
-
-task buildFrontend(type: NpmTask) {
-    args = ['run', 'pbuild']
-    dependsOn 'npm_install'
-}
-
-task deployFrontend(type: Copy) {
-    dependsOn 'cleanFrontendResources'
-    dependsOn 'buildFrontend'
-    tasks.findByName('buildFrontend').mustRunAfter 'cleanFrontendResources'
-    from('../frontend/dist/dres-frontend')
-    exclude '**/config.json'
-    into('src/main/resources/html')
 }
 
 /** Custom tasks: FFmpeg Download and deployment. */
 
 task downloadFFmpeg(type: Download) {
-    def f = new File('ffmpeg.zip')
+    def f = new File("$buildDir/cache/ffmpeg.zip")
     outputs.upToDateWhen {
         return f.exists()
     }
@@ -188,7 +158,7 @@ task downloadFFmpeg(type: Download) {
 }
 
 task downloadFFprobe(type: Download) {
-    def f = new File('ffprobe.zip')
+    def f = new File("$buildDir/cache/ffprobe.zip")
     outputs.upToDateWhen {
         return f.exists()
     }
@@ -209,20 +179,20 @@ task downloadFFprobe(type: Download) {
 task copyFFmpeg(type: Copy) {
     dependsOn downloadFFmpeg
     outputs.upToDateWhen {
-        return !fileTree('ext/ffmpeg').filter { it.isFile() && it.name.contains("ffmpeg")}.isEmpty()
+        return !fileTree("$buildDir/ext/ffmpeg").filter { it.isFile() && it.name.startsWith('ffmpeg')}.isEmpty()
     }
     from zipTree(downloadFFmpeg.dest)
-    into 'ext/ffmpeg'
+    into "$buildDir/ext/ffmpeg"
     include '*ffmpeg*'
 }
 
 task copyFFprobe(type: Copy) {
     dependsOn downloadFFprobe
     outputs.upToDateWhen {
-        return !fileTree('ext/ffmpeg').filter { it.isFile() && it.name.contains("ffprobe")}.isEmpty()
+        return !fileTree("$buildDir/ext/ffmpeg").filter { it.isFile() && it.name.startsWith('ffprobe') }.isEmpty()
     }
     from zipTree(downloadFFprobe.dest)
-    into 'ext/ffmpeg'
+    into "$buildDir/ext/ffmpeg"
     include '*ffprobe*'
 }
 
@@ -232,12 +202,3 @@ task setupFFMpeg(type: Copy) {
     dependsOn copyFFmpeg
     dependsOn copyFFprobe
 }
-
-/** Jar task depends on frontend deployment. */
-jar.dependsOn deployFrontend
-
-/** Distribution tasks depend on Jar and setupFFMpeg. */
-distZip.dependsOn jar
-distZip.dependsOn setupFFMpeg
-distTar.dependsOn jar
-distTar.dependsOn setupFFMpeg

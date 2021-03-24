@@ -2,9 +2,9 @@ package dres.run.score.scorer
 
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.run.ItemSubmission
-import dev.dres.data.model.run.SubmissionStatus
-import dev.dres.data.model.run.TemporalSubmission
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.run.score.TaskContext
 import dev.dres.run.score.scorer.AvsTaskScorer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -48,7 +48,7 @@ class AvsTaskScorerTest {
 
     @Test
     fun noSubmissions() {
-        val scores = this.scorer.computeScores(emptyList(), teams, 100_000, defaultTaskDuration)
+        val scores = this.scorer.computeScores(emptyList(), TaskContext(teams, 100_000, defaultTaskDuration))
         assertEquals(0.0, scores[teams[0]])
         assertEquals(0.0, scores[teams[1]])
         assertEquals(0.0, scores[teams[2]])
@@ -58,11 +58,11 @@ class AvsTaskScorerTest {
     fun allWrongSameImage() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = listOf(
-            ItemSubmission(teams[0], UID(), taskStartTime + 1000, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
-            ItemSubmission(teams[1], UID(), taskStartTime + 2000, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
-            ItemSubmission(teams[2], UID(), taskStartTime + 3000, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG }
+            Submission.Item(teams[0], UID(), taskStartTime + 1000, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
+            Submission.Item(teams[1], UID(), taskStartTime + 2000, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
+            Submission.Item(teams[2], UID(), taskStartTime + 3000, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG }
         )
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
         assertEquals(0.0, scores[teams[0]])
         assertEquals(0.0, scores[teams[1]])
         assertEquals(0.0, scores[teams[2]])
@@ -72,11 +72,11 @@ class AvsTaskScorerTest {
     fun allWrongDifferentImages() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = listOf(
-            ItemSubmission(teams[0], UID(), taskStartTime + 1000, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
-            ItemSubmission(teams[1], UID(), taskStartTime + 2000, dummyImageItems[1]).also { it.status = SubmissionStatus.WRONG },
-            ItemSubmission(teams[2], UID(), taskStartTime + 3000, dummyImageItems[2]).also { it.status = SubmissionStatus.WRONG }
+            Submission.Item(teams[0], UID(), taskStartTime + 1000, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
+            Submission.Item(teams[1], UID(), taskStartTime + 2000, dummyImageItems[1]).also { it.status = SubmissionStatus.WRONG },
+            Submission.Item(teams[2], UID(), taskStartTime + 3000, dummyImageItems[2]).also { it.status = SubmissionStatus.WRONG }
         )
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
         assertEquals(0.0, scores[teams[0]])
         assertEquals(0.0, scores[teams[1]])
         assertEquals(0.0, scores[teams[2]])
@@ -86,11 +86,11 @@ class AvsTaskScorerTest {
     fun allSameImageAllCorrect() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = listOf(
-            ItemSubmission(teams[0], UID(), taskStartTime + 1000, dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
-            ItemSubmission(teams[1], UID(), taskStartTime + 2000, dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
-            ItemSubmission(teams[2], UID(), taskStartTime + 3000, dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT }
+            Submission.Item(teams[0], UID(), taskStartTime + 1000, dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Item(teams[1], UID(), taskStartTime + 2000, dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Item(teams[2], UID(), taskStartTime + 3000, dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT }
         )
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
         assertEquals(100.0, scores[teams[0]])
         assertEquals(100.0, scores[teams[1]])
         assertEquals(100.0, scores[teams[2]])
@@ -100,11 +100,11 @@ class AvsTaskScorerTest {
     fun allDifferentImageAllCorrect() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = listOf(
-            ItemSubmission(teams[0], UID(), taskStartTime + 1000, dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
-            ItemSubmission(teams[1], UID(), taskStartTime + 2000, dummyImageItems[1]).also { it.status = SubmissionStatus.CORRECT },
-            ItemSubmission(teams[2], UID(), taskStartTime + 3000, dummyImageItems[2]).also { it.status = SubmissionStatus.CORRECT }
+            Submission.Item(teams[0], UID(), taskStartTime + 1000, dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Item(teams[1], UID(), taskStartTime + 2000, dummyImageItems[1]).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Item(teams[2], UID(), taskStartTime + 3000, dummyImageItems[2]).also { it.status = SubmissionStatus.CORRECT }
         )
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
         assertEquals(100.0 / 3.0, scores[teams[0]]!!, 0.001)
         assertEquals(100.0 / 3.0, scores[teams[1]]!!, 0.001)
         assertEquals(100.0 / 3.0, scores[teams[2]]!!, 0.001)
@@ -121,24 +121,24 @@ class AvsTaskScorerTest {
              */
 
             //3 out of 4 correct
-            ItemSubmission(teams[0], UID(), taskStartTime + 1000, dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
-            ItemSubmission(teams[0], UID(), taskStartTime + 2000, dummyImageItems[1]).also { it.status = SubmissionStatus.CORRECT },
-            ItemSubmission(teams[0], UID(), taskStartTime + 3000, dummyImageItems[2]).also { it.status = SubmissionStatus.CORRECT },
-            ItemSubmission(teams[0], UID(), taskStartTime + 4000, dummyImageItems[4]).also { it.status = SubmissionStatus.WRONG },
+            Submission.Item(teams[0], UID(), taskStartTime + 1000, dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Item(teams[0], UID(), taskStartTime + 2000, dummyImageItems[1]).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Item(teams[0], UID(), taskStartTime + 3000, dummyImageItems[2]).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Item(teams[0], UID(), taskStartTime + 4000, dummyImageItems[4]).also { it.status = SubmissionStatus.WRONG },
 
 
             //1 out of 3 correct
-            ItemSubmission(teams[1], UID(), taskStartTime + 1000, dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
-            ItemSubmission(teams[1], UID(), taskStartTime + 2000, dummyImageItems[5]).also { it.status = SubmissionStatus.WRONG },
-            ItemSubmission(teams[1], UID(), taskStartTime + 3000, dummyImageItems[4]).also { it.status = SubmissionStatus.WRONG },
+            Submission.Item(teams[1], UID(), taskStartTime + 1000, dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Item(teams[1], UID(), taskStartTime + 2000, dummyImageItems[5]).also { it.status = SubmissionStatus.WRONG },
+            Submission.Item(teams[1], UID(), taskStartTime + 3000, dummyImageItems[4]).also { it.status = SubmissionStatus.WRONG },
 
             //1 out of 2 correct
-            ItemSubmission(teams[2], UID(), taskStartTime + 2000, dummyImageItems[3]).also { it.status = SubmissionStatus.CORRECT },
-            ItemSubmission(teams[2], UID(), taskStartTime + 3000, dummyImageItems[5]).also { it.status = SubmissionStatus.WRONG }
+            Submission.Item(teams[2], UID(), taskStartTime + 2000, dummyImageItems[3]).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Item(teams[2], UID(), taskStartTime + 3000, dummyImageItems[5]).also { it.status = SubmissionStatus.WRONG }
         )
 
 
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
 
         /*
         c = q(c) = 3, i = 1, q(p) = 4
@@ -173,11 +173,11 @@ class AvsTaskScorerTest {
     fun allSameVideoSameSegmentAllCorrect() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = listOf(
-            TemporalSubmission(teams[0], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[1], UID(), taskStartTime + 2000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[2], UID(), taskStartTime + 3000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT }
+            Submission.Temporal(teams[0], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[1], UID(), taskStartTime + 2000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[2], UID(), taskStartTime + 3000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT }
         )
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
         assertEquals(100.0, scores[teams[0]])
         assertEquals(100.0, scores[teams[1]])
         assertEquals(100.0, scores[teams[2]])
@@ -188,11 +188,11 @@ class AvsTaskScorerTest {
     fun allSameVideoDifferentSegmentAllCorrect() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = listOf(
-            TemporalSubmission(teams[0], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[1], UID(), taskStartTime + 2000, dummyVideoItems[0], 30_000, 40_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[2], UID(), taskStartTime + 3000, dummyVideoItems[0], 50_000, 60_000).also { it.status = SubmissionStatus.CORRECT }
+            Submission.Temporal(teams[0], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[1], UID(), taskStartTime + 2000, dummyVideoItems[0], 30_000, 40_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[2], UID(), taskStartTime + 3000, dummyVideoItems[0], 50_000, 60_000).also { it.status = SubmissionStatus.CORRECT }
         )
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
         assertEquals(33.33333333333333, scores[teams[0]]!!, 0.0001)
         assertEquals(33.33333333333333, scores[teams[1]]!!, 0.0001)
         assertEquals(33.33333333333333, scores[teams[2]]!!, 0.0001)
@@ -203,11 +203,11 @@ class AvsTaskScorerTest {
     fun allDifferentVideoDifferentSegmentAllCorrect() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = listOf(
-            TemporalSubmission(teams[0], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[1], UID(), taskStartTime + 2000, dummyVideoItems[1], 30_000, 40_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[2], UID(), taskStartTime + 3000, dummyVideoItems[2], 50_000, 60_000).also { it.status = SubmissionStatus.CORRECT }
+            Submission.Temporal(teams[0], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[1], UID(), taskStartTime + 2000, dummyVideoItems[1], 30_000, 40_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[2], UID(), taskStartTime + 3000, dummyVideoItems[2], 50_000, 60_000).also { it.status = SubmissionStatus.CORRECT }
         )
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
         assertEquals(33.33333333333333, scores[teams[0]]!!, 0.0001)
         assertEquals(33.33333333333333, scores[teams[1]]!!, 0.0001)
         assertEquals(33.33333333333333, scores[teams[2]]!!, 0.0001)
@@ -217,19 +217,19 @@ class AvsTaskScorerTest {
     fun allSameVideoOverlappingSegmentAllCorrect() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = listOf(
-            TemporalSubmission(teams[0], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[0], UID(), taskStartTime + 2000, dummyVideoItems[0], 11_000, 21_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[0], UID(), taskStartTime + 3000, dummyVideoItems[0], 12_000, 22_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[0], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[0], UID(), taskStartTime + 2000, dummyVideoItems[0], 11_000, 21_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[0], UID(), taskStartTime + 3000, dummyVideoItems[0], 12_000, 22_000).also { it.status = SubmissionStatus.CORRECT },
 
-            TemporalSubmission(teams[1], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[1], UID(), taskStartTime + 2000, dummyVideoItems[0], 11_000, 21_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[1], UID(), taskStartTime + 3000, dummyVideoItems[0], 12_000, 22_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[1], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[1], UID(), taskStartTime + 2000, dummyVideoItems[0], 11_000, 21_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[1], UID(), taskStartTime + 3000, dummyVideoItems[0], 12_000, 22_000).also { it.status = SubmissionStatus.CORRECT },
 
-            TemporalSubmission(teams[2], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[2], UID(), taskStartTime + 2000, dummyVideoItems[0], 11_000, 21_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[2], UID(), taskStartTime + 3000, dummyVideoItems[0], 12_000, 22_000).also { it.status = SubmissionStatus.CORRECT }
+            Submission.Temporal(teams[2], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[2], UID(), taskStartTime + 2000, dummyVideoItems[0], 11_000, 21_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[2], UID(), taskStartTime + 3000, dummyVideoItems[0], 12_000, 22_000).also { it.status = SubmissionStatus.CORRECT }
         )
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
         assertEquals(100.0, scores[teams[0]])
         assertEquals(100.0, scores[teams[1]])
         assertEquals(100.0, scores[teams[2]])
@@ -239,25 +239,25 @@ class AvsTaskScorerTest {
     fun allSameVideoOverlappingSegmentSomeCorrect() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = listOf(
-            TemporalSubmission(teams[0], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[0], UID(), taskStartTime + 2000, dummyVideoItems[0], 11_000, 21_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[0], UID(), taskStartTime + 3000, dummyVideoItems[0], 12_000, 22_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[0], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[0], UID(), taskStartTime + 2000, dummyVideoItems[0], 11_000, 21_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[0], UID(), taskStartTime + 3000, dummyVideoItems[0], 12_000, 22_000).also { it.status = SubmissionStatus.CORRECT },
 
-            TemporalSubmission(teams[1], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[1], UID(), taskStartTime + 2000, dummyVideoItems[0], 11_000, 21_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[1], UID(), taskStartTime + 3000, dummyVideoItems[0], 12_000, 22_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[1], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[1], UID(), taskStartTime + 2000, dummyVideoItems[0], 11_000, 21_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[1], UID(), taskStartTime + 3000, dummyVideoItems[0], 12_000, 22_000).also { it.status = SubmissionStatus.CORRECT },
 
-            TemporalSubmission(teams[2], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[2], UID(), taskStartTime + 2000, dummyVideoItems[0], 11_000, 21_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[2], UID(), taskStartTime + 3000, dummyVideoItems[0], 12_000, 22_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[2], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[2], UID(), taskStartTime + 2000, dummyVideoItems[0], 11_000, 21_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[2], UID(), taskStartTime + 3000, dummyVideoItems[0], 12_000, 22_000).also { it.status = SubmissionStatus.CORRECT },
 
-            TemporalSubmission(teams[0], UID(), taskStartTime + 1000, dummyVideoItems[3], 10_000, 20_000).also { it.status = SubmissionStatus.WRONG },
-            TemporalSubmission(teams[1], UID(), taskStartTime + 2000, dummyVideoItems[3], 10_000, 20_000).also { it.status = SubmissionStatus.WRONG },
-            TemporalSubmission(teams[2], UID(), taskStartTime + 3000, dummyVideoItems[3], 10_000, 20_000).also { it.status = SubmissionStatus.WRONG }
+            Submission.Temporal(teams[0], UID(), taskStartTime + 1000, dummyVideoItems[3], 10_000, 20_000).also { it.status = SubmissionStatus.WRONG },
+            Submission.Temporal(teams[1], UID(), taskStartTime + 2000, dummyVideoItems[3], 10_000, 20_000).also { it.status = SubmissionStatus.WRONG },
+            Submission.Temporal(teams[2], UID(), taskStartTime + 3000, dummyVideoItems[3], 10_000, 20_000).also { it.status = SubmissionStatus.WRONG }
 
 
         )
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
 
         assertEquals(85.71428571428571, scores[teams[0]]!!, 0.001)
         assertEquals(85.71428571428571, scores[teams[1]]!!, 0.001)
@@ -271,45 +271,45 @@ class AvsTaskScorerTest {
         val submissions = listOf(
             //team 1
             //gets merged to one
-            TemporalSubmission(teams[0], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[0], UID(), taskStartTime + 2000, dummyVideoItems[0], 20_001, 25_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[0], UID(), taskStartTime + 3000, dummyVideoItems[0], 25_001, 30_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[0], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[0], UID(), taskStartTime + 2000, dummyVideoItems[0], 20_001, 25_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[0], UID(), taskStartTime + 3000, dummyVideoItems[0], 25_001, 30_000).also { it.status = SubmissionStatus.CORRECT },
             //plus 2 independent correct ones
-            TemporalSubmission(teams[0], UID(), taskStartTime + 4000, dummyVideoItems[1], 5_000, 6_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[0], UID(), taskStartTime + 5000, dummyVideoItems[2], 3_000, 4_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[0], UID(), taskStartTime + 4000, dummyVideoItems[1], 5_000, 6_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[0], UID(), taskStartTime + 5000, dummyVideoItems[2], 3_000, 4_000).also { it.status = SubmissionStatus.CORRECT },
             //and an incorrect one directly next to it
-            TemporalSubmission(teams[0], UID(), taskStartTime + 6000, dummyVideoItems[2], 4_001, 5_000).also { it.status = SubmissionStatus.WRONG },
+            Submission.Temporal(teams[0], UID(), taskStartTime + 6000, dummyVideoItems[2], 4_001, 5_000).also { it.status = SubmissionStatus.WRONG },
 
             //c = 5, q(c) = 3, i = 1
 
 
             //team 2
             //the center part is missing, so it's counted as two in the quantization
-            TemporalSubmission(teams[1], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[1], UID(), taskStartTime + 3000, dummyVideoItems[0], 25_001, 30_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[1], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[1], UID(), taskStartTime + 3000, dummyVideoItems[0], 25_001, 30_000).also { it.status = SubmissionStatus.CORRECT },
             //another correct one, same as team 1
-            TemporalSubmission(teams[1], UID(), taskStartTime + 4000, dummyVideoItems[1], 5_000, 6_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[1], UID(), taskStartTime + 4000, dummyVideoItems[1], 5_000, 6_000).also { it.status = SubmissionStatus.CORRECT },
             //and two wrong ones
-            TemporalSubmission(teams[1], UID(), taskStartTime + 6000, dummyVideoItems[3], 0, 5_000).also { it.status = SubmissionStatus.WRONG },
-            TemporalSubmission(teams[1], UID(), taskStartTime + 6000, dummyVideoItems[3], 10_000, 15_000).also { it.status = SubmissionStatus.WRONG },
+            Submission.Temporal(teams[1], UID(), taskStartTime + 6000, dummyVideoItems[3], 0, 5_000).also { it.status = SubmissionStatus.WRONG },
+            Submission.Temporal(teams[1], UID(), taskStartTime + 6000, dummyVideoItems[3], 10_000, 15_000).also { it.status = SubmissionStatus.WRONG },
 
             //c = 3, q(c) = 3, i = 2
 
             //team 3
             //same as team 2, but with all 3 segments of the 1st video, same as team 1
-            TemporalSubmission(teams[2], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[2], UID(), taskStartTime + 2000, dummyVideoItems[0], 20_001, 25_000).also { it.status = SubmissionStatus.CORRECT },
-            TemporalSubmission(teams[2], UID(), taskStartTime + 3000, dummyVideoItems[0], 25_001, 30_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[2], UID(), taskStartTime + 1000, dummyVideoItems[0], 10_000, 20_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[2], UID(), taskStartTime + 2000, dummyVideoItems[0], 20_001, 25_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[2], UID(), taskStartTime + 3000, dummyVideoItems[0], 25_001, 30_000).also { it.status = SubmissionStatus.CORRECT },
             //another correct one, same as team 1
-            TemporalSubmission(teams[2], UID(), taskStartTime + 4000, dummyVideoItems[1], 5_000, 6_000).also { it.status = SubmissionStatus.CORRECT },
+            Submission.Temporal(teams[2], UID(), taskStartTime + 4000, dummyVideoItems[1], 5_000, 6_000).also { it.status = SubmissionStatus.CORRECT },
             //and two wrong ones
-            TemporalSubmission(teams[2], UID(), taskStartTime + 6000, dummyVideoItems[3], 0, 5_000).also { it.status = SubmissionStatus.WRONG },
-            TemporalSubmission(teams[2], UID(), taskStartTime + 6000, dummyVideoItems[3], 10_000, 15_000).also { it.status = SubmissionStatus.WRONG },
+            Submission.Temporal(teams[2], UID(), taskStartTime + 6000, dummyVideoItems[3], 0, 5_000).also { it.status = SubmissionStatus.WRONG },
+            Submission.Temporal(teams[2], UID(), taskStartTime + 6000, dummyVideoItems[3], 10_000, 15_000).also { it.status = SubmissionStatus.WRONG },
 
             //c = 4, q(c) = 2, i = 2
 
         )
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
 
         /*
         c = 5, q(c) = 3, i = 1, q(p) = 3

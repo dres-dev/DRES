@@ -1,7 +1,7 @@
 package dev.dres.run.validation.interfaces
 
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
 
 interface VoteValidator : JudgementValidator {
 

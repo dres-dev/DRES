@@ -33,7 +33,7 @@ class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemS
             is TaskStartEvent -> {
                 lastActiveTask[event.runId] = event.taskDescription
                 lastActiveTargets[event.runId] = when(event.taskDescription.target) {
-                    is TaskDescriptionTarget.JudgementTaskDescriptionTarget -> return //no analysis possible
+                    is TaskDescriptionTarget.JudgementTaskDescriptionTarget, is TaskDescriptionTarget.VoteTaskDescriptionTarget, -> return //no analysis possible
                     is TaskDescriptionTarget.MediaItemTarget -> listOf(event.taskDescription.target.item to null)
                     is TaskDescriptionTarget.VideoSegmentTarget ->  listOf(event.taskDescription.target.item to event.taskDescription.target.temporalRange)
                     is TaskDescriptionTarget.MultipleMediaItemTarget -> event.taskDescription.target.items.map { it to null }
@@ -46,7 +46,7 @@ class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemS
                 
                 val correctItems = event.queryResultLog.results.mapIndexed {
                     index, queryResult ->
-                    if ( relevantTargets.any { it.first.name == queryResult.video } )
+                    if ( relevantTargets.any { it.first.name == queryResult.item } )
                         index to queryResult else null }.filterNotNull()
 
                 if (correctItems.isEmpty()) {
@@ -57,23 +57,23 @@ class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemS
 
                 if (temporalTargets.isEmpty()) { //consider only items
                     correctItems.forEach {
-                        writer.println("${System.currentTimeMillis()},${relevantTask.name},${event.session},${it.second.video},${it.second.shot},${it.second.frame},${it.second.rank},${it.first},n/a")
+                        writer.println("${System.currentTimeMillis()},${relevantTask.name},${event.session},${it.second.item},${it.second.segment},${it.second.frame},${it.second.rank},${it.first},n/a")
                     }
                 } else { // consider also temporal range
                     val relevantTemporalTargets = temporalTargets.filter { it.first.name == relevantTask.name }
 
                     correctItems.forEach {
-                        val correctTime = (it.second.shot != null || it.second.frame != null) && relevantTemporalTargets.any { target ->
+                        val correctTime = (it.second.segment != null || it.second.frame != null) && relevantTemporalTargets.any { target ->
                             val segments = this.segmentIndex[target.first.id].firstOrNull() ?: return@any false
-                            val segment = TemporalRange(if (it.second.shot != null) {
-                                TimeUtil.shotToTime(it.second.shot.toString(), target.first as MediaItem.VideoItem, segments)
+                            val segment = TemporalRange(if (it.second.segment != null) {
+                                TimeUtil.shotToTime(it.second.segment.toString(), target.first as MediaItem.VideoItem, segments)
                             } else {
                                 TimeUtil.timeToSegment(TimeUtil.frameToTime(it.second.frame!!, target.first as MediaItem.VideoItem), target.first as MediaItem.VideoItem, segments)
                             } ?: return@any false )
 
                             segment.overlaps(target.second!!)
                         }
-                        writer.println("${System.currentTimeMillis()},${relevantTask.name},${event.session},${it.second.video},${it.second.shot},${it.second.frame},${it.second.rank},${it.first},$correctTime")
+                        writer.println("${System.currentTimeMillis()},${relevantTask.name},${event.session},${it.second.item},${it.second.segment},${it.second.frame},${it.second.rank},${it.first},$correctTime")
                     }
                 }
 

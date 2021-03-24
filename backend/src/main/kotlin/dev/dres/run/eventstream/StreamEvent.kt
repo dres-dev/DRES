@@ -5,8 +5,7 @@ import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.log.QueryEventLog
 import dev.dres.data.model.log.QueryResultLog
-import dev.dres.data.model.run.CompetitionRun
-import dev.dres.data.model.run.Submission
+import dev.dres.data.model.submissions.Submission
 
 sealed class StreamEvent(var timeStamp : Long = System.currentTimeMillis(), var session: String? = null)
 

@@ -1,8 +1,7 @@
 import {combineLatest, merge, Observable, Subject, timer} from 'rxjs';
-import {CompetitionRunAdminService, CompetitionRunService, RunState} from '../../../openapi';
+import {CompetitionRunAdminService, CompetitionRunScoresService, CompetitionRunService, RunState} from '../../../openapi';
 import {flatMap, map} from 'rxjs/operators';
 import {Router} from '@angular/router';
-import {RunInfo} from '../../../openapi/model/runInfo';
 
 
 export interface RunInfoWithState {
@@ -22,8 +21,10 @@ export class AbstractRunListComponent {
     runs: Observable<RunInfoWithState[]>;
     updateInterval = 5000; /* TODO: Make configurable. */
     update = new Subject();
+
     constructor(protected runService: CompetitionRunService,
                 protected runAdminService: CompetitionRunAdminService,
+                protected scoreService: CompetitionRunScoresService,
                 protected router: Router) {
 
         /**
@@ -70,6 +71,15 @@ export class AbstractRunListComponent {
     }
 
     /**
+     * Navigates to audience voting judgment viewer.
+     *
+     * @param runId ID of the run to navigate to.
+     */
+    public navigateToVoting(runId: string) {
+        this.router.navigate(['/vote', runId]);
+    }
+
+    /**
      * Navigates to admin viewer (for admins).
      *
      * @param runId ID of the run to navigate to.
@@ -85,5 +95,16 @@ export class AbstractRunListComponent {
      */
     public navigateToScoreHistory(runId: string) {
         this.router.navigate(['/run/scores', runId]);
+    }
+
+    public downloadScores(runId: string) {
+        this.scoreService.getApiScoreRunWithRunidTasksCsv(runId).subscribe(scoresCSV => {
+            const csvBlob = new Blob([scoresCSV], {type: 'text/csv'});
+            const fake = document.createElement('a');
+            fake.href = URL.createObjectURL(csvBlob);
+            fake.download = `scores-${runId}.csv`;
+            fake.click();
+            URL.revokeObjectURL(fake.href);
+        });
     }
 }

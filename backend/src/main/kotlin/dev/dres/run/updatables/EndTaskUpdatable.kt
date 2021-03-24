@@ -1,12 +1,13 @@
 package dev.dres.run.updatables
 
-import dev.dres.data.model.competition.TaskType
-import dev.dres.data.model.run.SubmissionStatus
-import dev.dres.run.RunManager
+import dev.dres.data.model.competition.options.SubmissionFilterOption
+import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunManagerStatus
 import java.util.concurrent.atomic.AtomicInteger
 
-class EndTaskUpdatable(private val run: RunManager) : Updatable {
+class EndTaskUpdatable(private val run: InteractiveRunManager, private val context: RunActionContext) : Updatable {
 
     override val phase: Phase = Phase.MAIN
 
@@ -14,20 +15,22 @@ class EndTaskUpdatable(private val run: RunManager) : Updatable {
     private var submissions = AtomicInteger(0)
 
     override fun update(status: RunManagerStatus) {
-        val limitingFilter = run.currentTaskRun?.task?.taskType?.filter?.find{ it.option == TaskType.SubmissionFilterType.LIMIT_CORRECT_PER_TEAM } ?: return
-        val limit = limitingFilter.parameters.getOrDefault("limit", "1").toIntOrNull() ?: 1
-        if (this.run.timeLeft() > 0) {
-            val taskRun = this.run.currentTaskRun
-            if (taskRun != null && this.submissions.getAndSet(taskRun.submissions.size) < taskRun.submissions.size) {
-                /* Determine of all teams have submitted . */
-                val allDone = this.run.competitionDescription.teams.all { team ->
-                    run.submissions.count { it.teamId == team.uid && it.status == SubmissionStatus.CORRECT  } >= limit
-                }
+        val taskRun = this.run.currentTask(this.context)
+        if (taskRun != null) {
+            val limitingFilter = taskRun.description.taskType.filter.find{ it.option == SubmissionFilterOption.LIMIT_CORRECT_PER_TEAM } ?: return
+            val limit = limitingFilter.getAsInt("limit") ?: 1
+            if (this.run.timeLeft(context) > 0) {
+                if (this.submissions.getAndSet(taskRun.submissions.size) < taskRun.submissions.size) {
+                    /* Determine of all teams have submitted . */
+                    val allDone = this.run.description.teams.all { team ->
+                        this.run.submissions(this.context).count { it.teamId == team.uid && it.status == SubmissionStatus.CORRECT  } >= limit
+                    }
 
-                /* Do all teams have reached the limit of correct submissions ? */
-                if (allDone) {
-                    this.run.abortTask()
-                    this.submissions.set(0)
+                    /* Do all teams have reached the limit of correct submissions ? */
+                    if (allDone) {
+                        this.run.abortTask(context)
+                        this.submissions.set(0)
+                    }
                 }
             }
         }

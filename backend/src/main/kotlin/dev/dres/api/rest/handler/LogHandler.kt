@@ -31,7 +31,7 @@ abstract class LogHandler : PostRestHandler<SuccessStatus>, AccessManagedRestHan
         }
 
         if (managers.size > 1) {
-            throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.competitionDescription.name }}", ctx)
+            throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.description.name }}", ctx)
         }
 
         return managers.first()
@@ -48,6 +48,9 @@ class QueryLogHandler : LogHandler() {
             method = HttpMethod.POST,
             requestBody = OpenApiRequestBody([OpenApiContent(QueryEventLog::class)]),
             tags = ["Log"],
+            queryParams = [
+                OpenApiParam("session", String::class, "Session Token", required = true, allowEmptyValue = false)
+            ],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
@@ -82,6 +85,9 @@ class ResultLogHandler : LogHandler() {
             method = HttpMethod.POST,
             requestBody = OpenApiRequestBody([OpenApiContent(QueryResultLog::class)]),
             tags = ["Log"],
+            queryParams = [
+                OpenApiParam("session", String::class, "Session Token", required = true, allowEmptyValue = false)
+            ],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),

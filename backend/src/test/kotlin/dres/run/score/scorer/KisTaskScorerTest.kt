@@ -2,8 +2,9 @@ package dres.run.score.scorer
 
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.run.ItemSubmission
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.run.score.TaskContext
 import dev.dres.run.score.scorer.KisTaskScorer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -26,7 +27,7 @@ class KisTaskScorerTest {
 
     @Test
     fun noSubmissions() {
-        val scores = this.scorer.computeScores(emptyList(), teams, 100_000, defaultTaskDuration)
+        val scores = this.scorer.computeScores(emptyList(), TaskContext(teams, 100_000, defaultTaskDuration))
         assertEquals(0.0, scores[teams[0]])
         assertEquals(0.0, scores[teams[1]])
         assertEquals(0.0, scores[teams[2]])
@@ -36,11 +37,11 @@ class KisTaskScorerTest {
     fun allWrong() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = listOf(
-                ItemSubmission(teams[0], UID(), taskStartTime + 1000, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
-                ItemSubmission(teams[1], UID(), taskStartTime + 2000, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
-                ItemSubmission(teams[2], UID(), taskStartTime + 3000, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG }
+                Submission.Item(teams[0], UID(), taskStartTime + 1000, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
+                Submission.Item(teams[1], UID(), taskStartTime + 2000, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
+                Submission.Item(teams[2], UID(), taskStartTime + 3000, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG }
         )
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
         assertEquals(0.0, scores[teams[0]])
         assertEquals(0.0, scores[teams[1]])
         assertEquals(0.0, scores[teams[2]])
@@ -50,9 +51,9 @@ class KisTaskScorerTest {
     fun immediatelyRight() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = listOf(
-                ItemSubmission(teams[0], UID(), taskStartTime, dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT }
+                Submission.Item(teams[0], UID(), taskStartTime, dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT }
         )
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
         assertEquals(maxPointsPerTask, scores[teams[0]])
         assertEquals(0.0, scores[teams[1]])
         assertEquals(0.0, scores[teams[2]])
@@ -62,9 +63,9 @@ class KisTaskScorerTest {
     fun rightAtTheEnd() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = listOf(
-                ItemSubmission(teams[0], UID(), taskStartTime + (defaultTaskDuration * 1000), dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT }
+                Submission.Item(teams[0], UID(), taskStartTime + (defaultTaskDuration * 1000), dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT }
         )
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
         assertEquals(maxPointsAtTaskEnd, scores[teams[0]])
     }
 
@@ -72,9 +73,9 @@ class KisTaskScorerTest {
     fun rightInTheMiddle() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = listOf(
-                ItemSubmission(teams[0], UID(), taskStartTime + (defaultTaskDuration * 1000 / 2), dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT }
+                Submission.Item(teams[0], UID(), taskStartTime + (defaultTaskDuration * 1000 / 2), dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT }
         )
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
         assertEquals(maxPointsAtTaskEnd + (maxPointsPerTask - maxPointsAtTaskEnd) / 2, scores[teams[0]])
     }
 
@@ -84,21 +85,21 @@ class KisTaskScorerTest {
         val submissions = listOf(
 
                 //incorrect submissions
-                ItemSubmission(teams[0], UID(), taskStartTime + 1, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
+                Submission.Item(teams[0], UID(), taskStartTime + 1, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
 
-                ItemSubmission(teams[1], UID(), taskStartTime + 2, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
-                ItemSubmission(teams[1], UID(), taskStartTime + 3, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
+                Submission.Item(teams[1], UID(), taskStartTime + 2, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
+                Submission.Item(teams[1], UID(), taskStartTime + 3, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
 
-                ItemSubmission(teams[2], UID(), taskStartTime + 4, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
-                ItemSubmission(teams[2], UID(), taskStartTime + 5, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
-                ItemSubmission(teams[2], UID(), taskStartTime + 6, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
+                Submission.Item(teams[2], UID(), taskStartTime + 4, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
+                Submission.Item(teams[2], UID(), taskStartTime + 5, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
+                Submission.Item(teams[2], UID(), taskStartTime + 6, dummyImageItems[0]).also { it.status = SubmissionStatus.WRONG },
 
                 //correct submissions at 1/2 the task time
-                ItemSubmission(teams[0], UID(), taskStartTime + (defaultTaskDuration * 1000 / 2), dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
-                ItemSubmission(teams[1], UID(), taskStartTime + (defaultTaskDuration * 1000 / 2), dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
-                ItemSubmission(teams[2], UID(), taskStartTime + (defaultTaskDuration * 1000 / 2), dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
+                Submission.Item(teams[0], UID(), taskStartTime + (defaultTaskDuration * 1000 / 2), dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
+                Submission.Item(teams[1], UID(), taskStartTime + (defaultTaskDuration * 1000 / 2), dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
+                Submission.Item(teams[2], UID(), taskStartTime + (defaultTaskDuration * 1000 / 2), dummyImageItems[0]).also { it.status = SubmissionStatus.CORRECT },
         )
-        val scores = this.scorer.computeScores(submissions, teams, taskStartTime, defaultTaskDuration)
+        val scores = this.scorer.computeScores(submissions, TaskContext(teams, taskStartTime, defaultTaskDuration))
 
         assertEquals(maxPointsAtTaskEnd + (maxPointsPerTask - maxPointsAtTaskEnd) / 2 - penaltyPerWrongSubmission, scores[teams[0]])
         assertEquals(maxPointsAtTaskEnd + (maxPointsPerTask - maxPointsAtTaskEnd) / 2 - penaltyPerWrongSubmission * 2, scores[teams[1]])

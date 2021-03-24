@@ -21,7 +21,7 @@ import {MatChipsModule} from '@angular/material/chips';
 import {CompetitionBuilderTaskTypeDialogComponent} from './competition-builder-task-type-dialog/competition-builder-task-type-dialog.component';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatCardModule} from '@angular/material/card';
-import { VideoPlayerSegmentBuilderComponent } from './competition-builder-task-dialog/video-player-segment-builder/video-player-segment-builder.component';
+import {VideoPlayerSegmentBuilderComponent} from './competition-builder-task-dialog/video-player-segment-builder/video-player-segment-builder.component';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {FlexModule} from '@angular/flex-layout';
 import {MatSliderModule} from '@angular/material/slider';
@@ -32,6 +32,8 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatGridListModule} from '@angular/material/grid-list';
 import {AdvancedBuilderDialogComponent} from './competition-builder-task-dialog/advanced-builder-dialog/advanced-builder-dialog.component';
 import {SharedModule} from '../../shared/shared.module';
+import {VideoPlayerSegmentBuilderDialogComponent} from './competition-builder-task-dialog/video-player-segment-builder-dialog/video-player-segment-builder-dialog.component';
+import {ColorPickerModule} from 'ngx-color-picker';
 
 @NgModule({
     imports: [
@@ -42,9 +44,6 @@ import {SharedModule} from '../../shared/shared.module';
         MatDialogModule,
         MatFormFieldModule,
         MatInputModule,
-        FormsModule,
-        ReactiveFormsModule,
-        CommonModule,
         MatListModule,
         MatProgressSpinnerModule,
         MatMenuModule,
@@ -54,14 +53,18 @@ import {SharedModule} from '../../shared/shared.module';
         MatCheckboxModule,
         MatCardModule,
         MatProgressBarModule,
-        FlexModule,
         MatSliderModule,
-        ServicesModule,
         MatSlideToggleModule,
-        Ng5SliderModule,
         MatButtonToggleModule,
         MatGridListModule,
-        SharedModule
+        Ng5SliderModule,
+        ServicesModule,
+        FlexModule,
+        FormsModule,
+        ReactiveFormsModule,
+        CommonModule,
+        SharedModule,
+        ColorPickerModule
     ],
     exports: [CompetitionBuilderComponent],
     declarations: [
@@ -71,7 +74,8 @@ import {SharedModule} from '../../shared/shared.module';
         CompetitionBuilderTaskGroupDialogComponent,
         CompetitionBuilderTaskTypeDialogComponent,
         VideoPlayerSegmentBuilderComponent,
-        AdvancedBuilderDialogComponent
+        AdvancedBuilderDialogComponent,
+        VideoPlayerSegmentBuilderDialogComponent
     ],
     providers: []
 })

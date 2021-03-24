@@ -6,8 +6,8 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.basics.media.MediaCollection
-import dev.dres.data.model.run.SubmissionStatus
-import dev.dres.data.model.run.TemporalSubmissionAspect
+import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 import dev.dres.run.RunExecutor
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
@@ -58,7 +58,7 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
 
         val collection = this.collections[next.second.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.second.item.collection}", ctx)
 
-        val taskDescription = next.second.taskRun?.task?.textualDescription() ?: next.second.taskRun?.task?.name ?: "no task description available"
+        val taskDescription = next.second.task?.description?.textualDescription() ?: next.second.task?.description?.name ?: "no task description available"
 
         return if (next.second is TemporalSubmissionAspect){
             val tsa = next.second as TemporalSubmissionAspect
@@ -139,6 +139,19 @@ class JudgementVoteHandler : PostRestHandler<SuccessStatus> {
     override val route = "run/:runId/judge/vote"
 
 
+    @OpenApi(
+        summary = "Returns a Vote.",
+        path = "/api/run/:runId/judge/vote", method = HttpMethod.POST,
+        pathParams = [OpenApiParam("runId", dev.dres.data.model.UID::class, "Run ID")],
+        requestBody = OpenApiRequestBody([OpenApiContent(JudgementVote::class)]),
+        tags = ["Judgement"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
+    )
     override fun doPost(ctx: Context): SuccessStatus {
 
         val runId = try{
@@ -193,7 +206,7 @@ class NextOpenVoteJudgementHandler(val collections: DAO<MediaCollection>) : Abst
 
         val collection = this.collections[next.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.item.collection}", ctx)
 
-        val taskDescription = next.taskRun?.task?.textualDescription() ?: next.taskRun?.task?.name ?: "no task description available"
+        val taskDescription = next.task?.description?.textualDescription() ?: next.task?.description?.name ?: "no task description available"
 
         return if (next is TemporalSubmissionAspect){
             val tsa = next as TemporalSubmissionAspect

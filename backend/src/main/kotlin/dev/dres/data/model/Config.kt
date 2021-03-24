@@ -1,9 +1,10 @@
 package dev.dres.data.model
 
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.io.File
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class Config(
         val httpPort: Int = 8080,
         val httpsPort: Int = 8443,

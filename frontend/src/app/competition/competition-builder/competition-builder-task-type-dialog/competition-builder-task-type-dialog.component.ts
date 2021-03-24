@@ -1,12 +1,11 @@
 import {AfterViewInit, Component, Inject, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {
-    ConfiguredOptionOptions,
-    ConfiguredOptionQueryComponentType,
-    ConfiguredOptionScoringType,
-    ConfiguredOptionSubmissionFilterType,
-    ConfiguredOptionTargetType,
-    TaskGroup,
+    ConfiguredOptionQueryComponentOption,
+    ConfiguredOptionScoringOption,
+    ConfiguredOptionSimpleOption,
+    ConfiguredOptionSubmissionFilterOption,
+    ConfiguredOptionTargetOption,
     TaskType
 } from '../../../../../openapi';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
@@ -35,22 +34,22 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
      * Dynamically generated list of all target types. Since TargetType is an enum, values is required as this is the "underscore sensitive"
      * version. Object.keys() strips the underscores from the names.
      */
-    targetTypes = Object.values(ConfiguredOptionTargetType.OptionEnum).sort((a, b) => a.localeCompare(b)); // sorted alphabetically
-    componentTypes = Object.values(ConfiguredOptionQueryComponentType.OptionEnum)
+    targetTypes = Object.values(ConfiguredOptionTargetOption.OptionEnum).sort((a, b) => a.localeCompare(b)); // sorted alphabetically
+    componentTypes = Object.values(ConfiguredOptionQueryComponentOption.OptionEnum)
         .sort((a, b) => a.localeCompare(b))
         .map((v) => {
-            return {type: v, activated: false} as ActivatedType<ConfiguredOptionQueryComponentType.OptionEnum>;
+            return {type: v, activated: false} as ActivatedType<ConfiguredOptionQueryComponentOption.OptionEnum>;
         });
-    scoreTypes = Object.values(ConfiguredOptionScoringType.OptionEnum).sort((a, b) => a.localeCompare(b));
-    filterTypes = Object.values(ConfiguredOptionSubmissionFilterType.OptionEnum)
+    scoreTypes = Object.values(ConfiguredOptionScoringOption.OptionEnum).sort((a, b) => a.localeCompare(b));
+    filterTypes = Object.values(ConfiguredOptionSubmissionFilterOption.OptionEnum)
         .sort((a, b) => a.localeCompare(b))
         .map((v) => {
-            return {type: v, activated: false} as ActivatedType<ConfiguredOptionSubmissionFilterType.OptionEnum>;
+            return {type: v, activated: false} as ActivatedType<ConfiguredOptionSubmissionFilterOption.OptionEnum>;
         });
-    options = Object.values(ConfiguredOptionOptions.OptionEnum)
+    options = Object.values(ConfiguredOptionSimpleOption.OptionEnum)
         .sort((a, b) => a.localeCompare(b))
         .map((v) => {
-            return {type: v, activated: false} as ActivatedType<ConfiguredOptionOptions.OptionEnum>;
+            return {type: v, activated: false} as ActivatedType<ConfiguredOptionSimpleOption.OptionEnum>;
         });
 
     constructor(
@@ -243,20 +242,20 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
             targetType: {
                 option: this.form.get('target').value,
                 parameters: this.fetchConfigurationParameters(this.form.get('scoring').value)
-            } as ConfiguredOptionTargetType,
+            } as ConfiguredOptionTargetOption,
             components: (this.form.get('components') as FormArray).controls.map(c => {
                 return {option: c.value, parameters: this.fetchConfigurationParameters(c.value)};
-            }) as Array<ConfiguredOptionQueryComponentType>,
+            }) as Array<ConfiguredOptionQueryComponentOption>,
             score: {
                 option: this.form.get('scoring').value,
                 parameters: this.fetchConfigurationParameters(this.form.get('scoring').value)
-            } as ConfiguredOptionScoringType,
+            } as ConfiguredOptionScoringOption,
             filter: (this.form.get('filters') as FormArray).controls.map(c => {
                 return {option: c.value, parameters: this.fetchConfigurationParameters(c.value)};
-            }) as Array<ConfiguredOptionSubmissionFilterType>,
+            }) as Array<ConfiguredOptionSubmissionFilterOption>,
             options: (this.form.get('options') as FormArray).controls.map(c => {
                 return {option: c.value, parameters: this.fetchConfigurationParameters(c.value)};
-            }) as Array<ConfiguredOptionOptions>
+            }) as Array<ConfiguredOptionSimpleOption>
         } as TaskType;
     }
 

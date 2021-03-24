@@ -21,7 +21,7 @@ object AccessManager {
         }
     }
 
-    private val sessionRoleMap = ConcurrentHashMap<String, MutableSet<Role>>()
+    private val sessionRoleMap = ConcurrentHashMap<String, MutableSet<RestApiRole>>()
     private val sessionUserMap = ConcurrentHashMap<String, UID>()
 
     /** Map keeping track of all [RunManager]s a specific user is eligible for. */
@@ -54,7 +54,7 @@ object AccessManager {
         sessionUserMap.remove(sessionId)
     }
 
-    fun rolesOfSession(sessionId: String): Set<Role> = sessionRoleMap[sessionId] ?: emptySet()
+    fun rolesOfSession(sessionId: String): Set<RestApiRole> = sessionRoleMap[sessionId] ?: emptySet()
 
     fun getUserIdForSession(sessionId: String): UID? = sessionUserMap[sessionId]
 
@@ -64,7 +64,7 @@ object AccessManager {
      * @param runManager The [RunManager] to register.
      */
     fun registerRunManager(runManager: RunManager)  {
-        runManager.competitionDescription.teams.flatMap { t -> t.users }.forEach {
+        runManager.description.teams.flatMap { t -> t.users }.forEach {
             if (this.usersToRunMap.containsKey(it)) {
                 this.usersToRunMap[it]?.add(runManager)
             } else {

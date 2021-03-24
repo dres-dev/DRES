@@ -35,6 +35,7 @@ import {MatPaginatorModule} from '@angular/material/paginator';
 import {AuditlogModule} from './auditlog/auditlog.module';
 import {SharedModule} from './shared/shared.module';
 import {ClipboardModule} from '@angular/cdk/clipboard';
+import {QRCodeModule} from 'angularx-qrcode';
 
 
 /**
@@ -47,7 +48,13 @@ export function initializeApp(appConfig: AppConfig) {
 }
 
 @NgModule({
-    declarations: [AppComponent, CollectionListComponent, CollectionViewerComponent, MediaItemBuilderDialogComponent, CollectionBuilderDialogComponent],
+    declarations: [
+        AppComponent,
+        CollectionListComponent,
+        CollectionViewerComponent,
+        MediaItemBuilderDialogComponent,
+        CollectionBuilderDialogComponent
+    ],
     imports: [
         BrowserModule,
         AppRoutingModule,
@@ -78,7 +85,9 @@ export function initializeApp(appConfig: AppConfig) {
         MatSelectModule,
         MatPaginatorModule,
         SharedModule,
-        ClipboardModule
+        ClipboardModule,
+
+        QRCodeModule
     ],
     providers: [
         AppConfig,

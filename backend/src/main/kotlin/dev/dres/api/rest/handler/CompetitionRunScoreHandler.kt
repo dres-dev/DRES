@@ -5,8 +5,10 @@ import dev.dres.api.rest.RestApiRole
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.UID
+import dev.dres.data.model.run.RunActionContext
+import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
-import dev.dres.run.RunManager
+import dev.dres.run.score.interfaces.TeamTaskScorer
 import dev.dres.run.score.scoreboard.Score
 import dev.dres.run.score.scoreboard.ScoreOverview
 import dev.dres.utilities.extensions.UID
@@ -20,7 +22,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiResponse
 
 /**
  * A collection of [RestHandler]s that deal with [ScoreOverview]s for ongoing
- * [dev.dres.data.model.run.CompetitionRun]s.
+ * [dev.dres.data.model.run.InteractiveSynchronousCompetition]s.
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -38,28 +40,26 @@ abstract class AbstractScoreRestHandler : RestHandler, AccessManagedRestHandler 
      */
     fun isParticipant(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.PARTICIPANT) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
 
-    /**
-     * Checks if the current session has the [RestApiRole.ADMIN].
-     *
-     * @param ctx The [Context] to check.
-     */
-    fun isAdmin(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
 
-    fun getRun(ctx: Context, runId: UID): RunManager? {
+    fun getRun(ctx: Context, runId: UID): InteractiveRunManager? {
         if (isParticipant(ctx)) {
             val userId = userId(ctx)
             val run = RunExecutor.managerForId(runId) ?: return null
-            if (run.competitionDescription.teams.any { it.users.contains(userId) }) {
+            if (run is InteractiveRunManager && run.description.teams.any { it.users.contains(userId) }) {
                 return run
             }
             return null
         }
-        return RunExecutor.managerForId(runId)
+        val run =  RunExecutor.managerForId(runId)
+        if (run != null && run is InteractiveRunManager){
+            return run
+        }
+        return null
     }
 }
 
 /**
- * Generates and lists all [ScoreOverview]s for the provided [dev.dres.data.model.run.CompetitionRun].
+ * Generates and lists all [ScoreOverview]s for the provided [dev.dres.data.model.run.InteractiveSynchronousCompetition].
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -87,7 +87,7 @@ class ListCompetitionScoreHandler : AbstractScoreRestHandler(), GetRestHandler<L
 }
 
 /**
- * Generates and lists the [ScoreOverview] for the currently active [dev.dres.data.model.run.CompetitionRun.TaskRun].
+ * Generates and lists the [ScoreOverview] for the currently active [dev.dres.data.model.run.InteractiveSynchronousCompetition.Task].
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -111,15 +111,18 @@ class CurrentTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
     override fun doGet(ctx: Context): ScoreOverview {
         val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
+        val rac = RunActionContext.runActionContext(ctx, run)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)) {
+        if (!run.description.participantCanView && isParticipant(ctx)) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        val scores = run.currentTaskRun?.scorer?.scores() ?: throw ErrorStatusException(404, "No active task run in run $runId.", ctx)
+        val scorer = run.currentTask(rac)?.scorer ?: throw ErrorStatusException(404, "No active task run in run $runId.", ctx)
+        val scores =  (scorer as? TeamTaskScorer)?.teamScoreMap() ?: throw ErrorStatusException(400, "Scorer has more than one score per team for run $runId.", ctx)
+
         return ScoreOverview("task",
-            run.currentTask?.taskGroup?.name,
-            run.competitionDescription.teams.map { team ->
+            run.currentTaskDescription(rac).taskGroup.name,
+            run.description.teams.map { team ->
                 Score(team.uid.string, scores[team.uid] ?: 0.0)
             }
         )
@@ -127,7 +130,7 @@ class CurrentTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
 }
 
 /**
- * Generates and lists the [ScoreOverview] for the specified [dev.dres.data.model.run.CompetitionRun.TaskRun].
+ * Generates and lists the [ScoreOverview] for the specified [dev.dres.data.model.run.InteractiveSynchronousCompetition.Task].
  * Can only be invoked by admins.
  *
  * @author Ralph Gasser
@@ -157,19 +160,60 @@ class HistoryTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
         val taskId = ctx.pathParamMap().getOrElse("taskId") { throw ErrorStatusException(400, "Parameter 'taskId' is missing!'", ctx) }.UID()
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
-        if (isAdmin(ctx)) {
+        val rac = RunActionContext.runActionContext(ctx, run)
+
+        if (rac.isAdmin) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
+
+
         /* Fetch the relevant scores and generate score overview. */
-        val scores = run.taskRunForId(taskId)?.scorer?.scores() ?: throw ErrorStatusException(404, "No task run with ID $taskId in run $runId.", ctx)
+
+        val scorer = run.currentTask(rac)?.scorer ?: throw ErrorStatusException(404, "No task run with ID $taskId in run $runId.", ctx)
+        val scores =  (scorer as? TeamTaskScorer)?.teamScoreMap() ?: throw ErrorStatusException(400, "Scorer has more than one score per team for run $runId.", ctx)
+
         return ScoreOverview("task",
-            run.currentTask?.taskGroup?.name,
-            run.competitionDescription.teams.map {
+            run.currentTaskDescription(rac).taskGroup.name,
+            run.description.teams.map {
                 Score(it.uid.string, scores[it.uid] ?: 0.0)
             }
         )
     }
+}
+
+class TaskScoreListCSVHandler : AbstractScoreRestHandler(), GetRestHandler<String> {
+
+    override val route = "score/run/:runId/tasks/csv"
+
+    @OpenApi(
+        summary = "Provides a CSV with the scores for a given competition run",
+        path = "/api/score/run/:runId/tasks/csv",
+        tags = ["Competition Run Scores"],
+        pathParams = [
+            OpenApiParam("runId", String::class, "Competition run ID")
+        ],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(String::class, type = "text/csv")]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
+    )
+    override fun doGet(ctx: Context): String {
+
+        val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
+        val rac = RunActionContext.runActionContext(ctx, run)
+
+        ctx.contentType("text/csv")
+
+        return "task,group,team,resultName,score\n" + run.tasks(rac).filter { it.started != null}.sortedBy { it.started }.flatMap { task ->
+            task.scorer.scores().map { "${task.description.name},${task.description.taskGroup.name},${run.description.teams.find { t -> t.uid == it.first }?.name ?: "???"},${it.second ?: "n/a"},${it.third}" }
+        }.joinToString(separator = "\n")
+
+    }
+
 }
 
 /**

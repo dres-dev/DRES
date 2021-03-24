@@ -1,6 +1,6 @@
 package dev.dres.data.serializers
 
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.audit.*
 import dev.dres.utilities.extensions.readUID
 import dev.dres.utilities.extensions.writeUID

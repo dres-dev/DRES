@@ -1,6 +1,7 @@
 package dev.dres
 
 import dev.dres.api.cli.Cli
+import dev.dres.api.cli.OpenApiCommand
 import dev.dres.api.rest.RestApi
 import dev.dres.data.dbo.DataAccessLayer
 import dev.dres.data.model.Config
@@ -17,6 +18,9 @@ import java.nio.file.Paths
 
 object DRES {
 
+    /** Application root; shoud pe relative to JAR file or classes path. */
+    val rootPath = File(FFmpegUtil::class.java.protectionDomain.codeSource.location.toURI()).toPath()
+
     init {
         //redirect log of JLine3 from jdk logger to log4j
         System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager")
@@ -30,7 +34,9 @@ object DRES {
             null
         } ?: Config()
 
-        println("initializing...")
+        println("Starting DRES at $rootPath")
+        println("Found FFmpeg at ${FFmpegUtil.ffmpegBin}")
+        println("Initializing...")
 
         /* Initialize data access layer. */
         val dataAccessLayer = DataAccessLayer(Paths.get(config.dataPath))
@@ -53,7 +59,12 @@ object DRES {
 
         println("done")
 
-        Cli.loop(dataAccessLayer, config) //blocks until quit command is given
+        if(args.isNotEmpty() && args.first() == "openapi"){
+            OpenApiCommand().parse(args)
+        }else{
+            Cli.loop(dataAccessLayer, config) //blocks until quit command is given
+        }
+
         RestApi.stop()
         RunExecutor.stop()
         EventStreamProcessor.stop()

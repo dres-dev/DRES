@@ -13,11 +13,13 @@ import { JudgementDialogComponent } from './judgement-dialog/judgement-dialog.co
 import {MatCardModule} from '@angular/material/card';
 import {MatDialogModule} from '@angular/material/dialog';
 import {SharedModule} from '../shared/shared.module';
+import { JudgementVotingViewerComponent } from './judgement-voting-viewer.component';
+import {QRCodeModule} from 'angularx-qrcode';
 
 
 
 @NgModule({
-  declarations: [JudgementViewerComponent, JudgementMediaViewerComponent, JudgementDialogComponent],
+  declarations: [JudgementViewerComponent, JudgementMediaViewerComponent, JudgementDialogComponent, JudgementVotingViewerComponent],
     imports: [
         CommonModule,
         MatIconModule,
@@ -29,7 +31,8 @@ import {SharedModule} from '../shared/shared.module';
         MatProgressBarModule,
         MatCardModule,
         MatDialogModule,
-        SharedModule
+        SharedModule,
+        QRCodeModule
     ],
   exports: [ JudgementViewerComponent ]
 })

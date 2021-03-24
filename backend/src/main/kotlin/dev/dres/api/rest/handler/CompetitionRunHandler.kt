@@ -16,8 +16,10 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.competition.TaskType
+import dev.dres.data.model.competition.options.SimpleOption
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
+import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
-import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
@@ -42,29 +44,35 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
     //private fun isViewer(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.VIEWER) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
     fun isParticipant(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.PARTICIPANT) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
 
-    fun getRelevantManagers(ctx: Context): List<RunManager> {
+    fun getRelevantManagers(ctx: Context): List<InteractiveRunManager> {
         if (isParticipant(ctx)) {
             val userId = userId(ctx)
-            return RunExecutor.managers().filter { m -> m.competitionDescription.teams.any { it.users.contains(userId) } }
+            return RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java).filter { m -> m.description.teams.any { it.users.contains(userId) } }
         }
-        return RunExecutor.managers()
+        return RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java)
     }
 
-    fun getRun(ctx: Context, runId: UID): RunManager? {
+    fun getRun(ctx: Context, runId: UID): InteractiveRunManager? {
         if (isParticipant(ctx)) {
             val userId = userId(ctx)
             val run = RunExecutor.managerForId(runId) ?: return null
-            if (run.competitionDescription.teams.any { it.users.contains(userId) }) {
+            if (run is InteractiveRunManager && run.description.teams.any { it.users.contains(userId) }) {
                 return run
             }
             return null
         }
-        return RunExecutor.managerForId(runId)
+        val run =  RunExecutor.managerForId(runId)
+        if (run != null && run is InteractiveRunManager){
+            return run
+        }
+        return null
+
     }
 
     fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
         throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx)
     }.UID()
+
 }
 
 class ListCompetitionRunInfosHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<RunInfo>> {
@@ -96,7 +104,12 @@ class ListCompetitionRunStatesHandler : AbstractCompetitionRunRestHandler(), Get
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
             ]
     )
-    override fun doGet(ctx: Context): List<RunState> = getRelevantManagers(ctx).map { RunState(it) }
+    override fun doGet(ctx: Context): List<RunState> =
+         getRelevantManagers(ctx).map {
+             val rac = runActionContext(ctx, it)
+             RunState(it, rac)
+         }
+
 
 }
 
@@ -121,7 +134,7 @@ class GetCompetitionRunInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access Denied", ctx)
         }
 
@@ -149,11 +162,13 @@ class GetCompetitionRunStateHandler : AbstractCompetitionRunRestHandler(), GetRe
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access Denied", ctx)
         }
 
-        return RunState(run)
+        val rac = runActionContext(ctx, run)
+
+        return RunState(run, rac)
     }
 }
 
@@ -178,11 +193,13 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        val rac = runActionContext(ctx, run)
+
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        return TaskInfo(run.currentTask ?: throw ErrorStatusException(404, "Run $runId has currently no active task.", ctx))
+        return TaskInfo(run.currentTaskDescription(rac))
     }
 }
 
@@ -206,11 +223,13 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId.", ctx)
+        val rac = runActionContext(ctx, run)
+
+        val task = run.currentTaskDescription(rac)
         try {
             return task.toTaskHint(config)
         } catch (e: FileNotFoundException) {
@@ -242,7 +261,7 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
         /* Test for access rights. */
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
@@ -251,15 +270,12 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
             throw ErrorStatusException(400, "Query target can only be loaded if task has just ended.", ctx)
         }
 
+        val rac = runActionContext(ctx, run)
+
         /* Fetch query target and transform it. */
-        val task = run.currentTask ?: throw ErrorStatusException(404, "No active task in run $runId.", ctx)
+        val task = run.currentTaskDescription(rac)
         try {
-            val target = task.toTaskTarget(config, collections)
-            if (target != null) {
-                return target
-            } else {
-                throw ErrorStatusException(404, "Current task does not have a defined query target object.", ctx)
-            }
+            return task.toTaskTarget(config, collections)
         } catch (e: FileNotFoundException) {
             throw ErrorStatusException(404, "Query object cache file not found!", ctx)
         } catch (ioe: IOException) {
@@ -287,20 +303,21 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
+        val rac = runActionContext(ctx, run)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
         /* Obtain current task run and check status. */
         return if (run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTask?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
-                run.submissions.map { SubmissionInfo.blind(it) }
+            if (run.currentTaskDescription(rac).taskType.options.any{ it.option == SimpleOption.HIDDEN_RESULTS }) {
+                run.submissions(rac).map { SubmissionInfo.blind(it) }
             } else {
-                run.submissions.map { SubmissionInfo.withId(it) }
+                run.submissions(rac).map { SubmissionInfo.withId(it) }
             }
         } else {
-            run.submissions.map { SubmissionInfo(it) }
+            run.submissions(rac).map { SubmissionInfo(it) }
         }
     }
 }
@@ -325,20 +342,22 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
+        val rac = runActionContext(ctx, run)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied", ctx)
         }
 
+
         val timestamp = ctx.pathParamMap().getOrDefault("timestamp", "0").toLong()
         return if (run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTask?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
-                run.submissions.filter { it.timestamp >= timestamp }.map { SubmissionInfo.blind(it) }
+            if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS}) {
+                run.submissions(rac).filter { it.timestamp >= timestamp }.map { SubmissionInfo.blind(it) }
             } else {
-                run.submissions.filter { it.timestamp >= timestamp }.map { SubmissionInfo.withId(it) }
+                run.submissions(rac).filter { it.timestamp >= timestamp }.map { SubmissionInfo.withId(it) }
             }
         } else {
-            run.submissions.filter { it.timestamp >= timestamp }.map { SubmissionInfo.blind(it) }
+            run.submissions(rac).filter { it.timestamp >= timestamp }.map { SubmissionInfo.blind(it) }
         }
     }
 }
@@ -365,20 +384,22 @@ class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
+        val rac = runActionContext(ctx, run)
 
-        if (!run.competitionDescription.participantCanView && isParticipant(ctx)){
+        if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied", ctx)
         }
 
+
         val taskId = ctx.pathParamMap()["taskId"]?.UID() ?: throw ErrorStatusException(404, "Missing task id", ctx)
-        return if (run.currentTaskRun?.taskId == taskId && run.status == RunManagerStatus.RUNNING_TASK) {
-            if (run.currentTask?.taskType?.options?.any{ it.option == TaskType.Options.HIDDEN_RESULTS} == true) {
-                run.submissions.map { SubmissionInfo.blind(it) }
+        return if (run.currentTask(rac)?.description?.id == taskId && run.status == RunManagerStatus.RUNNING_TASK) {
+            if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }) {
+                run.submissions(rac).map { SubmissionInfo.blind(it) }
             } else {
-                run.submissions.map { SubmissionInfo.withId(it) }
+                run.submissions(rac).map { SubmissionInfo.withId(it) }
             }
         } else {
-            run.taskRunForId(taskId)?.submissions?.map { SubmissionInfo(it) } ?: emptyList()
+            run.taskForId(rac, taskId)?.submissions?.map { SubmissionInfo(it) } ?: emptyList()
         }
     }
 }

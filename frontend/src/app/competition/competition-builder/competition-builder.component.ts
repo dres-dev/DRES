@@ -3,11 +3,11 @@ import {ActivatedRoute, Router, RouterStateSnapshot} from '@angular/router';
 import {filter} from 'rxjs/operators';
 import {
     CompetitionService,
-    ConfiguredOptionOptions,
-    ConfiguredOptionQueryComponentType,
-    ConfiguredOptionScoringType,
-    ConfiguredOptionSubmissionFilterType,
-    ConfiguredOptionTargetType,
+    ConfiguredOptionQueryComponentOption,
+    ConfiguredOptionScoringOption,
+    ConfiguredOptionSimpleOption,
+    ConfiguredOptionSubmissionFilterOption,
+    ConfiguredOptionTargetOption,
     RestCompetitionDescription,
     RestTaskDescription,
     RestTeam,
@@ -45,18 +45,18 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static TKIS_TEMPLATE = {
         name: 'Textual KIS',
         taskDuration: 420,
-        targetType: {option: ConfiguredOptionTargetType.OptionEnum.SINGLEMEDIASEGMENT, parameters: {}},
-        score: {option: ConfiguredOptionScoringType.OptionEnum.KIS, parameters: {}},
+        targetType: {option: ConfiguredOptionTargetOption.OptionEnum.SINGLE_MEDIA_SEGMENT, parameters: {}},
+        score: {option: ConfiguredOptionScoringOption.OptionEnum.KIS, parameters: {}},
         components: [
-            {option: ConfiguredOptionQueryComponentType.OptionEnum.TEXT, parameters: {}}
+            {option: ConfiguredOptionQueryComponentOption.OptionEnum.TEXT, parameters: {}}
         ],
         filter: [
-            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.NODUPLICATES, parameters: {}},
-            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.LIMITCORRECTPERTEAM, parameters: {limit: 1}},
-            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.TEMPORALSUBMISSION, parameters: {}}
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.NO_DUPLICATES, parameters: {}},
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.LIMIT_CORRECT_PER_TEAM, parameters: {limit: 1}},
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TEMPORAL_SUBMISSION, parameters: {}}
         ],
         options: [
-            {option: ConfiguredOptionOptions.OptionEnum.HIDDENRESULTS, parameters: {}},
+            {option: ConfiguredOptionSimpleOption.OptionEnum.HIDDEN_RESULTS, parameters: {}},
         ]
     } as TaskType;
 
@@ -66,15 +66,15 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static VKIS_TEMPLATE = {
         name: 'Visual KIS',
         taskDuration: 300,
-        targetType: {option: ConfiguredOptionTargetType.OptionEnum.SINGLEMEDIASEGMENT, parameters: {}},
-        score: {option: ConfiguredOptionScoringType.OptionEnum.KIS, parameters: {}},
+        targetType: {option: ConfiguredOptionTargetOption.OptionEnum.SINGLE_MEDIA_SEGMENT, parameters: {}},
+        score: {option: ConfiguredOptionScoringOption.OptionEnum.KIS, parameters: {}},
         components: [
-            {option: ConfiguredOptionQueryComponentType.OptionEnum.VIDEOITEMSEGMENT, parameters: {}}
+            {option: ConfiguredOptionQueryComponentOption.OptionEnum.VIDEO_ITEM_SEGMENT, parameters: {}}
         ],
         filter: [
-            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.NODUPLICATES, parameters: {}},
-            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.LIMITCORRECTPERTEAM, parameters: {limit: 1}},
-            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.TEMPORALSUBMISSION, parameters: {}}
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.NO_DUPLICATES, parameters: {}},
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.LIMIT_CORRECT_PER_TEAM, parameters: {limit: 1}},
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TEMPORAL_SUBMISSION, parameters: {}}
         ],
         options: []
     } as TaskType;
@@ -85,17 +85,17 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static AVS_TEMPLATE = {
         name: 'Ad-hoc Video Search',
         taskDuration: 300,
-        targetType: {option: ConfiguredOptionTargetType.OptionEnum.JUDGEMENT, parameters: {}},
-        score: {option: ConfiguredOptionScoringType.OptionEnum.AVS, parameters: {}},
+        targetType: {option: ConfiguredOptionTargetOption.OptionEnum.JUDGEMENT, parameters: {}},
+        score: {option: ConfiguredOptionScoringOption.OptionEnum.AVS, parameters: {}},
         components: [
-            {option: ConfiguredOptionQueryComponentType.OptionEnum.TEXT, parameters: {}}
+            {option: ConfiguredOptionQueryComponentOption.OptionEnum.TEXT, parameters: {}}
         ],
         filter: [
-            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.NODUPLICATES, parameters: {limit: 1}},
-            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.TEMPORALSUBMISSION, parameters: {}}
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.NO_DUPLICATES, parameters: {limit: 1}},
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TEMPORAL_SUBMISSION, parameters: {}}
         ],
         options: [
-            {option: ConfiguredOptionOptions.OptionEnum.MAPTOSEGMENT,  parameters: {}}
+            {option: ConfiguredOptionSimpleOption.OptionEnum.MAP_TO_SEGMENT,  parameters: {}}
         ]
     } as TaskType;
 
@@ -105,17 +105,17 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static LSC_TEMPLATE = {
         name: 'LSC',
         taskDuration: 300,
-        targetType: {option: ConfiguredOptionTargetType.OptionEnum.MULTIPLEMEDIAITEMS, parameters: {}},
-        score: {option: ConfiguredOptionScoringType.OptionEnum.KIS, parameters: {}},
+        targetType: {option: ConfiguredOptionTargetOption.OptionEnum.MULTIPLE_MEDIA_ITEMS, parameters: {}},
+        score: {option: ConfiguredOptionScoringOption.OptionEnum.KIS, parameters: {}},
         components: [
-            {option: ConfiguredOptionQueryComponentType.OptionEnum.TEXT, parameters: {}}
+            {option: ConfiguredOptionQueryComponentOption.OptionEnum.TEXT, parameters: {}}
         ],
         filter: [
-            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.NODUPLICATES, parameters: {}},
-            {option: ConfiguredOptionSubmissionFilterType.OptionEnum.LIMITCORRECTPERTEAM, parameters: {}}
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.NO_DUPLICATES, parameters: {}},
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.LIMIT_CORRECT_PER_TEAM, parameters: {}}
         ],
         options: [
-            {option: ConfiguredOptionOptions.OptionEnum.HIDDENRESULTS,  parameters: {}}
+            {option: ConfiguredOptionSimpleOption.OptionEnum.HIDDEN_RESULTS,  parameters: {}}
         ]
     } as TaskType;
 
@@ -227,6 +227,32 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     }
 
 
+    public addTaskType(type?: TaskType) {
+        const dialogRef = this.dialog.open(
+            CompetitionBuilderTaskTypeDialogComponent,
+            {data: type ? type : null, width: '750px'}
+        );
+        dialogRef.afterClosed().pipe(
+            filter(g => g != null),
+        ).subscribe((g) => {
+            this.competition.taskTypes.push(g);
+            this.dirty = true;
+        });
+    }
+
+    /**
+     * Removes a task type and all associated task groups.
+     *
+     * @param taskType The {@link TaskType} to remove.
+     */
+    public removeTaskType(taskType: TaskType) {
+        this.competition.taskTypes.splice(this.competition.taskTypes.indexOf(taskType), 1);
+        this.competition.taskGroups.filter(t => t.type === taskType.name).forEach(g => {
+            this.removeTaskGroup(g);
+        });
+        this.dirty = true;
+    }
+
     /**
      * Opens the dialog to add a new task group.
      */
@@ -246,27 +272,15 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
         });
     }
 
-    public addTaskType(type?: TaskType) {
-        const dialogRef = this.dialog.open(
-            CompetitionBuilderTaskTypeDialogComponent,
-            {data: type ? type : null, width: '750px'}
-        );
-        dialogRef.afterClosed().pipe(
-            filter(g => g != null),
-        ).subscribe((g) => {
-            this.competition.taskTypes.push(g);
-            this.dirty = true;
-        });
-    }
-
     /**
-     * Removes a Task Group and all associated tasks.
+     * Removes a task group and all associated tasks.
+     *
+     * @param group The {@link TaskGroup} to remove
      */
     public removeTaskGroup(group: TaskGroup) {
-        this.competition.taskGroups.splice(this.competition.taskGroups.indexOf(group));
-        // assuming taskGroup:string in task is the actual name --> late will be replaced by uuid
-        this.competition.tasks.filter(t => t.taskGroup === group.name).map(t => this.competition.tasks.indexOf(t)).forEach(i => {
-            this.competition.tasks.splice(i);
+        this.competition.taskGroups.splice(this.competition.taskGroups.indexOf(group), 1);
+        this.competition.tasks.filter(t => t.taskGroup === group.name).forEach(t => {
+            this.removeTask(t);
         });
         this.dirty = true;
     }
@@ -278,7 +292,6 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
      */
     public addTask(group: TaskGroup) {
         const type = this.competition.taskTypes.find(v => v.name === group.type);
-        // const width = window.screen.width * .75;
         const width = 750;
         const dialogRef = this.dialog.open(
             CompetitionBuilderTaskDialogComponent,
@@ -300,7 +313,6 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
      */
     public editTask(task: RestTaskDescription) {
         const index = this.competition.tasks.indexOf(task);
-        // const width = window.screen.width * .75;
         const width = 750;
         if (index > -1) {
             const dialogRef = this.dialog.open(
@@ -309,7 +321,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
                     data: {
                         taskGroup: this.competition.taskGroups.find(g => g.name === task.taskGroup),
                         taskType: this.competition.taskTypes.find(g => g.name === task.taskType),
-                        task: task
+                        task
                     } as CompetitionBuilderTaskDialogData, width: `${width}px`
                 }
             );
@@ -323,6 +335,37 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
         }
     }
 
+    /**
+     * Moves the selected task up in the list, thus changing the order of tasks.
+     *
+     * @param task The {@link RestTaskDescription} that should be moved.
+     */
+    public moveTaskUp(task: RestTaskDescription) {
+        const oldIndex = this.competition.tasks.indexOf(task);
+        if (oldIndex > 0) {
+            const buffer = this.competition.tasks[oldIndex - 1];
+            this.competition.tasks[oldIndex - 1] = task;
+            this.competition.tasks[oldIndex] = buffer;
+            this.taskTable.renderRows();
+            this.dirty = true;
+        }
+    }
+
+    /**
+     * Moves the selected task down in the list, thus changing the order of tasks.
+     *
+     * @param task The {@link RestTaskDescription} that should be moved.
+     */
+    public moveTaskDown(task: RestTaskDescription) {
+        const oldIndex = this.competition.tasks.indexOf(task);
+        if (oldIndex < this.competition.tasks.length - 1) {
+            const buffer = this.competition.tasks[oldIndex + 1];
+            this.competition.tasks[oldIndex + 1] = task;
+            this.competition.tasks[oldIndex] = buffer;
+            this.taskTable.renderRows();
+            this.dirty = true;
+        }
+    }
 
 
     /**
@@ -376,11 +419,6 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
         this.competition.teams.splice(this.competition.teams.indexOf(team), 1);
         this.dirty = true;
         this.teamTable.renderRows();
-    }
-
-    removeTaskType(taskType: TaskType) {
-        this.competition.taskTypes.splice(this.competition.taskTypes.indexOf(taskType), 1);
-        this.dirty = true;
     }
 
     /**

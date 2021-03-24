@@ -1,0 +1,12 @@
+package dev.dres.run.validation.judged
+
+import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
+
+/** Helper class to store submission information independent of source */
+data class ItemRange(val item: MediaItem, val start: Long, val end: Long){
+    constructor(submission: TemporalSubmissionAspect): this(submission.item, submission.start, submission.end)
+    constructor(submission: Submission): this(submission.item)
+    constructor(item: MediaItem): this(item, 0, 0)
+}

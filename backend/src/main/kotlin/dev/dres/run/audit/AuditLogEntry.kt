@@ -2,8 +2,8 @@ package dev.dres.run.audit
 
 import dev.dres.data.model.Entity
 import dev.dres.data.model.UID
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.SubmissionStatus
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
 
 enum class AuditLogEntryType {
 

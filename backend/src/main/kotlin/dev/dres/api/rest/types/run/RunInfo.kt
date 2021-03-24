@@ -1,10 +1,10 @@
 package dev.dres.api.rest.types.run
 
-import dev.dres.data.model.run.CompetitionRun
+import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.run.RunManager
 
 /**
- * Contains the basic and most importantly static information about a [CompetitionRun] and the
+ * Contains the basic and most importantly static information about a [InteractiveSynchronousCompetition] and the
  * associated [RunManager]. Since this information usually doesn't change in the course of a run,
  * it allows for local caching and other optimizations.
  *
@@ -22,10 +22,10 @@ data class RunInfo(
     constructor(run: RunManager) : this(
             run.id.string,
             run.name,
-            run.competitionDescription.description,
-            run.competitionDescription.teams.map { TeamInfo(it) },
-            run.competitionDescription.tasks.map { TaskInfo(it) },
-            run.competitionDescription.id.string,
-            run.competitionDescription.participantCanView
+            run.description.description,
+            run.description.teams.map { TeamInfo(it) },
+            run.description.tasks.map { TaskInfo(it) },
+            run.description.id.string,
+            run.description.participantCanView
     )
 }

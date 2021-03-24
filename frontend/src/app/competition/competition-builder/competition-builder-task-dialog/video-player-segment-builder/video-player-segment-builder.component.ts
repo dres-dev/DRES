@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Inject, OnDestroy, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, EventEmitter, Inject, Input, OnDestroy, Output, ViewChild} from '@angular/core';
 import {Observable, of, Subscription} from 'rxjs';
 import {RestMediaItem, TemporalRange} from '../../../../../../openapi';
 import {AppConfig} from '../../../../app.config';
@@ -19,6 +19,9 @@ export interface VideoPlayerSegmentBuilderData {
 export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDestroy {
 
 
+    @Input() data: VideoPlayerSegmentBuilderData;
+    @Output() rangeChange = new EventEmitter<TemporalRange>();
+
     @ViewChild('videoPlayer', {static: false}) video: ElementRef;
     videoUrl: Observable<string>;
     playtimeRelative: Observable<number>;
@@ -38,9 +41,9 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
 
     private requestSub: Subscription;
 
-    constructor(public config: AppConfig,
+    constructor(public config: AppConfig/*,
                 public dialogRef: MatDialogRef<VideoPlayerSegmentBuilderData>,
-                @Inject(MAT_DIALOG_DATA) public data: VideoPlayerSegmentBuilderData) {
+                @Inject(MAT_DIALOG_DATA) public data: VideoPlayerSegmentBuilderData*/) {
 
     }
 
@@ -129,26 +132,16 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
     }
 
     /**
-     * Fetches the data from the form, returns it to the dialog openeer and cloeses this dialog
-     */
-    save(): void {
-        this.dialogRef.close(this.fetchData());
-    }
-
-    /**
-     * Closes this dialog without saving
-     */
-    close(): void {
-        this.dialogRef.close(null);
-    }
-
-    /**
      * Currently only logs the formdata as json
+     * @deprecated
      */
     export(): void {
         console.log(this.asJson());
     }
 
+    /**
+     * @deprecated
+     */
     asJson(): string {
         return JSON.stringify(this.fetchData());
     }
@@ -156,6 +149,7 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
     recalcVideoTime($event: Event) {
         console.log(`Change: ${this.startInSeconds} - ${this.endInSeconds}`);
         this.video.nativeElement.currentTime = this.startInSeconds;
+        this.rangeChange.emit(this.fetchData());
     }
 
     setStart(){
@@ -168,7 +162,7 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
         this.recalcVideoTime(null);
     }
 
-    private fetchData() {
+    public fetchData() {
         const out = {
             start: {value: this.startInSeconds, unit: 'SECONDS'},
             end: {value: this.endInSeconds, unit: 'SECONDS'}

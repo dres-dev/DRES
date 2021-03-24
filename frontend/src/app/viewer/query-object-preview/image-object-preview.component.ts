@@ -8,7 +8,7 @@ import {ContentElement} from '../../../../openapi';
 @Component({
     selector: 'app-image-object-preview',
     template: `
-        <div class="image-container" *ngIf="(imageUrl | async)">
+        <div class="image-container" *ngIf="(imageUrl | async)" [style.text-align]="'center'">
             <img class="image" style="max-width: 100%;" [src]="(imageUrl | async)" alt="image">
         </div>
     `

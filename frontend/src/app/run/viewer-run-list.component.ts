@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {AbstractRunListComponent, RunInfoWithState} from './abstract-run-list.component';
-import {CompetitionRunAdminService, CompetitionRunService} from '../../../openapi';
+import {CompetitionRunAdminService, CompetitionRunScoresService, CompetitionRunService} from '../../../openapi';
 import {Router} from '@angular/router';
 import {AccessChecking} from '../model/access-checking.interface';
 import {UserGroup} from '../model/user-group.model';
@@ -18,9 +18,10 @@ export class ViewerRunListComponent extends AbstractRunListComponent implements 
 
     constructor(runService: CompetitionRunService,
                 runAdminService: CompetitionRunAdminService,
+                scoreService: CompetitionRunScoresService,
                 router: Router,
                 private accessService: AccessRoleService) {
-        super(runService, runAdminService, router);
+        super(runService, runAdminService, scoreService, router);
     }
 
     hasAccessFor(group: UserGroup): boolean {

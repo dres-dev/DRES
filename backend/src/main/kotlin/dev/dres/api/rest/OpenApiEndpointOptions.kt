@@ -37,7 +37,7 @@ data class OpenApiEndpointOptions(
 
     companion object {
         val commonIgnores = mutableListOf(
-             "/external/*",
+            "/external/*",
             "/user*",
             "/collection*", "/collection/*",
             "/competition*", "/competition/*",

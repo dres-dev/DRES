@@ -2,12 +2,12 @@ package dev.dres.run.eventstream.handlers
 
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.TaskDescription
-import dev.dres.data.model.run.ItemSubmission
-import dev.dres.data.model.run.Submission
-import dev.dres.data.model.run.TemporalSubmission
+import dev.dres.data.model.submissions.Submission
 import dev.dres.run.eventstream.*
-import dev.dres.run.score.interfaces.IncrementalTaskRunScorer
-import dev.dres.run.score.interfaces.RecalculatingTaskRunScorer
+import dev.dres.run.score.TaskContext
+import dev.dres.run.score.interfaces.IncrementalSubmissionTaskScorer
+import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
+import dev.dres.run.score.interfaces.TeamTaskScorer
 import java.io.File
 import java.io.PrintWriter
 
@@ -40,6 +40,10 @@ class TeamCombinationScoreHandler : StreamEventHandler {
 
                 val scorer = taskDescription.newScorer()
 
+                if (scorer !is TeamTaskScorer) {
+                    return
+                }
+
                 val submissions = submissionTaskMap[event.taskId] ?: return
 
                 val teams = submissions.map { it.teamId }.toSet().toList().sortedBy { it.string }
@@ -52,8 +56,8 @@ class TeamCombinationScoreHandler : StreamEventHandler {
                     combinations.map {
                         if (it.value.first == submission.teamId || it.value.second == submission.teamId) {
                             when (submission) {
-                                is ItemSubmission -> submission.copy(teamId = it.key).apply { this.status = submission.status }
-                                is TemporalSubmission -> submission.copy(teamId = it.key).apply { this.status = submission.status }
+                                is Submission.Item -> submission.copy(teamId = it.key).apply { this.status = submission.status }
+                                is Submission.Temporal -> submission.copy(teamId = it.key).apply { this.status = submission.status }
                             }
                         } else {
                             null
@@ -62,22 +66,24 @@ class TeamCombinationScoreHandler : StreamEventHandler {
                 }
 
                 when(scorer) {
-                    is RecalculatingTaskRunScorer -> {
+                    is RecalculatingSubmissionTaskScorer -> {
                         scorer.computeScores(
                                 combinedSubmissions,
-                                combinations.keys,
-                                taskStartMap[event.taskId]!!,
-                                taskDescription.duration,
-                                event.timeStamp
+                                TaskContext(
+                                    combinations.keys,
+                                    taskStartMap[event.taskId]!!,
+                                    taskDescription.duration,
+                                    event.timeStamp
+                                )
                         )
                     }
-                    is IncrementalTaskRunScorer -> {
+                    is IncrementalSubmissionTaskScorer -> {
                         combinedSubmissions.forEach { scorer.update(it) }
                     }
                     else -> throw IllegalStateException("unsupported scorer type $scorer")
                 }
 
-                val scores = scorer.scores().mapKeys { combinations[it.key]!! }
+                val scores = scorer.teamScoreMap().mapKeys { combinations[it.key]!! }
 
                 scores.forEach {
                     writer.println("${event.taskId.string},${it.key.first.string},${it.key.second.string},${it.value}")

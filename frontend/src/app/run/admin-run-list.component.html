@@ -17,6 +17,10 @@
                     <mat-icon>gavel</mat-icon>
                 </button>
 
+                <button mat-icon-button aria-label="Go to audience voting viewer." matTooltip="Go to audience voting viewer." (click)="navigateToVoting(row.id)">
+                    <mat-icon>flaky</mat-icon>
+                </button>
+
                 <button mat-icon-button aria-label="Go to score history." matTooltip="Go to score history." (click)="navigateToScoreHistory(row.id)">
                     <mat-icon>stacked_line_chart</mat-icon>
                 </button>
@@ -27,6 +31,10 @@
 
                 <button *ngIf="row.status == 'CREATED'" mat-icon-button aria-label="Start the competition run." matTooltip="Start the competition run." (click)="start(row.id)">
                     <mat-icon>play_arrow</mat-icon>
+                </button>
+
+                <button mat-icon-button aria-label="Download scores." matTooltip="Download scores." (click)="downloadScores(row.id)">
+                    <mat-icon>cloud_download</mat-icon>
                 </button>
 
                 <button *ngIf="row.status == 'ACTIVE' || row.status == 'TASK_ENDED'" mat-icon-button aria-label="Previous task." matTooltip="Got to previous task." (click)="previousTask(row.id)">

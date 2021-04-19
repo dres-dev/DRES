@@ -16,9 +16,9 @@ The backend is written in Kotlin, hence requires a JVM, and the frontend is writ
 However, the entire setup process is Gradle based. To setup DRES, follow these steps:
 
 1. Clone or Download this repository
-2. Navigate to the [backend](backend/)
-3. Build the backend using Gradle `$> ./gradlew distZip` (alternatively `$> ./gradlew distTar`)
-4. Extract and run the backend (it serves the frontend)
+2. Build the backend using Gradle `$> ./gradlew distZip` (alternatively `$> ./gradlew distTar`)
+3. Extract the generated archive (see `backend/build/distributions`)
+4. Run the backend (it serves the frontend) by starting the `backend` script in the `bin` directory
 
 If you want to run DRES from your IDE (e.g. for debuging or development), please remember to run `$> ./gradlew setupFFMpeg` to download the required FFMpeg dependencies!
 

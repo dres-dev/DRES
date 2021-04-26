@@ -73,7 +73,7 @@ class GetTeamLogoHandler(val config: Config) : AbstractCompetitionRunRestHandler
                 throw ErrorStatusException(400, "Parameter 'logoId' is missing!'", ctx)
             }.UID()
         }catch (ex: java.lang.IllegalArgumentException){
-            throw ErrorStatusException(400, "Could not deserialise logoId '${ctx.pathParamMap()["logoId"]}'", ctx)
+            throw ErrorStatusException(400, "Could not deserialise logoId '${ctx.pathParamMap()["logoId"]}'", ctx, true)
         }
 
 
@@ -210,7 +210,7 @@ class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        val competition = CompetitionDescription(UID.EMPTY, createRequest.name, createRequest.description, mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf(), createRequest.participantsCanView)
+        val competition = CompetitionDescription(UID.EMPTY, createRequest.name, createRequest.description, mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf(), createRequest.participantsCanView)
         val competitionId = this.competitions.append(competition)
         return SuccessStatus("Competition with ID ${competitionId.string} was created.")
     }

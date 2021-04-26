@@ -24,6 +24,7 @@ data class RestCompetitionDescription(
         val taskGroups: List<TaskGroup>,
         val tasks: List<RestTaskDescription>,
         val teams: List<RestTeam>,
+        val teamGroups: List<RestTeamGroup>,
         val participantCanView: Boolean
 ) {
 
@@ -42,6 +43,7 @@ data class RestCompetitionDescription(
             competition.taskGroups,
             competition.tasks.map { RestTaskDescription.fromTask(it) },
             competition.teams.map { RestTeam(it) },
+            competition.teamGroups.map { RestTeamGroup(it) },
             competition.participantCanView
         )
     }
@@ -52,15 +54,21 @@ data class RestCompetitionDescription(
      * @param config The global [Config] object used during conversion.
      * @param mediaItems [DAO] used to perform media item lookups.
      */
-    fun toCompetitionDescription(config: Config, mediaItems: DAO<MediaItem>) = CompetitionDescription(
-        this.id.UID(),
-        this.name,
-        this.description,
-        this.taskTypes.toMutableList(),
-        this.taskGroups.toMutableList(),
-        this.tasks.map { it.toTaskDescription(this.taskGroups, this.taskTypes, mediaItems) }.toMutableList(),
-        this.teams.map { it.toTeam(config) }.toMutableList(),
-        this.participantCanView
-    )
+    fun toCompetitionDescription(config: Config, mediaItems: DAO<MediaItem>) : CompetitionDescription {
+
+        val teams = this.teams.map { it.toTeam(config) }.toMutableList()
+
+        return CompetitionDescription(
+            this.id.UID(),
+            this.name,
+            this.description,
+            this.taskTypes.toMutableList(),
+            this.taskGroups.toMutableList(),
+            this.tasks.map { it.toTaskDescription(this.taskGroups, this.taskTypes, mediaItems) }.toMutableList(),
+            teams,
+            this.teamGroups.map { it.toTeamGroup(teams) },
+            this.participantCanView
+        )
+    }
 }
 

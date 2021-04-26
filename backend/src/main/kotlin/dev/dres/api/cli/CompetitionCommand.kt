@@ -65,7 +65,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                 .validate { require(it.isNotEmpty()) { "Competition description must be non empty." } }
 
         override fun run() {
-            val newCompetition = CompetitionDescription(id = UID.EMPTY, name = name, description = description, taskTypes = mutableListOf(), taskGroups = mutableListOf(), teams = mutableListOf(), tasks = mutableListOf(), participantCanView = true)
+            val newCompetition = CompetitionDescription(id = UID.EMPTY, name = name, description = description, taskTypes = mutableListOf(), taskGroups = mutableListOf(), teams = mutableListOf(), teamGroups = mutableListOf(), tasks = mutableListOf(), participantCanView = true)
             val id = this@CompetitionCommand.competitions.append(newCompetition)
             println("New competition '$newCompetition' created with ID=${id.string}.")
         }

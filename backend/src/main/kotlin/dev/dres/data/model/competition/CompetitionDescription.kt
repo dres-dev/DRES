@@ -1,12 +1,10 @@
 package dev.dres.data.model.competition
 
-
 import dev.dres.data.model.Entity
 import dev.dres.data.model.UID
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
-
 
 data class CompetitionDescription(
         override var id: UID,
@@ -16,6 +14,7 @@ data class CompetitionDescription(
         val taskGroups: MutableList<TaskGroup>,
         val tasks: MutableList<TaskDescription>,
         val teams: MutableList<Team>,
+        val teamGroups: List<TeamGroup>,
         val participantCanView: Boolean
 ) : Entity {
 

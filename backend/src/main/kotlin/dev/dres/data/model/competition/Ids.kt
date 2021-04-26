@@ -7,3 +7,5 @@ typealias TaskDescriptionId = UID
 
 /** The ID of a [Team]. */
 typealias TeamId = UID
+
+typealias TeamGroupId = UID

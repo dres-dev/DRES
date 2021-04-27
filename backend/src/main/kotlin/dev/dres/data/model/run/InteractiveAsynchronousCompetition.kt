@@ -94,6 +94,7 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
         /** The total duration in milliseconds of this task. Usually determined by the [TaskDescription] but can be adjusted! */
         override var duration: Long = this.description.duration
 
+
         init {
             check(this@InteractiveAsynchronousCompetition.description.teams.any { it.uid == this.teamId }) {
                 "Cannot start a new task run for team with ID ${this.teamId}. Team is not registered for competition."

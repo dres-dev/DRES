@@ -1,9 +1,7 @@
 package dev.dres.data.model.run
 
 import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.competition.TaskDescription
-import dev.dres.data.model.competition.TaskDescriptionTarget
-import dev.dres.data.model.competition.TaskType
+import dev.dres.data.model.competition.*
 import dev.dres.data.model.competition.options.TargetOption
 import dev.dres.data.model.run.interfaces.Task
 import dev.dres.data.model.submissions.Submission
@@ -35,6 +33,7 @@ abstract class AbstractInteractiveTask: AbstractRun(), Task {
 
     /** The [SubmissionValidator] used to validate [Submission]s. */
     abstract val validator: SubmissionValidator
+
 
     /**
      * Generates and returns a new [SubmissionValidator] for this [TaskDescription]. Depending
@@ -79,4 +78,12 @@ abstract class AbstractInteractiveTask: AbstractRun(), Task {
     }
 
     abstract fun addSubmission(submission: Submission)
+
+    val teamGroupAggregators: Map<TeamGroupId, TeamAggregator> by lazy {
+        this.competition.description.teamGroups.associate { it.uid to it.newAggregator() }
+    }
+
+    fun updateTeamAggregation(teamScores: Map<TeamId, Double>) {
+        this.teamGroupAggregators.values.forEach { it.aggregate(teamScores) }
+    }
 }

@@ -6,18 +6,23 @@ data class TeamGroup(
     val teams: List<Team>,
     val aggregation: TeamGroupAggregation
 ) {
-    private val aggregator by lazy { aggregation.aggregationFactory(teams) }
-
-    fun aggregate(teamScores: Map<TeamId, Double>) = aggregator.aggregate(teamScores)
-
+    fun newAggregator() : TeamAggregator = aggregation.aggregationFactory(teams)
 }
 
-abstract class TeamAggregator(teams: List<Team>) {
+abstract class TeamAggregator internal constructor(teams: List<Team>) {
 
     private val teamIds = teams.map { it.uid }.toSet()
 
+    var lastValue: Double = 0.0
+        private set
+
     internal abstract fun computeAggregation(teamScores: Map<TeamId, Double>): Double
-    fun aggregate(teamScores: Map<TeamId, Double>) = computeAggregation(teamScores.filter { it.key in teamIds })
+
+    @Synchronized
+    fun aggregate(teamScores: Map<TeamId, Double>) : Double{
+        this.lastValue = computeAggregation(teamScores.filter { it.key in teamIds })
+        return lastValue
+    }
 
 }
 
@@ -54,7 +59,7 @@ class LastTeamAggregator(teams: List<Team>) : TeamAggregator(teams) {
 
 }
 
-enum class TeamGroupAggregation(val aggregationFactory: (List<Team>) -> TeamAggregator) {
+enum class TeamGroupAggregation(internal val aggregationFactory: (List<Team>) -> TeamAggregator) {
     MAX(::MaxTeamAggregator),
     MIN(::MinTeamAggregator),
     MEAN(::MeanTeamAggregator),

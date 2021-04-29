@@ -219,7 +219,7 @@ class TaskScoreListCSVHandler : AbstractScoreRestHandler(), GetRestHandler<Strin
 /**
  * A [GetRestHandler] that returns the names of all available scoreboards for a given run.
  */
-class ListScoreboardsHandler : AbstractScoreRestHandler(), GetRestHandler<Array<String>> {
+class ListScoreboardsHandler : AbstractScoreRestHandler(), GetRestHandler<List<String>> {
     override val route = "score/run/:runId/scoreboards"
 
     @OpenApi(
@@ -236,10 +236,10 @@ class ListScoreboardsHandler : AbstractScoreRestHandler(), GetRestHandler<Array<
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
         ]
     )
-    override fun doGet(ctx: Context): Array<String> {
+    override fun doGet(ctx: Context): List<String> {
         val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
-        return run.scoreboards.map { it.name }.toTypedArray()
+        return run.scoreboards.map { it.name }
     }
 }
 
@@ -279,3 +279,41 @@ class ListScoreSeriesHandler : AbstractScoreRestHandler(), GetRestHandler<List<S
 data class ScoreSeries(val team: String, val name: String, val points: List<ScoreSeriesPoint>)
 
 data class ScoreSeriesPoint(val score: Double, val timestamp: Long)
+
+
+class TeamGroupScoreHandler : AbstractScoreRestHandler(), GetRestHandler<List<TeamGroupValue>> {
+    override val route = "score/run/:runId/teamGroups"
+
+    @OpenApi(
+        summary = "Returns team group aggregated values of the current task.",
+        path = "/api/score/run/:runId/teamGroups",
+        tags = ["Competition Run Scores"],
+        pathParams = [
+            OpenApiParam("runId", String::class, "ID of the competition run.", required = true),
+        ],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(Array<ScoreSeries>::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
+    )
+    override fun doGet(ctx: Context): List<TeamGroupValue> {
+        val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()
+        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
+        val rac = RunActionContext.runActionContext(ctx, run)
+
+        if (!run.description.participantCanView && isParticipant(ctx)) {
+            throw ErrorStatusException(403, "Access denied.", ctx)
+        }
+
+        val aggregators = run.currentTask(rac)?.teamGroupAggregators ?: throw ErrorStatusException(404, "No active task run in run $runId.", ctx)
+
+        val teamGroups = run.description.teamGroups
+
+        return teamGroups.map { TeamGroupValue(it.name, aggregators[it.uid]?.lastValue ?: 0.0) }
+    }
+
+}
+
+data class TeamGroupValue(val name: String, val value: Double)

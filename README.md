@@ -9,6 +9,40 @@ The Distributed Retrieval Evaluation Server builds uppon the work of https://git
 To deploy and run DRES, a JRE of at least Java 11 is required, e.g. the [OpenJDK 11](https://jdk.java.net/java-se-ri/11).
 For development, besides the JDK, addtitionally [NPM](https://www.npmjs.com/) and the [Angular CLI](https://cli.angular.io/) is recommended.
 
+## Citation
+
+We kindly ask you to refer to the following paper in publications mentioning or employing DRES:
+
+> Rossetto L., Gasser R., Sauter L., Bernstein A., Schuldt H. (2021) A System for Interactive Multimedia Retrieval Evaluations. In: Lokoč J. et al. (eds) MultiMedia Modeling. MMM 2021. Lecture Notes in Computer Science, vol 12573. Springer, Cham.
+
+**Link:** https://doi.org/10.1007/978-3-030-67835-7_33
+
+
+**Bibtex:**
+```
+@InProceedings{10.1007/978-3-030-67835-7_33,
+author="Rossetto, Luca
+and Gasser, Ralph
+and Sauter, Loris
+and Bernstein, Abraham
+and Schuldt, Heiko",
+editor="Loko{\v{c}}, Jakub
+and Skopal, Tom{\'a}{\v{s}}
+and Schoeffmann, Klaus
+and Mezaris, Vasileios
+and Li, Xirong
+and Vrochidis, Stefanos
+and Patras, Ioannis",
+title="A System for Interactive Multimedia Retrieval Evaluations",
+booktitle="MultiMedia Modeling",
+year="2021",
+publisher="Springer International Publishing",
+address="Cham",
+pages="385--390",
+isbn="978-3-030-67835-7"
+}
+```
+
 ## Setup
 
 DRES consists of two components: The [backend](backend/) and the [frontend](frontend/), each subdirectories of this repository.

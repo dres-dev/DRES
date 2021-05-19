@@ -5,9 +5,6 @@ on:
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
-env:
-  IMAGE_NAME: dres
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -50,17 +47,3 @@ jobs:
           asset_path: ./backend/build/distributions/dres-dist.tar
           asset_name: dres-dist-${{ env.VERSION }}.tar
           asset_content_type: application/tar
-      - name: Build Docker Image
-        run: docker build . --file Dockerfile --tag ${{ env.IMAGE_NAME }}
-      - name: Log into Docker Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-      - name: Push Docker image
-        run: |
-          IMAGE_ID=docker.pkg.github.com/dres-dev/dres/${{ env.IMAGE_NAME }}
-
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "master" ] && VERSION=latest
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION

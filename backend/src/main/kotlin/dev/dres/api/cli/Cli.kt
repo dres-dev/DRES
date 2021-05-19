@@ -10,6 +10,7 @@ import com.github.ajalt.clikt.output.HelpFormatter
 import dev.dres.data.dbo.DataAccessLayer
 import dev.dres.data.model.Config
 import org.jline.builtins.Completers
+import org.jline.builtins.Completers.TreeCompleter.node
 import org.jline.reader.*
 import org.jline.reader.impl.completer.AggregateCompleter
 import org.jline.reader.impl.completer.StringsCompleter
@@ -48,7 +49,8 @@ object Cli {
 
         val terminal = try {
             TerminalBuilder.builder()
-                .streams(System.`in`, System.out).build()
+                //.streams(System.`in`, System.out)
+                .build()
         } catch (e: IOException) {
             System.err.println("Could not initialize terminal: ${e.message}")
             exitProcess(-1)
@@ -59,17 +61,15 @@ object Cli {
                 StringsCompleter("quit", "exit", "help"),
                 // Based on https://github.com/jline/jline3/wiki/Completion
                 // However, this is not working as subcommands are not completed
-                /*Completers.TreeCompleter(
+                Completers.TreeCompleter(
                         clikt.registeredSubcommands().map {
                             if(it.registeredSubcommands().isNotEmpty()){
-                                val list = mutableListOf(it.commandName as Any)
-                                list.addAll(it.registeredSubcommandNames().map { node(it) })
-                                node(list.first())
+                                node(it.commandName, node(*it.registeredSubcommandNames().toTypedArray()))
                             }else{
                                 node(it.commandName)
                             }
                         }
-                ),*/
+                ),
                 // Pseudo-solution. Not ideal, as all subcommands are flattened
                 /*AggregateCompleter(
                     StringsCompleter(clikt.registeredSubcommandNames()),
@@ -105,6 +105,7 @@ object Cli {
                     when (e) {
                         is com.github.ajalt.clikt.core.NoSuchSubcommand -> println("command not found")
                         is com.github.ajalt.clikt.core.PrintHelpMessage -> println(e.command.getFormattedHelp())
+                        is com.github.ajalt.clikt.core.UsageError -> println("invalid command")
 //                        is com.github.ajalt.clikt.core.MissingParameter -> println(e.localizedMessage)
                         is com.github.ajalt.clikt.core.NoSuchOption -> println(e.localizedMessage)
                         else -> e.printStackTrace()

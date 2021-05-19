@@ -43,7 +43,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
 
     private val taskCacheLocation = File(config.cachePath + "/tasks")
 
-    abstract inner class AbstractCompetitionCommand(name: String, help: String) : CliktCommand(name = name, help = help) {
+    abstract inner class AbstractCompetitionCommand(name: String, help: String, printHelpOnEmptyArgs: Boolean = true) : CliktCommand(name = name, help = help, printHelpOnEmptyArgs = printHelpOnEmptyArgs) {
         private val id: String? by option("-i", "--id")
         private val competition: String? by option("-c", "--competition")
         protected val competitionId: UID

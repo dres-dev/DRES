@@ -40,7 +40,7 @@ class ExecutionCommand :
             } catch (e: Exception) {
                 when (e) {
                     is com.github.ajalt.clikt.core.NoSuchSubcommand -> results.add("Unknown Command")
-                    is com.github.ajalt.clikt.core.MissingParameter -> results.add("Missing Parameter: ${e.localizedMessage}")
+//                    is com.github.ajalt.clikt.core.MissingParameter -> results.add("Missing Parameter: ${e.localizedMessage}")
                     is com.github.ajalt.clikt.core.NoSuchOption -> results.add("No Such Option: ${e.localizedMessage}")
                     else -> results.add("Exception: ${e.printStackTrace()}")
                 }

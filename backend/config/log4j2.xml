@@ -37,7 +37,7 @@
             <AppenderRef ref="Libraries"/>
         </logger>
 
-        <logger name="org.jline" level="WARN">
+        <logger name="org.jline" level="DEBUG">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Libraries"/>
         </logger>

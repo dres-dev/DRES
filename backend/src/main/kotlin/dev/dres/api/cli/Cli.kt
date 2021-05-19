@@ -47,7 +47,8 @@ object Cli {
         )
 
         val terminal = try {
-            TerminalBuilder.builder().streams(System.`in`, System.out).build()
+            TerminalBuilder.builder()
+                .streams(System.`in`, System.out).build()
         } catch (e: IOException) {
             System.err.println("Could not initialize terminal: ${e.message}")
             exitProcess(-1)
@@ -70,11 +71,11 @@ object Cli {
                         }
                 ),*/
                 // Pseudo-solution. Not ideal, as all subcommands are flattened
-                AggregateCompleter(
+                /*AggregateCompleter(
                     StringsCompleter(clikt.registeredSubcommandNames()),
                     StringsCompleter(
                         clikt.registeredSubcommands().flatMap { it.registeredSubcommandNames() })
-                ),
+                ),*/
                 Completers.FileNameCompleter()
             )
         )
@@ -104,7 +105,7 @@ object Cli {
                     when (e) {
                         is com.github.ajalt.clikt.core.NoSuchSubcommand -> println("command not found")
                         is com.github.ajalt.clikt.core.PrintHelpMessage -> println(e.command.getFormattedHelp())
-                        is com.github.ajalt.clikt.core.MissingParameter -> println(e.localizedMessage)
+//                        is com.github.ajalt.clikt.core.MissingParameter -> println(e.localizedMessage)
                         is com.github.ajalt.clikt.core.NoSuchOption -> println(e.localizedMessage)
                         else -> e.printStackTrace()
                     }

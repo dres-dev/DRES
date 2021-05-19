@@ -7,16 +7,8 @@ import {BehaviorSubject, Observable} from 'rxjs';
 @Injectable()
 export class AppConfig {
 
-
-    private static settingsSubject = new BehaviorSubject<IConfig>(null);
-    static settings: IConfig;
-    private handler: ProxyHandler<IConfig> = {
-        set: (obj: IConfig, prop, value: any) => {
-            obj[prop] = value;
-            AppConfig.settingsSubject.next(AppConfig.settings);
-            return true;
-        }
-    } as ProxyHandler<IConfig>;
+    /** BehaviorSubject used to cache the current {IConfig} */
+    private settings = new BehaviorSubject<IConfig>(null);
 
     constructor(private http: HttpClient) {}
 
@@ -24,21 +16,44 @@ export class AppConfig {
      * Returns the current configuration
      */
     get config(): IConfig {
-        return AppConfig.settings;
+        return this.settings.value;
     }
 
     /**
      * Returns the current configuration as observable. Can be used to monitor changes.
      */
     get configAsObservable(): Observable<IConfig> {
-        return AppConfig.settingsSubject.asObservable();
+        return this.settings.asObservable();
     }
 
     /**
-     * Returns the URL to the DRES WebSocket endpoint.
+     * Base URL for DRES HTTP endpoint.
+     */
+    get baseUrl() {
+        const config = this.config;
+        const port = config.endpoint.port === -1 ? '' : `:${config.endpoint.port}`;
+        return `${config.endpoint.tls ? 'https://' : 'http://'}${config.endpoint.host}${port}`;
+    }
+
+    /**
+     * URL to the DRES WebSocket endpoint.
      */
     get webSocketUrl() {
-       return  `${AppConfig.settings.endpoint.tls ? 'wss://' : 'ws://'}${AppConfig.settings.endpoint.host}:${AppConfig.settings.endpoint.port}/api/ws/run`;
+        const config = this.config;
+        const port = config.endpoint.port === -1 ? '' : `:${config.endpoint.port}`;
+        return `${config.endpoint.tls ? 'wss://' : 'ws://'}${config.endpoint.host}${port}/api/ws/run`;
+    }
+
+    /**
+     * Resolves the given path given the global backend URL.
+     *
+     * That is, it returns the URL of the form http://[host]:[port]/[path]
+     *
+     * @param path The path to resolve.
+     * @return The full URL to the API endpoint.
+     */
+    public resolveUrl(path: string) {
+        return `${this.baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
     }
 
     /**
@@ -49,26 +64,20 @@ export class AppConfig {
      * @return The full URL to the API endpoint.
      */
     public resolveApiUrl(path: string) {
-        return `${AppConfig.settings.endpoint.tls ? 'https://' : 'http://'}${AppConfig.settings.endpoint.host}:${AppConfig.settings.endpoint.port}/api${path.startsWith('/') ? '' : '/'}${path}`;
-    }
-
-    public resolveUrl(path: string) {
-        return `${AppConfig.settings.endpoint.tls ? 'https://' : 'http://'}${AppConfig.settings.endpoint.host}:${AppConfig.settings.endpoint.port}${path.startsWith('/') ? '' : '/'}${path}`;
+        return `${this.baseUrl}/api${path.startsWith('/') ? '' : '/'}${path}`;
     }
 
     /**
-     * Loads the default configuration from a JSON file.
+     * (Re-)loads the default configuration from a JSON file.
      */
-    load() {
+    public load() {
         const jsonFile = 'config.json?random=' + Date.now();
         return new Promise<void>((resolve, reject) => {
             this.http.get(jsonFile).toPromise().then((response: IConfig) => {
-                AppConfig.settings = new Proxy<IConfig>(response as IConfig, this.handler);
-                AppConfig.settingsSubject.next(AppConfig.settings);
+                this.settings.next(response as IConfig);
                 resolve();
             }).catch((response: any) => {
-                AppConfig.settings = new Proxy<IConfig>(new DefaultConfig(), this.handler);
-                AppConfig.settingsSubject.next(AppConfig.settings);
+                this.settings.next(new DefaultConfig());
                 console.log(`Could not load config file '${jsonFile}'. Fallback to default.`);
                 resolve();
             });

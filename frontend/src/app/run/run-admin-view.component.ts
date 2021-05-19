@@ -5,9 +5,9 @@ import {
     CompetitionRunAdminService,
     CompetitionRunService,
     CompetitionService,
-    RestDetailedTeam, RestTeam,
+    RestDetailedTeam,
     RunInfo,
-    RunState, TeamInfo,
+    RunState,
     ViewerInfo
 } from '../../../openapi';
 import {combineLatest, merge, Observable, of, Subject, timer} from 'rxjs';

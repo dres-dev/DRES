@@ -13,6 +13,7 @@ import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import java.io.File
+import java.lang.Exception
 
 class GetMediaHandler(private val itemCache: DaoIndexer<MediaItem, Pair<UID,UID>>, private val collectionCache : DaoIndexer<MediaCollection, UID>) : GetRestHandler<Any>, AccessManagedRestHandler {
 
@@ -60,7 +61,11 @@ class GetMediaHandler(private val itemCache: DaoIndexer<MediaItem, Pair<UID,UID>
         val basePath = File(collection.basePath)
         val itemFile = File(basePath, item.location)
 
-        ctx.streamFile(itemFile)
+        try{
+            ctx.streamFile(itemFile)
+        } catch (e: org.eclipse.jetty.io.EofException) {
+            //is triggered by a client abruptly stopping playback, can be safely ignored
+        }
 
     }
 

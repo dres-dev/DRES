@@ -314,17 +314,17 @@
                                        [formControl]="description.get('segment_end')"/>
                             </mat-form-field>
                             <mat-form-field style="width: 20%;">
-                                <mat-select [formControl]="description.get('segment_time_unit')" (selectionChange)="timeUnitChanged($event, descStart, descEnd)">
-                                    <option *ngFor="let unit of units" [value]="unit">{{unit}}</option>
+                                <mat-select  [formControl]="description.get('segment_time_unit')" (selectionChange)="timeUnitChanged($event, descStart, descEnd)"> <!--  -->
+                                    <mat-option *ngFor="let unit of units" [value]="unit">{{unit}}</mat-option>
                                 </mat-select>
-                                <span matSuffix>
+                                <!--<span matSuffix>
                                     <button mat-icon-button
                                             aria-label="Show media item."
                                             matTooltip="Show media item."
                                             (click)="toggleVideoPlayer(description.get('mediaItem').value,description.get('segment_start'),description.get('segment_end'), description.get('segment_time_unit'))">
                                         <mat-icon>remove_red_eye</mat-icon>
                                     </button>
-                                </span>
+                                </span>-->
                             </mat-form-field>
                         </span>
                     </p>

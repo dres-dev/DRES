@@ -6,10 +6,18 @@ import {TemporalPoint, TemporalRange} from '../../../openapi';
 export class TimeUtilities {
 
 
+    /**
+     * The proper TIMECODE regex for parsing (except it does not work for ECMAScript).
+     * Used for validating whether the TIMECODE input
+     */
+    public static timeCodeRegex = /^\s*(?:(?:(?:(\d+):)?([0-5]?\d):)?([0-5]?\d):)?(\d+)\s*$/;
     private static msPerHour = 3_600_000;
     private static msPerMinute = 60_000;
-
-    public static timeCodeRegex = /^\s*(?:(?:(?:(\d+):)?([0-5]?\d):)?([0-5]?\d):)?(\d+)\s*$/;
+    /**
+     * ECMAScript compatible version of the timeCodeRegex
+     * @private
+     */
+    private static timeCodeRegexParsing = /([0-9]+:)?([0-5]?\d:)?([0-5]?\d:)?([0-9]+)/;
 
     static point2Milliseconds(point: TemporalPoint, fps: number): number {
         switch (point.unit) {
@@ -35,48 +43,48 @@ export class TimeUtilities {
     }
 
     static timeCode2Milliseconds(timecode: string, fps: number): number {
-        console.log(`Input: ${timecode}`);
-        const matches = timecode.split(':');
-        console.log(`Matches: ${matches}`);
-        // const matches = timecode.match(this.timeCodeRegex);
-        /* The regex does not work in JavaScript, as can be seen when copy & pasting this snippet to https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Groups_and_Ranges
+        // console.log(`Input: ${timecode}`);
+        /*
+const a1 = '01:02:03:456';
+const a2 = '02:03:456';
+const a3 = '03:456';
+const a4 = '456';
 
-        const regex = /^\s*(?:(?:(?:(\d+):)?([0-5]?\d):)?([0-5]?\d):)?(\d+)\s*$/;
-const tc1 = '01:02:03:456'; // 3x :
-const tc2 = '02:03:456'; // 2x :
-const tc3 = '03:456'; // 1x :
-const tc4 = '4567';
-console.log(tc1.match(regex));console.log(tc4.match(regex));console.log(tc4.match(regex));console.log(tc4.match(regex));
+const regexpSize = /([0-9]+:)?([0-5]?\d:)?([0-5]?\d:)?([0-9]+)/;
+
+console.log(a1.match(regexpSize));
+console.log(a2.match(regexpSize));
+console.log(a3.match(regexpSize));
+console.log(a4.match(regexpSize));
+for testing at e.g. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test
          */
-        let hoursIndex = -1;
-        let minutesIndex = -1;
-        let secondsIndex = -1;
-        let framesIndex = 0;
-        switch (matches.length) {
-            case 4:
-                hoursIndex = 0;
-                minutesIndex = 1;
-                secondsIndex = 2;
-                framesIndex = 3;
-                break;
-            case 3:
-                minutesIndex = 0;
-                secondsIndex = 1;
-                framesIndex = 2;
-                break;
-            case 2:
-                secondsIndex = 0;
-                framesIndex = 1;
-                break;
-        }
+        const matches = timecode.match(this.timeCodeRegexParsing);
+        // console.log(`Matches: ${matches}`);
 
-        const hours = hoursIndex >= 0 ? Number.parseInt(matches[hoursIndex], 10) : 0;
-        const minutes = minutesIndex >= 0 ? Number.parseInt(matches[minutesIndex], 10) : 0;
-        const seconds = secondsIndex >= 0 ? Number.parseInt(matches[secondsIndex], 10) : 0;
-        const frames = Number.parseInt(matches[framesIndex], 10);
+        let hIdx = 1;
+        let mIdx = 2;
+        let sIdx = 3;
+
+        if (matches[1] && matches[2] && matches[3]) {
+            // all specified
+        } else if (matches[1] && matches[2]) {
+            hIdx = 3; // so its undefined
+            mIdx = 1;
+            sIdx = 2;
+        } else if (matches[1]) {
+            hIdx = 3; // so its undefined
+            mIdx = 2;
+            sIdx = 1;
+        } // else I don't care, as 1,2,3 all are undefined
+
+        const hours = matches[hIdx] ? Number.parseInt(matches[hIdx].substring(0, matches[hIdx].length - 1), 10) : 0;
+        const minutes = matches[mIdx] ? Number.parseInt(matches[mIdx].substring(0, matches[mIdx].length - 1), 10) : 0;
+        const seconds = matches[sIdx] ? Number.parseInt(matches[sIdx].substring(0, matches[sIdx].length - 1), 10) : 0;
+        const frames = Number.parseInt(matches[4], 10);
+        // console.log(`parsed: ${hours}:${minutes}:${seconds}:${frames}`);
 
         const ms = hours * this.msPerHour + minutes * this.msPerMinute + seconds * 1000 + (1000 * frames / fps);
-        console.log(`output: ${ms}`);
+        // console.log(`Output: ${ms}`);
         return ms;
     }
 

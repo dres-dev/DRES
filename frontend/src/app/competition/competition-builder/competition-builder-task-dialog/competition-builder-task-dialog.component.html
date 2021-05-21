@@ -306,25 +306,25 @@
                                 </mat-autocomplete>
                             </mat-form-field>
                             <mat-form-field style="width: 10%;">
-                                <input #descStart [type]="description.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'" matInput placeholder="Segment start"
+                                <input #descStart [type]="'text'" matInput placeholder="Segment start"
                                        [formControl]="description.get('segment_start')"/>
                             </mat-form-field>
                             <mat-form-field style="width: 10%;">
-                                <input #descEnd [type]="description.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'" matInput placeholder="Segment end"
+                                <input #descEnd [type]="'text'" matInput placeholder="Segment end"
                                        [formControl]="description.get('segment_end')"/>
                             </mat-form-field>
                             <mat-form-field style="width: 20%;">
                                 <mat-select  [formControl]="description.get('segment_time_unit')" (selectionChange)="timeUnitChanged($event, descStart, descEnd)"> <!--  -->
                                     <mat-option *ngFor="let unit of units" [value]="unit">{{unit}}</mat-option>
                                 </mat-select>
-                                <!--<span matSuffix>
+                                <span matSuffix>
                                     <button mat-icon-button
                                             aria-label="Show media item."
                                             matTooltip="Show media item."
                                             (click)="toggleVideoPlayer(description.get('mediaItem').value,description.get('segment_start'),description.get('segment_end'), description.get('segment_time_unit'))">
                                         <mat-icon>remove_red_eye</mat-icon>
                                     </button>
-                                </span>-->
+                                </span>
                             </mat-form-field>
                         </span>
                     </p>

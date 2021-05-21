@@ -16,6 +16,7 @@ import {AbstractControl, FormArray, FormControl, FormGroup, ValidatorFn, Validat
 import {filter, first, switchMap} from 'rxjs/operators';
 import {Observable} from 'rxjs';
 import {RequireMatch} from './require-match';
+import {TimeUtilities} from '../../../utilities/time.utilities';
 
 export class CompetitionFormBuilder {
 
@@ -60,8 +61,11 @@ export class CompetitionFormBuilder {
     private temporalPointValidator(unitControl: FormControl): ValidatorFn{
         return (control: AbstractControl): { [key: string]: any } | null => {
             if (unitControl.value === 'TIMECODE'){
-                // TODO properly check format HH:MM:SS:fff
-                return `${control.value}`.length >= 5 && `${control.value}`.indexOf(':') > 0 ? null : {error: `${control.value} does not conform HH:MM:SS:fff format`};
+                if (TimeUtilities.timeCodeRegex.test(`${control.value}`)){
+                    return null;
+                }else{
+                    return {error: `${control.value} does not conform [[[HH:]MM:]SS:]fff format`};
+                }
             }else{
                 return Validators.min(0);
             }

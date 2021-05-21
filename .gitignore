@@ -267,6 +267,13 @@ backend/ext/ffmpeg
 events/
 backend/data*
 backend/statistics
+backend/external
+backend/local.config.json
+data*
+statistics/
+session-store/
+logs/
+local.config.json
 
 ## Do not include the generated client bindings
 frontend/openapi/

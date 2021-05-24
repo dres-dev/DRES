@@ -46,8 +46,6 @@ export class CompetitionBuilderTaskDialogComponent {
     /** The {@link CompetitionFormBuilder} used by this dialogue. */
     builder: CompetitionFormBuilder;
     @ViewChild('videoPlayer', {static: false}) video: ElementRef;
-    @ViewChild('targetStartIn', {static: false}) targetStartIn: HTMLInputElement;
-    @ViewChild('targetEndIn', {static: false}) targetEndIn: HTMLInputElement;
     viewLayout = 'list';
     showVideo = false;
     videoSegmentData: VideoPlayerSegmentBuilderData;
@@ -75,7 +73,7 @@ export class CompetitionBuilderTaskDialogComponent {
         this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, task);
         this.form = this.builder.form;
         console.log('Loaded task: ' + JSON.stringify(task));
-    };
+    }
 
     /**
      * Handler for (+) button for query target form component.

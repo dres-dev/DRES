@@ -15,12 +15,14 @@ import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.Team
 import dev.dres.utilities.extensions.UID
+import dev.dres.utilities.extensions.errorResponse
 import io.javalin.core.security.Role
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
-import java.io.FileNotFoundException
+import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 
 abstract class CompetitionHandler(protected val competitions: DAO<CompetitionDescription>) : RestHandler, AccessManagedRestHandler {
 
@@ -70,10 +72,12 @@ class GetTeamLogoHandler(val config: Config) : AbstractCompetitionRunRestHandler
         /* Extract logoId. */
         val logoId = try {
             ctx.pathParamMap().getOrElse("logoId") {
-                throw ErrorStatusException(400, "Parameter 'logoId' is missing!'", ctx)
+                ctx.errorResponse(ErrorStatusException(400, "Parameter 'logoId' is missing!'", ctx))
+                return@get
             }.UID()
         }catch (ex: java.lang.IllegalArgumentException){
-            throw ErrorStatusException(400, "Could not deserialise logoId '${ctx.pathParamMap()["logoId"]}'", ctx)
+            ctx.errorResponse(ErrorStatusException(400, "Could not deserialise logoId '${ctx.pathParamMap()["logoId"]}'", ctx))
+            return
         }
 
 
@@ -84,8 +88,8 @@ class GetTeamLogoHandler(val config: Config) : AbstractCompetitionRunRestHandler
             }
             ctx.contentType("image/png")
             ctx.result(image)
-        } catch (e: FileNotFoundException) {
-            throw ErrorStatusException(404, "Logo file for team $logoId not found!", ctx)
+        } catch (e: IOException) {
+            ctx.errorResponse(ErrorStatusException(404, "Logo file for team $logoId could not be read!", ctx))
         }
     }
 }

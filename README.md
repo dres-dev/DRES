@@ -4,6 +4,8 @@
 
 The Distributed Retrieval Evaluation Server builds uppon the work of https://github.com/klschoef/vbsserver/ to provide the means to evaluate interactive retrieval approaches in various settings, both on-site and distributed.
 
+We provide a dedicated __client__ DRES OpenApi specifications for systems to be evaluated with DRES. Please refer to the [example repo](https://github.com/dres-dev/Client-Examples) for further information and do not forget to [cite](#Citation) our work when using them.
+
 ## Requirements
 
 To deploy and run DRES, a JRE of at least Java 11 is required, e.g. the [OpenJDK 11](https://jdk.java.net/java-se-ri/11).
@@ -150,6 +152,8 @@ In order to submit a result to be evaluated, the submission endpoint is accessed
 - http(s)://{server}/submit?*item*={item}?*timecode*={timecode} where {timecode} is a temporal position within the {item} in the form HH:MM:SS:FF. In case just a plain number is passed, the behavior is equivalent to passing the same value as {frame}
 
 In case no session cookie is passed as part of the request, an additional *session* parameter can be passed to transmit the session id token. The session id can be found via the UI in the User Profile, accessible via the top-right menu. Alternatively, the information about the currently authenticated user, including the session token, can be accessed via http(s)://{server}/api/user which will return the information in JSON format.
+
+Alternatively, there we provide a [bunch of examples](https://github.com/dres-dev/Client-Examples) on how to use the DRES OpenApi specifications for various languages, which might be handier than the pure REST submission endpoints desribed above.
 
 ## Interaction Logging
 Analogously to the VBS server, the logging of interaction sequences and complete result lists is supported. The specification of the messages can be found in [this working document](https://www.overleaf.com/read/rppygxshvhrn) as well as the OpenApi specifications. The interaction/querying logs can be submittet to http(s)://{server}/log/query and the result logs can be sent to http(s)://{server}/log/result, both via POST.

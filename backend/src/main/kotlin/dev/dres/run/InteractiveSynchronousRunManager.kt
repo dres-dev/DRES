@@ -12,7 +12,8 @@ import dev.dres.data.model.competition.options.ConfiguredOption
 import dev.dres.data.model.competition.options.Option
 import dev.dres.data.model.competition.options.SimpleOption
 import dev.dres.data.model.competition.options.SimpleOptionParameters
-import dev.dres.data.model.run.*
+import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.audit.AuditLogger
@@ -27,7 +28,6 @@ import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.ReadyLatch
 import dev.dres.utilities.extensions.UID
 import org.slf4j.LoggerFactory
-import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -322,7 +322,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
      * @param context The [RunActionContext] used for the invocation.
      * @return List of [Submission]s for the currently active [InteractiveSynchronousCompetition.Task]
      */
-    override fun submissions(context: RunActionContext): List<Submission> = this.currentTask(context)?.submissions ?: emptyList()
+    override fun submissions(context: RunActionContext): List<Submission> = this.currentTask(context)?.submissions?.toList() ?: emptyList()
 
     /**
      * Returns the number of [InteractiveSynchronousCompetition.Task]s held by this [RunManager].

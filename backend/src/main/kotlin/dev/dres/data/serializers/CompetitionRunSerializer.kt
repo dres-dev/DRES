@@ -3,7 +3,6 @@ package dev.dres.data.serializers
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.NonInteractiveCompetition
 import dev.dres.data.model.run.interfaces.Competition
-import dev.dres.data.model.submissions.Submission
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.readUID
 import dev.dres.utilities.extensions.writeUID
@@ -52,7 +51,7 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
                 for (i in 0 until input.readInt()) {
                     val taskRun = run.Task(input.readUID(), input.readUID(), input.readLong(), input.readLong())
                     for (j in 0 until input.readInt()) {
-                        (taskRun.submissions as MutableList<Submission>).add(SubmissionSerializer.deserialize(input,available))
+                        taskRun.submissions.add(SubmissionSerializer.deserialize(input,available))
                     }
                     (run.tasks as MutableList<InteractiveSynchronousCompetition.Task>).add(taskRun)
                 }

@@ -129,7 +129,7 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
          * Observable for run state info; this information is dynamic and is subject to change over the course of a run.
          *
          * Updates to the RunState are triggered by WebSocket messages received by the viewer. To not overwhelm the server,
-         * the RunState is updated every 250ms at most if the WebSocket message is 'TASK_UPDATED'.
+         * the RunState is updated every 250ms at most.
          */
         const wsMessages = this.webSocket.pipe(
             filter(m => m.type !== 'PING'), /* Filter out ping messages. */

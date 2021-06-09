@@ -18,14 +18,14 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
      * Padding to add, if the submission is too short
      * Will be added to the start and end, i.e. the actual played length will be
      * submission.duration + 2 * padding.
-     * Default= 2s
+     * Default= 3s
      */
     @Input() padding = 3;
     /**
      * Too short submission duration threshold (if shorten than this, the padding is added).
      * Default: 3s
      */
-    @Input() tooShortThreshold = 5;
+    @Input() tooShortThreshold = 10;
     @ViewChild('videoPlayer', {static: false}) video: ElementRef;
     videoUrl: Observable<string>;
     videoUrlDebug: Observable<string>;
@@ -34,6 +34,10 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
     private endInSeconds: number;
     private requestSub: Subscription;
     private offset = 5;
+    private paddingEnabled: boolean;
+    private startPaddingApplied: boolean;
+    private relativePlaytimeSeconds = 0;
+    private originalLengthInSeconds: number;
 
     constructor(public config: AppConfig) {
     }
@@ -47,9 +51,24 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
         this.video.nativeElement.addEventListener('timeupdate', () => {
             const playtime = ((this.video.nativeElement.currentTime - this.startInSeconds) / (this.endInSeconds - this.startInSeconds)) * 100;
             this.playtimeRelative = new Observable<number>(subscriber => subscriber.next(playtime));
+            this.relativePlaytimeSeconds = Math.round(this.video.nativeElement.currentTime) - this.startInSeconds;
+            JudgementMediaViewerComponent.log(`t=${this.relativePlaytimeSeconds}, ol=${this.originalLengthInSeconds}, ct=${this.video.nativeElement.currentTime}`);
+            if (this.paddingEnabled && this.startPaddingApplied && this.video.nativeElement.currentTime < (this.startInSeconds+this.padding)) {
+                /* Start padding */
+                JudgementMediaViewerComponent.log('Start padding');
+                this.addTemporalContextClass();
+            } else if (this.paddingEnabled && this.video.nativeElement.currentTime > this.startInSeconds + (this.startPaddingApplied ? this.padding : 0) + this.originalLengthInSeconds) {
+                /* End padding */
+                JudgementMediaViewerComponent.log('End padding');
+                this.addTemporalContextClass();
+            } else {
+                /* no padding */
+                this.removeTemporalContextClass();
+            }
             if (this.endInSeconds) {
                 if (this.video.nativeElement.currentTime >= this.endInSeconds) {
                     JudgementMediaViewerComponent.log('Rewind video');
+                    this.relativePlaytimeSeconds = 0;
                     this.video.nativeElement.currentTime = this.startInSeconds;
                     this.video.nativeElement.play().then(r => {
                     });
@@ -83,6 +102,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
         this.startInSeconds = undefined;
         this.endInSeconds = undefined;
         this.video.nativeElement.pause();
+        this.removeTemporalContextClass();
     }
 
     ngOnDestroy(): void {
@@ -106,7 +126,21 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
         }
     }
 
+
+    private addTemporalContextClass(){
+        if (!this.video.nativeElement.classList.contains('temporalContext')) {
+            this.video.nativeElement.classList.add('temporalContext');
+        }
+    }
+
+    private removeTemporalContextClass(){
+        if (this.video.nativeElement.classList.contains('temporalContext')) {
+            this.video.nativeElement.classList.remove('temporalContext');
+        }
+    }
+
     private calculateTime(req: JudgementRequest) {
+        JudgementMediaViewerComponent.log('Calculating time');
         this.startInSeconds = 0;
         /* Parse start time, given in millis */
         if (req.startTime) {
@@ -116,12 +150,20 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
         if (req.endTime) {
             this.endInSeconds = Math.ceil(Number.parseInt(req.endTime, 10) / 1000);
         }
+        this.originalLengthInSeconds = this.endInSeconds - this.startInSeconds;
         /* If only a frame is given OR too short is shown, add padding */
-        if (this.endInSeconds - this.startInSeconds < this.tooShortThreshold) {
-            this.startInSeconds = this.startInSeconds - this.padding < 0 ? 0 : this.startInSeconds - this.padding;
+        if (this.originalLengthInSeconds < this.tooShortThreshold) {
+            if(this.startInSeconds - this.padding < 0){
+                this.startInSeconds = 0;
+            }else{
+                this.startInSeconds = this.startInSeconds - this.padding;
+                this.startPaddingApplied = true;
+            }
             this.endInSeconds = this.endInSeconds + this.padding;
+            this.paddingEnabled = true;
+            JudgementMediaViewerComponent.log(`Padding: ${this.paddingEnabled}`);
         }
-        JudgementMediaViewerComponent.log(`time=[${this.startInSeconds},${this.endInSeconds}`);
+        JudgementMediaViewerComponent.log(`time=[${this.startInSeconds},${this.endInSeconds}] - original=${this.originalLengthInSeconds}`);
     }
 
     private resolvePath(req: JudgementRequest, time = true): string {

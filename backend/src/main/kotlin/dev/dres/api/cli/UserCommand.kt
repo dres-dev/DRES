@@ -48,7 +48,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to create a new [User].
      */
-    inner class CreateUserCommand : CliktCommand(name = "create", help = "Creates a new User") {
+    inner class CreateUserCommand : CliktCommand(name = "create", help = "Creates a new User", printHelpOnEmptyArgs = true) {
         private val username: UserName by option("-u", "--username", help = "Username of at least $MIN_LENGTH_USERNAME characters length")
                 .convert { UserName(it) }
                 .required()
@@ -76,7 +76,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to update an existing [User].
      */
-    inner class UpdateUserCommand : CliktCommand(name = "update", help = "Updates Password or Role of an existing User") {
+    inner class UpdateUserCommand : CliktCommand(name = "update", help = "Updates Password or Role of an existing User", printHelpOnEmptyArgs = true) {
         private val id: UID? by option("-i", "--id").convert { it.UID() }
         private val username: UserName? by option("-u", "--username", help = "Username of the user to be updated")
                 .convert { UserName(it) }
@@ -112,7 +112,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to delete a [User].
      */
-    inner class DeleteUserCommand : CliktCommand(name = "delete", help = "Deletes an existing user.") {
+    inner class DeleteUserCommand : CliktCommand(name = "delete", help = "Deletes an existing user.", printHelpOnEmptyArgs = true) {
         private val id: UID? by option("-i", "--id", help = "ID of the user to be deleted.").convert { it.UID() }
         private val username: UserName? by option("-u", "--username", help = "Username of the user to be deleted.")
                 .convert { UserName(it) }
@@ -138,7 +138,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to export a [User].
      */
-    inner class ExportUserCommand : CliktCommand(name = "export", help =  "Exports one or multiple user(s) as JSON.") {
+    inner class ExportUserCommand : CliktCommand(name = "export", help =  "Exports one or multiple user(s) as JSON.", printHelpOnEmptyArgs = true) {
         private val id: UID? by option("-i", "--id", help = "ID of the user to be exported.").convert { it.UID() }
         private val username: UserName? by option("-u", "--username", help = "Username of the user to be exported.")
                 .convert { UserName(it) }
@@ -174,7 +174,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * Imports a specific competition from JSON.
      */
-    inner class ImportUserCommand : CliktCommand(name = "import", help = "Imports a user description from JSON. Either a single user or an array of users") {
+    inner class ImportUserCommand : CliktCommand(name = "import", help = "Imports a user description from JSON. Either a single user or an array of users", printHelpOnEmptyArgs = true) {
 
         private val new: Boolean by option("-n", "--new", help = "Flag indicating whether users should be created anew.").flag("-u", "--update", default = true)
 

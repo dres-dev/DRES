@@ -15,7 +15,7 @@ import com.jakewharton.picnic.table
  * For convention purposes, the file suffix `ds` could be used, since it's a `dres script`.
  */
 class ExecutionCommand :
-    CliktCommand(name = "exec", help = "Executes a set of DRES CLI commands in a file") {
+    CliktCommand(name = "exec", help = "Executes a set of DRES CLI commands in a file", printHelpOnEmptyArgs = true) {
 
 
     val inFile by argument(
@@ -40,7 +40,7 @@ class ExecutionCommand :
             } catch (e: Exception) {
                 when (e) {
                     is com.github.ajalt.clikt.core.NoSuchSubcommand -> results.add("Unknown Command")
-                    is com.github.ajalt.clikt.core.MissingParameter -> results.add("Missing Parameter: ${e.localizedMessage}")
+//                    is com.github.ajalt.clikt.core.MissingParameter -> results.add("Missing Parameter: ${e.localizedMessage}")
                     is com.github.ajalt.clikt.core.NoSuchOption -> results.add("No Such Option: ${e.localizedMessage}")
                     else -> results.add("Exception: ${e.printStackTrace()}")
                 }

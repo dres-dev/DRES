@@ -3,7 +3,6 @@ package dev.dres.data.model.run
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TaskDescriptionTarget
-import dev.dres.data.model.competition.TaskType
 import dev.dres.data.model.competition.options.TargetOption
 import dev.dres.data.model.run.interfaces.Task
 import dev.dres.data.model.submissions.Submission
@@ -15,7 +14,7 @@ import dev.dres.run.validation.judged.BasicJudgementValidator
 import dev.dres.run.validation.judged.BasicVoteValidator
 import dev.dres.run.validation.judged.ItemRange
 import dev.dres.utilities.TimeUtil
-import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * An abstract [Task] implementation for interactive [Task], i.e. [Task]s that rely on human interaction, such as [Submission]s
@@ -25,7 +24,7 @@ import java.util.*
  */
 abstract class AbstractInteractiveTask: AbstractRun(), Task {
     /** List of [Submission]s* registered for this [Task]. */
-    val submissions: List<Submission> = LinkedList<Submission>()
+    val submissions: ConcurrentLinkedQueue<Submission> = ConcurrentLinkedQueue<Submission>()
 
     /** The total duration in milliseconds of this task. Usually determined by the [TaskDescription] but can be adjusted! */
     abstract var duration: Long

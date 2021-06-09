@@ -16,6 +16,7 @@ import {AbstractControl, FormArray, FormControl, FormGroup, ValidatorFn, Validat
 import {filter, first, switchMap} from 'rxjs/operators';
 import {Observable} from 'rxjs';
 import {RequireMatch} from './require-match';
+import {TimeUtilities} from '../../../utilities/time.utilities';
 
 export class CompetitionFormBuilder {
 
@@ -49,23 +50,6 @@ export class CompetitionFormBuilder {
         } else {
             return this.taskType.taskDuration;
         }
-    }
-
-    private orValidator(validator1: ValidatorFn, validator2: ValidatorFn): ValidatorFn {
-        return (control: AbstractControl): { [key: string]: any } | null => {
-            return validator1(control) || validator2(control);
-        };
-    }
-
-    private temporalPointValidator(unitControl: FormControl): ValidatorFn{
-        return (control: AbstractControl): { [key: string]: any } | null => {
-            if (unitControl.value === 'TIMECODE'){
-                // TODO properly check format HH:MM:SS:fff
-                return `${control.value}`.length >= 5 && `${control.value}`.indexOf(':') > 0 ? null : {error: `${control.value} does not conform HH:MM:SS:fff format`};
-            }else{
-                return Validators.min(0);
-            }
-        };
     }
 
     /**
@@ -146,6 +130,7 @@ export class CompetitionFormBuilder {
         }
     }
 
+
     /**
      * Assembles form data and returns a {@link RestTaskDescription}.
      */
@@ -190,6 +175,26 @@ export class CompetitionFormBuilder {
         }
 
         return data;
+    }
+
+    private orValidator(validator1: ValidatorFn, validator2: ValidatorFn): ValidatorFn {
+        return (control: AbstractControl): { [key: string]: any } | null => {
+            return validator1(control) || validator2(control);
+        };
+    }
+
+    private temporalPointValidator(unitControl: FormControl): ValidatorFn {
+        return (control: AbstractControl): { [key: string]: any } | null => {
+            if (unitControl.value === 'TIMECODE') {
+                if (TimeUtilities.timeCodeRegex.test(`${control.value}`)) {
+                    return null;
+                } else {
+                    return {error: `${control.value} does not conform [[[HH:]MM:]SS:]fff format`};
+                }
+            } else {
+                return Validators.min(0);
+            }
+        };
     }
 
     /**
@@ -397,17 +402,24 @@ export class CompetitionFormBuilder {
         });
 
         /* Initialize start, end and time unit based on target. */
+        console.log(`type=${group.get('segment_time_unit').value}`);
+        // fetch target time unit
+        const targetTimeUnit = (this.form.get('target') as FormArray).controls[0].get('segment_time_unit').value;
+        if (targetTimeUnit && this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT') {
+            group.get('segment_time_unit').setValue(targetTimeUnit);
+            console.log(`Unit=${targetTimeUnit}`);
+        }
+
+        console.log(`targetStart: ${!group.get('segment_start').value}, type=${this.taskType.targetType.option}`);
         if (!group.get('segment_start').value && this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT') {
             group.get('segment_start').setValue((this.form.get('target') as FormArray).controls[0].get('segment_start').value);
+            console.log(`Start=${(this.form.get('target') as FormArray).controls[0].get('segment_start').value}`);
         }
 
         if (!group.get('segment_end').value && this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT') {
             group.get('segment_end').setValue((this.form.get('target') as FormArray).controls[0].get('segment_end').value);
         }
 
-        if (!group.get('segment_time_unit').value && this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT') {
-            group.get('segment_time_unit').setValue((this.form.get('target') as FormArray).controls[0].get('segment_time_unit').value);
-        }
 
         group.get('segment_start').setValidators([Validators.required, this.temporalPointValidator(group.get('segment_time_unit') as FormControl)]);
         group.get('segment_end').setValidators([Validators.required, this.temporalPointValidator(group.get('segment_time_unit') as FormControl)]);

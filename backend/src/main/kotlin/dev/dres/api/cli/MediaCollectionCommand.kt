@@ -66,7 +66,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         }
     }
 
-    inner class CreateCollectionCommand : CliktCommand(name = "create", help = "Creates a new Collection") {
+    inner class CreateCollectionCommand : CliktCommand(name = "create", help = "Creates a new Collection", printHelpOnEmptyArgs = true) {
 
         private val name: String by option("-n", "--name", help = "Name of the Collection to be created")
                 .required()

@@ -29,7 +29,7 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     /**
      * The displayed columns
      */
-    displayColumns = ['id', 'timestamp', 'status', 'item', 'actions'];
+    displayColumns = ['id', 'timestamp', 'team', 'item', 'start', 'end', 'status', 'actions'];
 
     submissions: SubmissionInfo[] = [];
 

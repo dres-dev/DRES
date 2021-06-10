@@ -467,7 +467,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
      */
     override fun updateSubmission(context: RunActionContext, submissionId: UID, submissionStatus: SubmissionStatus): Boolean = this.stateLock.read {
         /* Sanity check. TODO: Do we indeed only want to be able to update submissions for the current task? */
-        val found = this.submissions(context).find { it.uid == submissionId}  ?: return false
+        val found = this.allSubmissions.find { it.uid == submissionId}  ?: return false
 
         /* Actual update - currently, only status update is allowed */
         if (found.status != submissionStatus) {

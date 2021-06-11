@@ -1,6 +1,5 @@
 package dev.dres.utilities
 
-import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.basics.media.MediaItemSegmentList
 import dev.dres.data.model.basics.time.TemporalRange
 import kotlin.math.abs
@@ -50,7 +49,7 @@ object TimeUtil {
     }
 
 
-    fun timeToSegment(time: Long, item: MediaItem.VideoItem, segmentList: MediaItemSegmentList): Pair<Long,Long>? {
+    fun timeToSegment(time: Long, segmentList: MediaItemSegmentList): Pair<Long,Long>? {
         if (segmentList.segments.isEmpty()) {
             return null
         }

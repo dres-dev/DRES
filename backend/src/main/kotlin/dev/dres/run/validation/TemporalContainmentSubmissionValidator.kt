@@ -6,7 +6,6 @@ import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 import dev.dres.run.validation.interfaces.SubmissionValidator
-import dev.dres.utilities.TimeUtil
 
 /**
  * A validator class that checks, if a submission is correct based on the target segment and the
@@ -32,7 +31,7 @@ class TemporalContainmentSubmissionValidator(private val task: VideoSegment) : S
             submission.start > submission.end -> SubmissionStatus.WRONG
             submission.item != task.item -> SubmissionStatus.WRONG
             else -> {
-                val outer = TimeUtil.toMilliseconds(this.task.temporalRange, this.task.item.fps)
+                val outer = this.task.temporalRange.toMilliseconds()
                 if (outer.first <= submission.start && outer.second >= submission.end) {
                     SubmissionStatus.CORRECT
                 } else {

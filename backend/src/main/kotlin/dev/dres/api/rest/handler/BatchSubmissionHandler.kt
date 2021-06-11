@@ -11,7 +11,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.basics.media.MediaItemSegmentList
-import dev.dres.data.model.run.*
+import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.batch.*
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.NonInteractiveRunManager
@@ -88,7 +88,7 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
                 val mediaItem = this.itemIndex[mediaCollectionId to result.item].first() //TODO deal with invalid name
                 return@map if (mediaItem is MediaItem.VideoItem && result.segment != null) {
                     val segmentList = segmentIndex[mediaItem.id].first()
-                    val time = TimeUtil.shotToTime(result.segment.toString(), mediaItem, segmentList)!!
+                    val time = TimeUtil.shotToTime(result.segment.toString(), segmentList)!!
                     TemporalBatchElement(mediaItem, time.first, time.second)
                 } else {
                     ItemBatchElement(mediaItem)

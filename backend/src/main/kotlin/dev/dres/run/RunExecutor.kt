@@ -73,14 +73,6 @@ object RunExecutor : Consumer<WsHandler> {
         this.runs.filter { !it.hasEnded }.forEach { //TODO needs more distinction
             val run = when(it) {
                 is InteractiveSynchronousCompetition -> {
-                    val taskNames = it.tasks.map { it.description.name }.distinct()
-                    val deduplicatedTasks = taskNames.mapNotNull { name -> it.tasks.findLast { it.description.name == name } }
-
-                    it.tasks as LinkedList
-                    it.tasks.clear()
-                    it.tasks.addAll(deduplicatedTasks)
-
-                    //restore missing links to tasks
                     it.tasks.forEach { t ->
                         t.submissions.forEach { s -> s.task = t }
                     }

@@ -11,11 +11,47 @@ import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
  * @author Luca Rossetto
  * @version 1.0.0
  */
-data class SubmissionInfo(val id: String? = null, val team: String, val member: String, val status: SubmissionStatus, val timestamp: Long, val item: RestMediaItem? = null, val start: Long? = null, val end: Long? = null) {
-    constructor(submission: Submission) : this(submission.uid.string, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp, RestMediaItem.fromMediaItem(submission.item), null, null)
-    constructor(submission: TemporalSubmissionAspect) : this(submission.uid.string, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp, RestMediaItem.fromMediaItem(submission.item), submission.start, submission.end)
+data class SubmissionInfo(
+    val id: String? = null,
+    val team: String,
+    val member: String,
+    val status: SubmissionStatus,
+    val timestamp: Long,
+    val item: RestMediaItem? = null,
+    val start: Long? = null,
+    val end: Long? = null
+) {
+    constructor(submission: Submission) : this(
+        submission.uid.string,
+        submission.teamId.string,
+        submission.memberId.string,
+        submission.status,
+        submission.timestamp,
+        RestMediaItem.fromMediaItem(submission.item),
+        if (submission is TemporalSubmissionAspect) submission.start else null,
+        if (submission is TemporalSubmissionAspect) submission.end else null
+    )
+
+
     companion object {
-        fun blind(submission: Submission): SubmissionInfo = SubmissionInfo(null, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp)
-        fun withId(submission: Submission): SubmissionInfo = SubmissionInfo(submission.uid.string, submission.teamId.string, submission.memberId.string, submission.status, submission.timestamp, RestMediaItem.fromMediaItem(submission.item))
+        fun blind(submission: Submission): SubmissionInfo = SubmissionInfo(
+            null,
+            submission.teamId.string,
+            submission.memberId.string,
+            submission.status,
+            submission.timestamp
+        )
+
+        fun withId(submission: Submission): SubmissionInfo = SubmissionInfo(
+            submission.uid.string,
+            submission.teamId.string,
+            submission.memberId.string,
+            submission.status,
+            submission.timestamp,
+            RestMediaItem.fromMediaItem(submission.item),
+            if (submission is TemporalSubmissionAspect) submission.start else null,
+            if (submission is TemporalSubmissionAspect) submission.end else null
+        )
+
     }
 }

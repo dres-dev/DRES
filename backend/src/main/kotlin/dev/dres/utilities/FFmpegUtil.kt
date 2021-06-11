@@ -141,7 +141,7 @@ object FFmpegUtil {
 
         val input = File(File(collectionBasePath), description.item.location).toPath()
         val output = File(cacheLocation, description.cacheItemName()).toPath()
-        val range = TimeUtil.toMilliseconds(description.temporalRange)
+        val range = TimeUtil.toMilliseconds(description.temporalRange, description.item.fps)
 
         extractSegment(input, "${range.first / 1000}", "${range.second / 1000}", output)
 

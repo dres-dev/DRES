@@ -53,7 +53,6 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
                     for (j in 0 until input.readInt()) {
                         taskRun.submissions.add(SubmissionSerializer.deserialize(input,available))
                     }
-                    (run.tasks as MutableList<InteractiveSynchronousCompetition.Task>).add(taskRun)
                 }
                 run
             }

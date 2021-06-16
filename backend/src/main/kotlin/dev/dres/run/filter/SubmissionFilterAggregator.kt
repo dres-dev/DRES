@@ -8,7 +8,7 @@ class SubmissionFilterAggregator(private val filters: List<SubmissionFilter>) : 
 
     override fun acceptOrThrow(submission: Submission) {
         for (filter in filters) {
-            acceptOrThrow(submission)
+            filter.acceptOrThrow(submission)
         }
     }
 

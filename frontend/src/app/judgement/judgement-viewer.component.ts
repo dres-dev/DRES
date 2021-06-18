@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnDestroy, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, HostListener, Input, OnDestroy, ViewChild} from '@angular/core';
 import {BehaviorSubject, interval, Observable, of, Subscription, timer} from 'rxjs';
 import {Judgement, JudgementRequest, JudgementService, SubmissionInfo} from '../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -88,6 +88,23 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
             this.init();
             this.initialiseDeadMansSwitch();
         });
+    }
+
+    @HostListener('document:keypress', ['$event'])
+    handleKeyboardEvent(event: KeyboardEvent){
+        switch (event.key.toLowerCase()) {
+            case 'a':
+            case 'c':
+                this.judge('CORRECT');
+                break;
+            case 'u':
+                this.judge('UNDECIDABLE');
+                break;
+            case 'r':
+            case 'w':
+                this.judge('WRONG');
+                break;
+        }
     }
 
     init(): void {

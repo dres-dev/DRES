@@ -13,6 +13,8 @@ import {
 import {combineLatest, merge, Observable, of, Subject, timer} from 'rxjs';
 import {catchError, filter, flatMap, map, shareReplay, switchMap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatDialog} from '@angular/material/dialog';
+import {ConfirmationDialogComponent, ConfirmationDialogComponentData} from '../shared/confirmation-dialog/confirmation-dialog.component';
 
 
 export interface CombinedRun {
@@ -40,7 +42,8 @@ export class RunAdminViewComponent {
                 private runService: CompetitionRunService,
                 private competitionService: CompetitionService,
                 private runAdminService: CompetitionRunAdminService,
-                private snackBar: MatSnackBar) {
+                private snackBar: MatSnackBar,
+                private dialog: MatDialog) {
         this.runId = this.activeRoute.params.pipe(map(a => a.runId));
         this.run = this.runId.pipe(
             switchMap(runId =>
@@ -93,14 +96,25 @@ export class RunAdminViewComponent {
     }
 
     public terminate() {
-        this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidTerminate(id))).subscribe(
-            (r) => {
-                this.update.next();
-                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-            }, (r) => {
-                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+        const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+            data: {
+                text: 'You are about to terminate this run. This action cannot be undone. Do you want to proceed?',
+                color: 'warn'
+            } as ConfirmationDialogComponentData
+        });
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidTerminate(id))).subscribe(
+                    (r) => {
+                        this.update.next();
+                        this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
+                    }, (r) => {
+                        this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+                    }
+                );
             }
-        );
+        });
+
     }
 
     public nextTask() {
@@ -137,14 +151,24 @@ export class RunAdminViewComponent {
     }
 
     public abortTask() {
-        this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidTaskAbort(id))).subscribe(
-            (r) => {
-                this.update.next();
-                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-            }, (r) => {
-                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+        const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+            data: {
+                text: 'Really abort the task?',
+                color: 'warn'
+            } as ConfirmationDialogComponentData
+        });
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                this.runId.pipe(switchMap(id => this.runAdminService.postApiRunAdminWithRunidTaskAbort(id))).subscribe(
+                    (r) => {
+                        this.update.next();
+                        this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
+                    }, (r) => {
+                        this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+                    }
+                );
             }
-        );
+        });
     }
 
     public switchTask(idx: number) {
@@ -158,7 +182,7 @@ export class RunAdminViewComponent {
         );
     }
 
-    public submissionsOf(task){
+    public submissionsOf(task) {
         this.runId.subscribe(r => {
             this.router.navigateByUrl(`run/admin/submissions/${r}/${task.id}`);
         });

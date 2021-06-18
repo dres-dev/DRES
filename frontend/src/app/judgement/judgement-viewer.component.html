@@ -25,13 +25,13 @@
         <div [@newDesc]="isNewJudgementDesc ? 'fresh' : 'known'" *ngIf="isJudgmentAvailable" class="controls-container" fxLayout="row" fxLayoutAlign="space-evenly center">
             <div fxLayoutAlign="center" fxFlex="33" class="button-wrapper">
                 <button mat-fab color="primary" aria-label="Approve Submission" matTooltip="Approve Submission"
-                        (click)="judge('CORRECT')" (keydown.a)="judge('CORRECT')">
+                        (click)="judge('CORRECT')">
                     <mat-icon>thumb_up</mat-icon>
                 </button>
             </div>
             <div fxLayoutAlign="center" fxFlex="33" class="button-wrapper">
                 <button mat-fab color="accent" aria-label="Submission Unclear" matTooltip="Submission Unclear"
-                        (click)="judge('UNDECIDABLE')" (keydown.u)="judge('UNDECIDABLE')">
+                        (click)="judge('UNDECIDABLE')">
                     <mat-icon>live_help</mat-icon>
                 </button>
 
@@ -39,7 +39,7 @@
             <div fxLayoutAlign="center" fxFlex="33" class="button-wrapper">
 
                 <button mat-fab color="warn" aria-label="Reject Submission" matTooltip="Reject Submission"
-                        (click)="judge('WRONG')" (keydown.r)="judge('WRONG')">
+                        (click)="judge('WRONG')">
                     <mat-icon>thumb_down</mat-icon>
                 </button>
             </div>

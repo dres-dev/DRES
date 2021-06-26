@@ -6,6 +6,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.dbo.DataAccessLayer
 import dev.dres.data.model.Config
 import dev.dres.run.RunExecutor
+import dev.dres.utilities.NamedThreadFactory
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.core.security.SecurityUtil.roles
@@ -23,6 +24,7 @@ import org.eclipse.jetty.server.session.DefaultSessionCache
 import org.eclipse.jetty.server.session.FileSessionDataStore
 import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.util.ssl.SslContextFactory
+import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
 import java.io.File
@@ -84,8 +86,16 @@ object RestApi {
             UpdateMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
             DeleteMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
             GetMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-            RandomMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionUidIndex), // Must be before ListMediaItem
-            ListMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems, dataAccessLayer.mediaItemCollectionNameIndex),
+            RandomMediaItemHandler(
+                dataAccessLayer.collections,
+                dataAccessLayer.mediaItems,
+                dataAccessLayer.mediaItemCollectionUidIndex
+            ), // Must be before ListMediaItem
+            ListMediaItemHandler(
+                dataAccessLayer.collections,
+                dataAccessLayer.mediaItems,
+                dataAccessLayer.mediaItemCollectionNameIndex
+            ),
             ListExternalItemHandler(config),
 
             // Competition
@@ -158,11 +168,14 @@ object RestApi {
         javalin = Javalin.create {
             it.enableCorsForAllOrigins()
             it.server { setupHttpServer(config) }
-            it.registerPlugin(OpenApiPlugin(
-                /* "Internal" DRES openapi (<host>/swagger-ui) */
-                getOpenApiOptionsFor(),
-                /* "Public" client endpoint (<host>/swagger-client */
-                getOpenApiOptionsFor(OpenApiEndpointOptions.dresSubmittingClientOptions)))
+            it.registerPlugin(
+                OpenApiPlugin(
+                    /* "Internal" DRES openapi (<host>/swagger-ui) */
+                    getOpenApiOptionsFor(),
+                    /* "Public" client endpoint (<host>/swagger-client */
+                    getOpenApiOptionsFor(OpenApiEndpointOptions.dresSubmittingClientOptions)
+                )
+            )
             it.defaultContentType = "application/json"
             it.prefer405over404 = true
             it.sessionHandler { fileSessionHandler(config) }
@@ -205,7 +218,12 @@ object RestApi {
             }
 
             path("submit") {
-                val submissionHandler = SubmissionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, dataAccessLayer.mediaSegmentItemIdIndex, config)
+                val submissionHandler = SubmissionHandler(
+                    dataAccessLayer.collections,
+                    dataAccessLayer.mediaItemCollectionNameIndex,
+                    dataAccessLayer.mediaSegmentItemIdIndex,
+                    config
+                )
                 get(submissionHandler::get, submissionHandler.permittedRoles)
             }
 
@@ -220,14 +238,19 @@ object RestApi {
             }
 
         }.before {
-            logger.info(logMarker, "${it.req.method} request to ${it.path()} with params (${it.queryParamMap().map { e -> "${e.key}=${e.value}" }.joinToString()}) from ${it.req.remoteAddr}")
+            logger.info(
+                logMarker,
+                "${it.req.method} request to ${it.path()} with params (${
+                    it.queryParamMap().map { e -> "${e.key}=${e.value}" }.joinToString()
+                }) from ${it.req.remoteAddr}"
+            )
         }.error(401) {
             it.json(ErrorStatus("Unauthorized request!"))
         }.exception(Exception::class.java) { e, ctx ->
             ctx.status(500).json(ErrorStatus("Internal server error!"))
             logger.error("Exception during hadling of request to ${ctx.path()}", e)
         }
-                .start(config.httpPort)
+            .start(config.httpPort)
     }
 
     fun stop() {
@@ -237,22 +260,22 @@ object RestApi {
 
 
     private fun getOpenApiOptionsFor(options: OpenApiEndpointOptions = OpenApiEndpointOptions.dresDefaultOptions) =
-            OpenApiOptions(
-                    Info().apply {
-                        title("DRES API")
-                        version("1.0")
-                        description("API for DRES (Distributed Retrieval Evaluation Server), Version 1.0")
-                    }
-            ).apply {
-                path(options.oasPath) // endpoint for OpenAPI json
-                swagger(SwaggerOptions(options.swaggerUi)) // endpoint for swagger-ui
-                if(options.hasRedoc){
-                    reDoc(ReDocOptions(options.redocUi!!)) // endpoint for redoc
-                }
-                activateAnnotationScanningFor("dev.dres.api.rest.handler")
-                options.ignored.forEach { ignorePath(it.first) }
-                toJsonMapper(JacksonToJsonMapper(jacksonMapper))
+        OpenApiOptions(
+            Info().apply {
+                title("DRES API")
+                version("1.0")
+                description("API for DRES (Distributed Retrieval Evaluation Server), Version 1.0")
             }
+        ).apply {
+            path(options.oasPath) // endpoint for OpenAPI json
+            swagger(SwaggerOptions(options.swaggerUi)) // endpoint for swagger-ui
+            if (options.hasRedoc) {
+                reDoc(ReDocOptions(options.redocUi!!)) // endpoint for redoc
+            }
+            activateAnnotationScanningFor("dev.dres.api.rest.handler")
+            options.ignored.forEach { ignorePath(it.first) }
+            toJsonMapper(JacksonToJsonMapper(jacksonMapper))
+        }
 
 
     private fun fileSessionHandler(config: Config) = SessionHandler().apply {
@@ -282,6 +305,10 @@ object RestApi {
             }
         }
 
+        val pool = QueuedThreadPool(
+            1000, 8, 60000, -1, null, null, NamedThreadFactory("JavalinPool")
+        )
+
         if (config.enableSsl) {
             val httpsConfig = HttpConfiguration(httpConfig).apply {
                 addCustomizer(SecureRequestCustomizer())
@@ -304,23 +331,32 @@ object RestApi {
 
             val fallback = HttpConnectionFactory(httpsConfig)
 
-
-            return Server().apply {
+            return Server(pool).apply {
                 //HTTP Connector
-                addConnector(ServerConnector(server, HttpConnectionFactory(httpConfig), HTTP2ServerConnectionFactory(httpConfig)).apply {
-                    port = config.httpPort
-                })
+                addConnector(
+                    ServerConnector(
+                        server,
+                        HttpConnectionFactory(httpConfig),
+                        HTTP2ServerConnectionFactory(httpConfig)
+                    ).apply {
+                        port = config.httpPort
+                    })
                 // HTTPS Connector
                 addConnector(ServerConnector(server, ssl, alpn, http2, fallback).apply {
                     port = config.httpsPort
                 })
             }
         } else {
-            return Server().apply {
+            return Server(pool).apply {
                 //HTTP Connector
-                addConnector(ServerConnector(server, HttpConnectionFactory(httpConfig), HTTP2ServerConnectionFactory(httpConfig)).apply {
-                    port = config.httpPort
-                })
+                addConnector(
+                    ServerConnector(
+                        server,
+                        HttpConnectionFactory(httpConfig),
+                        HTTP2ServerConnectionFactory(httpConfig)
+                    ).apply {
+                        port = config.httpPort
+                    })
 
             }
         }

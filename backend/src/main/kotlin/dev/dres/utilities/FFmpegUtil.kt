@@ -23,7 +23,9 @@ object FFmpegUtil {
 
     /** Path to FFMPEG binary; TODO: Make configurable. */
     val ffmpegBin = when {
-        Files.isDirectory(DRES.rootPath.parent.parent.parent.resolve("ext/ffmpeg")) -> DRES.rootPath.parent.parent.parent.resolve("ext/ffmpeg")
+        Files.isDirectory(DRES.rootPath.parent.parent.parent.resolve("ext/ffmpeg")) -> DRES.rootPath.parent.parent.parent.resolve(
+            "ext/ffmpeg"
+        )
         Files.isDirectory(DRES.rootPath.parent.resolve("ffmpeg")) -> DRES.rootPath.parent.resolve("ffmpeg") /* Distribution */
         Files.isDirectory(Paths.get("ext/ffmpeg")) -> Paths.get("ext/ffmpeg")
         Files.isDirectory(Paths.get("ffmpeg")) -> Paths.get("ffmpeg")
@@ -64,7 +66,7 @@ object FFmpegUtil {
 
                     if (request != null) {
                         futureList.add(
-                                request to extractFrameAsync(request.video, request.timecode, request.outputImage)
+                            request to extractFrameAsync(request.video, request.timecode, request.outputImage)
                         )
                         logger.info("Processing frame request for ${request.video} @ ${request.timecode}")
                     }
@@ -83,11 +85,13 @@ object FFmpegUtil {
         it.isDaemon = true
     }
 
-    private val imageStreamPool = ThreadPoolExecutor(50, 500, 1, TimeUnit.MINUTES, LinkedBlockingQueue())
 
-    fun previewImageStream(path: Path) : CompletableFuture<InputStream>? {
+    private val imageStreamPool =
+        ThreadPoolExecutor(50, 500, 1, TimeUnit.MINUTES, ArrayBlockingQueue(10_000), NamedThreadFactory("ImageStreamPool"))
 
-        if(!Files.exists(path) && frameRequestQueue.none { it.outputImage == path }) {
+    fun previewImageStream(path: Path): CompletableFuture<InputStream>? {
+
+        if (!Files.exists(path) && frameRequestQueue.none { it.outputImage == path }) {
             return null //image neither exists nor is scheduled to be generated
         }
 
@@ -140,16 +144,15 @@ object FFmpegUtil {
 
 
     private fun extractFrameAsync(video: Path, timecode: String, outputImage: Path) =
-            FFmpeg.atPath(ffmpegBin)
-                    .addInput(UrlInput.fromPath(video))
-                    .addOutput(UrlOutput.toPath(outputImage))
-                    .setOverwriteOutput(true)
-                    .addArguments("-ss", timecode)
-                    .addArguments("-vframes", "1")
-                    .addArguments("-filter:v", "scale=120:-1")
-                    .setOutputListener { logger.debug(logMarker, it); true }
-                    .executeAsync()
-
+        FFmpeg.atPath(ffmpegBin)
+            .addInput(UrlInput.fromPath(video))
+            .addOutput(UrlOutput.toPath(outputImage))
+            .setOverwriteOutput(true)
+            .addArguments("-ss", timecode)
+            .addArguments("-vframes", "1")
+            .addArguments("-filter:v", "scale=120:-1")
+            .setOutputListener { logger.debug(logMarker, it); true }
+            .executeAsync()
 
 
     fun extractFrame(video: Path, timecode: String, outputImage: Path) {
@@ -160,24 +163,25 @@ object FFmpegUtil {
 
     }
 
-    fun extractFrame(video: Path, ms: Long, outputImage: Path) = extractFrame(video, toMillisecondTimeStamp(ms), outputImage)
+    fun extractFrame(video: Path, ms: Long, outputImage: Path) =
+        extractFrame(video, toMillisecondTimeStamp(ms), outputImage)
 
     fun extractSegment(video: Path, startTimecode: String, endTimecode: String, outputVideo: Path) {
         try {
             //semaphore.acquire()
             FFmpeg.atPath(ffmpegBin)
-                    .addInput(UrlInput.fromPath(video))
-                    .addOutput(UrlOutput.toPath(outputVideo))
-                    .setOverwriteOutput(true)
-                    .addArguments("-ss", startTimecode)
-                    .addArguments("-to", endTimecode)
-                    .addArguments("-c:v", "libx264")
-                    .addArguments("-c:a", "aac")
-                    .addArguments("-b:v", "2000k")
-                    .addArguments("-tune", "zerolatency")
-                    .addArguments("-preset", "slow")
-                    .setOutputListener { logger.debug(logMarker, it); true }
-                    .execute()
+                .addInput(UrlInput.fromPath(video))
+                .addOutput(UrlOutput.toPath(outputVideo))
+                .setOverwriteOutput(true)
+                .addArguments("-ss", startTimecode)
+                .addArguments("-to", endTimecode)
+                .addArguments("-c:v", "libx264")
+                .addArguments("-c:a", "aac")
+                .addArguments("-b:v", "2000k")
+                .addArguments("-tune", "zerolatency")
+                .addArguments("-preset", "slow")
+                .setOutputListener { logger.debug(logMarker, it); true }
+                .execute()
         } finally {
             //semaphore.release()
         }
@@ -196,11 +200,11 @@ object FFmpegUtil {
     }
 
     fun analyze(videoPath: Path, countFrames: Boolean = false): FFprobeResult = FFprobe.atPath(ffmpegBin)
-            .setInput(videoPath)
-            .setShowStreams(true)
-            .setCountFrames(countFrames)
-            .setSelectStreams(StreamType.VIDEO)
-            .execute()
+        .setInput(videoPath)
+        .setShowStreams(true)
+        .setCountFrames(countFrames)
+        .setSelectStreams(StreamType.VIDEO)
+        .execute()
 
     fun stop() {
         threadRunning = false

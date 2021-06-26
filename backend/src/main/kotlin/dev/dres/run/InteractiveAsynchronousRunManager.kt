@@ -71,11 +71,11 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
     /** The internal [MessageQueueUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
     private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
 
-    /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoresUpdatable = ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable)
-
     /** The internal [DAOUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
     private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
+
+    /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
+    private val scoresUpdatable = ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable, this.daoUpdatable)
 
     /** The internal [DAOUpdatable] used to end a task once no more submissions are possible */
     private val endTaskUpdatable = EndTaskUpdatable(this, RunActionContext.INTERNAL)

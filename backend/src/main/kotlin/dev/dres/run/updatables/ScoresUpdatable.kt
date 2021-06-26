@@ -20,7 +20,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.1.0
  */
-class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdatable, val messageQueueUpdatable: MessageQueueUpdatable): Updatable {
+class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdatable, val messageQueueUpdatable: MessageQueueUpdatable, val daoUpdatable: DAOUpdatable<*>): Updatable {
 
     companion object {
         val ELIGIBLE_STATUS = arrayOf(RunManagerStatus.ACTIVE, RunManagerStatus.RUNNING_TASK, RunManagerStatus.PREPARING_TASK, RunManagerStatus.TASK_ENDED)
@@ -63,6 +63,7 @@ class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdat
             /* If elements were removed, then update scoreboards and tasks. */
             if (removed) {
                 this.scoreboardsUpdatable.dirty = true
+                this.daoUpdatable.dirty = true
                 this.messageQueueUpdatable.enqueue(ServerMessage(this.runId.string, ServerMessageType.TASK_UPDATED))
             }
         }

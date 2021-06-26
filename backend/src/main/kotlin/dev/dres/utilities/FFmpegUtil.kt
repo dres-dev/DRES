@@ -12,11 +12,12 @@ import dev.dres.data.model.competition.CachedVideoItem
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
 import java.io.File
+import java.io.FileNotFoundException
+import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.Future
+import java.util.concurrent.*
 
 object FFmpegUtil {
 
@@ -70,7 +71,7 @@ object FFmpegUtil {
 
                 }
             } catch (e: Exception) {
-                //TODO ??
+                logger.error("Error in frameExtractionManagementThread", e)
             }
 
             Thread.sleep(50)
@@ -78,7 +79,50 @@ object FFmpegUtil {
         }
 
     }.also {
+        it.name = "frameExtractionManagementThread"
         it.isDaemon = true
+    }
+
+    private val imageStreamPool = ThreadPoolExecutor(50, 500, 1, TimeUnit.MINUTES, LinkedBlockingQueue())
+
+    fun previewImageStream(path: Path) : CompletableFuture<InputStream>? {
+
+        if(!Files.exists(path) && frameRequestQueue.none { it.outputImage == path }) {
+            return null //image neither exists nor is scheduled to be generated
+        }
+
+        val future = CompletableFuture<InputStream>()
+
+        imageStreamPool.execute {
+
+            var tries = 0
+
+            while (!Files.exists(path) && tries < 250) {
+                ++tries
+                Thread.sleep(100)
+            }
+
+
+            val stream = if (Files.exists(path)) {
+                try {
+                    path.toFile().inputStream()
+                } catch (e: FileNotFoundException) {
+                    //should not happen
+                    null
+                }
+            } else {
+                null
+            }
+
+            if (stream != null) {
+                future.complete(stream)
+            } else {
+                future.cancel(false)
+            }
+        }
+
+        return future
+
     }
 
     init {
@@ -109,7 +153,11 @@ object FFmpegUtil {
 
 
     fun extractFrame(video: Path, timecode: String, outputImage: Path) {
-        frameRequestQueue.add(FrameRequest(video, timecode, outputImage))
+        val request = FrameRequest(video, timecode, outputImage)
+        if (!Files.exists(outputImage) && !frameRequestQueue.contains(request)) {
+            frameRequestQueue.add(request)
+        }
+
     }
 
     fun extractFrame(video: Path, ms: Long, outputImage: Path) = extractFrame(video, toMillisecondTimeStamp(ms), outputImage)
@@ -143,7 +191,7 @@ object FFmpegUtil {
         val output = File(cacheLocation, description.cacheItemName()).toPath()
         val range = description.temporalRange.toMilliseconds()
 
-        extractSegment(input, "${range.first / 1000}", "${range.second / 1000}", output)
+        extractSegment(input, toMillisecondTimeStamp(range.first), toMillisecondTimeStamp(range.second), output)
 
     }
 
@@ -156,6 +204,7 @@ object FFmpegUtil {
 
     fun stop() {
         threadRunning = false
+        imageStreamPool.shutdownNow()
     }
 
 }

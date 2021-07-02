@@ -244,11 +244,14 @@ object RestApi {
                     it.queryParamMap().map { e -> "${e.key}=${e.value}" }.joinToString()
                 }) from ${it.req.remoteAddr}"
             )
+            if (it.path().startsWith("/api/")) { //do not cache api requests
+                it.header("Cache-Control", "max-age=0")
+            }
         }.error(401) {
             it.json(ErrorStatus("Unauthorized request!"))
         }.exception(Exception::class.java) { e, ctx ->
             ctx.status(500).json(ErrorStatus("Internal server error!"))
-            logger.error("Exception during hadling of request to ${ctx.path()}", e)
+            logger.error("Exception during handling of request to ${ctx.path()}", e)
         }
             .start(config.httpPort)
     }

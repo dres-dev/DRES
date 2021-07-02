@@ -121,7 +121,8 @@ object FFmpegUtil {
             if (stream != null) {
                 future.complete(stream)
             } else {
-                future.cancel(false)
+                //return empty result
+                future.complete(InputStream.nullInputStream())
             }
         }
 

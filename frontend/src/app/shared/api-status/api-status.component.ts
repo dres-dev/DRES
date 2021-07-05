@@ -10,7 +10,7 @@ import {catchError, filter, switchMap} from 'rxjs/operators';
 })
 export class ApiStatusComponent implements OnInit, OnDestroy {
 
-    @Input() public pingFrequency = 1000; // ms
+    @Input() public pingFrequency = 10_000; // ms
     rtt: BehaviorSubject<number> = new BehaviorSubject<number>(-1);
     clockDiff: BehaviorSubject<number>;
     error = false;

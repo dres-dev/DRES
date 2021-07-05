@@ -199,9 +199,9 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             withLatestFrom(this.runId),
             map(([count, id]) => {
                 if (count < 5) {
-                    AudioPlayerUtilities.playOnce('assets/audio/beep_1.ogg', this.audio.nativeElement);
+                    AudioPlayerUtilities.playOnce('/immutable/assets/audio/beep_1.ogg', this.audio.nativeElement);
                 } else {
-                    AudioPlayerUtilities.playOnce('assets/audio/beep_2.ogg', this.audio.nativeElement);
+                    AudioPlayerUtilities.playOnce('/immutable/assets/audio/beep_2.ogg', this.audio.nativeElement);
                     this.webSocketSubject.next({runId: id, type: 'ACK'} as IWsClientMessage);
                 }
                 return 5 - count;

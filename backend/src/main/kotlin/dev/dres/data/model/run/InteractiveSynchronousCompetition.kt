@@ -1,5 +1,6 @@
 package dev.dres.data.model.run
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
@@ -41,6 +42,7 @@ class InteractiveSynchronousCompetition(override var id: CompetitionId, override
     override val tasks: List<Task> = LinkedList<Task>()
 
     /** Returns the last [Task]. */
+    @get:JsonIgnore
     val lastTask: Task?
         get() = this.tasks.lastOrNull()
 

@@ -35,7 +35,8 @@ export interface CompetitionBuilderTaskDialogData {
 
 @Component({
     selector: 'app-competition-builder-task-dialog',
-    templateUrl: './competition-builder-task-dialog.component.html'
+    templateUrl: './competition-builder-task-dialog.component.html',
+    styleUrls: ['./competition-builder-task-dialog.component.scss']
 })
 export class CompetitionBuilderTaskDialogComponent {
 

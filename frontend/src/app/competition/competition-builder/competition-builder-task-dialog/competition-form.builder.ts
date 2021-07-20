@@ -325,7 +325,7 @@ export class CompetitionFormBuilder {
                 }
             }
         }
-        return new FormArray(array);
+        return new FormArray(array, [Validators.required]);
     }
 
     /**

@@ -27,13 +27,7 @@ export class TextObjectPreviewComponent implements OnInit {
     ngOnInit(): void {
         this.currentText = this.queryContent.pipe(
             filter(q => q.contentType === 'TEXT'),
-            map(q => {
-                if (q.content) {
-                    return q.content;
-                } else {
-                    return null;
-                }
-            })
+            map(q => q.content)
         );
     }
 }

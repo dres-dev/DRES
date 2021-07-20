@@ -1,9 +1,8 @@
-import {AfterViewInit, Component, ElementRef, EventEmitter, Inject, Input, OnDestroy, Output, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild} from '@angular/core';
 import {Observable, of, Subscription} from 'rxjs';
 import {RestMediaItem, TemporalRange} from '../../../../../../openapi';
 import {AppConfig} from '../../../../app.config';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {Options} from 'ng5-slider';
+import {Options} from '@angular-slider/ngx-slider';
 
 export interface VideoPlayerSegmentBuilderData {
     mediaItem: RestMediaItem;

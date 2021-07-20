@@ -1,12 +1,12 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 
-import { MediaItemBuilderDialogComponent } from './media-item-builder-dialog.component';
+import {MediaItemBuilderDialogComponent} from './media-item-builder-dialog.component';
 
 describe('MediaItemBuilderDialogComponent', () => {
   let component: MediaItemBuilderDialogComponent;
   let fixture: ComponentFixture<MediaItemBuilderDialogComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ MediaItemBuilderDialogComponent ]
     })

@@ -1,13 +1,13 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
-import {CompetitionRunService, ContentElement, RunState, TaskHint, TaskInfo, TaskTarget} from '../../../openapi';
-import {BehaviorSubject, combineLatest, interval, merge, Observable, of, Subscription, timer, zip} from 'rxjs';
+import {CompetitionRunService, ContentElement, RunState, TaskInfo, TaskTarget} from '../../../openapi';
+import {BehaviorSubject, combineLatest, interval, Observable, of, Subscription, timer} from 'rxjs';
 import {
-    catchError, combineAll,
-    concatMap, debounce, debounceTime, delay,
+    catchError,
+    concatMap,
     delayWhen,
     filter, finalize,
     flatMap,
-    map, mergeAll, mergeMap,
+    map,
     repeat,
     share,
     shareReplay,
@@ -22,8 +22,6 @@ import {WebSocketSubject} from 'rxjs/webSocket';
 import {AppConfig} from '../app.config';
 import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
 import {fromArray} from 'rxjs/internal/observable/fromArray';
-import {Task} from 'protractor/built/taskScheduler';
-import {TaskState} from '@angular/cdk/testing/testbed/task-state-zone-interceptor';
 
 /**
  * Internal enumeration used for TaskViewerComponent.

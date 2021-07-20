@@ -2,6 +2,8 @@ package dev.dres.data.model.run
 
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.*
+import dev.dres.data.model.competition.TaskDescription
+import dev.dres.data.model.competition.TaskDescriptionTarget
 import dev.dres.data.model.competition.options.TargetOption
 import dev.dres.data.model.run.interfaces.Task
 import dev.dres.data.model.submissions.Submission
@@ -12,8 +14,7 @@ import dev.dres.run.validation.interfaces.SubmissionValidator
 import dev.dres.run.validation.judged.BasicJudgementValidator
 import dev.dres.run.validation.judged.BasicVoteValidator
 import dev.dres.run.validation.judged.ItemRange
-import dev.dres.utilities.TimeUtil
-import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * An abstract [Task] implementation for interactive [Task], i.e. [Task]s that rely on human interaction, such as [Submission]s
@@ -23,7 +24,7 @@ import java.util.*
  */
 abstract class AbstractInteractiveTask: AbstractRun(), Task {
     /** List of [Submission]s* registered for this [Task]. */
-    val submissions: List<Submission> = LinkedList<Submission>()
+    val submissions: ConcurrentLinkedQueue<Submission> = ConcurrentLinkedQueue<Submission>()
 
     /** The total duration in milliseconds of this task. Usually determined by the [TaskDescription] but can be adjusted! */
     abstract var duration: Long
@@ -51,11 +52,7 @@ abstract class AbstractInteractiveTask: AbstractRun(), Task {
                 ItemRange(it.first)
             } else {
                 val item = it.first
-                val range = if (item is MediaItem.VideoItem) {
-                    TimeUtil.toMilliseconds(it.second!!, item.fps)
-                } else {
-                    TimeUtil.toMilliseconds(it.second!!)
-                }
+                val range = it.second!!.toMilliseconds()
                 ItemRange(item, range.first, range.second)
             } })
         TargetOption.VOTE -> BasicVoteValidator(
@@ -65,11 +62,7 @@ abstract class AbstractInteractiveTask: AbstractRun(), Task {
                     ItemRange(it.first)
                 } else {
                     val item = it.first
-                    val range = if (item is MediaItem.VideoItem) {
-                        TimeUtil.toMilliseconds(it.second!!, item.fps)
-                    } else {
-                        TimeUtil.toMilliseconds(it.second!!)
-                    }
+                    val range = it.second!!.toMilliseconds()
                     ItemRange(item, range.first, range.second)
                 } },
             parameters = description.taskType.targetType.parameters

@@ -8,6 +8,8 @@ import {ApiStatusComponent} from './api-status/api-status.component';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {DownloadJsonButtonComponent} from './download-json-button/download-json-button.component';
 import {UploadJsonButtonComponent} from './upload-json-button/upload-json-button.component';
+import { ConfirmationDialogComponent } from './confirmation-dialog/confirmation-dialog.component';
+import {MatDialogModule} from '@angular/material/dialog';
 
 
 @NgModule({
@@ -15,7 +17,8 @@ import {UploadJsonButtonComponent} from './upload-json-button/upload-json-button
         BackButtonComponent,
         ApiStatusComponent,
         DownloadJsonButtonComponent,
-        UploadJsonButtonComponent
+        UploadJsonButtonComponent,
+        ConfirmationDialogComponent
     ],
     exports: [
         BackButtonComponent,
@@ -31,7 +34,8 @@ import {UploadJsonButtonComponent} from './upload-json-button/upload-json-button
         MatButtonModule,
         ServicesModule,
         MatIconModule,
-        MatTooltipModule
+        MatTooltipModule,
+        MatDialogModule
     ]
 })
 export class SharedModule {

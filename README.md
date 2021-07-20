@@ -4,10 +4,46 @@
 
 The Distributed Retrieval Evaluation Server builds uppon the work of https://github.com/klschoef/vbsserver/ to provide the means to evaluate interactive retrieval approaches in various settings, both on-site and distributed.
 
+We provide a dedicated __client__ DRES OpenApi specifications for systems to be evaluated with DRES. Please refer to the [example repo](https://github.com/dres-dev/Client-Examples) for further information and do not forget to [cite](#Citation) our work when using them.
+
 ## Requirements
 
 To deploy and run DRES, a JRE of at least Java 11 is required, e.g. the [OpenJDK 11](https://jdk.java.net/java-se-ri/11).
 For development, besides the JDK, addtitionally [NPM](https://www.npmjs.com/) and the [Angular CLI](https://cli.angular.io/) is recommended.
+
+## Citation
+
+We kindly ask you to refer to the following paper in publications mentioning or employing DRES:
+
+> Rossetto L., Gasser R., Sauter L., Bernstein A., Schuldt H. (2021) A System for Interactive Multimedia Retrieval Evaluations. In: Lokoč J. et al. (eds) MultiMedia Modeling. MMM 2021. Lecture Notes in Computer Science, vol 12573. Springer, Cham.
+
+**Link:** https://doi.org/10.1007/978-3-030-67835-7_33
+
+
+**Bibtex:**
+```
+@InProceedings{10.1007/978-3-030-67835-7_33,
+author="Rossetto, Luca
+and Gasser, Ralph
+and Sauter, Loris
+and Bernstein, Abraham
+and Schuldt, Heiko",
+editor="Loko{\v{c}}, Jakub
+and Skopal, Tom{\'a}{\v{s}}
+and Schoeffmann, Klaus
+and Mezaris, Vasileios
+and Li, Xirong
+and Vrochidis, Stefanos
+and Patras, Ioannis",
+title="A System for Interactive Multimedia Retrieval Evaluations",
+booktitle="MultiMedia Modeling",
+year="2021",
+publisher="Springer International Publishing",
+address="Cham",
+pages="385--390",
+isbn="978-3-030-67835-7"
+}
+```
 
 ## Setup
 
@@ -16,9 +52,9 @@ The backend is written in Kotlin, hence requires a JVM, and the frontend is writ
 However, the entire setup process is Gradle based. To setup DRES, follow these steps:
 
 1. Clone or Download this repository
-2. Navigate to the [backend](backend/)
-3. Build the backend using Gradle `$> ./gradlew distZip` (alternatively `$> ./gradlew distTar`)
-4. Extract and run the backend (it serves the frontend)
+2. Build the backend using Gradle `$> ./gradlew distZip` (alternatively `$> ./gradlew distTar`)
+3. Extract the generated archive (see `backend/build/distributions`)
+4. Run the backend (it serves the frontend) by starting the `backend` script in the `bin` directory
 
 If you want to run DRES from your IDE (e.g. for debuging or development), please remember to run `$> ./gradlew setupFFMpeg` to download the required FFMpeg dependencies!
 
@@ -111,11 +147,13 @@ the operator can switch to the admin view and force all participants to be ready
 ## Submission
 In order to submit a result to be evaluated, the submission endpoint is accessed via HTTP(S) in one of the following ways:
 - http(s)://{server}/submit?*item*={item} where {item} is the identifier for the retrieved media item
-- http(s)://{server}/submit?*item*={item}?*shot*={shot} where {shot} is the identifier for a pre-defined temporal segment within the {item}
-- http(s)://{server}/submit?*item*={item}?*frame*={frame} where {frame} is the frame number within the {item}, in case it is a video
-- http(s)://{server}/submit?*item*={item}?*timecode*={timecode} where {timecode} is a temporal position within the {item} in the form HH:MM:SS:FF. In case just a plain number is passed, the behavior is equivalent to passing the same value as {frame}
+- http(s)://{server}/submit?*item*={item}&*shot*={shot} where {shot} is the identifier for a pre-defined temporal segment within the {item}
+- http(s)://{server}/submit?*item*={item}&*frame*={frame} where {frame} is the frame number within the {item}, in case it is a video
+- http(s)://{server}/submit?*item*={item}&*timecode*={timecode} where {timecode} is a temporal position within the {item} in the form HH:MM:SS:FF. In case just a plain number is passed, the behavior is equivalent to passing the same value as {frame}
 
 In case no session cookie is passed as part of the request, an additional *session* parameter can be passed to transmit the session id token. The session id can be found via the UI in the User Profile, accessible via the top-right menu. Alternatively, the information about the currently authenticated user, including the session token, can be accessed via http(s)://{server}/api/user which will return the information in JSON format.
+
+Alternatively, there we provide a [bunch of examples](https://github.com/dres-dev/Client-Examples) on how to use the DRES OpenApi specifications for various languages, which might be handier than the pure REST submission endpoints desribed above.
 
 ## Interaction Logging
 Analogously to the VBS server, the logging of interaction sequences and complete result lists is supported. The specification of the messages can be found in [this working document](https://www.overleaf.com/read/rppygxshvhrn) as well as the OpenApi specifications. The interaction/querying logs can be submittet to http(s)://{server}/log/query and the result logs can be sent to http(s)://{server}/log/result, both via POST.

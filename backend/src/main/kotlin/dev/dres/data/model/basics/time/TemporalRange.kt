@@ -6,44 +6,42 @@ import dev.dres.utilities.TimeUtil
 /**
  * Notion of a [TemporalRange] within a [MediaItem] that exhibits temporal development (e.g. [VideoItem].
  *
- * @author Ralph Gasser
- * @version 1.1.1
+ * @version 2.0
  *
  * @param start The start of the [TemporalRange]
  * @param end The end of the [TemporalRange]
  */
 data class TemporalRange constructor(val start: TemporalPoint, val end: TemporalPoint) {
 
-    constructor(startMs: Long, endMs: Long) : this(TemporalPoint(startMs.toDouble(), TemporalUnit.MILLISECONDS), TemporalPoint(endMs.toDouble(), TemporalUnit.MILLISECONDS))
+    constructor(startMs: Long, endMs: Long) : this(MilliSecondTemporalPoint(startMs), MilliSecondTemporalPoint(endMs))
     constructor(pair: Pair<Long, Long>) : this(pair.first, pair.second)
 
     init {
-        require(TimeUtil.toMilliseconds(start) <= TimeUtil.toMilliseconds(end)) {"Start point must be before End point in TemporalRange"}
+        require(start.toMilliseconds() <= end.toMilliseconds()) {"Start point must be before End point in TemporalRange"}
     }
 
     /**
      * Returns the duration of this [TemporalRange] in milliseconds.
-     *
-     * @param fps The fps based used for converting [TemporalUnit.FRAME_NUMBER]
-     * @return The duration of this [TemporalRange] in milliseconds.
      */
-    fun durationMs(fps: Float): Long = TimeUtil.toMilliseconds(this.end, fps) - TimeUtil.toMilliseconds(this.start, fps)
+    fun durationMs(): Long = this.end.toMilliseconds() - this.start.toMilliseconds()
 
-    fun contains(inner: TemporalRange, outerFps: Float = 24.0f, innerFps: Float = 24.0f): Boolean =
-            TimeUtil.toMilliseconds(start, outerFps) <= TimeUtil.toMilliseconds(inner.start, innerFps) &&
-                    TimeUtil.toMilliseconds(end, outerFps) >= TimeUtil.toMilliseconds(inner.end, innerFps)
+    fun contains(inner: TemporalRange): Boolean =
+            start.toMilliseconds() <= inner.start.toMilliseconds() &&
+                    end.toMilliseconds() >= inner.end.toMilliseconds()
 
-    fun overlaps(other: TemporalRange, fps: Float = 24.0f, otherFps: Float = 24.0f) : Boolean {
-        val s1 = TimeUtil.toMilliseconds(start, fps)
-        val s2 = TimeUtil.toMilliseconds(other.start, fps)
-        val e1 = TimeUtil.toMilliseconds(end, otherFps)
-        val e2 = TimeUtil.toMilliseconds(other.end, otherFps)
+    fun overlaps(other: TemporalRange) : Boolean {
+        val s1 = start.toMilliseconds()
+        val s2 = other.start.toMilliseconds()
+        val e1 = end.toMilliseconds()
+        val e2 = other.end.toMilliseconds()
 
         return s1 <= e2 && s2 <= e1
     }
 
+    fun toMilliseconds(): Pair<Long, Long> = Pair(start.toMilliseconds(), end.toMilliseconds())
+
     val center
         @JsonIgnore
-        get() = (TimeUtil.toMilliseconds(end) - TimeUtil.toMilliseconds(start)) / 2
+        get() = (end.toMilliseconds() - start.toMilliseconds()) / 2
 
 }

@@ -12,7 +12,10 @@ import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.utilities.FFmpegUtil
-import dev.dres.utilities.extensions.*
+import dev.dres.utilities.extensions.UID
+import dev.dres.utilities.extensions.errorResponse
+import dev.dres.utilities.extensions.sendFile
+import dev.dres.utilities.extensions.streamFile
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
@@ -22,15 +25,14 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.concurrent.ConcurrentHashMap
 
 abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, config: Config) : GetRestHandler<Any>, AccessManagedRestHandler {
 
     override val permittedRoles = setOf(RestApiRole.VIEWER)
     private val cacheLocation = Paths.get(config.cachePath + "/previews")
 
-    private val waitingMap = ConcurrentHashMap<Path, Long>()
-    private val timeOut = 10_000
+//    private val waitingMap = ConcurrentHashMap<Path, Long>()
+//    private val timeOut = 10_000
 
     protected fun handlePreviewRequest(collectionId: UID, itemName: String, time: Long?, ctx: Context) {
 
@@ -54,6 +56,8 @@ abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollecti
 
 
         if (item is MediaItem.ImageItem) {
+            //TODO scale down image if too large
+            ctx.header("Cache-Control", "max-age=31622400")
             ctx.streamFile(File(basePath, item.location))
             return
         } else if (item is MediaItem.VideoItem) {
@@ -71,45 +75,65 @@ abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollecti
 
 
             val imgPath = cacheDir.resolve("${time}.jpg")
-            if (!Files.exists(imgPath)) {
-                val mediaItemLocation = Path.of(collection.basePath, item.location)
-                //sanity check
-                if (time < 0 || time > item.durationMs || !Files.exists(mediaItemLocation)) {
-                    imgPath.toFile().writeText("missing")
+
+            if (Files.exists(imgPath)) { //if file is available, send contents immediately
+                ctx.header("Cache-Control", "max-age=31622400")
+                ctx.sendFile(imgPath.toFile())
+            }else { //if not, wait for it if necessary
+
+                FFmpegUtil.extractFrame(Path.of(collection.basePath, item.location), time, imgPath)
+
+                val future = FFmpegUtil.previewImageStream(imgPath)
+
+                if (future == null) { //image does not exist and is not scheduled
+                    ctx.status(404)
+                    ctx.header("Cache-Control", "max-age=31622400")
+                    ctx.contentType("image/png")
+                    ctx.result(this.javaClass.getResourceAsStream("/img/missing.png")!!)
                 } else {
-                    if (!waitingMap.containsKey(imgPath)) {
-                        waitingMap[imgPath] = System.currentTimeMillis() + timeOut
-                        FFmpegUtil.extractFrame(mediaItemLocation, time, imgPath)
-                    }
+                    ctx.contentType("image/jpg")
+                    ctx.result(future)
                 }
+
             }
 
-            val imgFile = imgPath.toFile()
-
-
-
-            //check if file is empty wait
-            while (imgFile.isEmpty() && waitingMap[imgPath] ?: 0 > System.currentTimeMillis()) {
-                Thread.sleep(100)
-            }
-
-
-
-
-            if (imgFile.isEmpty()){ //time out
-                ctx.status(429)
-                ctx.header("Retry-After", "10")
-                ctx.header("Refresh", "10; url=${ctx.url()}")
-                //ctx.contentType("image/png")
-                //ctx.result(this.javaClass.getResourceAsStream("/img/loading.png"))
-            } else if (imgFile.length() < 100) { //placeholder
-                ctx.contentType("image/png")
-                ctx.status(404)
-                ctx.result(this.javaClass.getResourceAsStream("/img/missing.png"))
-            } else {
-                waitingMap.remove(imgPath)
-                ctx.sendFile(imgFile)
-            }
+//            if (!Files.exists(imgPath)) {
+//                val mediaItemLocation = Path.of(collection.basePath, item.location)
+//                //sanity check
+//                if (time < 0 || time > item.durationMs || !Files.exists(mediaItemLocation)) {
+//                    imgPath.toFile().writeText("missing")
+//                } else {
+//                    if (!waitingMap.containsKey(imgPath)) {
+//                        waitingMap[imgPath] = System.currentTimeMillis() + timeOut
+//                        FFmpegUtil.extractFrame(mediaItemLocation, time, imgPath)
+//                    }
+//                }
+//            }
+//
+//            val imgFile = imgPath.toFile()
+//
+//
+//            //check if file is empty wait
+//            while (imgFile.isEmpty() && waitingMap[imgPath] ?: 0 > System.currentTimeMillis()) {
+//                Thread.sleep(100)
+//            }
+//
+//            if (imgFile.isEmpty()){ //time out
+//                ctx.status(429)
+//                ctx.header("Retry-After", "10")
+//                ctx.header("Refresh", "10; url=${ctx.url()}")
+//                //ctx.contentType("image/png")
+//                //ctx.result(this.javaClass.getResourceAsStream("/img/loading.png"))
+//            } else if (imgFile.length() < 100) { //placeholder
+//                ctx.contentType("image/png")
+//                ctx.status(404)
+//                ctx.header("Cache-Control", "max-age=31622400")
+//                ctx.result(this.javaClass.getResourceAsStream("/img/missing.png"))
+//            } else {
+//                waitingMap.remove(imgPath)
+//                ctx.header("Cache-Control", "max-age=31622400")
+//                ctx.sendFile(imgFile)
+//            }
 
         }
     }

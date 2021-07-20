@@ -94,7 +94,7 @@ sealed class TaskDescriptionTarget {
                 val fileData = ByteArray(file.length().toInt())
                 imageInFile.read(fileData)
                 contentElements += ContentElement(ContentType.VIDEO, Base64.getEncoder().encodeToString(fileData), 0)
-                contentElements += ContentElement(ContentType.EMPTY, null, Math.floorDiv(this.temporalRange.durationMs(this.item.fps), 1000L) + 1L)
+                contentElements += ContentElement(ContentType.EMPTY, null, Math.floorDiv(this.temporalRange.durationMs(), 1000L) + 1L)
             }
             return contentElements
         }

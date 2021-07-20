@@ -1,7 +1,10 @@
 package dev.dres.data.model.run
 
 import dev.dres.data.model.UID
-import dev.dres.data.model.competition.*
+import dev.dres.data.model.competition.CompetitionDescription
+import dev.dres.data.model.competition.TaskDescription
+import dev.dres.data.model.competition.TaskDescriptionId
+import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.InteractiveAsynchronousCompetition.Task
 import dev.dres.data.model.run.interfaces.Competition
 import dev.dres.data.model.run.interfaces.CompetitionId
@@ -122,7 +125,7 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
             this.filter.acceptOrThrow(submission)
 
             /* Process Submission. */
-            (this.submissions as MutableList).add(submission)
+            this.submissions.add(submission)
             this.validator.validate(submission)
         }
     }

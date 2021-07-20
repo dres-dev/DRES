@@ -3,13 +3,9 @@ package dev.dres.data.model.submissions
 import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.basics.time.TemporalPoint
+import dev.dres.data.model.basics.time.MilliSecondTemporalPoint
 import dev.dres.data.model.basics.time.TemporalRange
-import dev.dres.data.model.basics.time.TemporalUnit
 import dev.dres.data.model.run.AbstractInteractiveTask
-import dev.dres.data.model.run.interfaces.Task
-import dev.dres.data.model.run.interfaces.TaskId
-import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.BaseSubmissionAspect
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 
@@ -54,6 +50,6 @@ sealed class Submission : BaseSubmissionAspect {
     ) : Submission(), TemporalSubmissionAspect {
 
         override val temporalRange: TemporalRange
-            get() = TemporalRange(TemporalPoint(start.toDouble(), TemporalUnit.MILLISECONDS), TemporalPoint(end.toDouble(), TemporalUnit.MILLISECONDS))
+            get() = TemporalRange(MilliSecondTemporalPoint(start), MilliSecondTemporalPoint(end))
     }
 }

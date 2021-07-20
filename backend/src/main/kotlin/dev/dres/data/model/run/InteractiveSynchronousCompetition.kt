@@ -1,5 +1,6 @@
 package dev.dres.data.model.run
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
@@ -12,7 +13,6 @@ import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.filter.SubmissionFilter
-import dev.dres.run.filter.SubmissionRejectedException
 import dev.dres.run.score.interfaces.TeamTaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import java.util.*
@@ -42,6 +42,7 @@ class InteractiveSynchronousCompetition(override var id: CompetitionId, override
     override val tasks: List<Task> = LinkedList<Task>()
 
     /** Returns the last [Task]. */
+    @get:JsonIgnore
     val lastTask: Task?
         get() = this.tasks.lastOrNull()
 
@@ -109,7 +110,7 @@ class InteractiveSynchronousCompetition(override var id: CompetitionId, override
             this.filter.acceptOrThrow(submission)
 
             /* Process Submission. */
-            (this.submissions as MutableList).add(submission)
+            this.submissions.add(submission)
             this.validator.validate(submission)
         }
     }

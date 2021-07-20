@@ -9,7 +9,6 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.collections.HashMap
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
@@ -85,6 +84,12 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
      * @return [SubmissionStatus] of the [Submission]
      */
     override fun validate(submission: Submission) = updateLock.read {
+
+        //only validate submissions which are not already validated
+        if (submission.status != SubmissionStatus.INDETERMINATE){
+            return@read
+        }
+
         //check cache first
         val cachedStatus = this.cache[ItemRange(submission)]
         if (cachedStatus != null) {

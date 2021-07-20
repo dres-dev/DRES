@@ -9,7 +9,9 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TeamId
-import dev.dres.data.model.run.*
+import dev.dres.data.model.run.AbstractInteractiveTask
+import dev.dres.data.model.run.InteractiveAsynchronousCompetition
+import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.interfaces.Task
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
@@ -28,7 +30,6 @@ import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.collections.HashMap
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlin.math.max
@@ -70,11 +71,11 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
     /** The internal [MessageQueueUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
     private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
 
-    /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoresUpdatable = ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable)
-
     /** The internal [DAOUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
     private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
+
+    /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
+    private val scoresUpdatable = ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable, this.daoUpdatable)
 
     /** The internal [DAOUpdatable] used to end a task once no more submissions are possible */
     private val endTaskUpdatable = EndTaskUpdatable(this, RunActionContext.INTERNAL)
@@ -420,7 +421,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @param context The [RunActionContext] used for the invocation.
      * @return List of [Submission]s for the currently active [AbstractInteractiveTask]
      */
-    override fun submissions(context: RunActionContext): List<Submission> = this.currentTask(context)?.submissions ?: emptyList()
+    override fun submissions(context: RunActionContext): List<Submission> = this.currentTask(context)?.submissions?.toList() ?: emptyList()
 
     /**
      * Adjusting task durations is not supported by the [InteractiveAsynchronousRunManager]s.

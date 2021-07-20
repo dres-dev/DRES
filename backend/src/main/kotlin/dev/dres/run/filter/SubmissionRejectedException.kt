@@ -8,4 +8,4 @@ import dev.dres.data.model.submissions.Submission
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class SubmissionRejectedException(s: Submission) : Throwable("Submission $s was rejected by filter.")
+class SubmissionRejectedException(s: Submission, reason: String) : Throwable("Submission $s was rejected by filter: $reason")

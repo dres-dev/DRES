@@ -19,6 +19,8 @@ import dev.dres.run.*
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
 import dev.dres.run.eventstream.EventStreamProcessor
+import dev.dres.run.eventstream.RunEndEvent
+import dev.dres.run.eventstream.RunStartEvent
 import dev.dres.run.eventstream.TaskStartEvent
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.extensions.UID
@@ -157,6 +159,7 @@ class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler()
         try {
             run.start(rac)
             AuditLogger.competitionStart(run.id, LogEventSource.REST, ctx.sessionId())
+            EventStreamProcessor.event(RunStartEvent(runId, run.description))
             return SuccessStatus("Run $runId was successfully started.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Run $runId could not be started because it is in the wrong state (state = ${run.status}).", ctx)
@@ -378,6 +381,7 @@ class TerminateCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
         try {
             run.end(rac)
             AuditLogger.competitionEnd(run.id, LogEventSource.REST, ctx.sessionId())
+            EventStreamProcessor.event(RunEndEvent(runId))
             return SuccessStatus("Run $runId was successfully terminated.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(400, "Run $runId could not be terminated because it is in the wrong state (state = ${run.status}).", ctx)
@@ -452,12 +456,12 @@ class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHan
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
         val run = getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
-        val rac = runActionContext(ctx, run)
+
 
         val taskId = ctx.pathParamMap().getOrElse("taskId") {
             throw ErrorStatusException(404, "Parameter 'taskId' is missing!'", ctx)
         }.UID()
-        return run.submissions(rac).filter { it.task?.description?.id?.equals(taskId) ?: false }.map { SubmissionInfo.withId(it) }
+        return run.allSubmissions.filter { it.task?.description?.id?.equals(taskId) ?: false }.map { SubmissionInfo.withId(it) }
     }
 }
 

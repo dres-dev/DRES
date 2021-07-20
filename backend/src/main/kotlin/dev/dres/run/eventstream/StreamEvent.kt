@@ -1,5 +1,6 @@
 package dev.dres.run.eventstream
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
@@ -7,6 +8,7 @@ import dev.dres.data.model.log.QueryEventLog
 import dev.dres.data.model.log.QueryResultLog
 import dev.dres.data.model.submissions.Submission
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "class")
 sealed class StreamEvent(var timeStamp : Long = System.currentTimeMillis(), var session: String? = null)
 
 

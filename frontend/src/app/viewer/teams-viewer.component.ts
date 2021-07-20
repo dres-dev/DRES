@@ -141,10 +141,10 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
                 for (const [key, value] of delta) {
                     if (value.correct > value.wrong) {
                         highlight.set(key, 'correct');
-                        AudioPlayerUtilities.playOnce('assets/audio/correct.ogg', this.audio.nativeElement);
+                        AudioPlayerUtilities.playOnce('/immutable/assets/audio/correct.ogg', this.audio.nativeElement);
                     } else if (value.wrong > value.correct) {
                         highlight.set(key, 'wrong');
-                        AudioPlayerUtilities.playOnce('assets/audio/wrong.ogg', this.audio.nativeElement);
+                        AudioPlayerUtilities.playOnce('/immutable/assets/audio/wrong.ogg', this.audio.nativeElement);
                     } else {
                         highlight.set(key, 'nohighlight');
                     }
@@ -173,9 +173,9 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
         ).subscribe(success => {
             if (this.audio) {
                 if (success) {
-                    AudioPlayerUtilities.playOnce('assets/audio/applause.ogg', this.audio.nativeElement);
+                    AudioPlayerUtilities.playOnce('immutable/assets/audio/applause.ogg', this.audio.nativeElement);
                 } else {
-                    AudioPlayerUtilities.playOnce('assets/audio/sad_trombone.ogg', this.audio.nativeElement);
+                    AudioPlayerUtilities.playOnce('immutable/assets/audio/sad_trombone.ogg', this.audio.nativeElement);
                 }
             }
         });

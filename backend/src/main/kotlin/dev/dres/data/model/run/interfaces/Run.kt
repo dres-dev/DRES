@@ -40,6 +40,12 @@ interface Run {
      * @throws IllegalStateException If [Run] has ended running.
      */
     fun end()
+
+
+    /**
+     * Reactivates an ended [Run].
+     */
+    fun reactivate()
 }
 
 

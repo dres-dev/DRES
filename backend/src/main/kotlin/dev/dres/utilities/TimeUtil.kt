@@ -1,37 +1,21 @@
 package dev.dres.utilities
 
-import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.basics.media.MediaItemSegmentList
-import dev.dres.data.model.basics.media.PlayableMediaItem
-import dev.dres.data.model.basics.time.TemporalPoint
 import dev.dres.data.model.basics.time.TemporalRange
-import dev.dres.data.model.basics.time.TemporalUnit
 import kotlin.math.abs
 
 object TimeUtil {
 
-    fun toMilliseconds(point: TemporalPoint, fps: Float = 24.0f): Long {
-        return when (point.unit) {
-            TemporalUnit.FRAME_NUMBER -> (point.value / fps * 1000).toLong()
-            TemporalUnit.SECONDS -> (point.value * 1000).toLong()
-            TemporalUnit.MILLISECONDS -> point.value.toLong()
-        }
-    }
-
-    fun toMilliseconds(range: TemporalRange, fps: Float = 24.0f): Pair<Long, Long> = (
-            toMilliseconds(range.start, fps) to toMilliseconds(range.end, fps)
-            )
-
     /**
      * merges overlapping ranges
      */
-    fun merge(ranges: List<TemporalRange>, fps: Float = 24.0f, overlap: Int = 0): List<TemporalRange> {
+    fun merge(ranges: List<TemporalRange>, overlap: Int = 0): List<TemporalRange> {
 
         if (ranges.isEmpty()){
             return emptyList()
         }
 
-        val pairs = ranges.map { toMilliseconds(it, fps) }.sortedBy { it.first }
+        val pairs = ranges.map { it.toMilliseconds() }.sortedBy { it.first }
 
         var i = 1
         var current = pairs.first()
@@ -56,55 +40,25 @@ object TimeUtil {
 
     }
 
-    private val timecodeRegex = "^\\s*(?:(?:(?:(\\d+):)?([0-5]?\\d):)?([0-5]?\\d):)?(\\d+)\\s*\$".toRegex()
-
-    private const val msPerHour: Long = 3_600_000
-    private const val msPerMinute: Long = 60_000
-
-    /**
-     * Transforms a time code of the form HH:MM:SS:FF to milliseconds
-     * @return time in milliseconds or null if the input is not a valid time code
-     */
-    fun timeCodeToMilliseconds(timecode: String, fps: Float = 24.0f): Long? {
-
-        val matches = timecodeRegex.matchEntire(timecode) ?: return null
-
-        val hours = matches.groups[1]?.value?.toLong() ?: 0
-        val minutes = matches.groups[2]?.value?.toLong() ?: 0
-        val seconds = matches.groups[3]?.value?.toLong() ?: 0
-        val frames = matches.groups[4]?.value?.toLong() ?: 0
-
-        return hours * msPerHour + minutes * msPerMinute + seconds * 1000 + (1000 * frames / fps).toLong()
-    }
-
-    fun timeCodeToMilliseconds(timecode: String, item: PlayableMediaItem): Long? = timeCodeToMilliseconds(timecode, item.fps)
-
-    /**
-     * Converts a frame number to a timestamp in milliseconds.
-     */
-    fun frameToTime(frame: Int, item: PlayableMediaItem): Long {
-        return ((frame / item.fps) * 1000.0).toLong()
-    }
-
     /**
      * Converts a shot number to a timestamp in milliseconds.
      */
-    fun shotToTime(shot: String, item: MediaItem.VideoItem, segmentList: MediaItemSegmentList): Pair<Long,Long>? {
+    fun shotToTime(shot: String, segmentList: MediaItemSegmentList): Pair<Long,Long>? {
         val segment = segmentList.segments.find { it.name == shot } ?: return null
-        return toMilliseconds(segment.range, item.fps)
+        return segment.range.toMilliseconds()
     }
 
 
-    fun timeToSegment(time: Long, item: MediaItem.VideoItem, segmentList: MediaItemSegmentList): Pair<Long,Long>? {
+    fun timeToSegment(time: Long, segmentList: MediaItemSegmentList): Pair<Long,Long>? {
         if (segmentList.segments.isEmpty()) {
             return null
         }
         val segment = segmentList.segments.find {
-            val range = TimeUtil.toMilliseconds(it.range, item.fps)
+            val range = it.range.toMilliseconds()
             range.first <= time && range.second >= time
         } ?: segmentList.segments.minByOrNull { abs(it.range.center - time) }!!
 
-        return toMilliseconds(segment.range, item.fps)
+        return segment.range.toMilliseconds()
     }
 
 

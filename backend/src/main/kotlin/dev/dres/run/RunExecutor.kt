@@ -25,8 +25,6 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.locks.StampedLock
 import java.util.function.Consumer
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
 
 /**
  * The execution environment for [RunManager]s
@@ -73,13 +71,24 @@ object RunExecutor : Consumer<WsHandler> {
     fun init(runs: DAO<Competition>) {
         this.runs = runs
         this.runs.filter { !it.hasEnded }.forEach { //TODO needs more distinction
-            val run = when(it) {
-                is InteractiveSynchronousCompetition -> InteractiveSynchronousRunManager(it)
-                is NonInteractiveCompetition -> NonInteractiveRunManager(it)
-                else -> throw NotImplementedError("No matching run manager found for $it")
-            }
-            this.schedule(run)
+            schedule(it)
         }
+    }
+
+    fun schedule(competition: Competition) {
+        val run = when(competition) {
+            is InteractiveSynchronousCompetition -> {
+                competition.tasks.forEach { t ->
+                    t.submissions.forEach { s -> s.task = t }
+                }
+                InteractiveSynchronousRunManager(competition)
+            }
+            is NonInteractiveCompetition -> {
+                NonInteractiveRunManager(competition)
+            }
+            else -> throw NotImplementedError("No matching run manager found for $competition")
+        }
+        this.schedule(run)
     }
 
     /** A thread that cleans after [RunManager] have finished. */

@@ -18,6 +18,6 @@ interface CachedItem {
 
 interface CachedVideoItem: VideoSegment, CachedItem {
 
-    override fun cacheItemName(): String = "${item.collection.string}-${item.id.string}-${temporalRange.start.value}-${temporalRange.end.value}.mp4"
+    override fun cacheItemName(): String = "${item.collection.string}-${item.id.string}-${temporalRange.start.toMilliseconds()}-${temporalRange.end.toMilliseconds()}.mp4"
 
 }

@@ -14,8 +14,10 @@ import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.basics.media.MediaItemSegmentList
 import dev.dres.data.model.basics.media.PlayableMediaItem
+import dev.dres.data.model.basics.time.FrameTemporalPoint
+import dev.dres.data.model.basics.time.TimeCodeTemporalPoint
 import dev.dres.data.model.competition.options.SimpleOption
-import dev.dres.data.model.run.*
+import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
@@ -95,15 +97,17 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) && item is MediaItem.VideoItem -> {
                 val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.", ctx)
-                val time = TimeUtil.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item, segmentList) ?: throw ErrorStatusException(400, "Shot '${item.name}.${map[PARAMETER_NAME_SHOT]?.first()!!}' not found.", ctx)
+                val time = TimeUtil.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, segmentList) ?: throw ErrorStatusException(400, "Shot '${item.name}.${map[PARAMETER_NAME_SHOT]?.first()!!}' not found.", ctx)
                 Submission.Temporal(team, userId, submissionTime, item, time.first, time.second)
             }
             map.containsKey(PARAMETER_NAME_FRAME) && (item is PlayableMediaItem) -> {
-                val time = TimeUtil.frameToTime(map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull() ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number.", ctx), item)
+                val time = FrameTemporalPoint.toMilliseconds(
+                    map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull() ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number.", ctx),
+                    item.fps
+                )
                 val range = if(mapToSegment && item is MediaItem.VideoItem) {
                     (TimeUtil.timeToSegment(
                         time,
-                        item,
                         segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(
                             400,
                             "Item '${item.name}' not found.",
@@ -116,11 +120,10 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
                 Submission.Temporal(team, userId, submissionTime, item, range.first, range.second)
             }
             map.containsKey(PARAMETER_NAME_TIMECODE) && (item is PlayableMediaItem) -> {
-                val time = TimeUtil.timeCodeToMilliseconds(map[PARAMETER_NAME_TIMECODE]?.first()!!, item) ?: throw ErrorStatusException(400, "'${map[PARAMETER_NAME_TIMECODE]?.first()!!}' is not a valid time code", ctx)
+                val time = TimeCodeTemporalPoint.timeCodeToMilliseconds(map[PARAMETER_NAME_TIMECODE]?.first()!!, item) ?: throw ErrorStatusException(400, "'${map[PARAMETER_NAME_TIMECODE]?.first()!!}' is not a valid time code", ctx)
                 val range = if(mapToSegment && item is MediaItem.VideoItem) {
                     (TimeUtil.timeToSegment(
                         time,
-                        item,
                         segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(
                             400,
                             "Item '${item.name}' not found.",

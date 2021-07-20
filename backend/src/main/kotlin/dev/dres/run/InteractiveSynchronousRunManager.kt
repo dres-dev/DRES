@@ -12,7 +12,8 @@ import dev.dres.data.model.competition.options.ConfiguredOption
 import dev.dres.data.model.competition.options.Option
 import dev.dres.data.model.competition.options.SimpleOption
 import dev.dres.data.model.competition.options.SimpleOptionParameters
-import dev.dres.data.model.run.*
+import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.audit.AuditLogger
@@ -27,7 +28,6 @@ import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.ReadyLatch
 import dev.dres.utilities.extensions.UID
 import org.slf4j.LoggerFactory
-import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -110,11 +110,11 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     /** The internal [MessageQueueUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
     private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
 
-    /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoresUpdatable = ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable)
-
     /** The internal [DAOUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
     private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
+
+    /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
+    private val scoresUpdatable = ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable, this.daoUpdatable)
 
     /** The internal [DAOUpdatable] used to end a task once no more submissions are possible */
     private val endTaskUpdatable = EndTaskUpdatable(this, RunActionContext.INTERNAL )
@@ -322,7 +322,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
      * @param context The [RunActionContext] used for the invocation.
      * @return List of [Submission]s for the currently active [InteractiveSynchronousCompetition.Task]
      */
-    override fun submissions(context: RunActionContext): List<Submission> = this.currentTask(context)?.submissions ?: emptyList()
+    override fun submissions(context: RunActionContext): List<Submission> = this.currentTask(context)?.submissions?.toList() ?: emptyList()
 
     /**
      * Returns the number of [InteractiveSynchronousCompetition.Task]s held by this [RunManager].
@@ -466,8 +466,8 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
      * @return True on success, false otherwise.
      */
     override fun updateSubmission(context: RunActionContext, submissionId: UID, submissionStatus: SubmissionStatus): Boolean = this.stateLock.read {
-        /* Sanity check. TODO: Do we indeed only want to be able to update submissions for the current task? */
-        val found = this.submissions(context).find { it.uid == submissionId}  ?: return false
+        /* Sanity check. */
+        val found = this.allSubmissions.find { it.uid == submissionId}  ?: return false
 
         /* Actual update - currently, only status update is allowed */
         if (found.status != submissionStatus) {
@@ -478,6 +478,14 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
 
             /* Enqueue submission for post-processing. */
             this.scoresUpdatable.enqueue(Pair(found.task!!, found))
+
+            if (submissionStatus == SubmissionStatus.INDETERMINATE) {
+                found.task?.validator?.let{
+                    if (it is JudgementValidator){
+                        it.validate(found)
+                    }
+                }
+            }
 
             /* Enqueue WS message for sending */
             this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_UPDATED))

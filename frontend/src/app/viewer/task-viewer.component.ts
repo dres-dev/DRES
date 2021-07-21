@@ -4,13 +4,13 @@ import {BehaviorSubject, combineLatest, interval, merge, Observable, of, Subscri
 import {
     catchError,
     concatMap,
-    debounceTime,
     delayWhen,
     filter,
     finalize,
     flatMap,
     map,
     repeat,
+    sampleTime,
     share,
     shareReplay,
     switchMap,
@@ -48,7 +48,6 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     @Input() taskStarted: Observable<TaskInfo>;
     @Input() taskChanged: Observable<TaskInfo>;
     @Input() taskEnded: Observable<TaskInfo>;
-    @Input() webSocket: Observable<IWsMessage>;
     @Input() webSocketSubject: WebSocketSubject<IWsMessage>;
 
     /** Time that is still left (only when a task is running). */
@@ -217,7 +216,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
          * Implicitly, this Observable is only used when a task is running due to how it is used in the template!
          */
         const polledState = merge(interval(1000).pipe(flatMap(() => this.runId)), this.state).pipe(
-            debounceTime(500), /* We don't want a state update more often than ever 500ms. */
+            sampleTime(1000), /* This is again sampled to only ever emit once every second. */
             switchMap(s => {
                 if (typeof s === 'string') {
                     return this.runService.getApiRunStateWithRunid(s); /* Timer! Load run state! */

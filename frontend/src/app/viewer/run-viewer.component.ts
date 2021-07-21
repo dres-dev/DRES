@@ -2,7 +2,6 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {interval, merge, Observable, of, Subscription} from 'rxjs';
 import {
-    bufferTime,
     catchError,
     delay,
     filter,
@@ -10,6 +9,7 @@ import {
     map,
     pairwise,
     retryWhen,
+    sampleTime,
     share,
     shareReplay,
     switchMap,
@@ -129,15 +129,14 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
          * Observable for run state info; this information is dynamic and is subject to change over the course of a run.
          *
          * Updates to the RunState are triggered by WebSocket messages received by the viewer. To not overwhelm the server,
-         * the RunState is updated every 250ms at most.
+         * the RunState is updated every 500ms at most.
          */
         const wsMessages = this.webSocket.pipe(
             filter(m => m.type !== 'PING'), /* Filter out ping messages. */
-            bufferTime(250), /* Messages are grouped into a window of 250ms. */
-            filter(b => b.length > 0), /* Filter out empty arrays (= no messages). */
-            map(b => b[0].runId) /* Return run ID of first message. */
+            map(b => b.runId)
         );
         this.runState = merge(this.runId, wsMessages).pipe(
+            sampleTime(500), /* State updates are triggered only once every 500ms. */
             switchMap((runId) => this.runService.getApiRunStateWithRunid(runId).pipe(
                 catchError((err, o) => {
                     console.log(`[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`);

@@ -24,7 +24,6 @@
     "@angular/platform-browser-dynamic": "~11.2.14",
     "@angular/router": "~11.2.14",
     "@angular-slider/ngx-slider": "^2.0.0",
-    "@openapitools/openapi-generator-cli": "^2.3.0",
     "angularx-qrcode": "^11.0.0",
     "apexcharts": "^3.27.0",
     "ng-apexcharts": "^1.5.0",

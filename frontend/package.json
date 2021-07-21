@@ -8,8 +8,7 @@
     "pbuild": "ng build --prod=true --output-path=build/dist",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e",
-    "openapi": "openapi-generator-cli generate -g typescript-angular -i ../doc/oas.json -o openapi --additional-properties npmName=@dres-openapi/api,snapshot=true,ngVersion=11.0.0"
+    "e2e": "ng e2e"
   },
   "private": true,
   "dependencies": {

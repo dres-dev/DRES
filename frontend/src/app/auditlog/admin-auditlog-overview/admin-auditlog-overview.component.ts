@@ -2,21 +2,21 @@ import {AfterViewInit, Component, OnDestroy, ViewChild} from '@angular/core';
 import {
     AuditService,
     RestAuditLogEntry,
-    RestCompetitionEndAuditLogEntry, RestCompetitionStartAuditLogEntry,
+    RestCompetitionEndAuditLogEntry,
     RestJudgementAuditLogEntry,
     RestLoginAuditLogEntry,
-    RestLogoutAuditLogEntry, RestMediaItem,
+    RestLogoutAuditLogEntry,
     RestSubmissionAuditLogEntry,
     RestTaskEndAuditLogEntry,
     RestTaskModifiedAuditLogEntry,
     RestTaskStartAuditLogEntry
 } from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {interval, Subscription, timer} from 'rxjs';
+import {Subscription, timer} from 'rxjs';
 import {MatPaginator} from '@angular/material/paginator';
-import {MatTableDataSource} from '@angular/material/table';
 import {MatSort} from '@angular/material/sort';
-import {switchMap, tap} from 'rxjs/operators';
+import {switchMap} from 'rxjs/operators';
+import {AuditlogDatasource} from './auditlog.datasource';
 
 @Component({
     selector: 'app-admin-auditlog-overview',
@@ -38,12 +38,20 @@ export class AdminAuditlogOverviewComponent implements AfterViewInit, OnDestroy 
     @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
 
     /** Data source for Material table */
-    public dataSource = new MatTableDataSource<RestAuditLogEntry>();
+    public dataSource: AuditlogDatasource;
+
+    /** Number of audit log items. */
+    public length = 0;
 
     /** Subscription used for polling audit logs. */
     private pollingSub: Subscription;
 
-    constructor(private snackBar: MatSnackBar, private logService: AuditService) {}
+    /** Subscription used for pagination. */
+    private paginationSub: Subscription;
+
+    constructor(private snackBar: MatSnackBar, private logService: AuditService) {
+        this.dataSource = new AuditlogDatasource(logService);
+    }
 
     /**
      * Initialize subscription for loading audit logs.
@@ -51,15 +59,19 @@ export class AdminAuditlogOverviewComponent implements AfterViewInit, OnDestroy 
      * IMPORTANT: Unsubscribe OnDestroy!
      */
     public ngAfterViewInit(): void {
-        /* Initialize sorting and pagination. */
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-
         /* Initialize subscription for loading audit logs. */
         this.pollingSub = timer(0, this.pollingFrequency).pipe(
-            switchMap(s => this.logService.getApiAuditListWithLimitWithPage(this.paginator.pageSize, this.paginator.pageIndex)),
-        ).subscribe((logs) => {
-            this.dataSource.data = logs;
+            switchMap(s => this.logService.getApiAuditInfo()),
+        ).subscribe(i => {
+            this.length = i.size;
+            if (this.paginator.pageIndex === 0) { /* Only the first page needs refreshing because logs are ordered chronologically. */
+                this.dataSource.refresh(this.paginator.pageIndex, this.paginator.pageSize);
+            }
+        });
+
+        /* Initialize subscription for pagination. */
+        this.paginationSub = this.paginator.page.subscribe(p => {
+            this.dataSource.refresh(this.paginator.pageIndex, this.paginator.pageSize);
         });
     }
 
@@ -69,6 +81,9 @@ export class AdminAuditlogOverviewComponent implements AfterViewInit, OnDestroy 
     public ngOnDestroy(): void {
         this.pollingSub.unsubscribe();
         this.pollingSub = null;
+
+        this.paginationSub.unsubscribe();
+        this.paginationSub = null;
     }
 
     public detailsOf(log: RestAuditLogEntry): string {

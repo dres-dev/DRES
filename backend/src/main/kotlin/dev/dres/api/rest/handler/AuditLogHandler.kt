@@ -133,10 +133,10 @@ class ListAuditLogsHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, v
     override fun doGet(ctx: Context): Array<RestAuditLogEntry> {
         val limit = getLimitFromParams(ctx)
         val index = getIndexFromParams(ctx)
-
-
-        val list = auditTimes.index.toSortedMap { o1, o2 -> o2.compareTo(o1) }.values.flatten()
-        return list.mapNotNull { RestAuditLogEntry.convert(audit[it]!!) }.toTypedArray() // Null safety is kotlin steered. should not contain null elements, as these UIDS come from the idnexer.
+        return auditTimes.index.toSortedMap { o1, o2 -> o2.compareTo(o1) }.values.flatten()
+            .drop(index * limit)
+            .take(limit)
+            .map { RestAuditLogEntry.convert(this.audit[it]!!) }.toTypedArray()
     }
 
     private fun getLimitFromParams(ctx:Context): Int {

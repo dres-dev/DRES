@@ -2366,6 +2366,67 @@
         }
       }
     },
+    "/api/score/run/{runId}/teamGroups" : {
+      "get" : {
+        "tags" : [ "Competition Run Scores" ],
+        "summary" : "Returns team group aggregated values of the current task.",
+        "operationId" : "getApiScoreRunWithRunidTeamgroups",
+        "parameters" : [ {
+          "name" : "runId",
+          "in" : "path",
+          "description" : "ID of the competition run.",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ScoreSeries"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/run/admin/create" : {
       "post" : {
         "tags" : [ "Competition Run Admin" ],
@@ -2956,7 +3017,7 @@
     "/api/run/admin/{runId}/submissions/list/{taskId}" : {
       "get" : {
         "tags" : [ "Competition Run Admin" ],
-        "summary" : "Lists all submissions for a given task and run",
+        "summary" : "Lists all submissions for a given task and run.",
         "operationId" : "getApiRunAdminWithRunidSubmissionsListWithTaskid",
         "parameters" : [ {
           "name" : "runId",
@@ -4150,7 +4211,7 @@
         }
       },
       "RestCompetitionDescription" : {
-        "required" : [ "id", "name", "participantCanView", "taskGroups", "taskTypes", "tasks", "teams" ],
+        "required" : [ "id", "name", "participantCanView", "taskGroups", "taskTypes", "tasks", "teamGroups", "teams" ],
         "type" : "object",
         "properties" : {
           "id" : {
@@ -4184,6 +4245,12 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/RestTeam"
+            }
+          },
+          "teamGroups" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RestTeamGroup"
             }
           },
           "participantCanView" : {
@@ -4254,7 +4321,7 @@
             "type" : "string"
           },
           "range" : {
-            "$ref" : "#/components/schemas/TemporalRange"
+            "$ref" : "#/components/schemas/RestTemporalRange"
           }
         }
       },
@@ -4282,7 +4349,7 @@
             "type" : "string"
           },
           "temporalRange" : {
-            "$ref" : "#/components/schemas/TemporalRange"
+            "$ref" : "#/components/schemas/RestTemporalRange"
           }
         }
       },
@@ -4310,6 +4377,53 @@
             "items" : {
               "type" : "string"
             }
+          }
+        }
+      },
+      "RestTeamGroup" : {
+        "required" : [ "aggregation", "name", "teams" ],
+        "type" : "object",
+        "properties" : {
+          "uid" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "teams" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "aggregation" : {
+            "type" : "string"
+          }
+        }
+      },
+      "RestTemporalPoint" : {
+        "required" : [ "unit", "value" ],
+        "type" : "object",
+        "properties" : {
+          "value" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "unit" : {
+            "type" : "string",
+            "enum" : [ "FRAME_NUMBER", "SECONDS", "MILLISECONDS" ]
+          }
+        }
+      },
+      "RestTemporalRange" : {
+        "required" : [ "end", "start" ],
+        "type" : "object",
+        "properties" : {
+          "start" : {
+            "$ref" : "#/components/schemas/RestTemporalPoint"
+          },
+          "end" : {
+            "$ref" : "#/components/schemas/RestTemporalPoint"
           }
         }
       },
@@ -4359,32 +4473,6 @@
             "items" : {
               "$ref" : "#/components/schemas/ConfiguredOptionSimpleOption"
             }
-          }
-        }
-      },
-      "TemporalPoint" : {
-        "required" : [ "unit", "value" ],
-        "type" : "object",
-        "properties" : {
-          "value" : {
-            "type" : "number",
-            "format" : "double"
-          },
-          "unit" : {
-            "type" : "string",
-            "enum" : [ "FRAME_NUMBER", "SECONDS", "MILLISECONDS" ]
-          }
-        }
-      },
-      "TemporalRange" : {
-        "required" : [ "end", "start" ],
-        "type" : "object",
-        "properties" : {
-          "start" : {
-            "$ref" : "#/components/schemas/TemporalPoint"
-          },
-          "end" : {
-            "$ref" : "#/components/schemas/TemporalPoint"
           }
         }
       },
@@ -4553,16 +4641,22 @@
         }
       },
       "SubmissionInfo" : {
-        "required" : [ "member", "status", "team", "timestamp" ],
+        "required" : [ "memberId", "status", "teamId", "timestamp" ],
         "type" : "object",
         "properties" : {
           "id" : {
             "type" : "string"
           },
-          "team" : {
+          "teamId" : {
             "type" : "string"
           },
-          "member" : {
+          "teamName" : {
+            "type" : "string"
+          },
+          "memberId" : {
+            "type" : "string"
+          },
+          "memberName" : {
             "type" : "string"
           },
           "status" : {

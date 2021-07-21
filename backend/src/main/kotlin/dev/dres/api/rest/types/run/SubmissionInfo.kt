@@ -8,50 +8,51 @@ import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 /**
  * Contains information about a [Submission].
  *
- * @author Luca Rossetto
- * @version 1.0.0
+ * @author Luca Rossetto & Ralph Gasser
+ * @version 1.1.0
  */
 data class SubmissionInfo(
     val id: String? = null,
-    val team: String,
-    val member: String,
+    val teamId: String,
+    val teamName: String? = null,
+    val memberId: String,
+    val memberName: String? = null,
     val status: SubmissionStatus,
     val timestamp: Long,
     val item: RestMediaItem? = null,
     val start: Long? = null,
     val end: Long? = null
 ) {
+
+    /**
+     * Constructor that generates a [SubmissionInfo] from a [Submission]. Contains
+     * all information, that can be extracted from the [Submission] directly but does not
+     * resolve advanced information, such as [teamName] and [memberName].
+     *
+     * @param submission The [Submission] to convert.
+     */
     constructor(submission: Submission) : this(
-        submission.uid.string,
-        submission.teamId.string,
-        submission.memberId.string,
-        submission.status,
-        submission.timestamp,
-        RestMediaItem.fromMediaItem(submission.item),
-        if (submission is TemporalSubmissionAspect) submission.start else null,
-        if (submission is TemporalSubmissionAspect) submission.end else null
+        id = submission.uid.string,
+        teamId = submission.teamId.string,
+        memberId = submission.memberId.string,
+        status = submission.status,
+        timestamp = submission.timestamp,
+        item = RestMediaItem.fromMediaItem(submission.item),
+        start = if (submission is TemporalSubmissionAspect) submission.start else null,
+        end = if (submission is TemporalSubmissionAspect) submission.end else null
     )
 
-
     companion object {
+        /**
+         * Generates and returns a blind [SubmissionInfo] containing only [teamId], [memberId], [status] and [timestamp]
+         *
+         * @param submission The [Submission] to convert.
+         */
         fun blind(submission: Submission): SubmissionInfo = SubmissionInfo(
-            null,
-            submission.teamId.string,
-            submission.memberId.string,
-            submission.status,
-            submission.timestamp
+            teamId = submission.teamId.string,
+            memberId = submission.memberId.string,
+            status = submission.status,
+            timestamp = submission.timestamp
         )
-
-        fun withId(submission: Submission): SubmissionInfo = SubmissionInfo(
-            submission.uid.string,
-            submission.teamId.string,
-            submission.memberId.string,
-            submission.status,
-            submission.timestamp,
-            RestMediaItem.fromMediaItem(submission.item),
-            if (submission is TemporalSubmissionAspect) submission.start else null,
-            if (submission is TemporalSubmissionAspect) submission.end else null
-        )
-
     }
 }

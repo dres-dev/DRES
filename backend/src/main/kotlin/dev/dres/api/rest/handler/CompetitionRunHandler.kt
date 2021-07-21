@@ -15,7 +15,6 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
-import dev.dres.data.model.competition.TaskType
 import dev.dres.data.model.competition.options.SimpleOption
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.InteractiveRunManager
@@ -314,7 +313,7 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
             if (run.currentTaskDescription(rac).taskType.options.any{ it.option == SimpleOption.HIDDEN_RESULTS }) {
                 run.submissions(rac).map { SubmissionInfo.blind(it) }
             } else {
-                run.submissions(rac).map { SubmissionInfo.withId(it) }
+                run.submissions(rac).map { SubmissionInfo(it) }
             }
         } else {
             run.submissions(rac).map { SubmissionInfo(it) }
@@ -354,7 +353,7 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
             if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS}) {
                 run.submissions(rac).filter { it.timestamp >= timestamp }.map { SubmissionInfo.blind(it) }
             } else {
-                run.submissions(rac).filter { it.timestamp >= timestamp }.map { SubmissionInfo.withId(it) }
+                run.submissions(rac).filter { it.timestamp >= timestamp }.map { SubmissionInfo(it) }
             }
         } else {
             run.submissions(rac).filter { it.timestamp >= timestamp }.map { SubmissionInfo.blind(it) }
@@ -396,7 +395,7 @@ class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
             if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }) {
                 run.submissions(rac).map { SubmissionInfo.blind(it) }
             } else {
-                run.submissions(rac).map { SubmissionInfo.withId(it) }
+                run.submissions(rac).map { SubmissionInfo(it) }
             }
         } else {
             run.taskForId(rac, taskId)?.submissions?.map { SubmissionInfo(it) } ?: emptyList()

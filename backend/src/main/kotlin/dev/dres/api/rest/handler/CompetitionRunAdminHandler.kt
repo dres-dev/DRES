@@ -1,6 +1,7 @@
 package dev.dres.api.rest.handler
 
 import dev.dres.api.rest.RestApiRole
+import dev.dres.api.rest.types.collection.RestMediaItem
 import dev.dres.api.rest.types.competition.CompetitionStartMessage
 import dev.dres.api.rest.types.run.RunType
 import dev.dres.api.rest.types.run.SubmissionInfo
@@ -15,6 +16,8 @@ import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
+import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
+import dev.dres.mgmt.admin.UserManager
 import dev.dres.run.*
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
@@ -438,7 +441,7 @@ class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHan
     override val route: String = "run/admin/:runId/submissions/list/:taskId"
 
     @OpenApi(
-            summary = "Lists all submissions for a given task and run",
+            summary = "Lists all submissions for a given task and run.",
             path = "/api/run/admin/:runId/submissions/list/:taskId",
             method = HttpMethod.GET,
             pathParams = [
@@ -456,12 +459,25 @@ class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHan
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
         val run = getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
+        val rac = runActionContext(ctx, run)
 
 
-        val taskId = ctx.pathParamMap().getOrElse("taskId") {
-            throw ErrorStatusException(404, "Parameter 'taskId' is missing!'", ctx)
-        }.UID()
-        return run.allSubmissions.filter { it.task?.description?.id?.equals(taskId) ?: false }.map { SubmissionInfo.withId(it) }
+        val taskId = ctx.pathParamMap().getOrElse("taskId") { throw ErrorStatusException(404, "Parameter 'taskId' is missing!'", ctx) }.UID()
+        val teams = run.taskForId(rac, taskId)?.competition?.description?.teams?.associate { it.uid to it }
+        return run.allSubmissions.filter { it.task?.description?.id == taskId }.map {
+            SubmissionInfo(
+                id = it.uid.string,
+                teamId = it.teamId.string,
+                teamName = teams?.get(it.teamId)?.name,
+                memberId = it.memberId.string,
+                memberName = UserManager.get(it.memberId)?.username?.name,
+                status = it.status,
+                timestamp = it.timestamp,
+                item = RestMediaItem.fromMediaItem(it.item),
+                start = if (it is TemporalSubmissionAspect) it.start else null,
+                end = if (it is TemporalSubmissionAspect) it.end else null
+            )
+        }
     }
 }
 
@@ -489,16 +505,19 @@ class OverrideSubmissionStatusRunAdminHandler: AbstractCompetitionRunAdminRestHa
         val run = getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
         val rac = runActionContext(ctx, run)
 
+        /* Extract HTTP body. */
         val toPatchRest = ctx.body<SubmissionInfo>()
+        val submissionId = toPatchRest.id?.UID() ?: throw ErrorStatusException(400, "No submission ID was specified for update.", ctx)
+
         /* Sanity check to see, whether the submission exists */
-        run.allSubmissions.find { it.uid == (toPatchRest.id?.UID() ?: UID.EMPTY)} ?: throw ErrorStatusException(404, "The given submission $toPatchRest was not found", ctx)
-
-        if (run.updateSubmission(rac, toPatchRest.id!!.UID(), toPatchRest.status)){
-            return SubmissionInfo.withId(run.submissions(rac).find{it.uid == toPatchRest.id.UID() }!!)
-        } else {
-            throw ErrorStatusException(500, "Could not update the submission. Please see the backend's log", ctx)
+        if (run.allSubmissions.none { it.uid == submissionId }) {
+            throw ErrorStatusException(404, "The given submission $toPatchRest was not found.", ctx)
         }
-
+        if (run.updateSubmission(rac, submissionId, toPatchRest.status)){
+            return SubmissionInfo( run.allSubmissions.single { it.uid == submissionId })
+        } else {
+            throw ErrorStatusException(500, "Could not update the submission. Please see the backend's log.", ctx)
+        }
     }
 }
 

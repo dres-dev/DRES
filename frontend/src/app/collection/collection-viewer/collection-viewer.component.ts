@@ -12,6 +12,7 @@ import {
 } from '../collection-builder/media-item-builder-dialog/media-item-builder-dialog.component';
 import {MatPaginator} from '@angular/material/paginator';
 import {MatTableDataSource} from '@angular/material/table';
+import {MatSort} from '@angular/material/sort';
 
 @Component({
     selector: 'app-collection-viewer',
@@ -22,11 +23,19 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
 
     displayedColumns = ['actions', 'id', 'name', 'location', 'type', 'durationMs', 'fps'];
 
+    /** Material Table UI element for sorting. */
+    @ViewChild(MatSort) sort: MatSort;
+
+    /** Material Table UI element for pagination. */
     @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
+
+    /** Data source for Material tabl.e */
     dataSource = new MatTableDataSource<RestMediaItem>();
 
+    /** Observable containing the collection ID of the collection displayed by this component. Derived from active route. */
     collectionId: Observable<string>;
 
+    /** Observable containing the media collection information. */
     collection: Observable<RestFullMediaCollection>;
 
     /** A subject used to trigger refrehs of the list. */
@@ -52,7 +61,15 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
      * TODO: In this implementation, pagination is done on the client side!
      */
     ngAfterViewInit(): void {
+        /* Initialize sorting and pagination. */
         this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+
+        /*
+         * Initialize subscription for collection data.
+         *
+         * IMPORTANT: Unsubscribe OnDestroy!
+         */
         this.collection = this.refreshSubject.pipe(
             flatMap(s => this.collectionId),
             switchMap(id => this.collectionService.getApiCollectionWithCollectionid(id).pipe(

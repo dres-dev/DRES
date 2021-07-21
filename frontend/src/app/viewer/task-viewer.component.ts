@@ -1,11 +1,13 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
 import {CompetitionRunService, ContentElement, RunState, TaskInfo, TaskTarget} from '../../../openapi';
-import {BehaviorSubject, combineLatest, interval, Observable, of, Subscription, timer} from 'rxjs';
+import {BehaviorSubject, combineLatest, interval, merge, Observable, of, Subscription, timer} from 'rxjs';
 import {
     catchError,
     concatMap,
+    debounceTime,
     delayWhen,
-    filter, finalize,
+    filter,
+    finalize,
     flatMap,
     map,
     repeat,
@@ -162,7 +164,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             );
         }));
 
-        /** Map task hint to representation used by viewer. */
+        /* Map task hint to representation used by viewer. */
         this.currentTaskHint = currentTaskHint.pipe(
             concatMap((h, i) => {
                 return this.timeElapsed.pipe(
@@ -204,22 +206,30 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             }),
         );
 
-        /** */
-        const polledState = this.state.pipe(
-            switchMap(s => interval(1000).pipe(
-                switchMap((i) => {
-                    if (i === 0 || s.status !== 'RUNNING_TASK') {
-                        return of(s);
-                    } else {
-                        return this.runService.getApiRunStateWithRunid(s.id); /* The RuneState is stale; load new one. */
-                    }
-                }),
-                catchError((err, o) => {
-                    console.log(`[TaskViewerComponent] Error occurred while polling state: ${err?.message}`);
-                    return of(null);
-                }),
-                filter(p => p != null)
-            )),
+        /*
+         * This Observable is used to poll the RunState; it merges the normal state observable with a timer and
+         * makes sure that:
+         *
+         * - If normal state changes (e.g. due to an external event), that state object is re-used
+         * - If timer fire, the state is queried.
+         * - Both timer + normal state only trigger an update every 500ms.
+         *
+         * Implicitly, this Observable is only used when a task is running due to how it is used in the template!
+         */
+        const polledState = merge(interval(1000).pipe(flatMap(() => this.runId)), this.state).pipe(
+            debounceTime(500), /* We don't want a state update more often than ever 500ms. */
+            switchMap(s => {
+                if (typeof s === 'string') {
+                    return this.runService.getApiRunStateWithRunid(s); /* Timer! Load run state! */
+                } else {
+                    return of(s as RunState); /* This is a freshly loaded run state. */
+                }
+            }),
+            catchError((err, o) => {
+                console.log(`[TaskViewerComponent] Error occurred while polling state: ${err?.message}`);
+                return of(null);
+            }),
+            filter(p => p != null),
             share()
         );
 
@@ -228,7 +238,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             map(s => s.timeLeft),
             tap(t => {
                 if (t === 30 || t === 60) {
-                    AudioPlayerUtilities.playOnce('assets/audio/glass.ogg', this.audio.nativeElement);
+                    AudioPlayerUtilities.playOnce('assets/audio/glass.ogg', this.audio.nativeElement); /* Reminder that time is running out. */
                 }
             })
         );

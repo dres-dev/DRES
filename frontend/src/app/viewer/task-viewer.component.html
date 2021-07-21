@@ -12,9 +12,7 @@
 
         <!-- VIEWER_TASK_ENDED -->
         <div *ngIf="(viewerState | async) === 2">
-            <h2 class="header">
-                {{(taskChanged | async)?.name}} (Task complete)
-            </h2>
+            <h2 class="header">{{(taskChanged | async)?.name}} (Task complete)</h2>
             <div *ngIf="(currentTaskTarget | async)">
                 <app-video-object-preview [queryObject]="currentTaskTarget" [muted]="true"></app-video-object-preview>
                 <app-image-object-preview [queryContent]="currentTaskTarget"></app-image-object-preview>
@@ -38,15 +36,12 @@
 
         <!-- VIEWER_PLAYBACK -->
         <div *ngIf="(viewerState | async) === 5">
-            <h2 style="text-align: center;">
-                {{(taskChanged | async)?.name}} ({{toFormattedTime(timeLeft | async)}})
-            </h2>
+            <h2 style="text-align: center;">{{(taskChanged | async)?.name}} ({{toFormattedTime(timeLeft | async)}})</h2>
             <div *ngIf="(currentTaskHint | async)">
                 <app-video-object-preview [queryObject]="currentTaskHint" [muted]="(config.configAsObservable | async).effects.mute"></app-video-object-preview>
                 <app-image-object-preview [queryContent]="currentTaskHint"></app-image-object-preview>
                 <app-text-object-preview [queryContent]="currentTaskHint"></app-text-object-preview>
             </div>
-            <div *ngIf="!(currentTaskHint | async)">Query preview unavailable!</div>
         </div>
 
         <audio #audio [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>

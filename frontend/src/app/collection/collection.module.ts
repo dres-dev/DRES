@@ -20,6 +20,8 @@ import {MatOptionModule} from '@angular/material/core';
 import {SharedModule} from '../shared/shared.module';
 import {RouterModule} from '@angular/router';
 import {ClipboardModule} from '@angular/cdk/clipboard';
+import {MatSortModule} from '@angular/material/sort';
+import {MatSelectModule} from '@angular/material/select';
 
 @NgModule({
     imports: [
@@ -31,6 +33,8 @@ import {ClipboardModule} from '@angular/cdk/clipboard';
         ClipboardModule,
         MatTableModule,
         MatPaginatorModule,
+        MatSortModule,
+        MatSelectModule,
         MatIconModule,
         MatButtonModule,
         MatTooltipModule,

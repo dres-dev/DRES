@@ -459,16 +459,14 @@ class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHan
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
         val run = getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
-        val rac = runActionContext(ctx, run)
-
 
         val taskId = ctx.pathParamMap().getOrElse("taskId") { throw ErrorStatusException(404, "Parameter 'taskId' is missing!'", ctx) }.UID()
-        val teams = run.taskForId(rac, taskId)?.competition?.description?.teams?.associate { it.uid to it }
+        val teams = run.description.teams.associate { it.uid to it }
         return run.allSubmissions.filter { it.task?.description?.id == taskId }.map {
             SubmissionInfo(
                 id = it.uid.string,
                 teamId = it.teamId.string,
-                teamName = teams?.get(it.teamId)?.name,
+                teamName = teams[it.teamId]?.name,
                 memberId = it.memberId.string,
                 memberName = UserManager.get(it.memberId)?.username?.name,
                 status = it.status,

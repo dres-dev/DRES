@@ -5,14 +5,18 @@ import {
     RestCompetitionEndAuditLogEntry, RestCompetitionStartAuditLogEntry,
     RestJudgementAuditLogEntry,
     RestLoginAuditLogEntry,
-    RestLogoutAuditLogEntry,
+    RestLogoutAuditLogEntry, RestMediaItem,
     RestSubmissionAuditLogEntry,
     RestTaskEndAuditLogEntry,
     RestTaskModifiedAuditLogEntry,
     RestTaskStartAuditLogEntry
 } from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {interval, Subscription} from 'rxjs';
+import {interval, Subscription, timer} from 'rxjs';
+import {MatPaginator} from '@angular/material/paginator';
+import {MatTableDataSource} from '@angular/material/table';
+import {MatSort} from '@angular/material/sort';
+import {switchMap, tap} from 'rxjs/operators';
 
 @Component({
     selector: 'app-admin-auditlog-overview',
@@ -21,30 +25,50 @@ import {interval, Subscription} from 'rxjs';
 })
 export class AdminAuditlogOverviewComponent implements AfterViewInit, OnDestroy {
 
-    static readonly BASE_POLLING_FREQUENCY = 1000; // ms -> 1s
-
-    @ViewChild('table', {static: true}) table;
     displayCols = ['time', 'api', 'type', 'details', 'id']; // TODO clever way to dynamically list things
-    logs: RestAuditLogEntry[] = [];
+    pollingFrequency = 5000; // every second
 
-    pollingFrequencyInSeconds = 1; // every second
+    /** Material Table UI reference. */
+    @ViewChild('table', {static: true}) table;
 
+    /** Material Table UI element for sorting. */
+    @ViewChild(MatSort) sort: MatSort;
+
+    /** Material Table UI element for pagination. */
+    @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
+
+    /** Data source for Material table */
+    public dataSource = new MatTableDataSource<RestAuditLogEntry>();
+
+    /** Subscription used for polling audit logs. */
     private pollingSub: Subscription;
-    private lastUpdated = new Date().valueOf();
 
-    constructor(
-        private snackBar: MatSnackBar,
-        private logService: AuditService
-    ) {
+    constructor(private snackBar: MatSnackBar, private logService: AuditService) {}
+
+    /**
+     * Initialize subscription for loading audit logs.
+     *
+     * IMPORTANT: Unsubscribe OnDestroy!
+     */
+    public ngAfterViewInit(): void {
+        /* Initialize sorting and pagination. */
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
+
+        /* Initialize subscription for loading audit logs. */
+        this.pollingSub = timer(0, this.pollingFrequency).pipe(
+            switchMap(s => this.logService.getApiAuditListWithLimitWithPage(this.paginator.pageSize, this.paginator.pageIndex)),
+        ).subscribe((logs) => {
+            this.dataSource.data = logs;
+        });
     }
 
-    ngAfterViewInit(): void {
-        this.initialRequest();
-    }
-
-    ngOnDestroy(): void {
+    /**
+     * House keeping; clean up subscriptions.
+     */
+    public ngOnDestroy(): void {
         this.pollingSub.unsubscribe();
-        this.logs = [];
+        this.pollingSub = null;
     }
 
     public detailsOf(log: RestAuditLogEntry): string {
@@ -82,50 +106,4 @@ export class AdminAuditlogOverviewComponent implements AfterViewInit, OnDestroy 
                 return JSON.stringify(log);
         }
     }
-
-    private initialRequest() {
-        this.logService.getApiAuditListWithLimitWithPage(1000, 0).subscribe(logs => {
-            this.lastUpdated = new Date().valueOf();
-            logs.forEach(l => { // Apparently, there is no addAll
-                this.logs.push(l);
-            });
-            if (this.table) {
-                this.table.renderRows();
-            }
-            this.initPolling(); // Start polling, when initial request was performed
-        });
-    }
-
-    private initPolling() {
-        // Poll in polling frequency, in future version frequency is configurable
-        this.pollingSub = interval(this.pollingFrequencyInSeconds *
-            AdminAuditlogOverviewComponent.BASE_POLLING_FREQUENCY)
-            .subscribe(_ => {
-                    // Get logs since last update (could be initial, or other), upto in one hour (basically all)
-                    this.logService.getApiAuditLogsWithSinceWithUpto(this.lastUpdated, this.upto()).subscribe(logs => {
-                        this.lastUpdated = new Date().valueOf();
-                        if (logs.length > 1) { // Still no addAll
-                            logs.forEach(l => {
-                                this.logs.push(l);
-                            });
-                            if (this.table) {
-                                this.table.renderRows();
-                            }
-                        }
-                    });
-                }
-            );
-    }
-
-    /**
-     * Cheap upper temporal bound:
-     * set upper bound to one hour in the future
-     * @private
-     */
-    private upto() {
-        const d = new Date();
-        d.setHours(d.getHours() + 1);
-        return d.valueOf();
-    }
-
 }

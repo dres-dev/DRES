@@ -1,6 +1,6 @@
 <div style="display: flex">
     <app-back-button></app-back-button>
-    <div><h1>Audit Logs</h1></div>
+    <div><h1>Audit logs</h1></div>
     <div class="spacer-flex"></div>
     <div>
         <!-- dropdown for polling frequency, polling on / of and all the good enterprise stuff -->
@@ -8,28 +8,35 @@
 </div>
 
 <div>
-    <table #table mat-table [dataSource]="logs" style="width: 100%;">
+    <!-- Pagination -->
+    <mat-paginator [pageSizeOptions]="[100, 250, 500]" showFirstLastButtons></mat-paginator>
+
+    <table mat-table [dataSource]="dataSource" matSort matSortActive="time" matSortDirection="asc" style="width: 100%;">
         <!-- time column -->
         <ng-container matColumnDef="time">
-            <th mat-header-cell *matHeaderCellDef>Time</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header [style.width]="'150px'">Time</th>
             <td mat-cell *matCellDef="let row">
                 {{row.timestamp | epoch2date | date:'dd.MM.yyyy HH:mm:ss' }}
             </td>
         </ng-container>
+
         <!-- api column -->
         <ng-container matColumnDef="api">
-            <th mat-header-cell *matHeaderCellDef>API</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header [style.width]="'75px'">API</th>
             <td mat-cell *matCellDef="let row">{{(row.api ? row.api : 'N/A')}}</td>
         </ng-container>
+
         <!-- type column -->
         <ng-container matColumnDef="type">
-            <th mat-header-cell *matHeaderCellDef>Type</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header [style.width]="'150px'">Type</th>
             <td mat-cell *matCellDef="let row">{{row.type}}</td>
         </ng-container>
+
         <ng-container matColumnDef="details">
             <th mat-header-cell *matHeaderCellDef>Details</th>
             <td mat-cell *matCellDef="let row ">{{detailsOf(row)}}</td>
         </ng-container>
+
         <!-- id column -->
         <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef>ID</th>

@@ -117,11 +117,11 @@ class ListAuditLogsHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, v
     }
 
     @OpenApi(
-            summary = "Lists all audit logs matching the query",
+            summary = "Lists all audit logs matching the query.",
             path = "/api/audit/list/:limit/:page",
             pathParams = [
                 OpenApiParam(LIMIT_PARAM, Int::class, "The maximum number of results. Default: 500"),
-                OpenApiParam(PAGE_INDEX_PARAM, Int::class, "The page index offset, relative to the limit")
+                OpenApiParam(PAGE_INDEX_PARAM, Int::class, "The page index offset, relative to the limit.")
             ],
             tags = ["Audit"],
             responses = [

@@ -10,7 +10,7 @@ import {
     TeamInfo
 } from '../../../openapi';
 import {BehaviorSubject, combineLatest, merge, Observable, of, Subscription} from 'rxjs';
-import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, tap, withLatestFrom} from 'rxjs/operators';
+import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
 import {animate, keyframes, style, transition, trigger} from '@angular/animations';
@@ -56,7 +56,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     submissionsPerTeam: Observable<Map<string, SubmissionInfo[]>>;
 
     /** Observable that tracks the current score per team. */
-    scores: Observable<ScoreOverview>;
+    scores: Observable<Map<string, number>>;
 
     /** Observable that tracks whether a highlight animation should be played for the given team. */
     highlight: Observable<Map<string, string>>;
@@ -117,6 +117,11 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
                 }),
                 filter(sc => sc != null), /* Filter null responses. */
             )),
+            map((sc: ScoreOverview) => {
+                const scores = new Map<string, number>();
+                sc.scores.forEach((v) => scores.set(v.teamId, v.score));
+                return scores;
+            }),
             shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading of score. */
         );
 
@@ -215,17 +220,6 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
                     return [];
                 }
             })
-        );
-    }
-
-    /**
-     * Returns an observable for the total for the given team.
-     *
-     * @param teamId The team's uid.
-     */
-    public score(teamId: string): Observable<string> {
-        return this.scores.pipe(
-            map(scores => scores.scores.find(s => s.teamId === teamId)?.score.toFixed(0))
         );
     }
 

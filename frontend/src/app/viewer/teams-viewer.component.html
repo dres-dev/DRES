@@ -12,8 +12,8 @@
                     <img src="{{teamLogo(team)}}">
                 </div>
                 <div *ngIf="(state | async)?.status === 'TASK_ENDED' || (state | async)?.status === 'RUNNING_TASK'" >
-                    <p class="score">
-                        {{(score(team.uid) | async)}}
+                    <p class="score" *ngIf="(scores | async)">
+                        {{(scores | async).get(team.uid)}}
                     </p>
 
                     <p class="counter">

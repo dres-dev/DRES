@@ -7,10 +7,6 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
-import {ReactiveFormsModule} from '@angular/forms';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatCardModule} from '@angular/material/card';
-import {MatInputModule} from '@angular/material/input';
 import {HttpClientModule} from '@angular/common/http';
 import {ServicesModule} from './services/services.module';
 import {MatMenuModule} from '@angular/material/menu';
@@ -23,19 +19,10 @@ import {AppConfig} from './app.config';
 import {UserModule} from './user/user.module';
 import {JudgementModule} from './judgement/judgement.module';
 import {AccessRoleService} from './services/session/access-role.service';
-import {CollectionListComponent} from './collection/collection-list/collection-list.component';
-import {MatListModule} from '@angular/material/list';
-import {MatTableModule} from '@angular/material/table';
-import {CollectionViewerComponent} from './collection/collection-viewer/collection-viewer.component';
-import {MediaItemBuilderDialogComponent} from './collection/collection-builder/media-item-builder-dialog/media-item-builder-dialog.component';
-import {CollectionBuilderDialogComponent} from './collection/collection-builder/collection-builder-dialog/collection-builder-dialog.component';
-import {MatDialogModule} from '@angular/material/dialog';
-import {MatSelectModule} from '@angular/material/select';
-import {MatPaginatorModule} from '@angular/material/paginator';
 import {AuditlogModule} from './auditlog/auditlog.module';
 import {SharedModule} from './shared/shared.module';
-import {ClipboardModule} from '@angular/cdk/clipboard';
-import {QRCodeModule} from 'angularx-qrcode';
+import {CollectionModule} from './collection/collection.module';
+import {CompetitionBuilderModule} from './competition/competition-builder/competition-builder.module';
 
 
 /**
@@ -48,46 +35,31 @@ export function initializeApp(appConfig: AppConfig) {
 }
 
 @NgModule({
-    declarations: [
-        AppComponent,
-        CollectionListComponent,
-        CollectionViewerComponent,
-        MediaItemBuilderDialogComponent,
-        CollectionBuilderDialogComponent
-    ],
+    declarations: [ AppComponent ],
     imports: [
+        /* Imported modules. */
         BrowserModule,
         AppRoutingModule,
         BrowserAnimationsModule,
         MatToolbarModule,
         MatIconModule,
         MatButtonModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        MatCardModule,
-        MatInputModule,
         MatSnackBarModule,
         MatMenuModule,
         MatTooltipModule,
-
         HttpClientModule,
 
+        /* Our own modules. */
+        SharedModule,
         ServicesModule,
         UserModule,
         AuditlogModule,
         CompetitionModule,
+        CompetitionBuilderModule,
         ViewerModule,
         RunModule,
+        CollectionModule,
         JudgementModule,
-        MatListModule,
-        MatTableModule,
-        MatDialogModule,
-        MatSelectModule,
-        MatPaginatorModule,
-        SharedModule,
-        ClipboardModule,
-
-        QRCodeModule
     ],
     providers: [
         AppConfig,

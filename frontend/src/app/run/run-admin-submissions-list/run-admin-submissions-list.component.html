@@ -1,20 +1,17 @@
 <div style="display: flex;">
     <app-back-button></app-back-button>
-    <div><h1>Submission Overview</h1></div>
+    <div><h1>Submission overview ({{dataSource.data.length}} submissions)</h1></div>
     <div class="spacer-flex"></div>
     <div>
-        <mat-slide-toggle [(ngModel)]="polling" (change)="refresh()">
-            <mat-icon>sync</mat-icon>
-        </mat-slide-toggle>
-    </div>
-    <div>
-        <button mat-icon-button aria-label="Refresh list of submissions" matTooltip="Refresh list of submissions" (click)="refresh()">
+        <button mat-icon-button aria-label="Refresh list of submissions" matTooltip="Refresh list of submissions" (click)="refreshSubject.next(null)">
             <mat-icon>refresh</mat-icon>
         </button>
+        <mat-slide-toggle [(ngModel)]="polling">Poll for updates (every {{pollingFrequencyFactor}}ms)</mat-slide-toggle>
     </div>
 </div>
 <div>
-    <table #table mat-table [dataSource]="submissions" style="width: 100%;">
+    <mat-paginator [pageSizeOptions]="[50, 100, 250]" showFirstLastButtons></mat-paginator>
+    <table #table mat-table [dataSource]="dataSource" style="width: 100%;">
         <!-- ID COL -->
         <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef>ID</th>
@@ -83,4 +80,5 @@
         <tr mat-header-row *matHeaderRowDef="displayColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayColumns;"></tr>
     </table>
+
 </div>

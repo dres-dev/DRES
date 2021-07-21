@@ -2,10 +2,12 @@ import {AfterViewInit, Component, OnDestroy, ViewChild} from '@angular/core';
 import {CompetitionRunAdminService, SubmissionInfo} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatDialog} from '@angular/material/dialog';
-import {MatTable} from '@angular/material/table';
-import {interval, Subscription} from 'rxjs';
+import {MatTable, MatTableDataSource} from '@angular/material/table';
+import {merge, of, Subject, Subscription, timer} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {MatButtonToggleGroup} from '@angular/material/button-toggle';
+import {catchError, filter, switchMap} from 'rxjs/operators';
+import {MatPaginator} from '@angular/material/paginator';
 
 @Component({
     selector: 'app-run-admin-submissions-list',
@@ -14,28 +16,25 @@ import {MatButtonToggleGroup} from '@angular/material/button-toggle';
 })
 export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestroy {
 
-    /**
-     * The base polling frequency of this polling is every half second
-     */
-    static readonly BASE_POLLING_FREQUENCY = 1000; // ms -> 1s
-
-
     public competitionRunId: string;
     public taskId: string;
 
     @ViewChild('group', {static: true}) group: MatButtonToggleGroup;
 
     @ViewChild('table', {static: true}) table: MatTable<SubmissionInfo>;
+
+    @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
+
+    refreshSubject: Subject<null> = new Subject();
+
     /**
      * The displayed columns
      */
     displayColumns = ['id', 'timestamp', 'team', 'item', 'start', 'end', 'status', 'actions'];
-
-    submissions: SubmissionInfo[] = [];
-
-    pollingFrequencyFactor = 30; // every 60 seconds
+    pollingFrequencyFactor = 30000; // every 30 seconds
     polling = true;
-    private pollingSub: Subscription;
+    subscription: Subscription;
+    dataSource: MatTableDataSource<SubmissionInfo> = new MatTableDataSource();
 
     constructor(
         private snackBar: MatSnackBar,
@@ -49,20 +48,34 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
         });
     }
 
-    ngAfterViewInit(): void {
-        this.pollingSub = interval(this.pollingFrequencyFactor * RunAdminSubmissionsListComponent.BASE_POLLING_FREQUENCY)
-            .subscribe(_ => {
-                if (this.polling) {
-                    this.refresh();
-                }
-            });
+    /**
+     * Register subscription for submission data;
+     *
+     * TODO: In this implementation, pagination is done on the client side!
+     */
+    ngAfterViewInit() {
+        this.dataSource.paginator = this.paginator;
+        this.subscription = merge(
+            timer(0, this.pollingFrequencyFactor).pipe(filter(i => this.polling)),
+            this.refreshSubject
+        ).pipe(
+            switchMap(s => this.runService.getApiRunAdminWithRunidSubmissionsListWithTaskid(this.competitionRunId, this.taskId)),
+            catchError((err, o) => {
+                console.log(`[RunAdminSubmissionListComponent] Error occurred while loading submissions: ${err?.message}`);
+                this.snackBar.open(`Error: ${err?.message}`, null, {duration: 5000});
+                return of([]);
+            })
+        ).subscribe(s => {
+            this.dataSource.data = s;
+        });
     }
 
+    /**
+     * House keeping; clean up subscriptions.
+     */
     ngOnDestroy(): void {
-        if (this.pollingSub) {
-            this.pollingSub.unsubscribe();
-        }
-        this.submissions = [];
+        this.subscription.unsubscribe();
+        this.subscription = null;
     }
 
     update(submission: SubmissionInfo, status: SubmissionInfo.StatusEnum) {
@@ -71,17 +84,5 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
         this.runService.patchApiRunAdminWithRunidSubmissionsOverride(this.competitionRunId, submission).subscribe(res => {
             this.snackBar.open(`Result: ${res}`, null, {duration: 5000});
         });
-    }
-
-    public refresh() {
-        this.runService.getApiRunAdminWithRunidSubmissionsListWithTaskid(this.competitionRunId, this.taskId)
-            .subscribe(subs => {
-                    this.submissions = subs;
-                },
-                (error) => {
-                    this.submissions = [];
-                    this.snackBar.open(`Error: ${error.error.description}`, null, {duration: 5000});
-                    console.error(error);
-                });
     }
 }

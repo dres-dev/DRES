@@ -30,8 +30,8 @@ export class AppComponent {
       public config: AppConfig) {
     this.user = this.authenticationService.user;
     this.loggedIn = this.authenticationService.isLoggedIn;
-    this.isAdmin = this.authenticationService.user.pipe(map(u => u?.role === RoleEnum.ADMIN));
-    this.canJudge = this.authenticationService.user.pipe(map(u => u?.role === RoleEnum.ADMIN || u?.role === RoleEnum.JUDGE));
+    this.isAdmin = this.authenticationService.user.pipe(map(u => u?.role === RoleEnum.Admin));
+    this.canJudge = this.authenticationService.user.pipe(map(u => u?.role === RoleEnum.Admin || u?.role === RoleEnum.Judge));
   }
 
   /**

@@ -8,12 +8,12 @@ import RoleEnum = UserDetails.RoleEnum;
 @Injectable()
 export class AccessRoleService {
 
-    static readonly VIEWER_GROUP = new UserGroup('viewer', [RoleEnum.JUDGE, RoleEnum.VIEWER, RoleEnum.PARTICIPANT, RoleEnum.ADMIN]);
-    static readonly PARTICIPANT_GROUP = new UserGroup('participant', [RoleEnum.PARTICIPANT, RoleEnum.ADMIN]);
-    static readonly JUDGE_GROUP = new UserGroup('judge', [RoleEnum.JUDGE, RoleEnum.ADMIN]);
-    static readonly ADMIN_GROUP = new UserGroup('admin', [RoleEnum.ADMIN]);
+    static readonly VIEWER_GROUP = new UserGroup('viewer', [RoleEnum.Judge, RoleEnum.Viewer, RoleEnum.Participant, RoleEnum.Admin]);
+    static readonly PARTICIPANT_GROUP = new UserGroup('participant', [RoleEnum.Participant, RoleEnum.Admin]);
+    static readonly JUDGE_GROUP = new UserGroup('judge', [RoleEnum.Judge, RoleEnum.Admin]);
+    static readonly ADMIN_GROUP = new UserGroup('admin', [RoleEnum.Admin]);
 
-    private currentRole: BehaviorSubject<RoleEnum> = new BehaviorSubject<RoleEnum>(RoleEnum.VIEWER);
+    private currentRole: BehaviorSubject<RoleEnum> = new BehaviorSubject<RoleEnum>(RoleEnum.Viewer);
 
     constructor(private authenticationService: AuthenticationService) {
         this.authenticationService.role.subscribe(this.currentRole);

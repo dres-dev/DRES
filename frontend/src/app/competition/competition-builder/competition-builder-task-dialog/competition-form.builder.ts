@@ -6,11 +6,9 @@ import {
     RestTaskDescription,
     RestTaskDescriptionComponent,
     RestTaskDescriptionTarget,
-    RestTaskDescriptionTargetItem,
+    RestTaskDescriptionTargetItem, RestTemporalPoint, RestTemporalRange,
     TaskGroup,
-    TaskType,
-    TemporalPoint,
-    TemporalRange
+    TaskType
 } from '../../../../../openapi';
 import {AbstractControl, FormArray, FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
 import {filter, first, switchMap} from 'rxjs/operators';
@@ -148,9 +146,9 @@ export class CompetitionFormBuilder {
                     end: c.get('end').value,
                     mediaItem: c.get('mediaItem') ? c.get('mediaItem').value.id : null,
                     range: c.get('segment_start') && c.get('segment_end') ? {
-                        start: {value: c.get('segment_start').value, unit: c.get('segment_time_unit').value} as TemporalPoint,
-                        end: {value: c.get('segment_end').value, unit: c.get('segment_time_unit').value} as TemporalPoint,
-                    } as TemporalRange : null,
+                        start: {value: c.get('segment_start').value, unit: c.get('segment_time_unit').value} as RestTemporalPoint,
+                        end: {value: c.get('segment_end').value, unit: c.get('segment_time_unit').value} as RestTemporalPoint,
+                    } as RestTemporalRange : null,
                     description: c.get('description') ? c.get('description').value : null,
                     path: c.get('path') ? c.get('path').value : null
                 } as RestTaskDescriptionComponent;
@@ -161,9 +159,9 @@ export class CompetitionFormBuilder {
                     return {
                         mediaItem: t.get('mediaItem').value.id,
                         temporalRange: t.get('segment_start') && t.get('segment_start') ? {
-                            start: {value: t.get('segment_start').value, unit: t.get('segment_time_unit').value} as TemporalPoint,
-                            end: {value: t.get('segment_end').value, unit: t.get('segment_time_unit').value} as TemporalPoint
-                        } as TemporalRange : null
+                            start: {value: t.get('segment_start').value, unit: t.get('segment_time_unit').value} as RestTemporalPoint,
+                            end: {value: t.get('segment_end').value, unit: t.get('segment_time_unit').value} as RestTemporalPoint
+                        } as RestTemporalRange : null
                     } as RestTaskDescriptionTargetItem;
                 })
             } as RestTaskDescriptionTarget

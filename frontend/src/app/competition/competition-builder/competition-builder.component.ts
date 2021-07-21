@@ -45,18 +45,18 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static TKIS_TEMPLATE = {
         name: 'Textual KIS',
         taskDuration: 420,
-        targetType: {option: ConfiguredOptionTargetOption.OptionEnum.SINGLE_MEDIA_SEGMENT, parameters: {}},
-        score: {option: ConfiguredOptionScoringOption.OptionEnum.KIS, parameters: {}},
+        targetType: {option: ConfiguredOptionTargetOption.OptionEnum.SingleMediaSegment, parameters: {}},
+        score: {option: ConfiguredOptionScoringOption.OptionEnum.Kis, parameters: {}},
         components: [
-            {option: ConfiguredOptionQueryComponentOption.OptionEnum.TEXT, parameters: {}}
+            {option: ConfiguredOptionQueryComponentOption.OptionEnum.Text, parameters: {}}
         ],
         filter: [
-            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.NO_DUPLICATES, parameters: {}},
-            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.LIMIT_CORRECT_PER_TEAM, parameters: {limit: 1}},
-            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TEMPORAL_SUBMISSION, parameters: {}}
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.NoDuplicates, parameters: {}},
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.LimitCorrectPerTeam, parameters: {limit: 1}},
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TemporalSubmission, parameters: {}}
         ],
         options: [
-            {option: ConfiguredOptionSimpleOption.OptionEnum.HIDDEN_RESULTS, parameters: {}},
+            {option: ConfiguredOptionSimpleOption.OptionEnum.HiddenResults, parameters: {}},
         ]
     } as TaskType;
 
@@ -66,15 +66,15 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static VKIS_TEMPLATE = {
         name: 'Visual KIS',
         taskDuration: 300,
-        targetType: {option: ConfiguredOptionTargetOption.OptionEnum.SINGLE_MEDIA_SEGMENT, parameters: {}},
-        score: {option: ConfiguredOptionScoringOption.OptionEnum.KIS, parameters: {}},
+        targetType: {option: ConfiguredOptionTargetOption.OptionEnum.SingleMediaSegment, parameters: {}},
+        score: {option: ConfiguredOptionScoringOption.OptionEnum.Kis, parameters: {}},
         components: [
-            {option: ConfiguredOptionQueryComponentOption.OptionEnum.VIDEO_ITEM_SEGMENT, parameters: {}}
+            {option: ConfiguredOptionQueryComponentOption.OptionEnum.VideoItemSegment, parameters: {}}
         ],
         filter: [
-            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.NO_DUPLICATES, parameters: {}},
-            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.LIMIT_CORRECT_PER_TEAM, parameters: {limit: 1}},
-            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TEMPORAL_SUBMISSION, parameters: {}}
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.NoDuplicates, parameters: {}},
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.LimitCorrectPerTeam, parameters: {limit: 1}},
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TemporalSubmission, parameters: {}}
         ],
         options: []
     } as TaskType;
@@ -85,17 +85,17 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static AVS_TEMPLATE = {
         name: 'Ad-hoc Video Search',
         taskDuration: 300,
-        targetType: {option: ConfiguredOptionTargetOption.OptionEnum.JUDGEMENT, parameters: {}},
-        score: {option: ConfiguredOptionScoringOption.OptionEnum.AVS, parameters: {}},
+        targetType: {option: ConfiguredOptionTargetOption.OptionEnum.Judgement, parameters: {}},
+        score: {option: ConfiguredOptionScoringOption.OptionEnum.Avs, parameters: {}},
         components: [
-            {option: ConfiguredOptionQueryComponentOption.OptionEnum.TEXT, parameters: {}}
+            {option: ConfiguredOptionQueryComponentOption.OptionEnum.Text, parameters: {}}
         ],
         filter: [
-            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.NO_DUPLICATES, parameters: {limit: 1}},
-            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TEMPORAL_SUBMISSION, parameters: {}}
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.NoDuplicates, parameters: {limit: 1}},
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TemporalSubmission, parameters: {}}
         ],
         options: [
-            {option: ConfiguredOptionSimpleOption.OptionEnum.MAP_TO_SEGMENT,  parameters: {}}
+            {option: ConfiguredOptionSimpleOption.OptionEnum.MapToSegment,  parameters: {}}
         ]
     } as TaskType;
 
@@ -105,17 +105,17 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public static LSC_TEMPLATE = {
         name: 'LSC',
         taskDuration: 300,
-        targetType: {option: ConfiguredOptionTargetOption.OptionEnum.MULTIPLE_MEDIA_ITEMS, parameters: {}},
-        score: {option: ConfiguredOptionScoringOption.OptionEnum.KIS, parameters: {}},
+        targetType: {option: ConfiguredOptionTargetOption.OptionEnum.MultipleMediaItems, parameters: {}},
+        score: {option: ConfiguredOptionScoringOption.OptionEnum.Kis, parameters: {}},
         components: [
-            {option: ConfiguredOptionQueryComponentOption.OptionEnum.TEXT, parameters: {}}
+            {option: ConfiguredOptionQueryComponentOption.OptionEnum.Text, parameters: {}}
         ],
         filter: [
-            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.NO_DUPLICATES, parameters: {}},
-            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.LIMIT_CORRECT_PER_TEAM, parameters: {}}
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.NoDuplicates, parameters: {}},
+            {option: ConfiguredOptionSubmissionFilterOption.OptionEnum.LimitCorrectPerTeam, parameters: {}}
         ],
         options: [
-            {option: ConfiguredOptionSimpleOption.OptionEnum.HIDDEN_RESULTS,  parameters: {}}
+            {option: ConfiguredOptionSimpleOption.OptionEnum.HiddenResults,  parameters: {}}
         ]
     } as TaskType;
 

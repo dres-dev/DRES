@@ -16,25 +16,39 @@ import {MatPaginator} from '@angular/material/paginator';
 })
 export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestroy {
 
-    public competitionRunId: string;
-    public taskId: string;
-
     @ViewChild('group', {static: true}) group: MatButtonToggleGroup;
 
     @ViewChild('table', {static: true}) table: MatTable<SubmissionInfo>;
 
     @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
 
-    refreshSubject: Subject<null> = new Subject();
+    /** ID of the competition run shown by this {@link RunAdminSubmissionsListComponent}*/
+    public competitionRunId: string;
 
-    /**
-     * The displayed columns
-     */
-    displayColumns = ['id', 'timestamp', 'team', 'item', 'start', 'end', 'status', 'actions'];
-    pollingFrequencyFactor = 30000; // every 30 seconds
-    polling = true;
-    subscription: Subscription;
-    dataSource: MatTableDataSource<SubmissionInfo> = new MatTableDataSource();
+    /** ID of the task shown by this {@link RunAdminSubmissionsListComponent}*/
+    public taskId: string;
+
+    /** The columns displayed by the table. */
+    public displayColumns = ['id', 'timestamp', 'submitted', 'item', 'start', 'end', 'status', 'actions'];
+
+    /** Number of milliseconds to wait in between polls. */
+    public pollingFrequencyFactor = 30000; // every 30 seconds
+
+    /** Flag indicating whether list of submissions should be polled. */
+    public polling = true;
+
+    /** Flag indicating whether information about the submitter should be anonymized. */
+    public anonymize = true;
+
+    /** Subject used to manually trigger a refresh. */
+    public refreshSubject: Subject<null> = new Subject();
+
+    /** The data source for the table. */
+    public dataSource: MatTableDataSource<SubmissionInfo> = new MatTableDataSource();
+
+
+    /** Subscription held by this component to load submissions. */
+    private subscription: Subscription;
 
     constructor(
         private snackBar: MatSnackBar,
@@ -84,5 +98,13 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
         this.runService.patchApiRunAdminWithRunidSubmissionsOverride(this.competitionRunId, submission).subscribe(res => {
             this.snackBar.open(`Result: ${res}`, null, {duration: 5000});
         });
+    }
+
+    /**
+     *
+     * @param submission
+     */
+    public showDetails(submission: SubmissionInfo) {
+        this.snackBar.open(`Team: ${submission.teamName}, Member: ${submission.memberName}`, null, {duration: 5000});
     }
 }

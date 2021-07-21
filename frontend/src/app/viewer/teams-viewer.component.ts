@@ -100,7 +100,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
             map(([submissions, info]) => {
                 const submissionsPerTeam = new Map<string, SubmissionInfo[]>();
                 info.teams.forEach(t => {
-                    submissionsPerTeam.set(t.uid, submissions.filter(s => s.teamId === t.uid));
+                    submissionsPerTeam.set(t.uid, submissions.filter(s => s.team === t.uid));
                 });
                 return submissionsPerTeam;
             }),

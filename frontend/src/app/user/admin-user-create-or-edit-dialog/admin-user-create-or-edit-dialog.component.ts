@@ -17,10 +17,10 @@ export class AdminUserCreateOrEditDialogComponent {
         role: new FormControl('')
     });
 
-    roles = [RoleEnum.Admin, RoleEnum.Judge, RoleEnum.Participant, RoleEnum.Viewer];
+    roles = [RoleEnum.ADMIN, RoleEnum.JUDGE, RoleEnum.PARTICIPANT, RoleEnum.VIEWER];
 
 
-    defaultRole: RoleEnum = RoleEnum.Viewer;
+    defaultRole: RoleEnum = RoleEnum.VIEWER;
 
     constructor(
         public dialogRef: MatDialogRef<AdminUserCreateOrEditDialogComponent>,

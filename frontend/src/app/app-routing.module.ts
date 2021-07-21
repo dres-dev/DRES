@@ -26,56 +26,56 @@ const routes: Routes = [
         path: 'competition/list',
         component: CompetitionListComponent,
         canActivate: [AuthenticationGuard],
-        data: {roles: [RoleEnum.Admin]}
+        data: {roles: [RoleEnum.ADMIN]}
     },
     {
         path: 'competition/builder/:competitionId',
         component: CompetitionBuilderComponent,
         canActivate: [AuthenticationGuard],
         canDeactivate: [CanDeactivateGuard],
-        data: {roles: [RoleEnum.Admin]}
+        data: {roles: [RoleEnum.ADMIN]}
     },
     {
         path: 'run/list',
         component: RunListComponent,
         canActivate: [AuthenticationGuard],
-        data: {roles: [RoleEnum.Admin, RoleEnum.Viewer, RoleEnum.Participant, RoleEnum.Judge]}
+        data: {roles: [RoleEnum.ADMIN, RoleEnum.VIEWER, RoleEnum.PARTICIPANT, RoleEnum.JUDGE]}
     },
     {
         path: 'run/admin/:runId',
         component: RunAdminViewComponent,
         canActivate: [AuthenticationGuard],
-        data: {roles: [RoleEnum.Admin]}
+        data: {roles: [RoleEnum.ADMIN]}
     },
     {
         path: 'run/scores/:runId',
         component: RunScoreHistoryComponent,
         canActivate: [AuthenticationGuard],
-        data: {roles: [RoleEnum.Admin]}
+        data: {roles: [RoleEnum.ADMIN]}
     },
     {
         path: 'run/admin/submissions/:runId/:taskId',
         component: RunAdminSubmissionsListComponent,
         canActivate: [AuthenticationGuard],
-        data: {roles: [RoleEnum.Admin]}
+        data: {roles: [RoleEnum.ADMIN]}
     },
     {
         path: 'run/viewer/:runId',
         component: RunViewerComponent,
         canActivate: [AuthenticationGuard],
-        data: {roles: [RoleEnum.Admin, RoleEnum.Viewer, RoleEnum.Participant, RoleEnum.Judge]}
+        data: {roles: [RoleEnum.ADMIN, RoleEnum.VIEWER, RoleEnum.PARTICIPANT, RoleEnum.JUDGE]}
     },
     {
         path: 'judge/:runId',
         component: JudgementViewerComponent,
         canActivate: [AuthenticationGuard],
-        data: {roles: [RoleEnum.Admin, RoleEnum.Judge]}
+        data: {roles: [RoleEnum.ADMIN, RoleEnum.JUDGE]}
     },
     {
         path: 'vote/:runId',
         component: JudgementVotingViewerComponent,
         canActivate: [AuthenticationGuard],
-        data: {roles: [RoleEnum.Admin, RoleEnum.Judge, RoleEnum.Viewer]}
+        data: {roles: [RoleEnum.ADMIN, RoleEnum.JUDGE, RoleEnum.VIEWER]}
     },
 
     {path: 'login', component: LoginComponent},
@@ -84,33 +84,33 @@ const routes: Routes = [
         path: 'user',
         component: ProfileComponent,
         canActivate: [AuthenticationGuard],
-        data: {roles: [RoleEnum.Admin, RoleEnum.Viewer, RoleEnum.Judge, RoleEnum.Participant]}
+        data: {roles: [RoleEnum.ADMIN, RoleEnum.VIEWER, RoleEnum.JUDGE, RoleEnum.PARTICIPANT]}
     },
 
     {
         path: 'user/list',
         component: AdminUserListComponent,
         canActivate: [AuthenticationGuard],
-        data: {roles: [RoleEnum.Admin]}
+        data: {roles: [RoleEnum.ADMIN]}
     },
     {
         path: 'collection/list',
         component: CollectionListComponent,
         canActivate: [AuthenticationGuard],
-        data: {roles: [RoleEnum.Admin]}
+        data: {roles: [RoleEnum.ADMIN]}
     },
     {
         path: 'collection/:collectionId',
         component: CollectionViewerComponent,
         canActivate: [AuthenticationGuard],
-        data: {roles: [RoleEnum.Admin]}
+        data: {roles: [RoleEnum.ADMIN]}
     },
 
     {
         path: 'logs/list',
         component: AdminAuditlogOverviewComponent,
         canActivate: [AuthenticationGuard],
-        data: {roles: [RoleEnum.Admin]}
+        data: {roles: [RoleEnum.ADMIN]}
     },
 
     // otherwise redirect to home

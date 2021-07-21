@@ -32,7 +32,7 @@ export class MediaItemBuilderDialogComponent implements OnInit {
             type: new FormControl({value: data?.item?.type, disabled: this.isEditing()}, [Validators.required]),
             collectionId: new FormControl(data.collectionId)
         });
-        if (data?.item?.type === RestMediaItem.TypeEnum.Video) {
+        if (data?.item?.type === RestMediaItem.TypeEnum.VIDEO) {
             this.form.addControl('durationMs', new FormControl(data?.item?.durationMs, [Validators.required, Validators.min(1)]));
             this.form.addControl('fps', new FormControl(data?.item?.fps, [Validators.required, Validators.min(1), Validators.max(200)])); // Arbitrarily limiting to 200 fps
         }
@@ -86,7 +86,7 @@ export class MediaItemBuilderDialogComponent implements OnInit {
             item.id = this.form.get('id').value;
         }
         /* only relevant for video */
-        if (item.type === RestMediaItem.TypeEnum.Video) {
+        if (item.type === RestMediaItem.TypeEnum.VIDEO) {
             item.durationMs = this.form.get('durationMs').value;
             item.fps = this.form.get('fps').value;
         }

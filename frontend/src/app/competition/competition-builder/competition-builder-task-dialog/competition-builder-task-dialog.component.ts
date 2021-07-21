@@ -6,9 +6,11 @@ import {
     ConfiguredOptionTargetOption,
     RestMediaCollection,
     RestMediaItem,
-    RestTaskDescription, RestTemporalPoint, RestTemporalRange,
+    RestTaskDescription,
     TaskGroup,
-    TaskType
+    TaskType,
+    TemporalPoint,
+    TemporalRange
 } from '../../../../../openapi';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Observable} from 'rxjs';
@@ -18,6 +20,7 @@ import {CompetitionFormBuilder} from './competition-form.builder';
 import {VideoPlayerSegmentBuilderData} from './video-player-segment-builder/video-player-segment-builder.component';
 import {AdvancedBuilderDialogComponent, AdvancedBuilderDialogData} from './advanced-builder-dialog/advanced-builder-dialog.component';
 import {TimeUtilities} from '../../../utilities/time.utilities';
+import UnitEnum = TemporalPoint.UnitEnum;
 
 
 /**
@@ -179,12 +182,12 @@ export class CompetitionBuilderTaskDialogComponent {
          */
         let start = -1;
         let end = -1;
-        const unit = unitControl?.value ? (unitControl.value as RestTemporalPoint.UnitEnum) : RestTemporalPoint.UnitEnum.Seconds;
+        const unit = unitControl?.value ? (unitControl.value as UnitEnum) : UnitEnum.SECONDS;
         if (startControl && startControl.value) {
             if (unitControl.value === 'TIMECODE') {
                 start = TimeUtilities.timeCode2Milliseconds(startControl.value, mediaItem.fps) / 1000;
             } else {
-                start = TimeUtilities.point2Milliseconds({value: startControl.value, unit} as RestTemporalPoint, mediaItem.fps) / 1000;
+                start = TimeUtilities.point2Milliseconds({value: startControl.value, unit} as TemporalPoint, mediaItem.fps) / 1000;
             }
             // start = Number.parseInt(startControl.value, 10);
         }
@@ -192,7 +195,7 @@ export class CompetitionBuilderTaskDialogComponent {
             if (unitControl.value === 'TIMECODE') {
                 end = TimeUtilities.timeCode2Milliseconds(endControl.value, mediaItem.fps) / 1000;
             } else {
-                end = TimeUtilities.point2Milliseconds({value: endControl.value, unit} as RestTemporalPoint, mediaItem.fps) / 1000;
+                end = TimeUtilities.point2Milliseconds({value: endControl.value, unit} as TemporalPoint, mediaItem.fps) / 1000;
             }
         }
 
@@ -213,10 +216,10 @@ export class CompetitionBuilderTaskDialogComponent {
         this.showVideo = !this.showVideo;
     }
 
-    onRangeChange(range: RestTemporalRange, startControl?: FormControl, endControl?: FormControl, unitControl?: FormControl) {
+    onRangeChange(range: TemporalRange, startControl?: FormControl, endControl?: FormControl, unitControl?: FormControl) {
         startControl?.setValue(range.start.value);
         endControl?.setValue(range.end.value);
-        unitControl?.setValue(RestTemporalPoint.UnitEnum.Seconds);
+        unitControl?.setValue(TemporalPoint.UnitEnum.SECONDS);
         console.log('Range updated');
     }
 
@@ -231,8 +234,7 @@ export class CompetitionBuilderTaskDialogComponent {
     /**
      * Check whether the given index is currently listed as active preview
      *
-     * @param index Index to check.
-     * @return True if listed, false otherwise.
+     * @param index
      */
     isPreviewActive(index: number): boolean {
         return this.imagePreviewMap.has(index);
@@ -271,7 +273,7 @@ export class CompetitionBuilderTaskDialogComponent {
                 this.builder.removeTargetForm(0);
                 const mediaCollectionId = this.builder.form.get('mediaCollection').value;
                 r.forEach((name, idx) => {
-                    const form = this.builder.addTargetForm(ConfiguredOptionTargetOption.OptionEnum.MultipleMediaItems);
+                    const form = this.builder.addTargetForm(ConfiguredOptionTargetOption.OptionEnum.MULTIPLE_MEDIA_ITEMS);
                     console.log(`${mediaCollectionId} ? ${name}`);
                     const nameNoExt = name.substring(0, name.lastIndexOf('.'));
                     this.collectionService.getApiCollectionWithCollectionidWithStartswith(mediaCollectionId, nameNoExt)
@@ -284,7 +286,7 @@ export class CompetitionBuilderTaskDialogComponent {
     timeUnitChanged($event, startElementRef: HTMLInputElement, endElementRef: HTMLInputElement) {
         console.log($event);
         const type = $event.value === 'TIMECODE' ? 'text' : 'number';
-        console.log('New type: ' + type);
+        console.log("new type: "+type);
         if (startElementRef) {
             startElementRef.type = type;
         }

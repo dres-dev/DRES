@@ -1,14 +1,13 @@
 <div style="display: flex;">
     <div>
         <app-back-button></app-back-button>
-        <h1>Details Media Collection: "{{(collection | async)?.collection.name}}"
+        <h1>Media collection: "{{(collection | async)?.collection.name}}"
             ({{(collectionId | async).substr(0, 8)}})
         </h1>
     </div>
     <div class="spacer-flex"></div>
     <div>
-        <button mat-icon-button aria-label="Refresh list of media items" matTooltip="Refresh list of media items"
-                (click)="refresh()">
+        <button mat-icon-button aria-label="Refresh list of media items" matTooltip="Refresh list of media items" (click)="refreshSubject.next()">
             <mat-icon>refresh</mat-icon>
         </button>
         <button mat-icon-button aria-label="Create new media item." matTooltip="Create new media item."
@@ -18,17 +17,15 @@
     </div>
 </div>
 <div style="display: flex;">
-    <!-- <div><b>Name:</b>{{(collection | async).collection.name}}</div> -->
     <div>
         <b>Description: </b>{{(collection | async)?.collection?.description}}<br/>
         <b>Base Path: </b>{{(collection | async)?.collection?.basePath}}
     </div>
-    <div class="spacer-flex"></div>
-    <div>
-        <b>Items: </b>{{(collection | async)?.items.length}}
-    </div>
 </div>
 <div>
+    <!-- Pagination -->
+    <mat-paginator [pageSizeOptions]="[50, 100, 250]" showFirstLastButtons></mat-paginator>
+
     <table mat-table [dataSource]="dataSource" style="width: 100%;">
         <!-- Column Defs -->
         <!-- Actions column -->
@@ -91,6 +88,4 @@
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
     </table>
-    <!-- Pagination -->
-    <mat-paginator [pageSizeOptions]="[5, 10, 50, 100]" showFirstLastButtons></mat-paginator>
 </div>

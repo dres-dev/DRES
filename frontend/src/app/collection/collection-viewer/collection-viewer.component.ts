@@ -1,9 +1,9 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, OnDestroy, ViewChild} from '@angular/core';
 import {CollectionService, RestFullMediaCollection, RestMediaItem} from '../../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatDialog, MatDialogConfig} from '@angular/material/dialog';
-import {Observable, of, Subscription} from 'rxjs';
+import {BehaviorSubject, Observable, of, Subject, Subscription} from 'rxjs';
 import {catchError, filter, flatMap, map, retry, shareReplay, switchMap} from 'rxjs/operators';
 import {AppConfig} from '../../app.config';
 import {
@@ -18,7 +18,7 @@ import {MatTableDataSource} from '@angular/material/table';
     templateUrl: './collection-viewer.component.html',
     styleUrls: ['./collection-viewer.component.scss']
 })
-export class CollectionViewerComponent implements OnInit, OnDestroy {
+export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
 
     displayedColumns = ['actions', 'id', 'name', 'location', 'type', 'durationMs', 'fps'];
 
@@ -26,9 +26,14 @@ export class CollectionViewerComponent implements OnInit, OnDestroy {
     dataSource = new MatTableDataSource<RestMediaItem>();
 
     collectionId: Observable<string>;
+
     collection: Observable<RestFullMediaCollection>;
-    mediaItems: RestMediaItem[] = [];
-    private itemsSub: Subscription;
+
+    /** A subject used to trigger refrehs of the list. */
+    refreshSubject: Subject<null> = new BehaviorSubject(null);
+
+    /** Reference to the subscription held by this component. */
+    private subscription: Subscription;
 
     constructor(
         private collectionService: CollectionService,
@@ -38,20 +43,18 @@ export class CollectionViewerComponent implements OnInit, OnDestroy {
         private dialog: MatDialog,
         private config: AppConfig
     ) {
-    }
-
-    ngOnInit(): void {
-        this.refresh();
-
-    }
-
-
-    refresh() {
-        /* The id observable from the route */
         this.collectionId = this.activeRoute.params.pipe(map(p => p.collectionId));
+    }
 
-        /* The observable of the collection*/
-        this.collection = this.collectionId.pipe(
+    /**
+     * Register subscription for submission data;
+     *
+     * TODO: In this implementation, pagination is done on the client side!
+     */
+    ngAfterViewInit(): void {
+        this.dataSource.paginator = this.paginator;
+        this.collection = this.refreshSubject.pipe(
+            flatMap(s => this.collectionId),
             switchMap(id => this.collectionService.getApiCollectionWithCollectionid(id).pipe(
                 retry(3),
                 catchError((err, o) => {
@@ -63,18 +66,23 @@ export class CollectionViewerComponent implements OnInit, OnDestroy {
             )),
             shareReplay({bufferSize: 1, refCount: true})
         );
-        /* Get the items from the observable */
-        this.itemsSub = this.collection.subscribe((col) => {
-            this.mediaItems = col.items.sort((a, b) => a.name.localeCompare(b.name));
-            this.dataSource.data = this.mediaItems;
-            this.dataSource.paginator = this.paginator;
+        this.subscription = this.collection.subscribe((s: RestFullMediaCollection) => {
+            this.dataSource.data = s.items;
         });
+    }
+
+    /**
+     * House keeping; clean up subscriptions.
+     */
+    ngOnDestroy(): void {
+        this.subscription.unsubscribe();
+        this.subscription = null;
     }
 
     delete(id: string) {
         if (confirm(`Do you really want to delete media item with ID ${id}?`)) {
             this.collectionService.deleteApiMediaitemWithMediaid(id).subscribe((r) => {
-                this.refresh();
+                this.refreshSubject.next();
                 this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
             }, (r) => {
                 this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
@@ -84,10 +92,6 @@ export class CollectionViewerComponent implements OnInit, OnDestroy {
 
     edit(id: string) {
         this.create(id);
-    }
-
-    ngOnDestroy(): void {
-        this.itemsSub.unsubscribe();
     }
 
     show(id: string) {
@@ -100,7 +104,7 @@ export class CollectionViewerComponent implements OnInit, OnDestroy {
         this.collectionId.subscribe((colId: string) => {
             const config = {width: '500px'} as MatDialogConfig<Partial<MediaItemBuilderData>>;
             if (id) {
-                config.data = {item: this.mediaItems.find(it => it.id === id), collectionId: colId} as MediaItemBuilderData;
+                config.data = {item: this.dataSource.data.find(it => it.id === id), collectionId: colId} as MediaItemBuilderData;
             } else {
                 config.data = {collectionId: colId} as Partial<MediaItemBuilderData>;
             }
@@ -115,7 +119,7 @@ export class CollectionViewerComponent implements OnInit, OnDestroy {
                     }
                 })
             ).subscribe((r) => {
-                this.refresh();
+                this.refreshSubject.next();
                 this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
             }, (r) => {
                 this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});

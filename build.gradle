@@ -9,7 +9,7 @@ plugins {
     id 'de.undercouch.download' version '4.0.4'
 
     /// OpenAPI Generator for Frontend internal api generation
-    id 'org.openapi.generator' version '5.0.0'
+    id 'org.openapi.generator' version '5.2.0'
 }
 
 /// Variables used for Open API generation.
@@ -31,7 +31,7 @@ openApiGenerate {
     outputDir = file("${project.projectDir}/frontend/openapi").toString()
     configOptions = [
         npmName: '@dres-openapi/api',
-        ngVersion: '9.1.0',
+        ngVersion: '11.0.0',
         snapshot: 'true', /// I suggest to remove this, as soon as we automate this,
         enumPropertyNaming: 'original'
     ]

@@ -132,9 +132,9 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
                             withLatestFrom(this.runId),
                             map(([count, id]) => {
                                 if (count < (countdown - 1)) {
-                                    AudioPlayerUtilities.playOnce('assets/audio/beep_1.ogg', this.audio.nativeElement);
+                                    AudioPlayerUtilities.playOnce('/immutable/assets/audio/beep_1.ogg', this.audio.nativeElement);
                                 } else {
-                                    AudioPlayerUtilities.playOnce('assets/audio/beep_2.ogg', this.audio.nativeElement);
+                                    AudioPlayerUtilities.playOnce('/immutable/assets/audio/beep_2.ogg', this.audio.nativeElement);
                                 }
                                 return countdown - count - 1;
                             }),
@@ -237,7 +237,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             map(s => s.timeLeft),
             tap(t => {
                 if (t === 30 || t === 60) {
-                    AudioPlayerUtilities.playOnce('assets/audio/glass.ogg', this.audio.nativeElement); /* Reminder that time is running out. */
+                    AudioPlayerUtilities.playOnce('/immutable/assets/audio/glass.ogg', this.audio.nativeElement); /* Reminder that time is running out. */
                 }
             })
         );

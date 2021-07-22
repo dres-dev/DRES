@@ -3,11 +3,12 @@ import {CompetitionRunAdminService, SubmissionInfo} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatDialog} from '@angular/material/dialog';
 import {MatTable, MatTableDataSource} from '@angular/material/table';
-import {merge, of, Subject, Subscription, timer} from 'rxjs';
+import {merge, Observable, of, Subject, Subscription, timer} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {MatButtonToggleGroup} from '@angular/material/button-toggle';
-import {catchError, filter, switchMap} from 'rxjs/operators';
+import {catchError, filter, map, switchMap, withLatestFrom} from 'rxjs/operators';
 import {MatPaginator} from '@angular/material/paginator';
+import {AppConfig} from '../../app.config';
 
 @Component({
     selector: 'app-run-admin-submissions-list',
@@ -22,14 +23,14 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
 
     @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
 
-    /** ID of the competition run shown by this {@link RunAdminSubmissionsListComponent}*/
-    public competitionRunId: string;
+    /** ID of the competition run shown by this {@link RunAdminSubmissionsListComponent}. */
+    public runId: Observable<string>;
 
-    /** ID of the task shown by this {@link RunAdminSubmissionsListComponent}*/
-    public taskId: string;
+    /** ID of the task shown by this {@link RunAdminSubmissionsListComponent}. */
+    public taskId: Observable<string>;
 
     /** The columns displayed by the table. */
-    public displayColumns = ['id', 'timestamp', 'submitted', 'item', 'start', 'end', 'status', 'actions'];
+    public displayColumns = ['id', 'timestamp', 'submitted', 'item', 'start', 'end', 'status', 'preview', 'actions'];
 
     /** Number of milliseconds to wait in between polls. */
     public pollingFrequencyFactor = 30000; // every 30 seconds
@@ -52,14 +53,13 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
 
     constructor(
         private snackBar: MatSnackBar,
-        private runService: CompetitionRunAdminService,
         private dialog: MatDialog,
         private activeRoute: ActivatedRoute,
+        private runService: CompetitionRunAdminService,
+        public config: AppConfig
     ) {
-        this.activeRoute.paramMap.subscribe(params => {
-            this.competitionRunId = params.get('runId');
-            this.taskId = params.get('taskId');
-        });
+        this.runId = this.activeRoute.paramMap.pipe(map(params => params.get('runId')));
+        this.taskId = this.activeRoute.paramMap.pipe(map(params => params.get('taskId')));
     }
 
     /**
@@ -73,7 +73,8 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
             timer(0, this.pollingFrequencyFactor).pipe(filter(i => this.polling)),
             this.refreshSubject
         ).pipe(
-            switchMap(s => this.runService.getApiRunAdminWithRunidSubmissionsListWithTaskid(this.competitionRunId, this.taskId)),
+            withLatestFrom(this.runId, this.taskId),
+            switchMap(([i, r, t]) => this.runService.getApiRunAdminWithRunidSubmissionsListWithTaskid(r, t)),
             catchError((err, o) => {
                 console.log(`[RunAdminSubmissionListComponent] Error occurred while loading submissions: ${err?.message}`);
                 this.snackBar.open(`Error: ${err?.message}`, null, {duration: 5000});
@@ -95,9 +96,17 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     update(submission: SubmissionInfo, status: SubmissionInfo.StatusEnum) {
         submission.status = status;
         console.log(submission);
-        this.runService.patchApiRunAdminWithRunidSubmissionsOverride(this.competitionRunId, submission).subscribe(res => {
+        this.runId.pipe(switchMap(runId => this.runService.patchApiRunAdminWithRunidSubmissionsOverride(runId, submission))).subscribe(res => {
             this.snackBar.open(`Result: ${res}`, null, {duration: 5000});
         });
+    }
+
+
+    /**
+     * Generates a URL for the preview image of a submission.
+     */
+    public previewForSubmission(submission: SubmissionInfo): Observable<string> {
+        return this.runId.pipe(map(runId => this.config.resolveApiUrl(`/preview/submission/${runId}/${submission.id}`)));
     }
 
     /**

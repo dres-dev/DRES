@@ -93,11 +93,17 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
         this.subscription = null;
     }
 
-    update(submission: SubmissionInfo, status: SubmissionInfo.StatusEnum) {
-        submission.status = status;
+    /**
+     * Updates the status of a Submission
+     *
+     * @param submission The {@link SubmissionInfo} to update.
+     * @param newStatus The new status.
+     */
+    public update(submission: SubmissionInfo, newStatus: SubmissionInfo.StatusEnum) {
+        submission.status = newStatus;
         console.log(submission);
         this.runId.pipe(switchMap(runId => this.runService.patchApiRunAdminWithRunidSubmissionsOverride(runId, submission))).subscribe(res => {
-            this.snackBar.open(`Result: ${res}`, null, {duration: 5000});
+            this.snackBar.open(`Submission ${res.id} successfully updated to ${res.status}.`, null, {duration: 5000});
         });
     }
 
@@ -107,13 +113,5 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
      */
     public previewForSubmission(submission: SubmissionInfo): Observable<string> {
         return this.runId.pipe(map(runId => this.config.resolveApiUrl(`/preview/submission/${runId}/${submission.id}`)));
-    }
-
-    /**
-     *
-     * @param submission
-     */
-    public showDetails(submission: SubmissionInfo) {
-        this.snackBar.open(`Team: ${submission.teamName}, Member: ${submission.memberName}`, null, {duration: 5000});
     }
 }

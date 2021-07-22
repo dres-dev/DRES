@@ -57,7 +57,7 @@
 
         <ng-container matColumnDef="preview">
             <th mat-header-cell *matHeaderCellDef>Preview</th>
-            <td mat-cell *matCellDef="let submission"><img src="{{(previewForSubmission(submission) | async)}}" alt="preview"/></td>
+            <td mat-cell *matCellDef="let submission"><img [style.max-height]="'75px'" src="{{(previewForSubmission(submission) | async)}}" alt="preview"/></td>
         </ng-container>
 
         <!-- ACTION COL -->

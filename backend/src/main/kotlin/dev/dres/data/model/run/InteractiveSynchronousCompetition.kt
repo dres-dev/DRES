@@ -12,6 +12,7 @@ import dev.dres.data.model.run.interfaces.CompetitionId
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.Submission
+import dev.dres.run.audit.AuditLogger
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.score.interfaces.TeamTaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
@@ -112,6 +113,7 @@ class InteractiveSynchronousCompetition(override var id: CompetitionId, override
             /* Process Submission. */
             this.submissions.add(submission)
             this.validator.validate(submission)
+            AuditLogger.validateSubmission(submission, validator)
         }
     }
 }

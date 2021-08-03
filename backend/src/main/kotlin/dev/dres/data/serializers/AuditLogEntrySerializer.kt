@@ -84,6 +84,12 @@ object AuditLogEntrySerializer: Serializer<AuditLogEntry> {
                 out.writeUTF(logout.session)
                 out.packInt(logout.api.ordinal)
             }
+            AuditLogEntryType.SUBMISSION_VALIDATION -> {
+                val validate = value as SubmissionValidationAuditLogEntry
+                SubmissionSerializer.serialize(out, validate.submission)
+                out.writeUTF(validate.validatorName)
+                out.packInt(validate.status.ordinal)
+            }
         }
     }
 
@@ -101,6 +107,7 @@ object AuditLogEntrySerializer: Serializer<AuditLogEntry> {
             AuditLogEntryType.JUDGEMENT -> JudgementAuditLogEntry(id, input.readUID(), input.readUTF(), input.readUTF(), SubmissionStatus.values()[input.unpackInt()], LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
             AuditLogEntryType.LOGIN -> LoginAuditLogEntry(id, input.readUTF(), input.readUTF(), LogEventSource.values()[input.unpackInt()]).also { it.timestamp = timestamp }
             AuditLogEntryType.LOGOUT -> LogoutAuditLogEntry(id, input.readUTF(), LogEventSource.values()[input.unpackInt()]).also { it.timestamp = timestamp }
+            AuditLogEntryType.SUBMISSION_VALIDATION -> SubmissionValidationAuditLogEntry(id, SubmissionSerializer.deserialize(input, available), input.readUTF(), SubmissionStatus.values()[input.unpackInt()]).also { it.timestamp = timestamp }
         }
     }
 }

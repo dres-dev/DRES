@@ -16,7 +16,8 @@ enum class AuditLogEntryType {
     PREPARE_JUDGEMENT,
     JUDGEMENT,
     LOGIN,
-    LOGOUT
+    LOGOUT,
+    SUBMISSION_VALIDATION
 
 }
 
@@ -72,4 +73,8 @@ data class LoginAuditLogEntry(override var id: UID, val user: String, val sessio
 
 data class LogoutAuditLogEntry(override var id: UID, val session: String, val api: LogEventSource) : AuditLogEntry(AuditLogEntryType.LOGOUT) {
     constructor(session: String, api: LogEventSource): this(UID.EMPTY, session, api)
+}
+
+data class SubmissionValidationAuditLogEntry(override var id: UID, val submission: Submission, val validatorName: String, val status: SubmissionStatus) : AuditLogEntry(AuditLogEntryType.SUBMISSION_VALIDATION) {
+    constructor(submission: Submission, validatorName: String, status: SubmissionStatus) : this(UID.EMPTY, submission, validatorName, status)
 }

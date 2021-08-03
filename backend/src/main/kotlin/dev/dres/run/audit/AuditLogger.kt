@@ -4,6 +4,7 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.run.validation.interfaces.SubmissionValidator
 import org.slf4j.LoggerFactory
 import org.slf4j.Marker
 import org.slf4j.MarkerFactory
@@ -36,6 +37,8 @@ object AuditLogger {
     fun taskEnd(competitionRunUid: UID, taskName: String, api: LogEventSource, session: String?) = log(TaskEndAuditLogEntry(competitionRunUid, taskName, api, session))
 
     fun submission(competitionRunUid: UID, taskName: String, submission: Submission, api: LogEventSource, session: String?, address: String) = log(SubmissionAuditLogEntry(competitionRunUid, taskName, submission, api, session, address))
+
+    fun validateSubmission(submission: Submission, validator: SubmissionValidator) = log(SubmissionValidationAuditLogEntry(submission, validator::class.simpleName ?: "unknown validator", submission.status))
 
     fun prepareJudgement(validator: String, token: String, submission: Submission) = log(PrepareJudgementAuditLogEntry(validator, token, submission))
 

@@ -20,6 +20,7 @@ sealed class RestAuditLogEntry(val type: AuditLogEntryType, id: UID, val timesta
                 is JudgementAuditLogEntry -> RestJudgementAuditLogEntry(log)
                 is LoginAuditLogEntry -> RestLoginAuditLogEntry(log)
                 is LogoutAuditLogEntry -> RestLogoutAuditLogEntry(log)
+                is SubmissionValidationAuditLogEntry -> RestSubmissionValidationAuditLogEntry(log)
             }
         }
     }
@@ -63,4 +64,8 @@ class RestLoginAuditLogEntry(id: UID, timestamp: Long, val user: String, val ses
 
 class RestLogoutAuditLogEntry(id: UID, timestamp: Long, val session: String, val api: LogEventSource) : RestAuditLogEntry(AuditLogEntryType.LOGOUT, id, timestamp) {
     constructor(log: LogoutAuditLogEntry) : this(log.id, log.timestamp, log.session, log.api)
+}
+
+class RestSubmissionValidationAuditLogEntry(id: UID, timestamp: Long, val submissionId: String, val validator: String, val verdict: SubmissionStatus) : RestAuditLogEntry(AuditLogEntryType.SUBMISSION_VALIDATION, id, timestamp) {
+    constructor(log: SubmissionValidationAuditLogEntry) : this(log.id, log.timestamp, log.submission.uid.string, log.validatorName, log.status)
 }

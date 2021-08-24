@@ -9,6 +9,7 @@ import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
+import dev.dres.data.model.run.InteractiveAsynchronousCompetition
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.NonInteractiveCompetition
 import dev.dres.data.model.run.interfaces.Competition
@@ -85,6 +86,12 @@ object RunExecutor : Consumer<WsHandler> {
             }
             is NonInteractiveCompetition -> {
                 NonInteractiveRunManager(competition)
+            }
+            is InteractiveAsynchronousCompetition -> {
+                competition.tasks.forEach { t ->
+                    t.submissions.forEach { s -> s.task = t }
+                }
+                InteractiveAsynchronousRunManager(competition)
             }
             else -> throw NotImplementedError("No matching run manager found for $competition")
         }

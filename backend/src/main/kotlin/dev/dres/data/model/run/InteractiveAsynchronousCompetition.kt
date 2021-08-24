@@ -28,6 +28,11 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class InteractiveAsynchronousCompetition(override var id: CompetitionId, override val name: String, override val description: CompetitionDescription): AbstractRun(), Competition {
 
+    internal constructor(id: CompetitionId, name: String, competitionDescription: CompetitionDescription, started: Long, ended: Long) : this(id, name, competitionDescription) {
+        this.started = if (started == -1L) { null } else { started }
+        this.ended = if (ended == -1L) { null } else { ended }
+    }
+
     /** A [ConcurrentHashMap] that maps a list of [Task]s to the [TeamId]s they belong to.*/
     private val tasksMap = ConcurrentHashMap<TeamId,MutableList<Task>>()
 

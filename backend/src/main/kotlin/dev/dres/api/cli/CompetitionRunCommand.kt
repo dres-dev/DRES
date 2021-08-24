@@ -17,9 +17,7 @@ import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.interfaces.Competition
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
-import dev.dres.run.InteractiveRunManager
-import dev.dres.run.RunExecutor
-import dev.dres.run.RunManager
+import dev.dres.run.*
 import dev.dres.utilities.extensions.UID
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -89,17 +87,30 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
                             paddingRight = 1
                         }
                         header {
-                            row("id", "name", "description", "currentTask", "status")
+                            row("id", "type", "name", "description", "currentTask", "status")
                         }
                         body {
                             RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java).forEach {
-                                row(
-                                    it.id.string,
-                                    it.name,
-                                    it.description.description,
-                                    it.currentTaskDescription(RunActionContext.INTERNAL).name,
-                                    it.status
-                                )
+                                when(it) {
+                                    is InteractiveSynchronousRunManager -> row(
+                                        it.id.string,
+                                        "Synchronous",
+                                        it.name,
+                                        it.description.description,
+                                        it.currentTaskDescription(RunActionContext.INTERNAL).name,
+                                        it.status
+                                    )
+                                    is InteractiveAsynchronousRunManager -> row(
+                                        it.id.string,
+                                        "Asynchronous",
+                                        it.name,
+                                        it.description.description,
+                                        "N/A",
+                                        it.status
+                                    )
+                                    else -> row("??", "??", "??", "??", "??", "??")
+                                }
+
                             }
                         }
                     }

@@ -108,7 +108,7 @@ export class RunScoreHistoryComponent {
         /* Information about current run. */
         this.runId = this.activeRoute.params.pipe(map(a => a.runId));
         this.runInfo = this.runId.pipe(
-            switchMap(runId => this.runService.getApiRunInfoWithRunid(runId).pipe(
+            switchMap(runId => this.runService.getApiV1RunInfoWithRunid(runId).pipe(
                 catchError((err, o) => {
                     console.log(`[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`);
                     if (err.status === 404) {
@@ -135,7 +135,7 @@ export class RunScoreHistoryComponent {
 
         /* List of scoreboard for the current run ID. */
         this.scoreboards = this.runId.pipe(
-            switchMap(runId => this.scoreService.getApiScoreRunWithRunidScoreboards(runId).pipe(
+            switchMap(runId => this.scoreService.getApiV1ScoreRunWithRunidScoreboards(runId).pipe(
                 catchError((err, o) => {
                     console.log(`[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`);
                     if (err.status === 404) {
@@ -156,7 +156,7 @@ export class RunScoreHistoryComponent {
         const scores = this.runId.pipe(
             flatMap(r => interval(2000).pipe(
                 switchMap(i => {
-                    return this.scoreService.getApiScoreRunWithRunidSeriesWithScoreboard(r, this.selectedScoreboard).pipe(
+                    return this.scoreService.getApiV1ScoreRunWithRunidSeriesWithScoreboard(r, this.selectedScoreboard).pipe(
                         catchError((err, o) => {
                             console.log(`[ScoreHistoryComponent] There was an error while loading scores for run: ${err?.message}`);
                             if (err.status === 404) {

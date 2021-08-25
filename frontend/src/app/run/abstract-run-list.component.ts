@@ -31,7 +31,7 @@ export class AbstractRunListComponent {
          * Creates a combined observable that updates the state in a regular interval and the info +
          * state whenever a manual update is triggered.
          */
-        const query = combineLatest([this.runService.getApiRunInfoList(), this.runService.getApiRunStateList()]);
+        const query = combineLatest([this.runService.getApiV1RunInfoList(), this.runService.getApiV1RunStateList()]);
         this.runs = merge(timer(0, this.updateInterval), this.update).pipe(
             flatMap(t => query),
             map(([info, state]) => {
@@ -98,7 +98,7 @@ export class AbstractRunListComponent {
     }
 
     public downloadScores(runId: string) {
-        this.scoreService.getApiScoreRunWithRunidTasksCsv(runId).subscribe(scoresCSV => {
+        this.scoreService.getApiV1ScoreRunWithRunidTasksCsv(runId).subscribe(scoresCSV => {
             const csvBlob = new Blob([scoresCSV], {type: 'text/csv'});
             const fake = document.createElement('a');
             fake.href = URL.createObjectURL(csvBlob);

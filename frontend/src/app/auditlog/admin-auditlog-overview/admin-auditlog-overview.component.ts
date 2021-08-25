@@ -61,7 +61,7 @@ export class AdminAuditlogOverviewComponent implements AfterViewInit, OnDestroy 
     public ngAfterViewInit(): void {
         /* Initialize subscription for loading audit logs. */
         this.pollingSub = timer(0, this.pollingFrequency).pipe(
-            switchMap(s => this.logService.getApiAuditInfo()),
+            switchMap(s => this.logService.getApiV1AuditInfo()),
         ).subscribe(i => {
             this.length = i.size;
             if (this.paginator.pageIndex === 0) { /* Only the first page needs refreshing because logs are ordered chronologically. */

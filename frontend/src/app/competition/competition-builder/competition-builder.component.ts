@@ -181,7 +181,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public save() {
         if (this.form.valid) {
             this.fetchDataToCompetition();
-            this.competitionService.patchApiCompetition(this.competition).subscribe(
+            this.competitionService.patchApiV1Competition(this.competition).subscribe(
                 (c) => {
                     this.snackBar.open(c.description, null, {duration: 5000});
                     this.dirty = false;
@@ -211,7 +211,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
 
     public refresh() {
         if (this.checkDirty()) {
-            this.competitionService.getApiCompetitionWithCompetitionid(this.competitionId).subscribe(
+            this.competitionService.getApiV1CompetitionWithCompetitionid(this.competitionId).subscribe(
                 (c) => {
                     this.competition = c;
                     this.form.get('name').setValue(c.name);

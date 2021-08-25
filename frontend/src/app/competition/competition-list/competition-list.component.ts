@@ -38,7 +38,7 @@ export class CompetitionListComponent implements AfterViewInit {
         dialogRef.afterClosed().pipe(
             filter(r => r != null),
             flatMap((r: CompetitionCreate) => {
-                return this.competitionService.postApiCompetition(r);
+                return this.competitionService.postApiV1Competition(r);
             })
         ).subscribe((r) => {
             this.refresh();
@@ -54,7 +54,7 @@ export class CompetitionListComponent implements AfterViewInit {
             filter(r => r != null),
             tap(r => this.waitingForRun = true),
             flatMap((r: CompetitionStartDialogResult) => {
-                return this.runAdminService.postApiRunAdminCreate(
+                return this.runAdminService.postApiV1RunAdminCreate(
                     {competitionId: id, name: r.name, type: r.type, scoreboards: []} as CompetitionStartMessage
                 );
             })
@@ -73,7 +73,7 @@ export class CompetitionListComponent implements AfterViewInit {
 
     public delete(competitionId: string) {
         if (confirm(`Do you really want to delete competition with ID ${competitionId}?`)) {
-            this.competitionService.deleteApiCompetitionWithCompetitionid(competitionId).subscribe(
+            this.competitionService.deleteApiV1CompetitionWithCompetitionid(competitionId).subscribe(
                 (r) => {
                     this.refresh();
                     this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
@@ -86,7 +86,7 @@ export class CompetitionListComponent implements AfterViewInit {
     }
 
     public refresh() {
-        this.competitionService.getApiCompetitionList().subscribe((results: CompetitionOverview[]) => {
+        this.competitionService.getApiV1CompetitionList().subscribe((results: CompetitionOverview[]) => {
                 this.competitions = results;
             },
             (r) => {

@@ -30,7 +30,7 @@ export class AdminUserListComponent implements AfterViewInit {
     dialogRef.afterClosed().pipe(
         filter(r => r != null),
         flatMap((u: UserRequest) => {
-          return this.userService.postApiUser(u);
+          return this.userService.postApiV1User(u);
         })
     ).subscribe((r) => {
       this.refresh();
@@ -46,7 +46,7 @@ export class AdminUserListComponent implements AfterViewInit {
         filter(r => r != null),
         flatMap((u: UserRequest) => {
           console.debug(`Edit Result: ${u}`);
-          return this.userService.patchApiUserWithUserid(user.id, u);
+          return this.userService.patchApiV1UserWithUserid(user.id, u);
         })
     ).subscribe((r) => {
       this.refresh();
@@ -58,7 +58,7 @@ export class AdminUserListComponent implements AfterViewInit {
 
   public delete(userId: number) {
     if (confirm(`Do you really want to delete user (${userId})?`)) {
-      this.userService.deleteApiUserWithUserid(userId).subscribe((u: UserDetails) => {
+      this.userService.deleteApiV1UserWithUserid(userId).subscribe((u: UserDetails) => {
             this.refresh();
             this.snackBar.open(`Success: ${u.username} (${u.id}) deleted`, null, {duration: 5000});
           },
@@ -70,7 +70,7 @@ export class AdminUserListComponent implements AfterViewInit {
   }
 
   public refresh() {
-    this.userService.getApiUserList().subscribe((users: UserDetails[]) => {
+    this.userService.getApiV1UserList().subscribe((users: UserDetails[]) => {
           this.users = users;
         },
         (error) => {

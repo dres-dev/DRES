@@ -115,7 +115,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
         this.statusSub = interval(this.pollingFrequency).pipe(
             withLatestFrom(this.runId),
             switchMap(([i, runId]) => {
-                return this.judgementService.getApiRunWithRunidJudgeStatus(runId).pipe(
+                return this.judgementService.getApiV1RunWithRunidJudgeStatus(runId).pipe(
                     catchError(err => {
                         console.log('Error in JudgeStatus');
                         console.log(err);
@@ -140,7 +140,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
             switchMap(([i, runId]) => {
                 /* Stop polling while judgment is ongooing */
                 if (this.runId && !this.isJudgmentAvailable) {
-                    return this.judgementService.getApiRunWithRunidJudgeNext(runId, 'response').pipe(
+                    return this.judgementService.getApiV1RunWithRunidJudgeNext(runId, 'response').pipe(
                         map((req: HttpResponse<JudgementRequest>) => {
                             if (req.status === 202) {
                                 this.noJudgementMessage = 'There is currently no submission awaiting judgement.';
@@ -211,7 +211,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
             verdict: status
         } as Judgement;
         this.runId.pipe(
-            switchMap(runId => this.judgementService.postApiRunWithRunidJudge(runId, judgement))
+            switchMap(runId => this.judgementService.postApiV1RunWithRunidJudge(runId, judgement))
         ).subscribe(res => {
             this.snackBar.open(res.description, null, {duration: 5000});
         });

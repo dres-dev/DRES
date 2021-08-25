@@ -42,7 +42,7 @@ export class AuditlogDatasource implements DataSource<RestAuditLogEntry> {
      */
     refresh(pageIndex = 0, pageSize = 100) {
         this.loadingSubject.next(true);
-        this.logService.getApiAuditListWithLimitWithPage(pageSize, pageIndex).pipe(
+        this.logService.getApiV1AuditListWithLimitWithPage(pageSize, pageIndex).pipe(
             first(),
             catchError(() => of([])),
             finalize(() => this.loadingSubject.next(false))

@@ -38,7 +38,7 @@ export class CompetitionBuilderTeamDialogComponent {
             users: new FormControl(team?.users != null ? team.users : []),
             userInput: new FormControl('')
         });
-        this.availableUsers = this.userService.getApiUserList().pipe(
+        this.availableUsers = this.userService.getApiV1UserList().pipe(
             shareReplay(1)
         );
     }

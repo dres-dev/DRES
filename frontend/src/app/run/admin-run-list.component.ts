@@ -21,7 +21,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
     }
 
     public start(runId: string) {
-        this.runAdminService.postApiRunAdminWithRunidStart(runId).subscribe(
+        this.runAdminService.postApiV1RunAdminWithRunidStart(runId).subscribe(
             (r) => {
                 this.update.next();
                 this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
@@ -40,7 +40,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
         });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                this.runAdminService.postApiRunAdminWithRunidTerminate(runId).subscribe(
+                this.runAdminService.postApiV1RunAdminWithRunidTerminate(runId).subscribe(
                     (r) => {
                         this.update.next();
                         this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
@@ -53,7 +53,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
     }
 
     public nextTask(runId: string) {
-        this.runAdminService.postApiRunAdminWithRunidTaskNext(runId).subscribe(
+        this.runAdminService.postApiV1RunAdminWithRunidTaskNext(runId).subscribe(
             (r) => {
                 this.update.next();
                 this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
@@ -64,7 +64,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
     }
 
     public previousTask(runId: string) {
-        this.runAdminService.postApiRunAdminWithRunidTaskPrevious(runId).subscribe(
+        this.runAdminService.postApiV1RunAdminWithRunidTaskPrevious(runId).subscribe(
             (r) => {
                 this.update.next();
                 this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
@@ -75,7 +75,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
     }
 
     public startTask(runId: string) {
-        this.runAdminService.postApiRunAdminWithRunidTaskStart(runId).subscribe(
+        this.runAdminService.postApiV1RunAdminWithRunidTaskStart(runId).subscribe(
             (r) => {
                 this.update.next();
                 this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
@@ -94,7 +94,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
         });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                this.runAdminService.postApiRunAdminWithRunidTaskAbort(runId).subscribe(
+                this.runAdminService.postApiV1RunAdminWithRunidTaskAbort(runId).subscribe(
                     (r) => {
                         this.update.next();
                         this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});

@@ -27,6 +27,7 @@ import java.nio.file.NoSuchFileException
 abstract class CompetitionHandler(protected val competitions: DAO<CompetitionDescription>) : RestHandler, AccessManagedRestHandler {
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.ADMIN)
+    override val apiVersion = "v1"
 
     private fun competitionId(ctx: Context): UID =
             ctx.pathParamMap().getOrElse("competitionId") {
@@ -55,13 +56,14 @@ data class CompetitionCreate(val name: String, val description: String, val part
 class GetTeamLogoHandler(val config: Config) : AbstractCompetitionRunRestHandler(), GetRestHandler<Any> {
 
     override val route = "competition/logo/:logoId"
+    override val apiVersion = "v1"
 
     //not used
     override fun doGet(ctx: Context): Any = ""
 
     @OpenApi(
             summary = "Returns the logo for the given logo ID.",
-            path = "/api/competition/logo/:logoId",
+            path = "/api/v1/competition/logo/:logoId",
             tags = ["Competition Run", "Media"],
             pathParams = [OpenApiParam("logoId", UID::class, "The ID of the logo.")],
             responses = [OpenApiResponse("200"), OpenApiResponse("401"), OpenApiResponse("400"), OpenApiResponse("404")],
@@ -98,7 +100,7 @@ class ListCompetitionHandler(competitions: DAO<CompetitionDescription>) : Compet
 
     @OpenApi(
             summary = "Lists an overview of all available competitions with basic information about their content.",
-            path = "/api/competition/list",
+            path = "/api/v1/competition/list",
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<CompetitionOverview>::class)]),
@@ -114,7 +116,7 @@ class GetCompetitionHandler(competitions: DAO<CompetitionDescription>) : Competi
 
     @OpenApi(
             summary = "Loads the detailed definition of a specific competition.",
-            path = "/api/competition/:competitionId",
+            path = "/api/v1/competition/:competitionId",
             pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
@@ -135,7 +137,7 @@ class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
 
     @OpenApi(
             summary = "Lists the Teams of a specific competition.",
-            path = "/api/competition/:competitionId/team/list",
+            path = "/api/v1/competition/:competitionId/team/list",
             pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
@@ -159,7 +161,7 @@ class ListDetailedTeamHandler(competitions: DAO<CompetitionDescription>) : Compe
 
     @OpenApi(
             summary="Lists the teams with their user details",
-            path= "/api/competition/:competitionId/team/list/details",
+            path = "/api/v1/competition/:competitionId/team/list/details",
             pathParams= [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
@@ -179,7 +181,7 @@ class ListTaskHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
 
     @OpenApi(
             summary = "Lists the Tasks of a specific competition.",
-            path = "/api/competition/:competitionId/task/list",
+            path = "/api/v1/competition/:competitionId/task/list",
             pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
@@ -197,7 +199,7 @@ class ListTaskHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
 class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), PostRestHandler<SuccessStatus> {
     @OpenApi(
             summary = "Creates a new competition.",
-            path = "/api/competition", method = HttpMethod.POST,
+            path = "/api/v1/competition", method = HttpMethod.POST,
             requestBody = OpenApiRequestBody([OpenApiContent(CompetitionCreate::class)]),
             tags = ["Competition"],
             responses = [
@@ -225,7 +227,7 @@ class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
 class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>, val config: Config, val mediaItems: DAO<MediaItem>) : CompetitionHandler(competitions), PatchRestHandler<SuccessStatus> {
     @OpenApi(
             summary = "Updates an existing competition.",
-            path = "/api/competition", method = HttpMethod.PATCH,
+            path = "/api/v1/competition", method = HttpMethod.PATCH,
             requestBody = OpenApiRequestBody([OpenApiContent(RestCompetitionDescription::class)]),
             tags = ["Competition"],
             responses = [
@@ -265,7 +267,7 @@ class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>, val co
 class DeleteCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), DeleteRestHandler<SuccessStatus> {
     @OpenApi(
             summary = "Deletes the competition with the given competition ID.",
-            path = "/api/competition/:competitionId", method = HttpMethod.DELETE,
+            path = "/api/v1/competition/:competitionId", method = HttpMethod.DELETE,
             pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
             tags = ["Competition"],
             responses = [

@@ -22,6 +22,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiResponse
 abstract class AbstractCompetitionRunClientInfoHandler : RestHandler, AccessManagedRestHandler {
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.VIEWER)
+    override val apiVersion = "v1"
 
     private fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionId())!!
 
@@ -70,7 +71,7 @@ class ListCompetitionRunClientInfoHandler : AbstractCompetitionRunClientInfoHand
 
     @OpenApi(
         summary = "Lists an overview of all competition runs visible to the current client",
-        path = "/api/runInfo/list",
+        path = "/api/v1/runInfo/list",
         tags = ["Client Run Info"],
         queryParams = [
             OpenApiParam("session", String::class, "Session Token", required = true, allowEmptyValue = false)
@@ -99,7 +100,7 @@ class CompetitionRunClientCurrentTaskInfoHandler : AbstractCompetitionRunClientI
 
     @OpenApi(
         summary = "Returns an overview of the currently active task for a run",
-        path = "/api/runInfo/currentTask/:runId",
+        path = "/api/v1/runInfo/currentTask/:runId",
         tags = ["Client Run Info"],
         queryParams = [
             OpenApiParam("session", String::class, "Session Token", required = true, allowEmptyValue = false)

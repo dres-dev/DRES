@@ -22,6 +22,8 @@ import io.javalin.plugin.openapi.annotations.*
 
 abstract class LogHandler : PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
 
+    override val apiVersion = "v1" //is ignored
+
     private fun getRelevantManagers(userId: UID): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
     protected fun getActiveRun(userId: UID, ctx: Context): RunManager {

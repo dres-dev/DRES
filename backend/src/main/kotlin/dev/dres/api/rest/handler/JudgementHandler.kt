@@ -21,6 +21,7 @@ import io.javalin.plugin.openapi.annotations.*
 
 abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler {
     override val permittedRoles: Set<Role> = setOf(RestApiRole.JUDGE)
+    override val apiVersion = "v1"
 
     protected fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
         throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx)
@@ -38,7 +39,7 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
 
     @OpenApi(
             summary = "Gets the next open Submission to be judged.",
-            path = "/api/run/:runId/judge/next",
+            path = "/api/v1/run/:runId/judge/next",
             pathParams = [OpenApiParam("runId", dev.dres.data.model.UID::class, "Run ID")],
             tags = ["Judgement"],
             responses = [
@@ -74,7 +75,7 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
 
     @OpenApi(
             summary = "Returns a Judgement.",
-            path = "/api/run/:runId/judge", method = HttpMethod.POST,
+            path = "/api/v1/run/:runId/judge", method = HttpMethod.POST,
             pathParams = [OpenApiParam("runId", dev.dres.data.model.UID::class, "Run ID")],
             requestBody = OpenApiRequestBody([OpenApiContent(Judgement::class)]),
             tags = ["Judgement"],
@@ -107,11 +108,12 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
 class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, AccessManagedRestHandler {
     override val permittedRoles = setOf(RestApiRole.VIEWER)
     override val route = "run/:runId/judge/status"
+    override val apiVersion = "v1"
 
 
     @OpenApi(
             summary = "Gets the status of all judgement validators.",
-            path = "/api/run/:runId/judge/status",
+            path = "/api/v1/run/:runId/judge/status",
             pathParams = [OpenApiParam("runId", dev.dres.data.model.UID::class, "Run ID")],
             tags = ["Judgement"],
             responses = [
@@ -137,11 +139,12 @@ data class JudgementValidatorStatus(val validator: String, val pending: Int, val
 
 class JudgementVoteHandler : PostRestHandler<SuccessStatus> {
     override val route = "run/:runId/judge/vote"
+    override val apiVersion = "v1"
 
 
     @OpenApi(
         summary = "Returns a Vote.",
-        path = "/api/run/:runId/judge/vote", method = HttpMethod.POST,
+        path = "/api/v1/run/:runId/judge/vote", method = HttpMethod.POST,
         pathParams = [OpenApiParam("runId", dev.dres.data.model.UID::class, "Run ID")],
         requestBody = OpenApiRequestBody([OpenApiContent(JudgementVote::class)]),
         tags = ["Judgement"],
@@ -183,7 +186,7 @@ class NextOpenVoteJudgementHandler(val collections: DAO<MediaCollection>) : Abst
 
     @OpenApi(
         summary = "Gets the next open Submission to voted on.",
-        path = "/api/run/:runId/vote/next",
+        path = "/api/v1/run/:runId/vote/next",
         pathParams = [OpenApiParam("runId", dev.dres.data.model.UID::class, "Run ID")],
         tags = ["Judgement"],
         responses = [

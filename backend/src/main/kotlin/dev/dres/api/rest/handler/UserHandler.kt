@@ -30,6 +30,8 @@ data class UserDetails(val id: String, val username: String, val role: Role, val
 
 abstract class UserHandler : RestHandler {
 
+    override val apiVersion = "v1"
+    
     protected fun getFromSessionOrDie(ctx: Context): User {
         return UserManager.get(id = AccessManager.getUserIdForSession(ctx.sessionId())!!)
                 ?: throw ErrorStatusException(404, "User could not be found!", ctx)
@@ -59,7 +61,7 @@ class ListUsersHandler : UserHandler(), GetRestHandler<List<UserDetails>>, Acces
 
     @OpenApi(
             summary = "Lists all available users.",
-            path = "/api/user/list",
+            path = "/api/v1/user/list",
             tags = ["User"],
             responses = [OpenApiResponse("200", [OpenApiContent(Array<UserDetails>::class)])]
     )
@@ -76,7 +78,7 @@ class UserDetailsHandler : UserHandler(), GetRestHandler<UserDetails>, AccessMan
 
     @OpenApi(
             summary = "Gets details of the user with the given id",
-            path = "/api/user/:userId",
+            path = "/api/v1/user/:userId",
             pathParams = [
                 OpenApiParam("userId", UID::class, "User's UID")
             ],
@@ -98,7 +100,7 @@ class DeleteUsersHandler : UserHandler(), DeleteRestHandler<UserDetails>, Access
 
     @OpenApi(
             summary = "Deletes the specified user. Requires ADMIN privileges",
-            path = "/api/user/:userId", method = HttpMethod.DELETE,
+            path = "/api/v1/user/:userId", method = HttpMethod.DELETE,
             pathParams = [OpenApiParam("userId", Long::class, "User ID")],
             tags = ["User"],
             responses = [
@@ -126,7 +128,7 @@ class CreateUsersHandler : UserHandler(), PostRestHandler<UserDetails>, AccessMa
 
     @OpenApi(
             summary = "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
-            path = "/api/user", method = HttpMethod.POST,
+            path = "/api/v1/user", method = HttpMethod.POST,
             requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
             tags = ["User"],
             responses = [
@@ -154,7 +156,7 @@ class UpdateUsersHandler : UserHandler(), PatchRestHandler<UserDetails>, AccessM
 
     @OpenApi(
             summary = "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone",
-            path = "/api/user/:userId", method = HttpMethod.PATCH,
+            path = "/api/v1/user/:userId", method = HttpMethod.PATCH,
             pathParams = [OpenApiParam("userId", UID::class, "User ID")],
             requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
             tags = ["User"],
@@ -201,7 +203,7 @@ class CurrentUsersHandler : UserHandler(), GetRestHandler<UserDetails>, AccessMa
 
     @OpenApi(
             summary = "Get information about the current user.",
-            path = "/api/user",
+            path = "/api/v1/user",
             tags = ["User"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
@@ -222,7 +224,7 @@ class CurrentUsersSessionIdHandler : UserHandler(), GetRestHandler<SessionId>, A
 
     @OpenApi(
             summary = "Get current sessionId",
-            path = "/api/user/session",
+            path = "/api/v1/user/session",
             tags = ["User"],
             queryParams = [
                 OpenApiParam("session", String::class, "Session Token")
@@ -245,11 +247,12 @@ class ActiveSessionsHandler(private val users: DAO<User>) : GetRestHandler<List<
 
     override val permittedRoles = setOf(RestApiRole.ADMIN)
     override val route = "user/session/active/list"
+    override val apiVersion = "v1"
 
 
     @OpenApi(
             summary = "Get details of all current user sessions",
-            path = "/api/user/session/active/list",
+            path = "/api/v1/user/session/active/list",
             tags = ["User"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<UserDetails>::class)]),

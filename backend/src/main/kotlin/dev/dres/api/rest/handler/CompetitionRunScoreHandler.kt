@@ -30,6 +30,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiResponse
 abstract class AbstractScoreRestHandler : RestHandler, AccessManagedRestHandler {
 
     override val permittedRoles: Set<Role> = setOf(RestApiRole.VIEWER)
+    override val apiVersion = "v1"
 
     private fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionId())!!
 
@@ -70,7 +71,7 @@ class ListCompetitionScoreHandler : AbstractScoreRestHandler(), GetRestHandler<L
 
     @OpenApi(
             summary = "Returns the score overviews of a specific competition run.",
-            path = "/api/score/run/:runId",
+            path = "/api/v1/score/run/:runId",
             tags = ["Competition Run Scores"],
             pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             responses = [
@@ -98,7 +99,7 @@ class CurrentTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
 
     @OpenApi(
             summary = "Returns the overviews of all score boards for the current task run, if it is either running or has just ended.",
-            path = "/api/score/run/:runId/current",
+            path = "/api/v1/score/run/:runId/current",
             tags = ["Competition Run Scores"],
             pathParams = [OpenApiParam("runId", UID::class, "Competition run ID")],
             responses = [
@@ -142,7 +143,7 @@ class HistoryTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
 
     @OpenApi(
             summary = "Returns the overviews of all score boards for the specified task run.",
-            path = "/api/score/run/:runId/history/:taskId",
+            path = "/api/v1/score/run/:runId/history/:taskId",
             tags = ["Competition Run Scores"],
             pathParams = [
                 OpenApiParam("runId", String::class, "Competition run ID"),
@@ -188,7 +189,7 @@ class TaskScoreListCSVHandler : AbstractScoreRestHandler(), GetRestHandler<Strin
 
     @OpenApi(
         summary = "Provides a CSV with the scores for a given competition run",
-        path = "/api/score/run/:runId/tasks/csv",
+        path = "/api/v1/score/run/:runId/tasks/csv",
         tags = ["Competition Run Scores"],
         pathParams = [
             OpenApiParam("runId", String::class, "Competition run ID")
@@ -224,7 +225,7 @@ class ListScoreboardsHandler : AbstractScoreRestHandler(), GetRestHandler<List<S
 
     @OpenApi(
         summary = "Returns a list of available scoreboard names for the given run.",
-        path = "/api/score/run/:runId/scoreboards",
+        path = "/api/v1/score/run/:runId/scoreboards",
         tags = ["Competition Run Scores"],
         pathParams = [
             OpenApiParam("runId", String::class, "ID of the competition run.", required = true)
@@ -251,7 +252,7 @@ class ListScoreSeriesHandler : AbstractScoreRestHandler(), GetRestHandler<List<S
 
     @OpenApi(
         summary = "Returns a time series for a given run and scoreboard.",
-        path = "/api/score/run/:runId/series/:scoreboard",
+        path = "/api/v1/score/run/:runId/series/:scoreboard",
         tags = ["Competition Run Scores"],
         pathParams = [
             OpenApiParam("runId", String::class, "ID of the competition run.", required = true),
@@ -286,7 +287,7 @@ class TeamGroupScoreHandler : AbstractScoreRestHandler(), GetRestHandler<List<Te
 
     @OpenApi(
         summary = "Returns team group aggregated values of the current task.",
-        path = "/api/score/run/:runId/teamGroups",
+        path = "/api/v1/score/run/:runId/teamGroups",
         tags = ["Competition Run Scores"],
         pathParams = [
             OpenApiParam("runId", String::class, "ID of the competition run.", required = true),

@@ -17,6 +17,7 @@ import io.javalin.plugin.openapi.annotations.OpenApiResponse
 
 abstract class AuditLogHandler(val auditTimes: NumericDaoIndexer<AuditLogEntry, Long>) : RestHandler, AccessManagedRestHandler {
     override val permittedRoles: Set<Role> = setOf(RestApiRole.ADMIN)
+    override val apiVersion = "v1"
 
 }
 
@@ -26,7 +27,7 @@ class GetAuditLogInfoHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>)
 
     @OpenApi(
             summary = "Gives information about the audit log. Namely size and latest timestamp of known audit logs",
-            path = "/api/audit/info",
+            path = "/api/v1/audit/info",
             tags = ["Audit"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(AuditLogInfo::class)], description = "The audit log info"),
@@ -45,7 +46,7 @@ class ListAuditLogsInRangeHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, L
 
     @OpenApi(
             summary = "Lists all audit logs matching the query",
-            path = "/api/audit/logs/:since/:upto",
+            path = "/api/v1/audit/logs/:since/:upto",
             pathParams = [
                 OpenApiParam("since", Long::class, "Timestamp of the earliest audit log to include"),
                 OpenApiParam("upto", Long::class, "Timestamp of the latest audit log to include.")
@@ -118,7 +119,7 @@ class ListAuditLogsHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, v
 
     @OpenApi(
             summary = "Lists all audit logs matching the query.",
-            path = "/api/audit/list/:limit/:page",
+            path = "/api/v1/audit/list/:limit/:page",
             pathParams = [
                 OpenApiParam(LIMIT_PARAM, Int::class, "The maximum number of results. Default: 500"),
                 OpenApiParam(PAGE_INDEX_PARAM, Int::class, "The page index offset, relative to the limit.")

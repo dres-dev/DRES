@@ -188,31 +188,36 @@ object RestApi {
         }.routes {
 
             path("api") {
-                apiRestHandlers.forEach { handler ->
-                    path(handler.route) {
 
-                        val permittedRoles = if (handler is AccessManagedRestHandler) {
-                            handler.permittedRoles
-                        } else {
-                            roles(RestApiRole.ANYONE)
+                apiRestHandlers.groupBy { it.apiVersion }.forEach { apiGroup ->
+                    path(apiGroup.key) {
+                        apiGroup.value.forEach { handler ->
+                            path(handler.route) {
+
+                                val permittedRoles = if (handler is AccessManagedRestHandler) {
+                                    handler.permittedRoles
+                                } else {
+                                    roles(RestApiRole.ANYONE)
+                                }
+
+                                if (handler is GetRestHandler<*>) {
+                                    get(handler::get, permittedRoles)
+                                }
+
+                                if (handler is PostRestHandler<*>) {
+                                    post(handler::post, permittedRoles)
+                                }
+
+                                if (handler is PatchRestHandler<*>) {
+                                    patch(handler::patch, permittedRoles)
+                                }
+
+                                if (handler is DeleteRestHandler<*>) {
+                                    delete(handler::delete, permittedRoles)
+                                }
+
+                            }
                         }
-
-                        if (handler is GetRestHandler<*>) {
-                            get(handler::get, permittedRoles)
-                        }
-
-                        if (handler is PostRestHandler<*>) {
-                            post(handler::post, permittedRoles)
-                        }
-
-                        if (handler is PatchRestHandler<*>) {
-                            patch(handler::patch, permittedRoles)
-                        }
-
-                        if (handler is DeleteRestHandler<*>) {
-                            delete(handler::delete, permittedRoles)
-                        }
-
                     }
                 }
                 ws("ws/run", runExecutor)

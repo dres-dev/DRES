@@ -6,11 +6,11 @@
     "version" : "1.0"
   },
   "paths" : {
-    "/api/login" : {
+    "/api/v1/login" : {
       "post" : {
         "tags" : [ "User" ],
         "summary" : "Sets roles for session based on user account and returns a session cookie.",
-        "operationId" : "postApiLogin",
+        "operationId" : "postApiV1Login",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -54,11 +54,11 @@
         }
       }
     },
-    "/api/logout" : {
+    "/api/v1/logout" : {
       "get" : {
         "tags" : [ "User" ],
         "summary" : "Clears all user roles of the current session.",
-        "operationId" : "getApiLogout",
+        "operationId" : "getApiV1Logout",
         "parameters" : [ {
           "name" : "session",
           "in" : "query",
@@ -91,11 +91,11 @@
         }
       }
     },
-    "/api/user/list" : {
+    "/api/v1/user/list" : {
       "get" : {
         "tags" : [ "User" ],
         "summary" : "Lists all available users.",
-        "operationId" : "getApiUserList",
+        "operationId" : "getApiV1UserList",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -113,11 +113,11 @@
         }
       }
     },
-    "/api/user" : {
+    "/api/v1/user" : {
       "get" : {
         "tags" : [ "User" ],
         "summary" : "Get information about the current user.",
-        "operationId" : "getApiUser",
+        "operationId" : "getApiV1User",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -144,7 +144,7 @@
       "post" : {
         "tags" : [ "User" ],
         "summary" : "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
-        "operationId" : "postApiUser",
+        "operationId" : "postApiV1User",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -188,11 +188,11 @@
         }
       }
     },
-    "/api/user/{userId}" : {
+    "/api/v1/user/{userId}" : {
       "get" : {
         "tags" : [ "User" ],
         "summary" : "Gets details of the user with the given id",
-        "operationId" : "getApiUserWithUserid",
+        "operationId" : "getApiV1UserWithUserid",
         "parameters" : [ {
           "name" : "userId",
           "in" : "path",
@@ -238,7 +238,7 @@
       "delete" : {
         "tags" : [ "User" ],
         "summary" : "Deletes the specified user. Requires ADMIN privileges",
-        "operationId" : "deleteApiUserWithUserid",
+        "operationId" : "deleteApiV1UserWithUserid",
         "parameters" : [ {
           "name" : "userId",
           "in" : "path",
@@ -285,7 +285,7 @@
       "patch" : {
         "tags" : [ "User" ],
         "summary" : "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone",
-        "operationId" : "patchApiUserWithUserid",
+        "operationId" : "patchApiV1UserWithUserid",
         "parameters" : [ {
           "name" : "userId",
           "in" : "path",
@@ -348,11 +348,11 @@
         }
       }
     },
-    "/api/user/session" : {
+    "/api/v1/user/session" : {
       "get" : {
         "tags" : [ "User" ],
         "summary" : "Get current sessionId",
-        "operationId" : "getApiUserSession",
+        "operationId" : "getApiV1UserSession",
         "parameters" : [ {
           "name" : "session",
           "in" : "query",
@@ -385,11 +385,11 @@
         }
       }
     },
-    "/api/user/session/active/list" : {
+    "/api/v1/user/session/active/list" : {
       "get" : {
         "tags" : [ "User" ],
         "summary" : "Get details of all current user sessions",
-        "operationId" : "getApiUserSessionActiveList",
+        "operationId" : "getApiV1UserSessionActiveList",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -417,11 +417,11 @@
         }
       }
     },
-    "/api/collection/list" : {
+    "/api/v1/collection/list" : {
       "get" : {
         "tags" : [ "Collection" ],
         "summary" : "Lists all available media collections with basic information about their content.",
-        "operationId" : "getApiCollectionList",
+        "operationId" : "getApiV1CollectionList",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -449,11 +449,11 @@
         }
       }
     },
-    "/api/collection/{collectionId}" : {
+    "/api/v1/collection/{collectionId}" : {
       "get" : {
         "tags" : [ "Collection" ],
         "summary" : "Shows the content of the specified media collection.",
-        "operationId" : "getApiCollectionWithCollectionid",
+        "operationId" : "getApiV1CollectionWithCollectionid",
         "parameters" : [ {
           "name" : "collectionId",
           "in" : "path",
@@ -499,7 +499,7 @@
       "delete" : {
         "tags" : [ "Collection" ],
         "summary" : "Deletes a media collection",
-        "operationId" : "deleteApiCollectionWithCollectionid",
+        "operationId" : "deleteApiV1CollectionWithCollectionid",
         "parameters" : [ {
           "name" : "collectionId",
           "in" : "path",
@@ -542,11 +542,11 @@
         }
       }
     },
-    "/api/collection" : {
+    "/api/v1/collection" : {
       "post" : {
         "tags" : [ "Collection" ],
         "summary" : "Adds a new media collection",
-        "operationId" : "postApiCollection",
+        "operationId" : "postApiV1Collection",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -592,7 +592,7 @@
       "patch" : {
         "tags" : [ "Collection" ],
         "summary" : "Updates a media collection",
-        "operationId" : "patchApiCollection",
+        "operationId" : "patchApiV1Collection",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -636,11 +636,11 @@
         }
       }
     },
-    "/api/mediaItem" : {
+    "/api/v1/mediaItem" : {
       "post" : {
         "tags" : [ "Collection" ],
         "summary" : "Adds a Media Item to the specified Media Collection.",
-        "operationId" : "postApiMediaitem",
+        "operationId" : "postApiV1Mediaitem",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -676,7 +676,7 @@
       "patch" : {
         "tags" : [ "Collection" ],
         "summary" : "Updates a Media Item to the specified Media Collection.",
-        "operationId" : "patchApiMediaitem",
+        "operationId" : "patchApiV1Mediaitem",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -710,11 +710,11 @@
         }
       }
     },
-    "/api/mediaItem/{mediaId}" : {
+    "/api/v1/mediaItem/{mediaId}" : {
       "get" : {
         "tags" : [ "Collection" ],
         "summary" : "Selects and returns a specific media item.",
-        "operationId" : "getApiMediaitemWithMediaid",
+        "operationId" : "getApiV1MediaitemWithMediaid",
         "parameters" : [ {
           "name" : "mediaId",
           "in" : "path",
@@ -770,7 +770,7 @@
       "delete" : {
         "tags" : [ "Collection" ],
         "summary" : "Selects and returns a specific media item.",
-        "operationId" : "deleteApiMediaitemWithMediaid",
+        "operationId" : "deleteApiV1MediaitemWithMediaid",
         "parameters" : [ {
           "name" : "mediaId",
           "in" : "path",
@@ -824,11 +824,11 @@
         }
       }
     },
-    "/api/collection/{collectionId}/random" : {
+    "/api/v1/collection/{collectionId}/random" : {
       "get" : {
         "tags" : [ "Collection" ],
         "summary" : "Selects and returns a random media item from a given media collection.",
-        "operationId" : "getApiCollectionWithCollectionidRandom",
+        "operationId" : "getApiV1CollectionWithCollectionidRandom",
         "parameters" : [ {
           "name" : "collectionId",
           "in" : "path",
@@ -882,11 +882,11 @@
         }
       }
     },
-    "/api/collection/{collectionId}/{startsWith}" : {
+    "/api/v1/collection/{collectionId}/{startsWith}" : {
       "get" : {
         "tags" : [ "Collection" ],
         "summary" : "Lists media items from a given media collection whose name start with the given string.",
-        "operationId" : "getApiCollectionWithCollectionidWithStartswith",
+        "operationId" : "getApiV1CollectionWithCollectionidWithStartswith",
         "parameters" : [ {
           "name" : "collectionId",
           "in" : "path",
@@ -951,11 +951,11 @@
         }
       }
     },
-    "/api/external/{startsWith}" : {
+    "/api/v1/external/{startsWith}" : {
       "get" : {
         "tags" : [ "Collection" ],
         "summary" : "Lists items from the external media collection whose name start with the given string.",
-        "operationId" : "getApiExternalWithStartswith",
+        "operationId" : "getApiV1ExternalWithStartswith",
         "parameters" : [ {
           "name" : "startsWith",
           "in" : "path",
@@ -1012,11 +1012,11 @@
         }
       }
     },
-    "/api/competition/list" : {
+    "/api/v1/competition/list" : {
       "get" : {
         "tags" : [ "Competition" ],
         "summary" : "Lists an overview of all available competitions with basic information about their content.",
-        "operationId" : "getApiCompetitionList",
+        "operationId" : "getApiV1CompetitionList",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1044,11 +1044,11 @@
         }
       }
     },
-    "/api/competition" : {
+    "/api/v1/competition" : {
       "post" : {
         "tags" : [ "Competition" ],
         "summary" : "Creates a new competition.",
-        "operationId" : "postApiCompetition",
+        "operationId" : "postApiV1Competition",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -1104,7 +1104,7 @@
       "patch" : {
         "tags" : [ "Competition" ],
         "summary" : "Updates an existing competition.",
-        "operationId" : "patchApiCompetition",
+        "operationId" : "patchApiV1Competition",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -1158,11 +1158,11 @@
         }
       }
     },
-    "/api/competition/{competitionId}" : {
+    "/api/v1/competition/{competitionId}" : {
       "get" : {
         "tags" : [ "Competition" ],
         "summary" : "Loads the detailed definition of a specific competition.",
-        "operationId" : "getApiCompetitionWithCompetitionid",
+        "operationId" : "getApiV1CompetitionWithCompetitionid",
         "parameters" : [ {
           "name" : "competitionId",
           "in" : "path",
@@ -1218,7 +1218,7 @@
       "delete" : {
         "tags" : [ "Competition" ],
         "summary" : "Deletes the competition with the given competition ID.",
-        "operationId" : "deleteApiCompetitionWithCompetitionid",
+        "operationId" : "deleteApiV1CompetitionWithCompetitionid",
         "parameters" : [ {
           "name" : "competitionId",
           "in" : "path",
@@ -1272,11 +1272,11 @@
         }
       }
     },
-    "/api/competition/{competitionId}/team/list" : {
+    "/api/v1/competition/{competitionId}/team/list" : {
       "get" : {
         "tags" : [ "Competition" ],
         "summary" : "Lists the Teams of a specific competition.",
-        "operationId" : "getApiCompetitionWithCompetitionidTeamList",
+        "operationId" : "getApiV1CompetitionWithCompetitionidTeamList",
         "parameters" : [ {
           "name" : "competitionId",
           "in" : "path",
@@ -1333,11 +1333,11 @@
         }
       }
     },
-    "/api/competition/{competitionId}/team/list/details" : {
+    "/api/v1/competition/{competitionId}/team/list/details" : {
       "get" : {
         "tags" : [ "Competition" ],
         "summary" : "Lists the teams with their user details",
-        "operationId" : "getApiCompetitionWithCompetitionidTeamListDetails",
+        "operationId" : "getApiV1CompetitionWithCompetitionidTeamListDetails",
         "parameters" : [ {
           "name" : "competitionId",
           "in" : "path",
@@ -1394,11 +1394,11 @@
         }
       }
     },
-    "/api/competition/{competitionId}/task/list" : {
+    "/api/v1/competition/{competitionId}/task/list" : {
       "get" : {
         "tags" : [ "Competition" ],
         "summary" : "Lists the Tasks of a specific competition.",
-        "operationId" : "getApiCompetitionWithCompetitionidTaskList",
+        "operationId" : "getApiV1CompetitionWithCompetitionidTaskList",
         "parameters" : [ {
           "name" : "competitionId",
           "in" : "path",
@@ -1455,11 +1455,11 @@
         }
       }
     },
-    "/api/run/info/list" : {
+    "/api/v1/run/info/list" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Lists an overview of all competition runs visible to the current user",
-        "operationId" : "getApiRunInfoList",
+        "operationId" : "getApiV1RunInfoList",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1487,11 +1487,11 @@
         }
       }
     },
-    "/api/run/state/list" : {
+    "/api/v1/run/state/list" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Lists an overview of all competition runs visible to the current user",
-        "operationId" : "getApiRunStateList",
+        "operationId" : "getApiV1RunStateList",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1519,11 +1519,11 @@
         }
       }
     },
-    "/api/run/info/{runId}" : {
+    "/api/v1/run/info/{runId}" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns a specific competition run.",
-        "operationId" : "getApiRunInfoWithRunid",
+        "operationId" : "getApiV1RunInfoWithRunid",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -1577,11 +1577,11 @@
         }
       }
     },
-    "/api/run/state/{runId}" : {
+    "/api/v1/run/state/{runId}" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the state of a specific competition run.",
-        "operationId" : "getApiRunStateWithRunid",
+        "operationId" : "getApiV1RunStateWithRunid",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -1635,11 +1635,11 @@
         }
       }
     },
-    "/api/run/{runId}/hint" : {
+    "/api/v1/run/{runId}/hint" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the task hint for the current task run (i.e. the one that is currently selected).",
-        "operationId" : "getApiRunWithRunidHint",
+        "operationId" : "getApiV1RunWithRunidHint",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -1693,11 +1693,11 @@
         }
       }
     },
-    "/api/run/{runId}/target" : {
+    "/api/v1/run/{runId}/target" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the task target for the current task run (i.e. the one that is currently selected).",
-        "operationId" : "getApiRunWithRunidTarget",
+        "operationId" : "getApiV1RunWithRunidTarget",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -1751,11 +1751,11 @@
         }
       }
     },
-    "/api/run/{runId}/task" : {
+    "/api/v1/run/{runId}/task" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the information for the current task (i.e. the one that is currently selected).",
-        "operationId" : "getApiRunWithRunidTask",
+        "operationId" : "getApiV1RunWithRunidTask",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -1809,11 +1809,11 @@
         }
       }
     },
-    "/api/run/{runId}/submissions" : {
+    "/api/v1/run/{runId}/submissions" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the submissions for the current task run, if it is either running or has just ended.",
-        "operationId" : "getApiRunWithRunidSubmissions",
+        "operationId" : "getApiV1RunWithRunidSubmissions",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -1864,11 +1864,11 @@
         }
       }
     },
-    "/api/run/{runId}/submissions/after/{timestamp}" : {
+    "/api/v1/run/{runId}/submissions/after/{timestamp}" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the submissions for the current task that are newer than an indicated time, if it is either running or has just ended.",
-        "operationId" : "getApiRunWithRunidSubmissionsAfterWithTimestamp",
+        "operationId" : "getApiV1RunWithRunidSubmissionsAfterWithTimestamp",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -1934,11 +1934,11 @@
         }
       }
     },
-    "/api/run/{runId}/task/{taskId}/submissions" : {
+    "/api/v1/run/{runId}/task/{taskId}/submissions" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the submissions of a specific task run, regardless of whether it is currently running or has ended.",
-        "operationId" : "getApiRunWithRunidTaskWithTaskidSubmissions",
+        "operationId" : "getApiV1RunWithRunidTaskWithTaskidSubmissions",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2003,11 +2003,11 @@
         }
       }
     },
-    "/api/score/run/{runId}" : {
+    "/api/v1/score/run/{runId}" : {
       "get" : {
         "tags" : [ "Competition Run Scores" ],
         "summary" : "Returns the score overviews of a specific competition run.",
-        "operationId" : "getApiScoreRunWithRunid",
+        "operationId" : "getApiV1ScoreRunWithRunid",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2054,11 +2054,11 @@
         }
       }
     },
-    "/api/score/run/{runId}/current" : {
+    "/api/v1/score/run/{runId}/current" : {
       "get" : {
         "tags" : [ "Competition Run Scores" ],
         "summary" : "Returns the overviews of all score boards for the current task run, if it is either running or has just ended.",
-        "operationId" : "getApiScoreRunWithRunidCurrent",
+        "operationId" : "getApiV1ScoreRunWithRunidCurrent",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2112,11 +2112,11 @@
         }
       }
     },
-    "/api/score/run/{runId}/history/{taskId}" : {
+    "/api/v1/score/run/{runId}/history/{taskId}" : {
       "get" : {
         "tags" : [ "Competition Run Scores" ],
         "summary" : "Returns the overviews of all score boards for the specified task run.",
-        "operationId" : "getApiScoreRunWithRunidHistoryWithTaskid",
+        "operationId" : "getApiV1ScoreRunWithRunidHistoryWithTaskid",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2178,11 +2178,11 @@
         }
       }
     },
-    "/api/score/run/{runId}/series/{scoreboard}" : {
+    "/api/v1/score/run/{runId}/series/{scoreboard}" : {
       "get" : {
         "tags" : [ "Competition Run Scores" ],
         "summary" : "Returns a time series for a given run and scoreboard.",
-        "operationId" : "getApiScoreRunWithRunidSeriesWithScoreboard",
+        "operationId" : "getApiV1ScoreRunWithRunidSeriesWithScoreboard",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2247,11 +2247,11 @@
         }
       }
     },
-    "/api/score/run/{runId}/scoreboards" : {
+    "/api/v1/score/run/{runId}/scoreboards" : {
       "get" : {
         "tags" : [ "Competition Run Scores" ],
         "summary" : "Returns a list of available scoreboard names for the given run.",
-        "operationId" : "getApiScoreRunWithRunidScoreboards",
+        "operationId" : "getApiV1ScoreRunWithRunidScoreboards",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2308,11 +2308,11 @@
         }
       }
     },
-    "/api/score/run/{runId}/tasks/csv" : {
+    "/api/v1/score/run/{runId}/tasks/csv" : {
       "get" : {
         "tags" : [ "Competition Run Scores" ],
         "summary" : "Provides a CSV with the scores for a given competition run",
-        "operationId" : "getApiScoreRunWithRunidTasksCsv",
+        "operationId" : "getApiV1ScoreRunWithRunidTasksCsv",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2366,11 +2366,11 @@
         }
       }
     },
-    "/api/score/run/{runId}/teamGroups" : {
+    "/api/v1/score/run/{runId}/teamGroups" : {
       "get" : {
         "tags" : [ "Competition Run Scores" ],
         "summary" : "Returns team group aggregated values of the current task.",
-        "operationId" : "getApiScoreRunWithRunidTeamgroups",
+        "operationId" : "getApiV1ScoreRunWithRunidTeamgroups",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2427,11 +2427,11 @@
         }
       }
     },
-    "/api/run/admin/create" : {
+    "/api/v1/run/admin/create" : {
       "post" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Creates a new competition run from an existing competition",
-        "operationId" : "postApiRunAdminCreate",
+        "operationId" : "postApiV1RunAdminCreate",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -2475,11 +2475,11 @@
         }
       }
     },
-    "/api/run/admin/{runId}/start" : {
+    "/api/v1/run/admin/{runId}/start" : {
       "post" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Starts a competition run. This is a method for admins.",
-        "operationId" : "postApiRunAdminWithRunidStart",
+        "operationId" : "postApiV1RunAdminWithRunidStart",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2523,11 +2523,11 @@
         }
       }
     },
-    "/api/run/admin/{runId}/task/next" : {
+    "/api/v1/run/admin/{runId}/task/next" : {
       "post" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Moves to and selects the next task. This is a method for admins.",
-        "operationId" : "postApiRunAdminWithRunidTaskNext",
+        "operationId" : "postApiV1RunAdminWithRunidTaskNext",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2571,11 +2571,11 @@
         }
       }
     },
-    "/api/run/admin/{runId}/task/previous" : {
+    "/api/v1/run/admin/{runId}/task/previous" : {
       "post" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Moves to and selects the previous task. This is a method for admins.",
-        "operationId" : "postApiRunAdminWithRunidTaskPrevious",
+        "operationId" : "postApiV1RunAdminWithRunidTaskPrevious",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2619,11 +2619,11 @@
         }
       }
     },
-    "/api/run/admin/{runId}/task/switch/{idx}" : {
+    "/api/v1/run/admin/{runId}/task/switch/{idx}" : {
       "post" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Moves to and selects the specified task. This is a method for admins.",
-        "operationId" : "postApiRunAdminWithRunidTaskSwitchWithIdx",
+        "operationId" : "postApiV1RunAdminWithRunidTaskSwitchWithIdx",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2676,11 +2676,11 @@
         }
       }
     },
-    "/api/run/admin/{runId}/task/start" : {
+    "/api/v1/run/admin/{runId}/task/start" : {
       "post" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Starts the currently active task as a new task run. This is a method for admins.",
-        "operationId" : "postApiRunAdminWithRunidTaskStart",
+        "operationId" : "postApiV1RunAdminWithRunidTaskStart",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2724,11 +2724,11 @@
         }
       }
     },
-    "/api/run/admin/{runId}/task/abort" : {
+    "/api/v1/run/admin/{runId}/task/abort" : {
       "post" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Aborts the currently running task run. This is a method for admins.",
-        "operationId" : "postApiRunAdminWithRunidTaskAbort",
+        "operationId" : "postApiV1RunAdminWithRunidTaskAbort",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2772,11 +2772,11 @@
         }
       }
     },
-    "/api/run/admin/{runId}/terminate" : {
+    "/api/v1/run/admin/{runId}/terminate" : {
       "post" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Terminates a competition run. This is a method for admins.",
-        "operationId" : "postApiRunAdminWithRunidTerminate",
+        "operationId" : "postApiV1RunAdminWithRunidTerminate",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2820,11 +2820,11 @@
         }
       }
     },
-    "/api/run/admin/{runId}/adjust/{duration}" : {
+    "/api/v1/run/admin/{runId}/adjust/{duration}" : {
       "post" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Adjusts the duration of a running task run. This is a method for admins.",
-        "operationId" : "postApiRunAdminWithRunidAdjustWithDuration",
+        "operationId" : "postApiV1RunAdminWithRunidAdjustWithDuration",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2887,11 +2887,11 @@
         }
       }
     },
-    "/api/run/admin/{runId}/viewer/list" : {
+    "/api/v1/run/admin/{runId}/viewer/list" : {
       "get" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Lists all registered viewers for a competition run. This is a method for admins.",
-        "operationId" : "getApiRunAdminWithRunidViewerList",
+        "operationId" : "getApiV1RunAdminWithRunidViewerList",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2948,11 +2948,11 @@
         }
       }
     },
-    "/api/run/admin/{runId}/viewers/{viewerId}/force" : {
+    "/api/v1/run/admin/{runId}/viewers/{viewerId}/force" : {
       "post" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Forces a viewer with the given viewer ID into the READY state. This is a method for admins.",
-        "operationId" : "postApiRunAdminWithRunidViewersWithVieweridForce",
+        "operationId" : "postApiV1RunAdminWithRunidViewersWithVieweridForce",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -3014,11 +3014,11 @@
         }
       }
     },
-    "/api/run/admin/{runId}/submissions/list/{taskId}" : {
+    "/api/v1/run/admin/{runId}/submissions/list/{taskId}" : {
       "get" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Lists all submissions for a given task and run.",
-        "operationId" : "getApiRunAdminWithRunidSubmissionsListWithTaskid",
+        "operationId" : "getApiV1RunAdminWithRunidSubmissionsListWithTaskid",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -3083,11 +3083,11 @@
         }
       }
     },
-    "/api/run/admin/{runId}/submissions/override" : {
+    "/api/v1/run/admin/{runId}/submissions/override" : {
       "patch" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Lists all submissions for a given task and run",
-        "operationId" : "patchApiRunAdminWithRunidSubmissionsOverride",
+        "operationId" : "patchApiV1RunAdminWithRunidSubmissionsOverride",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -3150,11 +3150,11 @@
         }
       }
     },
-    "/api/run/{runId}/judge/next" : {
+    "/api/v1/run/{runId}/judge/next" : {
       "get" : {
         "tags" : [ "Judgement" ],
         "summary" : "Gets the next open Submission to be judged.",
-        "operationId" : "getApiRunWithRunidJudgeNext",
+        "operationId" : "getApiV1RunWithRunidJudgeNext",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -3218,11 +3218,11 @@
         }
       }
     },
-    "/api/run/{runId}/vote/next" : {
+    "/api/v1/run/{runId}/vote/next" : {
       "get" : {
         "tags" : [ "Judgement" ],
         "summary" : "Gets the next open Submission to voted on.",
-        "operationId" : "getApiRunWithRunidVoteNext",
+        "operationId" : "getApiV1RunWithRunidVoteNext",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -3286,11 +3286,11 @@
         }
       }
     },
-    "/api/run/{runId}/judge" : {
+    "/api/v1/run/{runId}/judge" : {
       "post" : {
         "tags" : [ "Judgement" ],
         "summary" : "Returns a Judgement.",
-        "operationId" : "postApiRunWithRunidJudge",
+        "operationId" : "postApiV1RunWithRunidJudge",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -3353,11 +3353,11 @@
         }
       }
     },
-    "/api/run/{runId}/judge/status" : {
+    "/api/v1/run/{runId}/judge/status" : {
       "get" : {
         "tags" : [ "Judgement" ],
         "summary" : "Gets the status of all judgement validators.",
-        "operationId" : "getApiRunWithRunidJudgeStatus",
+        "operationId" : "getApiV1RunWithRunidJudgeStatus",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -3404,11 +3404,11 @@
         }
       }
     },
-    "/api/run/{runId}/judge/vote" : {
+    "/api/v1/run/{runId}/judge/vote" : {
       "post" : {
         "tags" : [ "Judgement" ],
         "summary" : "Returns a Vote.",
-        "operationId" : "postApiRunWithRunidJudgeVote",
+        "operationId" : "postApiV1RunWithRunidJudgeVote",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -3471,11 +3471,11 @@
         }
       }
     },
-    "/api/audit/info" : {
+    "/api/v1/audit/info" : {
       "get" : {
         "tags" : [ "Audit" ],
         "summary" : "Gives information about the audit log. Namely size and latest timestamp of known audit logs",
-        "operationId" : "getApiAuditInfo",
+        "operationId" : "getApiV1AuditInfo",
         "responses" : {
           "200" : {
             "description" : "The audit log info",
@@ -3500,11 +3500,11 @@
         }
       }
     },
-    "/api/audit/logs/{since}/{upto}" : {
+    "/api/v1/audit/logs/{since}/{upto}" : {
       "get" : {
         "tags" : [ "Audit" ],
         "summary" : "Lists all audit logs matching the query",
-        "operationId" : "getApiAuditLogsWithSinceWithUpto",
+        "operationId" : "getApiV1AuditLogsWithSinceWithUpto",
         "parameters" : [ {
           "name" : "since",
           "in" : "path",
@@ -3551,11 +3551,11 @@
         }
       }
     },
-    "/api/audit/list/{limit}/{page}" : {
+    "/api/v1/audit/list/{limit}/{page}" : {
       "get" : {
         "tags" : [ "Audit" ],
-        "summary" : "Lists all audit logs matching the query",
-        "operationId" : "getApiAuditListWithLimitWithPage",
+        "summary" : "Lists all audit logs matching the query.",
+        "operationId" : "getApiV1AuditListWithLimitWithPage",
         "parameters" : [ {
           "name" : "limit",
           "in" : "path",
@@ -3568,7 +3568,7 @@
         }, {
           "name" : "page",
           "in" : "path",
-          "description" : "The page index offset, relative to the limit",
+          "description" : "The page index offset, relative to the limit.",
           "required" : true,
           "schema" : {
             "type" : "integer",
@@ -3602,11 +3602,11 @@
         }
       }
     },
-    "/api/status/time" : {
+    "/api/v1/status/time" : {
       "get" : {
         "tags" : [ "Status" ],
         "summary" : "Returns the current time on the server.",
-        "operationId" : "getApiStatusTime",
+        "operationId" : "getApiV1StatusTime",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3621,11 +3621,11 @@
         }
       }
     },
-    "/api/runInfo/list" : {
+    "/api/v1/runInfo/list" : {
       "get" : {
         "tags" : [ "Client Run Info" ],
         "summary" : "Lists an overview of all competition runs visible to the current client",
-        "operationId" : "getApiRuninfoList",
+        "operationId" : "getApiV1RuninfoList",
         "parameters" : [ {
           "name" : "session",
           "in" : "query",
@@ -3659,11 +3659,11 @@
         }
       }
     },
-    "/api/runInfo/currentTask/{runId}" : {
+    "/api/v1/runInfo/currentTask/{runId}" : {
       "get" : {
         "tags" : [ "Client Run Info" ],
         "summary" : "Returns an overview of the currently active task for a run",
-        "operationId" : "getApiRuninfoCurrenttaskWithRunid",
+        "operationId" : "getApiV1RuninfoCurrenttaskWithRunid",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -4877,7 +4877,7 @@
         "properties" : {
           "type" : {
             "type" : "string",
-            "enum" : [ "COMPETITION_START", "COMPETITION_END", "TASK_START", "TASK_MODIFIED", "TASK_END", "SUBMISSION", "PREPARE_JUDGEMENT", "JUDGEMENT", "LOGIN", "LOGOUT" ]
+            "enum" : [ "COMPETITION_START", "COMPETITION_END", "TASK_START", "TASK_MODIFIED", "TASK_END", "SUBMISSION", "PREPARE_JUDGEMENT", "JUDGEMENT", "LOGIN", "LOGOUT", "SUBMISSION_VALIDATION" ]
           },
           "id" : {
             "type" : "string"
@@ -5046,6 +5046,27 @@
             },
             "address" : {
               "type" : "string"
+            }
+          }
+        } ]
+      },
+      "RestSubmissionValidationAuditLogEntry" : {
+        "required" : [ "id", "submissionId", "timestamp", "type", "validator", "verdict" ],
+        "type" : "object",
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/RestAuditLogEntry"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "submissionId" : {
+              "type" : "string"
+            },
+            "validator" : {
+              "type" : "string"
+            },
+            "verdict" : {
+              "type" : "string",
+              "enum" : [ "CORRECT", "WRONG", "INDETERMINATE", "UNDECIDABLE" ]
             }
           }
         } ]

@@ -3554,7 +3554,7 @@
     "/api/audit/list/{limit}/{page}" : {
       "get" : {
         "tags" : [ "Audit" ],
-        "summary" : "Lists all audit logs matching the query",
+        "summary" : "Lists all audit logs matching the query.",
         "operationId" : "getApiAuditListWithLimitWithPage",
         "parameters" : [ {
           "name" : "limit",
@@ -3568,7 +3568,7 @@
         }, {
           "name" : "page",
           "in" : "path",
-          "description" : "The page index offset, relative to the limit",
+          "description" : "The page index offset, relative to the limit.",
           "required" : true,
           "schema" : {
             "type" : "integer",
@@ -4877,7 +4877,7 @@
         "properties" : {
           "type" : {
             "type" : "string",
-            "enum" : [ "COMPETITION_START", "COMPETITION_END", "TASK_START", "TASK_MODIFIED", "TASK_END", "SUBMISSION", "PREPARE_JUDGEMENT", "JUDGEMENT", "LOGIN", "LOGOUT" ]
+            "enum" : [ "COMPETITION_START", "COMPETITION_END", "TASK_START", "TASK_MODIFIED", "TASK_END", "SUBMISSION", "PREPARE_JUDGEMENT", "JUDGEMENT", "LOGIN", "LOGOUT", "SUBMISSION_VALIDATION" ]
           },
           "id" : {
             "type" : "string"
@@ -5046,6 +5046,27 @@
             },
             "address" : {
               "type" : "string"
+            }
+          }
+        } ]
+      },
+      "RestSubmissionValidationAuditLogEntry" : {
+        "required" : [ "id", "submissionId", "timestamp", "type", "validator", "verdict" ],
+        "type" : "object",
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/RestAuditLogEntry"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "submissionId" : {
+              "type" : "string"
+            },
+            "validator" : {
+              "type" : "string"
+            },
+            "verdict" : {
+              "type" : "string",
+              "enum" : [ "CORRECT", "WRONG", "INDETERMINATE", "UNDECIDABLE" ]
             }
           }
         } ]

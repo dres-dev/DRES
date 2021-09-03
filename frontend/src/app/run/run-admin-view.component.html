@@ -114,7 +114,7 @@
                         <ng-container matColumnDef="action">
                             <th mat-header-cell *matHeaderCellDef> Actions </th>
                             <td mat-cell *matCellDef="let task; let i = index">
-                                <button mat-icon-button aria-label="Switch to task." matTooltip="Switch to task." (click)="switchTask(i)" *ngIf="task.name !== (run | async).state.currentTask.name">
+                                <button mat-icon-button aria-label="Switch to task." matTooltip="Switch to task." (click)="switchTask(i)" *ngIf="task.name !== (run | async).state.currentTask.name && (run | async)?.state.status != 'RUNNING_TASK'">
                                     <mat-icon>directions</mat-icon>
                                 </button>
                                 <button mat-icon-button aria-label="See submissions" matTooltip="See submissions" (click)="submissionsOf(task)">

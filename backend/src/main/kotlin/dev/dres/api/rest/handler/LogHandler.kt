@@ -22,7 +22,7 @@ import io.javalin.plugin.openapi.annotations.*
 
 abstract class LogHandler : PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
 
-    override val apiVersion = "v1" //is ignored
+    override val apiVersion = "v1"
 
     private fun getRelevantManagers(userId: UID): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
@@ -46,7 +46,7 @@ class QueryLogHandler : LogHandler() {
     override val route = "log/query"
 
     @OpenApi(summary = "Accepts query logs from participants",
-            path = "/log/query",
+            path = "/api/v1/log/query",
             method = HttpMethod.POST,
             requestBody = OpenApiRequestBody([OpenApiContent(QueryEventLog::class)]),
             tags = ["Log"],
@@ -83,7 +83,7 @@ class ResultLogHandler : LogHandler() {
     override val route = "log/result"
 
     @OpenApi(summary = "Accepts result logs from participants",
-            path = "/log/result",
+            path = "/api/v1/log/result",
             method = HttpMethod.POST,
             requestBody = OpenApiRequestBody([OpenApiContent(QueryResultLog::class)]),
             tags = ["Log"],

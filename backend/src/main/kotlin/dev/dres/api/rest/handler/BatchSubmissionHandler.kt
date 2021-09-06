@@ -51,7 +51,7 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
     override val route: String = "batchSubmit/:runId/json"
 
     @OpenApi(summary = "Endpoint to accept batch submissions in JSON format",
-        path = "/batchSubmit/:runId/json",
+        path = "/api/v1/batchSubmit/:runId/json",
         method = HttpMethod.POST,
         pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
         requestBody = OpenApiRequestBody([OpenApiContent(JsonBatchSubmission::class)]),

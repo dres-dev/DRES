@@ -109,6 +109,18 @@ object RestApi {
             ListTaskHandler(dataAccessLayer.competitions),
             GetTeamLogoHandler(config),
 
+            // Submission
+            SubmissionHandler(
+                dataAccessLayer.collections,
+                dataAccessLayer.mediaItemCollectionNameIndex,
+                dataAccessLayer.mediaSegmentItemIdIndex,
+                config
+            ),
+
+            // Log
+            QueryLogHandler(),
+            ResultLogHandler(),
+
             // Competition run
             ListCompetitionRunInfosHandler(),
             ListCompetitionRunStatesHandler(),
@@ -222,27 +234,6 @@ object RestApi {
                 }
                 ws("ws/run", runExecutor)
             }
-
-            path("submit") {
-                val submissionHandler = SubmissionHandler(
-                    dataAccessLayer.collections,
-                    dataAccessLayer.mediaItemCollectionNameIndex,
-                    dataAccessLayer.mediaSegmentItemIdIndex,
-                    config
-                )
-                get(submissionHandler::get, submissionHandler.permittedRoles)
-            }
-
-            path("log/query") {
-                val queryLogHandler = QueryLogHandler()
-                post(queryLogHandler::post, queryLogHandler.permittedRoles)
-            }
-
-            path("log/result") {
-                val resultLogHandler = ResultLogHandler()
-                post(resultLogHandler::post, resultLogHandler.permittedRoles)
-            }
-
         }.before {
             logger.info(
                 logMarker,

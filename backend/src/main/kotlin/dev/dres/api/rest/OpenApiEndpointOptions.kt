@@ -27,7 +27,7 @@ data class OpenApiEndpointOptions(
     val ignored = ignores.map {
         /* Small routine to distinguish between "internal" (prefixed with /api/) and "public" endpoints */
         if(!it.startsWith("#")){
-            "/api$it" to HttpMethod.values().map { it }
+            "/api/v1$it" to HttpMethod.values().map { it } //FIXME deal with version number
         }else{
             it.substring(it.indexOf("#")+1) to HttpMethod.values().map { it }
         }
@@ -51,9 +51,9 @@ data class OpenApiEndpointOptions(
         )
         val dresDefaultOptions = OpenApiEndpointOptions("/swagger-docs", "/swagger-ui", "/redoc")
         val dresLogOnly = OpenApiEndpointOptions("/logging-oas", "/swagger-log",
-            ignores = commonIgnores +  listOf("#/submit"))
+            ignores = commonIgnores +  listOf("/submit"))
         val dresSubmissionOnly = OpenApiEndpointOptions("/submission-oas", "/swagger-submit",
-            ignores = commonIgnores + listOf("#/log*", "#/log/*") )
+            ignores = commonIgnores + listOf("/log*", "/log/*") )
 
         val dresSubmittingClientOptions = OpenApiEndpointOptions("/client-oas", "/swagger-client", ignores= commonIgnores + listOf("/user/list", "/user/session/*"))
     }

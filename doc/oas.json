@@ -1455,6 +1455,238 @@
         }
       }
     },
+    "/api/v1/submit" : {
+      "get" : {
+        "tags" : [ "Submission" ],
+        "summary" : "Endpoint to accept submissions",
+        "operationId" : "getApiV1Submit",
+        "parameters" : [ {
+          "name" : "collection",
+          "in" : "query",
+          "description" : "Collection identifier. Optional, in which case the default collection for the run will be considered.",
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "item",
+          "in" : "query",
+          "description" : "Identifier for the actual media object or media file.",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "frame",
+          "in" : "query",
+          "description" : "Frame number for media with temporal progression (e.g. video).",
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "shot",
+          "in" : "query",
+          "description" : "Shot number for media with temporal progression (e.g. video).",
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "timecode",
+          "in" : "query",
+          "description" : "Timecode for media with temporal progression (e.g. video).",
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "session",
+          "in" : "query",
+          "description" : "Session Token",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
+                }
+              }
+            }
+          },
+          "202" : {
+            "description" : "Accepted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "412" : {
+            "description" : "Precondition Failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/log/query" : {
+      "post" : {
+        "tags" : [ "Log" ],
+        "summary" : "Accepts query logs from participants",
+        "operationId" : "postApiV1LogQuery",
+        "parameters" : [ {
+          "name" : "session",
+          "in" : "query",
+          "description" : "Session Token",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/QueryEventLog"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/log/result" : {
+      "post" : {
+        "tags" : [ "Log" ],
+        "summary" : "Accepts result logs from participants",
+        "operationId" : "postApiV1LogResult",
+        "parameters" : [ {
+          "name" : "session",
+          "in" : "query",
+          "description" : "Session Token",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/QueryResultLog"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/run/info/list" : {
       "get" : {
         "tags" : [ "Competition Run" ],
@@ -3713,238 +3945,6 @@
           }
         }
       }
-    },
-    "/submit" : {
-      "get" : {
-        "tags" : [ "Submission" ],
-        "summary" : "Endpoint to accept submissions",
-        "operationId" : "getSubmit",
-        "parameters" : [ {
-          "name" : "collection",
-          "in" : "query",
-          "description" : "Collection identifier. Optional, in which case the default collection for the run will be considered.",
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "item",
-          "in" : "query",
-          "description" : "Identifier for the actual media object or media file.",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "frame",
-          "in" : "query",
-          "description" : "Frame number for media with temporal progression (e.g. video).",
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "shot",
-          "in" : "query",
-          "description" : "Shot number for media with temporal progression (e.g. video).",
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "timecode",
-          "in" : "query",
-          "description" : "Timecode for media with temporal progression (e.g. video).",
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "session",
-          "in" : "query",
-          "description" : "Session Token",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
-                }
-              }
-            }
-          },
-          "202" : {
-            "description" : "Accepted",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "412" : {
-            "description" : "Precondition Failed",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/log/query" : {
-      "post" : {
-        "tags" : [ "Log" ],
-        "summary" : "Accepts query logs from participants",
-        "operationId" : "postLogQuery",
-        "parameters" : [ {
-          "name" : "session",
-          "in" : "query",
-          "description" : "Session Token",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/QueryEventLog"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/log/result" : {
-      "post" : {
-        "tags" : [ "Log" ],
-        "summary" : "Accepts result logs from participants",
-        "operationId" : "postLogResult",
-        "parameters" : [ {
-          "name" : "session",
-          "in" : "query",
-          "description" : "Session Token",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/QueryResultLog"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
     }
   },
   "components" : {
@@ -4493,6 +4493,111 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/UserDetails"
+            }
+          }
+        }
+      },
+      "SuccessfulSubmissionsStatus" : {
+        "required" : [ "description", "status", "submission" ],
+        "type" : "object",
+        "properties" : {
+          "submission" : {
+            "type" : "string",
+            "enum" : [ "CORRECT", "WRONG", "INDETERMINATE", "UNDECIDABLE" ]
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "QueryEvent" : {
+        "required" : [ "category", "timestamp", "type", "value" ],
+        "type" : "object",
+        "properties" : {
+          "timestamp" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "category" : {
+            "type" : "string",
+            "enum" : [ "TEXT", "IMAGE", "SKETCH", "FILTER", "BROWSING", "COOPERATION", "OTHER" ]
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "value" : {
+            "type" : "string"
+          }
+        }
+      },
+      "QueryEventLog" : {
+        "required" : [ "events", "timestamp" ],
+        "type" : "object",
+        "properties" : {
+          "timestamp" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "events" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/QueryEvent"
+            }
+          }
+        }
+      },
+      "QueryResult" : {
+        "required" : [ "item" ],
+        "type" : "object",
+        "properties" : {
+          "item" : {
+            "type" : "string"
+          },
+          "segment" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "frame" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "score" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "rank" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "QueryResultLog" : {
+        "required" : [ "events", "resultSetAvailability", "results", "sortType", "timestamp" ],
+        "type" : "object",
+        "properties" : {
+          "timestamp" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "sortType" : {
+            "type" : "string"
+          },
+          "resultSetAvailability" : {
+            "type" : "string"
+          },
+          "results" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/QueryResult"
+            }
+          },
+          "events" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/QueryEvent"
             }
           }
         }
@@ -5206,111 +5311,6 @@
           },
           "running" : {
             "type" : "boolean"
-          }
-        }
-      },
-      "SuccessfulSubmissionsStatus" : {
-        "required" : [ "description", "status", "submission" ],
-        "type" : "object",
-        "properties" : {
-          "submission" : {
-            "type" : "string",
-            "enum" : [ "CORRECT", "WRONG", "INDETERMINATE", "UNDECIDABLE" ]
-          },
-          "description" : {
-            "type" : "string"
-          },
-          "status" : {
-            "type" : "boolean"
-          }
-        }
-      },
-      "QueryEvent" : {
-        "required" : [ "category", "timestamp", "type", "value" ],
-        "type" : "object",
-        "properties" : {
-          "timestamp" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "category" : {
-            "type" : "string",
-            "enum" : [ "TEXT", "IMAGE", "SKETCH", "FILTER", "BROWSING", "COOPERATION", "OTHER" ]
-          },
-          "type" : {
-            "type" : "string"
-          },
-          "value" : {
-            "type" : "string"
-          }
-        }
-      },
-      "QueryEventLog" : {
-        "required" : [ "events", "timestamp" ],
-        "type" : "object",
-        "properties" : {
-          "timestamp" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "events" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/QueryEvent"
-            }
-          }
-        }
-      },
-      "QueryResult" : {
-        "required" : [ "item" ],
-        "type" : "object",
-        "properties" : {
-          "item" : {
-            "type" : "string"
-          },
-          "segment" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "frame" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "score" : {
-            "type" : "number",
-            "format" : "double"
-          },
-          "rank" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }
-      },
-      "QueryResultLog" : {
-        "required" : [ "events", "resultSetAvailability", "results", "sortType", "timestamp" ],
-        "type" : "object",
-        "properties" : {
-          "timestamp" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "sortType" : {
-            "type" : "string"
-          },
-          "resultSetAvailability" : {
-            "type" : "string"
-          },
-          "results" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/QueryResult"
-            }
-          },
-          "events" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/QueryEvent"
-            }
           }
         }
       }

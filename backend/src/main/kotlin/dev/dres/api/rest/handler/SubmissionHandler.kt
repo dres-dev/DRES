@@ -46,7 +46,7 @@ import java.nio.file.Paths
 class SubmissionHandler (val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, private val segmentIndex: DaoIndexer<MediaItemSegmentList, UID>, private val config: Config): GetRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
     override val route = "submit"
-    override val apiVersion = "v1" //is ignored so does not matter
+    override val apiVersion = "v1"
 
     companion object {
         const val PARAMETER_NAME_COLLECTION = "collection"
@@ -143,7 +143,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
     }
 
     @OpenApi(summary = "Endpoint to accept submissions",
-            path = "/submit",
+            path = "/api/v1/submit",
             queryParams = [
                 OpenApiParam(PARAMETER_NAME_COLLECTION, String::class, "Collection identifier. Optional, in which case the default collection for the run will be considered.", allowEmptyValue = true),
                 OpenApiParam(PARAMETER_NAME_ITEM, String::class, "Identifier for the actual media object or media file."),

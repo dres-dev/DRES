@@ -34,6 +34,8 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
     /** Internal queue that keeps track of all the [Submission]s in need of a verdict. */
     private val queue: Queue<Submission> = LinkedList()
 
+    private val queuedItemRanges: MutableSet<ItemRange> = HashSet()
+
     /** Internal map of all [Submission]s that have been retrieved by a judge and are pending a verdict. */
     private val waiting = HashMap<String, Submission>()
 
@@ -81,7 +83,6 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
      * to [SubmissionStatus.INDETERMINATE].
      *
      * @param submission The [Submission] to validate.
-     * @return [SubmissionStatus] of the [Submission]
      */
     override fun validate(submission: Submission) = updateLock.read {
 
@@ -91,14 +92,16 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
         }
 
         //check cache first
-        val cachedStatus = this.cache[ItemRange(submission)]
+        val itemRange = ItemRange(submission)
+        val cachedStatus = this.cache[itemRange]
         if (cachedStatus != null) {
             submission.status = cachedStatus
-        } else {
+        } else if (itemRange !in queuedItemRanges) {
             updateLock.write {
                 this.queue.offer(submission)
             }
             submission.status = SubmissionStatus.INDETERMINATE
+            queuedItemRanges.add(itemRange)
         }
     }
 
@@ -137,11 +140,16 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
         require(this.waiting.containsKey(token)) { "This JudgementValidator does not contain a submission for the token '$token'." }
         val submission = this.waiting[token] ?: return@write null //submission with token not found TODO: this should be logged
 
+        val itemRange = ItemRange(submission)
+
         //add to cache
-        this.cache[ItemRange(submission)] = verdict
+        this.cache[itemRange] = verdict
 
         //remove from waiting map
         this.waiting.remove(token)
+
+        //remove from queue set
+        this.queuedItemRanges.remove(itemRange)
 
         return@write submission
     }

@@ -36,4 +36,4 @@ fun String.UID(): UID = UID(UUID.fromString(this))
 
 fun String.cleanPathString() = this.trim().replaceFirst("^~", Matcher.quoteReplacement(System.getProperty("user.home")))
 
-fun String.toPathParamKey() = ":$this"
+fun String.toPathParamKey() = "{$this}"

@@ -49,4 +49,4 @@ fun Context.sendFile(file: File) {
     this.result(file.inputStream())
 }
 
-fun Context.sessionId(): String = this.queryParam("session", this.req.session.id)!!
+fun Context.sessionId(): String = this.queryParam("session") ?: this.req.session.id

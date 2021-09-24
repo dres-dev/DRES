@@ -15,10 +15,6 @@ data class OpenApiEndpointOptions(
      */
     val swaggerUi: String,
     /**
-     * Optionally a path for the redoc UI - if omitted, no redoc UI should be made available
-     */
-    val redocUi: String?,
-    /**
      * A list of paths to ignore. Defaults to an empty list
      */
     private val ignores: List<String> = listOf()
@@ -32,8 +28,6 @@ data class OpenApiEndpointOptions(
             it.substring(it.indexOf("#")+1) to HttpMethod.values().map { it }
         }
     }
-    val hasRedoc = redocUi != null
-
 
     companion object {
         val commonIgnores = mutableListOf(
@@ -49,7 +43,7 @@ data class OpenApiEndpointOptions(
         val lessCommonIgnores = listOf(
             "/login", "/logout", "/status/*", "/user/*"
         )
-        val dresDefaultOptions = OpenApiEndpointOptions("/swagger-docs", "/swagger-ui", "/redoc")
+        val dresDefaultOptions = OpenApiEndpointOptions("/swagger-docs", "/swagger-ui")
         val dresLogOnly = OpenApiEndpointOptions("/logging-oas", "/swagger-log",
             ignores = commonIgnores +  listOf("/submit"))
         val dresSubmissionOnly = OpenApiEndpointOptions("/submission-oas", "/swagger-submit",
@@ -57,11 +51,4 @@ data class OpenApiEndpointOptions(
 
         val dresSubmittingClientOptions = OpenApiEndpointOptions("/client-oas", "/swagger-client", ignores= commonIgnores + listOf("/user/list", "/user/session/*"))
     }
-
-    constructor(oasPath: String, swaggerUi: String, ignores: List<String>) : this(
-        oasPath,
-        swaggerUi,
-        null,
-        ignores
-    )
 }

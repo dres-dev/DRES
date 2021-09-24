@@ -9,11 +9,10 @@ import dev.dres.run.RunExecutor
 import dev.dres.utilities.NamedThreadFactory
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
-import io.javalin.core.security.SecurityUtil.roles
+import io.javalin.http.staticfiles.Location
 import io.javalin.plugin.openapi.OpenApiOptions
 import io.javalin.plugin.openapi.OpenApiPlugin
 import io.javalin.plugin.openapi.jackson.JacksonToJsonMapper
-import io.javalin.plugin.openapi.ui.ReDocOptions
 import io.javalin.plugin.openapi.ui.SwaggerOptions
 import io.swagger.v3.oas.models.info.Info
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory
@@ -193,7 +192,7 @@ object RestApi {
             it.prefer405over404 = true
             it.sessionHandler { fileSessionHandler(config) }
             it.accessManager(AccessManager::manage)
-            it.addStaticFiles("html")
+            it.addStaticFiles("html", Location.CLASSPATH)
             it.addSinglePageRoot("/vote", "vote/index.html")
             it.addSinglePageRoot("/", "html/index.html")
             it.enforceSsl = config.enableSsl
@@ -207,25 +206,25 @@ object RestApi {
                             path(handler.route) {
 
                                 val permittedRoles = if (handler is AccessManagedRestHandler) {
-                                    handler.permittedRoles
+                                    handler.permittedRoles.toTypedArray()
                                 } else {
-                                    roles(RestApiRole.ANYONE)
+                                    arrayOf(RestApiRole.ANYONE)
                                 }
 
                                 if (handler is GetRestHandler<*>) {
-                                    get(handler::get, permittedRoles)
+                                    get(handler::get, *permittedRoles)
                                 }
 
                                 if (handler is PostRestHandler<*>) {
-                                    post(handler::post, permittedRoles)
+                                    post(handler::post, *permittedRoles)
                                 }
 
                                 if (handler is PatchRestHandler<*>) {
-                                    patch(handler::patch, permittedRoles)
+                                    patch(handler::patch, *permittedRoles)
                                 }
 
                                 if (handler is DeleteRestHandler<*>) {
-                                    delete(handler::delete, permittedRoles)
+                                    delete(handler::delete, *permittedRoles)
                                 }
 
                             }
@@ -269,9 +268,6 @@ object RestApi {
         ).apply {
             path(options.oasPath) // endpoint for OpenAPI json
             swagger(SwaggerOptions(options.swaggerUi)) // endpoint for swagger-ui
-            if (options.hasRedoc) {
-                reDoc(ReDocOptions(options.redocUi!!)) // endpoint for redoc
-            }
             activateAnnotationScanningFor("dev.dres.api.rest.handler")
             options.ignored.forEach { ignorePath(it.first) }
             toJsonMapper(JacksonToJsonMapper(jacksonMapper))

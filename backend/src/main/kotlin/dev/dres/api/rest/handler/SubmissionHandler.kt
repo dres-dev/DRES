@@ -39,6 +39,7 @@ import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -47,6 +48,8 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
     override val route = "submit"
     override val apiVersion = "v1"
+
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
     companion object {
         const val PARAMETER_NAME_COLLECTION = "collection"
@@ -82,7 +85,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
 
         val rac = RunActionContext.runActionContext(ctx, runManager)
 
-        /* Find collectionId the submission belongs to.. */
+        /* Find collectionId the submission belongs to. */
         val collectionParam = map[PARAMETER_NAME_COLLECTION]?.first()
         val collectionId: UID = when {
             collectionParam != null -> this.collections.find { it.name == collectionParam }?.id
@@ -174,8 +177,10 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         } catch (e: SubmissionRejectedException) {
             throw ErrorStatusException(412, "Submission rejected by submission filter.", ctx)
         } catch (e: IllegalRunStateException) {
+            logger.info("Submission was received while Run manager not accepting submissions")
             throw ErrorStatusException(400, "Run manager is in wrong state and cannot accept any more submission.", ctx)
         } catch (e: IllegalTeamIdException) {
+            logger.info("Submission with unkown team id '${rac.teamId}' was received")
             throw ErrorStatusException(400, "Run manager does not know the given teamId ${rac.teamId}.", ctx)
         }
 
@@ -185,6 +190,8 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }) { //pre-generate preview
             generatePreview(submission)
         }
+
+        logger.info("submission ${submission.uid} received status $result")
 
         return when (result) {
             SubmissionStatus.CORRECT -> SuccessfulSubmissionsStatus(SubmissionStatus.CORRECT, "Submission correct!")

@@ -369,7 +369,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                         }
                     }
                 }catch(e:Throwable){
-                    this@MediaCollectionCommand.logger.error("An error occurred with $file. Noting and skipping...")
+                    this@MediaCollectionCommand.logger.error(this@MediaCollectionCommand.logMarker, "An error occurred with $file. Noting and skipping...")
                     println("An error occurred with $file. Noting and skipping...")
                     issues[file.path] = e.stackTraceToString()
                 }

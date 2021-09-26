@@ -160,6 +160,7 @@ object FFmpegUtil {
         val request = FrameRequest(video, timecode, outputImage)
         if (!Files.exists(outputImage) && !frameRequestQueue.contains(request)) {
             frameRequestQueue.add(request)
+            logger.info(logMarker, "Enqueued frame request $request")
         }
 
     }
@@ -167,9 +168,14 @@ object FFmpegUtil {
     fun extractFrame(video: Path, ms: Long, outputImage: Path) =
         extractFrame(video, toMillisecondTimeStamp(ms), outputImage)
 
+    private fun extractFrameAsync(video: Path, ms: Long, outputImage: Path) {
+        extractFrameAsync(video, toMillisecondTimeStamp(ms), outputImage)
+    }
+
     fun extractSegment(video: Path, startTimecode: String, endTimecode: String, outputVideo: Path) {
         try {
             //semaphore.acquire()
+            logger.info(logMarker, "Start rendering segment for video $video from $startTimecode to $endTimecode")
             FFmpeg.atPath(ffmpegBin)
                 .addInput(UrlInput.fromPath(video))
                 .addOutput(UrlOutput.toPath(outputVideo))

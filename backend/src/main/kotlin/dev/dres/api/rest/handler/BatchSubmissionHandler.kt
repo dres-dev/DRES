@@ -24,6 +24,7 @@ import io.javalin.plugin.openapi.annotations.*
 
 abstract class BatchSubmissionHandler(internal val collections: DAO<MediaCollection>, internal val itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, internal val segmentIndex: DaoIndexer<MediaItemSegmentList, UID>) : PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
 
+    override val apiVersion = "v1"
     override val permittedRoles: Set<Role> = setOf(RestApiRole.PARTICIPANT)
 
     internal fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
@@ -50,7 +51,7 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
     override val route: String = "batchSubmit/:runId/json"
 
     @OpenApi(summary = "Endpoint to accept batch submissions in JSON format",
-        path = "/batchSubmit/:runId/json",
+        path = "/api/v1/batchSubmit/:runId/json",
         method = HttpMethod.POST,
         pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
         requestBody = OpenApiRequestBody([OpenApiContent(JsonBatchSubmission::class)]),

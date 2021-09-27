@@ -244,12 +244,12 @@ export class CompetitionFormBuilder {
         const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
         this.dataSources.set(`target.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
-            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
+            switchMap(s => this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
 
         /* Load media item from API. */
         if (initialize?.mediaItem && this.data?.mediaCollectionId) {
-            this.collectionService.getApiMediaitemWithMediaid(initialize.mediaItem)
+            this.collectionService.getApiV1MediaitemWithMediaid(initialize.mediaItem)
                 .pipe(first()).subscribe(s => {
                 mediaItemFormControl.setValue(s);
             });
@@ -269,12 +269,12 @@ export class CompetitionFormBuilder {
 
         this.dataSources.set(`target.0.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
-            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
+            switchMap(s => this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
 
         /* Load media item from API. */
         if (initialize?.mediaItem && this.data.mediaCollectionId) {
-            this.collectionService.getApiMediaitemWithMediaid(initialize.mediaItem)
+            this.collectionService.getApiV1MediaitemWithMediaid(initialize.mediaItem)
                 .pipe(first()).subscribe(s => {
                 mediaItemFormControl.setValue(s);
             });
@@ -341,12 +341,12 @@ export class CompetitionFormBuilder {
         /* Prepare data source. */
         this.dataSources.set(`components.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
-            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
+            switchMap(s => this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
 
         /* Load media item from API. */
         if (initialize?.mediaItem && this.data?.mediaCollectionId) {
-            this.collectionService.getApiMediaitemWithMediaid(initialize?.mediaItem)
+            this.collectionService.getApiV1MediaitemWithMediaid(initialize?.mediaItem)
                 .pipe(first()).subscribe(s => {
                 mediaItemFormControl.setValue(s);
             });
@@ -376,12 +376,12 @@ export class CompetitionFormBuilder {
         /* Prepare data source. */
         this.dataSources.set(`components.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
-            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
+            switchMap(s => this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
 
         /* Load media item from API. */
         if (initialize?.mediaItem && this.data?.mediaCollectionId) {
-            this.collectionService.getApiMediaitemWithMediaid(initialize.mediaItem)
+            this.collectionService.getApiV1MediaitemWithMediaid(initialize.mediaItem)
                 .pipe(first()).subscribe(s => {
                 mediaItemFormControl.setValue(s);
             });
@@ -455,7 +455,7 @@ export class CompetitionFormBuilder {
         /* Prepare data source. */
         this.dataSources.set(`components.${index}.path`, pathFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
-            switchMap(s => this.collectionService.getApiExternalWithStartswith(s))
+            switchMap(s => this.collectionService.getApiV1ExternalWithStartswith(s))
         ));
 
         return new FormGroup({
@@ -479,7 +479,7 @@ export class CompetitionFormBuilder {
         /* Prepare data source. */
         this.dataSources.set(`components.${index}.path`, pathFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
-            switchMap(s => this.collectionService.getApiExternalWithStartswith(s))
+            switchMap(s => this.collectionService.getApiV1ExternalWithStartswith(s))
         ));
 
         return new FormGroup({

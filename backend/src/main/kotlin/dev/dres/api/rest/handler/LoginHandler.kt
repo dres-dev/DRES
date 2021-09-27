@@ -20,10 +20,11 @@ import io.javalin.plugin.openapi.annotations.*
 
 class LoginHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, PostRestHandler<UserDetails> {
 
+    override val apiVersion = "v1"
 
     data class LoginRequest(var username: String, var password: String)
 
-    @OpenApi(summary = "Sets roles for session based on user account and returns a session cookie.", path = "/api/login",
+    @OpenApi(summary = "Sets roles for session based on user account and returns a session cookie.", path = "/api/v1/login",
             method = HttpMethod.POST,
             tags = ["User"],
             requestBody = OpenApiRequestBody([OpenApiContent(LoginRequest::class)]),

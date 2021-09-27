@@ -18,10 +18,10 @@ export class AuthenticationService {
      * Constructor
      */
     constructor(@Inject(UserService) private userService: UserService) {
-        this.userService.getApiUserSession().pipe(
+        this.userService.getApiV1UserSession().pipe(
             catchError(e => of(null)),
             filter(s => s != null),
-            flatMap(s => this.userService.getApiUser()),
+            flatMap(s => this.userService.getApiV1User()),
             filter(u => u != null)
         ).subscribe(u => {
             this.userDetails.next(u);
@@ -36,8 +36,8 @@ export class AuthenticationService {
      * @param pass The password.
      */
     public login(user: string, pass: string) {
-        return this.userService.postApiLogin({username: user, password: pass} as LoginRequest).pipe(
-            flatMap(() => this.userService.getApiUser()),
+        return this.userService.postApiV1Login({username: user, password: pass} as LoginRequest).pipe(
+            flatMap(() => this.userService.getApiV1User()),
             tap(data => {
                 this.userDetails.next(data);
                 console.log(`Successfully logged in as '${this.userDetails.value.username}'.`);
@@ -52,7 +52,7 @@ export class AuthenticationService {
      */
     public updateUser(user: UserRequest) {
         return this.user.pipe(
-            flatMap((u: UserDetails) => this.userService.patchApiUserWithUserid(u.id, user)),
+            flatMap((u: UserDetails) => this.userService.patchApiV1UserWithUserid(u.id, user)),
             tap((u: UserDetails) => this.userDetails.next(u))
         );
     }
@@ -61,7 +61,7 @@ export class AuthenticationService {
      * Tries to logout the current user. Returns an Observable!
      */
     public logout() {
-        return this.userService.getApiLogout().pipe(
+        return this.userService.getApiV1Logout().pipe(
             catchError(e => of(null)),
             tap(() => {
                 this.userDetails.next(null);

@@ -46,7 +46,7 @@ export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
         withLatestFrom(this.runId),
         switchMap(([i, runId]) => {
           if (this.runId) {
-            return this.judgementService.getApiRunWithRunidVoteNext(runId, 'response').pipe(
+            return this.judgementService.getApiV1RunWithRunidVoteNext(runId, 'response').pipe(
                 map((req: HttpResponse<JudgementRequest>) => {
                   if (req.status === 202) {
                     this.isJudgmentAvailable = false;
@@ -72,7 +72,7 @@ export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
                       });
                     }
                   }
-                  console.log('[Judgement Voting View] Error in getApiRunWithRunidVoteNext: ');
+                  console.log('[Judgement Voting View] Error in getApiV1RunWithRunidVoteNext: ');
                   console.log(err);
                   return of(null);
                 })

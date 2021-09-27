@@ -36,7 +36,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ) {
     this.user = this.authenticationService.user;
     this.loggedIn = this.authenticationService.isLoggedIn;
-    this.sessionId = this.userService.getApiUserSession();
+    this.sessionId = this.userService.getApiV1UserSession();
   }
 
   ngOnInit(): void {

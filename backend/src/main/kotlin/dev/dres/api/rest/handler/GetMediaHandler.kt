@@ -19,12 +19,13 @@ class GetMediaHandler(private val itemCache: DaoIndexer<MediaItem, Pair<UID,UID>
 
     override val permittedRoles = setOf(RestApiRole.VIEWER)
     override val route: String = "media/:collection/:item"
+    override val apiVersion = "v1"
 
     //not used
     override fun doGet(ctx: Context): Any = ""
 
     @OpenApi(summary = "Returns a collection item",
-            path = "/api/media/:collection/:item",
+            path = "/api/v1/media/:collection/:item",
             pathParams = [
                 OpenApiParam("collection", String::class, "Collection id"),
                 OpenApiParam("item", String::class, "MediaItem id")

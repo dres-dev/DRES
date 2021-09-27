@@ -109,6 +109,18 @@ object RestApi {
             ListTaskHandler(dataAccessLayer.competitions),
             GetTeamLogoHandler(config),
 
+            // Submission
+            SubmissionHandler(
+                dataAccessLayer.collections,
+                dataAccessLayer.mediaItemCollectionNameIndex,
+                dataAccessLayer.mediaSegmentItemIdIndex,
+                config
+            ),
+
+            // Log
+            QueryLogHandler(),
+            ResultLogHandler(),
+
             // Competition run
             ListCompetitionRunInfosHandler(),
             ListCompetitionRunStatesHandler(),
@@ -188,56 +200,40 @@ object RestApi {
         }.routes {
 
             path("api") {
-                apiRestHandlers.forEach { handler ->
-                    path(handler.route) {
 
-                        val permittedRoles = if (handler is AccessManagedRestHandler) {
-                            handler.permittedRoles
-                        } else {
-                            roles(RestApiRole.ANYONE)
+                apiRestHandlers.groupBy { it.apiVersion }.forEach { apiGroup ->
+                    path(apiGroup.key) {
+                        apiGroup.value.forEach { handler ->
+                            path(handler.route) {
+
+                                val permittedRoles = if (handler is AccessManagedRestHandler) {
+                                    handler.permittedRoles
+                                } else {
+                                    roles(RestApiRole.ANYONE)
+                                }
+
+                                if (handler is GetRestHandler<*>) {
+                                    get(handler::get, permittedRoles)
+                                }
+
+                                if (handler is PostRestHandler<*>) {
+                                    post(handler::post, permittedRoles)
+                                }
+
+                                if (handler is PatchRestHandler<*>) {
+                                    patch(handler::patch, permittedRoles)
+                                }
+
+                                if (handler is DeleteRestHandler<*>) {
+                                    delete(handler::delete, permittedRoles)
+                                }
+
+                            }
                         }
-
-                        if (handler is GetRestHandler<*>) {
-                            get(handler::get, permittedRoles)
-                        }
-
-                        if (handler is PostRestHandler<*>) {
-                            post(handler::post, permittedRoles)
-                        }
-
-                        if (handler is PatchRestHandler<*>) {
-                            patch(handler::patch, permittedRoles)
-                        }
-
-                        if (handler is DeleteRestHandler<*>) {
-                            delete(handler::delete, permittedRoles)
-                        }
-
                     }
                 }
                 ws("ws/run", runExecutor)
             }
-
-            path("submit") {
-                val submissionHandler = SubmissionHandler(
-                    dataAccessLayer.collections,
-                    dataAccessLayer.mediaItemCollectionNameIndex,
-                    dataAccessLayer.mediaSegmentItemIdIndex,
-                    config
-                )
-                get(submissionHandler::get, submissionHandler.permittedRoles)
-            }
-
-            path("log/query") {
-                val queryLogHandler = QueryLogHandler()
-                post(queryLogHandler::post, queryLogHandler.permittedRoles)
-            }
-
-            path("log/result") {
-                val resultLogHandler = ResultLogHandler()
-                post(resultLogHandler::post, resultLogHandler.permittedRoles)
-            }
-
         }.before {
             logger.info(
                 logMarker,

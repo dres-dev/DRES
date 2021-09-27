@@ -57,7 +57,7 @@ export class CompetitionBuilderTaskDialogComponent {
 
         this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.data.task);
         this.form = this.builder.form;
-        this.mediaCollectionSource = this.collectionService.getApiCollectionList();
+        this.mediaCollectionSource = this.collectionService.getApiV1CollectionList();
     }
 
     private static randInt(min: number, max: number): number {
@@ -145,7 +145,7 @@ export class CompetitionBuilderTaskDialogComponent {
      * @param target The target {@link FormControl} to apply the value to.
      */
     public pickRandomMediaItem(collectionId: string, target: FormControl) {
-        this.collectionService.getApiCollectionWithCollectionidRandom(collectionId).pipe(first()).subscribe(value => {
+        this.collectionService.getApiV1CollectionWithCollectionidRandom(collectionId).pipe(first()).subscribe(value => {
             target.setValue(value);
         });
     }
@@ -273,7 +273,7 @@ export class CompetitionBuilderTaskDialogComponent {
                     const form = this.builder.addTargetForm(ConfiguredOptionTargetOption.OptionEnum.MULTIPLE_MEDIA_ITEMS);
                     console.log(`${mediaCollectionId} ? ${name}`);
                     const nameNoExt = name.substring(0, name.lastIndexOf('.'));
-                    this.collectionService.getApiCollectionWithCollectionidWithStartswith(mediaCollectionId, nameNoExt)
+                    this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(mediaCollectionId, nameNoExt)
                         .subscribe(item =>
                             form.get('mediaItem').setValue(item[0]));
                 });

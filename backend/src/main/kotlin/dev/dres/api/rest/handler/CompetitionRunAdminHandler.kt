@@ -38,6 +38,8 @@ import java.io.File
 
 abstract class AbstractCompetitionRunAdminRestHandler(override val permittedRoles: Set<Role> = setOf(RestApiRole.ADMIN, RestApiRole.PARTICIPANT)) : RestHandler, AccessManagedRestHandler {
 
+    override val apiVersion = "v1"
+    
     fun getRun(runId: UID): InteractiveRunManager? {
         val run = RunExecutor.managerForId(runId)
         if (run != null && run is InteractiveRunManager){
@@ -67,7 +69,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
 
     @OpenApi(
             summary = "Creates a new competition run from an existing competition",
-            path = "/api/run/admin/create",
+            path = "/api/v1/run/admin/create",
             method = HttpMethod.POST,
             requestBody = OpenApiRequestBody([OpenApiContent(CompetitionStartMessage::class)]),
             tags = ["Competition Run Admin"],
@@ -143,7 +145,7 @@ class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler()
 
     @OpenApi(
             summary = "Starts a competition run. This is a method for admins.",
-            path = "/api/run/admin/:runId/start",
+            path = "/api/v1/run/admin/:runId/start",
             method = HttpMethod.POST,
             pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
@@ -180,7 +182,7 @@ class NextTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandle
 
     @OpenApi(
             summary = "Moves to and selects the next task. This is a method for admins.",
-            path = "/api/run/admin/:runId/task/next",
+            path = "/api/v1/run/admin/:runId/task/next",
             method = HttpMethod.POST,
             pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
@@ -218,7 +220,7 @@ class SwitchTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHand
 
     @OpenApi(
             summary = "Moves to and selects the specified task. This is a method for admins.",
-            path = "/api/run/admin/:runId/task/switch/:idx",
+            path = "/api/v1/run/admin/:runId/task/switch/:idx",
             method = HttpMethod.POST,
             pathParams = [
                 OpenApiParam("runId", UID::class, "Competition run ID"),
@@ -261,7 +263,7 @@ class PreviousTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHa
 
     @OpenApi(
             summary = "Moves to and selects the previous task. This is a method for admins.",
-            path = "/api/run/admin/:runId/task/previous",
+            path = "/api/v1/run/admin/:runId/task/previous",
             method = HttpMethod.POST,
             pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
@@ -297,7 +299,7 @@ class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
 
     @OpenApi(
             summary = "Starts the currently active task as a new task run. This is a method for admins.",
-            path = "/api/run/admin/:runId/task/start",
+            path = "/api/v1/run/admin/:runId/task/start",
             method = HttpMethod.POST,
             pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
@@ -332,7 +334,7 @@ class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
 
     @OpenApi(
             summary = "Aborts the currently running task run. This is a method for admins.",
-            path = "/api/run/admin/:runId/task/abort",
+            path = "/api/v1/run/admin/:runId/task/abort",
             method = HttpMethod.POST,
             pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
@@ -367,7 +369,7 @@ class TerminateCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
 
     @OpenApi(
             summary = "Terminates a competition run. This is a method for admins.",
-            path = "/api/run/admin/:runId/terminate",
+            path = "/api/v1/run/admin/:runId/terminate",
             method = HttpMethod.POST,
             pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
@@ -402,7 +404,7 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(set
 
     @OpenApi(
             summary = "Adjusts the duration of a running task run. This is a method for admins.",
-            path = "/api/run/admin/:runId/adjust/:duration",
+            path = "/api/v1/run/admin/:runId/adjust/:duration",
             method = HttpMethod.POST,
             pathParams = [
                 OpenApiParam("runId", UID::class, "Competition Run ID"),
@@ -442,7 +444,7 @@ class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHan
 
     @OpenApi(
             summary = "Lists all submissions for a given task and run.",
-            path = "/api/run/admin/:runId/submissions/list/:taskId",
+            path = "/api/v1/run/admin/:runId/submissions/list/:taskId",
             method = HttpMethod.GET,
             pathParams = [
                 OpenApiParam("runId", UID::class, "Competition Run ID"),
@@ -484,7 +486,7 @@ class OverrideSubmissionStatusRunAdminHandler: AbstractCompetitionRunAdminRestHa
 
     @OpenApi(
             summary = "Lists all submissions for a given task and run",
-            path = "/api/run/admin/:runId/submissions/override",
+            path = "/api/v1/run/admin/:runId/submissions/override",
             method = HttpMethod.PATCH,
             pathParams = [
                 OpenApiParam("runId", UID::class, "Competition Run ID")
@@ -527,7 +529,7 @@ class ListViewersRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(
 
     @OpenApi(
             summary = "Lists all registered viewers for a competition run. This is a method for admins.",
-            path = "/api/run/admin/:runId/viewer/list",
+            path = "/api/v1/run/admin/:runId/viewer/list",
             method = HttpMethod.GET,
             pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
             tags = ["Competition Run Admin"],
@@ -554,7 +556,7 @@ class ForceViewerRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(
 
     @OpenApi(
             summary = "Forces a viewer with the given viewer ID into the READY state. This is a method for admins.",
-            path = "/api/run/admin/:runId/viewers/:viewerId/force",
+            path = "/api/v1/run/admin/:runId/viewers/:viewerId/force",
             method = HttpMethod.POST,
             pathParams = [
                 OpenApiParam("runId", UID::class, "Competition Run ID"),

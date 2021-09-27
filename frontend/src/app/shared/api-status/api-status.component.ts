@@ -24,7 +24,7 @@ export class ApiStatusComponent implements OnInit, OnDestroy {
         this.subscription = interval(this.pingFrequency).pipe(
             switchMap(_ => {
                 this.now = Date.now();
-                return this.statusService.getApiStatusTime();
+                return this.statusService.getApiV1StatusTime();
             }),
             catchError(err => {
                 this.error = true;
@@ -37,7 +37,7 @@ export class ApiStatusComponent implements OnInit, OnDestroy {
             this.clockDiff = new BehaviorSubject<number>(Math.abs(time.timeStamp - (this.now + this.rtt.getValue() / 2)));
         });
         /*this.subscription = interval(this.pingFrequency).subscribe(_ => {
-            this.statusService.getApiStatusTime().pipe(
+            this.statusService.getApiV1StatusTime().pipe(
                 catchError(err => {
                     this.error = true;
                     return null;

@@ -8,6 +8,7 @@ import io.javalin.http.Context
 interface RestHandler {
 
     val route: String
+    val apiVersion: String
 
 }
 

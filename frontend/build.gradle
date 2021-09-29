@@ -3,6 +3,7 @@ buildscript {
         mavenCentral()
     }
 }
+
 plugins {
     /// Plugin to handle NodeJS
     id 'base'

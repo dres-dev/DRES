@@ -13,16 +13,16 @@ data class RestTemporalPoint(val value: Double, val unit: RestTemporalUnit) {
 
     companion object{
         fun fromTemporalPoint(temporalPoint: TemporalPoint): RestTemporalPoint = when(temporalPoint){
-            is FrameTemporalPoint -> RestTemporalPoint(temporalPoint.frame.toDouble(), RestTemporalUnit.FRAME_NUMBER)
-            is MilliSecondTemporalPoint -> RestTemporalPoint(temporalPoint.millisecond.toDouble(), RestTemporalUnit.MILLISECONDS)
-            is TimeCodeTemporalPoint -> RestTemporalPoint(temporalPoint.toMilliseconds().toDouble(), RestTemporalUnit.MILLISECONDS)
+            is TemporalPoint.Frame -> RestTemporalPoint(temporalPoint.frame.toDouble(), RestTemporalUnit.FRAME_NUMBER)
+            is TemporalPoint.Millisecond -> RestTemporalPoint(temporalPoint.millisecond.toDouble(), RestTemporalUnit.MILLISECONDS)
+            is TemporalPoint.Timecode -> RestTemporalPoint(temporalPoint.toMilliseconds().toDouble(), RestTemporalUnit.MILLISECONDS)
         }
     }
 
     fun toTemporalPoint(fps: Float): TemporalPoint = when(this.unit){
-        RestTemporalUnit.FRAME_NUMBER -> FrameTemporalPoint(value.toInt(), fps)
-        RestTemporalUnit.SECONDS -> MilliSecondTemporalPoint((value * 1000).toLong())
-        RestTemporalUnit.MILLISECONDS -> MilliSecondTemporalPoint(value .toLong())
+        RestTemporalUnit.FRAME_NUMBER -> TemporalPoint.Frame(value.toInt(), fps)
+        RestTemporalUnit.SECONDS -> TemporalPoint.Millisecond((value * 1000).toLong())
+        RestTemporalUnit.MILLISECONDS -> TemporalPoint.Millisecond(value .toLong())
     }
 }
 

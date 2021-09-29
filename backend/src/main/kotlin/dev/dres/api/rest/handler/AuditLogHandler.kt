@@ -141,33 +141,33 @@ class ListAuditLogsHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, v
     }
 
     private fun getLimitFromParams(ctx:Context): Int {
-        return ctx.pathParam(LIMIT_PARAM).let { l ->
+        return ctx.pathParam(LIMIT_PARAM).let outer@ { l ->
             try {
-                return@let l.toInt().let { i ->
-                    return@let if (i <= 0) {
+                return@outer l.toInt().let inner@ { i ->
+                    return@inner if (i <= 0) {
                         DEFAULT_LIMIT
                     } else {
                         i
                     }
                 }
             } catch (e: NumberFormatException) {
-                return@let DEFAULT_LIMIT
+                return@outer DEFAULT_LIMIT
             }
         }
     }
 
     private fun getIndexFromParams(ctx:Context):Int{
-        return ctx.pathParam(PAGE_INDEX_PARAM).let{i ->
+        return ctx.pathParam(PAGE_INDEX_PARAM).let outer@ {i ->
             try{
-                return@let i.toInt().let{
-                    return@let if(it <= 0){
+                return@outer i.toInt().let inner@ {
+                    return@inner if(it <= 0){
                         0
                     }else{
                         it
                     }
                 }
-            }catch(e: NumberFormatException){
-                return@let 0
+            } catch(e: NumberFormatException){
+                return@outer 0
             }
         }
     }

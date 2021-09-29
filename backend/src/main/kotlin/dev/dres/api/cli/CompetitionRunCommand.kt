@@ -1,15 +1,17 @@
 package dev.dres.api.cli
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.fasterxml.jackson.module.kotlin.convertValue
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.*
+import com.github.ajalt.clikt.parameters.types.path
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.jakewharton.picnic.table
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
+import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescriptionTarget
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
@@ -21,8 +23,9 @@ import dev.dres.run.*
 import dev.dres.utilities.extensions.UID
 import java.io.FileOutputStream
 import java.io.OutputStream
+import java.nio.charset.Charset
 import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
 class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktCommand(name = "run") {
@@ -205,9 +208,10 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
      * Exports a specific competition run as JSON.
      */
     inner class ExportRunCommand :
-        CliktCommand(name = "export", help = "Exports the competition run as JSON.", printHelpOnEmptyArgs = true) {
-        private val id: UID by option("-r", "--run").convert { it.UID() }.required()
-        private val path: String by option("-o", "--output").required()
+        CliktCommand(name = "export", help = "Exports the selected competition run to a JSON file.", printHelpOnEmptyArgs = true) {
+        private val id: UID by option("-i", "--id").convert { it.UID() }.required()
+        private val path: Path by option("-o", "--output").path().required()
+
         override fun run() {
             val run = this@CompetitionRunCommand.runs[this.id]
             if (run == null) {
@@ -215,8 +219,7 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
                 return
             }
 
-            val path = Paths.get(this.path)
-            val mapper = ObjectMapper().registerKotlinModule()
+            val mapper = jacksonObjectMapper()
             Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
                 mapper.writeValue(it, run)
             }

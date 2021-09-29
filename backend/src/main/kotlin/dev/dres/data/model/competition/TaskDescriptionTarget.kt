@@ -1,5 +1,7 @@
 package dev.dres.data.model.competition
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonTypeName
 import dev.dres.api.rest.types.task.ContentElement
 import dev.dres.api.rest.types.task.ContentType
 import dev.dres.data.dbo.DAO
@@ -19,8 +21,9 @@ import java.util.*
  * considered correct.
  *
  * @author Luca Rossetto & Ralph Gasser
- * @version 1.0.1
+ * @version 1.1.0
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 sealed class TaskDescriptionTarget {
 
 
@@ -47,6 +50,7 @@ sealed class TaskDescriptionTarget {
     /**
      * A [TaskDescriptionTarget] that is validated by human judges.
      */
+    @JsonTypeName("JudgementTarget")
     data class JudgementTaskDescriptionTarget(val targets: List<Pair<MediaItem, TemporalRange?>>) : TaskDescriptionTarget() {
         override val ordinal: Int = 1
         override fun textDescription() = "Judgement"
@@ -56,6 +60,7 @@ sealed class TaskDescriptionTarget {
     /**
      * A [TaskDescriptionTarget], specified by a [MediaItem].
      */
+    @JsonTypeName("MediaItemTarget")
     data class MediaItemTarget(val item: MediaItem) : TaskDescriptionTarget() {
         override val ordinal: Int = 2
         override fun textDescription() = "Media Item ${item.name}"
@@ -84,6 +89,7 @@ sealed class TaskDescriptionTarget {
     /**
      * A [TaskDescriptionTarget], specified by a [MediaItem.VideoItem] and a [TemporalRange].
      */
+    @JsonTypeName("VideoSegmentTarget")
     data class VideoSegmentTarget(override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange) : TaskDescriptionTarget(), CachedVideoItem {
         override val ordinal: Int = 3
         override fun textDescription() = "Media Item ${item.name} @ ${temporalRange.start.niceText()} - ${temporalRange.end.niceText()}"
@@ -103,6 +109,7 @@ sealed class TaskDescriptionTarget {
     /**
      * A [TaskDescriptionTarget], specified by multiple [MediaItem]s.
      */
+    @JsonTypeName("MultipleMediaItemTarget")
     data class MultipleMediaItemTarget(val items: List<MediaItem>) : TaskDescriptionTarget() {
         override val ordinal: Int = 4
         override fun textDescription() = "Media Items"
@@ -135,6 +142,7 @@ sealed class TaskDescriptionTarget {
         }
     }
 
+    @JsonTypeName("VoteTarget")
     data class VoteTaskDescriptionTarget(val targets: List<Pair<MediaItem, TemporalRange?>>) : TaskDescriptionTarget() {
         override val ordinal: Int = 5
         override fun textDescription() = "Judgement with voting"

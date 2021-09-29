@@ -1,6 +1,5 @@
 package dev.dres.data.dbo
 
-import dev.dres.data.model.run.AbstractRun
 import dev.dres.data.model.run.interfaces.Competition
 import dev.dres.data.serializers.*
 import java.nio.file.Path
@@ -26,7 +25,7 @@ class DataAccessLayer(private val basePath: Path) {
     val mediaItemPathIndex = DaoIndexer(mediaItems){it.location}
 
 
-    val mediaSegments = DAO(this.basePath.resolve("mediaSegments.db"), MediaItemSegmentListSerializer, cacheSize = 10_000)
+    val mediaSegments = DAO(this.basePath.resolve("mediaSegments.db"), MediaItemSegmentSerializer, cacheSize = 10_000)
     val mediaSegmentItemIdIndex = DaoIndexer(mediaSegments){it.mediaItemId}
 
     private val competitionSerializer = CompetitionSerializer(mediaItems)

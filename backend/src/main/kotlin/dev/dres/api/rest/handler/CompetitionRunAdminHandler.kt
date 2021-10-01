@@ -16,7 +16,7 @@ import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
-import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 import dev.dres.mgmt.admin.UserManager
 import dev.dres.run.*
@@ -482,7 +482,7 @@ class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHan
     }
 }
 
-class OverrideSubmissionStatusRunAdminHandler: AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), PatchRestHandler<SubmissionInfo>{
+class OvewriteSubmissionStatusRunAdminHandler: AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), PatchRestHandler<SubmissionInfo>{
     override val route: String = "run/admin/{runId}/submissions/override"
 
     @OpenApi(
@@ -510,11 +510,17 @@ class OverrideSubmissionStatusRunAdminHandler: AbstractCompetitionRunAdminRestHa
         val toPatchRest = ctx.bodyAsClass<SubmissionInfo>()
         val submissionId = toPatchRest.id?.UID() ?: throw ErrorStatusException(400, "No submission ID was specified for update.", ctx)
 
+        val status = toPatchRest.status
+
+        if (status == SubmissionStatus.INDETERMINATE) {
+           throw ErrorStatusException(400, "Submission Status can not be set to INDETERMINATE", ctx)
+        }
+
         /* Sanity check to see, whether the submission exists */
         if (run.allSubmissions.none { it.uid == submissionId }) {
             throw ErrorStatusException(404, "The given submission $toPatchRest was not found.", ctx)
         }
-        if (run.updateSubmission(rac, submissionId, toPatchRest.status)){
+        if (run.updateSubmission(rac, submissionId, status)){
             val submission = run.allSubmissions.single { it.uid == submissionId }
             AuditLogger.overrideSubmission(runId, submissionId, submission.status, LogEventSource.REST, ctx.sessionId())
             return SubmissionInfo(submission)

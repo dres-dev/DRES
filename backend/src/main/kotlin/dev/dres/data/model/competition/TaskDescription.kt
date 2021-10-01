@@ -50,6 +50,7 @@ class TaskDescription(
 
     /** List of [TaskDescriptionHint]s that act as clues to find the target media. */
     val hints: List<TaskDescriptionHint>
+
 ): TaskScorerFactory, SubmissionFilterFactory {
 
     /**

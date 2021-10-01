@@ -13,7 +13,7 @@ import dev.dres.utilities.TimeUtil
  */
 data class TemporalRange constructor(val start: TemporalPoint, val end: TemporalPoint) {
 
-    constructor(startMs: Long, endMs: Long) : this(MilliSecondTemporalPoint(startMs), MilliSecondTemporalPoint(endMs))
+    constructor(startMs: Long, endMs: Long) : this(TemporalPoint.Millisecond(startMs), TemporalPoint.Millisecond(endMs))
     constructor(pair: Pair<Long, Long>) : this(pair.first, pair.second)
 
     init {

@@ -1,6 +1,8 @@
 package dev.dres.api.cli
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.convertValue
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
@@ -8,6 +10,7 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
+import com.github.ajalt.clikt.parameters.types.path
 import com.jakewharton.picnic.table
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
@@ -17,7 +20,7 @@ import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.utilities.FFmpegUtil
 import java.io.File
 import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
 /**
@@ -195,22 +198,20 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
     }
 
     /**
-     * Exports a specific competition as JSON.
+     * Exports a specific competition to a JSON file.
      */
     inner class ExportCompetitionCommand : AbstractCompetitionCommand(name = "export", help = "Exports a competition description as JSON.") {
 
-        private val destination: String by option("-o", "--out", help = "The destination file for the competition.").required()
+        private val path: Path by option("-o", "--out", help = "The destination file for the competition.").path().required()
 
         override fun run() {
             val competition = this@CompetitionCommand.competitions[this.competitionId]
             if (competition == null) {
-                println("Competition does not seem to exist.")
+                println("Competition ${this.competitionId} does not seem to exist.")
                 return
             }
-
-            val path = Paths.get(this.destination)
-            val mapper = ObjectMapper()
-            Files.newBufferedWriter(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE).use {
+            val mapper = jacksonObjectMapper()
+            Files.newBufferedWriter(this.path, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE).use {
                 mapper.writeValue(it, competition)
             }
             println("Successfully wrote competition '${competition.name}' (ID = ${competition.id}) to $path.")
@@ -219,27 +220,48 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
 
 
     /**
-     * Imports a specific competition from JSON.
+     * Imports a competition from a JSON file.
      */
     inner class ImportCompetitionCommand : CliktCommand(name = "import", help = "Imports a competition description from JSON.") {
 
-        private val new: Boolean by option("-n", "--new", help = "Flag indicating whether competition should be created anew.").flag("-u", "--update", default = true)
+        /** Flag indicating whether a new competition should be created.*/
+        private val new: Boolean by option("-n", "--new", help = "Flag indicating whether a new competition should be created.").flag("-u", "--update", default = true)
 
-        private val destination: String by option("-i", "--in", help = "The input file for the competition.").required()
+        /** Path to the file that should be imported.*/
+        private val path: Path by option("-i", "--in", help = "The file to import the competition from.").path().required()
 
         override fun run() {
-            val path = Paths.get(this.destination)
-            val mapper = ObjectMapper()
-            val competition = Files.newBufferedReader(path).use {
-                mapper.readValue(it, CompetitionDescription::class.java)
+
+            /* Read competition from file. */
+
+            val reader = jacksonObjectMapper().readerFor(CompetitionDescription::class.java)
+            val competition = try {
+                Files.newBufferedReader(this.path).use {
+                    val tree = reader.readTree(it)
+                    if (tree.get("id") != null && (tree.get("description") == null || tree.get("description").isNull || tree.get("description").isTextual)) {
+                        reader.readValue<CompetitionDescription>(it)
+                    } else if (tree.get("id") != null && tree.get("description") != null && tree.get("description").isObject) {
+                        reader.readValue<CompetitionDescription>(tree["description"])
+                    } else {
+                        null
+                    }
+                }
+            } catch (e: Throwable) {
+                println("Could not import competition from $path: ${e.message}.")
+                return
             }
 
-            if (new) {
-                val id = this@CompetitionCommand.competitions.append(competition)
-                println("Successfully imported new competition '${competition.name}' (ID = $id) from $path.")
+            /* Create/update competition. */
+            if (competition != null) {
+                if (this.new) {
+                    val id = this@CompetitionCommand.competitions.append(competition)
+                    println("Successfully imported new competition '${competition.name}' (ID = $id) from $path.")
+                } else {
+                    this@CompetitionCommand.competitions.update(competition)
+                    println("Successfully updated competition '${competition.name}' (ID = ${competition.id}) from $path.")
+                }
             } else {
-                this@CompetitionCommand.competitions.update(competition)
-                println("Successfully updated competition '${competition.name}' (ID = ${competition.id}) from $path.")
+                println("Could not import competition from $path: Unknown format.")
             }
         }
     }

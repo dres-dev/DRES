@@ -4,7 +4,7 @@ import dev.dres.data.dbo.DaoIndexer
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.basics.media.MediaItemSegmentList
-import dev.dres.data.model.basics.time.FrameTemporalPoint
+import dev.dres.data.model.basics.time.TemporalPoint
 import dev.dres.data.model.basics.time.TemporalRange
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TaskDescriptionTarget
@@ -69,7 +69,7 @@ class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemS
                             val segment = TemporalRange(if (it.second.segment != null) {
                                 TimeUtil.shotToTime(it.second.segment.toString(), segments)
                             } else {
-                                TimeUtil.timeToSegment(FrameTemporalPoint.toMilliseconds(it.second.frame!!, (target.first as MediaItem.VideoItem).fps), segments)
+                                TimeUtil.timeToSegment(TemporalPoint.Frame.toMilliseconds(it.second.frame!!, (target.first as MediaItem.VideoItem).fps), segments)
                             } ?: return@any false )
 
                             segment.overlaps(target.second!!)

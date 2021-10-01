@@ -10,12 +10,8 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.dbo.DaoIndexer
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.MediaCollection
-import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.basics.media.MediaItemSegmentList
-import dev.dres.data.model.basics.media.PlayableMediaItem
-import dev.dres.data.model.basics.time.FrameTemporalPoint
-import dev.dres.data.model.basics.time.TimeCodeTemporalPoint
+import dev.dres.data.model.basics.media.*
+import dev.dres.data.model.basics.time.TemporalPoint
 import dev.dres.data.model.competition.options.SimpleOption
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.Submission
@@ -105,7 +101,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
                 Submission.Temporal(team, userId, submissionTime, item, time.first, time.second)
             }
             map.containsKey(PARAMETER_NAME_FRAME) && (item is PlayableMediaItem) -> {
-                val time = FrameTemporalPoint.toMilliseconds(
+                val time = TemporalPoint.Frame.toMilliseconds(
                     map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull() ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number.", ctx),
                     item.fps
                 )
@@ -124,7 +120,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
                 Submission.Temporal(team, userId, submissionTime, item, range.first, range.second)
             }
             map.containsKey(PARAMETER_NAME_TIMECODE) && (item is PlayableMediaItem) -> {
-                val time = TimeCodeTemporalPoint.timeCodeToMilliseconds(map[PARAMETER_NAME_TIMECODE]?.first()!!, item) ?: throw ErrorStatusException(400, "'${map[PARAMETER_NAME_TIMECODE]?.first()!!}' is not a valid time code", ctx)
+                val time = TemporalPoint.Timecode.timeCodeToMilliseconds(map[PARAMETER_NAME_TIMECODE]?.first()!!, item) ?: throw ErrorStatusException(400, "'${map[PARAMETER_NAME_TIMECODE]?.first()!!}' is not a valid time code", ctx)
                 val range = if(mapToSegment && item is MediaItem.VideoItem) {
                     (TimeUtil.timeToSegment(
                         time,

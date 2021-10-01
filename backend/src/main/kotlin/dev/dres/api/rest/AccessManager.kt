@@ -4,7 +4,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.admin.User
 import dev.dres.run.RunManager
 import dev.dres.utilities.extensions.sessionId
-import io.javalin.core.security.Role
+import io.javalin.core.security.RouteRole
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import java.util.concurrent.ConcurrentHashMap
@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 object AccessManager {
 
-    fun manage(handler: Handler, ctx: Context, permittedRoles: Set<Role>) {
+    fun manage(handler: Handler, ctx: Context, permittedRoles: Set<RouteRole>) {
         when {
             permittedRoles.isEmpty() -> handler.handle(ctx) //fallback in case no roles are set, none are required
             permittedRoles.contains(RestApiRole.ANYONE) -> handler.handle(ctx)
@@ -105,4 +105,4 @@ object AccessManager {
     }
 }
 
-enum class RestApiRole : Role { ANYONE, VIEWER, PARTICIPANT, JUDGE, ADMIN }
+enum class RestApiRole : RouteRole { ANYONE, VIEWER, PARTICIPANT, JUDGE, ADMIN }

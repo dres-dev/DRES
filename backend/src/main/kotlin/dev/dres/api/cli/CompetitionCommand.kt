@@ -239,7 +239,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                 Files.newBufferedReader(this.path).use {
                     val tree = reader.readTree(it)
                     if (tree.get("id") != null && (tree.get("description") == null || tree.get("description").isNull || tree.get("description").isTextual)) {
-                        reader.readValue<CompetitionDescription>(it)
+                        reader.readValue<CompetitionDescription>(tree)
                     } else if (tree.get("id") != null && tree.get("description") != null && tree.get("description").isObject) {
                         reader.readValue<CompetitionDescription>(tree["description"])
                     } else {

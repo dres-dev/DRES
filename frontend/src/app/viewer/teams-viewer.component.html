@@ -13,7 +13,7 @@
                 </div>
                 <div *ngIf="(state | async)?.status === 'TASK_ENDED' || (state | async)?.status === 'RUNNING_TASK'" >
                     <p class="score" *ngIf="(scores | async)">
-                        {{(scores | async).get(team.uid)}}
+                        {{(scores | async).get(team.uid) | number: '1.0-0'}}
                     </p>
 
                     <p class="counter">

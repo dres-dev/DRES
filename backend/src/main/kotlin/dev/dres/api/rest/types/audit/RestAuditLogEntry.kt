@@ -21,7 +21,7 @@ sealed class RestAuditLogEntry(val type: AuditLogEntryType, id: UID, val timesta
                 is LoginAuditLogEntry -> RestLoginAuditLogEntry(log)
                 is LogoutAuditLogEntry -> RestLogoutAuditLogEntry(log)
                 is SubmissionValidationAuditLogEntry -> RestSubmissionValidationAuditLogEntry(log)
-                is SubmissionStatusOverwriteAuditLogEntry -> TODO()
+                is SubmissionStatusOverwriteAuditLogEntry -> RestSubmissionStatusOverwriteAuditLogEntry(log)
             }
         }
     }
@@ -69,4 +69,8 @@ class RestLogoutAuditLogEntry(id: UID, timestamp: Long, val session: String, val
 
 class RestSubmissionValidationAuditLogEntry(id: UID, timestamp: Long, val submissionId: String, val validator: String, val verdict: SubmissionStatus) : RestAuditLogEntry(AuditLogEntryType.SUBMISSION_VALIDATION, id, timestamp) {
     constructor(log: SubmissionValidationAuditLogEntry) : this(log.id, log.timestamp, log.submission.uid.string, log.validatorName, log.status)
+}
+
+class RestSubmissionStatusOverwriteAuditLogEntry(id: UID, timestamp: Long, val runId: String, val submissionId: String, val newVerdict: SubmissionStatus, val session: String, val api: LogEventSource) : RestAuditLogEntry(AuditLogEntryType.SUBMISSION_STATUS_OVERWRITE, id, timestamp) {
+    constructor(log: SubmissionStatusOverwriteAuditLogEntry) : this(log.id, log.timestamp, log.competitionRunUid.string, log.submissionId.string, log.newVerdict, log.user?: "", log.api)
 }

@@ -479,14 +479,6 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
             /* Enqueue submission for post-processing. */
             this.scoresUpdatable.enqueue(Pair(found.task!!, found))
 
-            if (submissionStatus == SubmissionStatus.INDETERMINATE) {
-                found.task?.validator?.let{
-                    if (it is JudgementValidator){
-                        it.validate(found)
-                    }
-                }
-            }
-
             /* Enqueue WS message for sending */
             this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_UPDATED))
 

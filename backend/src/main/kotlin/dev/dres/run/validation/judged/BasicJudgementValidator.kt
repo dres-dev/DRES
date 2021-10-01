@@ -34,7 +34,7 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
     /** Internal queue that keeps track of all the [Submission]s in need of a verdict. */
     private val queue: Queue<Submission> = LinkedList()
 
-    private val queuedItemRanges: MutableSet<ItemRange> = HashSet()
+    private val queuedItemRanges: MutableMap<ItemRange, MutableList<Submission>> = HashMap()
 
     /** Internal map of all [Submission]s that have been retrieved by a judge and are pending a verdict. */
     private val waiting = HashMap<String, Submission>()
@@ -96,12 +96,17 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
         val cachedStatus = this.cache[itemRange]
         if (cachedStatus != null) {
             submission.status = cachedStatus
-        } else if (itemRange !in queuedItemRanges) {
+        } else if (itemRange !in queuedItemRanges.keys) {
             updateLock.write {
                 this.queue.offer(submission)
+
+                submission.status = SubmissionStatus.INDETERMINATE
+                queuedItemRanges[itemRange] = mutableListOf(submission)
             }
-            submission.status = SubmissionStatus.INDETERMINATE
-            queuedItemRanges.add(itemRange)
+        } else {
+            updateLock.write {
+                queuedItemRanges[itemRange]!!.add(submission)
+            }
         }
     }
 
@@ -149,7 +154,10 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
         this.waiting.remove(token)
 
         //remove from queue set
-        this.queuedItemRanges.remove(itemRange)
+        val otherSubmissions = this.queuedItemRanges.remove(itemRange)
+        otherSubmissions?.forEach {
+            it.status = verdict
+        }
 
         return@write submission
     }

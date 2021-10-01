@@ -73,7 +73,7 @@ class ListCompetitionScoreHandler : AbstractScoreRestHandler(), GetRestHandler<L
             summary = "Returns the score overviews of a specific competition run.",
             path = "/api/v1/score/run/{runId}",
             tags = ["Competition Run Scores"],
-            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<ScoreOverview>::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -101,7 +101,7 @@ class CurrentTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
             summary = "Returns the overviews of all score boards for the current task run, if it is either running or has just ended.",
             path = "/api/v1/score/run/{runId}/current",
             tags = ["Competition Run Scores"],
-            pathParams = [OpenApiParam("runId", UID::class, "Competition run ID")],
+            pathParams = [OpenApiParam("runId", String::class, "Competition run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(ScoreOverview::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),

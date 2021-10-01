@@ -64,7 +64,7 @@ class GetTeamLogoHandler(val config: Config) : AbstractCompetitionRunRestHandler
             summary = "Returns the logo for the given logo ID.",
             path = "/api/v1/competition/logo/{logoId}",
             tags = ["Competition Run", "Media"],
-            pathParams = [OpenApiParam("logoId", UID::class, "The ID of the logo.")],
+            pathParams = [OpenApiParam("logoId", String::class, "The ID of the logo.")],
             responses = [OpenApiResponse("200"), OpenApiResponse("401"), OpenApiResponse("400"), OpenApiResponse("404")],
             ignore = true
     )
@@ -116,7 +116,7 @@ class GetCompetitionHandler(competitions: DAO<CompetitionDescription>) : Competi
     @OpenApi(
             summary = "Loads the detailed definition of a specific competition.",
             path = "/api/v1/competition/{competitionId}",
-            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
+            pathParams = [OpenApiParam("competitionId", String::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(RestCompetitionDescription::class)]),
@@ -137,7 +137,7 @@ class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
     @OpenApi(
             summary = "Lists the Teams of a specific competition.",
             path = "/api/v1/competition/{competitionId}/team/list",
-            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
+            pathParams = [OpenApiParam("competitionId", String::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<RestTeam>::class)]),
@@ -161,7 +161,7 @@ class ListDetailedTeamHandler(competitions: DAO<CompetitionDescription>) : Compe
     @OpenApi(
             summary="Lists the teams with their user details",
             path = "/api/v1/competition/{competitionId}/team/list/details",
-            pathParams= [OpenApiParam("competitionId", UID::class, "Competition ID")],
+            pathParams= [OpenApiParam("competitionId", String::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<RestDetailedTeam>::class)]),
@@ -181,7 +181,7 @@ class ListTaskHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
     @OpenApi(
             summary = "Lists the Tasks of a specific competition.",
             path = "/api/v1/competition/{competitionId}/task/list",
-            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
+            pathParams = [OpenApiParam("competitionId", String::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<RestTaskDescription>::class)]),
@@ -267,7 +267,7 @@ class DeleteCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
     @OpenApi(
             summary = "Deletes the competition with the given competition ID.",
             path = "/api/v1/competition/{competitionId}", method = HttpMethod.DELETE,
-            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
+            pathParams = [OpenApiParam("competitionId", String::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),

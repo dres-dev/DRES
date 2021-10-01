@@ -21,6 +21,7 @@ sealed class RestAuditLogEntry(val type: AuditLogEntryType, id: UID, val timesta
                 is LoginAuditLogEntry -> RestLoginAuditLogEntry(log)
                 is LogoutAuditLogEntry -> RestLogoutAuditLogEntry(log)
                 is SubmissionValidationAuditLogEntry -> RestSubmissionValidationAuditLogEntry(log)
+                is SubmissionStatusOverwriteAuditLogEntry -> TODO()
             }
         }
     }

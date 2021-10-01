@@ -166,7 +166,7 @@ class ShowCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaI
     @OpenApi(
             summary = "Shows the content of the specified media collection.",
             path = "/api/v1/collection/{collectionId}",
-            pathParams = [OpenApiParam("collectionId", UID::class, "Collection ID")],
+            pathParams = [OpenApiParam("collectionId", String::class, "Collection ID")],
             tags = ["Collection"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(RestFullMediaCollection::class)]),
@@ -272,7 +272,7 @@ class GetMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
             summary = "Selects and returns a specific media item.",
             path = "/api/v1/mediaItem/{mediaId}", method = HttpMethod.GET,
             pathParams = [
-                OpenApiParam("mediaId", UID::class, "Media item ID")
+                OpenApiParam("mediaId", String::class, "Media item ID")
             ],
             tags = ["Collection"],
             responses = [
@@ -300,7 +300,7 @@ class DeleteMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<Media
             summary = "Selects and returns a specific media item.",
             path = "/api/v1/mediaItem/{mediaId}", method = HttpMethod.DELETE,
             pathParams = [
-                OpenApiParam("mediaId", UID::class, "Media item ID")
+                OpenApiParam("mediaId", String::class, "Media item ID")
             ],
             tags = ["Collection"],
             responses = [
@@ -329,7 +329,7 @@ class ListMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIt
             summary = "Lists media items from a given media collection whose name start with the given string.",
             path = "/api/v1/collection/{collectionId}/{startsWith}", method = HttpMethod.GET,
             pathParams = [
-                OpenApiParam("collectionId", UID::class, "Collection ID"),
+                OpenApiParam("collectionId", String::class, "Collection ID"),
                 OpenApiParam("startsWith", String::class, "Name starts with", required = false)
             ],
             tags = ["Collection"],
@@ -365,7 +365,7 @@ class RandomMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<Media
             summary = "Selects and returns a random media item from a given media collection.",
             path = "/api/v1/collection/{collectionId}/random", method = HttpMethod.GET,
             pathParams = [
-                OpenApiParam("collectionId", UID::class, "Collection ID")
+                OpenApiParam("collectionId", String::class, "Collection ID")
             ],
             tags = ["Collection"],
             responses = [

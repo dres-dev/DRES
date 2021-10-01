@@ -4982,7 +4982,7 @@
         "properties" : {
           "type" : {
             "type" : "string",
-            "enum" : [ "COMPETITION_START", "COMPETITION_END", "TASK_START", "TASK_MODIFIED", "TASK_END", "SUBMISSION", "PREPARE_JUDGEMENT", "JUDGEMENT", "LOGIN", "LOGOUT", "SUBMISSION_VALIDATION" ]
+            "enum" : [ "COMPETITION_START", "COMPETITION_END", "TASK_START", "TASK_MODIFIED", "TASK_END", "SUBMISSION", "PREPARE_JUDGEMENT", "JUDGEMENT", "LOGIN", "LOGOUT", "SUBMISSION_VALIDATION", "SUBMISSION_STATUS_OVERWRITE" ]
           },
           "id" : {
             "type" : "string"

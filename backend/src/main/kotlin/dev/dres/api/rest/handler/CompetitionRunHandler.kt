@@ -122,7 +122,7 @@ class GetCompetitionRunInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
             summary = "Returns a specific competition run.",
             path = "/api/v1/run/info/{runId}",
             tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(RunInfo::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -150,7 +150,7 @@ class GetCompetitionRunStateHandler : AbstractCompetitionRunRestHandler(), GetRe
             summary = "Returns the state of a specific competition run.",
             path = "/api/v1/run/state/{runId}",
             tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(RunState::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -180,7 +180,7 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
             summary = "Returns the information for the current task (i.e. the one that is currently selected).",
             path = "/api/v1/run/{runId}/task",
             tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(TaskInfo::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -211,7 +211,7 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
             summary = "Returns the task hint for the current task run (i.e. the one that is currently selected).",
             path = "/api/v1/run/{runId}/hint",
             tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(TaskHint::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -248,7 +248,7 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
             summary = "Returns the task target for the current task run (i.e. the one that is currently selected).",
             path = "/api/v1/run/{runId}/target",
             tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(TaskTarget::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -292,7 +292,7 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
             summary = "Returns the submissions for the current task run, if it is either running or has just ended.",
             path = "/api/v1/run/{runId}/submissions",
             tags = ["Competition Run"],
-            pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
+            pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -329,7 +329,7 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
             path = "/api/v1/run/{runId}/submissions/after/{timestamp}",
             tags = ["Competition Run"],
             pathParams = [
-                OpenApiParam("runId", UID::class, "Competition Run ID"),
+                OpenApiParam("runId", String::class, "Competition Run ID"),
                 OpenApiParam("timestamp", Long::class, "Minimum Timestamp of returned submissions.")
             ],
             responses = [

@@ -53,7 +53,7 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
     @OpenApi(summary = "Endpoint to accept batch submissions in JSON format",
         path = "/api/v1/batchSubmit/{runId}/json",
         method = HttpMethod.POST,
-        pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
+        pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
         requestBody = OpenApiRequestBody([OpenApiContent(JsonBatchSubmission::class)]),
         tags = ["Batch Submission"],
         responses = [

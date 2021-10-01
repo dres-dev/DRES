@@ -80,7 +80,7 @@ class UserDetailsHandler : UserHandler(), GetRestHandler<UserDetails>, AccessMan
             summary = "Gets details of the user with the given id",
             path = "/api/v1/user/{userId}",
             pathParams = [
-                OpenApiParam("userId", UID::class, "User's UID")
+                OpenApiParam("userId", String::class, "User's UID")
             ],
             tags = ["User"],
             responses = [
@@ -157,7 +157,7 @@ class UpdateUsersHandler : UserHandler(), PatchRestHandler<UserDetails>, AccessM
     @OpenApi(
             summary = "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone",
             path = "/api/v1/user/{userId}", method = HttpMethod.PATCH,
-            pathParams = [OpenApiParam("userId", UID::class, "User ID")],
+            pathParams = [OpenApiParam("userId", String::class, "User ID")],
             requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
             tags = ["User"],
             responses = [

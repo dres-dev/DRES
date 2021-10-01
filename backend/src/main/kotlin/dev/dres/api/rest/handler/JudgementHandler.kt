@@ -40,7 +40,7 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
     @OpenApi(
             summary = "Gets the next open Submission to be judged.",
             path = "/api/v1/run/{runId}/judge/next",
-            pathParams = [OpenApiParam("runId", dev.dres.data.model.UID::class, "Run ID")],
+            pathParams = [OpenApiParam("runId", String::class, "Run ID")],
             tags = ["Judgement"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(JudgementRequest::class)]),
@@ -76,7 +76,7 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
     @OpenApi(
             summary = "Returns a Judgement.",
             path = "/api/v1/run/{runId}/judge", method = HttpMethod.POST,
-            pathParams = [OpenApiParam("runId", dev.dres.data.model.UID::class, "Run ID")],
+            pathParams = [OpenApiParam("runId", String::class, "Run ID")],
             requestBody = OpenApiRequestBody([OpenApiContent(Judgement::class)]),
             tags = ["Judgement"],
             responses = [
@@ -114,7 +114,7 @@ class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, A
     @OpenApi(
             summary = "Gets the status of all judgement validators.",
             path = "/api/v1/run/{runId}/judge/status",
-            pathParams = [OpenApiParam("runId", dev.dres.data.model.UID::class, "Run ID")],
+            pathParams = [OpenApiParam("runId", String::class, "Run ID")],
             tags = ["Judgement"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<JudgementValidatorStatus>::class)]),
@@ -145,7 +145,7 @@ class JudgementVoteHandler : PostRestHandler<SuccessStatus> {
     @OpenApi(
         summary = "Returns a Vote.",
         path = "/api/v1/run/{runId}/judge/vote", method = HttpMethod.POST,
-        pathParams = [OpenApiParam("runId", dev.dres.data.model.UID::class, "Run ID")],
+        pathParams = [OpenApiParam("runId", String::class, "Run ID")],
         requestBody = OpenApiRequestBody([OpenApiContent(JudgementVote::class)]),
         tags = ["Judgement"],
         responses = [
@@ -187,7 +187,7 @@ class NextOpenVoteJudgementHandler(val collections: DAO<MediaCollection>) : Abst
     @OpenApi(
         summary = "Gets the next open Submission to voted on.",
         path = "/api/v1/run/{runId}/vote/next",
-        pathParams = [OpenApiParam("runId", dev.dres.data.model.UID::class, "Run ID")],
+        pathParams = [OpenApiParam("runId", String::class, "Run ID")],
         tags = ["Judgement"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(JudgementRequest::class)]),

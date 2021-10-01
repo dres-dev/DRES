@@ -17,8 +17,8 @@ import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.read
 import dev.dres.utilities.extensions.write
+import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
-import io.javalin.websocket.WsHandler
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.*
@@ -33,7 +33,7 @@ import java.util.function.Consumer
  * @author Ralph Gasser
  * @version 1.1
  */
-object RunExecutor : Consumer<WsHandler> {
+object RunExecutor : Consumer<WsConfig> {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -141,7 +141,7 @@ object RunExecutor : Consumer<WsHandler> {
      *
      * @param t The [WsHandler] of the WebSocket endpoint.
      */
-    override fun accept(t: WsHandler) {
+    override fun accept(t: WsConfig) {
         t.onConnect {
             /* Add WSContext to set of connected clients. */
             this@RunExecutor.clientLock.write {
@@ -165,7 +165,7 @@ object RunExecutor : Consumer<WsHandler> {
         }
         t.onMessage {
             val message = try {
-                it.message(ClientMessage::class.java)
+                it.messageAsClass<ClientMessage>()
             } catch (e: Exception) {
                 logger.warn("Cannot parse WebSocket message: ${e.localizedMessage}")
                 return@onMessage

@@ -90,6 +90,14 @@ object AuditLogEntrySerializer: Serializer<AuditLogEntry> {
                 out.writeUTF(validate.validatorName)
                 out.packInt(validate.status.ordinal)
             }
+            AuditLogEntryType.SUBMISSION_STATUS_OVERWRITE -> {
+                val overwrite = value as SubmissionStatusOverwriteAuditLogEntry
+                out.writeUID(overwrite.competitionRunUid)
+                out.writeUID(overwrite.submissionId)
+                out.packInt(overwrite.newVerdict.ordinal)
+                out.packInt(overwrite.api.ordinal)
+                out.writeUTF(overwrite.user ?: "")
+            }
         }
     }
 
@@ -108,6 +116,7 @@ object AuditLogEntrySerializer: Serializer<AuditLogEntry> {
             AuditLogEntryType.LOGIN -> LoginAuditLogEntry(id, input.readUTF(), input.readUTF(), LogEventSource.values()[input.unpackInt()]).also { it.timestamp = timestamp }
             AuditLogEntryType.LOGOUT -> LogoutAuditLogEntry(id, input.readUTF(), LogEventSource.values()[input.unpackInt()]).also { it.timestamp = timestamp }
             AuditLogEntryType.SUBMISSION_VALIDATION -> SubmissionValidationAuditLogEntry(id, SubmissionSerializer.deserialize(input, available), input.readUTF(), SubmissionStatus.values()[input.unpackInt()]).also { it.timestamp = timestamp }
+            AuditLogEntryType.SUBMISSION_STATUS_OVERWRITE -> SubmissionStatusOverwriteAuditLogEntry(id, input.readUID(), input.readUID(), SubmissionStatus.values()[input.unpackInt()], LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
         }
     }
 }

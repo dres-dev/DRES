@@ -16,6 +16,7 @@ import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
+import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 import dev.dres.mgmt.admin.UserManager
 import dev.dres.run.*
@@ -514,7 +515,9 @@ class OverrideSubmissionStatusRunAdminHandler: AbstractCompetitionRunAdminRestHa
             throw ErrorStatusException(404, "The given submission $toPatchRest was not found.", ctx)
         }
         if (run.updateSubmission(rac, submissionId, toPatchRest.status)){
-            return SubmissionInfo( run.allSubmissions.single { it.uid == submissionId })
+            val submission = run.allSubmissions.single { it.uid == submissionId }
+            AuditLogger.overrideSubmission(runId, submissionId, submission.status, LogEventSource.REST, ctx.sessionId())
+            return SubmissionInfo(submission)
         } else {
             throw ErrorStatusException(500, "Could not update the submission. Please see the backend's log.", ctx)
         }

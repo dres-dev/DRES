@@ -1,6 +1,5 @@
 package dev.dres.api.cli
 
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
@@ -11,7 +10,6 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.jakewharton.picnic.table
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
-import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescriptionTarget
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
@@ -23,7 +21,6 @@ import dev.dres.run.*
 import dev.dres.utilities.extensions.UID
 import java.io.FileOutputStream
 import java.io.OutputStream
-import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption

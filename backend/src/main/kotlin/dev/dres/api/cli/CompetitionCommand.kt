@@ -227,33 +227,41 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
         /** Flag indicating whether a new competition should be created.*/
         private val new: Boolean by option("-n", "--new", help = "Flag indicating whether a new competition should be created.").flag("-u", "--update", default = true)
 
-
-        /** Flag indicating whether competition should be imported from competition file (false) or run file (true).*/
-        private val run: Boolean by option("-r", "--run", help = "Flag indicating whether a new competition should be created.").flag("-c", "--competition", default = false)
-
         /** Path to the file that should be imported.*/
         private val path: Path by option("-i", "--in", help = "The file to import the competition from.").path().required()
 
         override fun run() {
 
             /* Read competition from file. */
+
             val reader = jacksonObjectMapper().readerFor(CompetitionDescription::class.java)
-            val competition = Files.newBufferedReader(this.path).use {
-                if (this.run) {
+            val competition = try {
+                Files.newBufferedReader(this.path).use {
                     val tree = reader.readTree(it)
-                    reader.readValue<CompetitionDescription>(tree["description"])
-                } else {
-                    reader.readValue<CompetitionDescription>(it)
+                    if (tree.get("id") != null && (tree.get("description") == null || tree.get("description").isNull || tree.get("description").isTextual)) {
+                        reader.readValue<CompetitionDescription>(it)
+                    } else if (tree.get("id") != null && tree.get("description") != null && tree.get("description").isObject) {
+                        reader.readValue<CompetitionDescription>(tree["description"])
+                    } else {
+                        null
+                    }
                 }
+            } catch (e: Throwable) {
+                println("Could not import competition from $path: ${e.message}.")
+                return
             }
 
             /* Create/update competition. */
-            if (this.new) {
-                val id = this@CompetitionCommand.competitions.append(competition)
-                println("Successfully imported new competition '${competition.name}' (ID = $id) from $path.")
+            if (competition != null) {
+                if (this.new) {
+                    val id = this@CompetitionCommand.competitions.append(competition)
+                    println("Successfully imported new competition '${competition.name}' (ID = $id) from $path.")
+                } else {
+                    this@CompetitionCommand.competitions.update(competition)
+                    println("Successfully updated competition '${competition.name}' (ID = ${competition.id}) from $path.")
+                }
             } else {
-                this@CompetitionCommand.competitions.update(competition)
-                println("Successfully updated competition '${competition.name}' (ID = ${competition.id}) from $path.")
+                println("Could not import competition from $path: Unknown format.")
             }
         }
     }

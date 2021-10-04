@@ -3382,6 +3382,67 @@
         }
       }
     },
+    "/api/v1/run/admin/{runId}/task/past/list" : {
+      "get" : {
+        "tags" : [ "Competition Run Admin" ],
+        "summary" : "Lists all past tasks for a given run",
+        "operationId" : "getApiV1RunAdminWithRunidTaskPastList",
+        "parameters" : [ {
+          "name" : "runId",
+          "in" : "path",
+          "description" : "Competition Run ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PastTaskInfo"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/run/{runId}/judge/next" : {
       "get" : {
         "tags" : [ "Judgement" ],
@@ -4888,6 +4949,31 @@
           }
         }
       },
+      "PastTaskInfo" : {
+        "required" : [ "descriptionId", "name", "numberOfSubmissions", "taskGroup", "taskId", "taskType" ],
+        "type" : "object",
+        "properties" : {
+          "taskId" : {
+            "type" : "string"
+          },
+          "descriptionId" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "taskGroup" : {
+            "type" : "string"
+          },
+          "taskType" : {
+            "type" : "string"
+          },
+          "numberOfSubmissions" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
       "JudgementRequest" : {
         "required" : [ "collection", "item", "taskDescription", "token", "validator" ],
         "type" : "object",
@@ -5151,6 +5237,34 @@
             },
             "address" : {
               "type" : "string"
+            }
+          }
+        } ]
+      },
+      "RestSubmissionStatusOverwriteAuditLogEntry" : {
+        "required" : [ "api", "id", "newVerdict", "runId", "session", "submissionId", "timestamp", "type" ],
+        "type" : "object",
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/RestAuditLogEntry"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "runId" : {
+              "type" : "string"
+            },
+            "submissionId" : {
+              "type" : "string"
+            },
+            "newVerdict" : {
+              "type" : "string",
+              "enum" : [ "CORRECT", "WRONG", "INDETERMINATE", "UNDECIDABLE" ]
+            },
+            "session" : {
+              "type" : "string"
+            },
+            "api" : {
+              "type" : "string",
+              "enum" : [ "REST", "CLI", "INTERNAL" ]
             }
           }
         } ]

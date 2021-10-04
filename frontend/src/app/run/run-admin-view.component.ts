@@ -1,17 +1,17 @@
-import {Component} from '@angular/core';
+import {AfterViewInit, Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AppConfig} from '../app.config';
 import {
     CompetitionRunAdminService,
     CompetitionRunService,
-    CompetitionService,
+    CompetitionService, PastTaskInfo,
     RestDetailedTeam,
     RunInfo,
     RunState,
     ViewerInfo
 } from '../../../openapi';
-import {combineLatest, merge, Observable, of, Subject, timer} from 'rxjs';
-import {catchError, filter, flatMap, map, shareReplay, switchMap} from 'rxjs/operators';
+import {BehaviorSubject, combineLatest, merge, Observable, of, Subject, timer} from 'rxjs';
+import {catchError, filter, flatMap, map, shareReplay, switchMap, tap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatDialog} from '@angular/material/dialog';
 import {ConfirmationDialogComponent, ConfirmationDialogComponentData} from '../shared/confirmation-dialog/confirmation-dialog.component';
@@ -27,14 +27,16 @@ export interface CombinedRun {
     templateUrl: './run-admin-view.component.html',
     styleUrls: ['./run-admin-view.component.scss']
 })
-export class RunAdminViewComponent {
+export class RunAdminViewComponent implements AfterViewInit{
 
     runId: Observable<string>;
     run: Observable<CombinedRun>;
     viewers: Observable<ViewerInfo[]>;
     update = new Subject();
-    displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'action'];
+    displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'past', 'action'];
     teams: Observable<RestDetailedTeam[]>;
+    pastTasks = new BehaviorSubject<PastTaskInfo[]>([]);
+    pastTasksValue: PastTaskInfo[];
 
     constructor(private router: Router,
                 private activeRoute: ActivatedRoute,
@@ -81,8 +83,8 @@ export class RunAdminViewComponent {
             }),
             shareReplay({bufferSize: 1, refCount: true})
         );
-
     }
+
 
     public start() {
         this.runId.pipe(switchMap(id => this.runAdminService.postApiV1RunAdminWithRunidStart(id))).subscribe(
@@ -237,5 +239,28 @@ export class RunAdminViewComponent {
         // } else {
         return null;
         // }
+    }
+
+    ngAfterViewInit(): void {
+        /* Cache past tasks initially */
+        this.runId.subscribe(runId => this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe(arr => this.pastTasksValue = arr));
+        /*this.runId.pipe(
+            tap(runId => {
+                console.log("Initial pastList");
+                this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe(this.pastTasks);
+            })
+        );*/
+
+        /* On each update, update past tasks */
+        this.update.subscribe( _ => { this.runId.subscribe(runId => this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe(arr => this.pastTasksValue = arr));
+            /*this.runId.pipe(
+                tap(runId => {
+                    console.log("Update pastList");
+                    this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe(this.pastTasks);
+                })
+            );*/
+        });
+
+        this.run.subscribe(r => this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(r.info.id).subscribe(arr => this.pastTasksValue = arr));
     }
 }

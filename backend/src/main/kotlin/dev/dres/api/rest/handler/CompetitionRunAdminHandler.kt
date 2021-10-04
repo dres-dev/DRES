@@ -3,9 +3,7 @@ package dev.dres.api.rest.handler
 import dev.dres.api.rest.RestApiRole
 import dev.dres.api.rest.types.collection.RestMediaItem
 import dev.dres.api.rest.types.competition.CompetitionStartMessage
-import dev.dres.api.rest.types.run.RunType
-import dev.dres.api.rest.types.run.SubmissionInfo
-import dev.dres.api.rest.types.run.ViewerInfo
+import dev.dres.api.rest.types.run.*
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -436,6 +434,43 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(set
             throw ErrorStatusException(400, "Duration for run $runId could not be adjusted because new duration would drop bellow zero (state = ${run.status}).", ctx)
         } catch (e: IllegalAccessError) {
             throw ErrorStatusException(403, e.message!!, ctx)
+        }
+    }
+}
+
+class ListPastTasksPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), GetRestHandler<List<PastTaskInfo>> {
+    override val route: String = "run/admin/{runId}/task/past/list"
+
+    @OpenApi(
+        summary = "Lists all past tasks for a given run",
+        path="/api/v1/run/admin/{runId}/task/past/list",
+        method = HttpMethod.GET,
+        pathParams = [
+            OpenApiParam("runId", String::class, "Competition Run ID")
+        ],
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(Array<PastTaskInfo>::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
+    )
+    override fun doGet(ctx: Context): List<PastTaskInfo> {
+        val runId = runId(ctx)
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
+
+        val rac = runActionContext(ctx, run)
+
+        return run.tasks(rac).filter { it.hasEnded }.map{
+            PastTaskInfo(
+                taskId = it.uid.string,
+                descriptionId = it.description.id.string,
+                name = it.description.name,
+                taskGroup = it.description.taskGroup.name,
+                taskType = it.description.taskType.name,
+                numberOfSubmissions = it.submissions.size
+            )
         }
     }
 }

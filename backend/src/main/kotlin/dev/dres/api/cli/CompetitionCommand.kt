@@ -202,7 +202,11 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
      */
     inner class ExportCompetitionCommand : AbstractCompetitionCommand(name = "export", help = "Exports a competition description as JSON.") {
 
+        /** Path to the file that should be created .*/
         private val path: Path by option("-o", "--out", help = "The destination file for the competition.").path().required()
+
+        /** Flag indicating whether export should be pretty printed.*/
+        private val pretty: Boolean by option("-p", "--pretty", help = "Flag indicating whether exported JSON should be pretty printed.").flag("-u", "--ugly", default = true)
 
         override fun run() {
             val competition = this@CompetitionCommand.competitions[this.competitionId]
@@ -212,7 +216,12 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
             }
             val mapper = jacksonObjectMapper()
             Files.newBufferedWriter(this.path, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE).use {
-                mapper.writeValue(it, competition)
+                val writer = if (this.pretty) {
+                    mapper.writerWithDefaultPrettyPrinter()
+                } else {
+                    mapper.writer()
+                }
+                writer.writeValue(it, competition)
             }
             println("Successfully wrote competition '${competition.name}' (ID = ${competition.id}) to $path.")
         }

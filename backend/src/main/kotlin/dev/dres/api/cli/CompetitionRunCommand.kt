@@ -204,10 +204,16 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
     /**
      * Exports a specific competition run as JSON.
      */
-    inner class ExportRunCommand :
-        CliktCommand(name = "export", help = "Exports the selected competition run to a JSON file.", printHelpOnEmptyArgs = true) {
+    inner class ExportRunCommand : CliktCommand(name = "export", help = "Exports the selected competition run to a JSON file.", printHelpOnEmptyArgs = true) {
+
+        /** [UID] of the [Competition] that should be exported. .*/
         private val id: UID by option("-i", "--id").convert { it.UID() }.required()
+
+        /** Path to the file that should be created .*/
         private val path: Path by option("-o", "--output").path().required()
+
+        /** Flag indicating whether export should be pretty printed.*/
+        private val pretty: Boolean by option("-p", "--pretty", help = "Flag indicating whether exported JSON should be pretty printed.").flag("-u", "--ugly", default = true)
 
         override fun run() {
             val run = this@CompetitionRunCommand.runs[this.id]
@@ -218,7 +224,12 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
 
             val mapper = jacksonObjectMapper()
             Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
-                mapper.writeValue(it, run)
+                val writer = if (this.pretty) {
+                    mapper.writerWithDefaultPrettyPrinter()
+                } else {
+                    mapper.writer()
+                }
+                writer.writeValue(it, run)
             }
             println("Successfully wrote run ${run.id} to $path.")
         }

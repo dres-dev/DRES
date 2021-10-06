@@ -91,203 +91,6 @@
         }
       }
     },
-    "/api/v1/user/{userId}" : {
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Gets details of the user with the given id",
-        "operationId" : "getApiV1UserWithUserid",
-        "parameters" : [ {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "User's UID",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/UserDetails"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "If the user could not be found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete" : {
-        "tags" : [ "User" ],
-        "summary" : "Deletes the specified user. Requires ADMIN privileges",
-        "operationId" : "deleteApiV1UserWithUserid",
-        "parameters" : [ {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "User ID",
-          "required" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/UserDetails"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "If the user could not be found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      },
-      "patch" : {
-        "tags" : [ "User" ],
-        "summary" : "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone",
-        "operationId" : "patchApiV1UserWithUserid",
-        "parameters" : [ {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "User ID",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/UserRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/UserDetails"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/user/session" : {
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Get current sessionId",
-        "operationId" : "getApiV1UserSession",
-        "parameters" : [ {
-          "name" : "session",
-          "in" : "query",
-          "description" : "Session Token",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SessionId"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/submit" : {
       "get" : {
         "tags" : [ "Submission" ],
@@ -539,11 +342,11 @@
         }
       }
     },
-    "/api/v1/runInfo/list" : {
+    "/api/v1/client/run/info/list" : {
       "get" : {
         "tags" : [ "Client Run Info" ],
         "summary" : "Lists an overview of all competition runs visible to the current client",
-        "operationId" : "getApiV1RuninfoList",
+        "operationId" : "getApiV1ClientRunInfoList",
         "parameters" : [ {
           "name" : "session",
           "in" : "query",
@@ -577,11 +380,11 @@
         }
       }
     },
-    "/api/v1/runInfo/currentTask/{runId}" : {
+    "/api/v1/client/run/info/currentTask/{runId}" : {
       "get" : {
         "tags" : [ "Client Run Info" ],
         "summary" : "Returns an overview of the currently active task for a run",
-        "operationId" : "getApiV1RuninfoCurrenttaskWithRunid",
+        "operationId" : "getApiV1ClientRunInfoCurrenttaskWithRunid",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -687,31 +490,6 @@
           },
           "status" : {
             "type" : "boolean"
-          }
-        }
-      },
-      "UserRequest" : {
-        "required" : [ "username" ],
-        "type" : "object",
-        "properties" : {
-          "username" : {
-            "type" : "string"
-          },
-          "password" : {
-            "type" : "string"
-          },
-          "role" : {
-            "type" : "string",
-            "enum" : [ "ADMIN", "JUDGE", "VIEWER", "PARTICIPANT" ]
-          }
-        }
-      },
-      "SessionId" : {
-        "required" : [ "sessionId" ],
-        "type" : "object",
-        "properties" : {
-          "sessionId" : {
-            "type" : "string"
           }
         }
       },

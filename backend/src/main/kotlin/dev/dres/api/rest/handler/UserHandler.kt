@@ -52,7 +52,7 @@ abstract class UserHandler : RestHandler {
     }
 
     protected fun getCreateUserFromBody(ctx: Context): UserRequest {
-        return ctx.body<UserRequest>()
+        return ctx.bodyAsClass<UserRequest>()
     }
 }
 
@@ -78,9 +78,9 @@ class UserDetailsHandler : UserHandler(), GetRestHandler<UserDetails>, AccessMan
 
     @OpenApi(
             summary = "Gets details of the user with the given id",
-            path = "/api/v1/user/:userId",
+            path = "/api/v1/user/{userId}",
             pathParams = [
-                OpenApiParam("userId", UID::class, "User's UID")
+                OpenApiParam("userId", String::class, "User's UID")
             ],
             tags = ["User"],
             responses = [
@@ -93,14 +93,14 @@ class UserDetailsHandler : UserHandler(), GetRestHandler<UserDetails>, AccessMan
 
     override val permittedRoles = RestApiRole.values().toSet()
 
-    override val route = "user/:userId"
+    override val route = "user/{userId}"
 }
 
 class DeleteUsersHandler : UserHandler(), DeleteRestHandler<UserDetails>, AccessManagedRestHandler {
 
     @OpenApi(
             summary = "Deletes the specified user. Requires ADMIN privileges",
-            path = "/api/v1/user/:userId", method = HttpMethod.DELETE,
+            path = "/api/v1/user/{userId}", method = HttpMethod.DELETE,
             pathParams = [OpenApiParam("userId", Long::class, "User ID")],
             tags = ["User"],
             responses = [
@@ -120,7 +120,7 @@ class DeleteUsersHandler : UserHandler(), DeleteRestHandler<UserDetails>, Access
 
     override val permittedRoles = setOf(RestApiRole.ADMIN)
 
-    override val route = "user/:userId"
+    override val route = "user/{userId}"
 }
 
 
@@ -156,8 +156,8 @@ class UpdateUsersHandler : UserHandler(), PatchRestHandler<UserDetails>, AccessM
 
     @OpenApi(
             summary = "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone",
-            path = "/api/v1/user/:userId", method = HttpMethod.PATCH,
-            pathParams = [OpenApiParam("userId", UID::class, "User ID")],
+            path = "/api/v1/user/{userId}", method = HttpMethod.PATCH,
+            pathParams = [OpenApiParam("userId", String::class, "User ID")],
             requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
             tags = ["User"],
             responses = [
@@ -196,7 +196,7 @@ class UpdateUsersHandler : UserHandler(), PatchRestHandler<UserDetails>, AccessM
 
     override val permittedRoles = setOf(RestApiRole.VIEWER)
 
-    override val route = "user/:userId"
+    override val route = "user/{userId}"
 }
 
 class CurrentUsersHandler : UserHandler(), GetRestHandler<UserDetails>, AccessManagedRestHandler {

@@ -237,7 +237,9 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             map(s => s.timeLeft),
             tap(t => {
                 if (t === 30 || t === 60) {
-                    AudioPlayerUtilities.playOnce('/immutable/assets/audio/glass.ogg', this.audio.nativeElement); /* Reminder that time is running out. */
+                    AudioPlayerUtilities.playOnce(
+                        '/immutable/assets/audio/glass.ogg',
+                        this.audio.nativeElement); /* Reminder that time is running out. */
                 }
             })
         );

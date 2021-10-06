@@ -146,9 +146,9 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             queryParams = [
                 OpenApiParam(PARAMETER_NAME_COLLECTION, String::class, "Collection identifier. Optional, in which case the default collection for the run will be considered.", allowEmptyValue = true),
                 OpenApiParam(PARAMETER_NAME_ITEM, String::class, "Identifier for the actual media object or media file."),
-                OpenApiParam(PARAMETER_NAME_FRAME, Int::class, "Frame number for media with temporal progression (e.g. video).", allowEmptyValue = true),
-                OpenApiParam(PARAMETER_NAME_SHOT, Int::class, "Shot number for media with temporal progression (e.g. video).", allowEmptyValue = true),
-                OpenApiParam(PARAMETER_NAME_TIMECODE, String::class, "Timecode for media with temporal progression (e.g. video).", allowEmptyValue = true),
+                OpenApiParam(PARAMETER_NAME_FRAME, Int::class, "Frame number for media with temporal progression (e.g. video).", allowEmptyValue = true, required = false),
+                OpenApiParam(PARAMETER_NAME_SHOT, Int::class, "Shot number for media with temporal progression (e.g. video).", allowEmptyValue = true, required = false),
+                OpenApiParam(PARAMETER_NAME_TIMECODE, String::class, "Timecode for media with temporal progression (e.g. video).", allowEmptyValue = true, required = false),
                 OpenApiParam("session", String::class, "Session Token")
             ],
             tags = ["Submission"],

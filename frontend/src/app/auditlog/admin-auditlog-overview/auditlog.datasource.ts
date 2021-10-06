@@ -19,7 +19,7 @@ export class AuditlogDatasource implements DataSource<RestAuditLogEntry> {
     /**
      * Connects this {@link AuditlogDatasource}.
      *
-     * @param collectionViewer
+     * @param collectionViewer The collection viewer
      */
     connect(collectionViewer: CollectionViewer): Observable<RestAuditLogEntry[]> {
         return this.logsSubject.asObservable();
@@ -28,7 +28,7 @@ export class AuditlogDatasource implements DataSource<RestAuditLogEntry> {
     /**
      * Disconnects this {@link AuditlogDatasource}.
      *
-     * @param collectionViewer
+     * @param collectionViewer the collection viewer
      */
     disconnect(collectionViewer: CollectionViewer): void {
         this.logsSubject.complete();
@@ -37,12 +37,12 @@ export class AuditlogDatasource implements DataSource<RestAuditLogEntry> {
 
     /**
      *
-     * @param pageIndex
-     * @param pageSize
+     * @param pageIndex the page index to request audit logs for
+     * @param pageSize the page size to limit the number of logs
      */
     refresh(pageIndex = 0, pageSize = 100) {
         this.loadingSubject.next(true);
-        this.logService.getApiV1AuditListWithLimitWithPage(pageSize, pageIndex).pipe(
+        this.logService.getApiV1AuditLogListLimitWithLimitWithPage(pageSize, pageIndex).pipe(
             first(),
             catchError(() => of([])),
             finalize(() => this.loadingSubject.next(false))

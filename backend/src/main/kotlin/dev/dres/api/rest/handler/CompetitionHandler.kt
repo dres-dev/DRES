@@ -16,17 +16,16 @@ import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.Team
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.errorResponse
-import io.javalin.core.security.Role
+import io.javalin.core.security.RouteRole
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
 import java.io.IOException
 import java.nio.file.Files
-import java.nio.file.NoSuchFileException
 
 abstract class CompetitionHandler(protected val competitions: DAO<CompetitionDescription>) : RestHandler, AccessManagedRestHandler {
 
-    override val permittedRoles: Set<Role> = setOf(RestApiRole.ADMIN)
+    override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.ADMIN)
     override val apiVersion = "v1"
 
     private fun competitionId(ctx: Context): UID =
@@ -55,7 +54,7 @@ data class CompetitionCreate(val name: String, val description: String, val part
 
 class GetTeamLogoHandler(val config: Config) : AbstractCompetitionRunRestHandler(), GetRestHandler<Any> {
 
-    override val route = "competition/logo/:logoId"
+    override val route = "competition/logo/{logoId}"
     override val apiVersion = "v1"
 
     //not used
@@ -63,9 +62,9 @@ class GetTeamLogoHandler(val config: Config) : AbstractCompetitionRunRestHandler
 
     @OpenApi(
             summary = "Returns the logo for the given logo ID.",
-            path = "/api/v1/competition/logo/:logoId",
+            path = "/api/v1/competition/logo/{logoId}",
             tags = ["Competition Run", "Media"],
-            pathParams = [OpenApiParam("logoId", UID::class, "The ID of the logo.")],
+            pathParams = [OpenApiParam("logoId", String::class, "The ID of the logo.")],
             responses = [OpenApiResponse("200"), OpenApiResponse("401"), OpenApiResponse("400"), OpenApiResponse("404")],
             ignore = true
     )
@@ -116,8 +115,8 @@ class GetCompetitionHandler(competitions: DAO<CompetitionDescription>) : Competi
 
     @OpenApi(
             summary = "Loads the detailed definition of a specific competition.",
-            path = "/api/v1/competition/:competitionId",
-            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
+            path = "/api/v1/competition/{competitionId}",
+            pathParams = [OpenApiParam("competitionId", String::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(RestCompetitionDescription::class)]),
@@ -128,17 +127,17 @@ class GetCompetitionHandler(competitions: DAO<CompetitionDescription>) : Competi
     )
     override fun doGet(ctx: Context) = RestCompetitionDescription.fromCompetition(competitionFromContext(ctx))
 
-    override val route: String = "competition/:competitionId"
+    override val route: String = "competition/{competitionId}"
 }
 
 class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<RestTeam>> {
 
-    override val route: String = "competition/:competitionId/team/list"
+    override val route: String = "competition/{competitionId}/team/list"
 
     @OpenApi(
             summary = "Lists the Teams of a specific competition.",
-            path = "/api/v1/competition/:competitionId/team/list",
-            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
+            path = "/api/v1/competition/{competitionId}/team/list",
+            pathParams = [OpenApiParam("competitionId", String::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<RestTeam>::class)]),
@@ -157,12 +156,12 @@ class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
  */
 class ListDetailedTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<RestDetailedTeam>>{
 
-    override val route: String = "competition/:competitionId/team/list/details"
+    override val route: String = "competition/{competitionId}/team/list/details"
 
     @OpenApi(
             summary="Lists the teams with their user details",
-            path = "/api/v1/competition/:competitionId/team/list/details",
-            pathParams= [OpenApiParam("competitionId", UID::class, "Competition ID")],
+            path = "/api/v1/competition/{competitionId}/team/list/details",
+            pathParams= [OpenApiParam("competitionId", String::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<RestDetailedTeam>::class)]),
@@ -177,12 +176,12 @@ class ListDetailedTeamHandler(competitions: DAO<CompetitionDescription>) : Compe
 
 class ListTaskHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<RestTaskDescription>> {
 
-    override val route: String = "competition/:competitionId/task/list"
+    override val route: String = "competition/{competitionId}/task/list"
 
     @OpenApi(
             summary = "Lists the Tasks of a specific competition.",
-            path = "/api/v1/competition/:competitionId/task/list",
-            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
+            path = "/api/v1/competition/{competitionId}/task/list",
+            pathParams = [OpenApiParam("competitionId", String::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<RestTaskDescription>::class)]),
@@ -267,8 +266,8 @@ class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>, val co
 class DeleteCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), DeleteRestHandler<SuccessStatus> {
     @OpenApi(
             summary = "Deletes the competition with the given competition ID.",
-            path = "/api/v1/competition/:competitionId", method = HttpMethod.DELETE,
-            pathParams = [OpenApiParam("competitionId", UID::class, "Competition ID")],
+            path = "/api/v1/competition/{competitionId}", method = HttpMethod.DELETE,
+            pathParams = [OpenApiParam("competitionId", String::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -287,6 +286,6 @@ class DeleteCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
         }
     }
 
-    override val route: String = "competition/:competitionId"
+    override val route: String = "competition/{competitionId}"
 }
 

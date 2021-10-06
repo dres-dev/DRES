@@ -9,6 +9,7 @@ import { BackButtonDirective } from './navigation/back-button.directive';
 import { ForwardButtonDirective } from './navigation/forward-button.directive';
 import { Epoch2DatePipePipe } from './pipes/epoch2date.pipe';
 import { CanDeactivateGuard } from './can-deactivate.guard';
+import {EnhanceTaskPastInfoPipe} from './pipes/enhance-task-past-info.pipe';
 
 
 /**
@@ -25,8 +26,8 @@ export function initializeApiConfig(appConfig: AppConfig) {
     ngModule: ApiModule,
     providers: [ { provide: Configuration, useFactory: initializeApiConfig, deps: [AppConfig] } ]
     }],
-  exports: [ApiModule, RoundPipePipe, FormatTimePipePipe, BackButtonDirective, ForwardButtonDirective, Epoch2DatePipePipe],
-  declarations: [RoundPipePipe, FormatTimePipePipe, BackButtonDirective, ForwardButtonDirective, Epoch2DatePipePipe],
+  exports: [ApiModule, RoundPipePipe, FormatTimePipePipe, BackButtonDirective, ForwardButtonDirective, Epoch2DatePipePipe, EnhanceTaskPastInfoPipe],
+  declarations: [RoundPipePipe, FormatTimePipePipe, BackButtonDirective, ForwardButtonDirective, Epoch2DatePipePipe, EnhanceTaskPastInfoPipe],
   providers: [AuthenticationService, NavigationService, CanDeactivateGuard]
 })
 export class ServicesModule {}

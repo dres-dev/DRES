@@ -47,4 +47,6 @@ object AuditLogger {
     fun login(user: String, session: String, api: LogEventSource) = log(LoginAuditLogEntry(user, session, api))
 
     fun logout(session: String, api: LogEventSource) = log(LogoutAuditLogEntry(session, api))
+
+    fun overrideSubmission(competitionRunUid: UID, submissionId: UID, newVerdict: SubmissionStatus, api: LogEventSource, session: String?) = log(TODO())
 }

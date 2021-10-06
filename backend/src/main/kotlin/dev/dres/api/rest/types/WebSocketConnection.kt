@@ -1,9 +1,9 @@
 package dev.dres.api.rest.types
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.AccessManager
 import dev.dres.data.model.UID
 import dev.dres.mgmt.admin.UserManager
-import io.javalin.plugin.json.JavalinJson
 import io.javalin.websocket.WsContext
 import org.eclipse.jetty.server.session.Session
 import java.nio.ByteBuffer
@@ -15,6 +15,11 @@ import java.nio.ByteBuffer
  * @version 1.0
  */
 inline class WebSocketConnection(val context: WsContext) {
+
+    companion object {
+        val jsonMapper = jacksonObjectMapper()
+    }
+
     /** ID of the WebSocket session. */
     val sessionId
         get() = context.sessionId
@@ -31,7 +36,7 @@ inline class WebSocketConnection(val context: WsContext) {
     val host
         get() = this.context.session.remoteAddress.hostString
 
-    fun send(message: Any) = this.context.send(JavalinJson.toJson(message))
+    fun send(message: Any) = this.context.send(jsonMapper.writeValueAsString(message))
     fun send(message: String) = this.context.send(message)
     fun send(message: ByteBuffer) = this.context.send(message)
 }

@@ -98,7 +98,7 @@ export class AbstractRunListComponent {
     }
 
     public downloadScores(runId: string) {
-        this.scoreService.getApiV1ScoreRunWithRunidTasksCsv(runId).subscribe(scoresCSV => {
+        this.scoreService.getApiV1ScoreRunWithRunidTaskListCsv(runId).subscribe(scoresCSV => {
             const csvBlob = new Blob([scoresCSV], {type: 'text/csv'});
             const fake = document.createElement('a');
             fake.href = URL.createObjectURL(csvBlob);

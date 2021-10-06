@@ -3,7 +3,6 @@ package dev.dres.api.rest.handler
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.admin.PlainPassword
 import dev.dres.data.model.admin.UserName
@@ -12,7 +11,6 @@ import dev.dres.mgmt.admin.UserManager.getMatchingUser
 import dev.dres.run.audit.AuditLogEntry
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
-import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -24,15 +22,17 @@ class LoginHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, PostRes
 
     data class LoginRequest(var username: String, var password: String)
 
-    @OpenApi(summary = "Sets roles for session based on user account and returns a session cookie.", path = "/api/v1/login",
-            method = HttpMethod.POST,
-            tags = ["User"],
-            requestBody = OpenApiRequestBody([OpenApiContent(LoginRequest::class)]),
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
-            ])
+    @OpenApi(summary = "Sets roles for session based on user account and returns a session cookie.",
+        path = "/api/v1/login",
+        method = HttpMethod.POST,
+        tags = ["User"],
+        requestBody = OpenApiRequestBody([OpenApiContent(LoginRequest::class)]),
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+        ]
+    )
     override fun doPost(ctx: Context) : UserDetails{
 
         val loginRequest = try {

@@ -18,14 +18,14 @@ import dev.dres.run.NonInteractiveRunManager
 import dev.dres.utilities.TimeUtil
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
-import io.javalin.core.security.Role
+import io.javalin.core.security.RouteRole
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
 
 abstract class BatchSubmissionHandler(internal val collections: DAO<MediaCollection>, internal val itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, internal val segmentIndex: DaoIndexer<MediaItemSegmentList, UID>) : PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
 
     override val apiVersion = "v1"
-    override val permittedRoles: Set<Role> = setOf(RestApiRole.PARTICIPANT)
+    override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.PARTICIPANT)
 
     internal fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
 
@@ -48,12 +48,12 @@ data class JsonTaskResult(val item: String, val segment: Int?)
 
 class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, segmentIndex: DaoIndexer<MediaItemSegmentList, UID>) : BatchSubmissionHandler(collections, itemIndex, segmentIndex) {
 
-    override val route: String = "batchSubmit/:runId/json"
+    override val route: String = "batchSubmit/{runId}/json"
 
     @OpenApi(summary = "Endpoint to accept batch submissions in JSON format",
-        path = "/api/v1/batchSubmit/:runId/json",
+        path = "/api/v1/batchSubmit/{runId}/json",
         method = HttpMethod.POST,
-        pathParams = [OpenApiParam("runId", UID::class, "Competition Run ID")],
+        pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
         requestBody = OpenApiRequestBody([OpenApiContent(JsonBatchSubmission::class)]),
         tags = ["Batch Submission"],
         responses = [
@@ -73,7 +73,7 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
         val rac = RunActionContext.runActionContext(ctx, runManager)
 
         val jsonBatch = try{
-            ctx.body<JsonBatchSubmission>()
+            ctx.bodyAsClass<JsonBatchSubmission>()
         } catch (e: Exception) {
             throw ErrorStatusException(400, "Error parsing json batch", ctx)
         }

@@ -111,7 +111,7 @@
                             <td mat-cell *matCellDef="let task"> {{task.duration}} </td>
                         </ng-container>
 
-                        <!-- Duration Column -->
+                        <!-- Used Column -->
                         <ng-container matColumnDef="past">
                             <th mat-header-cell *matHeaderCellDef> Used </th>
                             <td mat-cell *matCellDef="let task"> {{(task | enhanceTaskPastInfo: this.pastTasksValue) != null ? "Yes": "No"}} </td>
@@ -124,7 +124,7 @@
                                 <button mat-icon-button aria-label="Switch to task." matTooltip="Switch to task." (click)="switchTask(i)" *ngIf="task.name !== (run | async).state.currentTask.name && (run | async)?.state.status != 'RUNNING_TASK'">
                                     <mat-icon>directions</mat-icon>
                                 </button>
-                                <button mat-icon-button aria-label="See submissions" matTooltip="See submissions" (click)="submissionsOf(task)">
+                                <button *ngIf="(task | enhanceTaskPastInfo: this.pastTasksValue) != null" mat-icon-button aria-label="See submissions" matTooltip="See submissions" (click)="submissionsOf(task)">
                                     <mat-icon>assignment_turned_in</mat-icon>
                                 </button>
                             </td>

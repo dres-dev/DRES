@@ -345,6 +345,7 @@
 <div mat-dialog-actions>
     <button mat-button (click)="close()">Cancel</button>
     <button mat-button (click)="save()">Save</button>
+    <!-- Disabled until proper import / export functionality exists
     <app-download-json-button
             [fileName]="fileProvider"
             [downloadable]="downloadProvider"
@@ -352,4 +353,5 @@
     <app-upload-json-button
             matTooltip="Upload task JSON"
             [handler]="uploaded"></app-upload-json-button>
+            -->
 </div>

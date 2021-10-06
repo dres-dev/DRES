@@ -44,9 +44,11 @@
 <div mat-dialog-actions>
     <button mat-button (click)="close()">Cancel</button>
     <button mat-button (click)="save()">Save</button>
+    <!-- Disabled until proper import / export functionality exists
     <app-download-json-button
         [name]="'Download'"
         [fileName]="fileProvider"
         [downloadable]="downloadProvider"
         matTooltip="Download the team as JSON"></app-download-json-button>
+        -->
 </div>

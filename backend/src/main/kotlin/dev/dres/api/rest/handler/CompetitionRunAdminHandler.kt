@@ -35,10 +35,26 @@ import org.slf4j.LoggerFactory
 import java.io.File
 
 
-abstract class AbstractCompetitionRunAdminRestHandler(override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.ADMIN, RestApiRole.PARTICIPANT)) : RestHandler, AccessManagedRestHandler {
+abstract class AbstractCompetitionRunAdminRestHandler(override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.ADMIN, RestApiRole.PARTICIPANT)): AccessManagedRestHandler {
 
     override val apiVersion = "v1"
-    
+
+    /**
+     * Parses the run ID out of the [Context] and throws a 404 [ErrorStatusException] if the parameter is missing.
+     *
+     * @param ctx The [Context] to parse the runId from.
+     * @return [UID] representation of the runId.
+     */
+    fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
+        throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx)
+    }.UID()
+
+    /**
+     * Obtains the [InteractiveRunManager] for the given [UID].
+     *
+     * @param runId The [UID] identifying the [InteractiveRunManager].
+     * @return [InteractiveRunManager] or null.
+     */
     fun getRun(runId: UID): InteractiveRunManager? {
         val run = RunExecutor.managerForId(runId)
         if (run != null && run is InteractiveRunManager){
@@ -46,11 +62,6 @@ abstract class AbstractCompetitionRunAdminRestHandler(override val permittedRole
         }
         return null
     }
-
-    fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
-        throw ErrorStatusException(404, "Parameter 'runId' is missing!'", ctx)
-    }.UID()
-
 }
 
 /**
@@ -438,6 +449,9 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(set
     }
 }
 
+/**
+ *
+ */
 class ListPastTasksPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), GetRestHandler<List<PastTaskInfo>> {
     override val route: String = "run/admin/{runId}/task/past/list"
 
@@ -475,6 +489,9 @@ class ListPastTasksPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHandl
     }
 }
 
+/**
+ *
+ */
 class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), GetRestHandler<List<SubmissionInfo>> {
     override val route: String = "run/admin/{runId}/submission/list/{taskId}"
 
@@ -534,7 +551,10 @@ class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHan
     }
 }
 
-class OvewriteSubmissionStatusRunAdminHandler: AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), PatchRestHandler<SubmissionInfo>{
+/**
+ *
+ */
+class OverwriteSubmissionStatusRunAdminHandler: AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), PatchRestHandler<SubmissionInfo>{
     override val route: String = "run/admin/{runId}/submission/override"
 
     @OpenApi(

@@ -4843,6 +4843,9 @@
           "end" : {
             "type" : "integer",
             "format" : "int64"
+          },
+          "taskRunId" : {
+            "type" : "string"
           }
         }
       },

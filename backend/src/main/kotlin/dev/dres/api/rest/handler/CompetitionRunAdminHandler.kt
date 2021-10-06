@@ -500,7 +500,24 @@ class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHan
 
         val taskId = ctx.pathParamMap().getOrElse("taskId") { throw ErrorStatusException(404, "Parameter 'taskId' is missing!'", ctx) }.UID()
         val teams = run.description.teams.associate { it.uid to it }
-        return run.allSubmissions.filter { it.task?.description?.id == taskId }.map {
+        return run.tasks(runActionContext(ctx, run)).filter { it.description.id == taskId }.flatMap {
+            it.submissions.map { sub ->
+                SubmissionInfo(
+                    id = sub.uid.string,
+                    teamId = sub.teamId.string,
+                    teamName = teams[sub.teamId]?.name,
+                    memberId = sub.memberId.string,
+                    memberName = UserManager.get(sub.memberId)?.username?.name,
+                    status = sub.status,
+                    timestamp = sub.timestamp,
+                    item = RestMediaItem.fromMediaItem(sub.item),
+                    start = if (sub is TemporalSubmissionAspect) sub.start else null,
+                    end = if (sub is TemporalSubmissionAspect) sub.end else null,
+                    taskRunId = it.uid.string
+                )
+            }
+        }
+        /*return run.allSubmissions.filter { it.task?.description?.id == taskId }.map {
             SubmissionInfo(
                 id = it.uid.string,
                 teamId = it.teamId.string,
@@ -513,7 +530,7 @@ class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHan
                 start = if (it is TemporalSubmissionAspect) it.start else null,
                 end = if (it is TemporalSubmissionAspect) it.end else null
             )
-        }
+        }*/
     }
 }
 

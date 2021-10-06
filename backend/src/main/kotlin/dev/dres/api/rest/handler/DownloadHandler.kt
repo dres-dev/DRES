@@ -40,7 +40,7 @@ sealed class DownloadHandler : AccessManagedRestHandler {
         @OpenApi(
             summary = "Provides a JSON download of the entire competition run structure.",
             path = "/api/v1/download/run/{runId}",
-            tags = ["Competition Run Download"],
+            tags = ["Download"],
             pathParams = [
                 OpenApiParam("runId", String::class, "Competition run ID")
             ],
@@ -75,7 +75,7 @@ sealed class DownloadHandler : AccessManagedRestHandler {
         @OpenApi(
             summary = "Provides a CSV download with the scores for a given competition run.",
             path = "/api/v1/download/run/{runId}/scores",
-            tags = ["Competition Run Scores"],
+            tags = ["Download"],
             pathParams = [
                 OpenApiParam("runId", String::class, "Competition run ID")
             ],
@@ -113,9 +113,9 @@ sealed class DownloadHandler : AccessManagedRestHandler {
         @OpenApi(
             summary = "Provides a JSON download of the entire competition description structure.",
             path = "/api/v1/download/competition/{competitionId}",
-            tags = ["Competition Run Download"],
+            tags = ["Download"],
             pathParams = [
-                OpenApiParam("runId", String::class, "Competition run ID")
+                OpenApiParam("competitionId", String::class, "Competition ID")
             ],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(String::class, type = "application/json")]),

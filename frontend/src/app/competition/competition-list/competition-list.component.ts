@@ -4,11 +4,11 @@ import {
     CompetitionOverview,
     CompetitionRunAdminService,
     CompetitionService,
-    CompetitionStartMessage
+    CompetitionStartMessage, DownloadService
 } from '../../../../openapi';
 import {MatDialog} from '@angular/material/dialog';
 import {CompetitionCreateDialogComponent} from './competition-create-dialog.component';
-import {filter, flatMap, tap} from 'rxjs/operators';
+import {filter, flatMap, take, tap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Router} from '@angular/router';
 import {CompetitionStartDialogComponent, CompetitionStartDialogResult} from './competition-start-dialog.component';
@@ -27,6 +27,7 @@ export class CompetitionListComponent implements AfterViewInit {
 
     constructor(private competitionService: CompetitionService,
                 private runAdminService: CompetitionRunAdminService,
+                private downloadService: DownloadService,
                 private routerService: Router,
                 private dialog: MatDialog,
                 private snackBar: MatSnackBar) {
@@ -97,5 +98,15 @@ export class CompetitionListComponent implements AfterViewInit {
 
     ngAfterViewInit(): void {
         this.refresh();
+    }
+
+    downloadProvider = (competitionId) => {
+        return this.downloadService.getApiV1DownloadCompetitionWithCompetitionid(competitionId)
+            .pipe(take(1));
+        // .toPromise();
+    }
+
+    fileProvider = (name: string ) => {
+        return () =>  name;
     }
 }

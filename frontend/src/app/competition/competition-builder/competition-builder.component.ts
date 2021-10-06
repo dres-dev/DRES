@@ -1,7 +1,8 @@
 import {Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router, RouterStateSnapshot} from '@angular/router';
-import {filter} from 'rxjs/operators';
+import {filter, map, take} from 'rxjs/operators';
 import {
+    DownloadService,
     CompetitionService,
     ConfiguredOptionQueryComponentOption,
     ConfiguredOptionScoringOption,
@@ -150,6 +151,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     lscTemplate = CompetitionBuilderComponent.LSC_TEMPLATE;
 
     constructor(private competitionService: CompetitionService,
+                private downloadService: DownloadService,
                 private route: ActivatedRoute,
                 private routerService: Router,
                 private snackBar: MatSnackBar,
@@ -199,8 +201,9 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     }
 
     downloadProvider = () => {
-        this.fetchDataToCompetition();
-        return JSON.stringify(this.competition);
+        return this.downloadService.getApiV1DownloadCompetitionWithCompetitionid(this.competitionId)
+            .pipe(take(1));
+            // .toPromise();
     }
 
     public back() {

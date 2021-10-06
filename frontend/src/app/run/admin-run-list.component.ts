@@ -1,6 +1,11 @@
 import {Component} from '@angular/core';
 import {AbstractRunListComponent} from './abstract-run-list.component';
-import {CompetitionRunAdminService, CompetitionRunScoresService, CompetitionRunService} from '../../../openapi';
+import {
+    CompetitionRunAdminService,
+    DownloadService,
+    CompetitionRunScoresService,
+    CompetitionRunService
+} from '../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Router} from '@angular/router';
 import {MatDialog} from '@angular/material/dialog';
@@ -14,10 +19,11 @@ export class AdminRunListComponent extends AbstractRunListComponent {
     constructor(runService: CompetitionRunService,
                 runAdminService: CompetitionRunAdminService,
                 scoreService: CompetitionRunScoresService,
+                downloadService: DownloadService,
                 router: Router,
                 private snackBar: MatSnackBar,
                 private dialog: MatDialog) {
-        super(runService, runAdminService, scoreService, router);
+        super(runService, runAdminService, scoreService, downloadService, router);
     }
 
     public start(runId: string) {

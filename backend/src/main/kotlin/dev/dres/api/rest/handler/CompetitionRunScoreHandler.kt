@@ -183,40 +183,6 @@ class HistoryTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
     }
 }
 
-class TaskScoreListCSVHandler : AbstractScoreRestHandler(), GetRestHandler<String> {
-
-    override val route = "score/run/{runId}/task/list/csv"
-
-    @OpenApi(
-        summary = "Provides a CSV with the scores for a given competition run",
-        path = "/api/v1/score/run/{runId}/task/list/csv",
-        tags = ["Competition Run Scores"],
-        pathParams = [
-            OpenApiParam("runId", String::class, "Competition run ID")
-        ],
-        responses = [
-            OpenApiResponse("200", [OpenApiContent(String::class, type = "text/csv")]),
-            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
-            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-        ]
-    )
-    override fun doGet(ctx: Context): String {
-
-        val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
-        val rac = RunActionContext.runActionContext(ctx, run)
-
-        ctx.contentType("text/csv")
-
-        return "task,group,team,resultName,score\n" + run.tasks(rac).filter { it.started != null}.sortedBy { it.started }.flatMap { task ->
-            task.scorer.scores().map { "${task.description.name},${task.description.taskGroup.name},${run.description.teams.find { t -> t.uid == it.first }?.name ?: "???"},${it.second ?: "n/a"},${it.third}" }
-        }.joinToString(separator = "\n")
-
-    }
-
-}
-
 /**
  * A [GetRestHandler] that returns the names of all available scoreboards for a given run.
  */

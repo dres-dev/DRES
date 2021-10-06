@@ -138,7 +138,6 @@ object RestApi {
             HistoryTaskScoreHandler(),
             ListScoreSeriesHandler(),
             ListScoreboardsHandler(),
-            TaskScoreListCSVHandler(),
             TeamGroupScoreHandler(),
 
             // Competition run admin
@@ -154,7 +153,7 @@ object RestApi {
             ListViewersRunAdminHandler(),
             ForceViewerRunAdminHandler(),
             ListSubmissionsPerTaskRunAdminHandler(),
-            OvewriteSubmissionStatusRunAdminHandler(),
+            OverwriteSubmissionStatusRunAdminHandler(),
             ListPastTasksPerTaskRunAdminHandler(),
 
             // Judgement
@@ -174,8 +173,12 @@ object RestApi {
 
             //API Client
             ListCompetitionRunClientInfoHandler(),
-            CompetitionRunClientCurrentTaskInfoHandler()
+            CompetitionRunClientCurrentTaskInfoHandler(),
 
+            // Downloads
+            DownloadHandler.CompetitionRun(dataAccessLayer.runs),
+            DownloadHandler.CompetitionRunScore(dataAccessLayer.runs),
+            DownloadHandler.CompetitionDesc(dataAccessLayer.competitions)
         )
 
         javalin = Javalin.create {
@@ -198,9 +201,7 @@ object RestApi {
             it.addSinglePageRoot("/", "html/index.html")
             it.enforceSsl = config.enableSsl
         }.routes {
-
             path("api") {
-
                 apiRestHandlers.groupBy { it.apiVersion }.forEach { apiGroup ->
                     path(apiGroup.key) {
                         apiGroup.value.forEach { handler ->

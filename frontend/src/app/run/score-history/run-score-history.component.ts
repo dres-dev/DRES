@@ -135,7 +135,7 @@ export class RunScoreHistoryComponent {
 
         /* List of scoreboard for the current run ID. */
         this.scoreboards = this.runId.pipe(
-            switchMap(runId => this.scoreService.getApiV1ScoreRunWithRunidScoreboards(runId).pipe(
+            switchMap(runId => this.scoreService.getApiV1ScoreRunWithRunidScoreboardList(runId).pipe(
                 catchError((err, o) => {
                     console.log(`[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`);
                     if (err.status === 404) {

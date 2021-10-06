@@ -404,7 +404,7 @@ class ListExternalItemHandler(config: Config) : GetRestHandler<Array<String>> {
 
     @OpenApi(
             summary = "Lists items from the external media collection whose name start with the given string.",
-            path = "/api/v1/external/{startsWith}", method = HttpMethod.GET,
+            path = "/api/v1/external/<startsWith>", method = HttpMethod.GET,
             pathParams = [
                 OpenApiParam("startsWith", String::class, "Name starts with.", required = false)
             ],
@@ -424,5 +424,5 @@ class ListExternalItemHandler(config: Config) : GetRestHandler<Array<String>> {
         return list.toTypedArray()
     }
 
-    override val route: String = "external/{startsWith}"
+    override val route: String = "external/<startsWith>"
 }

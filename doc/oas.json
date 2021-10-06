@@ -2041,11 +2041,11 @@
         }
       }
     },
-    "/api/v1/run/{runId}/submissions" : {
+    "/api/v1/run/{runId}/submission/list" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the submissions for the current task run, if it is either running or has just ended.",
-        "operationId" : "getApiV1RunWithRunidSubmissions",
+        "operationId" : "getApiV1RunWithRunidSubmissionList",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2096,11 +2096,11 @@
         }
       }
     },
-    "/api/v1/run/{runId}/submissions/after/{timestamp}" : {
+    "/api/v1/run/{runId}/submission/list/after/{timestamp}" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the submissions for the current task that are newer than an indicated time, if it is either running or has just ended.",
-        "operationId" : "getApiV1RunWithRunidSubmissionsAfterWithTimestamp",
+        "operationId" : "getApiV1RunWithRunidSubmissionListAfterWithTimestamp",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2166,11 +2166,11 @@
         }
       }
     },
-    "/api/v1/run/{runId}/task/{taskId}/submissions" : {
+    "/api/v1/run/{runId}/task/{taskId}/submission/list" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the submissions of a specific task run, regardless of whether it is currently running or has ended.",
-        "operationId" : "getApiV1RunWithRunidTaskWithTaskidSubmissions",
+        "operationId" : "getApiV1RunWithRunidTaskWithTaskidSubmissionList",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2479,11 +2479,11 @@
         }
       }
     },
-    "/api/v1/score/run/{runId}/scoreboards" : {
+    "/api/v1/score/run/{runId}/scoreboard/list" : {
       "get" : {
         "tags" : [ "Competition Run Scores" ],
         "summary" : "Returns a list of available scoreboard names for the given run.",
-        "operationId" : "getApiV1ScoreRunWithRunidScoreboards",
+        "operationId" : "getApiV1ScoreRunWithRunidScoreboardList",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2540,11 +2540,11 @@
         }
       }
     },
-    "/api/v1/score/run/{runId}/tasks/csv" : {
+    "/api/v1/score/run/{runId}/task/list/csv" : {
       "get" : {
         "tags" : [ "Competition Run Scores" ],
         "summary" : "Provides a CSV with the scores for a given competition run",
-        "operationId" : "getApiV1ScoreRunWithRunidTasksCsv",
+        "operationId" : "getApiV1ScoreRunWithRunidTaskListCsv",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2598,11 +2598,11 @@
         }
       }
     },
-    "/api/v1/score/run/{runId}/teamGroups" : {
+    "/api/v1/score/run/{runId}/teamGroup/list" : {
       "get" : {
         "tags" : [ "Competition Run Scores" ],
         "summary" : "Returns team group aggregated values of the current task.",
-        "operationId" : "getApiV1ScoreRunWithRunidTeamgroups",
+        "operationId" : "getApiV1ScoreRunWithRunidTeamgroupList",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -3180,11 +3180,11 @@
         }
       }
     },
-    "/api/v1/run/admin/{runId}/viewers/{viewerId}/force" : {
+    "/api/v1/run/admin/{runId}/viewer/list/{viewerId}/force" : {
       "post" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Forces a viewer with the given viewer ID into the READY state. This is a method for admins.",
-        "operationId" : "postApiV1RunAdminWithRunidViewersWithVieweridForce",
+        "operationId" : "postApiV1RunAdminWithRunidViewerListWithVieweridForce",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -3246,11 +3246,11 @@
         }
       }
     },
-    "/api/v1/run/admin/{runId}/submissions/list/{taskId}" : {
+    "/api/v1/run/admin/{runId}/submission/list/{taskId}" : {
       "get" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Lists all submissions for a given task and run.",
-        "operationId" : "getApiV1RunAdminWithRunidSubmissionsListWithTaskid",
+        "operationId" : "getApiV1RunAdminWithRunidSubmissionListWithTaskid",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -3315,11 +3315,11 @@
         }
       }
     },
-    "/api/v1/run/admin/{runId}/submissions/override" : {
+    "/api/v1/run/admin/{runId}/submission/override" : {
       "patch" : {
         "tags" : [ "Competition Run Admin" ],
         "summary" : "Lists all submissions for a given task and run",
-        "operationId" : "patchApiV1RunAdminWithRunidSubmissionsOverride",
+        "operationId" : "patchApiV1RunAdminWithRunidSubmissionOverride",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -3793,11 +3793,11 @@
         }
       }
     },
-    "/api/v1/audit/logs/{since}/{upto}" : {
+    "/api/v1/audit/log/list/since/{since}/{upto}" : {
       "get" : {
         "tags" : [ "Audit" ],
         "summary" : "Lists all audit logs matching the query",
-        "operationId" : "getApiV1AuditLogsWithSinceWithUpto",
+        "operationId" : "getApiV1AuditLogListSinceWithSinceWithUpto",
         "parameters" : [ {
           "name" : "since",
           "in" : "path",
@@ -3844,11 +3844,11 @@
         }
       }
     },
-    "/api/v1/audit/list/{limit}/{page}" : {
+    "/api/v1/audit/log/list/limit/{limit}/{page}" : {
       "get" : {
         "tags" : [ "Audit" ],
         "summary" : "Lists all audit logs matching the query.",
-        "operationId" : "getApiV1AuditListWithLimitWithPage",
+        "operationId" : "getApiV1AuditLogListLimitWithLimitWithPage",
         "parameters" : [ {
           "name" : "limit",
           "in" : "path",
@@ -3914,11 +3914,11 @@
         }
       }
     },
-    "/api/v1/runInfo/list" : {
+    "/api/v1/client/run/info/list" : {
       "get" : {
         "tags" : [ "Client Run Info" ],
         "summary" : "Lists an overview of all competition runs visible to the current client",
-        "operationId" : "getApiV1RuninfoList",
+        "operationId" : "getApiV1ClientRunInfoList",
         "parameters" : [ {
           "name" : "session",
           "in" : "query",
@@ -3952,11 +3952,11 @@
         }
       }
     },
-    "/api/v1/runInfo/currentTask/{runId}" : {
+    "/api/v1/client/run/info/currentTask/{runId}" : {
       "get" : {
         "tags" : [ "Client Run Info" ],
         "summary" : "Returns an overview of the currently active task for a run",
-        "operationId" : "getApiV1RuninfoCurrenttaskWithRunid",
+        "operationId" : "getApiV1ClientRunInfoCurrenttaskWithRunid",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",

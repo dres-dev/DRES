@@ -476,11 +476,11 @@ class ListPastTasksPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHandl
 }
 
 class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), GetRestHandler<List<SubmissionInfo>> {
-    override val route: String = "run/admin/{runId}/submissions/list/{taskId}"
+    override val route: String = "run/admin/{runId}/submission/list/{taskId}"
 
     @OpenApi(
             summary = "Lists all submissions for a given task and run.",
-            path = "/api/v1/run/admin/{runId}/submissions/list/{taskId}",
+            path = "/api/v1/run/admin/{runId}/submission/list/{taskId}",
             method = HttpMethod.GET,
             pathParams = [
                 OpenApiParam("runId", String::class, "Competition Run ID"),
@@ -518,11 +518,11 @@ class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHan
 }
 
 class OvewriteSubmissionStatusRunAdminHandler: AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), PatchRestHandler<SubmissionInfo>{
-    override val route: String = "run/admin/{runId}/submissions/override"
+    override val route: String = "run/admin/{runId}/submission/override"
 
     @OpenApi(
             summary = "Lists all submissions for a given task and run",
-            path = "/api/v1/run/admin/{runId}/submissions/override",
+            path = "/api/v1/run/admin/{runId}/submission/override",
             method = HttpMethod.PATCH,
             pathParams = [
                 OpenApiParam("runId", String::class, "Competition Run ID")
@@ -596,11 +596,11 @@ class ListViewersRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(
  * REST handler to force the viewer state of a viewer instance registered for a [RunManager].
  */
 class ForceViewerRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), PostRestHandler<SuccessStatus> {
-    override val route: String = "run/admin/{runId}/viewers/{viewerId}/force"
+    override val route: String = "run/admin/{runId}/viewer/list/{viewerId}/force"
 
     @OpenApi(
             summary = "Forces a viewer with the given viewer ID into the READY state. This is a method for admins.",
-            path = "/api/v1/run/admin/{runId}/viewers/{viewerId}/force",
+            path = "/api/v1/run/admin/{runId}/viewer/list/{viewerId}/force",
             method = HttpMethod.POST,
             pathParams = [
                 OpenApiParam("runId", String::class, "Competition Run ID"),

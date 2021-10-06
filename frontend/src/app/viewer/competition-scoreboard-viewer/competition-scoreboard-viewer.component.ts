@@ -117,8 +117,6 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
     /**
      * Generates and returns an observable {@link ApexAxisChartSeries} for the
      * score overview grouped by task group
-     *
-     * @return {@link Observable<ApexAxisChartSeries>} The observable.
      */
     private taskGroupOverview(): Observable<ApexAxisChartSeries> {
         /* Download scores. */
@@ -174,8 +172,6 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
 
     /**
      * Generates and returns an observable {@link ApexAxisChartSeries} score overview for the current task.
-     *
-     * @return {@link Observable<ApexAxisChartSeries>} The observable.
      */
     private competitionOverviewSeries(): Observable<ApexAxisChartSeries> {
         /* Fetch scores. */

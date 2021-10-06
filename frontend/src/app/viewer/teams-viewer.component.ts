@@ -84,7 +84,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     ngAfterViewInit(): void {
         /* Create source observable; list of all submissions.  */
         this.submissions = this.state.pipe(
-            switchMap(st => this.runService.getApiV1RunWithRunidSubmissions(st.id).pipe(
+            switchMap(st => this.runService.getApiV1RunWithRunidSubmissionList(st.id).pipe(
                 retry(3),
                 catchError((err, o) => {
                     console.log(`[TeamsViewerComponent] Error while loading submissions: ${err?.message}.`);

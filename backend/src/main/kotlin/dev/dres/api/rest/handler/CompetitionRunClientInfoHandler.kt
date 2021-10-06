@@ -67,11 +67,11 @@ data class ClientRunInfoList(val runs : List<ClientRunInfo>)
 
 class ListCompetitionRunClientInfoHandler : AbstractCompetitionRunClientInfoHandler(), GetRestHandler<ClientRunInfoList> {
 
-    override val route = "runInfo/list"
+    override val route = "client/run/info/list"
 
     @OpenApi(
         summary = "Lists an overview of all competition runs visible to the current client",
-        path = "/api/v1/runInfo/list",
+        path = "/api/v1/client/run/info/list",
         tags = ["Client Run Info"],
         queryParams = [
             OpenApiParam("session", String::class, "Session Token", required = true, allowEmptyValue = false)
@@ -96,11 +96,11 @@ data class ClientTaskInfo(
 
 class CompetitionRunClientCurrentTaskInfoHandler : AbstractCompetitionRunClientInfoHandler(), GetRestHandler<ClientTaskInfo> {
 
-    override val route = "runInfo/currentTask/{runId}"
+    override val route = "client/run/info/currentTask/{runId}"
 
     @OpenApi(
         summary = "Returns an overview of the currently active task for a run",
-        path = "/api/v1/runInfo/currentTask/{runId}",
+        path = "/api/v1/client/run/info/currentTask/{runId}",
         tags = ["Client Run Info"],
         queryParams = [
             OpenApiParam("session", String::class, "Session Token", required = true, allowEmptyValue = false)

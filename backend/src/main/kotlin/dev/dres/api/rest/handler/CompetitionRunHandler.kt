@@ -287,10 +287,10 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
 
 
 class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
-    override val route = "run/{runId}/submissions"
+    override val route = "run/{runId}/submission/list"
     @OpenApi(
             summary = "Returns the submissions for the current task run, if it is either running or has just ended.",
-            path = "/api/v1/run/{runId}/submissions",
+            path = "/api/v1/run/{runId}/submission/list",
             tags = ["Competition Run"],
             pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
             responses = [
@@ -323,10 +323,10 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
 }
 
 class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
-    override val route = "run/{runId}/submissions/after/{timestamp}"
+    override val route = "run/{runId}/submission/list/after/{timestamp}"
     @OpenApi(
             summary = "Returns the submissions for the current task that are newer than an indicated time, if it is either running or has just ended.",
-            path = "/api/v1/run/{runId}/submissions/after/{timestamp}",
+            path = "/api/v1/run/{runId}/submission/list/after/{timestamp}",
             tags = ["Competition Run"],
             pathParams = [
                 OpenApiParam("runId", String::class, "Competition Run ID"),
@@ -364,11 +364,11 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
 
 class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
 
-    override val route = "run/{runId}/task/{taskId}/submissions"
+    override val route = "run/{runId}/task/{taskId}/submission/list"
 
     @OpenApi(
             summary = "Returns the submissions of a specific task run, regardless of whether it is currently running or has ended.",
-            path = "/api/v1/run/{runId}/task/{taskId}/submissions",
+            path = "/api/v1/run/{runId}/task/{taskId}/submission/list",
             tags = ["Competition Run"],
             pathParams = [
                 OpenApiParam("runId", String::class, "Competition Run ID"),

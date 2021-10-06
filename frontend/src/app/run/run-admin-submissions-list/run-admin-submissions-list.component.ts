@@ -74,7 +74,7 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
             this.refreshSubject
         ).pipe(
             withLatestFrom(this.runId, this.taskId),
-            switchMap(([i, r, t]) => this.runService.getApiV1RunAdminWithRunidSubmissionsListWithTaskid(r, t)),
+            switchMap(([i, r, t]) => this.runService.getApiV1RunAdminWithRunidSubmissionListWithTaskid(r, t)),
             catchError((err, o) => {
                 console.log(`[RunAdminSubmissionListComponent] Error occurred while loading submissions: ${err?.message}`);
                 this.snackBar.open(`Error: ${err?.message}`, null, {duration: 5000});
@@ -102,7 +102,7 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     public update(submission: SubmissionInfo, newStatus: SubmissionInfo.StatusEnum) {
         submission.status = newStatus;
         console.log(submission);
-        this.runId.pipe(switchMap(runId => this.runService.patchApiV1RunAdminWithRunidSubmissionsOverride(runId, submission))).subscribe(res => {
+        this.runId.pipe(switchMap(runId => this.runService.patchApiV1RunAdminWithRunidSubmissionOverride(runId, submission))).subscribe(res => {
             this.snackBar.open(`Submission ${res.id} successfully updated to ${res.status}.`, null, {duration: 5000});
         });
     }

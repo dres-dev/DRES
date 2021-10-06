@@ -42,11 +42,11 @@ class GetAuditLogInfoHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>)
 
 class ListAuditLogsInRangeHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, val audit: DAO<AuditLogEntry>): AuditLogHandler(auditTimes), GetRestHandler<Array<RestAuditLogEntry>>{
 
-    override val route = "audit/logs/{since}/{upto}"
+    override val route = "audit/log/list/since/{since}/{upto}"
 
     @OpenApi(
             summary = "Lists all audit logs matching the query",
-            path = "/api/v1/audit/logs/{since}/{upto}",
+            path = "/api/v1/audit/log/list/since/{since}/{upto}",
             pathParams = [
                 OpenApiParam("since", Long::class, "Timestamp of the earliest audit log to include"),
                 OpenApiParam("upto", Long::class, "Timestamp of the latest audit log to include.")
@@ -98,7 +98,7 @@ class ListAuditLogsInRangeHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, L
 
 class ListAuditLogsHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, val audit: DAO<AuditLogEntry>) : AuditLogHandler(auditTimes), GetRestHandler<Array<RestAuditLogEntry>> {
 
-    override val route = "audit/list/${LIMIT_PARAM.toPathParamKey()}/${PAGE_INDEX_PARAM.toPathParamKey()}"
+    override val route = "audit/log/list/limit/${LIMIT_PARAM.toPathParamKey()}/${PAGE_INDEX_PARAM.toPathParamKey()}"
 
     companion object {
         const val LIMIT_PARAM = "limit"
@@ -119,7 +119,7 @@ class ListAuditLogsHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, v
 
     @OpenApi(
             summary = "Lists all audit logs matching the query.",
-            path = "/api/v1/audit/list/{limit}/{page}",
+            path = "/api/v1/audit/log/list/limit/{limit}/{page}",
             pathParams = [
                 OpenApiParam(LIMIT_PARAM, Int::class, "The maximum number of results. Default: 500"),
                 OpenApiParam(PAGE_INDEX_PARAM, Int::class, "The page index offset, relative to the limit.")

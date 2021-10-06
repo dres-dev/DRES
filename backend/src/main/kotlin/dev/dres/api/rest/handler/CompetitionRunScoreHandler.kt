@@ -185,11 +185,11 @@ class HistoryTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
 
 class TaskScoreListCSVHandler : AbstractScoreRestHandler(), GetRestHandler<String> {
 
-    override val route = "score/run/{runId}/tasks/csv"
+    override val route = "score/run/{runId}/task/list/csv"
 
     @OpenApi(
         summary = "Provides a CSV with the scores for a given competition run",
-        path = "/api/v1/score/run/{runId}/tasks/csv",
+        path = "/api/v1/score/run/{runId}/task/list/csv",
         tags = ["Competition Run Scores"],
         pathParams = [
             OpenApiParam("runId", String::class, "Competition run ID")
@@ -221,11 +221,11 @@ class TaskScoreListCSVHandler : AbstractScoreRestHandler(), GetRestHandler<Strin
  * A [GetRestHandler] that returns the names of all available scoreboards for a given run.
  */
 class ListScoreboardsHandler : AbstractScoreRestHandler(), GetRestHandler<List<String>> {
-    override val route = "score/run/{runId}/scoreboards"
+    override val route = "score/run/{runId}/scoreboard/list"
 
     @OpenApi(
         summary = "Returns a list of available scoreboard names for the given run.",
-        path = "/api/v1/score/run/{runId}/scoreboards",
+        path = "/api/v1/score/run/{runId}/scoreboard/list",
         tags = ["Competition Run Scores"],
         pathParams = [
             OpenApiParam("runId", String::class, "ID of the competition run.", required = true)
@@ -283,11 +283,11 @@ data class ScoreSeriesPoint(val score: Double, val timestamp: Long)
 
 
 class TeamGroupScoreHandler : AbstractScoreRestHandler(), GetRestHandler<List<TeamGroupValue>> {
-    override val route = "score/run/{runId}/teamGroups"
+    override val route = "score/run/{runId}/teamGroup/list"
 
     @OpenApi(
         summary = "Returns team group aggregated values of the current task.",
-        path = "/api/v1/score/run/{runId}/teamGroups",
+        path = "/api/v1/score/run/{runId}/teamGroup/list",
         tags = ["Competition Run Scores"],
         pathParams = [
             OpenApiParam("runId", String::class, "ID of the competition run.", required = true),

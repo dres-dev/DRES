@@ -3218,7 +3218,7 @@
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/SubmissionInfo"
+                    "$ref" : "#/components/schemas/TaskRunSubmissionInfo"
                   }
                 }
               }
@@ -4959,9 +4959,6 @@
           "end" : {
             "type" : "integer",
             "format" : "int64"
-          },
-          "taskRunId" : {
-            "type" : "string"
           }
         }
       },
@@ -5065,6 +5062,21 @@
           },
           "ready" : {
             "type" : "boolean"
+          }
+        }
+      },
+      "TaskRunSubmissionInfo" : {
+        "required" : [ "submissions", "taskRunId" ],
+        "type" : "object",
+        "properties" : {
+          "taskRunId" : {
+            "type" : "string"
+          },
+          "submissions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SubmissionInfo"
+            }
           }
         }
       },

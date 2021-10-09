@@ -27,6 +27,7 @@ import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {RunScoreHistoryComponent} from './score-history/run-score-history.component';
 import {NgApexchartsModule} from 'ng-apexcharts';
 import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatExpansionModule} from '@angular/material/expansion';
 
 @NgModule({
     imports: [
@@ -51,7 +52,8 @@ import {MatPaginatorModule} from '@angular/material/paginator';
         ClipboardModule,
         MatButtonToggleModule,
         MatSlideToggleModule,
-        NgApexchartsModule
+        NgApexchartsModule,
+        MatExpansionModule
     ],
     exports:      [ RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent ],
     declarations: [ RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent, AdminRunListComponent, ViewerRunListComponent, RunAdminSubmissionsListComponent, SubmissionOverrideDialogComponent ],

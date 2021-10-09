@@ -21,8 +21,7 @@ data class SubmissionInfo(
     val timestamp: Long,
     val item: RestMediaItem? = null,
     val start: Long? = null,
-    val end: Long? = null,
-    val taskRunId: String? = null
+    val end: Long? = null
 ) {
 
     /**

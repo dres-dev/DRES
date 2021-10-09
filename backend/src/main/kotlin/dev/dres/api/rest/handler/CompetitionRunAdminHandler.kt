@@ -35,7 +35,12 @@ import org.slf4j.LoggerFactory
 import java.io.File
 
 
-abstract class AbstractCompetitionRunAdminRestHandler(override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.ADMIN, RestApiRole.PARTICIPANT)): AccessManagedRestHandler {
+abstract class AbstractCompetitionRunAdminRestHandler(
+    override val permittedRoles: Set<RouteRole> = setOf(
+        RestApiRole.ADMIN,
+        RestApiRole.PARTICIPANT
+    )
+) : AccessManagedRestHandler {
 
     override val apiVersion = "v1"
 
@@ -57,7 +62,7 @@ abstract class AbstractCompetitionRunAdminRestHandler(override val permittedRole
      */
     fun getRun(runId: UID): InteractiveRunManager? {
         val run = RunExecutor.managerForId(runId)
-        if (run != null && run is InteractiveRunManager){
+        if (run != null && run is InteractiveRunManager) {
             return run
         }
         return null
@@ -67,27 +72,36 @@ abstract class AbstractCompetitionRunAdminRestHandler(override val permittedRole
 /**
  * REST handler to create a [InteractiveSynchronousCompetition].
  */
-class CreateCompetitionRunAdminHandler(private val competitions: DAO<CompetitionDescription>, private val collections: DAO<MediaCollection>, config: Config) : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), PostRestHandler<SuccessStatus> {
+class CreateCompetitionRunAdminHandler(
+    private val competitions: DAO<CompetitionDescription>,
+    private val collections: DAO<MediaCollection>,
+    config: Config
+) : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)),
+    PostRestHandler<SuccessStatus> {
 
     private val cacheLocation = File(config.cachePath + "/tasks")
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     private fun competitionById(id: UID, ctx: Context): CompetitionDescription =
-            competitions[id] ?: throw ErrorStatusException(404, "Competition with ID $id not found.'", ctx)
+        competitions[id] ?: throw ErrorStatusException(
+            404,
+            "Competition with ID $id not found.'",
+            ctx
+        )
 
     override val route = "run/admin/create"
 
     @OpenApi(
-            summary = "Creates a new competition run from an existing competition",
-            path = "/api/v1/run/admin/create",
-            method = HttpMethod.POST,
-            requestBody = OpenApiRequestBody([OpenApiContent(CompetitionStartMessage::class)]),
-            tags = ["Competition Run Admin"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
-            ]
+        summary = "Creates a new competition run from an existing competition",
+        path = "/api/v1/run/admin/create",
+        method = HttpMethod.POST,
+        requestBody = OpenApiRequestBody([OpenApiContent(CompetitionStartMessage::class)]),
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+        ]
     )
     override fun doPost(ctx: Context): SuccessStatus {
 
@@ -97,14 +111,19 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        val competitionToStart = this.competitionById(competitionStartMessage.competitionId.UID(), ctx)
+        val competitionToStart =
+            this.competitionById(competitionStartMessage.competitionId.UID(), ctx)
 
         /* ensure that only one synchronous run of a competition is happening at any given time */
         if (competitionStartMessage.type == RunType.SYNCHRONOUS && RunExecutor.managers().any {
-                    it is InteractiveSynchronousRunManager && it.description.id == competitionToStart.id && it.status != RunManagerStatus.TERMINATED
-                }
+                it is InteractiveSynchronousRunManager && it.description.id == competitionToStart.id && it.status != RunManagerStatus.TERMINATED
+            }
         ) {
-            throw ErrorStatusException(400, "Synchronous run of competition ${competitionToStart.name} already exists", ctx)
+            throw ErrorStatusException(
+                400,
+                "Synchronous run of competition ${competitionToStart.name} already exists",
+                ctx
+            )
         }
 
         val segmentTasks = competitionToStart.getAllCachedVideoItems()
@@ -113,7 +132,7 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
         segmentTasks.forEach {
             val item = it.item
             val collection = this.collections[item.collection]
-                    ?: throw ErrorStatusException(400, "collection ${item.collection} not found", ctx)
+                ?: throw ErrorStatusException(400, "collection ${item.collection} not found", ctx)
 
             val videoFile = File(File(collection.basePath), item.location)
 
@@ -134,7 +153,10 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
         try {
             val manager = when (competitionStartMessage.type) {
                 RunType.ASYNCHRONOUS -> TODO()
-                RunType.SYNCHRONOUS -> InteractiveSynchronousRunManager(competitionToStart, competitionStartMessage.name)
+                RunType.SYNCHRONOUS -> InteractiveSynchronousRunManager(
+                    competitionToStart,
+                    competitionStartMessage.name
+                )
             }
 
             /**... and schedule RunManager. */
@@ -142,7 +164,11 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
 
             return SuccessStatus("Competition '${competitionStartMessage.name}' was started and is running with ID ${manager.id}.")
         } catch (e: IllegalArgumentException) {
-            throw ErrorStatusException(400, e.message ?: "Invalid parameters. This is a programmers error!", ctx)
+            throw ErrorStatusException(
+                400,
+                e.message ?: "Invalid parameters. This is a programmers error!",
+                ctx
+            )
         }
     }
 }
@@ -150,20 +176,21 @@ class CreateCompetitionRunAdminHandler(private val competitions: DAO<Competition
 /**
  * REST handler to start a [InteractiveSynchronousCompetition].
  */
-class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(),
+    PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/{runId}/start"
 
     @OpenApi(
-            summary = "Starts a competition run. This is a method for admins.",
-            path = "/api/v1/run/admin/{runId}/start",
-            method = HttpMethod.POST,
-            pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
-            tags = ["Competition Run Admin"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
-            ]
+        summary = "Starts a competition run. This is a method for admins.",
+        path = "/api/v1/run/admin/{runId}/start",
+        method = HttpMethod.POST,
+        pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+        ]
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
@@ -177,7 +204,11 @@ class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler()
             EventStreamProcessor.event(RunStartEvent(runId, run.description))
             return SuccessStatus("Run $runId was successfully started.")
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Run $runId could not be started because it is in the wrong state (state = ${run.status}).", ctx)
+            throw ErrorStatusException(
+                400,
+                "Run $runId could not be started because it is in the wrong state (state = ${run.status}).",
+                ctx
+            )
         } catch (e: IllegalAccessError) {
             throw ErrorStatusException(403, e.message!!, ctx)
         }
@@ -187,20 +218,21 @@ class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler()
 /**
  * REST handler to move to the next task in a [InteractiveSynchronousCompetition].
  */
-class NextTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class NextTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(),
+    PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/{runId}/task/next"
 
     @OpenApi(
-            summary = "Moves to and selects the next task. This is a method for admins.",
-            path = "/api/v1/run/admin/{runId}/task/next",
-            method = HttpMethod.POST,
-            pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
-            tags = ["Competition Run Admin"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
-            ]
+        summary = "Moves to and selects the next task. This is a method for admins.",
+        path = "/api/v1/run/admin/{runId}/task/next",
+        method = HttpMethod.POST,
+        pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+        ]
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
@@ -210,12 +242,26 @@ class NextTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandle
 
         try {
             if (run.next(rac)) {
-                return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTaskDescription(rac).name}'.")
+                return SuccessStatus(
+                    "Task for run $runId was successfully moved to '${
+                        run.currentTaskDescription(
+                            rac
+                        ).name
+                    }'."
+                )
             } else {
-                throw ErrorStatusException(400, "Task for run $runId could not be changed because there are no tasks left.", ctx)
+                throw ErrorStatusException(
+                    400,
+                    "Task for run $runId could not be changed because there are no tasks left.",
+                    ctx
+                )
             }
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).", ctx)
+            throw ErrorStatusException(
+                400,
+                "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).",
+                ctx
+            )
         } catch (e: IllegalAccessError) {
             throw ErrorStatusException(403, e.message!!, ctx)
         }
@@ -225,23 +271,24 @@ class NextTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandle
 /**
  * REST handler to move to the next task in a [InteractiveSynchronousCompetition].
  */
-class SwitchTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class SwitchTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(),
+    PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/{runId}/task/switch/{idx}"
 
     @OpenApi(
-            summary = "Moves to and selects the specified task. This is a method for admins.",
-            path = "/api/v1/run/admin/{runId}/task/switch/{idx}",
-            method = HttpMethod.POST,
-            pathParams = [
-                OpenApiParam("runId", String::class, "Competition run ID"),
-                OpenApiParam("idx", Int::class, "Index of the task to switch to.")
-            ],
-            tags = ["Competition Run Admin"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
-            ]
+        summary = "Moves to and selects the specified task. This is a method for admins.",
+        path = "/api/v1/run/admin/{runId}/task/switch/{idx}",
+        method = HttpMethod.POST,
+        pathParams = [
+            OpenApiParam("runId", String::class, "Competition run ID"),
+            OpenApiParam("idx", Int::class, "Index of the task to switch to.")
+        ],
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+        ]
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
@@ -254,11 +301,25 @@ class SwitchTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHand
 
         try {
             run.goTo(rac, idx)
-            return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTaskDescription(rac).name}'.")
+            return SuccessStatus(
+                "Task for run $runId was successfully moved to '${
+                    run.currentTaskDescription(
+                        rac
+                    ).name
+                }'."
+            )
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).", ctx)
+            throw ErrorStatusException(
+                400,
+                "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).",
+                ctx
+            )
         } catch (e: IndexOutOfBoundsException) {
-            throw ErrorStatusException(404, "Task for run $runId could not be changed because index $idx is out of bounds for number of available tasks.", ctx)
+            throw ErrorStatusException(
+                404,
+                "Task for run $runId could not be changed because index $idx is out of bounds for number of available tasks.",
+                ctx
+            )
         } catch (e: IllegalAccessError) {
             throw ErrorStatusException(403, e.message!!, ctx)
         }
@@ -268,20 +329,22 @@ class SwitchTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHand
 /**
  * REST handler to move to the previous task in a [InteractiveSynchronousCompetition].
  */
-class PreviousTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), PostRestHandler<SuccessStatus> {
+class PreviousTaskCompetitionRunAdminHandler :
+    AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)),
+    PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/{runId}/task/previous"
 
     @OpenApi(
-            summary = "Moves to and selects the previous task. This is a method for admins.",
-            path = "/api/v1/run/admin/{runId}/task/previous",
-            method = HttpMethod.POST,
-            pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
-            tags = ["Competition Run Admin"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
-            ]
+        summary = "Moves to and selects the previous task. This is a method for admins.",
+        path = "/api/v1/run/admin/{runId}/task/previous",
+        method = HttpMethod.POST,
+        pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+        ]
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
@@ -289,12 +352,26 @@ class PreviousTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHa
         val rac = runActionContext(ctx, run)
         try {
             if (run.previous(rac)) {
-                return SuccessStatus("Task for run $runId was successfully moved to '${run.currentTaskDescription(rac).name}'.")
+                return SuccessStatus(
+                    "Task for run $runId was successfully moved to '${
+                        run.currentTaskDescription(
+                            rac
+                        ).name
+                    }'."
+                )
             } else {
-                throw ErrorStatusException(400, "Task for run $runId could not be changed because there are no tasks left.", ctx)
+                throw ErrorStatusException(
+                    400,
+                    "Task for run $runId could not be changed because there are no tasks left.",
+                    ctx
+                )
             }
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).", ctx)
+            throw ErrorStatusException(
+                400,
+                "Task for run $runId could not be changed because run is in the wrong state (state = ${run.status}).",
+                ctx
+            )
         } catch (e: IllegalAccessError) {
             throw ErrorStatusException(403, e.message!!, ctx)
         }
@@ -304,20 +381,21 @@ class PreviousTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHa
 /**
  * REST handler to start the current task in a [InteractiveSynchronousCompetition].
  */
-class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(),
+    PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/{runId}/task/start"
 
     @OpenApi(
-            summary = "Starts the currently active task as a new task run. This is a method for admins.",
-            path = "/api/v1/run/admin/{runId}/task/start",
-            method = HttpMethod.POST,
-            pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
-            tags = ["Competition Run Admin"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
-            ]
+        summary = "Starts the currently active task as a new task run. This is a method for admins.",
+        path = "/api/v1/run/admin/{runId}/task/start",
+        method = HttpMethod.POST,
+        pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+        ]
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
@@ -325,11 +403,26 @@ class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
         val rac = runActionContext(ctx, run)
         try {
             run.startTask(rac)
-            AuditLogger.taskStart(run.id, run.currentTaskDescription(rac).name, LogEventSource.REST, ctx.sessionId())
-            EventStreamProcessor.event(TaskStartEvent(runId, run.currentTask(rac)!!.uid, run.currentTaskDescription(rac)))
+            AuditLogger.taskStart(
+                run.id,
+                run.currentTaskDescription(rac).name,
+                LogEventSource.REST,
+                ctx.sessionId()
+            )
+            EventStreamProcessor.event(
+                TaskStartEvent(
+                    runId,
+                    run.currentTask(rac)!!.uid,
+                    run.currentTaskDescription(rac)
+                )
+            )
             return SuccessStatus("Task '${run.currentTaskDescription(rac).name}' for run $runId was successfully started.")
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Task '${run.currentTaskDescription(rac).name}' for run $runId could not be started because run is in the wrong state (state = ${run.status}).", ctx)
+            throw ErrorStatusException(
+                400,
+                "Task '${run.currentTaskDescription(rac).name}' for run $runId could not be started because run is in the wrong state (state = ${run.status}).",
+                ctx
+            )
         } catch (e: IllegalAccessError) {
             throw ErrorStatusException(403, e.message!!, ctx)
         }
@@ -339,20 +432,21 @@ class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
 /**
  * REST handler to abort the current task in a [InteractiveSynchronousCompetition].
  */
-class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(), PostRestHandler<SuccessStatus> {
+class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(),
+    PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/{runId}/task/abort"
 
     @OpenApi(
-            summary = "Aborts the currently running task run. This is a method for admins.",
-            path = "/api/v1/run/admin/{runId}/task/abort",
-            method = HttpMethod.POST,
-            pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
-            tags = ["Competition Run Admin"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
-            ]
+        summary = "Aborts the currently running task run. This is a method for admins.",
+        path = "/api/v1/run/admin/{runId}/task/abort",
+        method = HttpMethod.POST,
+        pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+        ]
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
@@ -364,7 +458,11 @@ class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
             AuditLogger.taskEnd(run.id, task.name, LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Task '${run.currentTaskDescription(rac).name}' for run $runId was successfully aborted.")
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Task '${run.currentTaskDescription(rac).name}' for run $runId could not be aborted because run is in the wrong state (state = ${run.status}).", ctx)
+            throw ErrorStatusException(
+                400,
+                "Task '${run.currentTaskDescription(rac).name}' for run $runId could not be aborted because run is in the wrong state (state = ${run.status}).",
+                ctx
+            )
         } catch (e: IllegalAccessError) {
             throw ErrorStatusException(403, e.message!!, ctx)
         }
@@ -374,20 +472,22 @@ class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
 /**
  * REST handler to terminate a [InteractiveSynchronousCompetition].
  */
-class TerminateCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), PostRestHandler<SuccessStatus> {
+class TerminateCompetitionRunAdminHandler :
+    AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)),
+    PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/{runId}/terminate"
 
     @OpenApi(
-            summary = "Terminates a competition run. This is a method for admins.",
-            path = "/api/v1/run/admin/{runId}/terminate",
-            method = HttpMethod.POST,
-            pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
-            tags = ["Competition Run Admin"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
-            ]
+        summary = "Terminates a competition run. This is a method for admins.",
+        path = "/api/v1/run/admin/{runId}/terminate",
+        method = HttpMethod.POST,
+        pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
+        ]
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
@@ -399,7 +499,11 @@ class TerminateCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
             EventStreamProcessor.event(RunEndEvent(runId))
             return SuccessStatus("Run $runId was successfully terminated.")
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Run $runId could not be terminated because it is in the wrong state (state = ${run.status}).", ctx)
+            throw ErrorStatusException(
+                400,
+                "Run $runId could not be terminated because it is in the wrong state (state = ${run.status}).",
+                ctx
+            )
         } catch (e: IllegalAccessError) {
             throw ErrorStatusException(403, e.message!!, ctx)
         }
@@ -409,24 +513,26 @@ class TerminateCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
 /**
  * REST handler to adjust a [InteractiveSynchronousCompetition.Task]'s duration.
  */
-class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), PostRestHandler<SuccessStatus> {
+class AdjustDurationRunAdminHandler :
+    AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)),
+    PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/{runId}/adjust/{duration}"
 
     @OpenApi(
-            summary = "Adjusts the duration of a running task run. This is a method for admins.",
-            path = "/api/v1/run/admin/{runId}/adjust/{duration}",
-            method = HttpMethod.POST,
-            pathParams = [
-                OpenApiParam("runId", String::class, "Competition Run ID"),
-                OpenApiParam("duration", Int::class, "Duration to add.")
-            ],
-            tags = ["Competition Run Admin"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+        summary = "Adjusts the duration of a running task run. This is a method for admins.",
+        path = "/api/v1/run/admin/{runId}/adjust/{duration}",
+        method = HttpMethod.POST,
+        pathParams = [
+            OpenApiParam("runId", String::class, "Competition Run ID"),
+            OpenApiParam("duration", Int::class, "Duration to add.")
+        ],
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
@@ -437,12 +543,26 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(set
         val rac = runActionContext(ctx, run)
         try {
             run.adjustDuration(rac, duration)
-            AuditLogger.taskModified(run.id, run.currentTaskDescription(rac).name, "Task duration adjusted by ${duration}s.", LogEventSource.REST, ctx.sessionId())
+            AuditLogger.taskModified(
+                run.id,
+                run.currentTaskDescription(rac).name,
+                "Task duration adjusted by ${duration}s.",
+                LogEventSource.REST,
+                ctx.sessionId()
+            )
             return SuccessStatus("Duration for run $runId was successfully adjusted.")
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Duration for run $runId could not be adjusted because it is in the wrong state (state = ${run.status}).", ctx)
+            throw ErrorStatusException(
+                400,
+                "Duration for run $runId could not be adjusted because it is in the wrong state (state = ${run.status}).",
+                ctx
+            )
         } catch (e: IllegalArgumentException) {
-            throw ErrorStatusException(400, "Duration for run $runId could not be adjusted because new duration would drop bellow zero (state = ${run.status}).", ctx)
+            throw ErrorStatusException(
+                400,
+                "Duration for run $runId could not be adjusted because new duration would drop bellow zero (state = ${run.status}).",
+                ctx
+            )
         } catch (e: IllegalAccessError) {
             throw ErrorStatusException(403, e.message!!, ctx)
         }
@@ -452,12 +572,14 @@ class AdjustDurationRunAdminHandler : AbstractCompetitionRunAdminRestHandler(set
 /**
  *
  */
-class ListPastTasksPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), GetRestHandler<List<PastTaskInfo>> {
+class ListPastTasksPerTaskRunAdminHandler :
+    AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)),
+    GetRestHandler<List<PastTaskInfo>> {
     override val route: String = "run/admin/{runId}/task/past/list"
 
     @OpenApi(
         summary = "Lists all past tasks for a given run",
-        path="/api/v1/run/admin/{runId}/task/past/list",
+        path = "/api/v1/run/admin/{runId}/task/past/list",
         method = HttpMethod.GET,
         pathParams = [
             OpenApiParam("runId", String::class, "Competition Run ID")
@@ -472,11 +594,12 @@ class ListPastTasksPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHandl
     )
     override fun doGet(ctx: Context): List<PastTaskInfo> {
         val runId = runId(ctx)
-        val run = getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
+        val run =
+            getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
 
         val rac = runActionContext(ctx, run)
 
-        return run.tasks(rac).filter { it.hasEnded }.map{
+        return run.tasks(rac).filter { it.hasEnded }.map {
             PastTaskInfo(
                 taskId = it.uid.string,
                 descriptionId = it.description.id.string,
@@ -492,112 +615,130 @@ class ListPastTasksPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHandl
 /**
  *
  */
-class ListSubmissionsPerTaskRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), GetRestHandler<List<SubmissionInfo>> {
+class ListSubmissionsPerTaskRunAdminHandler :
+    AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)),
+    GetRestHandler<List<TaskRunSubmissionInfo>> {
     override val route: String = "run/admin/{runId}/submission/list/{taskId}"
 
     @OpenApi(
-            summary = "Lists all submissions for a given task and run.",
-            path = "/api/v1/run/admin/{runId}/submission/list/{taskId}",
-            method = HttpMethod.GET,
-            pathParams = [
-                OpenApiParam("runId", String::class, "Competition Run ID"),
-                OpenApiParam("taskId", String::class, "Task ID")
-            ],
-            tags = ["Competition Run Admin"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+        summary = "Lists all submissions for a given task and run.",
+        path = "/api/v1/run/admin/{runId}/submission/list/{taskId}",
+        method = HttpMethod.GET,
+        pathParams = [
+            OpenApiParam("runId", String::class, "Competition Run ID"),
+            OpenApiParam("taskId", String::class, "Task ID")
+        ],
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(Array<TaskRunSubmissionInfo>::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
     )
-    override fun doGet(ctx: Context): List<SubmissionInfo> {
+    override fun doGet(ctx: Context): List<TaskRunSubmissionInfo> {
         val runId = runId(ctx)
-        val run = getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
+        val run =
+            getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
 
-        val taskId = ctx.pathParamMap().getOrElse("taskId") { throw ErrorStatusException(404, "Parameter 'taskId' is missing!'", ctx) }.UID()
-        val teams = run.description.teams.associate { it.uid to it }
-        return run.tasks(runActionContext(ctx, run)).filter { it.description.id == taskId }.flatMap {
-            it.submissions.map { sub ->
-                SubmissionInfo(
-                    id = sub.uid.string,
-                    teamId = sub.teamId.string,
-                    teamName = teams[sub.teamId]?.name,
-                    memberId = sub.memberId.string,
-                    memberName = UserManager.get(sub.memberId)?.username?.name,
-                    status = sub.status,
-                    timestamp = sub.timestamp,
-                    item = RestMediaItem.fromMediaItem(sub.item),
-                    start = if (sub is TemporalSubmissionAspect) sub.start else null,
-                    end = if (sub is TemporalSubmissionAspect) sub.end else null,
-                    taskRunId = it.uid.string
-                )
-            }
-        }
-        /*return run.allSubmissions.filter { it.task?.description?.id == taskId }.map {
-            SubmissionInfo(
-                id = it.uid.string,
-                teamId = it.teamId.string,
-                teamName = teams[it.teamId]?.name,
-                memberId = it.memberId.string,
-                memberName = UserManager.get(it.memberId)?.username?.name,
-                status = it.status,
-                timestamp = it.timestamp,
-                item = RestMediaItem.fromMediaItem(it.item),
-                start = if (it is TemporalSubmissionAspect) it.start else null,
-                end = if (it is TemporalSubmissionAspect) it.end else null
+        val taskId = ctx.pathParamMap().getOrElse("taskId") {
+            throw ErrorStatusException(
+                404,
+                "Parameter 'taskId' is missing!'",
+                ctx
             )
-        }*/
+        }.UID()
+        val teams = run.description.teams.associate { it.uid to it }
+        return run.tasks(runActionContext(ctx, run)).filter { it.description.id == taskId }.map {
+            TaskRunSubmissionInfo(
+                it.uid.string,
+                it.submissions.map { sub ->
+                    SubmissionInfo(
+                        id = sub.uid.string,
+                        teamId = sub.teamId.string,
+                        teamName = teams[sub.teamId]?.name,
+                        memberId = sub.memberId.string,
+                        memberName = UserManager.get(sub.memberId)?.username?.name,
+                        status = sub.status,
+                        timestamp = sub.timestamp,
+                        item = RestMediaItem.fromMediaItem(sub.item),
+                        start = if (sub is TemporalSubmissionAspect) sub.start else null,
+                        end = if (sub is TemporalSubmissionAspect) sub.end else null
+                    )
+                }
+            )
+        }
     }
 }
 
 /**
  *
  */
-class OverwriteSubmissionStatusRunAdminHandler: AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), PatchRestHandler<SubmissionInfo>{
+class OverwriteSubmissionStatusRunAdminHandler :
+    AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)),
+    PatchRestHandler<SubmissionInfo> {
     override val route: String = "run/admin/{runId}/submission/override"
 
     @OpenApi(
-            summary = "Lists all submissions for a given task and run",
-            path = "/api/v1/run/admin/{runId}/submission/override",
-            method = HttpMethod.PATCH,
-            pathParams = [
-                OpenApiParam("runId", String::class, "Competition Run ID")
-            ],
-            requestBody = OpenApiRequestBody([OpenApiContent(SubmissionInfo::class)]),
-            tags = ["Competition Run Admin"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(SubmissionInfo::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+        summary = "Lists all submissions for a given task and run",
+        path = "/api/v1/run/admin/{runId}/submission/override",
+        method = HttpMethod.PATCH,
+        pathParams = [
+            OpenApiParam("runId", String::class, "Competition Run ID")
+        ],
+        requestBody = OpenApiRequestBody([OpenApiContent(SubmissionInfo::class)]),
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(SubmissionInfo::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
     )
     override fun doPatch(ctx: Context): SubmissionInfo {
         val runId = runId(ctx)
-        val run = getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
+        val run =
+            getRun(runId) ?: throw ErrorStatusException(404, "No such run was found: $runId", ctx)
         val rac = runActionContext(ctx, run)
 
         /* Extract HTTP body. */
         val toPatchRest = ctx.bodyAsClass<SubmissionInfo>()
-        val submissionId = toPatchRest.id?.UID() ?: throw ErrorStatusException(400, "No submission ID was specified for update.", ctx)
+        val submissionId = toPatchRest.id?.UID() ?: throw ErrorStatusException(
+            400,
+            "No submission ID was specified for update.",
+            ctx
+        )
 
         val status = toPatchRest.status
 
         if (status == SubmissionStatus.INDETERMINATE) {
-           throw ErrorStatusException(400, "Submission Status can not be set to INDETERMINATE", ctx)
+            throw ErrorStatusException(
+                400,
+                "Submission Status can not be set to INDETERMINATE",
+                ctx
+            )
         }
 
         /* Sanity check to see, whether the submission exists */
         if (run.allSubmissions.none { it.uid == submissionId }) {
             throw ErrorStatusException(404, "The given submission $toPatchRest was not found.", ctx)
         }
-        if (run.updateSubmission(rac, submissionId, status)){
+        if (run.updateSubmission(rac, submissionId, status)) {
             val submission = run.allSubmissions.single { it.uid == submissionId }
-            AuditLogger.overrideSubmission(runId, submissionId, submission.status, LogEventSource.REST, ctx.sessionId())
+            AuditLogger.overrideSubmission(
+                runId,
+                submissionId,
+                submission.status,
+                LogEventSource.REST,
+                ctx.sessionId()
+            )
             return SubmissionInfo(submission)
         } else {
-            throw ErrorStatusException(500, "Could not update the submission. Please see the backend's log.", ctx)
+            throw ErrorStatusException(
+                500,
+                "Could not update the submission. Please see the backend's log.",
+                ctx
+            )
         }
     }
 }
@@ -605,26 +746,29 @@ class OverwriteSubmissionStatusRunAdminHandler: AbstractCompetitionRunAdminRestH
 /**
  * REST handler to list all viewers for a [InteractiveSynchronousCompetition].
  */
-class ListViewersRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), GetRestHandler<Array<ViewerInfo>> {
+class ListViewersRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)),
+    GetRestHandler<Array<ViewerInfo>> {
     override val route: String = "run/admin/{runId}/viewer/list"
 
     @OpenApi(
-            summary = "Lists all registered viewers for a competition run. This is a method for admins.",
-            path = "/api/v1/run/admin/{runId}/viewer/list",
-            method = HttpMethod.GET,
-            pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
-            tags = ["Competition Run Admin"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<ViewerInfo>::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+        summary = "Lists all registered viewers for a competition run. This is a method for admins.",
+        path = "/api/v1/run/admin/{runId}/viewer/list",
+        method = HttpMethod.GET,
+        pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(Array<ViewerInfo>::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
     )
     override fun doGet(ctx: Context): Array<ViewerInfo> {
         val runId = runId(ctx)
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
-        return run.viewers().map { ViewerInfo(it.key.sessionId, it.key.userName, it.key.host, it.value) }.toTypedArray()
+        return run.viewers()
+            .map { ViewerInfo(it.key.sessionId, it.key.userName, it.key.host, it.value) }
+            .toTypedArray()
     }
 }
 
@@ -632,24 +776,25 @@ class ListViewersRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(
 /**
  * REST handler to force the viewer state of a viewer instance registered for a [RunManager].
  */
-class ForceViewerRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), PostRestHandler<SuccessStatus> {
+class ForceViewerRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)),
+    PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/{runId}/viewer/list/{viewerId}/force"
 
     @OpenApi(
-            summary = "Forces a viewer with the given viewer ID into the READY state. This is a method for admins.",
-            path = "/api/v1/run/admin/{runId}/viewer/list/{viewerId}/force",
-            method = HttpMethod.POST,
-            pathParams = [
-                OpenApiParam("runId", String::class, "Competition Run ID"),
-                OpenApiParam("viewerId", String::class, "Viewer ID")
-            ],
-            tags = ["Competition Run Admin"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+        summary = "Forces a viewer with the given viewer ID into the READY state. This is a method for admins.",
+        path = "/api/v1/run/admin/{runId}/viewer/list/{viewerId}/force",
+        method = HttpMethod.POST,
+        pathParams = [
+            OpenApiParam("runId", String::class, "Competition Run ID"),
+            OpenApiParam("viewerId", String::class, "Viewer ID")
+        ],
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
@@ -665,7 +810,11 @@ class ForceViewerRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(
                 throw ErrorStatusException(404, "Viewer $viewerId does not exist!'", ctx)
             }
         } catch (e: IllegalStateException) {
-            throw ErrorStatusException(400, "Viewer state for viewer $viewerId (run $runId) could not be enforced because run is in the wrong state (state = ${run.status}).", ctx)
+            throw ErrorStatusException(
+                400,
+                "Viewer state for viewer $viewerId (run $runId) could not be enforced because run is in the wrong state (state = ${run.status}).",
+                ctx
+            )
         }
     }
 }

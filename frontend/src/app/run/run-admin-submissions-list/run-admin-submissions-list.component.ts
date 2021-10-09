@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, OnDestroy, ViewChild} from '@angular/core';
-import {CompetitionRunAdminService, SubmissionInfo} from '../../../../openapi';
+import {CompetitionRunAdminService, SubmissionInfo, TaskRunSubmissionInfo} from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatDialog} from '@angular/material/dialog';
 import {MatTable, MatTableDataSource} from '@angular/material/table';
@@ -30,7 +30,7 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     public taskId: Observable<string>;
 
     /** The columns displayed by the table. */
-    public displayColumns = ['id', 'taskRunId', 'timestamp', 'submitted', 'item', 'start', 'end', 'status', 'preview', 'actions'];
+    public displayColumns = ['id', /*'taskRunId',*/ 'timestamp', 'submitted', 'item', 'start', 'end', 'status', 'preview', 'actions'];
 
     /** Number of milliseconds to wait in between polls. */
     public pollingFrequencyFactor = 30000; // every 30 seconds
@@ -47,6 +47,11 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     /** The data source for the table. */
     public dataSource: MatTableDataSource<SubmissionInfo> = new MatTableDataSource();
 
+    /** The data sources mapped by the taskRunId */
+    public dataSources: Map<string, MatTableDataSource<SubmissionInfo>> = new Map();
+
+    /** The list of taskRunIds there are submissions for, for convenience in the template */
+    public taskRunIds: string[] = [];
 
     /** Subscription held by this component to load submissions. */
     private subscription: Subscription;
@@ -80,8 +85,18 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
                 this.snackBar.open(`Error: ${err?.message}`, null, {duration: 5000});
                 return of([]);
             })
-        ).subscribe(s => {
-            this.dataSource.data = s;
+        ).subscribe((s: TaskRunSubmissionInfo[]) => {
+            // this.dataSource.data = s;
+            /* Clear lists first */
+            this.dataSources.clear();
+            this.taskRunIds = [];
+            /* Repopulate */
+            s.forEach(trsi => {
+                const ds = new MatTableDataSource<SubmissionInfo>();
+                ds.data = trsi.submissions;
+                this.dataSources.set(trsi.taskRunId, ds);
+                this.taskRunIds.push(trsi.taskRunId);
+            });
         });
     }
 

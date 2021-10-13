@@ -90,6 +90,11 @@ object RestApi {
                 dataAccessLayer.mediaItems,
                 dataAccessLayer.mediaItemCollectionUidIndex
             ), // Must be before ListMediaItem
+            ResolveMediaItemListByNameHandler(
+                dataAccessLayer.collections,
+                dataAccessLayer.mediaItems,
+                dataAccessLayer.mediaItemCollectionNameIndex
+            ), // Must be before ListMediaItem
             ListMediaItemHandler(
                 dataAccessLayer.collections,
                 dataAccessLayer.mediaItems,

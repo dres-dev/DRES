@@ -6,7 +6,9 @@ import {
     ConfiguredOptionTargetOption,
     RestMediaCollection,
     RestMediaItem,
-    RestTaskDescription, RestTemporalPoint, RestTemporalRange,
+    RestTaskDescription,
+    RestTemporalPoint,
+    RestTemporalRange,
     TaskGroup,
     TaskType
 } from '../../../../../openapi';
@@ -71,7 +73,7 @@ export class CompetitionBuilderTaskDialogComponent {
         this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, task);
         this.form = this.builder.form;
         console.log('Loaded task: ' + JSON.stringify(task));
-    }
+    };
 
     /**
      * Handler for (+) button for query target form component.
@@ -269,14 +271,24 @@ export class CompetitionBuilderTaskDialogComponent {
             .subscribe((r: Array<string>) => {
                 this.builder.removeTargetForm(0);
                 const mediaCollectionId = this.builder.form.get('mediaCollection').value;
-                r.forEach((name, idx) => {
+                this.collectionService.postApiV1CollectionWithCollectionidResolve(mediaCollectionId, r).subscribe(items => {
+                    items.forEach(item => {
+                       const form = this.builder.addTargetForm(ConfiguredOptionTargetOption.OptionEnum.MULTIPLE_MEDIA_ITEMS);
+                       console.log(`Adding new mediaItem as target ${mediaCollectionId}/${item.name}`);
+                       form.get('mediaItem').setValue(item);
+                    });
+                });
+                /*r.forEach((name, idx) => {
                     const form = this.builder.addTargetForm(ConfiguredOptionTargetOption.OptionEnum.MULTIPLE_MEDIA_ITEMS);
                     console.log(`${mediaCollectionId} ? ${name}`);
                     const nameNoExt = name.substring(0, name.lastIndexOf('.'));
                     this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(mediaCollectionId, nameNoExt)
-                        .subscribe(item =>
-                            form.get('mediaItem').setValue(item[0]));
-                });
+                        .subscribe(item => {
+                                console.log(`Added ${item[0]}`);
+                                form.get('mediaItem').setValue(item[0]);
+                            }
+                        );
+                });*/
             });
     }
 

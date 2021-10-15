@@ -1,6 +1,7 @@
 package dev.dres.api.rest
 
 import io.javalin.plugin.openapi.annotations.HttpMethod
+import okhttp3.internal.toImmutableList
 
 /**
  * Options to configure an OpenApi Specifications endpoint in use with Javalin OpenApi Plugin.
@@ -20,19 +21,27 @@ data class OpenApiEndpointOptions(
     private val ignores: List<String> = listOf()
 ) {
 
-    val ignored = ignores.map {
+    fun ignored(): List<Pair<String, List<HttpMethod>>> {
+        return _ignored.toImmutableList()
+    }
+
+    private val _ignored = ignores.map {
         /* Small routine to distinguish between "internal" (prefixed with /api/) and "public" endpoints */
         if(!it.startsWith("#")){
             "/api/v1$it" to HttpMethod.values().map { it } //FIXME deal with version number
         }else{
             it.substring(it.indexOf("#")+1) to HttpMethod.values().map { it }
         }
+    }.toMutableList()
+
+    fun withIgnores(ignores: List<Pair<String, List<HttpMethod>>>) : OpenApiEndpointOptions {
+        this._ignored.addAll(ignores)
+        return this
     }
 
     companion object {
         val commonIgnores = mutableListOf(
             "/external/*",
-            "/user*",
             "/collection*", "/collection/*",
             "/competition*", "/competition/*",
             "/run*", "/run/*",
@@ -40,15 +49,20 @@ data class OpenApiEndpointOptions(
             "/mediaItem*", "/mediaItem/*",
             "/score*", "/score/*"
         )
-        val lessCommonIgnores = listOf(
-            "/login", "/logout", "/status/*", "/user/*"
-        )
-        val dresDefaultOptions = OpenApiEndpointOptions("/swagger-docs", "/swagger-ui")
-        val dresLogOnly = OpenApiEndpointOptions("/logging-oas", "/swagger-log",
-            ignores = commonIgnores +  listOf("/submit"))
-        val dresSubmissionOnly = OpenApiEndpointOptions("/submission-oas", "/swagger-submit",
-            ignores = commonIgnores + listOf("/log*", "/log/*") )
 
-        val dresSubmittingClientOptions = OpenApiEndpointOptions("/client-oas", "/swagger-client", ignores= commonIgnores + listOf("/user/list", "/user/session/*"))
+        val dresDefaultOptions = OpenApiEndpointOptions("/swagger-docs", "/swagger-ui")
+
+        val dresSubmittingClientOptions = OpenApiEndpointOptions(
+            "/client-oas",
+            "/swagger-client",
+            ignores= commonIgnores +
+                    listOf(
+                        "/user/list",
+                        "/user/session/*"
+                    )
+        ).withIgnores(listOf(
+            "/api/v1/user" to HttpMethod.values().map { it }.filter { it.ordinal != HttpMethod.GET.ordinal },
+            "/api/v1/user/{userId}" to HttpMethod.values().map{it}
+        ))
     }
 }

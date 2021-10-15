@@ -276,7 +276,7 @@ object RestApi {
             path(options.oasPath) // endpoint for OpenAPI json
             swagger(SwaggerOptions(options.swaggerUi)) // endpoint for swagger-ui
             activateAnnotationScanningFor("dev.dres.api.rest.handler")
-            options.ignored.forEach { ignorePath(it.first) }
+            options.ignored().forEach { it.second.forEach { method -> ignorePath(it.first, method) } }
             toJsonMapper(JacksonToJsonMapper(jacksonMapper))
         }
 

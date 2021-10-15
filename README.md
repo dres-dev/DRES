@@ -1,6 +1,7 @@
 # DRES
 
 [![swagger-editor](https://img.shields.io/badge/open--API-in--editor-brightgreen.svg?style=flat&label=client%20open-api-v3)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/dres-dev/DRES/master/doc/oas-client.json)
+[![GitHub release](https://img.shields.io/github/release/dres-dev/DRES?include_prereleases=&sort=semver&color=blue)](https://github.com/dres-dev/DRES/releases/)
 
 The Distributed Retrieval Evaluation Server builds uppon the work of https://github.com/klschoef/vbsserver/ to provide the means to evaluate interactive retrieval approaches in various settings, both on-site and distributed.
 

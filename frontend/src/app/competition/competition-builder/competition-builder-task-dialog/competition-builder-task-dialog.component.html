@@ -222,15 +222,16 @@
 
         <div *ngIf="form.get('mediaCollection').value">
             <h2>Query description
-                <button mat-button aria-label="Add query description component."
-                        matTooltip="Add query description component." [matMenuTriggerFor]="componentsMenu">
+                <button mat-button aria-label="Add query description component." matTooltip="Add query description component." [matMenuTriggerFor]="componentsMenu">
                     <mat-icon>add</mat-icon>
                 </button>
                 <mat-menu #componentsMenu="matMenu">
-                    <button *ngFor="let compType of data.taskType.components" mat-menu-item
-                            (click)="addQueryComponent(compType.option)">Add {{compType.option | titlecase}}</button>
+                    <button *ngFor="let compType of data.taskType.components" mat-menu-item (click)="addQueryComponent(compType.option)">Add {{compType.option | titlecase}}</button>
                 </mat-menu>
             </h2>
+            <div *ngIf="form.get('components').invalid" class="validation-error">
+                <div *ngIf="form.get('components').errors?.required">At least one query component is required!</div>
+            </div>
             <div *ngFor="let description of form.get('components')['controls']; let i = index" style="display: flex">
                 <div style="flex-basis: 100%; flex-grow: 1">
                     <p>
@@ -344,6 +345,7 @@
 <div mat-dialog-actions>
     <button mat-button (click)="close()">Cancel</button>
     <button mat-button (click)="save()">Save</button>
+    <!-- Disabled until proper import / export functionality exists
     <app-download-json-button
             [fileName]="fileProvider"
             [downloadable]="downloadProvider"
@@ -351,4 +353,5 @@
     <app-upload-json-button
             matTooltip="Upload task JSON"
             [handler]="uploaded"></app-upload-json-button>
+            -->
 </div>

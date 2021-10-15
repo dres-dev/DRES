@@ -1,8 +1,16 @@
 package dev.dres
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import dev.dres.data.dbo.DAO
+import dev.dres.data.model.UID
+import dev.dres.data.model.run.interfaces.Competition
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.StatusAspect
-import dev.dres.run.score.scorer.InferredAveragePrecisionScorer
+import dev.dres.data.serializers.CompetitionRunSerializer
+import dev.dres.data.serializers.CompetitionSerializer
+import dev.dres.data.serializers.MediaItemSerializer
+import java.io.File
+import java.nio.file.Paths
 
 
 object Playground {
@@ -11,19 +19,65 @@ object Playground {
 
     @JvmStatic
     fun main(args: Array<String>) {
+        val competitionId = UID("8c57b76e-416f-44ea-a783-7d0e8becf7a3")
+
+        val mapper = jacksonObjectMapper()
+
+        val mediaItems = DAO(Paths.get("C:/Users/Lucaro/Desktop/vbs21/data/mediaItems.db"), MediaItemSerializer)
+        val competitionSerializer = CompetitionSerializer(mediaItems)
+
+        val runs: DAO<Competition> = DAO(Paths.get("C:/Users/Lucaro/Desktop/vbs21/data/runs.db"), CompetitionRunSerializer(competitionSerializer))
+
+        val writer = File("C:/Users/Lucaro/Desktop/vbs21/mediaItems.csv").printWriter()
+
+        mediaItems.sortedBy { it.name }.forEach {
+            writer.println("${it.id.string},${it.name}")
+        }
+
+        writer.flush()
+        writer.close()
 
 
-        val elements = listOf(
-            StatusConrainer(SubmissionStatus.CORRECT),
-            StatusConrainer(SubmissionStatus.CORRECT),
-            StatusConrainer(SubmissionStatus.CORRECT),
-            StatusConrainer(SubmissionStatus.CORRECT),
-            StatusConrainer(SubmissionStatus.CORRECT)
+//        val writer = File("C:\\Users\\Lucaro\\Desktop\\vbs21\\run.json").printWriter()
+//
+//        writer.println(mapper.writeValueAsString(runs.filter { it.id  == competitionId }.first()))
+//
+//        writer.flush()
+//        writer.close()
 
-        )
 
-        println(InferredAveragePrecisionScorer.infAP(elements))
+//        val audit = DAO(Paths.get("C:\\Users\\Lucaro\\Desktop\\vbs21\\data\\auditLog.db"), AuditLogEntrySerializer)
+//
+//
+//
+//        var flag = false
+//
+//        val logEntries = audit.sortedBy { it.timestamp }.filter {
+//            flag || if (it is CompetitionStartAuditLogEntry && it.competition == competitionId) {
+//                flag = true
+//                true
+//            } else false
+//        }
+//
+//        val writer = File("C:\\Users\\Lucaro\\Desktop\\vbs21\\audits.json").printWriter()
+//
+//        logEntries.forEach {
+//            writer.println(mapper.writeValueAsString(it))
+//        }
+//
+//        writer.flush()
+//        writer.close()
 
+//        val elements = listOf(
+//            StatusConrainer(SubmissionStatus.CORRECT),
+//            StatusConrainer(SubmissionStatus.CORRECT),
+//            StatusConrainer(SubmissionStatus.CORRECT),
+//            StatusConrainer(SubmissionStatus.CORRECT),
+//            StatusConrainer(SubmissionStatus.CORRECT)
+//
+//        )
+//
+//        println(InferredAveragePrecisionScorer.infAP(elements))
 
 
 //

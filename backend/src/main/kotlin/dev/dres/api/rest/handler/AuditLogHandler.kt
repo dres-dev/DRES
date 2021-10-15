@@ -8,7 +8,7 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.dbo.NumericDaoIndexer
 import dev.dres.run.audit.AuditLogEntry
 import dev.dres.utilities.extensions.toPathParamKey
-import io.javalin.core.security.Role
+import io.javalin.core.security.RouteRole
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
@@ -16,7 +16,8 @@ import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 
 abstract class AuditLogHandler(val auditTimes: NumericDaoIndexer<AuditLogEntry, Long>) : RestHandler, AccessManagedRestHandler {
-    override val permittedRoles: Set<Role> = setOf(RestApiRole.ADMIN)
+    override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.ADMIN)
+    override val apiVersion = "v1"
 
 }
 
@@ -26,7 +27,7 @@ class GetAuditLogInfoHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>)
 
     @OpenApi(
             summary = "Gives information about the audit log. Namely size and latest timestamp of known audit logs",
-            path = "/api/audit/info",
+            path = "/api/v1/audit/info",
             tags = ["Audit"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(AuditLogInfo::class)], description = "The audit log info"),
@@ -41,11 +42,11 @@ class GetAuditLogInfoHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>)
 
 class ListAuditLogsInRangeHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, val audit: DAO<AuditLogEntry>): AuditLogHandler(auditTimes), GetRestHandler<Array<RestAuditLogEntry>>{
 
-    override val route = "audit/logs/:since/:upto"
+    override val route = "audit/log/list/since/{since}/{upto}"
 
     @OpenApi(
             summary = "Lists all audit logs matching the query",
-            path = "/api/audit/logs/:since/:upto",
+            path = "/api/v1/audit/log/list/since/{since}/{upto}",
             pathParams = [
                 OpenApiParam("since", Long::class, "Timestamp of the earliest audit log to include"),
                 OpenApiParam("upto", Long::class, "Timestamp of the latest audit log to include.")
@@ -58,7 +59,7 @@ class ListAuditLogsInRangeHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, L
     )
     override fun doGet(ctx: Context): Array<RestAuditLogEntry> {
         var settings = 0
-        val since = ctx.pathParam(":since").let {
+        val since = ctx.pathParam("{since}").let {
             if(it.isNotBlank()){
                 try{
                     return@let it.toLong()
@@ -71,7 +72,7 @@ class ListAuditLogsInRangeHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, L
                 return@let 0L
             }
         }
-        val upto = ctx.pathParam(":upto").let{
+        val upto = ctx.pathParam("{upto}").let{
             if(it.isNotBlank()){
                 try{
                     return@let it.toLong()
@@ -97,7 +98,7 @@ class ListAuditLogsInRangeHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, L
 
 class ListAuditLogsHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, val audit: DAO<AuditLogEntry>) : AuditLogHandler(auditTimes), GetRestHandler<Array<RestAuditLogEntry>> {
 
-    override val route = "audit/list/${LIMIT_PARAM.toPathParamKey()}/${PAGE_INDEX_PARAM.toPathParamKey()}"
+    override val route = "audit/log/list/limit/${LIMIT_PARAM.toPathParamKey()}/${PAGE_INDEX_PARAM.toPathParamKey()}"
 
     companion object {
         const val LIMIT_PARAM = "limit"
@@ -117,11 +118,11 @@ class ListAuditLogsHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, v
     }
 
     @OpenApi(
-            summary = "Lists all audit logs matching the query",
-            path = "/api/audit/list/:limit/:page",
+            summary = "Lists all audit logs matching the query.",
+            path = "/api/v1/audit/log/list/limit/{limit}/{page}",
             pathParams = [
                 OpenApiParam(LIMIT_PARAM, Int::class, "The maximum number of results. Default: 500"),
-                OpenApiParam(PAGE_INDEX_PARAM, Int::class, "The page index offset, relative to the limit")
+                OpenApiParam(PAGE_INDEX_PARAM, Int::class, "The page index offset, relative to the limit.")
             ],
             tags = ["Audit"],
             responses = [
@@ -133,40 +134,40 @@ class ListAuditLogsHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, v
     override fun doGet(ctx: Context): Array<RestAuditLogEntry> {
         val limit = getLimitFromParams(ctx)
         val index = getIndexFromParams(ctx)
-
-
-        val list = auditTimes.index.toSortedMap { o1, o2 -> o2.compareTo(o1) }.values.flatten()
-        return list.mapNotNull { RestAuditLogEntry.convert(audit[it]!!) }.toTypedArray() // Null safety is kotlin steered. should not contain null elements, as these UIDS come from the idnexer.
+        return auditTimes.index.toSortedMap { o1, o2 -> o2.compareTo(o1) }.values.flatten()
+            .drop(index * limit)
+            .take(limit)
+            .map { RestAuditLogEntry.convert(this.audit[it]!!) }.toTypedArray()
     }
 
     private fun getLimitFromParams(ctx:Context): Int {
-        return ctx.pathParam(LIMIT_PARAM).let { l ->
+        return ctx.pathParam(LIMIT_PARAM).let outer@ { l ->
             try {
-                return@let l.toInt().let { i ->
-                    return@let if (i <= 0) {
+                return@outer l.toInt().let inner@ { i ->
+                    return@inner if (i <= 0) {
                         DEFAULT_LIMIT
                     } else {
                         i
                     }
                 }
             } catch (e: NumberFormatException) {
-                return@let DEFAULT_LIMIT
+                return@outer DEFAULT_LIMIT
             }
         }
     }
 
     private fun getIndexFromParams(ctx:Context):Int{
-        return ctx.pathParam(PAGE_INDEX_PARAM).let{i ->
+        return ctx.pathParam(PAGE_INDEX_PARAM).let outer@ {i ->
             try{
-                return@let i.toInt().let{
-                    return@let if(it <= 0){
+                return@outer i.toInt().let inner@ {
+                    return@inner if(it <= 0){
                         0
                     }else{
                         it
                     }
                 }
-            }catch(e: NumberFormatException){
-                return@let 0
+            } catch(e: NumberFormatException){
+                return@outer 0
             }
         }
     }

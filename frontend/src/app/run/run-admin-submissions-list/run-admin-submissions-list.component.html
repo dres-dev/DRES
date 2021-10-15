@@ -1,86 +1,122 @@
-<div style="display: flex;">
+<div style="display: flex; align-items: center;">
     <app-back-button></app-back-button>
-    <div><h1>Submission Overview</h1></div>
+    <div><h1>Submission overview for task {{(taskId | async).substr(0, 8)}}</h1></div>
     <div class="spacer-flex"></div>
-    <div>
-        <mat-slide-toggle [(ngModel)]="polling" (change)="refresh()">
-            <mat-icon>sync</mat-icon>
-        </mat-slide-toggle>
-    </div>
-    <div>
-        <button mat-icon-button aria-label="Refresh list of submissions" matTooltip="Refresh list of submissions" (click)="refresh()">
-            <mat-icon>refresh</mat-icon>
-        </button>
-    </div>
+    <button mat-icon-button matTooltip="Refreshes submission information." (click)="refreshSubject.next(null)">
+        <mat-icon>refresh</mat-icon>
+    </button>
+    <div class="spacer-tiny"></div>
+    <mat-slide-toggle [(ngModel)]="polling" matTooltip="Toggles polling of submission information.">Poll for updates
+        (every {{pollingFrequencyFactor}}ms)
+    </mat-slide-toggle>
+    <div class="spacer-tiny"></div>
+    <mat-slide-toggle [(ngModel)]="anonymize"
+                      matTooltip="Toggles anonymization, i.e, switches between showing detailed information about submitter.">
+        Anonymize
+    </mat-slide-toggle>
 </div>
 <div>
-    <table #table mat-table [dataSource]="submissions" style="width: 100%;">
-        <!-- ID COL -->
-        <ng-container matColumnDef="id">
-            <th mat-header-cell *matHeaderCellDef>ID</th>
-            <td mat-cell *matCellDef="let submission"
-                matTooltip="Click to copy UID to clipboard"
-                [cdkCopyToClipboard]="submission.id">
-                {{submission.id.substring(0, 8)}}</td>
-        </ng-container>
+    <mat-accordion>
+        <mat-expansion-panel *ngFor="let id of taskRunIds">
+            <mat-expansion-panel-header>
+                <mat-panel-title>
+                    Submissions of task run {{id.substring(0,8)}}
+                </mat-panel-title>
+            </mat-expansion-panel-header>
+            <mat-paginator [pageSizeOptions]="[50, 100, 250]" showFirstLastButtons></mat-paginator>
+            <table #table mat-table [dataSource]="dataSources.get(id)" style="width: 100%;">
+                <!-- ID COL -->
+                <ng-container matColumnDef="id">
+                    <th mat-header-cell *matHeaderCellDef>ID</th>
+                    <td mat-cell *matCellDef="let submission" matTooltip="Click to copy submission UID to clipboard."
+                        [cdkCopyToClipboard]="submission.id">{{submission.id.substring(0, 8)}}</td>
+                </ng-container>
 
-        <!-- TIMESTAMP COL -->
-        <ng-container matColumnDef="timestamp">
-            <th mat-header-cell *matHeaderCellDef>Timestamp</th>
-            <td mat-cell *matCellDef="let submission">
-                {{submission.timestamp | epoch2date | date:'dd.MM.yyyy HH:mm:ss' }}
-            </td>
-        </ng-container>
-        <!-- TEAM COL -->
-        <ng-container matColumnDef="team">
-            <th mat-header-cell *matHeaderCellDef>Team</th>
-            <td mat-cell *matCellDef="let row">{{row.team}}</td>
-        </ng-container>
-        <!-- STATUS COL -->
-        <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let row">{{row.status}}</td>
-        </ng-container>
-        <!-- ITEM COL -->
-        <ng-container matColumnDef="item">
-            <th mat-header-cell *matHeaderCellDef>Media Item</th>
-            <td mat-cell *matCellDef="let row">{{row.item != null ? row?.item?.name +" ("+row?.item?.type+")": "N/A"}}</td>
-        </ng-container>
-        <!-- START COL -->
-        <ng-container matColumnDef="start">
-            <th mat-header-cell *matHeaderCellDef>Start</th>
-            <td mat-cell *matCellDef="let row">{{row.start != null ? ((row.start / 1000) | formatTime) : "N/A"}}</td>
-        </ng-container>
-        <!-- END COL -->
-        <ng-container matColumnDef="end">
-            <th mat-header-cell *matHeaderCellDef>End</th>
-            <td mat-cell *matCellDef="let row">{{row.end != null ? ((row.end / 1000) | formatTime) : "N/A"}}</td>
-        </ng-container>
-        <!-- ACTION COL -->
-        <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let row">
-                <mat-button-toggle-group #group="matButtonToggleGroup" value="{{row.status}}">
-                    <mat-button-toggle value="CORRECT" aria-label="Correct">
-                        <mat-icon color="accent">check</mat-icon>
-                    </mat-button-toggle>
-                    <mat-button-toggle value="WRONG" aria-label="Wrong">
-                        <mat-icon color="accent">close</mat-icon>
-                    </mat-button-toggle>
-                    <mat-button-toggle value="INDETERMINATE" aria-label="Indeterminate">
-                        <mat-icon color="accent">hourglass_empty</mat-icon>
-                    </mat-button-toggle>
-                    <mat-button-toggle value="UNDECIDABLE" aria-label="Undecidable">
-                        <mat-icon color="accent">help_outline</mat-icon>
-                    </mat-button-toggle>
-                </mat-button-toggle-group>
-                <span style="width: 4pt;"></span>
-                <button mat-icon-button>
-                    <mat-icon (click)="update(row, group.value)">save</mat-icon>
-                </button>
-            </td>
-        </ng-container>
-        <tr mat-header-row *matHeaderRowDef="displayColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayColumns;"></tr>
-    </table>
+                <!-- TASK RUN ID COL -->
+                <!--
+                <ng-container matColumnDef="taskRunId">
+                    <th mat-header-cell *matHeaderCellDef>Task Run ID</th>
+                    <td mat-cell *matCellDef="let submission" matTooltip="Click to copy task run UID to clipboard."
+                        [cdkCopyToClipboard]="submission.taskRunId">{{submission.taskRunId.substring(0, 8)}}</td>
+                </ng-container>
+                -->
+
+                <!-- TIMESTAMP COL -->
+                <ng-container matColumnDef="timestamp">
+                    <th mat-header-cell *matHeaderCellDef>Timestamp</th>
+                    <td mat-cell *matCellDef="let submission">
+                        {{submission.timestamp | epoch2date | date:'dd.MM.yyyy HH:mm:ss' }}
+                    </td>
+                </ng-container>
+                <!-- TEAM COL -->
+                <ng-container matColumnDef="submitted">
+                    <th mat-header-cell *matHeaderCellDef>Submitted By</th>
+                    <td mat-cell *matCellDef="let submission" matTooltip="Click to copy member UID to clipboard."
+                        [cdkCopyToClipboard]="submission.memberId">
+                        <span *ngIf="anonymize">{{submission.memberId.substring(0, 8)}}</span>
+                        <span *ngIf="!anonymize">{{submission.memberName}}, {{submission.teamName}}
+                            ({{submission.memberId.substring(0, 8)}})</span>
+                    </td>
+                </ng-container>
+                <!-- STATUS COL -->
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef>Status</th>
+                    <td mat-cell *matCellDef="let submission">{{submission.status}}</td>
+                </ng-container>
+                <!-- ITEM COL -->
+                <ng-container matColumnDef="item">
+                    <th mat-header-cell *matHeaderCellDef>Media Item</th>
+                    <td mat-cell
+                        *matCellDef="let submission">{{submission.item != null ? submission?.item?.name + " (" + submission?.item?.type + ")" : "N/A"}}</td>
+                </ng-container>
+                <!-- START COL -->
+                <ng-container matColumnDef="start">
+                    <th mat-header-cell *matHeaderCellDef>Start</th>
+                    <td mat-cell
+                        *matCellDef="let submission">{{submission.start != null ? ((submission.start / 1000) | formatTime) : "N/A"}}</td>
+                </ng-container>
+                <!-- END COL -->
+                <ng-container matColumnDef="end">
+                    <th mat-header-cell *matHeaderCellDef>End</th>
+                    <td mat-cell
+                        *matCellDef="let submission">{{submission.end != null ? ((submission.end / 1000) | formatTime) : "N/A"}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="preview">
+                    <th mat-header-cell *matHeaderCellDef>Preview</th>
+                    <td mat-cell *matCellDef="let submission"><img [style.max-height]="'75px'"
+                                                                   src="{{(previewForSubmission(submission) | async)}}"
+                                                                   alt="preview"/></td>
+                </ng-container>
+
+                <!-- ACTION COL -->
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef>Actions</th>
+                    <td mat-cell *matCellDef="let submission">
+                        <mat-button-toggle-group #group="matButtonToggleGroup" value="{{submission.status}}">
+                            <mat-button-toggle value="CORRECT" aria-label="Correct"
+                                               matTooltip="Override submission state to CORRECT">
+                                <mat-icon color="accent">check</mat-icon>
+                            </mat-button-toggle>
+                            <mat-button-toggle value="WRONG" aria-label="Wrong"
+                                               matTooltip="Override submission state to WRONG">
+                                <mat-icon color="accent">close</mat-icon>
+                            </mat-button-toggle>
+                            <mat-button-toggle value="UNDECIDABLE" aria-label="Undecidable"
+                                               matTooltip="Override submission state to UNDECIDABLE">
+                                <mat-icon color="accent">help_outline</mat-icon>
+                            </mat-button-toggle>
+                        </mat-button-toggle-group>
+                        <span style="width: 4pt;"></span>
+                        <button mat-icon-button matTooltip="Save override to server">
+                            <mat-icon (click)="update(submission, group.value)">save</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+                <tr mat-header-row *matHeaderRowDef="displayColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayColumns;"></tr>
+            </table>
+        </mat-expansion-panel>
+    </mat-accordion>
+
 </div>

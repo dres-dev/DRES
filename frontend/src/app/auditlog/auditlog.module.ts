@@ -6,6 +6,8 @@ import {MatTableModule} from '@angular/material/table';
 import {ServicesModule} from '../services/services.module';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {ClipboardModule} from '@angular/cdk/clipboard';
+import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatSortModule} from '@angular/material/sort';
 
 
 
@@ -17,7 +19,9 @@ import {ClipboardModule} from '@angular/cdk/clipboard';
         MatTableModule,
         ServicesModule,
         MatTooltipModule,
-        ClipboardModule
+        ClipboardModule,
+        MatPaginatorModule,
+        MatSortModule
     ]
 })
 export class AuditlogModule { }

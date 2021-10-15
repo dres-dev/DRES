@@ -2,12 +2,13 @@ package dev.dres.api.rest.handler
 
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.utilities.extensions.errorResponse
-import io.javalin.core.security.Role
+import io.javalin.core.security.RouteRole
 import io.javalin.http.Context
 
 interface RestHandler {
 
     val route: String
+    val apiVersion: String
 
 }
 
@@ -77,6 +78,6 @@ interface DeleteRestHandler<T: Any> : RestHandler {
 
 interface AccessManagedRestHandler : RestHandler {
 
-    val permittedRoles: Set<Role>
+    val permittedRoles: Set<RouteRole>
 
 }

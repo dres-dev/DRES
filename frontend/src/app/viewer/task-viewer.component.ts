@@ -1,14 +1,16 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild} from '@angular/core';
-import {CompetitionRunService, ContentElement, RunState, TaskHint, TaskInfo, TaskTarget} from '../../../openapi';
-import {BehaviorSubject, combineLatest, interval, Observable, of, Subscription, timer, zip} from 'rxjs';
+import {CompetitionRunService, ContentElement, RunState, TaskInfo, TaskTarget} from '../../../openapi';
+import {BehaviorSubject, combineLatest, interval, merge, Observable, of, Subscription, timer} from 'rxjs';
 import {
     catchError,
     concatMap,
     delayWhen,
     filter,
+    finalize,
     flatMap,
     map,
     repeat,
+    sampleTime,
     share,
     shareReplay,
     switchMap,
@@ -23,6 +25,18 @@ import {AppConfig} from '../app.config';
 import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
 import {fromArray} from 'rxjs/internal/observable/fromArray';
 
+/**
+ * Internal enumeration used for TaskViewerComponent.
+ */
+enum ViewerState {
+    VIEWER_UNKNOWN = 0,
+    VIEWER_WAITING_FOR_TASK,
+    VIEWER_TASK_ENDED,
+    VIEWER_SYNC,
+    VIEWER_COUNTDOWN,
+    VIEWER_PLAYBACK
+}
+
 @Component({
     selector: 'app-task-viewer',
     templateUrl: './task-viewer.component.html',
@@ -34,7 +48,6 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     @Input() taskStarted: Observable<TaskInfo>;
     @Input() taskChanged: Observable<TaskInfo>;
     @Input() taskEnded: Observable<TaskInfo>;
-    @Input() webSocket: Observable<IWsMessage>;
     @Input() webSocketSubject: WebSocketSubject<IWsMessage>;
 
     /** Time that is still left (only when a task is running). */
@@ -43,26 +56,26 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     /** Time that has elapsed (only when a task is running). */
     timeElapsed: Observable<number>;
 
-    /** Observable that returns  the current {@link ContentElement} based on {@link QueryHint} and time that has ellapsed. */
-    currentQueryContentElement: Observable<ContentElement>;
+    /** Observable that fires when all viewers have confirmed, that they are ready. */
+    taskReady: Observable<boolean>;
 
-    /** Observable that fires everytime a TASK_PREPARE message is received. */
-    preparingTask: Observable<boolean>;
+    /** A {@link BehaviorSubject} of task countdown objects. */
+    taskCountdown: BehaviorSubject<Observable<number>> = new BehaviorSubject(null);
 
-    /** Value of the task count down. */
-    taskCountdown: Observable<number>;
+    /** The current {@link ViewerState} of this {@link TaskViewerComponent}. */
+    viewerState: BehaviorSubject<ViewerState> = new BehaviorSubject(ViewerState.VIEWER_UNKNOWN);
+
+    /** Reference to the current {@link TaskTarget} {@link ContentElement}. */
+    currentTaskHint: Observable<ContentElement>;
+
+    /** Reference to the current {@link TaskTarget} {@link ContentElement}. */
+    currentTaskTarget: Observable<ContentElement>;
+
+    /** */
+    viewerStateSubscription: Subscription;
 
     /** Reference to the audio element used during countdown. */
     @ViewChild('audio') audio: ElementRef<HTMLAudioElement>;
-
-    /** Reference to the current {@link TaskHint}. */
-    currentTaskHint = new BehaviorSubject<TaskHint>(null);
-
-    /** Reference to the  {@link TaskTarget}. */
-    currentTaskTarget: Observable<ContentElement>;
-
-    /** Subscription for the current {@link TaskHint}. */
-    currentTaskHintSubscription: Subscription;
 
     constructor(protected runService: CompetitionRunService, public config: AppConfig) {}
 
@@ -71,62 +84,98 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
      */
     ngAfterViewInit(): void {
 
-        /*
-        * Subscription for the current query object; required because loading of TaskHint should take place irrespective of whether
-        * that TaskHint is currently being displayed.
-        *
-        * IMPORTANT: Unsubscribe in onDestroy!
-        */
-        this.currentTaskHintSubscription = this.taskChanged.pipe(
+        /*  Observable for the current query hint. */
+        const currentTaskHint = this.taskChanged.pipe(
             flatMap(task => this.runId),
-            tap(s => this.currentTaskHint.next(null)),
-            switchMap(id => this.runService.getApiRunWithRunidHint(id).pipe(
+            switchMap(id => this.runService.getApiV1RunWithRunidHint(id).pipe(
                 catchError(e => {
                     console.error('[TaskViewerComponent] Could not load current query object due to an error.', e);
                     return of(null);
-                }),
-                filter(h => h != null)
-            ))
-        ).subscribe(h => {
-            this.currentTaskHint.next(h);
-        });
-
-        /* Observable for the current task target (loaded on demand). */
-        this.currentTaskTarget = this.taskEnded.pipe(
-            flatMap(s => this.runId),
-            switchMap(id => this.runService.getApiRunWithRunidTarget(id).pipe(
-                catchError(e => {
-                    console.error('[TaskViewerComponent] Could not load current query object due to an error.', e);
-                    return of(null);
-                }),
-                shareReplay({bufferSize: 1, refCount: true})
+                })
             )),
-            flatMap((h: TaskTarget) => {
-                if (!h) {
-                    return [];
-                }
-                return fromArray(h.sequence).pipe(
-                    delayWhen<any>((c: ContentElement) => interval(1000 * c.offset)),
-                    repeat(-1),
-                );
-            })
+            shareReplay({bufferSize: 1, refCount: true})
         );
 
-        /* Observable for current query component. */
-        this.currentQueryContentElement = this.currentTaskHint.pipe(
-            concatMap((hint, i) => {
+        /*  Observable for the current query target. */
+        const currentTaskTarget = this.taskEnded.pipe(
+            flatMap(s => this.runId),
+            switchMap(id => this.runService.getApiV1RunWithRunidTarget(id).pipe(
+                catchError(e => {
+                    console.error('[TaskViewerComponent] Could not load current query object due to an error.', e);
+                    return of(null);
+                })
+            )),
+            shareReplay({bufferSize: 1, refCount: true})
+        );
+
+        /*
+         * This is the main switch that updates the viewer's state and the only actual subscription.
+         *
+         * IMPORTANT: Unsubscribe onDestroy.
+         */
+        this.viewerStateSubscription = combineLatest([currentTaskHint, this.state]).subscribe(([h, s]) => {
+            switch (s.status) {
+                case 'CREATED':
+                case 'ACTIVE':
+                    this.viewerState.next(ViewerState.VIEWER_WAITING_FOR_TASK);
+                    break;
+                case 'PREPARING_TASK':
+                    this.viewerState.next(ViewerState.VIEWER_SYNC);
+                    if (h != null) { this.webSocketSubject.next({runId: s.id, type: 'ACK'} as IWsClientMessage); } /* Send ACK. */
+                    break;
+                case 'RUNNING_TASK':
+                    const countdown = (s.timeLeft - (s.currentTask.duration - 5));
+                    if (countdown > 0) {
+                        this.viewerState.next(ViewerState.VIEWER_COUNTDOWN);
+                        this.taskCountdown.next(timer(0, 1000).pipe(
+                            take(countdown),
+                            withLatestFrom(this.runId),
+                            map(([count, id]) => {
+                                if (count < (countdown - 1)) {
+                                    AudioPlayerUtilities.playOnce('/immutable/assets/audio/beep_1.ogg', this.audio.nativeElement);
+                                } else {
+                                    AudioPlayerUtilities.playOnce('/immutable/assets/audio/beep_2.ogg', this.audio.nativeElement);
+                                }
+                                return countdown - count - 1;
+                            }),
+                            finalize(() => {
+                                this.viewerState.next(ViewerState.VIEWER_PLAYBACK);
+                                this.taskCountdown.next(null);
+                            })
+                        ));
+                    } else {
+                        this.viewerState.next(ViewerState.VIEWER_PLAYBACK);
+                    }
+                    break;
+                case 'TASK_ENDED':
+                case 'TERMINATED':
+                    return this.viewerState.next(ViewerState.VIEWER_TASK_ENDED);
+            }
+        });
+
+        /** Map task target to representation used by viewer. */
+        this.currentTaskTarget = currentTaskTarget.pipe(
+            flatMap((h: TaskTarget) => {
+            if (!h) { return of(null); }
+            return fromArray(h.sequence).pipe(
+                delayWhen<ContentElement>((c: ContentElement) => interval(1000 * c.offset)),
+                repeat(-1),
+            );
+        }));
+
+        /* Map task hint to representation used by viewer. */
+        this.currentTaskHint = currentTaskHint.pipe(
+            concatMap((h, i) => {
                 return this.timeElapsed.pipe(
                     take(1),
                     flatMap(time => {
                         const sequence = [];
                         const largest = new Map<ContentElement.ContentTypeEnum, ContentElement>();
 
-                        if (!hint) {
-                            return sequence;
-                        }
+                        if (!h) { return null; }
 
                         /* Find last element per category (which is always retained). */
-                        hint.sequence.forEach(e => {
+                        h.sequence.forEach(e => {
                             if (e.offset - time < 0) {
                                 if (!largest.has(e.contentType)) {
                                     largest.set(e.contentType, e);
@@ -143,7 +192,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
 
                         /* Filter out all element in the sequence that are not eligible for display*/
                         return fromArray(sequence).pipe(
-                            delayWhen<any>(c => interval(1000 * Math.max(0, (c.offset - time)))),
+                            delayWhen<any>(c => interval(Math.max(0, 1000 * (c.offset - time)))),
                             map((t, index) => {
                                 if (index > 0) {
                                     AudioPlayerUtilities.playOnce('assets/audio/ding.ogg', this.audio.nativeElement);
@@ -153,20 +202,33 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
                         );
                     })
                 );
-            })
+            }),
         );
 
-        /* Observable for the time left and time elapsed (for running tasks only). */
-        const polledState = this.state.pipe(
-            filter(s => s.status === 'RUNNING_TASK'),
-            switchMap(s => interval(1000).pipe(
-                switchMap(t => this.runService.getApiRunStateWithRunid(s.id)),
-                catchError((err, o) => {
-                    console.log(`[TaskViewerComponent] Error occurred while polling state: ${err?.message}`);
-                    return of(null);
-                }),
-                filter(p => p != null)
-            )),
+        /*
+         * This Observable is used to poll the RunState; it merges the normal state observable with a timer and
+         * makes sure that:
+         *
+         * - If normal state changes (e.g. due to an external event), that state object is re-used
+         * - If timer fire, the state is queried.
+         * - Both timer + normal state only trigger an update every 500ms.
+         *
+         * Implicitly, this Observable is only used when a task is running due to how it is used in the template!
+         */
+        const polledState = merge(interval(1000).pipe(flatMap(() => this.runId)), this.state).pipe(
+            sampleTime(1000), /* This is again sampled to only ever emit once every second. */
+            switchMap(s => {
+                if (typeof s === 'string') {
+                    return this.runService.getApiV1RunStateWithRunid(s); /* Timer! Load run state! */
+                } else {
+                    return of(s as RunState); /* This is a freshly loaded run state. */
+                }
+            }),
+            catchError((err, o) => {
+                console.log(`[TaskViewerComponent] Error occurred while polling state: ${err?.message}`);
+                return of(null);
+            }),
+            filter(p => p != null),
             share()
         );
 
@@ -175,48 +237,30 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             map(s => s.timeLeft),
             tap(t => {
                 if (t === 30 || t === 60) {
-                    AudioPlayerUtilities.playOnce('assets/audio/glass.ogg', this.audio.nativeElement);
+                    AudioPlayerUtilities.playOnce(
+                        '/immutable/assets/audio/glass.ogg',
+                        this.audio.nativeElement); /* Reminder that time is running out. */
                 }
             })
         );
 
-        /* Observable for the time that has ellapsed. */
+        /* Observable for the time that has elapsed. */
         this.timeElapsed = polledState.pipe(map(s => s.currentTask?.duration - s.timeLeft));
-
-        /* Observable reacting to TASK_PREPARE message. */
-        this.preparingTask = combineLatest([
-            zip(this.webSocket.pipe(filter(m => m.type === 'TASK_PREPARE')), this.currentTaskHint.pipe(filter(h => h != null))),
-            this.state
-        ]).pipe(
-            map(([m, s]) => {
-                return s.status === 'PREPARING_TASK';
-            })
-        );
-
-        /* Observable for task countdown */
-        this.taskCountdown = timer(0, 1000).pipe(
-            take(6),
-            withLatestFrom(this.runId),
-            map(([count, id]) => {
-                if (count < 5) {
-                    AudioPlayerUtilities.playOnce('assets/audio/beep_1.ogg', this.audio.nativeElement);
-                } else {
-                    AudioPlayerUtilities.playOnce('assets/audio/beep_2.ogg', this.audio.nativeElement);
-                    this.webSocketSubject.next({runId: id, type: 'ACK'} as IWsClientMessage);
-                }
-                return 5 - count;
-            })
-        );
     }
 
     /**
      * Cleanup all subscriptions.
      */
     ngOnDestroy(): void {
-        this.currentTaskHintSubscription.unsubscribe(); /* IMPORTANT! */
-        this.currentTaskHintSubscription = null;
+        this.viewerStateSubscription.unsubscribe(); /* IMPORTANT! */
+        this.viewerStateSubscription = null;
     }
 
+    /**
+     * Formats a given number of seconds into a time format hh:mm:ss.
+     *
+     * @param sec The number of seconds to convert.
+     */
     public toFormattedTime(sec: number): string {
         const hours   = Math.floor(sec / 3600);
         const minutes = Math.floor(sec / 60) % 60;

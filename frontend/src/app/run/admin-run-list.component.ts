@@ -1,6 +1,11 @@
 import {Component} from '@angular/core';
 import {AbstractRunListComponent} from './abstract-run-list.component';
-import {CompetitionRunAdminService, CompetitionRunScoresService, CompetitionRunService} from '../../../openapi';
+import {
+    CompetitionRunAdminService,
+    DownloadService,
+    CompetitionRunScoresService,
+    CompetitionRunService
+} from '../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Router} from '@angular/router';
 import {MatDialog} from '@angular/material/dialog';
@@ -14,14 +19,15 @@ export class AdminRunListComponent extends AbstractRunListComponent {
     constructor(runService: CompetitionRunService,
                 runAdminService: CompetitionRunAdminService,
                 scoreService: CompetitionRunScoresService,
+                downloadService: DownloadService,
                 router: Router,
                 private snackBar: MatSnackBar,
                 private dialog: MatDialog) {
-        super(runService, runAdminService, scoreService, router);
+        super(runService, runAdminService, scoreService, downloadService, router);
     }
 
     public start(runId: string) {
-        this.runAdminService.postApiRunAdminWithRunidStart(runId).subscribe(
+        this.runAdminService.postApiV1RunAdminWithRunidStart(runId).subscribe(
             (r) => {
                 this.update.next();
                 this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
@@ -40,7 +46,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
         });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                this.runAdminService.postApiRunAdminWithRunidTerminate(runId).subscribe(
+                this.runAdminService.postApiV1RunAdminWithRunidTerminate(runId).subscribe(
                     (r) => {
                         this.update.next();
                         this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
@@ -53,7 +59,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
     }
 
     public nextTask(runId: string) {
-        this.runAdminService.postApiRunAdminWithRunidTaskNext(runId).subscribe(
+        this.runAdminService.postApiV1RunAdminWithRunidTaskNext(runId).subscribe(
             (r) => {
                 this.update.next();
                 this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
@@ -64,7 +70,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
     }
 
     public previousTask(runId: string) {
-        this.runAdminService.postApiRunAdminWithRunidTaskPrevious(runId).subscribe(
+        this.runAdminService.postApiV1RunAdminWithRunidTaskPrevious(runId).subscribe(
             (r) => {
                 this.update.next();
                 this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
@@ -75,7 +81,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
     }
 
     public startTask(runId: string) {
-        this.runAdminService.postApiRunAdminWithRunidTaskStart(runId).subscribe(
+        this.runAdminService.postApiV1RunAdminWithRunidTaskStart(runId).subscribe(
             (r) => {
                 this.update.next();
                 this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
@@ -94,7 +100,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
         });
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
-                this.runAdminService.postApiRunAdminWithRunidTaskAbort(runId).subscribe(
+                this.runAdminService.postApiV1RunAdminWithRunidTaskAbort(runId).subscribe(
                     (r) => {
                         this.update.next();
                         this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});

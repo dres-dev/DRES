@@ -1,5 +1,8 @@
 package dev.dres.data.model.competition
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonTypeName
 import dev.dres.api.rest.types.task.ContentType
 import dev.dres.api.rest.types.task.ContentElement
 import dev.dres.data.model.Config
@@ -19,9 +22,11 @@ import java.util.*
  * target of the [TaskDescription].
  *
  * @author Luca Rossetto & Ralph Gasser
- * @version 1.0.2
+ * @version 1.2.0
  */
-sealed class TaskDescriptionHint(internal val contentType: ContentType) {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+sealed class TaskDescriptionHint {
+    abstract val contentType: ContentType
     abstract val ordinal: Int
     abstract val start: Long?
     abstract val end: Long?
@@ -42,8 +47,14 @@ sealed class TaskDescriptionHint(internal val contentType: ContentType) {
     /**
      * A textual [TaskDescriptionHint] consisting of a simple, textual description.
      */
-    data class TextTaskDescriptionHint(val text: String, override val start: Long?, override val end: Long?) : TaskDescriptionHint(ContentType.TEXT) {
+    @JsonTypeName("TextHint")
+    data class TextTaskDescriptionHint(val text: String, override val start: Long?, override val end: Long?) : TaskDescriptionHint() {
+        @JsonIgnore
         override val ordinal = 1
+
+        @JsonIgnore
+        override val contentType = ContentType.TEXT
+
         override fun textDescription(): String = "\"$text\" from ${start ?: "beginning"} to ${end ?: "end"}"
         override fun toQueryContentElement(config: Config): ContentElement = ContentElement(ContentType.TEXT, this.text, this.start ?: 0)
     }
@@ -51,8 +62,14 @@ sealed class TaskDescriptionHint(internal val contentType: ContentType) {
     /**
      * A visual [TaskDescriptionHint] consisting of a single image  that is part of a collection maintained by DRES.
      */
-    data class ImageItemTaskDescriptionHint(val item: MediaItem.ImageItem, override val start: Long?, override val end: Long?): TaskDescriptionHint(ContentType.IMAGE) {
+    @JsonTypeName("ImageHint")
+    data class ImageItemTaskDescriptionHint(val item: MediaItem.ImageItem, override val start: Long?, override val end: Long?): TaskDescriptionHint() {
+        @JsonIgnore
         override val ordinal = 2
+
+        @JsonIgnore
+        override val contentType = ContentType.IMAGE
+
         override fun textDescription(): String = "Image ${item.name} from ${start ?: "beginning"} to ${end ?: "end"}"
         override fun toQueryContentElement(config: Config): ContentElement {
             val file = File(config.cachePath + "/tasks")
@@ -67,8 +84,14 @@ sealed class TaskDescriptionHint(internal val contentType: ContentType) {
     /**
      * A visual [TaskDescriptionHint] consisting of a segment of a video that is part of a collection maintained by DRES.
      */
-    data class VideoItemSegmentTaskDescriptionHint(override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange, override val start: Long?, override val end: Long?) : TaskDescriptionHint(ContentType.VIDEO), CachedVideoItem {
+    @JsonTypeName("VideoSegmentHint")
+    data class VideoItemSegmentTaskDescriptionHint(override val item: MediaItem.VideoItem, override val temporalRange: TemporalRange, override val start: Long?, override val end: Long?) : TaskDescriptionHint(), CachedVideoItem {
+        @JsonIgnore
         override val ordinal = 3
+
+        @JsonIgnore
+        override val contentType = ContentType.VIDEO
+
         override fun textDescription(): String = "Video ${item.name} from ${start ?: "beginning"} to ${end ?: "end"}"
         override fun toQueryContentElement(config: Config): ContentElement {
             val file = File(config.cachePath + "/tasks", this.cacheItemName())
@@ -83,8 +106,14 @@ sealed class TaskDescriptionHint(internal val contentType: ContentType) {
     /**
      * A visual [TaskDescriptionHint] consisting of an external image provided by the user.
      */
-    data class ExternalImageTaskDescriptionHint(val imageLocation: Path, override val start: Long?, override val end: Long?) : TaskDescriptionHint(ContentType.IMAGE) {
+    @JsonTypeName("ExternalImageHint")
+    data class ExternalImageTaskDescriptionHint(val imageLocation: Path, override val start: Long?, override val end: Long?) : TaskDescriptionHint() {
+        @JsonIgnore
         override val ordinal = 4
+
+        @JsonIgnore
+        override val contentType = ContentType.IMAGE
+
         override fun textDescription(): String = "External Image at $imageLocation from ${start ?: "beginning"} to ${end ?: "end"}"
         override fun toQueryContentElement(config: Config): ContentElement {
             return Files.newInputStream(this.imageLocation).use { imageInFile ->
@@ -98,8 +127,14 @@ sealed class TaskDescriptionHint(internal val contentType: ContentType) {
     /*
      * A visual [TaskDescriptionComponent] consisting of an external video provided by the user.
      */
-    data class ExternalVideoTaskDescriptionHint(val videoLocation: Path, override val start: Long?, override val end: Long?) : TaskDescriptionHint(ContentType.VIDEO) {
+    @JsonTypeName("ExternalVideoHint")
+    data class ExternalVideoTaskDescriptionHint(val videoLocation: Path, override val start: Long?, override val end: Long?) : TaskDescriptionHint() {
+        @JsonIgnore
         override val ordinal = 5
+
+        @JsonIgnore
+        override val contentType = ContentType.IMAGE
+
         override fun textDescription(): String = "External Video at $videoLocation from ${start ?: "beginning"} to ${end ?: "end"}"
         override fun toQueryContentElement(config: Config): ContentElement {
             return Files.newInputStream(this.videoLocation).use { imageInFile ->

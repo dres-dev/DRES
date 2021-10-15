@@ -11,6 +11,7 @@ import dev.dres.data.model.run.interfaces.CompetitionId
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.Submission
+import dev.dres.run.audit.AuditLogger
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.score.interfaces.TeamTaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
@@ -26,6 +27,11 @@ import java.util.concurrent.ConcurrentHashMap
  * @param 1.0.0
  */
 class InteractiveAsynchronousCompetition(override var id: CompetitionId, override val name: String, override val description: CompetitionDescription): AbstractRun(), Competition {
+
+    internal constructor(id: CompetitionId, name: String, competitionDescription: CompetitionDescription, started: Long, ended: Long) : this(id, name, competitionDescription) {
+        this.started = if (started == -1L) { null } else { started }
+        this.ended = if (ended == -1L) { null } else { ended }
+    }
 
     /** A [ConcurrentHashMap] that maps a list of [Task]s to the [TeamId]s they belong to.*/
     private val tasksMap = ConcurrentHashMap<TeamId,MutableList<Task>>()
@@ -97,6 +103,7 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
         /** The total duration in milliseconds of this task. Usually determined by the [TaskDescription] but can be adjusted! */
         override var duration: Long = this.description.duration
 
+
         init {
             check(this@InteractiveAsynchronousCompetition.description.teams.any { it.uid == this.teamId }) {
                 "Cannot start a new task run for team with ID ${this.teamId}. Team is not registered for competition."
@@ -126,6 +133,7 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
             /* Process Submission. */
             this.submissions.add(submission)
             this.validator.validate(submission)
+            AuditLogger.validateSubmission(submission, validator)
         }
     }
 }

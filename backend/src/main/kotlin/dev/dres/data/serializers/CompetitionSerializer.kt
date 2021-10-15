@@ -31,6 +31,10 @@ class CompetitionSerializer(private val mediaItems: DAO<MediaItem>): Serializer<
         for (team in value.teams) {
             TeamSerializer.serialize(out, team)
         }
+        out.packInt(value.teamGroups.size)
+        for (teamGroup in value.teamGroups) {
+            TeamGroupSerializer.serialize(out, teamGroup)
+        }
         out.writeBoolean(value.participantCanView)
     }
 
@@ -43,7 +47,8 @@ class CompetitionSerializer(private val mediaItems: DAO<MediaItem>): Serializer<
         val taskDescriptionSerializer = TaskDescriptionSerializer(taskGroups, taskTypes, this.mediaItems)
         val tasks = (0 until input.unpackInt()).map { taskDescriptionSerializer.deserialize(input,available) }.toMutableList()
         val teams = (0 until input.unpackInt()).map { TeamSerializer.deserialize(input, available) }.toMutableList()
+        val teamGroups = (0 until input.unpackInt()).map { TeamGroupSerializer.deserialize(input, teams) }.toMutableList()
         val participantCanView = input.readBoolean()
-        return CompetitionDescription(id, name, description, taskTypes, taskGroups, tasks, teams, participantCanView)
+        return CompetitionDescription(id, name, description, taskTypes, taskGroups, tasks, teams, teamGroups, participantCanView)
     }
 }

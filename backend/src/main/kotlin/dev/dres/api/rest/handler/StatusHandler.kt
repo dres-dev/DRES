@@ -11,9 +11,10 @@ data class CurrentTime(val timeStamp: Long = System.currentTimeMillis())
 class CurrentTimeHandler : GetRestHandler<CurrentTime> {
 
     override val route = "status/time"
+    override val apiVersion = "v1"
 
     @OpenApi(summary = "Returns the current time on the server.",
-        path = "/api/status/time",
+        path = "/api/v1/status/time",
         method = HttpMethod.GET,
         tags = ["Status"],
         responses = [

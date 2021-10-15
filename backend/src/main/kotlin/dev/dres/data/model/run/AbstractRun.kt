@@ -40,4 +40,13 @@ abstract class AbstractRun: Run {
         }
         this.ended = System.currentTimeMillis()
     }
+
+    override fun reactivate() {
+
+        if (this.ended == null){
+            throw IllegalStateException("Run has not yet ended.")
+        }
+        this.ended = null
+
+    }
 }

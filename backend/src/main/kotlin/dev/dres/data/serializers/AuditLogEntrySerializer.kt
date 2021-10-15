@@ -84,6 +84,20 @@ object AuditLogEntrySerializer: Serializer<AuditLogEntry> {
                 out.writeUTF(logout.session)
                 out.packInt(logout.api.ordinal)
             }
+            AuditLogEntryType.SUBMISSION_VALIDATION -> {
+                val validate = value as SubmissionValidationAuditLogEntry
+                SubmissionSerializer.serialize(out, validate.submission)
+                out.writeUTF(validate.validatorName)
+                out.packInt(validate.status.ordinal)
+            }
+            AuditLogEntryType.SUBMISSION_STATUS_OVERWRITE -> {
+                val overwrite = value as SubmissionStatusOverwriteAuditLogEntry
+                out.writeUID(overwrite.competitionRunUid)
+                out.writeUID(overwrite.submissionId)
+                out.packInt(overwrite.newVerdict.ordinal)
+                out.packInt(overwrite.api.ordinal)
+                out.writeUTF(overwrite.user ?: "")
+            }
         }
     }
 
@@ -97,10 +111,12 @@ object AuditLogEntrySerializer: Serializer<AuditLogEntry> {
             AuditLogEntryType.TASK_MODIFIED -> TaskModifiedAuditLogEntry(id, input.readUID(), input.readUTF(), input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
             AuditLogEntryType.TASK_END -> TaskEndAuditLogEntry(id, input.readUID(), input.readUTF(), LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
             AuditLogEntryType.SUBMISSION -> SubmissionAuditLogEntry(id, input.readUID(), input.readUTF(), SubmissionSerializer.deserialize(input, available), LogEventSource.values()[input.unpackInt()], input.readUTF(), input.readUTF()).also { it.timestamp = timestamp }
-            AuditLogEntryType.PREPARE_JUDGEMENT -> PrepareJudgementAuditLogEntry(id, input.readUTF(), input.readUTF(), SubmissionSerializer.deserialize(input, available))
+            AuditLogEntryType.PREPARE_JUDGEMENT -> PrepareJudgementAuditLogEntry(id, input.readUTF(), input.readUTF(), SubmissionSerializer.deserialize(input, available)).also { it.timestamp = timestamp }
             AuditLogEntryType.JUDGEMENT -> JudgementAuditLogEntry(id, input.readUID(), input.readUTF(), input.readUTF(), SubmissionStatus.values()[input.unpackInt()], LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
             AuditLogEntryType.LOGIN -> LoginAuditLogEntry(id, input.readUTF(), input.readUTF(), LogEventSource.values()[input.unpackInt()]).also { it.timestamp = timestamp }
             AuditLogEntryType.LOGOUT -> LogoutAuditLogEntry(id, input.readUTF(), LogEventSource.values()[input.unpackInt()]).also { it.timestamp = timestamp }
+            AuditLogEntryType.SUBMISSION_VALIDATION -> SubmissionValidationAuditLogEntry(id, SubmissionSerializer.deserialize(input, available), input.readUTF(), SubmissionStatus.values()[input.unpackInt()]).also { it.timestamp = timestamp }
+            AuditLogEntryType.SUBMISSION_STATUS_OVERWRITE -> SubmissionStatusOverwriteAuditLogEntry(id, input.readUID(), input.readUID(), SubmissionStatus.values()[input.unpackInt()], LogEventSource.values()[input.unpackInt()], input.readUTF()).also { it.timestamp = timestamp }
         }
     }
 }

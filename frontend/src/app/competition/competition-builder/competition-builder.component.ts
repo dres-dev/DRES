@@ -1,7 +1,8 @@
 import {Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router, RouterStateSnapshot} from '@angular/router';
-import {filter} from 'rxjs/operators';
+import {filter, map, take} from 'rxjs/operators';
 import {
+    DownloadService,
     CompetitionService,
     ConfiguredOptionQueryComponentOption,
     ConfiguredOptionScoringOption,
@@ -150,6 +151,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     lscTemplate = CompetitionBuilderComponent.LSC_TEMPLATE;
 
     constructor(private competitionService: CompetitionService,
+                private downloadService: DownloadService,
                 private route: ActivatedRoute,
                 private routerService: Router,
                 private snackBar: MatSnackBar,
@@ -181,7 +183,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     public save() {
         if (this.form.valid) {
             this.fetchDataToCompetition();
-            this.competitionService.patchApiCompetition(this.competition).subscribe(
+            this.competitionService.patchApiV1Competition(this.competition).subscribe(
                 (c) => {
                     this.snackBar.open(c.description, null, {duration: 5000});
                     this.dirty = false;
@@ -199,8 +201,9 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     }
 
     downloadProvider = () => {
-        this.fetchDataToCompetition();
-        return JSON.stringify(this.competition);
+        return this.downloadService.getApiV1DownloadCompetitionWithCompetitionid(this.competitionId)
+            .pipe(take(1));
+            // .toPromise();
     }
 
     public back() {
@@ -211,7 +214,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
 
     public refresh() {
         if (this.checkDirty()) {
-            this.competitionService.getApiCompetitionWithCompetitionid(this.competitionId).subscribe(
+            this.competitionService.getApiV1CompetitionWithCompetitionid(this.competitionId).subscribe(
                 (c) => {
                     this.competition = c;
                     this.form.get('name').setValue(c.name);

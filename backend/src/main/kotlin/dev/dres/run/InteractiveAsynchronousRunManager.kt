@@ -53,6 +53,8 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         private const val MAXIMUM_ERROR_COUNT = 5
     }
 
+    constructor(description: CompetitionDescription, name: String) : this(InteractiveAsynchronousCompetition(UID.EMPTY, name, description).apply { RunExecutor.runs.append(this) })
+
     /** Tracks the current [TaskDescription] per [TeamId]. */
     private val navigationMap: MutableMap<TeamId, TaskDescription> = HashMap()
 
@@ -71,11 +73,11 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
     /** The internal [MessageQueueUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
     private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
 
-    /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoresUpdatable = ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable)
-
     /** The internal [DAOUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
     private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
+
+    /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
+    private val scoresUpdatable = ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable, this.daoUpdatable)
 
     /** The internal [DAOUpdatable] used to end a task once no more submissions are possible */
     private val endTaskUpdatable = EndTaskUpdatable(this, RunActionContext.INTERNAL)
@@ -126,7 +128,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
             this.statusMap[it.uid] = if (this.run.hasStarted) { RunManagerStatus.ACTIVE } else { RunManagerStatus.CREATED }
 
             /** End ongoing runs upon initialization (in case server crashed during task execution). */
-            if (this.run.tasksForTeam(it.uid).last().isRunning) {
+            if (this.run.tasksForTeam(it.uid).lastOrNull()?.isRunning == true) {
                 this.run.tasksForTeam(it.uid).last().end()
             }
         }
@@ -578,12 +580,17 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * Invokes all [Updatable]s registered with this [InteractiveSynchronousRunManager].
      */
     private fun invokeUpdatables() = this.stateLock.read {
-        this.updatables.forEach {
-            if (it.shouldBeUpdated(this.status)) { /* TODO: This mechanism needs checking, since the status may be different for different teams. */
-                try {
-                    it.update(this.status)
-                } catch (e: Throwable) {
-                    LOGGER.error("Uncaught exception while updating ${it.javaClass.simpleName} for competition run ${this.id}. Loop will continue to work but this error should be handled!", e)
+        this.statusMap.values.toSet().forEach { status -> //call update once for every possible status which is currently set for any team
+            this.updatables.forEach {
+                if (it.shouldBeUpdated(status)) {
+                    try {
+                        it.update(status)
+                    } catch (e: Throwable) {
+                        LOGGER.error(
+                            "Uncaught exception while updating ${it.javaClass.simpleName} for competition run ${this.id}. Loop will continue to work but this error should be handled!",
+                            e
+                        )
+                    }
                 }
             }
         }
@@ -634,6 +641,6 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      */
     private fun checkTeamStatus(teamId: TeamId, vararg status: RunManagerStatus) {
         val s = this.statusMap[teamId] ?: throw IllegalTeamIdException(teamId)
-        if (s !in status) throw IllegalRunStateException(this.status)
+        if (s !in status) throw IllegalRunStateException(s)
     }
 }

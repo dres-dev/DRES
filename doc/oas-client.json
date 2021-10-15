@@ -6,11 +6,11 @@
     "version" : "1.0"
   },
   "paths" : {
-    "/api/login" : {
+    "/api/v1/login" : {
       "post" : {
         "tags" : [ "User" ],
         "summary" : "Sets roles for session based on user account and returns a session cookie.",
-        "operationId" : "postApiLogin",
+        "operationId" : "postApiV1Login",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -54,11 +54,11 @@
         }
       }
     },
-    "/api/logout" : {
+    "/api/v1/logout" : {
       "get" : {
         "tags" : [ "User" ],
         "summary" : "Clears all user roles of the current session.",
-        "operationId" : "getApiLogout",
+        "operationId" : "getApiV1Logout",
         "parameters" : [ {
           "name" : "session",
           "in" : "query",
@@ -91,320 +91,11 @@
         }
       }
     },
-    "/api/user/{userId}" : {
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Gets details of the user with the given id",
-        "operationId" : "getApiUserWithUserid",
-        "parameters" : [ {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "User's UID",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/UserDetails"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "If the user could not be found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete" : {
-        "tags" : [ "User" ],
-        "summary" : "Deletes the specified user. Requires ADMIN privileges",
-        "operationId" : "deleteApiUserWithUserid",
-        "parameters" : [ {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "User ID",
-          "required" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/UserDetails"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "If the user could not be found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      },
-      "patch" : {
-        "tags" : [ "User" ],
-        "summary" : "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone",
-        "operationId" : "patchApiUserWithUserid",
-        "parameters" : [ {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "User ID",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/UserRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/UserDetails"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/user/session" : {
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Get current sessionId",
-        "operationId" : "getApiUserSession",
-        "parameters" : [ {
-          "name" : "session",
-          "in" : "query",
-          "description" : "Session Token",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SessionId"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/status/time" : {
-      "get" : {
-        "tags" : [ "Status" ],
-        "summary" : "Returns the current time on the server.",
-        "operationId" : "getApiStatusTime",
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CurrentTime"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/runInfo/list" : {
-      "get" : {
-        "tags" : [ "Client Run Info" ],
-        "summary" : "Lists an overview of all competition runs visible to the current client",
-        "operationId" : "getApiRuninfoList",
-        "parameters" : [ {
-          "name" : "session",
-          "in" : "query",
-          "description" : "Session Token",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ClientRunInfoList"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/runInfo/currentTask/{runId}" : {
-      "get" : {
-        "tags" : [ "Client Run Info" ],
-        "summary" : "Returns an overview of the currently active task for a run",
-        "operationId" : "getApiRuninfoCurrenttaskWithRunid",
-        "parameters" : [ {
-          "name" : "runId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "session",
-          "in" : "query",
-          "description" : "Session Token",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ClientTaskInfo"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/submit" : {
+    "/api/v1/submit" : {
       "get" : {
         "tags" : [ "Submission" ],
         "summary" : "Endpoint to accept submissions",
-        "operationId" : "getSubmit",
+        "operationId" : "getApiV1Submit",
         "parameters" : [ {
           "name" : "collection",
           "in" : "query",
@@ -518,11 +209,11 @@
         }
       }
     },
-    "/log/query" : {
+    "/api/v1/log/query" : {
       "post" : {
         "tags" : [ "Log" ],
         "summary" : "Accepts query logs from participants",
-        "operationId" : "postLogQuery",
+        "operationId" : "postApiV1LogQuery",
         "parameters" : [ {
           "name" : "session",
           "in" : "query",
@@ -575,11 +266,11 @@
         }
       }
     },
-    "/log/result" : {
+    "/api/v1/log/result" : {
       "post" : {
         "tags" : [ "Log" ],
         "summary" : "Accepts result logs from participants",
-        "operationId" : "postLogResult",
+        "operationId" : "postApiV1LogResult",
         "parameters" : [ {
           "name" : "session",
           "in" : "query",
@@ -621,6 +312,292 @@
           },
           "401" : {
             "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/status/time" : {
+      "get" : {
+        "tags" : [ "Status" ],
+        "summary" : "Returns the current time on the server.",
+        "operationId" : "getApiV1StatusTime",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CurrentTime"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/run/info/list" : {
+      "get" : {
+        "tags" : [ "Client Run Info" ],
+        "summary" : "Lists an overview of all competition runs visible to the current client",
+        "operationId" : "getApiV1ClientRunInfoList",
+        "parameters" : [ {
+          "name" : "session",
+          "in" : "query",
+          "description" : "Session Token",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClientRunInfoList"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/client/run/info/currentTask/{runId}" : {
+      "get" : {
+        "tags" : [ "Client Run Info" ],
+        "summary" : "Returns an overview of the currently active task for a run",
+        "operationId" : "getApiV1ClientRunInfoCurrenttaskWithRunid",
+        "parameters" : [ {
+          "name" : "runId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "session",
+          "in" : "query",
+          "description" : "Session Token",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClientTaskInfo"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/download/run/{runId}" : {
+      "get" : {
+        "tags" : [ "Download" ],
+        "summary" : "Provides a JSON download of the entire competition run structure.",
+        "operationId" : "getApiV1DownloadRunWithRunid",
+        "parameters" : [ {
+          "name" : "runId",
+          "in" : "path",
+          "description" : "Competition run ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/download/run/{runId}/scores" : {
+      "get" : {
+        "tags" : [ "Download" ],
+        "summary" : "Provides a CSV download with the scores for a given competition run.",
+        "operationId" : "getApiV1DownloadRunWithRunidScores",
+        "parameters" : [ {
+          "name" : "runId",
+          "in" : "path",
+          "description" : "Competition run ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "text/csv" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/download/competition/{competitionId}" : {
+      "get" : {
+        "tags" : [ "Download" ],
+        "summary" : "Provides a JSON download of the entire competition description structure.",
+        "operationId" : "getApiV1DownloadCompetitionWithCompetitionid",
+        "parameters" : [ {
+          "name" : "competitionId",
+          "in" : "path",
+          "description" : "Competition ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -686,94 +663,6 @@
             "type" : "string"
           },
           "status" : {
-            "type" : "boolean"
-          }
-        }
-      },
-      "UserRequest" : {
-        "required" : [ "username" ],
-        "type" : "object",
-        "properties" : {
-          "username" : {
-            "type" : "string"
-          },
-          "password" : {
-            "type" : "string"
-          },
-          "role" : {
-            "type" : "string",
-            "enum" : [ "ADMIN", "JUDGE", "VIEWER", "PARTICIPANT" ]
-          }
-        }
-      },
-      "SessionId" : {
-        "required" : [ "sessionId" ],
-        "type" : "object",
-        "properties" : {
-          "sessionId" : {
-            "type" : "string"
-          }
-        }
-      },
-      "CurrentTime" : {
-        "required" : [ "timeStamp" ],
-        "type" : "object",
-        "properties" : {
-          "timeStamp" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        }
-      },
-      "ClientRunInfo" : {
-        "required" : [ "id", "name", "status" ],
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string"
-          },
-          "name" : {
-            "type" : "string"
-          },
-          "description" : {
-            "type" : "string"
-          },
-          "status" : {
-            "type" : "string",
-            "enum" : [ "CREATED", "ACTIVE", "PREPARING_TASK", "RUNNING_TASK", "TASK_ENDED", "TERMINATED" ]
-          }
-        }
-      },
-      "ClientRunInfoList" : {
-        "required" : [ "runs" ],
-        "type" : "object",
-        "properties" : {
-          "runs" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ClientRunInfo"
-            }
-          }
-        }
-      },
-      "ClientTaskInfo" : {
-        "required" : [ "id", "name", "remainingTime", "running", "taskGroup" ],
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string"
-          },
-          "name" : {
-            "type" : "string"
-          },
-          "taskGroup" : {
-            "type" : "string"
-          },
-          "remainingTime" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "running" : {
             "type" : "boolean"
           }
         }
@@ -880,6 +769,69 @@
             "items" : {
               "$ref" : "#/components/schemas/QueryEvent"
             }
+          }
+        }
+      },
+      "CurrentTime" : {
+        "required" : [ "timeStamp" ],
+        "type" : "object",
+        "properties" : {
+          "timeStamp" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "ClientRunInfo" : {
+        "required" : [ "id", "name", "status" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "CREATED", "ACTIVE", "PREPARING_TASK", "RUNNING_TASK", "TASK_ENDED", "TERMINATED" ]
+          }
+        }
+      },
+      "ClientRunInfoList" : {
+        "required" : [ "runs" ],
+        "type" : "object",
+        "properties" : {
+          "runs" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ClientRunInfo"
+            }
+          }
+        }
+      },
+      "ClientTaskInfo" : {
+        "required" : [ "id", "name", "remainingTime", "running", "taskGroup" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "taskGroup" : {
+            "type" : "string"
+          },
+          "remainingTime" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "running" : {
+            "type" : "boolean"
           }
         }
       }

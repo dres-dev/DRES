@@ -15,12 +15,14 @@ import dev.dres.run.eventstream.InvalidRequestEvent
 import dev.dres.run.eventstream.QueryEventLogEvent
 import dev.dres.run.eventstream.QueryResultLogEvent
 import dev.dres.utilities.extensions.sessionId
-import io.javalin.core.security.Role
+import io.javalin.core.security.RouteRole
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.plugin.openapi.annotations.*
 
 abstract class LogHandler : PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
+
+    override val apiVersion = "v1"
 
     private fun getRelevantManagers(userId: UID): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
@@ -40,11 +42,11 @@ abstract class LogHandler : PostRestHandler<SuccessStatus>, AccessManagedRestHan
 }
 
 class QueryLogHandler : LogHandler() {
-    override val permittedRoles: Set<Role> = setOf(RestApiRole.ADMIN, RestApiRole.PARTICIPANT)
+    override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.ADMIN, RestApiRole.PARTICIPANT)
     override val route = "log/query"
 
     @OpenApi(summary = "Accepts query logs from participants",
-            path = "/log/query",
+            path = "/api/v1/log/query",
             method = HttpMethod.POST,
             requestBody = OpenApiRequestBody([OpenApiContent(QueryEventLog::class)]),
             tags = ["Log"],
@@ -63,7 +65,7 @@ class QueryLogHandler : LogHandler() {
 
 
         val queryEventLog = try {
-            ctx.body<QueryEventLog>()
+            ctx.bodyAsClass<QueryEventLog>()
         } catch (e: BadRequestResponse){
             EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionId(), run.id, ctx.body()))
             throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}", ctx)
@@ -77,11 +79,11 @@ class QueryLogHandler : LogHandler() {
 }
 
 class ResultLogHandler : LogHandler() {
-    override val permittedRoles: Set<Role> = setOf(RestApiRole.ADMIN, RestApiRole.PARTICIPANT)
+    override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.ADMIN, RestApiRole.PARTICIPANT)
     override val route = "log/result"
 
     @OpenApi(summary = "Accepts result logs from participants",
-            path = "/log/result",
+            path = "/api/v1/log/result",
             method = HttpMethod.POST,
             requestBody = OpenApiRequestBody([OpenApiContent(QueryResultLog::class)]),
             tags = ["Log"],
@@ -99,7 +101,7 @@ class ResultLogHandler : LogHandler() {
         val run = getActiveRun(userId, ctx)
 
         val queryResultLog = try {
-            ctx.body<QueryResultLog>()
+            ctx.bodyAsClass<QueryResultLog>()
         } catch (e: BadRequestResponse){
             EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionId(), run.id, ctx.body()))
             throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}", ctx)

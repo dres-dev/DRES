@@ -6,11 +6,9 @@ import {
     RestTaskDescription,
     RestTaskDescriptionComponent,
     RestTaskDescriptionTarget,
-    RestTaskDescriptionTargetItem,
+    RestTaskDescriptionTargetItem, RestTemporalPoint, RestTemporalRange,
     TaskGroup,
-    TaskType,
-    TemporalPoint,
-    TemporalRange
+    TaskType
 } from '../../../../../openapi';
 import {AbstractControl, FormArray, FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
 import {filter, first, switchMap} from 'rxjs/operators';
@@ -148,9 +146,9 @@ export class CompetitionFormBuilder {
                     end: c.get('end').value,
                     mediaItem: c.get('mediaItem') ? c.get('mediaItem').value.id : null,
                     range: c.get('segment_start') && c.get('segment_end') ? {
-                        start: {value: c.get('segment_start').value, unit: c.get('segment_time_unit').value} as TemporalPoint,
-                        end: {value: c.get('segment_end').value, unit: c.get('segment_time_unit').value} as TemporalPoint,
-                    } as TemporalRange : null,
+                        start: {value: c.get('segment_start').value, unit: c.get('segment_time_unit').value} as RestTemporalPoint,
+                        end: {value: c.get('segment_end').value, unit: c.get('segment_time_unit').value} as RestTemporalPoint,
+                    } as RestTemporalRange : null,
                     description: c.get('description') ? c.get('description').value : null,
                     path: c.get('path') ? c.get('path').value : null
                 } as RestTaskDescriptionComponent;
@@ -161,9 +159,9 @@ export class CompetitionFormBuilder {
                     return {
                         mediaItem: t.get('mediaItem').value.id,
                         temporalRange: t.get('segment_start') && t.get('segment_start') ? {
-                            start: {value: t.get('segment_start').value, unit: t.get('segment_time_unit').value} as TemporalPoint,
-                            end: {value: t.get('segment_end').value, unit: t.get('segment_time_unit').value} as TemporalPoint
-                        } as TemporalRange : null
+                            start: {value: t.get('segment_start').value, unit: t.get('segment_time_unit').value} as RestTemporalPoint,
+                            end: {value: t.get('segment_end').value, unit: t.get('segment_time_unit').value} as RestTemporalPoint
+                        } as RestTemporalRange : null
                     } as RestTaskDescriptionTargetItem;
                 })
             } as RestTaskDescriptionTarget
@@ -246,12 +244,12 @@ export class CompetitionFormBuilder {
         const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
         this.dataSources.set(`target.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
-            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
+            switchMap(s => this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
 
         /* Load media item from API. */
         if (initialize?.mediaItem && this.data?.mediaCollectionId) {
-            this.collectionService.getApiMediaitemWithMediaid(initialize.mediaItem)
+            this.collectionService.getApiV1MediaitemWithMediaid(initialize.mediaItem)
                 .pipe(first()).subscribe(s => {
                 mediaItemFormControl.setValue(s);
             });
@@ -271,12 +269,12 @@ export class CompetitionFormBuilder {
 
         this.dataSources.set(`target.0.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
-            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
+            switchMap(s => this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
 
         /* Load media item from API. */
         if (initialize?.mediaItem && this.data.mediaCollectionId) {
-            this.collectionService.getApiMediaitemWithMediaid(initialize.mediaItem)
+            this.collectionService.getApiV1MediaitemWithMediaid(initialize.mediaItem)
                 .pipe(first()).subscribe(s => {
                 mediaItemFormControl.setValue(s);
             });
@@ -325,7 +323,7 @@ export class CompetitionFormBuilder {
                 }
             }
         }
-        return new FormArray(array);
+        return new FormArray(array, [Validators.required]);
     }
 
     /**
@@ -343,12 +341,12 @@ export class CompetitionFormBuilder {
         /* Prepare data source. */
         this.dataSources.set(`components.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
-            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
+            switchMap(s => this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
 
         /* Load media item from API. */
         if (initialize?.mediaItem && this.data?.mediaCollectionId) {
-            this.collectionService.getApiMediaitemWithMediaid(initialize?.mediaItem)
+            this.collectionService.getApiV1MediaitemWithMediaid(initialize?.mediaItem)
                 .pipe(first()).subscribe(s => {
                 mediaItemFormControl.setValue(s);
             });
@@ -378,12 +376,12 @@ export class CompetitionFormBuilder {
         /* Prepare data source. */
         this.dataSources.set(`components.${index}.mediaItem`, mediaItemFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
-            switchMap(s => this.collectionService.getApiCollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
+            switchMap(s => this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s))
         ));
 
         /* Load media item from API. */
         if (initialize?.mediaItem && this.data?.mediaCollectionId) {
-            this.collectionService.getApiMediaitemWithMediaid(initialize.mediaItem)
+            this.collectionService.getApiV1MediaitemWithMediaid(initialize.mediaItem)
                 .pipe(first()).subscribe(s => {
                 mediaItemFormControl.setValue(s);
             });
@@ -457,7 +455,7 @@ export class CompetitionFormBuilder {
         /* Prepare data source. */
         this.dataSources.set(`components.${index}.path`, pathFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
-            switchMap(s => this.collectionService.getApiExternalWithStartswith(s))
+            switchMap(s => this.collectionService.getApiV1ExternalWithStartswith(s))
         ));
 
         return new FormGroup({
@@ -481,7 +479,7 @@ export class CompetitionFormBuilder {
         /* Prepare data source. */
         this.dataSources.set(`components.${index}.path`, pathFormControl.valueChanges.pipe(
             filter(s => s.length >= 1),
-            switchMap(s => this.collectionService.getApiExternalWithStartswith(s))
+            switchMap(s => this.collectionService.getApiV1ExternalWithStartswith(s))
         ));
 
         return new FormGroup({

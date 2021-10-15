@@ -8,14 +8,14 @@ import {DataUtilities} from '../../utilities/data.utilities';
 @Component({
     selector: 'app-video-object-preview',
     template: `
-        <div class="video-container" *ngIf="(queryObject | async)">
+        <div class="video-container">
             <video #player *ngIf="(videoUrl | async)" [src]="(videoUrl | async)" class="video-player" style="width: 100%" controls [muted]="muted" (canplay)="handleCanPlay()" (ended)="handleEnded()"></video>
         </div>
     `
 })
 export class VideoObjectPreviewComponent implements OnInit {
 
-    /** Observable of current {@link QueryContentElement} that should be displayed. Provided by user of this component. */
+    /** Observable of current {@link ContentElement} that should be displayed. Provided by user of this component. */
     @Input() queryObject: Observable<ContentElement>;
 
     /** Flag indicating whether video player should be muted or not. Can be provided by a user of this component. */

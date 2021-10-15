@@ -1,6 +1,12 @@
 import {combineLatest, merge, Observable, Subject, timer} from 'rxjs';
-import {CompetitionRunAdminService, CompetitionRunScoresService, CompetitionRunService, RunState} from '../../../openapi';
-import {flatMap, map} from 'rxjs/operators';
+import {
+    CompetitionRunAdminService,
+    DownloadService,
+    CompetitionRunScoresService,
+    CompetitionRunService,
+    RunState
+} from '../../../openapi';
+import {flatMap, map, take} from 'rxjs/operators';
 import {Router} from '@angular/router';
 
 
@@ -25,13 +31,14 @@ export class AbstractRunListComponent {
     constructor(protected runService: CompetitionRunService,
                 protected runAdminService: CompetitionRunAdminService,
                 protected scoreService: CompetitionRunScoresService,
+                protected downloadService: DownloadService,
                 protected router: Router) {
 
         /**
          * Creates a combined observable that updates the state in a regular interval and the info +
          * state whenever a manual update is triggered.
          */
-        const query = combineLatest([this.runService.getApiRunInfoList(), this.runService.getApiRunStateList()]);
+        const query = combineLatest([this.runService.getApiV1RunInfoList(), this.runService.getApiV1RunStateList()]);
         this.runs = merge(timer(0, this.updateInterval), this.update).pipe(
             flatMap(t => query),
             map(([info, state]) => {
@@ -98,7 +105,7 @@ export class AbstractRunListComponent {
     }
 
     public downloadScores(runId: string) {
-        this.scoreService.getApiScoreRunWithRunidTasksCsv(runId).subscribe(scoresCSV => {
+        this.downloadService.getApiV1DownloadRunWithRunidScores(runId).subscribe(scoresCSV => {
             const csvBlob = new Blob([scoresCSV], {type: 'text/csv'});
             const fake = document.createElement('a');
             fake.href = URL.createObjectURL(csvBlob);
@@ -106,5 +113,15 @@ export class AbstractRunListComponent {
             fake.click();
             URL.revokeObjectURL(fake.href);
         });
+    }
+
+    downloadProvider = (runId) => {
+        return this.downloadService.getApiV1DownloadRunWithRunid(runId)
+            .pipe(take(1));
+        // .toPromise();
+    }
+
+    fileProvider = (name: string ) => {
+        return () =>  name;
     }
 }

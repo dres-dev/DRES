@@ -9,6 +9,7 @@ import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
+import dev.dres.data.model.run.InteractiveAsynchronousCompetition
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.NonInteractiveCompetition
 import dev.dres.data.model.run.interfaces.Competition
@@ -16,8 +17,8 @@ import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.read
 import dev.dres.utilities.extensions.write
+import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
-import io.javalin.websocket.WsHandler
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.*
@@ -32,7 +33,7 @@ import java.util.function.Consumer
  * @author Ralph Gasser
  * @version 1.1
  */
-object RunExecutor : Consumer<WsHandler> {
+object RunExecutor : Consumer<WsConfig> {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -71,20 +72,30 @@ object RunExecutor : Consumer<WsHandler> {
     fun init(runs: DAO<Competition>) {
         this.runs = runs
         this.runs.filter { !it.hasEnded }.forEach { //TODO needs more distinction
-            val run = when(it) {
-                is InteractiveSynchronousCompetition -> {
-                    it.tasks.forEach { t ->
-                        t.submissions.forEach { s -> s.task = t }
-                    }
-                    InteractiveSynchronousRunManager(it)
-                }
-                is NonInteractiveCompetition -> {
-                    NonInteractiveRunManager(it)
-                }
-                else -> throw NotImplementedError("No matching run manager found for $it")
-            }
-            this.schedule(run)
+            schedule(it)
         }
+    }
+
+    fun schedule(competition: Competition) {
+        val run = when(competition) {
+            is InteractiveSynchronousCompetition -> {
+                competition.tasks.forEach { t ->
+                    t.submissions.forEach { s -> s.task = t }
+                }
+                InteractiveSynchronousRunManager(competition)
+            }
+            is NonInteractiveCompetition -> {
+                NonInteractiveRunManager(competition)
+            }
+            is InteractiveAsynchronousCompetition -> {
+                competition.tasks.forEach { t ->
+                    t.submissions.forEach { s -> s.task = t }
+                }
+                InteractiveAsynchronousRunManager(competition)
+            }
+            else -> throw NotImplementedError("No matching run manager found for $competition")
+        }
+        this.schedule(run)
     }
 
     /** A thread that cleans after [RunManager] have finished. */
@@ -130,7 +141,7 @@ object RunExecutor : Consumer<WsHandler> {
      *
      * @param t The [WsHandler] of the WebSocket endpoint.
      */
-    override fun accept(t: WsHandler) {
+    override fun accept(t: WsConfig) {
         t.onConnect {
             /* Add WSContext to set of connected clients. */
             this@RunExecutor.clientLock.write {
@@ -154,7 +165,7 @@ object RunExecutor : Consumer<WsHandler> {
         }
         t.onMessage {
             val message = try {
-                it.message(ClientMessage::class.java)
+                it.messageAsClass<ClientMessage>()
             } catch (e: Exception) {
                 logger.warn("Cannot parse WebSocket message: ${e.localizedMessage}")
                 return@onMessage

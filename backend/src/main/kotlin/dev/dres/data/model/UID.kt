@@ -3,7 +3,7 @@ package dev.dres.data.model
 import java.util.*
 
 
-inline class UID (val string: String) {
+data class UID (val string: String) {
     companion object {
         val EMPTY = UID(UUID(0L, 0L))
     }

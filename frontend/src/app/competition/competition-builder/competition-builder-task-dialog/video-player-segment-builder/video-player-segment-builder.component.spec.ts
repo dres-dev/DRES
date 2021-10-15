@@ -1,12 +1,12 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 
-import { VideoPlayerSegmentBuilderComponent } from './video-player-segment-builder.component';
+import {VideoPlayerSegmentBuilderComponent} from './video-player-segment-builder.component';
 
 describe('VideoPlayerSegmentBuilderComponent', () => {
   let component: VideoPlayerSegmentBuilderComponent;
   let fixture: ComponentFixture<VideoPlayerSegmentBuilderComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ VideoPlayerSegmentBuilderComponent ]
     })

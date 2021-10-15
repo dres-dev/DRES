@@ -11,7 +11,6 @@ import {AdminUserListComponent} from './user/admin-user-list/admin-user-list.com
 import {JudgementViewerComponent} from './judgement/judgement-viewer.component';
 import {RunListComponent} from './run/run-list.component';
 import {RunAdminViewComponent} from './run/run-admin-view.component';
-import RoleEnum = UserDetails.RoleEnum;
 import {CollectionListComponent} from './collection/collection-list/collection-list.component';
 import {CollectionViewerComponent} from './collection/collection-viewer/collection-viewer.component';
 import {AdminAuditlogOverviewComponent} from './auditlog/admin-auditlog-overview/admin-auditlog-overview.component';
@@ -19,6 +18,7 @@ import {CanDeactivateGuard} from './services/can-deactivate.guard';
 import {RunAdminSubmissionsListComponent} from './run/run-admin-submissions-list/run-admin-submissions-list.component';
 import {RunScoreHistoryComponent} from './run/score-history/run-score-history.component';
 import {JudgementVotingViewerComponent} from './judgement/judgement-voting-viewer.component';
+import RoleEnum = UserDetails.RoleEnum;
 
 
 const routes: Routes = [
@@ -118,7 +118,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-    imports: [RouterModule.forRoot(routes)],
+    imports: [RouterModule.forRoot(routes, { relativeLinkResolution: 'legacy' })],
     exports: [RouterModule]
 })
 export class AppRoutingModule {

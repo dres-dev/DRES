@@ -27,13 +27,13 @@ import {FlexModule} from '@angular/flex-layout';
 import {MatSliderModule} from '@angular/material/slider';
 import {ServicesModule} from '../../services/services.module';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
-import {Ng5SliderModule} from 'ng5-slider';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatGridListModule} from '@angular/material/grid-list';
 import {AdvancedBuilderDialogComponent} from './competition-builder-task-dialog/advanced-builder-dialog/advanced-builder-dialog.component';
 import {SharedModule} from '../../shared/shared.module';
 import {VideoPlayerSegmentBuilderDialogComponent} from './competition-builder-task-dialog/video-player-segment-builder-dialog/video-player-segment-builder-dialog.component';
 import {ColorPickerModule} from 'ngx-color-picker';
+import {NgxSliderModule} from '@angular-slider/ngx-slider';
 
 @NgModule({
     imports: [
@@ -57,7 +57,7 @@ import {ColorPickerModule} from 'ngx-color-picker';
         MatSlideToggleModule,
         MatButtonToggleModule,
         MatGridListModule,
-        Ng5SliderModule,
+        NgxSliderModule,
         ServicesModule,
         FlexModule,
         FormsModule,

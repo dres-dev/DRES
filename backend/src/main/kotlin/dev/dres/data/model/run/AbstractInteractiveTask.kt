@@ -1,6 +1,7 @@
 package dev.dres.data.model.run
 
 import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.competition.*
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TaskDescriptionTarget
 import dev.dres.data.model.competition.options.TargetOption
@@ -13,7 +14,6 @@ import dev.dres.run.validation.interfaces.SubmissionValidator
 import dev.dres.run.validation.judged.BasicJudgementValidator
 import dev.dres.run.validation.judged.BasicVoteValidator
 import dev.dres.run.validation.judged.ItemRange
-import dev.dres.utilities.TimeUtil
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
@@ -35,6 +35,7 @@ abstract class AbstractInteractiveTask: AbstractRun(), Task {
     /** The [SubmissionValidator] used to validate [Submission]s. */
     abstract val validator: SubmissionValidator
 
+
     /**
      * Generates and returns a new [SubmissionValidator] for this [TaskDescription]. Depending
      * on the implementation, the returned instance is a new instance or being re-use.
@@ -51,11 +52,7 @@ abstract class AbstractInteractiveTask: AbstractRun(), Task {
                 ItemRange(it.first)
             } else {
                 val item = it.first
-                val range = if (item is MediaItem.VideoItem) {
-                    TimeUtil.toMilliseconds(it.second!!, item.fps)
-                } else {
-                    TimeUtil.toMilliseconds(it.second!!)
-                }
+                val range = it.second!!.toMilliseconds()
                 ItemRange(item, range.first, range.second)
             } })
         TargetOption.VOTE -> BasicVoteValidator(
@@ -65,11 +62,7 @@ abstract class AbstractInteractiveTask: AbstractRun(), Task {
                     ItemRange(it.first)
                 } else {
                     val item = it.first
-                    val range = if (item is MediaItem.VideoItem) {
-                        TimeUtil.toMilliseconds(it.second!!, item.fps)
-                    } else {
-                        TimeUtil.toMilliseconds(it.second!!)
-                    }
+                    val range = it.second!!.toMilliseconds()
                     ItemRange(item, range.first, range.second)
                 } },
             parameters = description.taskType.targetType.parameters
@@ -78,4 +71,12 @@ abstract class AbstractInteractiveTask: AbstractRun(), Task {
     }
 
     abstract fun addSubmission(submission: Submission)
+
+    val teamGroupAggregators: Map<TeamGroupId, TeamAggregator> by lazy {
+        this.competition.description.teamGroups.associate { it.uid to it.newAggregator() }
+    }
+
+    fun updateTeamAggregation(teamScores: Map<TeamId, Double>) {
+        this.teamGroupAggregators.values.forEach { it.aggregate(teamScores) }
+    }
 }

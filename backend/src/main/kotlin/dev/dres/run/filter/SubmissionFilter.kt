@@ -10,10 +10,12 @@ import java.util.function.Predicate
  * @author Ralph Gasser
  * @version 1.1.0
  */
-fun interface SubmissionFilter : Predicate<Submission> {
-    override infix fun and(other: Predicate<in Submission>): SubmissionFilter = SubmissionFilter { s -> this@SubmissionFilter.test(s) && other.test(s) }
-    override infix fun or(other: Predicate<in Submission>): SubmissionFilter = SubmissionFilter { s -> this@SubmissionFilter.test(s) || other.test(s) }
-    operator fun not(): SubmissionFilter = SubmissionFilter { s -> !this@SubmissionFilter.test(s) }
+interface SubmissionFilter : Predicate<Submission> {
+//    override infix fun and(other: Predicate<in Submission>): SubmissionFilter = SubmissionFilter { s -> this@SubmissionFilter.test(s) && other.test(s) }
+//    override infix fun or(other: Predicate<in Submission>): SubmissionFilter = SubmissionFilter { s -> this@SubmissionFilter.test(s) || other.test(s) }
+//    operator fun not(): SubmissionFilter = SubmissionFilter { s -> !this@SubmissionFilter.test(s) }
+
+    val reason: String
 
     /**
      * Tests the given [Submission] with this [SubmissionFilter] and throws a [SubmissionRejectedException], if the test fails.
@@ -23,7 +25,7 @@ fun interface SubmissionFilter : Predicate<Submission> {
      */
     fun acceptOrThrow(submission: Submission) {
         if (!this.test(submission)) {
-            throw SubmissionRejectedException(submission)
+            throw SubmissionRejectedException(submission, reason)
         }
     }
 }

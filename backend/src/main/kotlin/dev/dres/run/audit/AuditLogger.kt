@@ -4,6 +4,7 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.run.validation.interfaces.SubmissionValidator
 import org.slf4j.LoggerFactory
 import org.slf4j.Marker
 import org.slf4j.MarkerFactory
@@ -37,6 +38,8 @@ object AuditLogger {
 
     fun submission(competitionRunUid: UID, taskName: String, submission: Submission, api: LogEventSource, session: String?, address: String) = log(SubmissionAuditLogEntry(competitionRunUid, taskName, submission, api, session, address))
 
+    fun validateSubmission(submission: Submission, validator: SubmissionValidator) = log(SubmissionValidationAuditLogEntry(submission, validator::class.simpleName ?: "unknown validator", submission.status))
+
     fun prepareJudgement(validator: String, token: String, submission: Submission) = log(PrepareJudgementAuditLogEntry(validator, token, submission))
 
     fun judgement(competitionRunUid: UID, validator: String, token: String, verdict: SubmissionStatus, api: LogEventSource, session: String?) = log(JudgementAuditLogEntry(competitionRunUid, validator, token, verdict, api, session))
@@ -44,4 +47,6 @@ object AuditLogger {
     fun login(user: String, session: String, api: LogEventSource) = log(LoginAuditLogEntry(user, session, api))
 
     fun logout(session: String, api: LogEventSource) = log(LogoutAuditLogEntry(session, api))
+
+    fun overrideSubmission(competitionRunUid: UID, submissionId: UID, newVerdict: SubmissionStatus, api: LogEventSource, session: String?) = log(SubmissionStatusOverwriteAuditLogEntry(competitionRunUid, submissionId, newVerdict, api, session))
 }

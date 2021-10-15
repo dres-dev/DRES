@@ -63,8 +63,8 @@ export class AppConfig {
      * @param path The path to resolve.
      * @return The full URL to the API endpoint.
      */
-    public resolveApiUrl(path: string) {
-        return `${this.baseUrl}/api${path.startsWith('/') ? '' : '/'}${path}`;
+    public resolveApiUrl(path: string, version: string = 'v1') {
+        return `${this.baseUrl}/api/${version}${path.startsWith('/') ? '' : '/'}${path}`;
     }
 
     /**

@@ -19,17 +19,20 @@ import {ViewerRunListComponent} from './viewer-run-list.component';
 import {RunAdminViewComponent} from './run-admin-view.component';
 import {MatCardModule} from '@angular/material/card';
 import {SharedModule} from '../shared/shared.module';
-import { RunAdminSubmissionsListComponent } from './run-admin-submissions-list/run-admin-submissions-list.component';
-import { SubmissionOverrideDialogComponent } from './submission-override-dialog/submission-override-dialog.component';
+import {RunAdminSubmissionsListComponent} from './run-admin-submissions-list/run-admin-submissions-list.component';
+import {SubmissionOverrideDialogComponent} from './submission-override-dialog/submission-override-dialog.component';
 import {ClipboardModule} from '@angular/cdk/clipboard';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {RunScoreHistoryComponent} from './score-history/run-score-history.component';
 import {NgApexchartsModule} from 'ng-apexcharts';
+import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatExpansionModule} from '@angular/material/expansion';
 
 @NgModule({
     imports: [
         MatTableModule,
+        MatPaginatorModule,
         MatIconModule,
         MatButtonModule,
         MatTooltipModule,
@@ -49,7 +52,8 @@ import {NgApexchartsModule} from 'ng-apexcharts';
         ClipboardModule,
         MatButtonToggleModule,
         MatSlideToggleModule,
-        NgApexchartsModule
+        NgApexchartsModule,
+        MatExpansionModule
     ],
     exports:      [ RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent ],
     declarations: [ RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent, AdminRunListComponent, ViewerRunListComponent, RunAdminSubmissionsListComponent, SubmissionOverrideDialogComponent ],

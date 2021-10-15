@@ -1,7 +1,5 @@
 package dev.dres.api.rest.types.competition.tasks
 
-import dev.dres.data.model.basics.time.TemporalRange
-
 /**
  * The RESTful API representation of a target item.
  *
@@ -10,4 +8,4 @@ import dev.dres.data.model.basics.time.TemporalRange
  * @version 1.0
  *
  */
-data class RestTaskDescriptionTargetItem(val mediaItem: String, val temporalRange: TemporalRange? = null)
+data class RestTaskDescriptionTargetItem(val mediaItem: String, val temporalRange: RestTemporalRange? = null)

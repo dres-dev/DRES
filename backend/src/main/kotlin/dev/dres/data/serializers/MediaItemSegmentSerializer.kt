@@ -8,8 +8,7 @@ import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
 import org.mapdb.Serializer
 
-object MediaItemSegmentListSerializer: Serializer<MediaItemSegmentList> {
-
+object MediaItemSegmentSerializer: Serializer<MediaItemSegmentList> {
     override fun serialize(out: DataOutput2, value: MediaItemSegmentList) {
         out.writeUID(value.id)
         out.writeUID(value.mediaItemId)
@@ -26,5 +25,4 @@ object MediaItemSegmentListSerializer: Serializer<MediaItemSegmentList> {
         val segments = (0 until input.unpackInt()).map {MediaItemSegment(mediaItemId, input.readUTF(), TemporalRangeSerializer.deserialize(input, available))}.toMutableList()
         return MediaItemSegmentList(id, mediaItemId, segments)
     }
-
 }

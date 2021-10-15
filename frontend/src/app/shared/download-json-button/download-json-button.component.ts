@@ -1,5 +1,6 @@
 import {Component, Input, ViewChild} from '@angular/core';
 import {MatButton} from '@angular/material/button';
+import {Observable} from 'rxjs';
 
 @Component({
     selector: 'app-download-json-button',
@@ -12,6 +13,12 @@ export class DownloadJsonButtonComponent {
      * The provider for the downloadable content
      */
     @Input() downloadable: () => any;
+
+    /**
+     * The provider for the downloadable content as a promise
+     */
+    @Input() downloadProvider: Observable<any>;
+
     /**
      * The content type. Defaults to json
      */
@@ -29,7 +36,19 @@ export class DownloadJsonButtonComponent {
     @Input() name = 'Download';
 
     public download() {
-        const file = new Blob([this.downloadable()], {type: this.contentType});
+        if (typeof this.downloadable === 'function') {
+            this.doDownload(this.downloadable());
+        } else if (typeof this.downloadProvider === 'object') {
+            this.downloadProvider.subscribe(data => {
+                this.doDownload(JSON.stringify(data, null, ' '));
+            });
+        }else {
+            console.error('Cannot download as no provider was given. This is a developer error.');
+        }
+    }
+
+    private doDownload(downloadable: any) {
+        const file = new Blob([downloadable], {type: this.contentType});
         const fake = document.createElement('a');
         fake.href = URL.createObjectURL(file);
         fake.download = this.fileName ? this.fileName() : 'download.json';

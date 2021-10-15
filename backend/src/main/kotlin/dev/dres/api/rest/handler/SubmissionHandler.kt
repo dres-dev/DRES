@@ -10,12 +10,10 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.dbo.DaoIndexer
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.MediaCollection
-import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.basics.media.MediaItemSegmentList
-import dev.dres.data.model.basics.media.PlayableMediaItem
+import dev.dres.data.model.basics.media.*
+import dev.dres.data.model.basics.time.TemporalPoint
 import dev.dres.data.model.competition.options.SimpleOption
-import dev.dres.data.model.run.*
+import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
@@ -37,6 +35,7 @@ import io.javalin.plugin.openapi.annotations.OpenApi
 import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -44,6 +43,9 @@ import java.nio.file.Paths
 class SubmissionHandler (val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, private val segmentIndex: DaoIndexer<MediaItemSegmentList, UID>, private val config: Config): GetRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
     override val permittedRoles = setOf(RestApiRole.PARTICIPANT)
     override val route = "submit"
+    override val apiVersion = "v1"
+
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
     companion object {
         const val PARAMETER_NAME_COLLECTION = "collection"
@@ -79,7 +81,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
 
         val rac = RunActionContext.runActionContext(ctx, runManager)
 
-        /* Find collectionId the submission belongs to.. */
+        /* Find collectionId the submission belongs to. */
         val collectionParam = map[PARAMETER_NAME_COLLECTION]?.first()
         val collectionId: UID = when {
             collectionParam != null -> this.collections.find { it.name == collectionParam }?.id
@@ -95,15 +97,17 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         return when {
             map.containsKey(PARAMETER_NAME_SHOT) && item is MediaItem.VideoItem -> {
                 val segmentList = segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(400, "Item '${item.name}' not found.", ctx)
-                val time = TimeUtil.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item, segmentList) ?: throw ErrorStatusException(400, "Shot '${item.name}.${map[PARAMETER_NAME_SHOT]?.first()!!}' not found.", ctx)
+                val time = TimeUtil.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, segmentList) ?: throw ErrorStatusException(400, "Shot '${item.name}.${map[PARAMETER_NAME_SHOT]?.first()!!}' not found.", ctx)
                 Submission.Temporal(team, userId, submissionTime, item, time.first, time.second)
             }
             map.containsKey(PARAMETER_NAME_FRAME) && (item is PlayableMediaItem) -> {
-                val time = TimeUtil.frameToTime(map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull() ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number.", ctx), item)
+                val time = TemporalPoint.Frame.toMilliseconds(
+                    map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull() ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number.", ctx),
+                    item.fps
+                )
                 val range = if(mapToSegment && item is MediaItem.VideoItem) {
                     (TimeUtil.timeToSegment(
                         time,
-                        item,
                         segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(
                             400,
                             "Item '${item.name}' not found.",
@@ -116,11 +120,10 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
                 Submission.Temporal(team, userId, submissionTime, item, range.first, range.second)
             }
             map.containsKey(PARAMETER_NAME_TIMECODE) && (item is PlayableMediaItem) -> {
-                val time = TimeUtil.timeCodeToMilliseconds(map[PARAMETER_NAME_TIMECODE]?.first()!!, item) ?: throw ErrorStatusException(400, "'${map[PARAMETER_NAME_TIMECODE]?.first()!!}' is not a valid time code", ctx)
+                val time = TemporalPoint.Timecode.timeCodeToMilliseconds(map[PARAMETER_NAME_TIMECODE]?.first()!!, item) ?: throw ErrorStatusException(400, "'${map[PARAMETER_NAME_TIMECODE]?.first()!!}' is not a valid time code", ctx)
                 val range = if(mapToSegment && item is MediaItem.VideoItem) {
                     (TimeUtil.timeToSegment(
                         time,
-                        item,
                         segmentIndex[item.id].firstOrNull() ?: throw ErrorStatusException(
                             400,
                             "Item '${item.name}' not found.",
@@ -139,13 +142,13 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
     }
 
     @OpenApi(summary = "Endpoint to accept submissions",
-            path = "/submit",
+            path = "/api/v1/submit",
             queryParams = [
                 OpenApiParam(PARAMETER_NAME_COLLECTION, String::class, "Collection identifier. Optional, in which case the default collection for the run will be considered.", allowEmptyValue = true),
                 OpenApiParam(PARAMETER_NAME_ITEM, String::class, "Identifier for the actual media object or media file."),
-                OpenApiParam(PARAMETER_NAME_FRAME, Int::class, "Frame number for media with temporal progression (e.g. video).", allowEmptyValue = true),
-                OpenApiParam(PARAMETER_NAME_SHOT, Int::class, "Shot number for media with temporal progression (e.g. video).", allowEmptyValue = true),
-                OpenApiParam(PARAMETER_NAME_TIMECODE, String::class, "Timecode for media with temporal progression (e.g. video).", allowEmptyValue = true),
+                OpenApiParam(PARAMETER_NAME_FRAME, Int::class, "Frame number for media with temporal progression (e.g. video).", allowEmptyValue = true, required = false),
+                OpenApiParam(PARAMETER_NAME_SHOT, Int::class, "Shot number for media with temporal progression (e.g. video).", allowEmptyValue = true, required = false),
+                OpenApiParam(PARAMETER_NAME_TIMECODE, String::class, "Timecode for media with temporal progression (e.g. video).", allowEmptyValue = true, required = false),
                 OpenApiParam("session", String::class, "Session Token")
             ],
             tags = ["Submission"],
@@ -170,8 +173,10 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         } catch (e: SubmissionRejectedException) {
             throw ErrorStatusException(412, "Submission rejected by submission filter.", ctx)
         } catch (e: IllegalRunStateException) {
+            logger.info("Submission was received while Run manager not accepting submissions")
             throw ErrorStatusException(400, "Run manager is in wrong state and cannot accept any more submission.", ctx)
         } catch (e: IllegalTeamIdException) {
+            logger.info("Submission with unkown team id '${rac.teamId}' was received")
             throw ErrorStatusException(400, "Run manager does not know the given teamId ${rac.teamId}.", ctx)
         }
 
@@ -181,6 +186,8 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }) { //pre-generate preview
             generatePreview(submission)
         }
+
+        logger.info("submission ${submission.uid} received status $result")
 
         return when (result) {
             SubmissionStatus.CORRECT -> SuccessfulSubmissionsStatus(SubmissionStatus.CORRECT, "Submission correct!")

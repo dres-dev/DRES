@@ -1,11 +1,11 @@
 package dev.dres.api.cli
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.*
+import com.github.ajalt.clikt.parameters.types.path
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.jakewharton.picnic.table
 import dev.dres.data.dbo.DAO
@@ -17,14 +17,12 @@ import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.interfaces.Competition
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
-import dev.dres.run.InteractiveRunManager
-import dev.dres.run.RunExecutor
-import dev.dres.run.RunManager
+import dev.dres.run.*
 import dev.dres.utilities.extensions.UID
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
 class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktCommand(name = "run") {
@@ -35,6 +33,7 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
             ListCompetitionRunsCommand(),
             DeleteRunCommand(),
             ExportRunCommand(),
+            ReactivateRunCommand(),
             CompetitionRunsHistoryCommand(),
             ResetSubmissionStatusCommand(),
             ExportRunJudgementsCommand()
@@ -59,7 +58,7 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
      * Lists all ongoing competitions runs for the current DRES instance.
      */
     inner class OngoingCompetitionRunsCommand :
-        CliktCommand(name = "ongoing", help = "Lists all ongoing competition runs.", printHelpOnEmptyArgs = true) {
+        CliktCommand(name = "ongoing", help = "Lists all ongoing competition runs.") {
         private val plain by option("-p", "--plain", help = "Plain print. No fancy tables").flag(default = false)
         override fun run() {
             if (RunExecutor.managers().isEmpty()) {
@@ -80,27 +79,42 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
                     )
                 }
             } else {
-                table {
-                    cellStyle {
-                        border = true
-                        paddingLeft = 1
-                        paddingRight = 1
-                    }
-                    header {
-                        row("id", "name", "description", "currentTask", "status")
-                    }
-                    body {
-                        RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java).forEach {
-                            row(
-                                it.id.string,
-                                it.name,
-                                it.description.description,
-                                it.currentTaskDescription(RunActionContext.INTERNAL).name,
-                                it.status
-                            )
+                println(
+                    table {
+                        cellStyle {
+                            border = true
+                            paddingLeft = 1
+                            paddingRight = 1
+                        }
+                        header {
+                            row("id", "type", "name", "description", "currentTask", "status")
+                        }
+                        body {
+                            RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java).forEach {
+                                when(it) {
+                                    is InteractiveSynchronousRunManager -> row(
+                                        it.id.string,
+                                        "Synchronous",
+                                        it.name,
+                                        it.description.description,
+                                        it.currentTaskDescription(RunActionContext.INTERNAL).name,
+                                        it.status
+                                    )
+                                    is InteractiveAsynchronousRunManager -> row(
+                                        it.id.string,
+                                        "Asynchronous",
+                                        it.name,
+                                        it.description.description,
+                                        "N/A",
+                                        it.status
+                                    )
+                                    else -> row("??", "??", "??", "??", "??", "??")
+                                }
+
+                            }
                         }
                     }
-                }
+                )
             }
         }
     }
@@ -109,7 +123,7 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
      * Lists all competition runs (ongoing and past) for the current DRES instance.
      */
     inner class ListCompetitionRunsCommand :
-        CliktCommand(name = "list", help = "Lists all (ongoing and past) competition runs.", printHelpOnEmptyArgs = true) {
+        CliktCommand(name = "list", help = "Lists all (ongoing and past) competition runs.") {
         private val plain by option("-p", "--plain", help = "Plain print. No fancy tables").flag(default = false)
         override fun run() {
             if (plain) {
@@ -127,39 +141,41 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
                     )
                 }
             } else {
-                table {
-                    cellStyle {
-                        border = true
-                        paddingLeft = 1
-                        paddingRight = 1
-                    }
-                    header {
-                        row("id", "name", "description", "lastTask", "status")
-                    }
-                    body {
-                        this@CompetitionRunCommand.runs.forEach {
-                            val status = if (it.hasStarted && !it.hasEnded && !it.isRunning) {
-                                "started"
-                            } else if (it.hasStarted && !it.hasEnded && it.isRunning) {
-                                "running"
-                            } else if (it.hasEnded) {
-                                "ended"
-                            } else if (!it.hasStarted) {
-                                "idle"
-                            } else {
-                                "unknown"
+                println(
+                    table {
+                        cellStyle {
+                            border = true
+                            paddingLeft = 1
+                            paddingRight = 1
+                        }
+                        header {
+                            row("id", "name", "description", "lastTask", "status")
+                        }
+                        body {
+                            this@CompetitionRunCommand.runs.forEach {
+                                val status = if (it.hasStarted && !it.hasEnded && !it.isRunning) {
+                                    "started"
+                                } else if (it.hasStarted && !it.hasEnded && it.isRunning) {
+                                    "running"
+                                } else if (it.hasEnded) {
+                                    "ended"
+                                } else if (!it.hasStarted) {
+                                    "idle"
+                                } else {
+                                    "unknown"
+                                }
+                                row(
+                                    it.id.string,
+                                    it.name,
+                                    it.description.description,
+                                    if (it is InteractiveSynchronousCompetition) it.lastTask?.description?.name
+                                        ?: "N/A" else "N/A",
+                                    status
+                                )
                             }
-                            row(
-                                it.id,
-                                it.name,
-                                it.description.description,
-                                if (it is InteractiveSynchronousCompetition) it.lastTask?.description?.name
-                                    ?: "N/A" else "N/A",
-                                status
-                            )
                         }
                     }
-                }
+                )
             }
         }
     }
@@ -167,7 +183,8 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
     /**
      * Deletes a selected competition run for the current DRES instance.
      */
-    inner class DeleteRunCommand : CliktCommand(name = "delete", help = "Deletes an existing competition run.", printHelpOnEmptyArgs = true) {
+    inner class DeleteRunCommand :
+        CliktCommand(name = "delete", help = "Deletes an existing competition run.", printHelpOnEmptyArgs = true) {
         private val id: UID by option("-r", "--run").convert { it.UID() }.required()
         override fun run() {
             if (RunExecutor.managers().any { it.id == id }) {
@@ -187,9 +204,17 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
     /**
      * Exports a specific competition run as JSON.
      */
-    inner class ExportRunCommand : CliktCommand(name = "export", help = "Exports the competition run as JSON.", printHelpOnEmptyArgs = true) {
-        private val id: UID by option("-r", "--run").convert { it.UID() }.required()
-        private val path: String by option("-o", "--output").required()
+    inner class ExportRunCommand : CliktCommand(name = "export", help = "Exports the selected competition run to a JSON file.", printHelpOnEmptyArgs = true) {
+
+        /** [UID] of the [Competition] that should be exported. .*/
+        private val id: UID by option("-i", "--id").convert { it.UID() }.required()
+
+        /** Path to the file that should be created .*/
+        private val path: Path by option("-o", "--output").path().required()
+
+        /** Flag indicating whether export should be pretty printed.*/
+        private val pretty: Boolean by option("-p", "--pretty", help = "Flag indicating whether exported JSON should be pretty printed.").flag("-u", "--ugly", default = true)
+
         override fun run() {
             val run = this@CompetitionRunCommand.runs[this.id]
             if (run == null) {
@@ -197,13 +222,48 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
                 return
             }
 
-            val path = Paths.get(this.path)
-            val mapper = ObjectMapper().registerKotlinModule()
+            val mapper = jacksonObjectMapper()
             Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use {
-                mapper.writeValue(it, run)
+                val writer = if (this.pretty) {
+                    mapper.writerWithDefaultPrettyPrinter()
+                } else {
+                    mapper.writer()
+                }
+                writer.writeValue(it, run)
             }
             println("Successfully wrote run ${run.id} to $path.")
         }
+    }
+
+    inner class ReactivateRunCommand : CliktCommand(name = "reactivate", help = "Reactivates a previously ended competition run", printHelpOnEmptyArgs = true) {
+
+        private val id: UID by option("-r", "--run").convert { it.UID() }.required()
+
+        override fun run() {
+            val run = this@CompetitionRunCommand.runs[this.id]
+            if (run == null) {
+                println("Run does not seem to exist.")
+                return
+            }
+
+            if(!run.hasEnded || run.isRunning) {
+                println("Run has not ended.")
+                return
+            }
+
+            if (RunExecutor.managers().any { it.id == run.id }) {
+                println("Run already active.")
+                return
+            }
+
+            run.reactivate()
+            RunExecutor.schedule(run)
+
+            println("Run reactivated")
+
+
+        }
+
     }
 
 //    /**
@@ -236,7 +296,7 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
 //    }
 
 
-    inner class CompetitionRunsHistoryCommand : CliktCommand(name = "history", help = "Lists past Competition Runs", printHelpOnEmptyArgs = true) {
+    inner class CompetitionRunsHistoryCommand : CliktCommand(name = "history", help = "Lists past Competition Runs") {
         // TODO fancification with table
 
         override fun run() {
@@ -277,7 +337,11 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
 
 
     inner class ResetSubmissionStatusCommand :
-        NoOpCliktCommand(name = "resetSubmission", help = "Resets Submission Status to INDETERMINATE", printHelpOnEmptyArgs = true) {
+        NoOpCliktCommand(
+            name = "resetSubmission",
+            help = "Resets Submission Status to INDETERMINATE",
+            printHelpOnEmptyArgs = true
+        ) {
 
         init {
             subcommands(
@@ -289,7 +353,11 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
 
 
         inner class ResetSingleSubmissionStatusCommand :
-            CliktCommand(name = "submission", help = "Resets the status of individual submissions", printHelpOnEmptyArgs = true) {
+            CliktCommand(
+                name = "submission",
+                help = "Resets the status of individual submissions",
+                printHelpOnEmptyArgs = true
+            ) {
 
             private val runId: UID by option("-r", "--run", help = "Id of the run").convert { it.UID() }.required()
             private val ids: List<String> by option("-i", "--ids", help = "UIDs of the submissions to reset").multiple()
@@ -322,7 +390,11 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
         }
 
         inner class ResetTaskSubmissionStatusCommand :
-            CliktCommand(name = "task", help = "Resets the status of all submissions of specified tasks.", printHelpOnEmptyArgs = true) {
+            CliktCommand(
+                name = "task",
+                help = "Resets the status of all submissions of specified tasks.",
+                printHelpOnEmptyArgs = true
+            ) {
 
             private val runId: UID by option("-r", "--run", help = "UID of the runs").convert { it.UID() }.required()
             private val ids: List<String> by option("-i", "--ids", help = "UIDs of the task runs to resets").multiple()
@@ -354,7 +426,11 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
         }
 
         inner class ResetTaskGroupSubmissionStatusCommand :
-            CliktCommand(name = "taskGroup", help = "Resets the status all submissions for tasks within a task group", printHelpOnEmptyArgs = true) {
+            CliktCommand(
+                name = "taskGroup",
+                help = "Resets the status all submissions for tasks within a task group",
+                printHelpOnEmptyArgs = true
+            ) {
 
             private val runId: UID by option("-r", "--run", help = "Id of the run").convert { it.UID() }.required()
             private val taskGroup: String by option(

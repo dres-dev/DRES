@@ -10,7 +10,7 @@ import {
     TeamInfo
 } from '../../../openapi';
 import {BehaviorSubject, combineLatest, merge, Observable, of, Subscription} from 'rxjs';
-import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, tap, withLatestFrom} from 'rxjs/operators';
+import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
 import {animate, keyframes, style, transition, trigger} from '@angular/animations';
@@ -56,7 +56,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     submissionsPerTeam: Observable<Map<string, SubmissionInfo[]>>;
 
     /** Observable that tracks the current score per team. */
-    scores: Observable<ScoreOverview>;
+    scores: Observable<Map<string, number>>;
 
     /** Observable that tracks whether a highlight animation should be played for the given team. */
     highlight: Observable<Map<string, string>>;
@@ -84,7 +84,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     ngAfterViewInit(): void {
         /* Create source observable; list of all submissions.  */
         this.submissions = this.state.pipe(
-            switchMap(st => this.runService.getApiRunWithRunidSubmissions(st.id).pipe(
+            switchMap(st => this.runService.getApiV1RunWithRunidSubmissionList(st.id).pipe(
                 retry(3),
                 catchError((err, o) => {
                     console.log(`[TeamsViewerComponent] Error while loading submissions: ${err?.message}.`);
@@ -100,7 +100,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
             map(([submissions, info]) => {
                 const submissionsPerTeam = new Map<string, SubmissionInfo[]>();
                 info.teams.forEach(t => {
-                    submissionsPerTeam.set(t.uid, submissions.filter(s => s.team === t.uid));
+                    submissionsPerTeam.set(t.uid, submissions.filter(s => s.teamId === t.uid));
                 });
                 return submissionsPerTeam;
             }),
@@ -109,7 +109,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
 
         /* Observable that tracks the current score per team. */
         this.scores = this.state.pipe(
-            switchMap(st => this.scoresService.getApiScoreRunWithRunidCurrent(st.id).pipe(
+            switchMap(st => this.scoresService.getApiV1ScoreRunWithRunidCurrent(st.id).pipe(
                 retry(3),
                 catchError((err, o) => {
                     console.log(`[TeamsViewerComponent] Error while loading scores: ${err?.message}.`);
@@ -117,6 +117,11 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
                 }),
                 filter(sc => sc != null), /* Filter null responses. */
             )),
+            map((sc: ScoreOverview) => {
+                const scores = new Map<string, number>();
+                sc.scores.forEach((v) => scores.set(v.teamId, v.score));
+                return scores;
+            }),
             shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading of score. */
         );
 
@@ -141,10 +146,10 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
                 for (const [key, value] of delta) {
                     if (value.correct > value.wrong) {
                         highlight.set(key, 'correct');
-                        AudioPlayerUtilities.playOnce('assets/audio/correct.ogg', this.audio.nativeElement);
+                        AudioPlayerUtilities.playOnce('/immutable/assets/audio/correct.ogg', this.audio.nativeElement);
                     } else if (value.wrong > value.correct) {
                         highlight.set(key, 'wrong');
-                        AudioPlayerUtilities.playOnce('assets/audio/wrong.ogg', this.audio.nativeElement);
+                        AudioPlayerUtilities.playOnce('/immutable/assets/audio/wrong.ogg', this.audio.nativeElement);
                     } else {
                         highlight.set(key, 'nohighlight');
                     }
@@ -173,9 +178,9 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
         ).subscribe(success => {
             if (this.audio) {
                 if (success) {
-                    AudioPlayerUtilities.playOnce('assets/audio/applause.ogg', this.audio.nativeElement);
+                    AudioPlayerUtilities.playOnce('immutable/assets/audio/applause.ogg', this.audio.nativeElement);
                 } else {
-                    AudioPlayerUtilities.playOnce('assets/audio/sad_trombone.ogg', this.audio.nativeElement);
+                    AudioPlayerUtilities.playOnce('immutable/assets/audio/sad_trombone.ogg', this.audio.nativeElement);
                 }
             }
         });
@@ -215,17 +220,6 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
                     return [];
                 }
             })
-        );
-    }
-
-    /**
-     * Returns an observable for the total for the given team.
-     *
-     * @param teamId The team's uid.
-     */
-    public score(teamId: string): Observable<string> {
-        return this.scores.pipe(
-            map(scores => scores.scores.find(s => s.teamId === teamId)?.score.toFixed(0))
         );
     }
 

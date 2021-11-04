@@ -184,7 +184,7 @@ class NonInteractiveRunManager(val run: NonInteractiveCompetition) : RunManager 
      */
     fun addSubmissionBatch(batch: SubmissionBatch<*>) = this.stateLock.read{
 
-        check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronousNonInteractiveRunManager is in status ${this.status} and can currently not accept submissions." }
+        //check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronousNonInteractiveRunManager is in status ${this.status} and can currently not accept submissions." } //FIXME
 
         this.run.tasks.forEach { task ->
             val taskResultBatches = batch.results.filter { it.task == task.uid }

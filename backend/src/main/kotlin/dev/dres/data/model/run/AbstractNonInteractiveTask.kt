@@ -1,7 +1,6 @@
 package dev.dres.data.model.run
 
 import dev.dres.data.model.competition.TaskDescriptionTarget
-import dev.dres.data.model.competition.TaskType
 import dev.dres.data.model.competition.options.TargetOption
 import dev.dres.data.model.run.interfaces.Task
 import dev.dres.data.model.submissions.aspects.OriginAspect
@@ -16,7 +15,7 @@ import dev.dres.run.validation.interfaces.SubmissionBatchValidator
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractNonInteractiveTask: AbstractRun(), Task {
+abstract class AbstractNonInteractiveTask: AbstractTaskRun(), Task {
 
     @Transient
     val validator: SubmissionBatchValidator = newValidator()

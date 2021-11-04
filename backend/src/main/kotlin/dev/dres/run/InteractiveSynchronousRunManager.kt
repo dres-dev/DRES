@@ -181,7 +181,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     }
 
     override fun end(context: RunActionContext) = this.stateLock.write {
-        checkStatus(RunManagerStatus.CREATED, RunManagerStatus.ACTIVE, RunManagerStatus.TASK_ENDED)
+        checkStatus(RunManagerStatus.CREATED, RunManagerStatus.ACTIVE, /*RunManagerStatus.TASK_ENDED*/)
         checkContext(context)
 
         /* End the run. */
@@ -200,7 +200,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     }
 
     override fun currentTaskDescription(context: RunActionContext): TaskDescription = this.stateLock.write {
-        checkStatus(RunManagerStatus.CREATED, RunManagerStatus.ACTIVE, RunManagerStatus.PREPARING_TASK, RunManagerStatus.RUNNING_TASK, RunManagerStatus.TASK_ENDED)
+        checkStatus(RunManagerStatus.CREATED, RunManagerStatus.ACTIVE/*, RunManagerStatus.PREPARING_TASK, RunManagerStatus.RUNNING_TASK, RunManagerStatus.TASK_ENDED*/)
         this.currentTaskDescription
     }
 
@@ -227,7 +227,8 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     }
 
     override fun goTo(context: RunActionContext, index: Int) {
-        checkStatus(RunManagerStatus.ACTIVE, RunManagerStatus.TASK_ENDED)
+        checkStatus(RunManagerStatus.ACTIVE)
+        assureNoRunningTask()
         if (index >= 0 && index < this.description.tasks.size) {
 
             /* Update active task. */
@@ -249,14 +250,16 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     }
 
     override fun startTask(context: RunActionContext) = this.stateLock.write {
-        checkStatus(RunManagerStatus.ACTIVE, RunManagerStatus.TASK_ENDED)
+        checkStatus(RunManagerStatus.ACTIVE)
+        assureNoRunningTask()
         checkContext(context)
 
         /* Create and prepare pipeline for submission. */
         this.run.Task(taskDescriptionId = this.currentTaskDescription(context).id)
 
         /* Update status. */
-        this.status = RunManagerStatus.PREPARING_TASK
+        //this.status = RunManagerStatus.PREPARING_TASK
+        this.run.lastTask!!.prepare()
 
         /* Mark scoreboards and dao for update. */
         this.scoreboardsUpdatable.dirty = true
@@ -272,14 +275,16 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     }
 
     override fun abortTask(context: RunActionContext) = this.stateLock.write {
-        checkStatus(RunManagerStatus.PREPARING_TASK, RunManagerStatus.RUNNING_TASK)
+        //checkStatus(RunManagerStatus.PREPARING_TASK, RunManagerStatus.RUNNING_TASK)
+        checkStatus(RunManagerStatus.ACTIVE)
+        assureTaskPreparingOrRunning()
         checkContext(context)
 
         /* End TaskRun and persist. */
         this.currentTask(context)?.end()
 
-        /* Update state. */
-        this.status = RunManagerStatus.TASK_ENDED
+//        /* Update state. */
+//        this.status = RunManagerStatus.TASK_ENDED
 
         /* Mark scoreboards and dao for update. */
         this.scoreboardsUpdatable.dirty = true
@@ -301,12 +306,20 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
      * @return [InteractiveSynchronousCompetition.Task] or null
      */
     override fun currentTask(context: RunActionContext) = this.stateLock.read {
-        when (this.status) {
-            RunManagerStatus.PREPARING_TASK,
-            RunManagerStatus.RUNNING_TASK,
-            RunManagerStatus.TASK_ENDED -> this.run.lastTask
+//        when (this.status) {
+//            RunManagerStatus.PREPARING_TASK,
+//            RunManagerStatus.RUNNING_TASK,
+//            RunManagerStatus.TASK_ENDED -> this.run.lastTask
+//            else -> null
+//        }
+
+        when(this.run.lastTask?.status) {
+            TaskRunStatus.PREPARING,
+            TaskRunStatus.RUNNING,
+            TaskRunStatus.ENDED -> this.run.lastTask
             else -> null
         }
+
     }
 
     /**
@@ -341,7 +354,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
     override fun adjustDuration(context: RunActionContext, s: Int): Long = this.stateLock.read {
-        checkStatus(RunManagerStatus.RUNNING_TASK)
+        assureTaskRunning()
         checkContext(context)
 
         val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
@@ -359,7 +372,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
      * @return Time remaining until the task will end or -1, if no task is running.
      */
     override fun timeLeft(context: RunActionContext): Long = this.stateLock.read {
-        if (this.status == RunManagerStatus.RUNNING_TASK) {
+        if (this.run.lastTask?.status == TaskRunStatus.RUNNING) {
             val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
             return max(0L, currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!))
         } else {
@@ -380,7 +393,9 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
      * @param viewerId The ID of the viewer's WebSocket session.
      */
     override fun overrideReadyState(context: RunActionContext, viewerId: String): Boolean = this.stateLock.read {
-        checkStatus(RunManagerStatus.PREPARING_TASK)
+        //checkStatus(RunManagerStatus.PREPARING_TASK)
+        checkStatus(RunManagerStatus.ACTIVE)
+        assureTaskPreparingOrRunning()
         checkContext(context)
 
         return try {
@@ -405,7 +420,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     override fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean = this.stateLock.read {
         when (message.type) {
             ClientMessageType.ACK -> {
-                if (this.status == RunManagerStatus.PREPARING_TASK) {
+                if (this.run.lastTask?.status == TaskRunStatus.PREPARING) {
                     this.readyLatch.setReady(connection)
                 }
             }
@@ -428,7 +443,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
      * @param sub [Submission] that should be registered.
      */
     override fun postSubmission(context: RunActionContext, sub: Submission): SubmissionStatus = this.stateLock.read {
-        checkStatus(RunManagerStatus.RUNNING_TASK)
+        assureTaskRunning()
 
         /* Register submission. */
         val task = this.currentTask(context) ?: throw IllegalStateException("Could not find ongoing task in run manager, despite correct status. This is a programmer's error!")
@@ -559,10 +574,10 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
      */
     private fun internalStateUpdate() {
         /** Case 1: Facilitates internal transition from RunManagerStatus.PREPARING_TASK to RunManagerStatus.RUNNING_TASK. */
-        if (this.status == RunManagerStatus.PREPARING_TASK && this.readyLatch.allReadyOrTimedOut()) {
+        if (this.run.lastTask?.status == TaskRunStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
             this.stateLock.write {
                 this.run.lastTask!!.start()
-                this.status = RunManagerStatus.RUNNING_TASK
+                //this.status = RunManagerStatus.RUNNING_TASK
                 AuditLogger.taskStart(this.id, this.currentTaskDescription.name, LogEventSource.INTERNAL, null)
             }
 
@@ -574,13 +589,13 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
         }
 
         /** Case 2: Facilitates internal transition from RunManagerStatus.RUNNING_TASK to RunManagerStatus.TASK_ENDED due to timeout. */
-        if (this.status == RunManagerStatus.RUNNING_TASK) {
+        if (this.run.lastTask!!.status == TaskRunStatus.RUNNING) {
             val task = this.run.lastTask!!
             val timeLeft = max(0L, task.duration * 1000L - (System.currentTimeMillis() - task.started!!))
             if (timeLeft <= 0) {
                 this.stateLock.write {
                     task.end()
-                    this.status = RunManagerStatus.TASK_ENDED
+                    //this.status = RunManagerStatus.TASK_ENDED
                     AuditLogger.taskEnd(this.id, this.currentTaskDescription.name, LogEventSource.INTERNAL, null)
                     EventStreamProcessor.event(TaskEndEvent(this.id, task.uid))
                 }
@@ -622,5 +637,18 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
      */
     private fun checkStatus(vararg status: RunManagerStatus) {
         if (this.status !in status) throw IllegalRunStateException(this.status)
+    }
+
+    private fun assureTaskRunning() {
+        if (this.run.lastTask?.status != TaskRunStatus.RUNNING) throw IllegalStateException("Task not running")
+    }
+
+    private fun assureTaskPreparingOrRunning() {
+        val status = this.run.lastTask?.status
+        if (status != TaskRunStatus.RUNNING && status != TaskRunStatus.PREPARING) throw IllegalStateException("Task not preparing or running")
+    }
+
+    private fun assureNoRunningTask() {
+        if (this.run.tasks.any { it.status == TaskRunStatus.RUNNING }) throw IllegalStateException("Task running!")
     }
 }

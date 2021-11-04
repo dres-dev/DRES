@@ -1,6 +1,5 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.*
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TaskDescriptionTarget
@@ -22,7 +21,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractInteractiveTask: AbstractRun(), Task {
+abstract class AbstractInteractiveTask: AbstractTaskRun(), Task {
     /** List of [Submission]s* registered for this [Task]. */
     val submissions: ConcurrentLinkedQueue<Submission> = ConcurrentLinkedQueue<Submission>()
 

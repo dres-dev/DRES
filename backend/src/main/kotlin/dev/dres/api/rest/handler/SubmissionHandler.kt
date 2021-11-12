@@ -10,7 +10,10 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.dbo.DaoIndexer
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.*
+import dev.dres.data.model.basics.media.MediaCollection
+import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.basics.media.MediaItemSegmentList
+import dev.dres.data.model.basics.media.PlayableMediaItem
 import dev.dres.data.model.basics.time.TemporalPoint
 import dev.dres.data.model.competition.options.SimpleOption
 import dev.dres.data.model.run.RunActionContext
@@ -171,7 +174,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         val result = try {
             run.postSubmission(rac, submission)
         } catch (e: SubmissionRejectedException) {
-            throw ErrorStatusException(412, "Submission rejected by submission filter.", ctx)
+            throw ErrorStatusException(412, e.message ?: "Submission rejected by submission filter.", ctx)
         } catch (e: IllegalRunStateException) {
             logger.info("Submission was received while Run manager not accepting submissions")
             throw ErrorStatusException(400, "Run manager is in wrong state and cannot accept any more submission.", ctx)

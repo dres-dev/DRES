@@ -36,5 +36,5 @@ class EndTaskUpdatable(private val run: InteractiveRunManager, private val conte
         }
     }
 
-    override fun shouldBeUpdated(status: RunManagerStatus): Boolean = (status == RunManagerStatus.RUNNING_TASK)
+    override fun shouldBeUpdated(status: RunManagerStatus): Boolean = (status == RunManagerStatus.ACTIVE) //FIXME needs to also check status of the task run
 }

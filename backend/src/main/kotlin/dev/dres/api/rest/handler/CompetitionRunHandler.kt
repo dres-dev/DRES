@@ -19,7 +19,7 @@ import dev.dres.data.model.competition.options.SimpleOption
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
-import dev.dres.run.RunManagerStatus
+import dev.dres.run.TaskRunStatus
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.core.security.RouteRole
@@ -264,16 +264,16 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
         if (!run.description.participantCanView && isParticipant(ctx)){
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
+        val rac = runActionContext(ctx, run)
 
         /* Test for correct state. */
-        if (run.status != RunManagerStatus.TASK_ENDED) {
+        if (run.currentTask(rac)?.status != TaskRunStatus.ENDED) {
             throw ErrorStatusException(400, "Query target can only be loaded if task has just ended.", ctx)
         }
 
-        val rac = runActionContext(ctx, run)
-
         /* Fetch query target and transform it. */
         val task = run.currentTaskDescription(rac)
+
         try {
             return task.toTaskTarget(config, collections)
         } catch (e: FileNotFoundException) {
@@ -310,7 +310,7 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
         }
 
         /* Obtain current task run and check status. */
-        return if (run.status == RunManagerStatus.RUNNING_TASK) {
+        return if (run.currentTask(rac)?.isRunning == true) {
             if (run.currentTaskDescription(rac).taskType.options.any{ it.option == SimpleOption.HIDDEN_RESULTS }) {
                 run.submissions(rac).map { SubmissionInfo.blind(it) }
             } else {
@@ -350,7 +350,7 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
 
 
         val timestamp = ctx.pathParamMap().getOrDefault("timestamp", "0").toLong()
-        return if (run.status == RunManagerStatus.RUNNING_TASK) {
+        return if (run.currentTask(rac)?.isRunning == true) {
             if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS}) {
                 run.submissions(rac).filter { it.timestamp >= timestamp }.map { SubmissionInfo.blind(it) }
             } else {
@@ -392,7 +392,10 @@ class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
 
 
         val taskId = ctx.pathParamMap()["taskId"]?.UID() ?: throw ErrorStatusException(404, "Missing task id", ctx)
-        return if (run.currentTask(rac)?.description?.id == taskId && run.status == RunManagerStatus.RUNNING_TASK) {
+
+        val task = run.currentTask(rac)
+
+        return if (task?.description?.id == taskId && task.isRunning) {
             if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }) {
                 run.submissions(rac).map { SubmissionInfo.blind(it) }
             } else {

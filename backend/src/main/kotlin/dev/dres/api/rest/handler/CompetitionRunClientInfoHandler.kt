@@ -6,10 +6,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.UID
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
-import dev.dres.run.InteractiveRunManager
-import dev.dres.run.RunExecutor
-import dev.dres.run.RunManager
-import dev.dres.run.RunManagerStatus
+import dev.dres.run.*
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.core.security.RouteRole
@@ -129,13 +126,18 @@ class CompetitionRunClientCurrentTaskInfoHandler : AbstractCompetitionRunClientI
             task.description.taskGroup.name,
             when(run.status){
                 RunManagerStatus.CREATED -> 0
-                RunManagerStatus.ACTIVE,
-                RunManagerStatus.PREPARING_TASK -> task.duration
-                RunManagerStatus.RUNNING_TASK -> run.timeLeft(rac) / 1000
-                RunManagerStatus.TASK_ENDED -> 0
+                RunManagerStatus.ACTIVE -> {
+                    when(task.status) {
+                        TaskRunStatus.CREATED,
+                        TaskRunStatus.PREPARING -> task.duration
+                        TaskRunStatus.RUNNING ->run.timeLeft(rac) / 1000
+                        TaskRunStatus.ENDED -> 0
+                    }
+
+                }
                 RunManagerStatus.TERMINATED -> 0
             },
-            run.status == RunManagerStatus.RUNNING_TASK
+            task.isRunning
         )
 
     }

@@ -128,7 +128,7 @@ sealed class TaskDescriptionTarget {
                             cummulativeOffset += Math.floorDiv(item.durationMs, 1000L) + 1L
                         }
                         is MediaItem.ImageItem -> {
-                            contentElements += ContentElement(ContentType.IMAGE, Base64.getEncoder().encodeToString(fileData), IMAGE_CONTENT_ELEMENT_DURATION_S)
+                            contentElements += ContentElement(ContentType.IMAGE, Base64.getEncoder().encodeToString(fileData), cummulativeOffset)
                             cummulativeOffset += IMAGE_CONTENT_ELEMENT_DURATION_S
                         }
                     }

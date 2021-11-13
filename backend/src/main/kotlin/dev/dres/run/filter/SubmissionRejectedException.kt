@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class SubmissionRejectedException(s: Submission, reason: String) : Throwable("Submission $s was rejected by filter: $reason") {
+class SubmissionRejectedException(s: Submission, reason: String) : Throwable("Submission for item ${s.item.name} was rejected by filter: $reason") {
 
     companion object {
         private val logger = LoggerFactory.getLogger(this::class.java)

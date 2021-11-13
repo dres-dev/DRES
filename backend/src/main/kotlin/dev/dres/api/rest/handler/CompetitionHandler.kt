@@ -90,7 +90,10 @@ class GetTeamLogoHandler(val config: Config) : AbstractCompetitionRunRestHandler
             ctx.contentType("image/png")
             ctx.result(image)
         } catch (e: IOException) {
-            ctx.errorResponse(ErrorStatusException(404, "Logo file for team $logoId could not be read!", ctx))
+            ctx.status(404)
+            ctx.contentType("image/png")
+            ctx.result(this.javaClass.getResourceAsStream("/img/missing.png")!!)
+            //ctx.errorResponse(ErrorStatusException(404, "Logo file for team $logoId could not be read!", ctx))
         }
     }
 }

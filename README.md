@@ -1,6 +1,7 @@
 # DRES
 
 [![swagger-editor](https://img.shields.io/badge/open--API-in--editor-brightgreen.svg?style=flat&label=client%20open-api-v3)](https://editor.swagger.io/?url=https://raw.githubusercontent.com/dres-dev/DRES/master/doc/oas-client.json)
+[![GitHub release](https://img.shields.io/github/release/dres-dev/DRES?include_prereleases=&sort=semver&color=blue)](https://github.com/dres-dev/DRES/releases/)
 
 The Distributed Retrieval Evaluation Server builds uppon the work of https://github.com/klschoef/vbsserver/ to provide the means to evaluate interactive retrieval approaches in various settings, both on-site and distributed.
 
@@ -144,19 +145,34 @@ Query hints are displayed as configured to all viewers, once they are all loaded
 Viewers and participants are shown the message "_Waiting for host to start task_". In case this seems to take too long,
 the operator can switch to the admin view and force all participants to be ready, by clicking the red ones.
 
+## Examples and API Usage
+
+We provide a [bunch of examples](https://github.com/dres-dev/Client-Examples) on how to use the DRES OpenApi specifications for various languages.
+It is recommended that all programmatic interaction with the DRES server is done via generated code, similar as showcased in the examples.
+
 ## Submission
+
+**Notice:** We strongly recommend the usage of the [client OpenApi Specification](docs/client-oas.json) to generate the code to submit (and generally interact with the server)!
+
+---
+
+For legacy reasons, we provide further information below:
+
 In order to submit a result to be evaluated, the submission endpoint is accessed via HTTP(S) in one of the following ways:
-- http(s)://{server}/submit?*item*={item} where {item} is the identifier for the retrieved media item
-- http(s)://{server}/submit?*item*={item}&*shot*={shot} where {shot} is the identifier for a pre-defined temporal segment within the {item}
-- http(s)://{server}/submit?*item*={item}&*frame*={frame} where {frame} is the frame number within the {item}, in case it is a video
-- http(s)://{server}/submit?*item*={item}&*timecode*={timecode} where {timecode} is a temporal position within the {item} in the form HH:MM:SS:FF. In case just a plain number is passed, the behavior is equivalent to passing the same value as {frame}
+- http(s)://{server}/api/v1/submit?*item*={item} where {item} is the identifier for the retrieved media item
+- http(s)://{server}/api/v1/submit?*item*={item}&*shot*={shot} where {shot} is the identifier for a pre-defined temporal segment within the {item}
+- http(s)://{server}/api/v1/submit?*item*={item}&*frame*={frame} where {frame} is the frame number within the {item}, in case it is a video
+- http(s)://{server}/api/v1/submit?*item*={item}&*timecode*={timecode} where {timecode} is a temporal position within the {item} in the form HH:MM:SS:FF. In case just a plain number is passed, the behavior is equivalent to passing the same value as {frame}
 
-In case no session cookie is passed as part of the request, an additional *session* parameter can be passed to transmit the session id token. The session id can be found via the UI in the User Profile, accessible via the top-right menu. Alternatively, the information about the currently authenticated user, including the session token, can be accessed via http(s)://{server}/api/user which will return the information in JSON format.
-
-Alternatively, there we provide a [bunch of examples](https://github.com/dres-dev/Client-Examples) on how to use the DRES OpenApi specifications for various languages, which might be handier than the pure REST submission endpoints desribed above.
+In case no session cookie is passed as part of the request, an additional *session* parameter can be passed to transmit the session id token. The session id can be found via the UI in the User Profile, accessible via the top-right menu. Alternatively, the information about the currently authenticated user, including the session token, can be accessed via http(s)://{server}/api/v1/user which will return the information in JSON format.
 
 ## Interaction Logging
-Analogously to the VBS server, the logging of interaction sequences and complete result lists is supported. The specification of the messages can be found in [this working document](https://www.overleaf.com/read/rppygxshvhrn) as well as the OpenApi specifications. The interaction/querying logs can be submittet to http(s)://{server}/log/query and the result logs can be sent to http(s)://{server}/log/result, both via POST.
+
+**Notice:** We strongly recommend the usage of the [client OpenApi Specification](docs/client-oas.json) to generate the code to submit logging information (and generally interact with the server)!
+
+Analogously to the VBS server, the logging of interaction sequences and complete result lists is supported. The specification of the messages can be found in [this working document](https://www.overleaf.com/read/rppygxshvhrn) as well as the OpenApi specifications.
+
+
 
 ## Known Issues
 

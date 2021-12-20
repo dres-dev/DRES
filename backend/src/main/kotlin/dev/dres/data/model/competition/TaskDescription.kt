@@ -136,7 +136,7 @@ class TaskDescription(
                 if((it.start ?: end) < end){
                     throw IllegalArgumentException("Overlapping component of type ${group.key} in task $name")
                 }
-                end = max(end, it.end ?: (it.start ?: 0) + 1)
+                end = max(end, it.end ?: ((it.start ?: 0) + 1))
             }
         }
     }

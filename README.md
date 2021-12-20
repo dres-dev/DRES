@@ -152,7 +152,7 @@ It is recommended that all programmatic interaction with the DRES server is done
 
 ## Submission
 
-**Notice:** We strongly recommend the usage of the [client OpenApi Specification](docs/client-oas.json) to generate the code to submit (and generally interact with the server)!
+**Notice:** We strongly recommend the usage of the [client OpenApi Specification](doc/oas-client.json) to generate the code to submit (and generally interact with the server)!
 
 ---
 
@@ -168,7 +168,7 @@ In case no session cookie is passed as part of the request, an additional *sessi
 
 ## Interaction Logging
 
-**Notice:** We strongly recommend the usage of the [client OpenApi Specification](docs/client-oas.json) to generate the code to submit logging information (and generally interact with the server)!
+**Notice:** We strongly recommend the usage of the [client OpenApi Specification](doc/oas-client.json) to generate the code to submit logging information (and generally interact with the server)!
 
 Analogously to the VBS server, the logging of interaction sequences and complete result lists is supported. The specification of the messages can be found in [this working document](https://www.overleaf.com/read/rppygxshvhrn) as well as the OpenApi specifications.
 

@@ -1,8 +1,6 @@
 package dev.dres.api.cli
 
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
@@ -68,7 +66,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                 .validate { require(it.isNotEmpty()) { "Competition description must be non empty." } }
 
         override fun run() {
-            val newCompetition = CompetitionDescription(id = UID.EMPTY, name = name, description = description, taskTypes = mutableListOf(), taskGroups = mutableListOf(), teams = mutableListOf(), teamGroups = mutableListOf(), tasks = mutableListOf(), participantCanView = true)
+            val newCompetition = CompetitionDescription(id = UID.EMPTY, name = name, description = description, taskTypes = mutableListOf(), taskGroups = mutableListOf(), teams = mutableListOf(), teamGroups = mutableListOf(), judges = mutableListOf(), tasks = mutableListOf(), participantCanView = true)
             val id = this@CompetitionCommand.competitions.append(newCompetition)
             println("New competition '$newCompetition' created with ID=${id.string}.")
         }

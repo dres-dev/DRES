@@ -2,6 +2,7 @@ package dev.dres.api.rest.types.competition
 
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
+import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskGroup
@@ -25,6 +26,7 @@ data class RestCompetitionDescription(
         val tasks: List<RestTaskDescription>,
         val teams: List<RestTeam>,
         val teamGroups: List<RestTeamGroup>,
+        val judges: List<String>,
         val participantCanView: Boolean
 ) {
 
@@ -44,6 +46,7 @@ data class RestCompetitionDescription(
             competition.tasks.map { RestTaskDescription.fromTask(it) },
             competition.teams.map { RestTeam(it) },
             competition.teamGroups.map { RestTeamGroup(it) },
+            competition.judges.map { it.string },
             competition.participantCanView
         )
     }
@@ -66,7 +69,8 @@ data class RestCompetitionDescription(
             this.taskGroups.toMutableList(),
             this.tasks.map { it.toTaskDescription(this.taskGroups, this.taskTypes, mediaItems) }.toMutableList(),
             teams,
-            this.teamGroups.map { it.toTeamGroup(teams) },
+            this.teamGroups.map { it.toTeamGroup(teams) }.toMutableList(),
+            this.judges.map { UserId(it) }.toMutableList(),
             this.participantCanView
         )
     }

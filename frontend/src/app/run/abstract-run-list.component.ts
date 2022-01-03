@@ -115,6 +115,14 @@ export class AbstractRunListComponent {
         });
     }
 
+    scoreDownloadProvider = (runId: string) => {
+        return this.downloadService.getApiV1DownloadRunWithRunidScores(runId, 'body', false, {httpHeaderAccept: 'text/csv'}).pipe(take(1));
+    }
+
+    scoreFileProvider = (name: string) => {
+        return () => `scores-${name}.csv`;
+    }
+
     downloadProvider = (runId) => {
         return this.downloadService.getApiV1DownloadRunWithRunid(runId)
             .pipe(take(1));

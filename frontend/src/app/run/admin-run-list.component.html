@@ -33,9 +33,15 @@
                     <mat-icon>play_arrow</mat-icon>
                 </button>
 
-                <button mat-icon-button aria-label="Download scores." matTooltip="Download scores." (click)="downloadScores(row.id)">
-                    <mat-icon>file_download</mat-icon>
-                </button>
+                <app-download-button
+                    [name] = "''"
+                    [icon]="'file_download'"
+                    [contentType]="'text/csv'"
+                    [fileName]="scoreFileProvider(row.name)"
+                    [downloadProvider]="scoreDownloadProvider(row.id)"
+                    [inline]="true"
+                    matTooltip="Download the scores of this run as CSV">
+                </app-download-button>
 
                 <button *ngIf="row.status == 'ACTIVE' || row.status == 'TASK_ENDED'" mat-icon-button aria-label="Previous task." matTooltip="Got to previous task." (click)="previousTask(row.id)">
                     <mat-icon>skip_previous</mat-icon>
@@ -56,11 +62,12 @@
                 <button *ngIf="row.status == 'CREATED' || row.status == 'ACTIVE' || row.status == 'TASK_ENDED'" mat-icon-button aria-label="Terminate competition run." matTooltip="Terminate competition run." (click)="terminate(row.id)">
                     <mat-icon>stop</mat-icon>
                 </button>
-                <app-download-json-button
+                <app-download-button
                         [name]="''"
                         [fileName]="fileProvider(row.name)"
                         [downloadProvider]="downloadProvider(row.id)"
-                        matTooltip="Download the run as JSON"></app-download-json-button>
+                        [inline]="true"
+                        matTooltip="Download the run as JSON"></app-download-button>
             </td>
         </ng-container>
 

@@ -31,10 +31,10 @@
 <div mat-dialog-actions>
     <button mat-button (click)="close()">Cancel</button>
     <button mat-button (click)="create()">Save</button>
-    <app-download-json-button
+    <app-download-button
             [downloadable]="downloadProvider"
             [fileName]="nameProvider"
-            matTooltip="Download the user as JSON"></app-download-json-button>
+            matTooltip="Download the user as JSON"></app-download-button>
     <app-upload-json-button
         matTooltip="Upload user JSON"
         [handler]="uploaded"></app-upload-json-button>

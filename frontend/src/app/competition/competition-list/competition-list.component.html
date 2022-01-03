@@ -33,11 +33,11 @@
                 <button mat-icon-button aria-label="Delete competition." matTooltip="Delete competition." (click)="delete(row.id)">
                     <mat-icon>delete</mat-icon>
                 </button>
-                <app-download-json-button
+                <app-download-button
                         [name]="''"
                         [fileName]="fileProvider(row.name)"
                         [downloadProvider]="downloadProvider(row.id)"
-                        matTooltip="Download the entire competition as JSON"></app-download-json-button>
+                        matTooltip="Download the entire competition as JSON"></app-download-button>
             </td>
         </ng-container>
 

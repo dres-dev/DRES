@@ -3,11 +3,11 @@ import {MatButton} from '@angular/material/button';
 import {Observable} from 'rxjs';
 
 @Component({
-    selector: 'app-download-json-button',
-    templateUrl: './download-json-button.component.html',
-    styleUrls: ['./download-json-button.component.scss']
+    selector: 'app-download-button',
+    templateUrl: './download-button.component.html',
+    styleUrls: ['./download-button.component.scss']
 })
-export class DownloadJsonButtonComponent {
+export class DownloadButtonComponent {
 
     /**
      * The provider for the downloadable content
@@ -35,14 +35,22 @@ export class DownloadJsonButtonComponent {
 
     @Input() name = 'Download';
 
+    @Input() icon = 'cloud_download';
+
+    @Input() inline = false;
+
     public download() {
         if (typeof this.downloadable === 'function') {
             this.doDownload(this.downloadable());
         } else if (typeof this.downloadProvider === 'object') {
             this.downloadProvider.subscribe(data => {
-                this.doDownload(JSON.stringify(data, null, ' '));
+                if (this.contentType === 'application/json') {
+                    this.doDownload(JSON.stringify(data, null, ' '));
+                } else {
+                    this.doDownload(data);
+                }
             });
-        }else {
+        } else {
             console.error('Cannot download as no provider was given. This is a developer error.');
         }
     }

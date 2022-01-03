@@ -19,9 +19,15 @@
                     <mat-icon>gavel</mat-icon>
                 </button>
 
-                <button  mat-icon-button aria-label="Download scores." matTooltip="Download scores." (click)="downloadScores(row.id)">
-                    <mat-icon>cloud_download</mat-icon>
-                </button>
+                <app-download-button
+                        [name] = "''"
+                        [icon]="'file_download'"
+                        [contentType]="'text/csv'"
+                        [fileName]="scoreFileProvider(row.name)"
+                        [downloadProvider]="scoreDownloadProvider(row.id)"
+                        [inline]="true"
+                        matTooltip="Download the scores of this run as CSV">
+                </app-download-button>
 
                 <button mat-icon-button aria-label="Go to audience voting viewer." matTooltip="Go to audience voting viewer." (click)="navigateToVoting(row.id)">
                     <mat-icon>flaky</mat-icon>

@@ -6,7 +6,7 @@ import {ServicesModule} from '../services/services.module';
 import {MatIconModule} from '@angular/material/icon';
 import {ApiStatusComponent} from './api-status/api-status.component';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {DownloadJsonButtonComponent} from './download-json-button/download-json-button.component';
+import {DownloadButtonComponent} from './download-button/download-button.component';
 import {UploadJsonButtonComponent} from './upload-json-button/upload-json-button.component';
 import { ConfirmationDialogComponent } from './confirmation-dialog/confirmation-dialog.component';
 import {MatDialogModule} from '@angular/material/dialog';
@@ -16,7 +16,7 @@ import {MatDialogModule} from '@angular/material/dialog';
     declarations: [
         BackButtonComponent,
         ApiStatusComponent,
-        DownloadJsonButtonComponent,
+        DownloadButtonComponent,
         UploadJsonButtonComponent,
         ConfirmationDialogComponent
     ],
@@ -26,7 +26,7 @@ import {MatDialogModule} from '@angular/material/dialog';
         ServicesModule,
         MatIconModule,
         ApiStatusComponent,
-        DownloadJsonButtonComponent,
+        DownloadButtonComponent,
         UploadJsonButtonComponent
     ],
     imports: [

@@ -346,10 +346,10 @@
     <button mat-button (click)="close()">Cancel</button>
     <button mat-button (click)="save()">Save</button>
     <!-- Disabled until proper import / export functionality exists
-    <app-download-json-button
+    <app-download-button
             [fileName]="fileProvider"
             [downloadable]="downloadProvider"
-            matTooltip="Download the task as JSON"></app-download-json-button>
+            matTooltip="Download the task as JSON"></app-download-button>
     <app-upload-json-button
             matTooltip="Upload task JSON"
             [handler]="uploaded"></app-upload-json-button>

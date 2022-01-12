@@ -1,6 +1,6 @@
 import {Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router, RouterStateSnapshot} from '@angular/router';
-import {filter, map, take} from 'rxjs/operators';
+import {filter, map, shareReplay, take} from 'rxjs/operators';
 import {
     DownloadService,
     CompetitionService,
@@ -13,7 +13,7 @@ import {
     RestTaskDescription,
     RestTeam,
     TaskGroup,
-    TaskType
+    TaskType, UserDetails, UserService, UserRequest
 } from '../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {FormControl, FormGroup} from '@angular/forms';
@@ -32,6 +32,8 @@ import {
 } from './competition-builder-task-dialog/competition-builder-task-dialog.component';
 import {AppConfig} from '../../app.config';
 import {DeactivationGuarded} from '../../services/can-deactivate.guard';
+import RoleEnum = UserRequest.RoleEnum;
+import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
 
 @Component({
     selector: 'app-competition-builer',
@@ -126,12 +128,17 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     taskTable: MatTable<any>;
     @ViewChild('teamTable')
     teamTable: MatTable<any>;
+    @ViewChild('judgesTable')
+    judgesTable: MatTable<UserDetails>;
     displayedColumnsTeams: string[] = ['logo', 'name', 'action'];
+    displayedColumnsJudges: string[] = ['name', 'action'];
     displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'action'];
     form: FormGroup = new FormGroup({name: new FormControl(''), description: new FormControl('')});
     dirty = false;
     routeSubscription: Subscription;
     changeSubscription: Subscription;
+
+    availableJudges: Observable<UserDetails[]>;
 
     /**
      * Ref to template for easy access in thml
@@ -151,12 +158,18 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     lscTemplate = CompetitionBuilderComponent.LSC_TEMPLATE;
 
     constructor(private competitionService: CompetitionService,
+                private userService: UserService,
                 private downloadService: DownloadService,
                 private route: ActivatedRoute,
                 private routerService: Router,
                 private snackBar: MatSnackBar,
                 private dialog: MatDialog,
                 private config: AppConfig) {
+
+        this.availableJudges = this.userService.getApiV1UserList().pipe(
+            map(users => users.filter(user => user.role === RoleEnum.JUDGE)),
+            shareReplay(1)
+        );
     }
 
     ngOnInit() {
@@ -422,6 +435,24 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
         this.competition.teams.splice(this.competition.teams.indexOf(team), 1);
         this.dirty = true;
         this.teamTable.renderRows();
+    }
+
+    public judgeFor(id: string): Observable<UserDetails> {
+        return this.availableJudges.pipe(
+            map(users => users.find(u => u.id === id))
+        );
+    }
+
+    public addJudge(event: MatAutocompleteSelectedEvent){
+        this.competition.judges.push(event.option.value.id);
+        this.dirty = true;
+        this.judgesTable.renderRows();
+    }
+
+    public removeJudge(judgeId: string){
+        this.competition.judges.splice(this.competition.judges.indexOf(judgeId), 1);
+        this.dirty = true;
+        this.judgesTable.renderRows();
     }
 
     /**

@@ -112,16 +112,24 @@
                         Add judge
                     </button>
 
-                    <mat-menu #judgesSelection>
-                        <mat-form-field appearance="fill">
-                            <mat-label>Judge Selection</mat-label>
-                            <input type="text" placeholder="Judge" arial-label="Judge" matInput [matAutocomplete]="judgesAutocomplete">
-                            <mat-autocomplete #judgesAutocomplete="matAutocomplete" (optionSelected)="addJudge($event)">
-                                <mat-option *ngFor="let judge of (availableJudges | async)" [value]="judge">
-                                    {{judge.username}}
-                                </mat-option>
-                            </mat-autocomplete>
-                        </mat-form-field>
+                    <mat-menu #judgesSelection overlapTrigger="true">
+                        <div style="padding: 0.5em;">
+                            <mat-form-field appearance="fill">
+                                <mat-label>Judge Selection</mat-label>
+                                <input type="text" placeholder="Judge" arial-label="Judge" matInput
+                                       [matAutocomplete]="judgesAutocomplete"
+                                       (click)="$event.stopPropagation()"
+                                >
+                                <mat-autocomplete #judgesAutocomplete="matAutocomplete"
+                                                  (optionSelected)="addJudge($event)"
+                                                  [displayWith]="dispJudge"
+                                >
+                                    <mat-option *ngFor="let judge of (availableJudges | async)" [value]="judge">
+                                        {{judge.username}}
+                                    </mat-option>
+                                </mat-autocomplete>
+                            </mat-form-field>
+                        </div>
                     </mat-menu>
 
                 </div>

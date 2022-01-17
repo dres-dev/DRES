@@ -447,12 +447,17 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
         this.competition.judges.push(event.option.value.id);
         this.dirty = true;
         this.judgesTable.renderRows();
+        // TODO prevent double adding
     }
 
     public removeJudge(judgeId: string){
         this.competition.judges.splice(this.competition.judges.indexOf(judgeId), 1);
         this.dirty = true;
         this.judgesTable.renderRows();
+    }
+
+    public dispJudge(user: UserDetails){
+        return user.username;
     }
 
     /**

@@ -56,6 +56,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         const val PARAMETER_NAME_SHOT = "shot"
         const val PARAMETER_NAME_FRAME = "frame"
         const val PARAMETER_NAME_TIMECODE = "timecode"
+        const val PARAMETER_NAME_TEXT = "text"
     }
 
 
@@ -83,6 +84,16 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         }?.uid ?: throw ErrorStatusException(404, "No team for user '$userId' could not be found.", ctx)
 
         val rac = RunActionContext.runActionContext(ctx, runManager)
+
+        /* If text is supplied, it supersedes other parameters */
+        val text = map[PARAMETER_NAME_TEXT]?.first()
+        if (text != null) {
+            return Submission.Text(
+                team, userId, submissionTime, text
+            ).also {
+                it.task = runManager.currentTask(rac)
+            }
+        }
 
         /* Find collectionId the submission belongs to. */
         val collectionParam = map[PARAMETER_NAME_COLLECTION]?.first()

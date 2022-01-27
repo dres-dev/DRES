@@ -1,6 +1,8 @@
 package dev.dres.run.filter
 
 import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.aspects.ItemAspect
+import dev.dres.data.model.submissions.aspects.TextAspect
 import org.slf4j.LoggerFactory
 
 /**
@@ -9,7 +11,15 @@ import org.slf4j.LoggerFactory
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class SubmissionRejectedException(s: Submission, reason: String) : Throwable("Submission for item ${s.item.name} was rejected by filter: $reason") {
+class SubmissionRejectedException(s: Submission, reason: String) : Throwable(
+    "Submission ${
+        when (s) {
+            is ItemAspect -> "for item ${s.item.name}"
+            is TextAspect -> "with text '${s.text}'"
+            else -> ""
+        }
+    } was rejected by filter: $reason"
+) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(this::class.java)

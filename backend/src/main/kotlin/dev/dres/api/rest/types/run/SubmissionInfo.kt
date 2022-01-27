@@ -3,7 +3,9 @@ package dev.dres.api.rest.types.run
 import dev.dres.api.rest.types.collection.RestMediaItem
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.aspects.ItemAspect
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
+import dev.dres.data.model.submissions.aspects.TextAspect
 
 /**
  * Contains information about a [Submission].
@@ -20,6 +22,7 @@ data class SubmissionInfo(
     val status: SubmissionStatus,
     val timestamp: Long,
     val item: RestMediaItem? = null,
+    val text: String? = null,
     val start: Long? = null,
     val end: Long? = null
 ) {
@@ -37,7 +40,8 @@ data class SubmissionInfo(
         memberId = submission.memberId.string,
         status = submission.status,
         timestamp = submission.timestamp,
-        item = RestMediaItem.fromMediaItem(submission.item),
+        item = if (submission is ItemAspect) RestMediaItem.fromMediaItem(submission.item) else null,
+        text = if (submission is TextAspect) submission.text else null,
         start = if (submission is TemporalSubmissionAspect) submission.start else null,
         end = if (submission is TemporalSubmissionAspect) submission.end else null
     )

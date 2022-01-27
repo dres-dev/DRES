@@ -1,7 +1,6 @@
 package dev.dres.run.eventstream
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.utilities.extensions.read
 import dev.dres.utilities.extensions.write
 import org.slf4j.LoggerFactory
@@ -18,7 +17,7 @@ object EventStreamProcessor {
     private var flushTimer = 0L
 
     private lateinit var processorThread: Thread
-    private val mapper = ObjectMapper().apply { registerModule(KotlinModule()) }
+    private val mapper = jacksonObjectMapper()
     private val LOGGER = LoggerFactory.getLogger(this.javaClass)
 
     private val eventQueue = ConcurrentLinkedQueue<StreamEvent>()

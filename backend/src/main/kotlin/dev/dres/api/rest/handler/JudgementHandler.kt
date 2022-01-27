@@ -7,7 +7,9 @@ import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.aspects.ItemAspect
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
+import dev.dres.data.model.submissions.aspects.TextAspect
 import dev.dres.run.RunExecutor
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
@@ -57,15 +59,25 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
         val validator = run.judgementValidators.find { it.hasOpen } ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement", ctx, true)
         val next = validator.next(ctx.sessionId()) ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement", ctx)
 
-        val collection = this.collections[next.second.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.second.item.collection}", ctx)
-
         val taskDescription = next.second.task?.description?.textualDescription() ?: next.second.task?.description?.name ?: "no task description available"
+
+        if (next.second is TextAspect) {
+            JudgementRequest(next.first, validator.id, "text", (next.second as TextAspect).text, taskDescription, null, null)
+        }
+
+        if (next.second !is ItemAspect) {
+            throw ErrorStatusException(400, "Submission has neither item nor text", ctx)
+        }
+
+        val item = (next.second as ItemAspect).item
+
+        val collection = this.collections[item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${item.collection}", ctx)
 
         return if (next.second is TemporalSubmissionAspect){
             val tsa = next.second as TemporalSubmissionAspect
             JudgementRequest(next.first, validator.id, collection.id.string, tsa.item.id.string, taskDescription, tsa.start.toString(), tsa.end.toString())
         } else {
-            JudgementRequest(next.first, validator.id, collection.id.string, next.second.item.id.string, taskDescription, null, null)
+            JudgementRequest(next.first, validator.id, collection.id.string, item.id.string, taskDescription, null, null)
         }
     }
 }
@@ -207,9 +219,17 @@ class NextOpenVoteJudgementHandler(val collections: DAO<MediaCollection>) : Abst
 
         val next = validator.nextSubmissionToVoteOn() ?: throw ErrorStatusException(202, "There is currently no voting going on in run", ctx)
 
-        val collection = this.collections[next.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.item.collection}", ctx)
-
         val taskDescription = next.task?.description?.textualDescription() ?: next.task?.description?.name ?: "no task description available"
+
+        if (next is TextAspect) {
+            JudgementRequest("vote", validator.id, "text", (next as TextAspect).text, taskDescription, null, null)
+        }
+
+        if (next !is ItemAspect) {
+            throw ErrorStatusException(400, "Submission has neither item nor text", ctx)
+        }
+
+        val collection = this.collections[next.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.item.collection}", ctx)
 
         return if (next is TemporalSubmissionAspect){
             val tsa = next as TemporalSubmissionAspect

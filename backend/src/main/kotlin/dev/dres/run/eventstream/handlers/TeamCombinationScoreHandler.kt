@@ -58,6 +58,7 @@ class TeamCombinationScoreHandler : StreamEventHandler {
                             when (submission) {
                                 is Submission.Item -> submission.copy(teamId = it.key).apply { this.status = submission.status }
                                 is Submission.Temporal -> submission.copy(teamId = it.key).apply { this.status = submission.status }
+                                is Submission.Text -> submission.copy(teamId = it.key).apply { this.status = submission.status }
                             }
                         } else {
                             null

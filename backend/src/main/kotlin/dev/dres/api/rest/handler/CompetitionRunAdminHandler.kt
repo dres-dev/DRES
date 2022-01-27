@@ -15,7 +15,9 @@ import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.aspects.ItemAspect
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
+import dev.dres.data.model.submissions.aspects.TextAspect
 import dev.dres.mgmt.admin.UserManager
 import dev.dres.run.*
 import dev.dres.run.audit.AuditLogger
@@ -661,7 +663,8 @@ class ListSubmissionsPerTaskRunAdminHandler :
                         memberName = UserManager.get(sub.memberId)?.username?.name,
                         status = sub.status,
                         timestamp = sub.timestamp,
-                        item = RestMediaItem.fromMediaItem(sub.item),
+                        item = if (sub is ItemAspect) RestMediaItem.fromMediaItem(sub.item) else null,
+                        text = if (sub is TextAspect) sub.text else null,
                         start = if (sub is TemporalSubmissionAspect) sub.start else null,
                         end = if (sub is TemporalSubmissionAspect) sub.end else null
                     )

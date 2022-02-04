@@ -26,7 +26,6 @@ import java.util.*
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 sealed class TaskDescriptionTarget {
 
-
     companion object {
         const val IMAGE_CONTENT_ELEMENT_DURATION_S = 3L
         const val EMPTY_CONTENT_ELEMENT_DURATION_S = 0L

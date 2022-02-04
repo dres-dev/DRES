@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.RestApiRole
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
@@ -11,6 +12,7 @@ import dev.dres.data.model.submissions.aspects.ItemAspect
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 import dev.dres.data.model.submissions.aspects.TextAspect
 import dev.dres.run.RunExecutor
+import dev.dres.run.RunManager
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
 import dev.dres.run.validation.interfaces.VoteValidator
@@ -28,6 +30,20 @@ abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler 
     protected fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
         throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx)
     }.UID()
+
+
+    companion object {
+        fun checkRunManagerAccess(ctx: Context, runManager: RunManager) {
+            val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(
+                403,
+                "No valid user.",
+                ctx
+            )
+            if (userId !in runManager.description.judges) {
+                throw ErrorStatusException(403, "Access denied.", ctx)
+            }
+        }
+    }
 }
 
 data class Judgement(val token: String, val validator: String, val verdict: SubmissionStatus)
@@ -49,12 +65,15 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
                 OpenApiResponse("202", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
     override fun doGet(ctx: Context): JudgementRequest {
         val runId = this.runId(ctx)
         val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
+
+        checkRunManagerAccess(ctx, run)
 
         val validator = run.judgementValidators.find { it.hasOpen } ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement", ctx, true)
         val next = validator.next(ctx.sessionId()) ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement", ctx)
@@ -95,12 +114,16 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = this.runId(ctx)
         val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
+
+        checkRunManagerAccess(ctx, run)
+
         val judgement = try {
             ctx.bodyAsClass(Judgement::class.java)
         } catch (e: BadRequestResponse) {
@@ -131,6 +154,7 @@ class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, A
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<JudgementValidatorStatus>::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
@@ -141,6 +165,8 @@ class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, A
         }.UID()
 
         val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
+
+        AbstractJudgementHandler.checkRunManagerAccess(ctx, run)
 
         return run.judgementValidators.map { JudgementValidatorStatus(it.id, it.pending, it.open) }
     }

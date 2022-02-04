@@ -1,6 +1,7 @@
 package dev.dres.data.serializers
 
 import dev.dres.data.dbo.DAO
+import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.utilities.extensions.readUID
@@ -35,6 +36,10 @@ class CompetitionSerializer(private val mediaItems: DAO<MediaItem>): Serializer<
         for (teamGroup in value.teamGroups) {
             TeamGroupSerializer.serialize(out, teamGroup)
         }
+        out.packInt(value.judges.size)
+        for (judge in value.judges) {
+            out.writeUID(judge)
+        }
         out.writeBoolean(value.participantCanView)
     }
 
@@ -48,7 +53,8 @@ class CompetitionSerializer(private val mediaItems: DAO<MediaItem>): Serializer<
         val tasks = (0 until input.unpackInt()).map { taskDescriptionSerializer.deserialize(input,available) }.toMutableList()
         val teams = (0 until input.unpackInt()).map { TeamSerializer.deserialize(input, available) }.toMutableList()
         val teamGroups = (0 until input.unpackInt()).map { TeamGroupSerializer.deserialize(input, teams) }.toMutableList()
+        val judges = (0 until input.unpackInt()).map { input.readUID() as UserId }.toMutableList()
         val participantCanView = input.readBoolean()
-        return CompetitionDescription(id, name, description, taskTypes, taskGroups, tasks, teams, teamGroups, participantCanView)
+        return CompetitionDescription(id, name, description, taskTypes, taskGroups, tasks, teams, teamGroups, judges, participantCanView)
     }
 }

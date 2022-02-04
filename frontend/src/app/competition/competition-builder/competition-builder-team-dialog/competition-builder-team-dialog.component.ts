@@ -39,6 +39,9 @@ export class CompetitionBuilderTeamDialogComponent {
             userInput: new FormControl('')
         });
         this.availableUsers = this.userService.getApiV1UserList().pipe(
+            map(value => {
+                return value.filter(user => user.role !== 'JUDGE' && user.role !== 'VIEWER');
+            }),
             shareReplay(1)
         );
     }

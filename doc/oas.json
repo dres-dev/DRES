@@ -3513,6 +3513,16 @@
               }
             }
           },
+          "403" : {
+            "description" : "Forbidden",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
           "404" : {
             "description" : "Not Found",
             "content" : {
@@ -3648,6 +3658,16 @@
               }
             }
           },
+          "403" : {
+            "description" : "Forbidden",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
           "404" : {
             "description" : "Not Found",
             "content" : {
@@ -3691,6 +3711,16 @@
           },
           "400" : {
             "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -4461,7 +4491,7 @@
         }
       },
       "RestCompetitionDescription" : {
-        "required" : [ "id", "name", "participantCanView", "taskGroups", "taskTypes", "tasks", "teamGroups", "teams" ],
+        "required" : [ "id", "judges", "name", "participantCanView", "taskGroups", "taskTypes", "tasks", "teamGroups", "teams" ],
         "type" : "object",
         "properties" : {
           "id" : {
@@ -4501,6 +4531,12 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/RestTeamGroup"
+            }
+          },
+          "judges" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
             }
           },
           "participantCanView" : {

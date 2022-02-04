@@ -444,10 +444,12 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     }
 
     public addJudge(event: MatAutocompleteSelectedEvent){
+        if (this.competition.judges.includes(event.option.value.id)) {
+            return;
+        }
         this.competition.judges.push(event.option.value.id);
         this.dirty = true;
         this.judgesTable.renderRows();
-        // TODO prevent double adding
     }
 
     public removeJudge(judgeId: string){

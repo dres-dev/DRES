@@ -4480,7 +4480,7 @@
         "properties" : {
           "option" : {
             "type" : "string",
-            "enum" : [ "SINGLE_MEDIA_ITEM", "SINGLE_MEDIA_SEGMENT", "MULTIPLE_MEDIA_ITEMS", "JUDGEMENT", "VOTE" ]
+            "enum" : [ "SINGLE_MEDIA_ITEM", "SINGLE_MEDIA_SEGMENT", "MULTIPLE_MEDIA_ITEMS", "JUDGEMENT", "VOTE", "TEXT" ]
           },
           "parameters" : {
             "type" : "object",
@@ -4617,7 +4617,7 @@
         "properties" : {
           "type" : {
             "type" : "string",
-            "enum" : [ "SINGLE_MEDIA_ITEM", "SINGLE_MEDIA_SEGMENT", "MULTIPLE_MEDIA_ITEMS", "JUDGEMENT", "VOTE" ]
+            "enum" : [ "SINGLE_MEDIA_ITEM", "SINGLE_MEDIA_SEGMENT", "MULTIPLE_MEDIA_ITEMS", "JUDGEMENT", "VOTE", "TEXT" ]
           },
           "mediaItems" : {
             "type" : "array",
@@ -5060,6 +5060,9 @@
           },
           "item" : {
             "$ref" : "#/components/schemas/RestMediaItem"
+          },
+          "text" : {
+            "type" : "string"
           },
           "start" : {
             "type" : "integer",

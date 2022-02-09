@@ -17,11 +17,11 @@ class TextValidator(targets: List<String>) : SubmissionValidator {
      *
      * [Pattern.CANON_EQ] is activated for both, regex and literals.
      */
-    private val patterns = targets.map {
+    private val regexes = targets.map {
         if(it.startsWith("\\") && it.endsWith("\\")) {
-            Pattern.compile(it.substring(1, it.length - 1), Pattern.CANON_EQ)
+            it.substring(1, it.length - 1).toRegex(RegexOption.CANON_EQ)
         } else {
-            Pattern.compile(it, Pattern.LITERAL or Pattern.CANON_EQ)
+            it.toRegex(setOf(RegexOption.CANON_EQ, RegexOption.LITERAL))
         }
     }
 
@@ -32,7 +32,7 @@ class TextValidator(targets: List<String>) : SubmissionValidator {
             return
         }
 
-        if (patterns.any { it.matcher(submission.text).matches() })  {
+        if (regexes.any { submission.text matches it })  {
             submission.status = SubmissionStatus.CORRECT
         } else {
             submission.status = SubmissionStatus.WRONG

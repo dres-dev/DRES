@@ -1,19 +1,18 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {
-    CompetitionRunScoresService,
-    CompetitionRunService,
-    RunInfo,
-} from '../../../../openapi';
+import {CompetitionRunScoresService, CompetitionRunService, RunInfo,} from '../../../../openapi';
 import {catchError, filter, flatMap, map, shareReplay, switchMap, tap} from 'rxjs/operators';
 import {combineLatest, concat, interval, Observable, of} from 'rxjs';
 import {
     ApexAxisChartSeries,
     ApexChart,
-    ApexLegend, ApexNoData,
+    ApexLegend,
+    ApexNoData,
     ApexStroke,
-    ApexTheme, ApexTitleSubtitle,
-    ApexXAxis, ApexYAxis
+    ApexTheme,
+    ApexTitleSubtitle,
+    ApexXAxis,
+    ApexYAxis
 } from 'ng-apexcharts';
 
 @Component({
@@ -23,24 +22,16 @@ import {
 })
 export class RunScoreHistoryComponent {
 
-    /** Run ID displayed by the current {@link RunScoreHistoryComponent}. */
-    private runId: Observable<string>;
-
     /** List of available scoreboards (by name). */
     public scoreboards: Observable<string[]>;
-
     /** Title for the time series graph. */
     public title: Observable<ApexTitleSubtitle>;
-
     /** Run information for the current run ID. */
     public runInfo: Observable<RunInfo>;
-
     /** Time series data. */
     public series: Observable<ApexAxisChartSeries>;
-
     /** The currently selected scoreboard. */
     public selectedScoreboard: string = null;
-
     chart = {
         type: 'line',
         width: '100%',
@@ -51,25 +42,36 @@ export class RunScoreHistoryComponent {
             autoScaleYaxis: true
         },
         toolbar: {
-            autoSelected: 'zoom'
-        }
+            autoSelected: 'zoom',
+            export: {
+                csv: {
+                    headerCategory: 'Scores',
+                    dateFormatter(timestamp) {
+                        const date = new Date(timestamp);
+                        return `${date.getFullYear().toString().padStart(4, '0')}-` +
+                            `${(date.getMonth() + 1).toString().padStart(2, '0')}-` +
+                            `${date.getDate().toString().padStart(2, '0')}T` +
+                            `${date.getHours().toString().padStart(2, '0')}:` +
+                            `${date.getMinutes().toString().padStart(2, '0')}:` +
+                            `${date.getSeconds().toString().padStart(2, '0')}`;
+                    }
+                }
+            }
+        },
     } as ApexChart;
-
     stroke: ApexStroke = {
         width: 5,
         curve: 'straight'
     } as ApexStroke;
-
     xaxis: ApexXAxis = {
         type: 'datetime',
         labels: {
-            show : true
+            show: true
         },
         title: {
             text: 'Time'
         }
     } as ApexXAxis;
-
     yaxis: ApexYAxis = {
         showForNullSeries: false,
         decimalsInFloat: 2,
@@ -77,20 +79,19 @@ export class RunScoreHistoryComponent {
             text: 'Score'
         }
     } as ApexYAxis;
-
     legend: ApexLegend = {
         position: 'right',
         horizontalAlign: 'left',
         showForSingleSeries: false
     } as ApexLegend;
-
     theme: ApexTheme = {
         mode: 'dark'
     } as ApexTheme;
-
     noData: ApexNoData = {
         text: 'No data!'
     };
+    /** Run ID displayed by the current {@link RunScoreHistoryComponent}. */
+    private runId: Observable<string>;
 
     /**
      * Default constructor for {@link RunScoreHistoryComponent}
@@ -178,9 +179,11 @@ export class RunScoreHistoryComponent {
                 const array: ApexAxisChartSeries = [];
                 for (const s of data) {
                     const team = run.teams.find(t => t.uid === s.team);
-                    array.push({name: team.name, data: s.points.map(p => {
-                        return {x: p.timestamp, y: p.score, strokeColor: team.color, fillColor: team.color};
-                    })});
+                    array.push({
+                        name: team.name, data: s.points.map(p => {
+                            return {x: p.timestamp, y: p.score, strokeColor: team.color, fillColor: team.color};
+                        })
+                    });
                 }
                 return array;
             })

@@ -99,6 +99,10 @@ export class CompetitionFormBuilder {
                 const targetForm = this.singleMediaItemTargetForm(newIndex);
                 array.push(targetForm);
                 return targetForm;
+            case 'TEXT':
+                const form = this.singleTextTargetForm();
+                array.push(form);
+                return form;
             default:
                 break;
         }
@@ -157,7 +161,7 @@ export class CompetitionFormBuilder {
                 type: this.taskType.targetType.option,
                 mediaItems: (this.form.get('target') as FormArray).controls.map(t => {
                     return {
-                        mediaItem: t.get('mediaItem').value.id,
+                        mediaItem: t.get('mediaItem').value?.id || t.get('mediaItem').value,
                         temporalRange: t.get('segment_start') && t.get('segment_start') ? {
                             start: {value: t.get('segment_start').value, unit: t.get('segment_time_unit').value} as RestTemporalPoint,
                             end: {value: t.get('segment_end').value, unit: t.get('segment_time_unit').value} as RestTemporalPoint
@@ -230,6 +234,16 @@ export class CompetitionFormBuilder {
                 return new FormArray([]);
             case 'VOTE':
                 return new FormArray([]);
+            case 'TEXT':
+                const text: FormGroup[] = [];
+                if (this.data?.target) {
+                    console.log(this.data?.target);
+                    this.data?.target?.mediaItems.forEach((d, i) => text.push(this.singleTextTargetForm(d)));
+                } else {
+                    console.log('no target');
+                    text.push(this.singleTextTargetForm());
+                }
+                return new FormArray(text);
         }
     }
 
@@ -294,6 +308,20 @@ export class CompetitionFormBuilder {
         formGroup.get('segment_end').updateValueAndValidity();
 
         return formGroup;
+    }
+
+    private singleTextTargetForm(initialize?: RestTaskDescriptionTargetItem) {
+
+        const textFormControl = new FormControl(null, [Validators.required]);
+
+        console.log(initialize?.mediaItem);
+
+        textFormControl.setValue(initialize?.mediaItem);
+
+        return new FormGroup({
+            mediaItem: textFormControl
+        });
+
     }
 
     /**

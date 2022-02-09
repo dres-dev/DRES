@@ -27,6 +27,7 @@ data class RestTaskDescriptionTarget(val type: TargetOption, val mediaItems: Lis
             is TaskDescriptionTarget.MediaItemTarget -> RestTaskDescriptionTarget(TargetOption.SINGLE_MEDIA_ITEM, listOf(RestTaskDescriptionTargetItem(target.item.id.string)))
             is TaskDescriptionTarget.MultipleMediaItemTarget -> RestTaskDescriptionTarget(TargetOption.MULTIPLE_MEDIA_ITEMS, target.items.map { RestTaskDescriptionTargetItem(it.id.string) })
             is TaskDescriptionTarget.VoteTaskDescriptionTarget -> RestTaskDescriptionTarget(TargetOption.VOTE, target.targets.map { RestTaskDescriptionTargetItem(it.first.id.string, if (it.second == null) null else RestTemporalRange(it.second!!)) })
+            is TaskDescriptionTarget.TextTaskDescriptionTarget -> RestTaskDescriptionTarget(TargetOption.TEXT, target.targets.map { RestTaskDescriptionTargetItem(it, null) })
         }
     }
 
@@ -55,6 +56,9 @@ data class RestTaskDescriptionTarget(val type: TargetOption, val mediaItems: Lis
                 val fps = if (item is MediaItem.VideoItem) item.fps else 0f
                 item to it.temporalRange!!.toTemporalRange(fps)
             }
+        )
+        TargetOption.TEXT -> TaskDescriptionTarget.TextTaskDescriptionTarget(
+            this.mediaItems.map { it.mediaItem } //TODO maybe should be renamed from 'mediaItem' to something else
         )
     }
 }

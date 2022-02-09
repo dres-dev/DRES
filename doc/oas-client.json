@@ -141,6 +141,14 @@
             "type" : "string"
           }
         }, {
+          "name" : "text",
+          "in" : "query",
+          "description" : "Text to be submitted. ONLY for tasks with target type TEXT. If this parameter is provided, it superseeds all athers.",
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "name" : "frame",
           "in" : "query",
           "description" : "Frame number for media with temporal progression (e.g. video).",

@@ -45,15 +45,16 @@ export class RunScoreHistoryComponent {
             autoSelected: 'zoom',
             export: {
                 csv: {
-                    headerCategory: 'Scores',
+                    headerCategory: 'Submission Timestamp',
                     dateFormatter(timestamp) {
                         const date = new Date(timestamp);
-                        return `${date.getFullYear().toString().padStart(4, '0')}-` +
-                            `${(date.getMonth() + 1).toString().padStart(2, '0')}-` +
-                            `${date.getDate().toString().padStart(2, '0')}T` +
-                            `${date.getHours().toString().padStart(2, '0')}:` +
-                            `${date.getMinutes().toString().padStart(2, '0')}:` +
-                            `${date.getSeconds().toString().padStart(2, '0')}`;
+                        return date.getUTCFullYear().toString().padStart(4, '0') + '-' +
+                            (date.getUTCMonth() + 1).toString().padStart(2, '0') + '-' +
+                            date.getUTCDate().toString().padStart(2, '0') + 'T' +
+                            date.getUTCHours().toString().padStart(2, '0') + ':' +
+                            date.getUTCMinutes().toString().padStart(2, '0') + ':' +
+                            date.getUTCSeconds().toString().padStart(2, '0') + '.' +
+                            date.getUTCMilliseconds().toString().padStart(3, '0') + 'Z';
                     }
                 }
             }

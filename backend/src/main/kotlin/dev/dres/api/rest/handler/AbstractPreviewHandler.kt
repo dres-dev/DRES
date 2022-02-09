@@ -8,6 +8,7 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.submissions.aspects.ItemAspect
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
@@ -216,10 +217,17 @@ class SubmissionPreviewHandler(collections: DAO<MediaCollection>, itemIndex: Dao
             val submission = run.allSubmissions.find { it.uid == submissionId }
                     ?: throw ErrorStatusException(404, "Submission '$submissionId' not found", ctx)
 
-            handlePreviewRequest(
+            if (submission is ItemAspect) {
+
+                handlePreviewRequest(
                     submission.item,
-                    if (submission is TemporalSubmissionAspect) submission.start else null
-                    , ctx)
+                    if (submission is TemporalSubmissionAspect) submission.start else null, ctx
+                )
+            } else { //TODO have an icon for text submissions?
+                ctx.header("Cache-Control", "max-age=31622400")
+                ctx.contentType("image/png")
+                ctx.result(this.javaClass.getResourceAsStream("/img/missing.png")!!)
+            }
         } catch (e: ErrorStatusException) {
             ctx.errorResponse(e)
         }

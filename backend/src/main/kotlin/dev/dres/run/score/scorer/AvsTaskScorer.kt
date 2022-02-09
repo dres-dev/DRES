@@ -5,6 +5,7 @@ import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.aspects.ItemAspect
 import dev.dres.run.score.ScoreEntry
 import dev.dres.run.score.TaskContext
 import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
@@ -50,7 +51,7 @@ class AvsTaskScorer: RecalculatingSubmissionTaskScorer, TeamTaskScorer {
 
     private fun countQuantized(submissions: Collection<Submission>): Int {
 
-        return submissions.groupBy { it.item }.map {
+        return submissions.filterIsInstance<ItemAspect>().groupBy { it.item }.map {
             when(it.key) {
                 is MediaItem.ImageItem -> 1
                 is MediaItem.VideoItem -> {

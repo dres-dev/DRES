@@ -170,7 +170,7 @@
                             </mat-form-field>
                             <mat-form-field *ngIf="target.get('mediaItem') && data.taskType.targetType.option === 'TEXT'"
                                             [style]="'width: 100%;'">
-                                <input type="text" matInput placeholder="Target Text"
+                                <input type="text" matInput [matTooltip]="renderTextTargetTooltip()" placeholder="Target Text"
                                        [formControl]="target.get('mediaItem')">
                             </mat-form-field>
                             <button *ngIf="isImageMediaItem(target.get('mediaItem').value)" style="width: 5%;"

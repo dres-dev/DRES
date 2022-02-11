@@ -5226,11 +5226,15 @@
         }
       },
       "JudgementRequest" : {
-        "required" : [ "collection", "item", "taskDescription", "token", "validator" ],
+        "required" : [ "collection", "item", "mediaType", "taskDescription", "token", "validator" ],
         "type" : "object",
         "properties" : {
           "token" : {
             "type" : "string"
+          },
+          "mediaType" : {
+            "type" : "string",
+            "enum" : [ "TEXT", "VIDEO", "IMAGE" ]
           },
           "validator" : {
             "type" : "string"

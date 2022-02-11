@@ -57,7 +57,7 @@ data class JudgementRequest(val token: String, val mediaType: JudgementRequestMe
 enum class JudgementRequestMediaType {
     TEXT,
     VIDEO,
-    IMAGE
+    IMAGE,
 }
 
 class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : AbstractJudgementHandler(), GetRestHandler<JudgementRequest> {

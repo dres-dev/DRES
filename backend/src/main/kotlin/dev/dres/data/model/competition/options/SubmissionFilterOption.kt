@@ -5,8 +5,8 @@ import dev.dres.run.filter.*
 /**
  * [Option] that can be applied to a task. Configures [SubmissionFilter]s that should be used.
  *
- * @author Luca Rossetto & Ralph Gasser
- * @version 1.1.0
+ * @author Luca Rossetto & Ralph Gasser & Loris Sauter
+ * @version 1.2.0
  */
 enum class SubmissionFilterOption : Option {
     NO_DUPLICATES,
@@ -14,7 +14,9 @@ enum class SubmissionFilterOption : Option {
     LIMIT_WRONG_PER_TEAM,
     LIMIT_TOTAL_PER_TEAM,
     LIMIT_CORRECT_PER_MEMBER,
-    TEMPORAL_SUBMISSION;
+    TEMPORAL_SUBMISSION,
+    TEXTUAL_SUBMISSION,
+    ITEM_SUBMISSION;
 
     /**
      * Returns the [SubmissionFilter] for this [SubmissionFilterOption] and the given [parameters].
@@ -28,5 +30,7 @@ enum class SubmissionFilterOption : Option {
         LIMIT_TOTAL_PER_TEAM -> MaximumTotalPerTeamFilter(parameters)
         LIMIT_CORRECT_PER_MEMBER -> CorrectPerTeamMemberFilter(parameters)
         TEMPORAL_SUBMISSION -> TemporalSubmissionFilter()
+        TEXTUAL_SUBMISSION -> TextualSubmissionFilter()
+        ITEM_SUBMISSION -> ItemSubmissionFilter()
     }
 }

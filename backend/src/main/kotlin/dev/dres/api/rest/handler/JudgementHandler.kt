@@ -7,6 +7,8 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.basics.media.MediaCollection
+import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.basics.media.PlayableMediaItem
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.ItemAspect
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
@@ -50,7 +52,13 @@ data class Judgement(val token: String, val validator: String, val verdict: Subm
 
 data class JudgementVote(val verdict: SubmissionStatus)
 
-data class JudgementRequest(val token: String, val validator: String, val collection: String, val item: String, val taskDescription: String, val startTime: String?, val endTime: String?)
+data class JudgementRequest(val token: String, val mediaType: JudgementRequestMediaType, val validator: String, val collection: String, val item: String, val taskDescription: String, val startTime: String?, val endTime: String?)
+
+enum class JudgementRequestMediaType {
+    TEXT,
+    VIDEO,
+    IMAGE
+}
 
 class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : AbstractJudgementHandler(), GetRestHandler<JudgementRequest> {
     override val route = "run/{runId}/judge/next"
@@ -81,7 +89,7 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
         val taskDescription = next.second.task?.description?.textualDescription() ?: next.second.task?.description?.name ?: "no task description available"
 
         if (next.second is TextAspect) {
-            JudgementRequest(next.first, validator.id, "text", (next.second as TextAspect).text, taskDescription, null, null)
+            return JudgementRequest(next.first, JudgementRequestMediaType.TEXT, validator.id, "text", (next.second as TextAspect).text, taskDescription, null, null)
         }
 
         if (next.second !is ItemAspect) {
@@ -94,9 +102,15 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
 
         return if (next.second is TemporalSubmissionAspect){
             val tsa = next.second as TemporalSubmissionAspect
-            JudgementRequest(next.first, validator.id, collection.id.string, tsa.item.id.string, taskDescription, tsa.start.toString(), tsa.end.toString())
+            // Video is assumed, due to Temporal Submission Aspect - might want to change this later
+            JudgementRequest(next.first, JudgementRequestMediaType.VIDEO, validator.id, collection.id.string, tsa.item.id.string, taskDescription, tsa.start.toString(), tsa.end.toString())
         } else {
-            JudgementRequest(next.first, validator.id, collection.id.string, item.id.string, taskDescription, null, null)
+            val type = if(item is PlayableMediaItem){
+                JudgementRequestMediaType.VIDEO
+            } else {
+                JudgementRequestMediaType.IMAGE
+            }
+            JudgementRequest(next.first, type, validator.id, collection.id.string, item.id.string, taskDescription, null, null)
         }
     }
 }
@@ -248,20 +262,27 @@ class NextOpenVoteJudgementHandler(val collections: DAO<MediaCollection>) : Abst
         val taskDescription = next.task?.description?.textualDescription() ?: next.task?.description?.name ?: "no task description available"
 
         if (next is TextAspect) {
-            JudgementRequest("vote", validator.id, "text", (next as TextAspect).text, taskDescription, null, null)
+            return JudgementRequest("vote", JudgementRequestMediaType.TEXT, validator.id, "text", (next as TextAspect).text, taskDescription, null, null)
         }
 
         if (next !is ItemAspect) {
             throw ErrorStatusException(400, "Submission has neither item nor text", ctx)
         }
 
+        val item = (next as ItemAspect).item
+
         val collection = this.collections[next.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.item.collection}", ctx)
 
         return if (next is TemporalSubmissionAspect){
             val tsa = next as TemporalSubmissionAspect
-            JudgementRequest("vote", validator.id, collection.id.string, tsa.item.id.string, taskDescription, tsa.start.toString(), tsa.end.toString())
+            JudgementRequest("vote",JudgementRequestMediaType.VIDEO, validator.id, collection.id.string, tsa.item.id.string, taskDescription, tsa.start.toString(), tsa.end.toString())
         } else {
-            JudgementRequest("vote", validator.id, collection.id.string, next.item.id.string, taskDescription, null, null)
+            val type = if(item is PlayableMediaItem){
+                JudgementRequestMediaType.VIDEO
+            } else {
+                JudgementRequestMediaType.IMAGE
+            }
+            JudgementRequest("vote",type, validator.id, collection.id.string, next.item.id.string, taskDescription, null, null)
         }
     }
 }

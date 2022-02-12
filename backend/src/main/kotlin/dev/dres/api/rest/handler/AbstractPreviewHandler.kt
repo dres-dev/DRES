@@ -10,6 +10,7 @@ import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.submissions.aspects.ItemAspect
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
+import dev.dres.data.model.submissions.aspects.TextAspect
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.utilities.FFmpegUtil
@@ -98,44 +99,6 @@ abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollecti
 
             }
 
-//            if (!Files.exists(imgPath)) {
-//                val mediaItemLocation = Path.of(collection.basePath, item.location)
-//                //sanity check
-//                if (time < 0 || time > item.durationMs || !Files.exists(mediaItemLocation)) {
-//                    imgPath.toFile().writeText("missing")
-//                } else {
-//                    if (!waitingMap.containsKey(imgPath)) {
-//                        waitingMap[imgPath] = System.currentTimeMillis() + timeOut
-//                        FFmpegUtil.extractFrame(mediaItemLocation, time, imgPath)
-//                    }
-//                }
-//            }
-//
-//            val imgFile = imgPath.toFile()
-//
-//
-//            //check if file is empty wait
-//            while (imgFile.isEmpty() && waitingMap[imgPath] ?: 0 > System.currentTimeMillis()) {
-//                Thread.sleep(100)
-//            }
-//
-//            if (imgFile.isEmpty()){ //time out
-//                ctx.status(429)
-//                ctx.header("Retry-After", "10")
-//                ctx.header("Refresh", "10; url=${ctx.url()}")
-//                //ctx.contentType("image/png")
-//                //ctx.result(this.javaClass.getResourceAsStream("/img/loading.png"))
-//            } else if (imgFile.length() < 100) { //placeholder
-//                ctx.contentType("image/png")
-//                ctx.status(404)
-//                ctx.header("Cache-Control", "max-age=31622400")
-//                ctx.result(this.javaClass.getResourceAsStream("/img/missing.png"))
-//            } else {
-//                waitingMap.remove(imgPath)
-//                ctx.header("Cache-Control", "max-age=31622400")
-//                ctx.sendFile(imgFile)
-//            }
-
         }
     }
 
@@ -202,31 +165,38 @@ class SubmissionPreviewHandler(collections: DAO<MediaCollection>, itemIndex: Dao
             val params = ctx.pathParamMap()
 
             val runId = params["runId"]?.UID()
-                    ?: throw ErrorStatusException(404, "Parameter 'runId' is invalid", ctx)
+                ?: throw ErrorStatusException(404, "Parameter 'runId' is invalid", ctx)
 
             val submissionId = params["submissionId"]?.UID()
-                    ?: throw ErrorStatusException(404, "Parameter 'submissionId' is missing", ctx)
+                ?: throw ErrorStatusException(404, "Parameter 'submissionId' is missing", ctx)
 
             val run = RunExecutor.managerForId(runId)
-                    ?: throw ErrorStatusException(404, "Competition Run $runId not found", ctx)
+                ?: throw ErrorStatusException(404, "Competition Run $runId not found", ctx)
 
-            if(run !is InteractiveRunManager) {
+            if (run !is InteractiveRunManager) {
                 throw ErrorStatusException(404, "Competition Run $runId is not interactive", ctx)
             }
 
             val submission = run.allSubmissions.find { it.uid == submissionId }
-                    ?: throw ErrorStatusException(404, "Submission '$submissionId' not found", ctx)
+                ?: throw ErrorStatusException(404, "Submission '$submissionId' not found", ctx)
 
-            if (submission is ItemAspect) {
-
-                handlePreviewRequest(
-                    submission.item,
-                    if (submission is TemporalSubmissionAspect) submission.start else null, ctx
-                )
-            } else { //TODO have an icon for text submissions?
-                ctx.header("Cache-Control", "max-age=31622400")
-                ctx.contentType("image/png")
-                ctx.result(this.javaClass.getResourceAsStream("/img/missing.png")!!)
+            when (submission) {
+                is ItemAspect -> {
+                    handlePreviewRequest(
+                        submission.item,
+                        if (submission is TemporalSubmissionAspect) submission.start else null, ctx
+                    )
+                }
+                is TextAspect -> {
+                    ctx.header("Cache-Control", "max-age=31622400")
+                    ctx.contentType("image/png")
+                    ctx.result(this.javaClass.getResourceAsStream("/img/text.png")!!)
+                }
+                else -> {
+                    ctx.header("Cache-Control", "max-age=31622400")
+                    ctx.contentType("image/png")
+                    ctx.result(this.javaClass.getResourceAsStream("/img/missing.png")!!)
+                }
             }
         } catch (e: ErrorStatusException) {
             ctx.errorResponse(e)

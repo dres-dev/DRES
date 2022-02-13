@@ -63,6 +63,12 @@
                     <th mat-header-cell *matHeaderCellDef>Status</th>
                     <td mat-cell *matCellDef="let submission">{{submission.status}}</td>
                 </ng-container>
+                <!-- TEXT COL -->
+                <ng-container matColumnDef="text">
+                    <th mat-header-cell *matHeaderCellDef>Text</th>
+                    <td mat-cell
+                        *matCellDef="let submission">{{submission.text != null ? submission?.text : "N/A"}}</td>
+                </ng-container>
                 <!-- ITEM COL -->
                 <ng-container matColumnDef="item">
                     <th mat-header-cell *matHeaderCellDef>Media Item</th>

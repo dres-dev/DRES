@@ -199,6 +199,10 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
         return this.runId.pipe(map(runId => this.config.resolveApiUrl(`/preview/submission/${runId}/${submission.id}`)));
     }
 
+    public altTextForSubmission(submission: SubmissionInfo): string {
+        return submission.text == null ? '' : submission.text;
+    }
+
     /**
      * Generates a URL for the logo of the team.
      */

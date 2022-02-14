@@ -27,4 +27,26 @@ data class ItemRange(val element: String, val start: Long, val end: Long){
 
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ItemRange
+
+        if (element != other.element) return false
+        if (start != other.start) return false
+        if (end != other.end) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = element.hashCode()
+        result = 31 * result + start.hashCode()
+        result = 31 * result + end.hashCode()
+        return result
+    }
+
+
 }

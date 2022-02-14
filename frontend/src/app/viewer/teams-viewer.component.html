@@ -24,7 +24,9 @@
 
                     <div class="submissions">
                         <div *ngFor="let submission of (submissionForTeam(team.uid) | async)" [className]="'submission ' + submission.status">
-                            <img class="placeholder" *ngIf="submission.id" [src]="previewForSubmission(submission) | async" [alt]="altTextForSubmission(submission)"/>
+                            <img *ngIf="submission.id"
+                                 [src]="(previewForSubmission(submission) | async)"
+                                 [matTooltip]="tooltipForSubmission(submission)"/>
                             <p *ngIf="!submission.id">?</p>
                         </div>
                     </div>

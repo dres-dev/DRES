@@ -41,6 +41,9 @@ abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler 
                 "No valid user.",
                 ctx
             )
+            if (AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)) {
+                return //Admins require no further check
+            }
             if (userId !in runManager.description.judges) {
                 throw ErrorStatusException(403, "Access denied.", ctx)
             }

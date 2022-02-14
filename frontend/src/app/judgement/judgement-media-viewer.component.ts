@@ -122,6 +122,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
 
     stop() {
         this.mediaUrl = undefined;
+        this.activeType.next(undefined);
         this.videoUrlDebug = undefined;
         this.startInSeconds = undefined;
         this.endInSeconds = undefined;

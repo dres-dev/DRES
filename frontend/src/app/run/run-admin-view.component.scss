@@ -39,3 +39,18 @@
 .alt-list-avatar {
   border-radius: 5%!important;
 }
+
+.outline-white {
+  text-shadow: 1px 1px white, 1px -1px white, -1px 1px white, -1px -1px white
+}
+
+.p4 {
+  padding: 4px;
+}
+
+.image-fit-to-container {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  overflow: hidden;
+}

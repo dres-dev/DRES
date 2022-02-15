@@ -26,6 +26,7 @@ abstract class AbstractNonInteractiveTask: AbstractTaskRun(), Task {
         TargetOption.MULTIPLE_MEDIA_ITEMS -> MediaItemsSubmissionBatchValidator((description.target as TaskDescriptionTarget.MultipleMediaItemTarget).items.toSet())
         TargetOption.JUDGEMENT -> TODO()
         TargetOption.VOTE -> TODO()
+        TargetOption.TEXT -> TODO()
     }
 
     abstract fun addSubmissionBatch(origin: OriginAspect, batches: List<ResultBatch<*>>)

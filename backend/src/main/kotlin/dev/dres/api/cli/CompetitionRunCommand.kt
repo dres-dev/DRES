@@ -16,7 +16,9 @@ import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.interfaces.Competition
 import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.aspects.ItemAspect
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
+import dev.dres.data.model.submissions.aspects.TextAspect
 import dev.dres.run.*
 import dev.dres.utilities.extensions.UID
 import java.io.FileOutputStream
@@ -510,10 +512,11 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
                 relevantTasks.forEach { task ->
 
                     val submittedItems = task.submissions.groupBy {
-                        if (it is TemporalSubmissionAspect) {
-                            Triple(it.item, it.start, it.end)
-                        } else {
-                            Triple(it.item, 0L, 0L)
+                        when {
+                            it is ItemAspect && it is TemporalSubmissionAspect -> Triple(it.item.name, it.start, it.end)
+                            it is ItemAspect -> Triple(it.item.name, 0L, 0L)
+                            it is TextAspect -> Triple(it.text, 0L, 0L)
+                            else -> Triple("unknown", 0L, 0L)
                         }
                     }
 
@@ -524,7 +527,7 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
                             listOf(
                                 task.uid.string,
                                 task.description.name,
-                                it.key.first.name,
+                                it.key.first,
                                 it.key.second,
                                 it.key.third,
                                 status

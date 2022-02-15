@@ -156,7 +156,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
         /** Map task target to representation used by viewer. */
         this.currentTaskTarget = currentTaskTarget.pipe(
             flatMap((h: TaskTarget) => {
-            if (!h) { return of(null); }
+            if (!h) { return fromArray([]); }
             return fromArray(h.sequence).pipe(
                 delayWhen<ContentElement>((c: ContentElement) => interval(1000 * c.offset)),
                 repeat(-1),
@@ -172,7 +172,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
                         const sequence = [];
                         const largest = new Map<ContentElement.ContentTypeEnum, ContentElement>();
 
-                        if (!h) { return null; }
+                        if (!h) { return []; }
 
                         /* Find last element per category (which is always retained). */
                         h.sequence.forEach(e => {

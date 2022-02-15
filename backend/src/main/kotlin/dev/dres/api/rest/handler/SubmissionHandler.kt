@@ -55,6 +55,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         const val PARAMETER_NAME_SHOT = "shot"
         const val PARAMETER_NAME_FRAME = "frame"
         const val PARAMETER_NAME_TIMECODE = "timecode"
+        const val PARAMETER_NAME_TEXT = "text"
     }
 
 
@@ -85,6 +86,16 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         }?.uid ?: throw ErrorStatusException(404, "No team for user '$userId' could not be found.", ctx)
 
         val rac = RunActionContext.runActionContext(ctx, runManager)
+
+        /* If text is supplied, it supersedes other parameters */
+        val text = map[PARAMETER_NAME_TEXT]?.first()
+        if (text != null) {
+            return Submission.Text(
+                team, userId, submissionTime, text
+            ).also {
+                it.task = runManager.currentTask(rac)
+            }
+        }
 
         /* Find collectionId the submission belongs to. */
         val collectionParam = map[PARAMETER_NAME_COLLECTION]?.first()
@@ -151,6 +162,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             queryParams = [
                 OpenApiParam(PARAMETER_NAME_COLLECTION, String::class, "Collection identifier. Optional, in which case the default collection for the run will be considered.", allowEmptyValue = true),
                 OpenApiParam(PARAMETER_NAME_ITEM, String::class, "Identifier for the actual media object or media file."),
+                OpenApiParam(PARAMETER_NAME_TEXT, String::class, "Text to be submitted. ONLY for tasks with target type TEXT. If this parameter is provided, it superseeds all athers.", allowEmptyValue = true, required = false),
                 OpenApiParam(PARAMETER_NAME_FRAME, Int::class, "Frame number for media with temporal progression (e.g. video).", allowEmptyValue = true, required = false),
                 OpenApiParam(PARAMETER_NAME_SHOT, Int::class, "Shot number for media with temporal progression (e.g. video).", allowEmptyValue = true, required = false),
                 OpenApiParam(PARAMETER_NAME_TIMECODE, String::class, "Timecode for media with temporal progression (e.g. video).", allowEmptyValue = true, required = false),

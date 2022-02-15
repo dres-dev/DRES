@@ -330,4 +330,10 @@ export class CompetitionBuilderTaskDialogComponent {
         }
         return '';
     }
+
+    public renderTextTargetTooltip() {
+        return `The textual task target.
+        Regex are allowed and have to be enclosed with single backslashes (\\).
+        Java Regex matching is used.`;
+    }
 }

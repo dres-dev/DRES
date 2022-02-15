@@ -10,7 +10,7 @@ import {
     TeamInfo
 } from '../../../openapi';
 import {BehaviorSubject, combineLatest, merge, Observable, of, Subscription} from 'rxjs';
-import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
+import {catchError, delay, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, withLatestFrom} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
 import {animate, keyframes, style, transition, trigger} from '@angular/animations';
@@ -196,7 +196,16 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
      * Generates a URL for the preview image of a submission.
      */
     public previewForSubmission(submission: SubmissionInfo): Observable<string> {
-        return this.runId.pipe(map(runId => this.config.resolveApiUrl(`/preview/submission/${runId}/${submission.id}`)));
+        return this.runId.pipe(
+            map(runId => this.config.resolveApiUrl(`/preview/submission/${runId}/${submission.id}`))
+        );
+    }
+
+    /**
+     * Generates a URL for the preview image of a submission.
+     */
+    public tooltipForSubmission(submission: SubmissionInfo): string {
+        return submission.text == null ? '' : submission.text;
     }
 
     /**

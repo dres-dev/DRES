@@ -1,14 +1,13 @@
 package dev.dres.data.model.run
 
 import dev.dres.data.model.competition.*
-import dev.dres.data.model.competition.TaskDescription
-import dev.dres.data.model.competition.TaskDescriptionTarget
 import dev.dres.data.model.competition.options.TargetOption
 import dev.dres.data.model.run.interfaces.Task
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.validation.MediaItemsSubmissionValidator
 import dev.dres.run.validation.TemporalOverlapSubmissionValidator
+import dev.dres.run.validation.TextValidator
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import dev.dres.run.validation.judged.BasicJudgementValidator
 import dev.dres.run.validation.judged.BasicVoteValidator
@@ -67,6 +66,7 @@ abstract class AbstractInteractiveTask: AbstractTaskRun(), Task {
             parameters = description.taskType.targetType.parameters
 
         )
+        TargetOption.TEXT -> TextValidator((description.target as TaskDescriptionTarget.TextTaskDescriptionTarget).targets)
     }
 
     abstract fun addSubmission(submission: Submission)

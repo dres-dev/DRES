@@ -66,24 +66,39 @@ export class CompetitionFormBuilder {
      */
     public addComponentForm(type: ConfiguredOptionQueryComponentOption.OptionEnum) {
         const array = this.form.get('components') as FormArray;
+        const previous = array.length === 0 ? null : array.get([array.length - 1]);
         const newIndex = array.length;
+        let component = null;
         switch (type) {
             case 'IMAGE_ITEM':
-                array.push(this.imageItemComponentForm(newIndex));
+                component = this.imageItemComponentForm(newIndex);
                 break;
             case 'VIDEO_ITEM_SEGMENT':
-                array.push(this.videoItemComponentForm(newIndex));
+                component = this.videoItemComponentForm(newIndex);
                 break;
             case 'TEXT':
-                array.push(this.textItemComponentForm(newIndex));
+                component = this.textItemComponentForm(newIndex);
                 break;
             case 'EXTERNAL_IMAGE':
-                array.push(this.externalImageItemComponentForm(newIndex));
+                component = this.externalImageItemComponentForm(newIndex);
                 break;
             case 'EXTERNAL_VIDEO':
-                array.push(this.externalVideoItemComponentForm(newIndex));
+                component = this.externalVideoItemComponentForm(newIndex);
                 break;
+            default:
+                console.error(`Failed to add query hint: Unsupported component type '${type}.`);
+                return;
         }
+        /* Initialize default values. */
+        if (previous) {
+            (component.get('start') as FormControl).setValue((previous.get('end') as FormControl).value);
+        } else {
+            (component.get('start') as FormControl).setValue(0);
+        }
+        (component.get('end') as FormControl).setValue(this.durationInitValue);
+
+        /* Append component. */
+        array.push(component);
     }
 
     /**
@@ -99,6 +114,10 @@ export class CompetitionFormBuilder {
                 const targetForm = this.singleMediaItemTargetForm(newIndex);
                 array.push(targetForm);
                 return targetForm;
+            case 'TEXT':
+                const form = this.singleTextTargetForm();
+                array.push(form);
+                return form;
             default:
                 break;
         }
@@ -157,7 +176,7 @@ export class CompetitionFormBuilder {
                 type: this.taskType.targetType.option,
                 mediaItems: (this.form.get('target') as FormArray).controls.map(t => {
                     return {
-                        mediaItem: t.get('mediaItem').value.id,
+                        mediaItem: t.get('mediaItem').value?.id || t.get('mediaItem').value,
                         temporalRange: t.get('segment_start') && t.get('segment_start') ? {
                             start: {value: t.get('segment_start').value, unit: t.get('segment_time_unit').value} as RestTemporalPoint,
                             end: {value: t.get('segment_end').value, unit: t.get('segment_time_unit').value} as RestTemporalPoint
@@ -230,6 +249,16 @@ export class CompetitionFormBuilder {
                 return new FormArray([]);
             case 'VOTE':
                 return new FormArray([]);
+            case 'TEXT':
+                const text: FormGroup[] = [];
+                if (this.data?.target) {
+                    console.log(this.data?.target);
+                    this.data?.target?.mediaItems.forEach((d, i) => text.push(this.singleTextTargetForm(d)));
+                } else {
+                    console.log('no target');
+                    text.push(this.singleTextTargetForm());
+                }
+                return new FormArray(text);
         }
     }
 
@@ -296,6 +325,20 @@ export class CompetitionFormBuilder {
         return formGroup;
     }
 
+    private singleTextTargetForm(initialize?: RestTaskDescriptionTargetItem) {
+
+        const textFormControl = new FormControl(null, [Validators.required]);
+
+        console.log(initialize?.mediaItem);
+
+        textFormControl.setValue(initialize?.mediaItem);
+
+        return new FormGroup({
+            mediaItem: textFormControl
+        });
+
+    }
+
     /**
      * Returns the component form for the given {TaskType}
      */
@@ -331,8 +374,9 @@ export class CompetitionFormBuilder {
      *
      * @param index The position of the new {@link FormGroup} (for data source).
      * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
+     * @return The new {@link FormGroup}
      */
-    private imageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
+    private imageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
         const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
         if (!initialize?.mediaItem && (this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType.option === 'SINGLE_MEDIA_ITEM')) {
             mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
@@ -365,8 +409,9 @@ export class CompetitionFormBuilder {
      *
      * @param index The position of the new {@link FormGroup} (for data source).
      * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
+     * @return The new {@link FormGroup}
      */
-    private videoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
+    private videoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
         /* Initialize media item based on target. */
         const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
         if (!initialize?.mediaItem && (this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType.option === 'SINGLE_MEDIA_ITEM')) {
@@ -432,8 +477,9 @@ export class CompetitionFormBuilder {
      *
      * @param index The position of the new {@link FormGroup} (for data source).
      * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
+     * @return The new {@link FormGroup}
      */
-    private textItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
+    private textItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
         return new FormGroup({
             start: new FormControl(initialize?.start),
             end: new FormControl(initialize?.end),
@@ -448,7 +494,7 @@ export class CompetitionFormBuilder {
      * @param index The position of the new {@link FormGroup} (for data source).
      * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
      */
-    private externalImageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
+    private externalImageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
         /* Prepare form control. */
         const pathFormControl = new FormControl(initialize?.path, [Validators.required]);
 
@@ -471,8 +517,9 @@ export class CompetitionFormBuilder {
      *
      * @param index The position of the new {@link FormGroup} (for data source).
      * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
+     * @return The new {@link FormGroup}
      */
-    private externalVideoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
+    private externalVideoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
         /* Prepare form control. */
         const pathFormControl = new FormControl(initialize?.path, [Validators.required]);
 

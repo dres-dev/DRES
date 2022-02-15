@@ -163,8 +163,8 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
 
     public fetchData() {
         const out = {
-            start: {value: this.startInSeconds, unit: 'SECONDS'} as RestTemporalPoint,
-            end: {value: this.endInSeconds, unit: 'SECONDS'} as RestTemporalPoint
+            start: {value: this.startInSeconds.toString(), unit: 'SECONDS'} as RestTemporalPoint,
+            end: {value: this.endInSeconds.toString(), unit: 'SECONDS'} as RestTemporalPoint
         } as RestTemporalRange;
         console.log(`Fetched: ${out}`);
         return out;

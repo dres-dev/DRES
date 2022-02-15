@@ -21,7 +21,7 @@ configurations {
 def includeConfig = project.hasProperty('includeConfig')
 
 node {
-    version = '16.5.0'
+    version = '16.10.0'
     download = true
     workDir = file("${project.projectDir}/.gradle/nodejs")
     npmWorkDir = file("${project.projectDir}/.gradle/npm")

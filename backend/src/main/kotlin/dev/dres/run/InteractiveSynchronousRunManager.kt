@@ -361,7 +361,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
     override fun timeLeft(context: RunActionContext): Long = this.stateLock.read {
         if (this.status == RunManagerStatus.RUNNING_TASK) {
             val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
-            return max(0L, currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!))
+            return max(0L, currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
         } else {
             -1L
         }

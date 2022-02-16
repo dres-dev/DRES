@@ -70,9 +70,9 @@
                 </mat-card-header>
                 <mat-card-content>
                     <mat-action-list>
-                        <mat-list-item *ngFor="let viewer of (viewers | async); let i = index"  [style.color]="viewer.ready ? 'darkgreen' : 'darkred'" (click)="forceViewer(viewer.viewersId)">
-                            <div mat-line><strong>{{viewer.viewersId}}</strong></div>
-                            <div mat-line><strong>User:</strong> {{viewer.username}}, <strong>Address:</strong> {{viewer.host}}</div>
+                        <mat-list-item *ngFor="let viewer of (viewers | async); let i = index"  [style.color]="viewer.ready ? 'darkgreen' : 'darkred'" (click)="forceViewer(viewer.viewersId)" class="outline-white">
+                            <div class="p4" mat-line><strong>{{viewer.viewersId}}</strong></div>
+                            <div class="p4" mat-line><strong>User:</strong> {{viewer.username}}, <strong>Address:</strong> {{viewer.host}}</div>
                         </mat-list-item>
                     </mat-action-list>
                 </mat-card-content>
@@ -150,7 +150,7 @@
                                  src="{{teamLogo(team)}}"
                                  [style.width]="'50%'"
                                  [style.background-color]="team.color"
-                                 class="alt-list-avatar" alt="{{team.name}}'s logo" />
+                                 class="alt-list-avatar image-fit-to-container" alt="{{team.name}}'s logo" />
                             <h3 matLine>{{team.name}}</h3>
                             <p matLine>{{team.users.length}} member(s)</p>
                             <p matLine *ngFor="let user of team.users">

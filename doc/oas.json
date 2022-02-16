@@ -4700,12 +4700,11 @@
         "type" : "object",
         "properties" : {
           "value" : {
-            "type" : "number",
-            "format" : "double"
+            "type" : "string"
           },
           "unit" : {
             "type" : "string",
-            "enum" : [ "FRAME_NUMBER", "SECONDS", "MILLISECONDS" ]
+            "enum" : [ "FRAME_NUMBER", "SECONDS", "MILLISECONDS", "TIMECODE" ]
           }
         }
       },

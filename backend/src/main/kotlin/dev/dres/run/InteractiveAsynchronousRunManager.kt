@@ -364,7 +364,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager."}
         if (this.statusMap[context.teamId] == RunManagerStatus.RUNNING_TASK) {
             val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("Run manager is in status ${this.status} but has no active task. This is a programmer's error!")
-            return max(0L, currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!))
+            return max(0L, currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
         } else {
             -1L
         }

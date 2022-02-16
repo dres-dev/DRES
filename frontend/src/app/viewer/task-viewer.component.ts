@@ -124,8 +124,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
                     if (h != null) { this.webSocketSubject.next({runId: s.id, type: 'ACK'} as IWsClientMessage); } /* Send ACK. */
                     break;
                 case 'RUNNING_TASK':
-                    const countdown = (s.timeLeft - (s.currentTask.duration - 5));
-                    if (countdown > 0) {
+                    const countdown = (s.timeLeft - s.currentTask.duration); //backend returns extra time for countdown
+                    if (countdown >= 0) {
                         this.viewerState.next(ViewerState.VIEWER_COUNTDOWN);
                         this.taskCountdown.next(timer(0, 1000).pipe(
                             take(countdown),
@@ -234,7 +234,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
 
         /* Observable for the time that is still left. */
         this.timeLeft = polledState.pipe(
-            map(s => s.timeLeft),
+            map(s => Math.min(s.currentTask.duration, s.timeLeft)), //compensating for added countdown
             tap(t => {
                 if (t === 30 || t === 60) {
                     AudioPlayerUtilities.playOnce(

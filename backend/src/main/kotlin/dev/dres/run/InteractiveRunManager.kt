@@ -12,6 +12,10 @@ import dev.dres.run.score.scoreboard.Scoreboard
 
 interface InteractiveRunManager : RunManager {
 
+    companion object {
+        const val COUNTDOWN_DURATION = 5_000 //countdown time in milliseconds
+    }
+
     /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
     val scoreHistory: List<ScoreTimePoint>
 

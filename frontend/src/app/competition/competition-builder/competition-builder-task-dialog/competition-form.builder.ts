@@ -63,11 +63,11 @@ export class CompetitionFormBuilder {
      * Adds a new {@link FormGroup} for the given {@link ConfiguredOptionQueryComponentType.OptionEnum}.
      *
      * @param type The {@link ConfiguredOptionQueryComponentType.OptionEnum} to add a {@link FormGroup} for.
+     * @param afterIndex The {@link FormControl} to insert the new {@link FormControl} after.
      */
-    public addComponentForm(type: ConfiguredOptionQueryComponentOption.OptionEnum) {
+    public addComponentForm(type: ConfiguredOptionQueryComponentOption.OptionEnum, afterIndex: number = null) {
         const array = this.form.get('components') as FormArray;
-        const previous = array.length === 0 ? null : array.get([array.length - 1]);
-        const newIndex = array.length;
+        const newIndex = afterIndex ? afterIndex + 1 : null;
         let component = null;
         switch (type) {
             case 'IMAGE_ITEM':
@@ -89,16 +89,26 @@ export class CompetitionFormBuilder {
                 console.error(`Failed to add query hint: Unsupported component type '${type}.`);
                 return;
         }
-        /* Initialize default values. */
-        if (previous) {
-            (component.get('start') as FormControl).setValue((previous.get('end') as FormControl).value);
-        } else {
-            (component.get('start') as FormControl).setValue(0);
-        }
-        (component.get('end') as FormControl).setValue(this.durationInitValue);
-
         /* Append component. */
-        array.push(component);
+        if (newIndex) {
+            array.insert(newIndex, component);
+        } else {
+            array.push(component);
+        }
+
+        /* Initialize default values. */
+        const totalDuration = this.durationInitValue;
+        const itemsInChannel = [];
+        for (let i = 0; i < array.length; i++) {
+            if (array.get([i]).get('type').value === component.get('type').value) {
+                itemsInChannel.push(i);
+            }
+        }
+        const durationPerComponent = Math.floor(totalDuration / itemsInChannel.length);
+        for (let i = 0; i < itemsInChannel.length; i++) {
+            array.get([itemsInChannel[i]]).get('start').setValue(i * durationPerComponent);
+            array.get([itemsInChannel[i]]).get('end').setValue((i + 1) * durationPerComponent);
+        }
     }
 
     /**
@@ -397,8 +407,8 @@ export class CompetitionFormBuilder {
         }
 
         return new FormGroup({
-            start: new FormControl(initialize?.start),
-            end: new FormControl(initialize?.end),
+            start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+            end: new FormControl(initialize?.end, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
             type: new FormControl('IMAGE_ITEM', [Validators.required]),
             mediaItem: mediaItemFormControl
         });
@@ -434,8 +444,8 @@ export class CompetitionFormBuilder {
 
         /* Prepare FormGroup. */
         const group = new FormGroup({
-            start: new FormControl(initialize?.start),
-            end: new FormControl(initialize?.end),
+            start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+            end: new FormControl(initialize?.end, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
             type: new FormControl('VIDEO_ITEM_SEGMENT', [Validators.required]),
             mediaItem: mediaItemFormControl,
             segment_start: new FormControl(initialize?.range.start.value, [Validators.required]),
@@ -481,8 +491,8 @@ export class CompetitionFormBuilder {
      */
     private textItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
         return new FormGroup({
-            start: new FormControl(initialize?.start),
-            end: new FormControl(initialize?.end),
+            start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+            end: new FormControl(initialize?.end, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
             type: new FormControl('TEXT', [Validators.required]),
             description: new FormControl(initialize?.description, [Validators.required])
         });
@@ -505,8 +515,8 @@ export class CompetitionFormBuilder {
         ));
 
         return new FormGroup({
-            start: new FormControl(initialize?.start),
-            end: new FormControl(initialize?.end),
+            start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+            end: new FormControl(initialize?.end, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
             type: new FormControl('EXTERNAL_IMAGE', [Validators.required]),
             path: pathFormControl
         });
@@ -530,8 +540,8 @@ export class CompetitionFormBuilder {
         ));
 
         return new FormGroup({
-            start: new FormControl(initialize?.start),
-            end: new FormControl(initialize?.end),
+            start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+            end: new FormControl(initialize?.end, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
             type: new FormControl('EXTERNAL_VIDEO', [Validators.required]),
             path: pathFormControl
         });

@@ -22,11 +22,11 @@ export class TimeUtilities {
     static point2Milliseconds(point: RestTemporalPoint, fps: number): number {
         switch (point.unit) {
             case 'FRAME_NUMBER':
-                return (point.value / fps * 1000);
+                return (Number.parseInt(point.value, 10) / fps * 1000);
             case 'SECONDS':
-                return (point.value * 1000);
+                return (Number.parseInt(point.value, 10) * 1000);
             case 'MILLISECONDS':
-                return point.value;
+                return Number.parseInt(point.value, 10);
         }
     }
 

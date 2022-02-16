@@ -68,7 +68,7 @@
               "vendorChunk": true,
               "namedChunks": true,
               "sourceMap": true
-            },
+            }
           }
         },
         "serve": {

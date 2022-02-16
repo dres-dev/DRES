@@ -241,7 +241,9 @@
                     <mat-icon>add</mat-icon>
                 </button>
                 <mat-menu #componentsMenu="matMenu">
-                    <button *ngFor="let compType of data.taskType.components" mat-menu-item (click)="addQueryComponent(compType.option)">Add {{compType.option | titlecase}}</button>
+                    <button *ngFor="let compType of data.taskType.components" mat-menu-item (click)="addQueryComponent(compType.option)">
+                        Add {{compType.option.replace('_', ' ') | titlecase}}
+                    </button>
                 </mat-menu>
             </h2>
             <div *ngIf="form.get('components').invalid" class="validation-error">
@@ -273,12 +275,9 @@
                                     </mat-error>
                                 </mat-autocomplete>
                             </mat-form-field>
-                            <button mat-icon-button
-                                    aria-label="Show media item."
-                                    matTooltip="Show media item."
-                            >
-                                        <mat-icon>remove_red_eye</mat-icon>
-                                    </button>
+                            <button mat-icon-button  aria-label="Show media item." matTooltip="Show media item.">
+                                <mat-icon>remove_red_eye</mat-icon>
+                            </button>
                         </span>
 
                         <span *ngIf="description.get('type').value === 'EXTERNAL_IMAGE' || description.get('type').value === 'EXTERNAL_VIDEO'">
@@ -347,9 +346,12 @@
                 </div>
                 <div class="spacer-flex"></div>
                 <div>
-                    <button mat-icon-button (click)="removeQueryComponent(i)"
-                            aria-label="Remove query hint."
-                            matTooltip="Remove query hint.">
+                    <button mat-icon-button (click)="addQueryComponent(description.get('type').value, i)" aria-label="Add query hint AFTER this hint." matTooltip="Add query hint AFTER this hint.">
+                        <mat-icon>more_time</mat-icon>
+                    </button>
+                </div>
+                <div>
+                    <button mat-icon-button (click)="removeQueryComponent(i)" aria-label="Remove query hint." matTooltip="Remove query hint.">
                         <mat-icon>remove</mat-icon>
                     </button>
                 </div>

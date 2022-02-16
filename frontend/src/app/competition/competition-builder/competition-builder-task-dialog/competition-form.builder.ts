@@ -67,7 +67,7 @@ export class CompetitionFormBuilder {
      */
     public addComponentForm(type: ConfiguredOptionQueryComponentOption.OptionEnum, afterIndex: number = null) {
         const array = this.form.get('components') as FormArray;
-        const newIndex = afterIndex ? afterIndex + 1 : null;
+        const newIndex = afterIndex ? afterIndex + 1 : array.length - 1;
         let component = null;
         switch (type) {
             case 'IMAGE_ITEM':
@@ -90,11 +90,7 @@ export class CompetitionFormBuilder {
                 return;
         }
         /* Append component. */
-        if (newIndex) {
-            array.insert(newIndex, component);
-        } else {
-            array.push(component);
-        }
+        array.insert(newIndex, component);
 
         /* Initialize default values. */
         const totalDuration = this.durationInitValue;

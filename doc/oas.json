@@ -4969,7 +4969,7 @@
         }
       },
       "RunState" : {
-        "required" : [ "id", "status", "timeLeft" ],
+        "required" : [ "id", "status", "timeElapsed", "timeLeft" ],
         "type" : "object",
         "properties" : {
           "id" : {
@@ -4983,6 +4983,10 @@
             "$ref" : "#/components/schemas/TaskInfo"
           },
           "timeLeft" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "timeElapsed" : {
             "type" : "integer",
             "format" : "int64"
           }

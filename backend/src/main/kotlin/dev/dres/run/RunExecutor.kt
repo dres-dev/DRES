@@ -266,6 +266,7 @@ object RunExecutor : Consumer<WsConfig> {
      */
     fun dump(competition: Competition) {
         try {
+            // TODO resolve file run_dump relative to config..
             val file = File("run_dump_${competition.id.string}.json")
             jacksonObjectMapper().writeValue(file, competition)
             this.logger.info("Wrote current run state to ${file.absolutePath}")

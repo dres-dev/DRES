@@ -30,7 +30,7 @@
                 {{(taskChanged | async)?.name}} (Task is about to start!)
             </h2>
             <p *ngIf="taskCountdown | async" class="countdown">
-                {{ ((taskCountdown | async) | async) }}
+                {{ taskCountdown | async }}
             </p>
         </div>
 

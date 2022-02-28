@@ -81,11 +81,7 @@ for testing at e.g. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
         const minutes = matches[mIdx] ? Number.parseInt(matches[mIdx].substring(0, matches[mIdx].length - 1), 10) : 0;
         const seconds = matches[sIdx] ? Number.parseInt(matches[sIdx].substring(0, matches[sIdx].length - 1), 10) : 0;
         const frames = Number.parseInt(matches[4], 10);
-        // console.log(`parsed: ${hours}:${minutes}:${seconds}:${frames}`);
-
-        const ms = hours * this.msPerHour + minutes * this.msPerMinute + seconds * 1000 + (1000 * frames / fps);
-        // console.log(`Output: ${ms}`);
-        return ms;
+        return hours * this.msPerHour + minutes * this.msPerMinute + seconds * 1000 + (1000 * frames / fps);
     }
 
     static timeCode2Milliseconds24fps(timecode: string): number {

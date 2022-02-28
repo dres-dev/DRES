@@ -103,7 +103,9 @@ export class CompetitionFormBuilder {
         const durationPerComponent = Math.floor(totalDuration / itemsInChannel.length);
         for (let i = 0; i < itemsInChannel.length; i++) {
             array.get([itemsInChannel[i]]).get('start').setValue(i * durationPerComponent);
-            array.get([itemsInChannel[i]]).get('end').setValue((i + 1) * durationPerComponent);
+            if (i < itemsInChannel.length - 1) {
+                array.get([itemsInChannel[i]]).get('end').setValue((i + 1) * durationPerComponent);
+            }
         }
     }
 
@@ -404,7 +406,7 @@ export class CompetitionFormBuilder {
 
         return new FormGroup({
             start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
-            end: new FormControl(initialize?.end, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+            end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.taskDuration)]),
             type: new FormControl('IMAGE_ITEM', [Validators.required]),
             mediaItem: mediaItemFormControl
         });
@@ -488,7 +490,7 @@ export class CompetitionFormBuilder {
     private textItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
         return new FormGroup({
             start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
-            end: new FormControl(initialize?.end, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+            end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.taskDuration)]),
             type: new FormControl('TEXT', [Validators.required]),
             description: new FormControl(initialize?.description, [Validators.required])
         });
@@ -512,7 +514,7 @@ export class CompetitionFormBuilder {
 
         return new FormGroup({
             start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
-            end: new FormControl(initialize?.end, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+            end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.taskDuration)]),
             type: new FormControl('EXTERNAL_IMAGE', [Validators.required]),
             path: pathFormControl
         });
@@ -537,7 +539,7 @@ export class CompetitionFormBuilder {
 
         return new FormGroup({
             start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
-            end: new FormControl(initialize?.end, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+            end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.taskDuration)]),
             type: new FormControl('EXTERNAL_VIDEO', [Validators.required]),
             path: pathFormControl
         });

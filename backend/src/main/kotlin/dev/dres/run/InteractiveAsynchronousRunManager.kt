@@ -11,6 +11,7 @@ import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.run.InteractiveAsynchronousCompetition
+import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.interfaces.Task
 import dev.dres.data.model.submissions.Submission
@@ -61,7 +62,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
     /** Tracks the current [TaskDescription] per [TeamId]. */
     private val statusMap: MutableMap<TeamId, RunManagerStatus> = HashMap()
 
-    /** A [Map] of all viewers, i.e., DRES clienst currently registered with this [InteractiveAsynchronousRunManager]. */
+    /** A [Map] of all viewers, i.e., DRES cliets currently registered with this [InteractiveAsynchronousRunManager]. */
     private val viewers = ConcurrentHashMap<WebSocketConnection,Boolean>()
 
     /** A lock for state changes to this [InteractiveAsynchronousRunManager]. */
@@ -365,6 +366,21 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         if (this.statusMap[context.teamId] == RunManagerStatus.RUNNING_TASK) {
             val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("Run manager is in status ${this.status} but has no active task. This is a programmer's error!")
             return max(0L, currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
+        } else {
+            -1L
+        }
+    }
+
+    /**
+     * Returns the time in milliseconds that has elapsed since the start of the current [InteractiveSynchronousCompetition.Task].
+     * Only works if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no task is running, this method returns -1L.
+     *
+     * @return Time remaining until the task will end or -1, if no task is running.
+     */
+    override fun timeElapsed(context: RunActionContext): Long = this.stateLock.read {
+        return if (this.status == RunManagerStatus.RUNNING_TASK) {
+            val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("Run manager is in status ${this.status} but has no active task. This is a serious error!")
+            System.currentTimeMillis() - (currentTaskRun.started!! + InteractiveRunManager.COUNTDOWN_DURATION)
         } else {
             -1L
         }

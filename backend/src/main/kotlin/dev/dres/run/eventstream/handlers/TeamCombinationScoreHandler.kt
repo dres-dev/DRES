@@ -1,5 +1,6 @@
 package dev.dres.run.eventstream.handlers
 
+import dev.dres.DRES
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.submissions.Submission
@@ -13,7 +14,7 @@ import java.io.PrintWriter
 
 class TeamCombinationScoreHandler : StreamEventHandler {
 
-    private val writer = PrintWriter(File("statistics/combined_team_scores_${System.currentTimeMillis()}.csv").also { it.parentFile.mkdirs() })
+    private val writer = PrintWriter(File(DRES.config.statisticsPath+"/combined_team_scores_${System.currentTimeMillis()}.csv").also { it.parentFile.mkdirs() })
 
     private val tasks = mutableMapOf<UID, TaskDescription>()
     private val taskStartMap = mutableMapOf<UID, Long>()

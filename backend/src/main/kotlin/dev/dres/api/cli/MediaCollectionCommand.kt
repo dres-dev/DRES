@@ -392,6 +392,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 println("done")
             }
             if(issues.isNotEmpty()){
+                // TODO resolve issues file relative to config
                 val file = File("issues-scan-${collection.name}-${System.currentTimeMillis()}.json")
                 println("There have been ${issues.size} issues while scanning. You might want to check them at ${file.path}")
                 val om = ObjectMapper()

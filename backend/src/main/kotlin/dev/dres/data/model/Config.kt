@@ -14,6 +14,8 @@ data class Config(
         val externalPath: String = "./external",
         val dataPath: String = "./data",
         val cachePath: String = "./cache",
+        val statisticsPath: String = "./statistics",
+        val eventsPath: String = "./events",
         val logoMaxSize: Int = 1000) {
 
     companion object{

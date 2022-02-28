@@ -19,7 +19,14 @@ import java.nio.file.Paths
 object DRES {
 
     /** Application root; shoud pe relative to JAR file or classes path. */
-    val rootPath = File(FFmpegUtil::class.java.protectionDomain.codeSource.location.toURI()).toPath()
+    val rootPath =
+        File(FFmpegUtil::class.java.protectionDomain.codeSource.location.toURI()).toPath()
+
+    private lateinit var configVar: Config
+
+    val config: Config
+        get() = configVar
+
 
     init {
         //redirect log of JLine3 from jdk logger to log4j
@@ -33,6 +40,8 @@ object DRES {
         } else {
             null
         } ?: Config()
+
+        configVar = config
 
         println("Starting DRES at $rootPath")
         println("Found FFmpeg at ${FFmpegUtil.ffmpegBin}")
@@ -51,7 +60,11 @@ object DRES {
         AuditLogger.init(dataAccessLayer.audit)
 
         /* Initialize Event Stream Processor */
-        EventStreamProcessor.register(SubmissionStatisticsHandler(), ResultLogStatisticsHandler(dataAccessLayer.mediaSegmentItemIdIndex), TeamCombinationScoreHandler())
+        EventStreamProcessor.register(
+            SubmissionStatisticsHandler(),
+            ResultLogStatisticsHandler(dataAccessLayer.mediaSegmentItemIdIndex),
+            TeamCombinationScoreHandler()
+        )
         EventStreamProcessor.init()
 
         /* Initialize Rest API. */
@@ -59,9 +72,9 @@ object DRES {
 
         println("done")
 
-        if(args.isNotEmpty() && args.first() == "openapi"){
+        if (args.isNotEmpty() && args.first() == "openapi") {
             OpenApiCommand().parse(args)
-        }else{
+        } else {
             Cli.loop(dataAccessLayer, config) //blocks until quit command is given
         }
 

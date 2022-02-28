@@ -1,5 +1,6 @@
 package dev.dres.run.eventstream.handlers
 
+import dev.dres.DRES
 import dev.dres.data.dbo.DaoIndexer
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaItem
@@ -18,7 +19,7 @@ import java.io.PrintWriter
 
 class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemSegmentList, UID>) : StreamEventHandler {
 
-    private val writer = PrintWriter(File("statistics/result_log_statistics_${System.currentTimeMillis()}.csv").also { it.parentFile.mkdirs() })
+    private val writer = PrintWriter(File(DRES.config.statisticsPath+"/result_log_statistics_${System.currentTimeMillis()}.csv").also { it.parentFile.mkdirs() })
 
     private val lastActiveTask = mutableMapOf<UID, TaskDescription>()
     private val lastActiveTargets = mutableMapOf<UID, List<Pair<MediaItem, TemporalRange?>>>()

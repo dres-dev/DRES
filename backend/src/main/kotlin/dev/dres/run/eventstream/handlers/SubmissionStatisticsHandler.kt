@@ -1,5 +1,7 @@
 package dev.dres.run.eventstream.handlers
 
+import dev.dres.DRES
+import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
@@ -7,9 +9,9 @@ import dev.dres.run.eventstream.*
 import java.io.File
 import java.io.PrintWriter
 
-class SubmissionStatisticsHandler : StreamEventHandler {
+class SubmissionStatisticsHandler() : StreamEventHandler {
 
-    private val writer = PrintWriter(File("statistics/submission_statistics_${System.currentTimeMillis()}.csv").also { it.parentFile.mkdirs() })
+    private val writer = PrintWriter(File(DRES.config.statisticsPath+"/submission_statistics_${System.currentTimeMillis()}.csv").also { it.parentFile.mkdirs() })
 
     private val submissionTaskMap = mutableMapOf<UID, MutableList<Submission>>()
     private val taskStartMap = mutableMapOf<UID, Long>()

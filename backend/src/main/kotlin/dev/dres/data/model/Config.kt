@@ -16,6 +16,7 @@ data class Config(
         val cachePath: String = "./cache",
         val statisticsPath: String = "./statistics",
         val eventsPath: String = "./events",
+        // TODO add more paths (audit log)
         val logoMaxSize: Int = 1000) {
 
     companion object{

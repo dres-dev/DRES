@@ -19,6 +19,7 @@ import {RunAdminSubmissionsListComponent} from './run/run-admin-submissions-list
 import {RunScoreHistoryComponent} from './run/score-history/run-score-history.component';
 import {JudgementVotingViewerComponent} from './judgement/judgement-voting-viewer.component';
 import RoleEnum = UserDetails.RoleEnum;
+import {TabbedBuilderComponent} from './competition/competition-builder/tabbed-builder/tabbed-builder.component';
 
 
 const routes: Routes = [
@@ -31,6 +32,13 @@ const routes: Routes = [
     {
         path: 'competition/builder/:competitionId',
         component: CompetitionBuilderComponent,
+        canActivate: [AuthenticationGuard],
+        canDeactivate: [CanDeactivateGuard],
+        data: {roles: [RoleEnum.ADMIN]}
+    },
+    {
+        path: 'competition/builder2/:competitionId',
+        component: TabbedBuilderComponent,
         canActivate: [AuthenticationGuard],
         canDeactivate: [CanDeactivateGuard],
         data: {roles: [RoleEnum.ADMIN]}

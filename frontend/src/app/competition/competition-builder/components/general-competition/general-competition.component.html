@@ -1,0 +1,19 @@
+<div>
+    <form [formGroup]="form">
+
+        <p><!-- BEGIN Name Form Field -->
+            <mat-form-field style="width: 100%">
+                <mat-label>Name</mat-label>
+                <input type="text" matInput placeholder="Competition Name" formControlName="name" required/>
+            </mat-form-field>
+        </p><!-- END Name Form Field -->
+
+        <p><!-- BEGIN Description Form Field -->
+            <mat-form-field style="width: 100%">
+                <mat-label>Description</mat-label>
+                <textarea matInput placeholder="Description" formControlName="description"
+                          required></textarea>
+            </mat-form-field>
+        </p><!-- END Description Form Field -->
+    </form>
+</div>

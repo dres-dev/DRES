@@ -1,0 +1,48 @@
+<div style="display: flex" class="header">
+    <div>
+        <button mat-icon-button (click)="back()">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1 *ngIf="!dirty">Edit competition {{competitionId}}</h1>
+        <h1 *ngIf="dirty">Edit competition {{competitionId}} <span class="warn-color">(unsaved changes)</span></h1>
+    </div>
+
+    <div class="spacer-flex"></div>
+
+    <div>
+        <button mat-icon-button aria-label="Save changes to competition." matTooltip="Save changes to competition."
+                (click)="save()">
+            <mat-icon>save</mat-icon>
+        </button>
+    </div>
+    <div>
+        <button mat-icon-button aria-label="Refresh competition (changes will be lost)."
+                matTooltip="Refresh competition (changes will be lost)." (click)="refresh()">
+            <mat-icon>refresh</mat-icon>
+        </button>
+    </div>
+    <div>
+        <app-download-button
+                [name]="''"
+                [fileName]="fileProvider"
+                [downloadProvider]="downloadProvider()"
+                matTooltip="Download the entire competition as JSON"></app-download-button>
+    </div>
+</div>
+<div>
+    <mat-tab-group animationDuration="0ms">
+        <mat-tab bodyClass="p2e" label="Tasks">
+            <app-tasks-tab></app-tasks-tab>
+        </mat-tab>
+        <mat-tab bodyClass="p2e" label="Task Types & Task Groups">
+            <app-types-groups-tab></app-types-groups-tab>
+        </mat-tab>
+        <mat-tab bodyClass="p2e" label="Teams & Judges">
+            <app-teams-judges-tab></app-teams-judges-tab>
+        </mat-tab>
+        <mat-tab bodyClass="p2e" label="General Information">
+            <app-general-info-tab></app-general-info-tab>
+        </mat-tab>
+    </mat-tab-group>
+
+</div>

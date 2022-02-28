@@ -65,3 +65,39 @@ $warn: mat-palette($mat-red, 500);
 .warn-color {
   color: mat-color($warn) !important;
 }
+
+.p1r {
+  padding: 1rem;
+}
+
+.p2r {
+  padding: 2rem;
+}
+
+.p1e {
+  padding: 1em;
+}
+
+.p2e {
+  padding: 2em;
+}
+
+.pt2e {
+  padding-top: 2em;
+}
+
+.pt1e {
+  padding-top: 1em;
+}
+
+.pt1r {
+  padding-top: 1rem;
+}
+
+.pt2r {
+  padding-top: 2rem;
+}
+
+.pb1e {
+  padding-bottom: 1em;
+}

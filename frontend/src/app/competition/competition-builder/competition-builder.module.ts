@@ -34,6 +34,17 @@ import {SharedModule} from '../../shared/shared.module';
 import {VideoPlayerSegmentBuilderDialogComponent} from './competition-builder-task-dialog/video-player-segment-builder-dialog/video-player-segment-builder-dialog.component';
 import {ColorPickerModule} from 'ngx-color-picker';
 import {NgxSliderModule} from '@angular-slider/ngx-slider';
+import { GeneralCompetitionComponent } from './components/general-competition/general-competition.component';
+import { TeamsListComponent } from './components/teams-list/teams-list.component';
+import { JudgesListComponent } from './components/judges-list/judges-list.component';
+import { TaskTypesComponent } from './components/task-types/task-types.component';
+import { TaskGroupsComponent } from './components/task-groups/task-groups.component';
+import { TasksTabComponent } from './tabs/tasks-tab/tasks-tab.component';
+import { TeamsJudgesTabComponent } from './tabs/teams-judges-tab/teams-judges-tab.component';
+import { TypesGroupsTabComponent } from './tabs/types-groups-tab/types-groups-tab.component';
+import { GeneralInfoTabComponent } from './tabs/general-info-tab/general-info-tab.component';
+import { TabbedBuilderComponent } from './tabbed-builder/tabbed-builder.component';
+import {MatTabsModule} from '@angular/material/tabs';
 
 @NgModule({
     imports: [
@@ -64,7 +75,8 @@ import {NgxSliderModule} from '@angular-slider/ngx-slider';
         ReactiveFormsModule,
         CommonModule,
         SharedModule,
-        ColorPickerModule
+        ColorPickerModule,
+        MatTabsModule
     ],
     exports: [CompetitionBuilderComponent],
     declarations: [
@@ -75,7 +87,17 @@ import {NgxSliderModule} from '@angular-slider/ngx-slider';
         CompetitionBuilderTaskTypeDialogComponent,
         VideoPlayerSegmentBuilderComponent,
         AdvancedBuilderDialogComponent,
-        VideoPlayerSegmentBuilderDialogComponent
+        VideoPlayerSegmentBuilderDialogComponent,
+        GeneralCompetitionComponent,
+        TeamsListComponent,
+        JudgesListComponent,
+        TaskTypesComponent,
+        TaskGroupsComponent,
+        TasksTabComponent,
+        TeamsJudgesTabComponent,
+        TypesGroupsTabComponent,
+        GeneralInfoTabComponent,
+        TabbedBuilderComponent
     ],
     providers: []
 })

@@ -18,9 +18,12 @@ import {TimeUtilities} from '../../../utilities/time.utilities';
 
 export class CompetitionFormBuilder {
 
-    private static function;
+    /** The default duration of a query hint. This is currently a hard-coded constant. */
+    private static DEFAULT_HINT_DURATION = 30;
+
     /** The {@link FormGroup} held by this {@link CompetitionFormBuilder}. */
     public form: FormGroup;
+
     /** List of data sources managed by this CompetitionFormBuilder. */
     private dataSources = new Map<string, Observable<RestMediaItem[] | string[]>>();
 
@@ -67,7 +70,7 @@ export class CompetitionFormBuilder {
      */
     public addComponentForm(type: ConfiguredOptionQueryComponentOption.OptionEnum, afterIndex: number = null) {
         const array = this.form.get('components') as FormArray;
-        const newIndex = afterIndex ? afterIndex + 1 : array.length - 1;
+        const newIndex = afterIndex ? afterIndex + 1 : array.length;
         let component = null;
         switch (type) {
             case 'IMAGE_ITEM':
@@ -89,24 +92,28 @@ export class CompetitionFormBuilder {
                 console.error(`Failed to add query hint: Unsupported component type '${type}.`);
                 return;
         }
+
+        /* Find previous item in the same channel. */
+        let previousItem = null;
+        for (let i = newIndex - 1; i >= 0; i--) {
+            if (array.get([i]).get('type').value === component.get('type').value) {
+                previousItem = array.get([i]); /* Find last item in channel. */
+                break;
+            }
+        }
+
+        /* Initialize new and previous component in channel with default values. */
+        if (previousItem == null) {
+            component.get('start').setValue(0);
+        } else if (previousItem.get('end').value) {
+            component.get('start').setValue(previousItem.get('end').value );
+        } else {
+            previousItem.get('end').setValue(previousItem.get('start').value + CompetitionFormBuilder.DEFAULT_HINT_DURATION);
+            component.get('start').setValue(previousItem.get('end').value );
+        }
+
         /* Append component. */
         array.insert(newIndex, component);
-
-        /* Initialize default values. */
-        const totalDuration = this.durationInitValue;
-        const itemsInChannel = [];
-        for (let i = 0; i < array.length; i++) {
-            if (array.get([i]).get('type').value === component.get('type').value) {
-                itemsInChannel.push(i);
-            }
-        }
-        const durationPerComponent = Math.floor(totalDuration / itemsInChannel.length);
-        for (let i = 0; i < itemsInChannel.length; i++) {
-            array.get([itemsInChannel[i]]).get('start').setValue(i * durationPerComponent);
-            if (i < itemsInChannel.length - 1) {
-                array.get([itemsInChannel[i]]).get('end').setValue((i + 1) * durationPerComponent);
-            }
-        }
     }
 
     /**

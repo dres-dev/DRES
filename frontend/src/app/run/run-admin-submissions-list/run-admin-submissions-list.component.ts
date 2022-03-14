@@ -30,7 +30,7 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     public taskId: Observable<string>;
 
     /** The columns displayed by the table. */
-    public displayColumns = ['id', /*'taskRunId',*/ 'timestamp', 'submitted', 'item', 'start', 'end', 'status', 'preview', 'actions'];
+    public displayColumns = ['id', /*'taskRunId',*/ 'timestamp', 'submitted', 'text', 'item', 'start', 'end', 'status', 'preview', 'actions'];
 
     /** Number of milliseconds to wait in between polls. */
     public pollingFrequencyFactor = 30000; // every 30 seconds

@@ -18,9 +18,12 @@ import {TimeUtilities} from '../../../utilities/time.utilities';
 
 export class CompetitionFormBuilder {
 
-    private static function;
+    /** The default duration of a query hint. This is currently a hard-coded constant. */
+    private static DEFAULT_HINT_DURATION = 30;
+
     /** The {@link FormGroup} held by this {@link CompetitionFormBuilder}. */
     public form: FormGroup;
+
     /** List of data sources managed by this CompetitionFormBuilder. */
     private dataSources = new Map<string, Observable<RestMediaItem[] | string[]>>();
 
@@ -63,27 +66,54 @@ export class CompetitionFormBuilder {
      * Adds a new {@link FormGroup} for the given {@link ConfiguredOptionQueryComponentType.OptionEnum}.
      *
      * @param type The {@link ConfiguredOptionQueryComponentType.OptionEnum} to add a {@link FormGroup} for.
+     * @param afterIndex The {@link FormControl} to insert the new {@link FormControl} after.
      */
-    public addComponentForm(type: ConfiguredOptionQueryComponentOption.OptionEnum) {
+    public addComponentForm(type: ConfiguredOptionQueryComponentOption.OptionEnum, afterIndex: number = null) {
         const array = this.form.get('components') as FormArray;
-        const newIndex = array.length;
+        const newIndex = afterIndex ? afterIndex + 1 : array.length;
+        let component = null;
         switch (type) {
             case 'IMAGE_ITEM':
-                array.push(this.imageItemComponentForm(newIndex));
+                component = this.imageItemComponentForm(newIndex);
                 break;
             case 'VIDEO_ITEM_SEGMENT':
-                array.push(this.videoItemComponentForm(newIndex));
+                component = this.videoItemComponentForm(newIndex);
                 break;
             case 'TEXT':
-                array.push(this.textItemComponentForm(newIndex));
+                component = this.textItemComponentForm(newIndex);
                 break;
             case 'EXTERNAL_IMAGE':
-                array.push(this.externalImageItemComponentForm(newIndex));
+                component = this.externalImageItemComponentForm(newIndex);
                 break;
             case 'EXTERNAL_VIDEO':
-                array.push(this.externalVideoItemComponentForm(newIndex));
+                component = this.externalVideoItemComponentForm(newIndex);
                 break;
+            default:
+                console.error(`Failed to add query hint: Unsupported component type '${type}.`);
+                return;
         }
+
+        /* Find previous item in the same channel. */
+        let previousItem = null;
+        for (let i = newIndex - 1; i >= 0; i--) {
+            if (array.get([i]).get('type').value === component.get('type').value) {
+                previousItem = array.get([i]); /* Find last item in channel. */
+                break;
+            }
+        }
+
+        /* Initialize new and previous component in channel with default values. */
+        if (previousItem == null) {
+            component.get('start').setValue(0);
+        } else if (previousItem.get('end').value) {
+            component.get('start').setValue(previousItem.get('end').value );
+        } else {
+            previousItem.get('end').setValue(previousItem.get('start').value + CompetitionFormBuilder.DEFAULT_HINT_DURATION);
+            component.get('start').setValue(previousItem.get('end').value );
+        }
+
+        /* Append component. */
+        array.insert(newIndex, component);
     }
 
     /**
@@ -99,6 +129,10 @@ export class CompetitionFormBuilder {
                 const targetForm = this.singleMediaItemTargetForm(newIndex);
                 array.push(targetForm);
                 return targetForm;
+            case 'TEXT':
+                const form = this.singleTextTargetForm();
+                array.push(form);
+                return form;
             default:
                 break;
         }
@@ -157,7 +191,7 @@ export class CompetitionFormBuilder {
                 type: this.taskType.targetType.option,
                 mediaItems: (this.form.get('target') as FormArray).controls.map(t => {
                     return {
-                        mediaItem: t.get('mediaItem').value.id,
+                        mediaItem: t.get('mediaItem').value?.id || t.get('mediaItem').value,
                         temporalRange: t.get('segment_start') && t.get('segment_start') ? {
                             start: {value: t.get('segment_start').value, unit: t.get('segment_time_unit').value} as RestTemporalPoint,
                             end: {value: t.get('segment_end').value, unit: t.get('segment_time_unit').value} as RestTemporalPoint
@@ -230,6 +264,16 @@ export class CompetitionFormBuilder {
                 return new FormArray([]);
             case 'VOTE':
                 return new FormArray([]);
+            case 'TEXT':
+                const text: FormGroup[] = [];
+                if (this.data?.target) {
+                    console.log(this.data?.target);
+                    this.data?.target?.mediaItems.forEach((d, i) => text.push(this.singleTextTargetForm(d)));
+                } else {
+                    console.log('no target');
+                    text.push(this.singleTextTargetForm());
+                }
+                return new FormArray(text);
         }
     }
 
@@ -296,6 +340,20 @@ export class CompetitionFormBuilder {
         return formGroup;
     }
 
+    private singleTextTargetForm(initialize?: RestTaskDescriptionTargetItem) {
+
+        const textFormControl = new FormControl(null, [Validators.required]);
+
+        console.log(initialize?.mediaItem);
+
+        textFormControl.setValue(initialize?.mediaItem);
+
+        return new FormGroup({
+            mediaItem: textFormControl
+        });
+
+    }
+
     /**
      * Returns the component form for the given {TaskType}
      */
@@ -331,8 +389,9 @@ export class CompetitionFormBuilder {
      *
      * @param index The position of the new {@link FormGroup} (for data source).
      * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
+     * @return The new {@link FormGroup}
      */
-    private imageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
+    private imageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
         const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
         if (!initialize?.mediaItem && (this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType.option === 'SINGLE_MEDIA_ITEM')) {
             mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
@@ -353,8 +412,8 @@ export class CompetitionFormBuilder {
         }
 
         return new FormGroup({
-            start: new FormControl(initialize?.start),
-            end: new FormControl(initialize?.end),
+            start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+            end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.taskDuration)]),
             type: new FormControl('IMAGE_ITEM', [Validators.required]),
             mediaItem: mediaItemFormControl
         });
@@ -365,8 +424,9 @@ export class CompetitionFormBuilder {
      *
      * @param index The position of the new {@link FormGroup} (for data source).
      * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
+     * @return The new {@link FormGroup}
      */
-    private videoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
+    private videoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
         /* Initialize media item based on target. */
         const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
         if (!initialize?.mediaItem && (this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType.option === 'SINGLE_MEDIA_ITEM')) {
@@ -389,8 +449,8 @@ export class CompetitionFormBuilder {
 
         /* Prepare FormGroup. */
         const group = new FormGroup({
-            start: new FormControl(initialize?.start),
-            end: new FormControl(initialize?.end),
+            start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+            end: new FormControl(initialize?.end, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
             type: new FormControl('VIDEO_ITEM_SEGMENT', [Validators.required]),
             mediaItem: mediaItemFormControl,
             segment_start: new FormControl(initialize?.range.start.value, [Validators.required]),
@@ -432,11 +492,12 @@ export class CompetitionFormBuilder {
      *
      * @param index The position of the new {@link FormGroup} (for data source).
      * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
+     * @return The new {@link FormGroup}
      */
-    private textItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
+    private textItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
         return new FormGroup({
-            start: new FormControl(initialize?.start),
-            end: new FormControl(initialize?.end),
+            start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+            end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.taskDuration)]),
             type: new FormControl('TEXT', [Validators.required]),
             description: new FormControl(initialize?.description, [Validators.required])
         });
@@ -448,7 +509,7 @@ export class CompetitionFormBuilder {
      * @param index The position of the new {@link FormGroup} (for data source).
      * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
      */
-    private externalImageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
+    private externalImageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
         /* Prepare form control. */
         const pathFormControl = new FormControl(initialize?.path, [Validators.required]);
 
@@ -459,8 +520,8 @@ export class CompetitionFormBuilder {
         ));
 
         return new FormGroup({
-            start: new FormControl(initialize?.start),
-            end: new FormControl(initialize?.end),
+            start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+            end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.taskDuration)]),
             type: new FormControl('EXTERNAL_IMAGE', [Validators.required]),
             path: pathFormControl
         });
@@ -471,8 +532,9 @@ export class CompetitionFormBuilder {
      *
      * @param index The position of the new {@link FormGroup} (for data source).
      * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
+     * @return The new {@link FormGroup}
      */
-    private externalVideoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent) {
+    private externalVideoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
         /* Prepare form control. */
         const pathFormControl = new FormControl(initialize?.path, [Validators.required]);
 
@@ -483,8 +545,8 @@ export class CompetitionFormBuilder {
         ));
 
         return new FormGroup({
-            start: new FormControl(initialize?.start),
-            end: new FormControl(initialize?.end),
+            start: new FormControl(initialize?.start, [Validators.required, Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+            end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.taskDuration)]),
             type: new FormControl('EXTERNAL_VIDEO', [Validators.required]),
             path: pathFormControl
         });

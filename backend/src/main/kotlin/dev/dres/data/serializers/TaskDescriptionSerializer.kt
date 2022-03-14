@@ -80,6 +80,10 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
                 out.packInt(target.items.size)
                 target.items.forEach { out.writeUID(it.id) }
             }
+            is TaskDescriptionTarget.TextTaskDescriptionTarget -> {
+                out.packInt(target.targets.size)
+                target.targets.forEach { out.writeUTF(it) }
+            }
         }
     }
 
@@ -142,6 +146,9 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
                         TemporalRangeSerializer.deserialize(input, available)
                     } else null)
                 }
+            )
+            6 -> TaskDescriptionTarget.TextTaskDescriptionTarget(
+                (0 until input.unpackInt()).map { input.readUTF() }
             )
             else -> throw IllegalStateException("Failed to deserialize Task Description Target for ordinal $ordinal; not implemented.")
         }

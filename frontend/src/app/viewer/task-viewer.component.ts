@@ -60,12 +60,12 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     taskReady: Observable<boolean>;
 
     /** A {@link BehaviorSubject} of task countdown objects. */
-    taskCountdown: BehaviorSubject<Observable<number>> = new BehaviorSubject(null);
+    taskCountdown: BehaviorSubject<number> = new BehaviorSubject(null);
 
     /** The current {@link ViewerState} of this {@link TaskViewerComponent}. */
     viewerState: BehaviorSubject<ViewerState> = new BehaviorSubject(ViewerState.VIEWER_UNKNOWN);
 
-    /** Reference to the current {@link TaskTarget} {@link ContentElement}. */
+    /** Reference to the current {@link TaskHint} {@link ContentElement}s. */
     currentTaskHint: Observable<ContentElement>;
 
     /** Reference to the current {@link TaskTarget} {@link ContentElement}. */
@@ -109,106 +109,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
         );
 
         /*
-         * This is the main switch that updates the viewer's state and the only actual subscription.
-         *
-         * IMPORTANT: Unsubscribe onDestroy.
-         */
-        this.viewerStateSubscription = combineLatest([currentTaskHint, this.state]).subscribe(([h, s]) => {
-            switch (s.status) {
-                case 'CREATED':
-                case 'ACTIVE':
-                    this.viewerState.next(ViewerState.VIEWER_WAITING_FOR_TASK);
-                    break;
-                case 'PREPARING_TASK':
-                    this.viewerState.next(ViewerState.VIEWER_SYNC);
-                    if (h != null) { this.webSocketSubject.next({runId: s.id, type: 'ACK'} as IWsClientMessage); } /* Send ACK. */
-                    break;
-                case 'RUNNING_TASK':
-                    const countdown = (s.timeLeft - (s.currentTask.duration - 5));
-                    if (countdown > 0) {
-                        this.viewerState.next(ViewerState.VIEWER_COUNTDOWN);
-                        this.taskCountdown.next(timer(0, 1000).pipe(
-                            take(countdown),
-                            withLatestFrom(this.runId),
-                            map(([count, id]) => {
-                                if (count < (countdown - 1)) {
-                                    AudioPlayerUtilities.playOnce('/immutable/assets/audio/beep_1.ogg', this.audio.nativeElement);
-                                } else {
-                                    AudioPlayerUtilities.playOnce('/immutable/assets/audio/beep_2.ogg', this.audio.nativeElement);
-                                }
-                                return countdown - count - 1;
-                            }),
-                            finalize(() => {
-                                this.viewerState.next(ViewerState.VIEWER_PLAYBACK);
-                                this.taskCountdown.next(null);
-                            })
-                        ));
-                    } else {
-                        this.viewerState.next(ViewerState.VIEWER_PLAYBACK);
-                    }
-                    break;
-                case 'TASK_ENDED':
-                case 'TERMINATED':
-                    return this.viewerState.next(ViewerState.VIEWER_TASK_ENDED);
-            }
-        });
-
-        /** Map task target to representation used by viewer. */
-        this.currentTaskTarget = currentTaskTarget.pipe(
-            flatMap((h: TaskTarget) => {
-            if (!h) { return of(null); }
-            return fromArray(h.sequence).pipe(
-                delayWhen<ContentElement>((c: ContentElement) => interval(1000 * c.offset)),
-                repeat(-1),
-            );
-        }));
-
-        /* Map task hint to representation used by viewer. */
-        this.currentTaskHint = currentTaskHint.pipe(
-            concatMap((h, i) => {
-                return this.timeElapsed.pipe(
-                    take(1),
-                    flatMap(time => {
-                        const sequence = [];
-                        const largest = new Map<ContentElement.ContentTypeEnum, ContentElement>();
-
-                        if (!h) { return null; }
-
-                        /* Find last element per category (which is always retained). */
-                        h.sequence.forEach(e => {
-                            if (e.offset - time < 0) {
-                                if (!largest.has(e.contentType)) {
-                                    largest.set(e.contentType, e);
-                                    sequence.push(e);
-                                } else if (largest.get(e.contentType).offset < e.offset) {
-                                    sequence.splice(sequence.indexOf(largest.get(e.contentType)));
-                                    largest.set(e.contentType, e);
-                                    sequence.push(e);
-                                }
-                            } else {
-                                sequence.push(e);
-                            }
-                        });
-
-                        /* Filter out all element in the sequence that are not eligible for display*/
-                        return fromArray(sequence).pipe(
-                            delayWhen<any>(c => interval(Math.max(0, 1000 * (c.offset - time)))),
-                            map((t, index) => {
-                                if (index > 0) {
-                                    AudioPlayerUtilities.playOnce('assets/audio/ding.ogg', this.audio.nativeElement);
-                                }
-                                return t;
-                            })
-                        );
-                    })
-                );
-            }),
-        );
-
-        /*
-         * This Observable is used to poll the RunState; it merges the normal state observable with a timer and
-         * makes sure that:
-         *
+         * This Observable is used to poll the RunState; it merges the normal state observable with a timer and makes sure that:
          * - If normal state changes (e.g. due to an external event), that state object is re-used
          * - If timer fire, the state is queried.
          * - Both timer + normal state only trigger an update every 500ms.
@@ -232,9 +133,94 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             share()
         );
 
+        /*
+         * This is the main switch that updates the viewer's state and the only actual subscription.
+         *
+         * IMPORTANT: Unsubscribe onDestroy.
+         */
+        this.viewerStateSubscription = combineLatest([currentTaskHint, polledState]).subscribe(([h, s]) => {
+            switch (s.status) {
+                case 'CREATED':
+                case 'ACTIVE':
+                    this.viewerState.next(ViewerState.VIEWER_WAITING_FOR_TASK);
+                    break;
+                case 'PREPARING_TASK':
+                    this.viewerState.next(ViewerState.VIEWER_SYNC);
+                    if (h != null) { this.webSocketSubject.next({runId: s.id, type: 'ACK'} as IWsClientMessage); } /* Send ACK. */
+                    break;
+                case 'RUNNING_TASK':
+                    if (s.timeElapsed < 0) {
+                        const countdown = Math.abs(s.timeElapsed) - 1;
+                        this.viewerState.next(ViewerState.VIEWER_COUNTDOWN);
+                        this.taskCountdown.next(countdown);
+                        if (countdown > 0) {
+                            AudioPlayerUtilities.playOnce('/immutable/assets/audio/beep_1.ogg', this.audio.nativeElement);
+                        } else {
+                            AudioPlayerUtilities.playOnce('/immutable/assets/audio/beep_2.ogg', this.audio.nativeElement);
+                        }
+                    } else {
+                        this.viewerState.next(ViewerState.VIEWER_PLAYBACK);
+                    }
+                    break;
+                case 'TASK_ENDED':
+                case 'TERMINATED':
+                    return this.viewerState.next(ViewerState.VIEWER_TASK_ENDED);
+            }
+        });
+
+        /** Map task target to representation used by viewer. */
+        this.currentTaskTarget = currentTaskTarget.pipe(
+            flatMap((h: TaskTarget) => {
+            if (!h) { return fromArray([]); }
+            return fromArray(h.sequence).pipe(
+                delayWhen<ContentElement>((c: ContentElement) => interval(1000 * c.offset)),
+                repeat(-1),
+            );
+        }));
+
+        /* Map task hint to representation used by viewer. */
+        this.currentTaskHint = currentTaskHint.pipe(
+            flatMap(hint => {
+                console.log(`Current Task Hint fired`);
+                return this.timeElapsed.pipe(
+                    take(1),
+                    flatMap(timeElapsed => {
+                        const actualTimeElapsed = Math.max(timeElapsed, 0);
+                        const sequence = [];
+                        if (hint) {
+                            const largest = new Map<ContentElement.ContentTypeEnum, ContentElement>();
+                            hint.sequence.forEach(c => {
+                                if (c.offset >= actualTimeElapsed) {
+                                    sequence.push(c);
+                                } else if (!largest.has(c.contentType)) {
+                                    largest.set(c.contentType, c);
+                                    sequence.push(c);
+                                } else if (largest.get(c.contentType).offset < c.offset) {
+                                    sequence.splice(sequence.indexOf(largest.get(c.contentType)));
+                                    largest.set(c.contentType, c);
+                                    sequence.push(c);
+                                }
+                            });
+                        }
+
+                        return fromArray(sequence).pipe(
+                            delayWhen<any>(c => interval(Math.max(0, 1000 * (c.offset - actualTimeElapsed)))),
+                            map((t, index) => {
+                                if (index > 0) {
+                                    AudioPlayerUtilities.playOnce('assets/audio/ding.ogg', this.audio.nativeElement);
+                                }
+                                return t;
+                            })
+                        );
+                    })
+                );
+            }),
+            shareReplay({bufferSize: 1, refCount: true})
+        );
+
         /* Observable for the time that is still left. */
         this.timeLeft = polledState.pipe(
-            map(s => s.timeLeft),
+            map(s => s.timeLeft), /* Compensating for added countdown. */
             tap(t => {
                 if (t === 30 || t === 60) {
                     AudioPlayerUtilities.playOnce(
@@ -245,7 +231,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
         );
 
         /* Observable for the time that has elapsed. */
-        this.timeElapsed = polledState.pipe(map(s => s.currentTask?.duration - s.timeLeft));
+        this.timeElapsed = polledState.pipe(map(s => s.timeElapsed));
     }
 
     /**

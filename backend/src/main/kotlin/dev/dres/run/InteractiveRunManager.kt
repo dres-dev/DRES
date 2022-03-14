@@ -12,6 +12,10 @@ import dev.dres.run.score.scoreboard.Scoreboard
 
 interface InteractiveRunManager : RunManager {
 
+    companion object {
+        const val COUNTDOWN_DURATION = 5_000 //countdown time in milliseconds
+    }
+
     /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
     val scoreHistory: List<ScoreTimePoint>
 
@@ -109,6 +113,16 @@ interface InteractiveRunManager : RunManager {
      * @return Time remaining until the task will end or -1, if no task is running.
      */
     fun timeLeft(context: RunActionContext): Long
+
+    /**
+     * Returns the time in milliseconds that has elapsed since the start of the currently running task.
+     * Only works if the [InteractiveRunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no task is running,
+     * this method returns -1L.
+     *
+     * @param context The [RunActionContext] used for the invocation.
+     * @return Time remaining until the task will end or -1, if no task is running.
+     */
+    fun timeElapsed(context: RunActionContext): Long
 
     /**
      * Returns a list of all [AbstractInteractiveTask]s for this [InteractiveRunManager]. Depending on the

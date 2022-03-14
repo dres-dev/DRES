@@ -1,7 +1,6 @@
 package dev.dres.data.model.run
 
 import dev.dres.data.model.competition.TaskDescriptionTarget
-import dev.dres.data.model.competition.TaskType
 import dev.dres.data.model.competition.options.TargetOption
 import dev.dres.data.model.run.interfaces.Task
 import dev.dres.data.model.submissions.aspects.OriginAspect
@@ -27,6 +26,7 @@ abstract class AbstractNonInteractiveTask: AbstractRun(), Task {
         TargetOption.MULTIPLE_MEDIA_ITEMS -> MediaItemsSubmissionBatchValidator((description.target as TaskDescriptionTarget.MultipleMediaItemTarget).items.toSet())
         TargetOption.JUDGEMENT -> TODO()
         TargetOption.VOTE -> TODO()
+        TargetOption.TEXT -> TODO()
     }
 
     abstract fun addSubmissionBatch(origin: OriginAspect, batches: List<ResultBatch<*>>)

@@ -33,8 +33,16 @@ inline class WebSocketConnection(val context: WsContext) {
         get() = UserManager.get(AccessManager.getUserIdForSession(this.httpSessionId) ?: UID.EMPTY)?.username?.name ?: "UNKNOWN"
 
     /** IP address of the client. */
-    val host
-        get() = this.context.session.remoteAddress.hostString
+    val host: String
+        get() {
+            val xff = this.context.header("X-Forwarded-For")
+            return if (xff != null) {
+                "$xff via ${this.context.session.remoteAddress.hostString}"
+            } else {
+                this.context.session.remoteAddress.hostString
+            }
+
+        }
 
     fun send(message: Any) = this.context.send(jsonMapper.writeValueAsString(message))
     fun send(message: String) = this.context.send(message)

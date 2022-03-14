@@ -7,7 +7,9 @@ import dev.dres.data.model.basics.time.TemporalPoint
 import dev.dres.data.model.basics.time.TemporalRange
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.submissions.aspects.BaseSubmissionAspect
+import dev.dres.data.model.submissions.aspects.ItemAspect
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
+import dev.dres.data.model.submissions.aspects.TextAspect
 
 
 /**
@@ -34,7 +36,7 @@ sealed class Submission : BaseSubmissionAspect {
         override val timestamp: Long,
         override val item: MediaItem,
         override val uid: UID = UID()
-    ) : Submission()
+    ) : Submission(), ItemAspect
 
     /**
      *
@@ -47,9 +49,17 @@ sealed class Submission : BaseSubmissionAspect {
         override val start: Long, //in ms
         override val end: Long, //in ms
         override val uid: UID = UID()
-    ) : Submission(), TemporalSubmissionAspect {
+    ) : Submission(), ItemAspect, TemporalSubmissionAspect {
 
         override val temporalRange: TemporalRange
             get() = TemporalRange(TemporalPoint.Millisecond(start), TemporalPoint.Millisecond(end))
     }
+
+    data class Text(
+        override val teamId: UID,
+        override val memberId: UID,
+        override val timestamp: Long,
+        override val text: String,
+        override val uid: UID = UID()
+    ) : Submission(), TextAspect
 }

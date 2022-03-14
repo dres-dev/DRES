@@ -34,6 +34,12 @@
                         (click)="addQueryTarget('MULTIPLE_MEDIA_ITEMS')">
                     <mat-icon>add</mat-icon>
                 </button>
+                <button *ngIf="data.taskType.targetType.option === 'TEXT'"
+                        mat-button aria-label="Add target text."
+                        matTooltip="Add target text."
+                        (click)="addQueryTarget('TEXT')">
+                    <mat-icon>add</mat-icon>
+                </button>
                 <mat-button-toggle-group *ngIf="data.taskType.targetType.option == 'MULTIPLE_MEDIA_ITEMS'"
                                          #group="matButtonToggleGroup" [(value)]="viewLayout">
                     <mat-button-toggle value="list" aria-label="Display targets as list">
@@ -64,7 +70,7 @@
                         <!-- form stuff -->
                         <mat-grid-tile-footer>
                             <p>
-                                <mat-form-field *ngIf="target.get('mediaItem')"
+                                <mat-form-field *ngIf="target.get('mediaItem') && data.taskType.targetType.option !== 'TEXT'"
                                                 [style]="isImageMediaItem(target.get('mediaItem').value) ? 'width: 95%;' : 'width: 100%;'">
                                     <input type="text" matInput placeholder="Media item"
                                            [formControl]="target.get('mediaItem')" [matAutocomplete]="autoGroup">
@@ -84,6 +90,10 @@
                                     <mat-error *ngIf="target.controls['mediaItem'].hasError('incorrect')">
                                         Please select a valid media item i.e. use the autocomplete to select a value.
                                     </mat-error>
+                                </mat-form-field>
+                                <mat-form-field *ngIf="target.get('mediaItem') && data.taskType.targetType.option === 'TEXT'"
+                                                [style]="'width: 100%;'">
+                                    <input type="text" matInput placeholder="Target Text" [formControl]="target.get('mediaItem')">
                                 </mat-form-field>
                             </p>
                             <p *ngIf="target.get('segment_start') && target.get('segment_end')">
@@ -122,7 +132,7 @@
                         </mat-grid-tile-footer>
                         <mat-grid-tile-header style="text-align: right">
                             <!-- remove button -->
-                            <div *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'">
+                            <div *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS' || data.taskType.targetType.option === 'TEXT'">
                                 <button mat-icon-button (click)="removeQueryTarget(i)" aria-label="Remove query target."
                                         matTooltip="Remove query target.">
                                     <mat-icon>remove</mat-icon>
@@ -137,7 +147,7 @@
                 <div *ngFor="let target of form.get('target')['controls']; let i = index" style="display: flex">
                     <div style="flex-basis: 100%; flex-grow: 1">
                         <p>
-                            <mat-form-field *ngIf="target.get('mediaItem')"
+                            <mat-form-field *ngIf="target.get('mediaItem') && data.taskType.targetType.option !== 'TEXT'"
                                             [style]="isImageMediaItem(target.get('mediaItem').value) ? 'width: 95%;' : 'width: 100%;'">
                                 <input type="text" matInput placeholder="Media item"
                                        [formControl]="target.get('mediaItem')" [matAutocomplete]="autoGroup">
@@ -157,6 +167,11 @@
                                 <mat-error *ngIf="target.controls['mediaItem'].hasError('incorrect')">
                                     Please select a valid media item i.e. use the autocomplete to select a value.
                                 </mat-error>
+                            </mat-form-field>
+                            <mat-form-field *ngIf="target.get('mediaItem') && data.taskType.targetType.option === 'TEXT'"
+                                            [style]="'width: 100%;'">
+                                <input type="text" matInput [matTooltip]="renderTextTargetTooltip()" placeholder="Target Text"
+                                       [formControl]="target.get('mediaItem')">
                             </mat-form-field>
                             <button *ngIf="isImageMediaItem(target.get('mediaItem').value)" style="width: 5%;"
                                     mat-icon-button
@@ -210,7 +225,7 @@
                         </div>
                     </div>
                     <div class="spacer-flex" *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'"></div>
-                    <div *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'">
+                    <div *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS' || data.taskType.targetType.option === 'TEXT'">
                         <button mat-icon-button (click)="removeQueryTarget(i)" aria-label="Remove query target."
                                 matTooltip="Remove query target.">
                             <mat-icon>remove</mat-icon>
@@ -226,7 +241,9 @@
                     <mat-icon>add</mat-icon>
                 </button>
                 <mat-menu #componentsMenu="matMenu">
-                    <button *ngFor="let compType of data.taskType.components" mat-menu-item (click)="addQueryComponent(compType.option)">Add {{compType.option | titlecase}}</button>
+                    <button *ngFor="let compType of data.taskType.components" mat-menu-item (click)="addQueryComponent(compType.option)">
+                        Add {{compType.option.replace('_', ' ') | titlecase}}
+                    </button>
                 </mat-menu>
             </h2>
             <div *ngIf="form.get('components').invalid" class="validation-error">
@@ -258,12 +275,9 @@
                                     </mat-error>
                                 </mat-autocomplete>
                             </mat-form-field>
-                            <button mat-icon-button
-                                    aria-label="Show media item."
-                                    matTooltip="Show media item."
-                            >
-                                        <mat-icon>remove_red_eye</mat-icon>
-                                    </button>
+                            <button mat-icon-button  aria-label="Show media item." matTooltip="Show media item.">
+                                <mat-icon>remove_red_eye</mat-icon>
+                            </button>
                         </span>
 
                         <span *ngIf="description.get('type').value === 'EXTERNAL_IMAGE' || description.get('type').value === 'EXTERNAL_VIDEO'">
@@ -332,9 +346,12 @@
                 </div>
                 <div class="spacer-flex"></div>
                 <div>
-                    <button mat-icon-button (click)="removeQueryComponent(i)"
-                            aria-label="Remove query hint."
-                            matTooltip="Remove query hint.">
+                    <button mat-icon-button (click)="addQueryComponent(description.get('type').value, i)" aria-label="Add query hint AFTER this hint." matTooltip="Add query hint AFTER this hint.">
+                        <mat-icon>more_time</mat-icon>
+                    </button>
+                </div>
+                <div>
+                    <button mat-icon-button (click)="removeQueryComponent(i)" aria-label="Remove query hint." matTooltip="Remove query hint.">
                         <mat-icon>remove</mat-icon>
                     </button>
                 </div>
@@ -346,10 +363,10 @@
     <button mat-button (click)="close()">Cancel</button>
     <button mat-button (click)="save()">Save</button>
     <!-- Disabled until proper import / export functionality exists
-    <app-download-json-button
+    <app-download-button
             [fileName]="fileProvider"
             [downloadable]="downloadProvider"
-            matTooltip="Download the task as JSON"></app-download-json-button>
+            matTooltip="Download the task as JSON"></app-download-button>
     <app-upload-json-button
             matTooltip="Upload task JSON"
             [handler]="uploaded"></app-upload-json-button>

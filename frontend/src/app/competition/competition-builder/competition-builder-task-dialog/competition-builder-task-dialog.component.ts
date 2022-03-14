@@ -94,8 +94,8 @@ export class CompetitionBuilderTaskDialogComponent {
     /**
      * Handler for (+) button for query hint form component.
      */
-    public addQueryComponent(componentType: ConfiguredOptionQueryComponentOption.OptionEnum) {
-        this.builder.addComponentForm(componentType);
+    public addQueryComponent(componentType: ConfiguredOptionQueryComponentOption.OptionEnum, previous: number = null) {
+        this.builder.addComponentForm(componentType, previous);
     }
 
     /**
@@ -329,5 +329,11 @@ export class CompetitionBuilderTaskDialogComponent {
                 console.error(`The time unit ${this.form.get('time_unit').value} is not supported`);
         }
         return '';
+    }
+
+    public renderTextTargetTooltip() {
+        return `The textual task target.
+        Regex are allowed and have to be enclosed with single backslashes (\\).
+        Java Regex matching is used.`;
     }
 }

@@ -26,7 +26,6 @@ import java.util.*
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 sealed class TaskDescriptionTarget {
 
-
     companion object {
         const val IMAGE_CONTENT_ELEMENT_DURATION_S = 3L
         const val EMPTY_CONTENT_ELEMENT_DURATION_S = 0L
@@ -147,5 +146,15 @@ sealed class TaskDescriptionTarget {
         override val ordinal: Int = 5
         override fun textDescription() = "Judgement with voting"
         override fun toQueryContentElement(config: Config, collections: DAO<MediaCollection>): List<ContentElement> = emptyList()
+    }
+
+    @JsonTypeName("TextTarget")
+    data class TextTaskDescriptionTarget(val targets: List<String>) : TaskDescriptionTarget() {
+        override val ordinal: Int = 6
+        override fun textDescription() = targets.joinToString(separator = ", ")
+        override fun toQueryContentElement(config: Config, collections: DAO<MediaCollection>): List<ContentElement> =
+            listOf(
+                ContentElement(ContentType.TEXT, targets.joinToString(separator = ", "), 0)
+            )
     }
 }

@@ -38,6 +38,7 @@ class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemS
                     is TaskDescriptionTarget.MediaItemTarget -> listOf(event.taskDescription.target.item to null)
                     is TaskDescriptionTarget.VideoSegmentTarget ->  listOf(event.taskDescription.target.item to event.taskDescription.target.temporalRange)
                     is TaskDescriptionTarget.MultipleMediaItemTarget -> event.taskDescription.target.items.map { it to null }
+                    is TaskDescriptionTarget.TextTaskDescriptionTarget -> return //TODO maybe some analysis would be possible, needs restructuring
                 }
             }
             is QueryResultLogEvent -> {

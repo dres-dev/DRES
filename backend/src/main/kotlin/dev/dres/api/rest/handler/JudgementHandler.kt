@@ -1,14 +1,20 @@
 package dev.dres.api.rest.handler
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.RestApiRole
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.basics.media.MediaCollection
+import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.basics.media.PlayableMediaItem
 import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.aspects.ItemAspect
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
+import dev.dres.data.model.submissions.aspects.TextAspect
 import dev.dres.run.RunExecutor
+import dev.dres.run.RunManager
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
 import dev.dres.run.validation.interfaces.VoteValidator
@@ -26,13 +32,36 @@ abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler 
     protected fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
         throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx)
     }.UID()
+
+
+    companion object {
+        fun checkRunManagerAccess(ctx: Context, runManager: RunManager) {
+            val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(
+                403,
+                "No valid user.",
+                ctx
+            )
+            if (AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)) {
+                return //Admins require no further check
+            }
+            if (userId !in runManager.description.judges) {
+                throw ErrorStatusException(403, "Access denied.", ctx)
+            }
+        }
+    }
 }
 
 data class Judgement(val token: String, val validator: String, val verdict: SubmissionStatus)
 
 data class JudgementVote(val verdict: SubmissionStatus)
 
-data class JudgementRequest(val token: String, val validator: String, val collection: String, val item: String, val taskDescription: String, val startTime: String?, val endTime: String?)
+data class JudgementRequest(val token: String, val mediaType: JudgementRequestMediaType, val validator: String, val collection: String, val item: String, val taskDescription: String, val startTime: String?, val endTime: String?)
+
+enum class JudgementRequestMediaType {
+    TEXT,
+    VIDEO,
+    IMAGE,
+}
 
 class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : AbstractJudgementHandler(), GetRestHandler<JudgementRequest> {
     override val route = "run/{runId}/judge/next"
@@ -47,6 +76,7 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
                 OpenApiResponse("202", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
@@ -54,18 +84,36 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
         val runId = this.runId(ctx)
         val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
 
+        checkRunManagerAccess(ctx, run)
+
         val validator = run.judgementValidators.find { it.hasOpen } ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement", ctx, true)
         val next = validator.next(ctx.sessionId()) ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement", ctx)
 
-        val collection = this.collections[next.second.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.second.item.collection}", ctx)
-
         val taskDescription = next.second.task?.description?.textualDescription() ?: next.second.task?.description?.name ?: "no task description available"
+
+        if (next.second is TextAspect) {
+            return JudgementRequest(next.first, JudgementRequestMediaType.TEXT, validator.id, "text", (next.second as TextAspect).text, taskDescription, null, null)
+        }
+
+        if (next.second !is ItemAspect) {
+            throw ErrorStatusException(400, "Submission has neither item nor text", ctx)
+        }
+
+        val item = (next.second as ItemAspect).item
+
+        val collection = this.collections[item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${item.collection}", ctx)
 
         return if (next.second is TemporalSubmissionAspect){
             val tsa = next.second as TemporalSubmissionAspect
-            JudgementRequest(next.first, validator.id, collection.id.string, tsa.item.id.string, taskDescription, tsa.start.toString(), tsa.end.toString())
+            // Video is assumed, due to Temporal Submission Aspect - might want to change this later
+            JudgementRequest(next.first, JudgementRequestMediaType.VIDEO, validator.id, collection.id.string, tsa.item.id.string, taskDescription, tsa.start.toString(), tsa.end.toString())
         } else {
-            JudgementRequest(next.first, validator.id, collection.id.string, next.second.item.id.string, taskDescription, null, null)
+            val type = if(item is PlayableMediaItem){
+                JudgementRequestMediaType.VIDEO
+            } else {
+                JudgementRequestMediaType.IMAGE
+            }
+            JudgementRequest(next.first, type, validator.id, collection.id.string, item.id.string, taskDescription, null, null)
         }
     }
 }
@@ -83,12 +131,16 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = this.runId(ctx)
         val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
+
+        checkRunManagerAccess(ctx, run)
+
         val judgement = try {
             ctx.bodyAsClass(Judgement::class.java)
         } catch (e: BadRequestResponse) {
@@ -119,6 +171,7 @@ class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, A
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<JudgementValidatorStatus>::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
@@ -129,6 +182,8 @@ class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, A
         }.UID()
 
         val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
+
+        AbstractJudgementHandler.checkRunManagerAccess(ctx, run)
 
         return run.judgementValidators.map { JudgementValidatorStatus(it.id, it.pending, it.open) }
     }
@@ -207,15 +262,30 @@ class NextOpenVoteJudgementHandler(val collections: DAO<MediaCollection>) : Abst
 
         val next = validator.nextSubmissionToVoteOn() ?: throw ErrorStatusException(202, "There is currently no voting going on in run", ctx)
 
-        val collection = this.collections[next.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.item.collection}", ctx)
-
         val taskDescription = next.task?.description?.textualDescription() ?: next.task?.description?.name ?: "no task description available"
+
+        if (next is TextAspect) {
+            return JudgementRequest("vote", JudgementRequestMediaType.TEXT, validator.id, "text", (next as TextAspect).text, taskDescription, null, null)
+        }
+
+        if (next !is ItemAspect) {
+            throw ErrorStatusException(400, "Submission has neither item nor text", ctx)
+        }
+
+        val item = (next as ItemAspect).item
+
+        val collection = this.collections[next.item.collection] ?: throw ErrorStatusException(404, "Could not find collection with id ${next.item.collection}", ctx)
 
         return if (next is TemporalSubmissionAspect){
             val tsa = next as TemporalSubmissionAspect
-            JudgementRequest("vote", validator.id, collection.id.string, tsa.item.id.string, taskDescription, tsa.start.toString(), tsa.end.toString())
+            JudgementRequest("vote",JudgementRequestMediaType.VIDEO, validator.id, collection.id.string, tsa.item.id.string, taskDescription, tsa.start.toString(), tsa.end.toString())
         } else {
-            JudgementRequest("vote", validator.id, collection.id.string, next.item.id.string, taskDescription, null, null)
+            val type = if(item is PlayableMediaItem){
+                JudgementRequestMediaType.VIDEO
+            } else {
+                JudgementRequestMediaType.IMAGE
+            }
+            JudgementRequest("vote",type, validator.id, collection.id.string, next.item.id.string, taskDescription, null, null)
         }
     }
 }

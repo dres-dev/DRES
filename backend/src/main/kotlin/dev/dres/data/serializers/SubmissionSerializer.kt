@@ -15,14 +15,22 @@ object SubmissionSerializer : Serializer<Submission> {
         out.writeUID(value.teamId)
         out.writeUID(value.memberId)
         out.packLong(value.timestamp)
-        MediaItemSerializer.serialize(out, value.item)
+
         out.packInt(value.status.ordinal)
         when(value){
-            is Submission.Item -> out.packInt(0)
+            is Submission.Item -> {
+                out.packInt(0)
+                MediaItemSerializer.serialize(out, value.item)
+            }
             is Submission.Temporal -> {
                 out.packInt(1)
+                MediaItemSerializer.serialize(out, value.item)
                 out.packLong(value.start)
                 out.packLong(value.end)
+            }
+            is Submission.Text -> {
+                out.packInt(2)
+                out.writeUTF(value.text)
             }
         }
     }
@@ -32,12 +40,18 @@ object SubmissionSerializer : Serializer<Submission> {
         val teamId = input.readUID()
         val memberId = input.readUID()
         val timestamp = input.unpackLong()
-        val item = MediaItemSerializer.deserialize(input, available)
         val status = SubmissionStatus.values()[input.unpackInt()]
 
         return when(input.unpackInt()) {
-            0 -> Submission.Item(teamId, memberId, timestamp, item, id).apply { this.status = status }
-            1 -> Submission.Temporal(teamId, memberId, timestamp, item, input.unpackLong(), input.unpackLong(), id).apply { this.status = status }
+            0 -> {
+                val item = MediaItemSerializer.deserialize(input, available)
+                Submission.Item(teamId, memberId, timestamp, item, id).apply { this.status = status }
+            }
+            1 -> {
+                val item = MediaItemSerializer.deserialize(input, available)
+                Submission.Temporal(teamId, memberId, timestamp, item, input.unpackLong(), input.unpackLong(), id).apply { this.status = status }
+            }
+            2 -> Submission.Text(teamId, memberId, timestamp, input.readUTF(), id).apply { this.status = status }
             else -> throw IllegalStateException("Unknown Submission Type")
         }
     }

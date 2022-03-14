@@ -359,9 +359,24 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
      * @return Time remaining until the task will end or -1, if no task is running.
      */
     override fun timeLeft(context: RunActionContext): Long = this.stateLock.read {
-        if (this.status == RunManagerStatus.RUNNING_TASK) {
+        return if (this.status == RunManagerStatus.RUNNING_TASK) {
             val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
-            return max(0L, currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!))
+            max(0L, currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
+        } else {
+            -1L
+        }
+    }
+
+    /**
+     * Returns the time in milliseconds that has elapsed since the start of the current [InteractiveSynchronousCompetition.Task].
+     * Only works if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no task is running, this method returns -1L.
+     *
+     * @return Time remaining until the task will end or -1, if no task is running.
+     */
+    override fun timeElapsed(context: RunActionContext): Long = this.stateLock.read {
+        return if (this.status == RunManagerStatus.RUNNING_TASK) {
+            val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
+            System.currentTimeMillis() - (currentTaskRun.started!! + InteractiveRunManager.COUNTDOWN_DURATION)
         } else {
             -1L
         }

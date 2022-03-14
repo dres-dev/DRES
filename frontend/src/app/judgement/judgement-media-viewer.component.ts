@@ -60,45 +60,6 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
     }
 
     ngAfterViewInit(): void {
-        /* Custom loop handler */
-        if (this.video) {
-            this.video.nativeElement.addEventListener('timeupdate', () => {
-                const playtime = ((this.video.nativeElement.currentTime - this.startInSeconds) / (this.endInSeconds - this.startInSeconds)) * 100;
-                this.playtimeRelative = new Observable<number>(subscriber => subscriber.next(playtime));
-                this.relativePlaytimeSeconds = Math.round(this.video.nativeElement.currentTime) - this.startInSeconds;
-                JudgementMediaViewerComponent.log(`t=${this.relativePlaytimeSeconds}, ol=${this.originalLengthInSeconds}, ct=${this.video.nativeElement.currentTime}`);
-                if (this.paddingEnabled && this.startPaddingApplied && this.video.nativeElement.currentTime < (this.startInSeconds + this.padding)) {
-                    /* Start padding */
-                    JudgementMediaViewerComponent.log('Start padding');
-                    this.addTemporalContextClass();
-                } else if (this.paddingEnabled && this.video.nativeElement.currentTime > this.startInSeconds + (this.startPaddingApplied ? this.padding : 0) + this.originalLengthInSeconds) {
-                    /* End padding */
-                    JudgementMediaViewerComponent.log('End padding');
-                    this.addTemporalContextClass();
-                } else {
-                    /* no padding */
-                    this.removeTemporalContextClass();
-                }
-                if (this.endInSeconds) {
-                    if (this.video.nativeElement.currentTime >= this.endInSeconds) {
-                        JudgementMediaViewerComponent.log('Rewind video');
-                        this.relativePlaytimeSeconds = 0;
-                        this.video.nativeElement.currentTime = this.startInSeconds;
-                        this.video.nativeElement.play().then(r => {
-                        });
-                    }
-                }
-            });
-
-            /* custom handler to force-start when loaded. */
-            this.video.nativeElement.addEventListener('loadeddata', () => {
-                JudgementMediaViewerComponent.log('Event loadeddata fired.');
-                this.video.nativeElement.currentTime = this.startInSeconds;
-                this.video.nativeElement.play().then(r => JudgementMediaViewerComponent.log('Playing video after event fired'));
-            });
-        }
-
-
         /* Handling request */
         this.requestSub = this.req.subscribe(req => {
             if (req != null) {
@@ -119,6 +80,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
             }
         });
     }
+
 
     stop() {
         this.mediaUrl = undefined;
@@ -159,6 +121,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
         const url = this.resolvePath(req);
         this.mediaUrl = new Observable<string>(sub => sub.next(url));
         this.videoUrlDebug = new Observable<string>(sub => sub.next(url)); // TODO Debug only
+        this.initProgressBar();
         JudgementMediaViewerComponent.log(`Handled request: src=${this?.video?.nativeElement?.src}, start=${this.startInSeconds}, end=${this.endInSeconds}`);
     }
 
@@ -166,10 +129,53 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
         const url = this.resolvePath(req, false);
         this.mediaUrl = new Observable<string>(sub => sub.next(url));
         this.videoUrlDebug = new Observable<string>(sub => sub.next(url)); // TODO Debug only
+        if (req.mediaType === 'VIDEO') {
+            this.initProgressBar();
+        }
     }
 
     private initText(req: JudgementRequest) {
         this.currentText = new Observable<string>(sub => sub.next(req.item));
+    }
+
+    private initProgressBar() {
+        /* Custom loop handler */
+        if (this.video) {
+            this.video.nativeElement.addEventListener('timeupdate', () => {
+                const playtime = ((this.video.nativeElement.currentTime - this.startInSeconds) / (this.endInSeconds - this.startInSeconds)) * 100;
+                this.playtimeRelative = new Observable<number>(subscriber => subscriber.next(playtime));
+                this.relativePlaytimeSeconds = Math.round(this.video.nativeElement.currentTime) - this.startInSeconds;
+                JudgementMediaViewerComponent.log(`t=${this.relativePlaytimeSeconds}, ol=${this.originalLengthInSeconds}, ct=${this.video.nativeElement.currentTime}`);
+                if (this.paddingEnabled && this.startPaddingApplied && this.video.nativeElement.currentTime < (this.startInSeconds + this.padding)) {
+                    /* Start padding */
+                    JudgementMediaViewerComponent.log('Start padding');
+                    this.addTemporalContextClass();
+                } else if (this.paddingEnabled && this.video.nativeElement.currentTime > this.startInSeconds + (this.startPaddingApplied ? this.padding : 0) + this.originalLengthInSeconds) {
+                    /* End padding */
+                    JudgementMediaViewerComponent.log('End padding');
+                    this.addTemporalContextClass();
+                } else {
+                    /* no padding */
+                    this.removeTemporalContextClass();
+                }
+                if (this.endInSeconds) {
+                    if (this.video.nativeElement.currentTime >= this.endInSeconds) {
+                        JudgementMediaViewerComponent.log('Rewind video');
+                        this.relativePlaytimeSeconds = 0;
+                        this.video.nativeElement.currentTime = this.startInSeconds;
+                        this.video.nativeElement.play().then(r => {
+                        });
+                    }
+                }
+            });
+
+            /* custom handler to force-start when loaded. */
+            this.video.nativeElement.addEventListener('loadeddata', () => {
+                JudgementMediaViewerComponent.log('Event loadeddata fired.');
+                this.video.nativeElement.currentTime = this.startInSeconds;
+                this.video.nativeElement.play().then(r => JudgementMediaViewerComponent.log('Playing video after event fired'));
+            });
+        }
     }
 
     private addTemporalContextClass() {

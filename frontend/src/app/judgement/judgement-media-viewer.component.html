@@ -5,15 +5,12 @@
     <div class="controls-container" *ngIf="(mediaUrl | async)" fxLayout="row" fxFlexFill
          fxLayoutAlign="space-between center">
         <div fxFlex="10">
-            <button mat-flat-button color="primary"
-                    (click)="togglePlaying()"
-                    [matTooltip]="(this?.video?.nativeElement?.paused ? 'Play' : 'Pause') + ' the video'">
-                <mat-icon>{{this?.video?.nativeElement?.paused ? "play_arrow" : "pause"}}</mat-icon>
+            <button mat-flat-button color="primary" (click)="togglePlaying()" [matTooltip]="(videoPlayer.paused ? 'Play' : 'Pause') + ' the video'">
+                <mat-icon>{{videoPlayer.paused ? "play_arrow" : "pause"}}</mat-icon>
             </button>
         </div>
         <div fxFlex>
-            <mat-progress-bar mode="determinate" [value]="(playtimeRelative | async)"
-                              matTooltip="Time relative to the submission, inclusive some temporal context."></mat-progress-bar>
+            <mat-progress-bar mode="determinate" [value]="(playtimeRelative | async)" matTooltip="Time relative to the submission, inclusive some temporal context."></mat-progress-bar>
         </div>
     </div>
 </ng-container>

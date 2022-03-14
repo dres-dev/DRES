@@ -159,7 +159,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy {
         const url = this.resolvePath(req);
         this.mediaUrl = new Observable<string>(sub => sub.next(url));
         this.videoUrlDebug = new Observable<string>(sub => sub.next(url)); // TODO Debug only
-        JudgementMediaViewerComponent.log(`Handled request: src=${this.video.nativeElement.src}, start=${this.startInSeconds}, end=${this.endInSeconds}`);
+        JudgementMediaViewerComponent.log(`Handled request: src=${this?.video?.nativeElement?.src}, start=${this.startInSeconds}, end=${this.endInSeconds}`);
     }
 
     private initItem(req: JudgementRequest) {

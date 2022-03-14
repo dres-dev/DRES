@@ -7,8 +7,8 @@
         <div fxFlex="10">
             <button mat-flat-button color="primary"
                     (click)="togglePlaying()"
-                    [matTooltip]="(this.video.nativeElement.paused ? 'Play' : 'Pause') + ' the video'">
-                <mat-icon>{{this.video.nativeElement.paused ? "play_arrow" : "pause"}}</mat-icon>
+                    [matTooltip]="(this?.video?.nativeElement?.paused ? 'Play' : 'Pause') + ' the video'">
+                <mat-icon>{{this?.video?.nativeElement?.paused ? "play_arrow" : "pause"}}</mat-icon>
             </button>
         </div>
         <div fxFlex>

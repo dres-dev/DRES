@@ -94,8 +94,8 @@ export class CompetitionBuilderTaskDialogComponent {
     /**
      * Handler for (+) button for query hint form component.
      */
-    public addQueryComponent(componentType: ConfiguredOptionQueryComponentOption.OptionEnum) {
-        this.builder.addComponentForm(componentType);
+    public addQueryComponent(componentType: ConfiguredOptionQueryComponentOption.OptionEnum, previous: number = null) {
+        this.builder.addComponentForm(componentType, previous);
     }
 
     /**

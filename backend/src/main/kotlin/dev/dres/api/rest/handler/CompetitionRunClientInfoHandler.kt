@@ -133,7 +133,6 @@ class CompetitionRunClientCurrentTaskInfoHandler : AbstractCompetitionRunClientI
                         TaskRunStatus.RUNNING ->run.timeLeft(rac) / 1000
                         TaskRunStatus.ENDED -> 0
                     }
-
                 }
                 RunManagerStatus.TERMINATED -> 0
             },

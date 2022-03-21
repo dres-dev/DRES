@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.RestApiRole
 import dev.dres.api.rest.types.collection.RestMediaItem
 import dev.dres.api.rest.types.competition.CompetitionStartMessage
@@ -68,6 +69,21 @@ abstract class AbstractCompetitionRunAdminRestHandler(
             return run
         }
         return null
+    }
+
+    /**
+     * ensures that only admins are able to modify the state of synchronous runs
+     */
+    fun synchronousAdminCheck(runId: UID, ctx: Context) {
+
+        if (getRun(runId) is InteractiveAsynchronousRunManager) {
+            return
+        }
+
+        if (!AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)) {
+            throw ErrorStatusException(403, "Access Denied.", ctx);
+        }
+
     }
 }
 
@@ -154,7 +170,10 @@ class CreateCompetitionRunAdminHandler(
         /* Prepare... */
         try {
             val manager = when (competitionStartMessage.type) {
-                RunType.ASYNCHRONOUS -> TODO()
+                RunType.ASYNCHRONOUS -> InteractiveAsynchronousRunManager(
+                    competitionToStart,
+                    competitionStartMessage.name
+                )
                 RunType.SYNCHRONOUS -> InteractiveSynchronousRunManager(
                     competitionToStart,
                     competitionStartMessage.name
@@ -178,12 +197,12 @@ class CreateCompetitionRunAdminHandler(
 /**
  * REST handler to start a [InteractiveSynchronousCompetition].
  */
-class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(),
+class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)),
     PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/{runId}/start"
 
     @OpenApi(
-        summary = "Starts a competition run. This is a method for admins.",
+        summary = "Starts a competition run.",
         path = "/api/v1/run/admin/{runId}/start",
         method = HttpMethod.POST,
         pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
@@ -196,6 +215,7 @@ class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler()
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
+
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
 
         val rac = runActionContext(ctx, run)
@@ -240,7 +260,15 @@ class NextTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandle
         val runId = runId(ctx)
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
 
+        synchronousAdminCheck(runId, ctx)
+
         val rac = runActionContext(ctx, run)
+
+        if (run is InteractiveAsynchronousRunManager
+            && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
+            && run.currentTask(rac)?.status != TaskRunStatus.ENDED) {
+            throw ErrorStatusException(400, "Cannot advance to next task before current task is completed.", ctx)
+        }
 
         try {
             if (run.next(rac)) {
@@ -273,7 +301,7 @@ class NextTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandle
 /**
  * REST handler to move to the next task in a [InteractiveSynchronousCompetition].
  */
-class SwitchTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(),
+class SwitchTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)),
     PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/{runId}/task/switch/{idx}"
 
@@ -402,6 +430,9 @@ class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
     override fun doPost(ctx: Context): SuccessStatus {
         val runId = runId(ctx)
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
+
+        synchronousAdminCheck(runId, ctx)
+
         val rac = runActionContext(ctx, run)
         try {
             run.startTask(rac)
@@ -434,7 +465,7 @@ class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
 /**
  * REST handler to abort the current task in a [InteractiveSynchronousCompetition].
  */
-class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(),
+class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)),
     PostRestHandler<SuccessStatus> {
     override val route: String = "run/admin/{runId}/task/abort"
 

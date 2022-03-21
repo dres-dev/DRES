@@ -321,6 +321,9 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         this.scoreboardsUpdatable.dirty = true
         this.daoUpdatable.dirty = true
 
+        /* Enqueue WS message for sending */
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_PREPARE), context.teamId)
+
         LOGGER.info("Run manager  ${this.id} started task $currentTask.")
     }
 
@@ -365,8 +368,8 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      */
     override fun timeLeft(context: RunActionContext): Long = this.stateLock.read {
         require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager."}
-        val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("No task run for Team ${context.teamId}")
-        return if (currentTaskRun.isRunning) {
+        val currentTaskRun = this.currentTask(context)
+        return if (currentTaskRun?.isRunning == true) {
             max(0L, currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
         } else {
             -1L
@@ -380,8 +383,8 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @return Time remaining until the task will end or -1, if no task is running.
      */
     override fun timeElapsed(context: RunActionContext): Long = this.stateLock.read {
-        val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("No task run for Team ${context.teamId}")
-        return if (currentTaskRun.isRunning) {
+        val currentTaskRun = this.currentTask(context)
+        return if (currentTaskRun?.isRunning == true) {
             val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("Run manager is in status ${this.status} but has no active task. This is a serious error!")
             System.currentTimeMillis() - (currentTaskRun.started!! + InteractiveRunManager.COUNTDOWN_DURATION)
         } else {

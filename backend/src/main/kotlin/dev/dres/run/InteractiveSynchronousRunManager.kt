@@ -604,7 +604,7 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
         /** Case 2: Facilitates internal transition from RunManagerStatus.RUNNING_TASK to RunManagerStatus.TASK_ENDED due to timeout. */
         if (this.run.currentTask?.status == TaskRunStatus.RUNNING) {
             val task = this.run.currentTask!!
-            val timeLeft = max(0L, task.duration * 1000L - (System.currentTimeMillis() - task.started!!))
+            val timeLeft = max(0L, task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
             if (timeLeft <= 0) {
                 this.stateLock.write {
                     task.end()

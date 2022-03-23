@@ -124,7 +124,7 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
          */
         @Synchronized
         override fun addSubmission(submission: Submission) {
-            check(!this.isRunning) { "Task run '${this@InteractiveAsynchronousCompetition.name}.${this.position}' is currently not running. This is a programmer's error!" }
+            check(this.isRunning) { "Task run '${this@InteractiveAsynchronousCompetition.name}.${this.position}' is currently not running. This is a programmer's error!" }
             check(this.teamId == submission.teamId) { "Team ${submission.teamId} is not eligible to submit to this task. This is a programmer's error!" }
 
             /* Execute submission filters. */

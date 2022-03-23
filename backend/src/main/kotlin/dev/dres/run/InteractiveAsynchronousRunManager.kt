@@ -6,6 +6,7 @@ import dev.dres.api.rest.types.run.websocket.ClientMessageType
 import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.model.UID
+import dev.dres.data.model.admin.Role
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TeamId
@@ -80,8 +81,8 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
     /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
     private val scoresUpdatable = ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable, this.daoUpdatable)
 
-    /** The internal [DAOUpdatable] used to end a task once no more submissions are possible */
-    private val endTaskUpdatable = EndTaskUpdatable(this, RunActionContext.INTERNAL)
+//    /** The internal [DAOUpdatable] used to end a task once no more submissions are possible */
+//    private val endTaskUpdatable = EndTaskUpdatable(this, RunActionContext.INTERNAL)
 
     /** List of [Updatable] held by this [InteractiveAsynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
@@ -121,7 +122,17 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         this.updatables.add(this.scoreboardsUpdatable)
         this.updatables.add(this.messageQueueUpdatable)
         this.updatables.add(this.daoUpdatable)
-        this.updatables.add(this.endTaskUpdatable)
+        //this.updatables.add(this.endTaskUpdatable)
+
+        this.description.teams.forEach {
+
+            val teamContext = RunActionContext(UID.EMPTY, it.uid, setOf(Role.ADMIN))
+
+            this.updatables.add(
+                EndTaskUpdatable(this, teamContext)
+            )
+
+        }
 
         /* Initialize map and set all tasks pointers to the first task. */
         this.description.teams.forEach {
@@ -313,9 +324,9 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         checkTeamStatus(context.teamId, RunManagerStatus.ACTIVE)
 
         /* Create task and update status. */
-        val currentTask = this.navigationMap[context.teamId] ?: throw IllegalStateException("Could not find active task for team ${context.teamId} despite status of the team being ${this.statusMap[context.teamId]}. This is a programmer's error!")
-        this.run.Task(teamId = context.teamId, descriptionId = this.navigationMap[context.teamId]!!.id)
-        //this.statusMap[context.teamId] = RunManagerStatus.PREPARING_TASK
+        val currentTaskDescription = this.navigationMap[context.teamId] ?: throw IllegalStateException("Could not find active task for team ${context.teamId} despite status of the team being ${this.statusMap[context.teamId]}. This is a programmer's error!")
+        val currentTaskRun = this.run.Task(teamId = context.teamId, descriptionId = this.navigationMap[context.teamId]!!.id)
+        currentTaskRun.prepare()
 
         /* Mark scoreboards and DAO for update. */
         this.scoreboardsUpdatable.dirty = true
@@ -324,7 +335,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         /* Enqueue WS message for sending */
         this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_PREPARE), context.teamId)
 
-        LOGGER.info("Run manager  ${this.id} started task $currentTask.")
+        LOGGER.info("Run manager  ${this.id} started task $currentTaskDescription.")
     }
 
     /**
@@ -353,7 +364,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         this.daoUpdatable.dirty = true
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_END))
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_END), context.teamId)
 
         LOGGER.info("Run manager ${this.id} aborted task $currentTask.")
     }
@@ -495,7 +506,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         this.scoresUpdatable.enqueue(Pair(task, sub))
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_UPDATED))
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_UPDATED), context.teamId)
 
         return sub.status
     }
@@ -530,7 +541,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
             this.scoresUpdatable.enqueue(Pair(found.task!!, found))
 
             /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_UPDATED))
+            this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_UPDATED), context.teamId!!)
 
             return true
         }
@@ -641,8 +652,17 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
                     this.daoUpdatable.dirty = true
 
                     /* Enqueue WS message for sending */
-                    this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_END))
+                    this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_END), teamId)
                 }
+            } else if (teamHasPreparingTask(teamId)) {
+
+                //TODO check if all viewers are ready?
+
+                val task = this.run.currentTaskForTeam(teamId) ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
+                task.start()
+                AuditLogger.taskStart(this.id, task.description.name, LogEventSource.INTERNAL, null)
+                this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_START), teamId)
+
             }
         }
     }
@@ -669,4 +689,6 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
     }
 
     private fun teamHasRunningTask(teamId: TeamId) = this.run.currentTaskForTeam(teamId)?.isRunning == true
+
+    private fun teamHasPreparingTask(teamId: TeamId) = this.run.currentTaskForTeam(teamId)?.status == TaskRunStatus.PREPARING
 }

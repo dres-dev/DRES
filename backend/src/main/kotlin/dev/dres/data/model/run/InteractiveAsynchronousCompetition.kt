@@ -12,6 +12,7 @@ import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.audit.AuditLogger
+import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.score.interfaces.TeamTaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
@@ -40,10 +41,22 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
     override val tasks: List<Task>
         get() = this.tasksMap.values.flatten()
 
+    /** Tracks the current [TaskDescription] per [TeamId]. */
+    private val navigationMap: MutableMap<TeamId, TaskDescription> = HashMap()
+
+    fun goTo(teamId: TeamId, index: Int) {
+        navigationMap[teamId] = this.description.tasks[index]
+    }
+
+    fun currentTaskDescription(teamId: TeamId): TaskDescription = navigationMap[teamId] ?: throw IllegalTeamIdException(teamId)
+
     init {
         require(description.tasks.size > 0) { "Cannot create a run from a competition that doesn't have any tasks. "}
         require(description.teams.size > 0) { "Cannot create a run from a competition that doesn't have any teams. "}
-        this.description.teams.forEach { this.tasksMap[it.uid] = LinkedList() }
+        this.description.teams.forEach {
+            this.tasksMap[it.uid] = LinkedList()
+            this.navigationMap[it.uid] = this.description.tasks[0]
+        }
     }
 
     /**
@@ -51,8 +64,15 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
      *
      * @param teamId The [TeamId] to lookup.
      */
-    fun currentTaskForTeam(teamId: TeamId): Task? = this.tasksForTeam(teamId).lastOrNull()
+    fun currentTaskForTeam(teamId: TeamId): Task? {
 
+        val currentTaskDescriptionId = navigationMap[teamId]!!.id
+
+        return this.tasksForTeam(teamId).findLast {
+            it.descriptionId == currentTaskDescriptionId
+        }
+
+    }
     /**
      * Returns all [Task]s for the given [TeamId].
      *

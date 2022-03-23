@@ -55,22 +55,26 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         private const val MAXIMUM_ERROR_COUNT = 5
     }
 
-    constructor(description: CompetitionDescription, name: String) : this(InteractiveAsynchronousCompetition(UID.EMPTY, name, description).apply { RunExecutor.runs.append(this) })
+    constructor(description: CompetitionDescription, name: String) : this(
+        InteractiveAsynchronousCompetition(
+            UID.EMPTY,
+            name,
+            description
+        ).apply { RunExecutor.runs.append(this) })
 
-    /** Tracks the current [TaskDescription] per [TeamId]. */
-    private val navigationMap: MutableMap<TeamId, TaskDescription> = HashMap()
 
     /** Tracks the current [TaskDescription] per [TeamId]. */
     private val statusMap: MutableMap<TeamId, RunManagerStatus> = HashMap()
 
     /** A [Map] of all viewers, i.e., DRES cliets currently registered with this [InteractiveAsynchronousRunManager]. */
-    private val viewers = ConcurrentHashMap<WebSocketConnection,Boolean>()
+    private val viewers = ConcurrentHashMap<WebSocketConnection, Boolean>()
 
     /** A lock for state changes to this [InteractiveAsynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
 
     /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable = ScoreboardsUpdatable(this.description.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
+    private val scoreboardsUpdatable =
+        ScoreboardsUpdatable(this.description.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
 
     /** The internal [MessageQueueUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
     private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
@@ -79,10 +83,8 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
     private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
 
     /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoresUpdatable = ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable, this.daoUpdatable)
-
-//    /** The internal [DAOUpdatable] used to end a task once no more submissions are possible */
-//    private val endTaskUpdatable = EndTaskUpdatable(this, RunActionContext.INTERNAL)
+    private val scoresUpdatable =
+        ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable, this.daoUpdatable)
 
     /** List of [Updatable] held by this [InteractiveAsynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
@@ -101,7 +103,11 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
 
     /** The global [RunManagerStatus] of this [InteractiveAsynchronousRunManager]. */
     @Volatile
-    override var status: RunManagerStatus = if (this.run.hasStarted) { RunManagerStatus.ACTIVE } else { RunManagerStatus.CREATED }
+    override var status: RunManagerStatus = if (this.run.hasStarted) {
+        RunManagerStatus.ACTIVE
+    } else {
+        RunManagerStatus.CREATED
+    }
         private set
 
     override val judgementValidators: List<JudgementValidator>
@@ -122,7 +128,6 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         this.updatables.add(this.scoreboardsUpdatable)
         this.updatables.add(this.messageQueueUpdatable)
         this.updatables.add(this.daoUpdatable)
-        //this.updatables.add(this.endTaskUpdatable)
 
         this.description.teams.forEach {
 
@@ -136,8 +141,11 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
 
         /* Initialize map and set all tasks pointers to the first task. */
         this.description.teams.forEach {
-            this.navigationMap[it.uid] = this.description.tasks[0]
-            this.statusMap[it.uid] = if (this.run.hasStarted) { RunManagerStatus.ACTIVE } else { RunManagerStatus.CREATED }
+            this.statusMap[it.uid] = if (this.run.hasStarted) {
+                RunManagerStatus.ACTIVE
+            } else {
+                RunManagerStatus.CREATED
+            }
 
             /** End ongoing runs upon initialization (in case server crashed during task execution). */
             if (this.run.tasksForTeam(it.uid).lastOrNull()?.isRunning == true) {
@@ -228,8 +236,8 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @return The [TaskDescription] for the given team.
      */
     override fun currentTaskDescription(context: RunActionContext): TaskDescription {
-        require(context.teamId != null) { "TeamId missing from RunActionContext, which is required for interaction with InteractiveAsynchronousRunManager."}
-        return this.navigationMap[context.teamId] ?: throw IllegalTeamIdException(context.teamId)
+        require(context.teamId != null) { "TeamId missing from RunActionContext, which is required for interaction with InteractiveAsynchronousRunManager." }
+        return this.run.currentTaskDescription(context.teamId)
     }
 
     /**
@@ -265,7 +273,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @return True if [TaskDescription] was moved, false otherwise. Usually happens if last [TaskDescription] has been reached.
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
-    override fun next(context: RunActionContext): Boolean = this.stateLock.write  {
+    override fun next(context: RunActionContext): Boolean = this.stateLock.write {
         val newIndex = this.description.tasks.indexOf(this.currentTaskDescription(context)) + 1
         return try {
             this.goTo(context, newIndex)
@@ -287,20 +295,22 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     override fun goTo(context: RunActionContext, index: Int) = this.stateLock.write {
-        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager."}
+        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         checkTeamStatus(context.teamId, RunManagerStatus.ACTIVE)//, RunManagerStatus.TASK_ENDED)
-        require(!teamHasRunningTask(context.teamId)) {"Cannot change task while task is active"}
+        require(!teamHasRunningTask(context.teamId)) { "Cannot change task while task is active" }
         if (index >= 0 && index < this.description.tasks.size) {
 
             /* Update active task. */
-            this.navigationMap[context.teamId] = this.description.tasks[index]
+            //this.run.navigationMap[context.teamId] = this.description.tasks[index]
+            this.run.goTo(context.teamId, index)
+            //FIXME since task run and competition run states are separated, this is not actually a state change
             this.statusMap[context.teamId] = RunManagerStatus.ACTIVE
 
             /* Mark scoreboards for update. */
             this.scoreboardsUpdatable.dirty = true
 
             /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.COMPETITION_UPDATE))
+            this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.COMPETITION_UPDATE), context.teamId)
 
             LOGGER.info("SynchronousRunManager ${this.id} set to task $index")
         } else {
@@ -308,6 +318,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         }
 
     }
+
     /**
      * Starts the [currentTask] for the given team and thus moves the [InteractiveAsynchronousRunManager.status] from [RunManagerStatus.ACTIVE] to
      * either [RunManagerStatus.PREPARING_TASK] or [RunManagerStatus.RUNNING_TASK]
@@ -320,12 +331,14 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.ACTIVE] or [currentTask] is not set.
      */
     override fun startTask(context: RunActionContext) = this.stateLock.write {
-        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager."}
+        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         checkTeamStatus(context.teamId, RunManagerStatus.ACTIVE)
 
         /* Create task and update status. */
-        val currentTaskDescription = this.navigationMap[context.teamId] ?: throw IllegalStateException("Could not find active task for team ${context.teamId} despite status of the team being ${this.statusMap[context.teamId]}. This is a programmer's error!")
-        val currentTaskRun = this.run.Task(teamId = context.teamId, descriptionId = this.navigationMap[context.teamId]!!.id)
+        val currentTaskDescription = this.run.currentTaskDescription(context.teamId)
+            ?: throw IllegalStateException("Could not find active task for team ${context.teamId} despite status of the team being ${this.statusMap[context.teamId]}. This is a programmer's error!")
+        val currentTaskRun =
+            this.run.Task(teamId = context.teamId, descriptionId = currentTaskDescription.id)
         currentTaskRun.prepare()
 
         /* Mark scoreboards and DAO for update. */
@@ -333,7 +346,10 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         this.daoUpdatable.dirty = true
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_PREPARE), context.teamId)
+        this.messageQueueUpdatable.enqueue(
+            ServerMessage(this.id.string, ServerMessageType.TASK_PREPARE),
+            context.teamId
+        )
 
         LOGGER.info("Run manager  ${this.id} started task $currentTaskDescription.")
     }
@@ -350,12 +366,13 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
     override fun abortTask(context: RunActionContext) = this.stateLock.write {
-        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager."}
+        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         //checkTeamStatus(context.teamId, RunManagerStatus.PREPARING_TASK, RunManagerStatus.RUNNING_TASK)
-        require(teamHasRunningTask(context.teamId)) {"No running task for Team ${context.teamId}"}
+        require(teamHasRunningTask(context.teamId)) { "No running task for Team ${context.teamId}" }
 
         /* End TaskRun and update status. */
-        val currentTask = this.currentTask(context) ?: throw IllegalStateException("Could not find active task for team ${context.teamId} despite status of the team being ${this.statusMap[context.teamId]}. This is a programmer's error!")
+        val currentTask = this.currentTask(context)
+            ?: throw IllegalStateException("Could not find active task for team ${context.teamId} despite status of the team being ${this.statusMap[context.teamId]}. This is a programmer's error!")
         currentTask.end()
         //this.statusMap[context.teamId] = RunManagerStatus.TASK_ENDED
 
@@ -378,10 +395,13 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @return Time remaining until the task will end or -1, if no task is running.
      */
     override fun timeLeft(context: RunActionContext): Long = this.stateLock.read {
-        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager."}
+        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         val currentTaskRun = this.currentTask(context)
         return if (currentTaskRun?.isRunning == true) {
-            max(0L, currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
+            max(
+                0L,
+                currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
+            )
         } else {
             -1L
         }
@@ -396,7 +416,8 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
     override fun timeElapsed(context: RunActionContext): Long = this.stateLock.read {
         val currentTaskRun = this.currentTask(context)
         return if (currentTaskRun?.isRunning == true) {
-            val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("Run manager is in status ${this.status} but has no active task. This is a serious error!")
+            val currentTaskRun = this.currentTask(context)
+                ?: throw IllegalStateException("Run manager is in status ${this.status} but has no active task. This is a serious error!")
             System.currentTimeMillis() - (currentTaskRun.started!! + InteractiveRunManager.COUNTDOWN_DURATION)
         } else {
             -1L
@@ -413,7 +434,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      */
     override fun taskCount(context: RunActionContext): Int {
         if (context.isAdmin) return this.run.tasks.size
-        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager."}
+        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         return this.run.tasksForTeam(context.teamId).size
     }
 
@@ -427,7 +448,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      */
     override fun tasks(context: RunActionContext): List<AbstractInteractiveTask> {
         if (context.isAdmin) return this.run.tasks
-        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager."}
+        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         return this.run.tasksForTeam(context.teamId)
     }
 
@@ -437,7 +458,8 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @param context The [RunActionContext] used for the invocation.
      * @param taskId The [UID] of the [AbstractInteractiveTask].
      */
-    override fun taskForId(context: RunActionContext, taskId: UID): AbstractInteractiveTask? = this.tasks(context).find { it.uid == taskId }
+    override fun taskForId(context: RunActionContext, taskId: UID): AbstractInteractiveTask? =
+        this.tasks(context).find { it.uid == taskId }
 
     /**
      * Returns a reference to the currently active [AbstractInteractiveTask].
@@ -446,7 +468,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @return [AbstractInteractiveTask] that is currently active or null, if no such task is active.
      */
     override fun currentTask(context: RunActionContext): AbstractInteractiveTask? = this.stateLock.read {
-        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager."}
+        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         return this.run.currentTaskForTeam(context.teamId)
     }
 
@@ -456,7 +478,8 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @param context The [RunActionContext] used for the invocation.
      * @return List of [Submission]s for the currently active [AbstractInteractiveTask]
      */
-    override fun submissions(context: RunActionContext): List<Submission> = this.currentTask(context)?.submissions?.toList() ?: emptyList()
+    override fun submissions(context: RunActionContext): List<Submission> =
+        this.currentTask(context)?.submissions?.toList() ?: emptyList()
 
     /**
      * Adjusting task durations is not supported by the [InteractiveAsynchronousRunManager]s.
@@ -492,11 +515,12 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
     override fun postSubmission(context: RunActionContext, sub: Submission): SubmissionStatus = this.stateLock.read {
         require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         //checkTeamStatus(context.teamId, RunManagerStatus.RUNNING_TASK)
-        require(teamHasRunningTask(context.teamId)) {"No running task for Team ${context.teamId}"}
+        require(teamHasRunningTask(context.teamId)) { "No running task for Team ${context.teamId}" }
 
 
         /* Register submission. */
-        val task = this.currentTask(context) ?: throw IllegalStateException("Could not find ongoing task in run manager, despite being in status ${this.statusMap[context.teamId]}. This is a programmer's error!")
+        val task = this.currentTask(context)
+            ?: throw IllegalStateException("Could not find ongoing task in run manager, despite being in status ${this.statusMap[context.teamId]}. This is a programmer's error!")
         task.addSubmission(sub)
 
         /* Mark dao for update. */
@@ -506,7 +530,10 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         this.scoresUpdatable.enqueue(Pair(task, sub))
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_UPDATED), context.teamId)
+        this.messageQueueUpdatable.enqueue(
+            ServerMessage(this.id.string, ServerMessageType.TASK_UPDATED),
+            context.teamId
+        )
 
         return sub.status
     }
@@ -526,9 +553,13 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @return Whether the update was successful or not
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    override fun updateSubmission(context: RunActionContext, submissionId: UID, submissionStatus: SubmissionStatus): Boolean = this.stateLock.read {
+    override fun updateSubmission(
+        context: RunActionContext,
+        submissionId: UID,
+        submissionStatus: SubmissionStatus
+    ): Boolean = this.stateLock.read {
         /* Sanity check. TODO: Do we indeed only want to be able to update submissions for the current task? */
-        val found = this.submissions(context).find { it.uid == submissionId}  ?: return false
+        val found = this.submissions(context).find { it.uid == submissionId } ?: return false
 
         /* Actual update - currently, only status update is allowed */
         if (found.status != submissionStatus) {
@@ -541,7 +572,10 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
             this.scoresUpdatable.enqueue(Pair(found.task!!, found))
 
             /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_UPDATED), context.teamId!!)
+            this.messageQueueUpdatable.enqueue(
+                ServerMessage(this.id.string, ServerMessageType.TASK_UPDATED),
+                context.teamId!!
+            )
 
             return true
         }
@@ -567,7 +601,8 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         when (message.type) {
             ClientMessageType.REGISTER -> this.viewers[connection] = true
             ClientMessageType.UNREGISTER -> this.viewers.remove(connection)
-            else -> { /* No op. */}
+            else -> { /* No op. */
+            }
         }
         return true
     }
@@ -593,7 +628,10 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
                 LOGGER.info("Interrupted run manager thread; exiting...")
                 return
             } catch (e: Throwable) {
-                LOGGER.error("Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!", e)
+                LOGGER.error(
+                    "Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!",
+                    e
+                )
 
                 // oh shit, something went horribly horribly wrong
                 if (errorCounter >= MAXIMUM_ERROR_COUNT) {
@@ -615,20 +653,21 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * Invokes all [Updatable]s registered with this [InteractiveSynchronousRunManager].
      */
     private fun invokeUpdatables() = this.stateLock.read {
-        this.statusMap.values.toSet().forEach { status -> //call update once for every possible status which is currently set for any team
-            this.updatables.forEach {
-                if (it.shouldBeUpdated(status)) {
-                    try {
-                        it.update(status)
-                    } catch (e: Throwable) {
-                        LOGGER.error(
-                            "Uncaught exception while updating ${it.javaClass.simpleName} for competition run ${this.id}. Loop will continue to work but this error should be handled!",
-                            e
-                        )
+        this.statusMap.values.toSet()
+            .forEach { status -> //call update once for every possible status which is currently set for any team
+                this.updatables.forEach {
+                    if (it.shouldBeUpdated(status)) {
+                        try {
+                            it.update(status)
+                        } catch (e: Throwable) {
+                            LOGGER.error(
+                                "Uncaught exception while updating ${it.javaClass.simpleName} for competition run ${this.id}. Loop will continue to work but this error should be handled!",
+                                e
+                            )
+                        }
                     }
                 }
             }
-        }
     }
 
     /**
@@ -638,7 +677,8 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
     private fun internalStateUpdate() = this.stateLock.read {
         for (teamId in this.run.description.teams.map { it.uid }) {
             if (teamHasRunningTask(teamId)) {
-                val task = this.run.currentTaskForTeam(teamId) ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
+                val task = this.run.currentTaskForTeam(teamId)
+                    ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
                 val timeLeft = max(0L, task.duration * 1000L - (System.currentTimeMillis() - task.started!!))
                 if (timeLeft <= 0) {
                     this.stateLock.write {
@@ -652,13 +692,17 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
                     this.daoUpdatable.dirty = true
 
                     /* Enqueue WS message for sending */
-                    this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_END), teamId)
+                    this.messageQueueUpdatable.enqueue(
+                        ServerMessage(this.id.string, ServerMessageType.TASK_END),
+                        teamId
+                    )
                 }
             } else if (teamHasPreparingTask(teamId)) {
 
                 //TODO check if all viewers are ready?
 
-                val task = this.run.currentTaskForTeam(teamId) ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
+                val task = this.run.currentTaskForTeam(teamId)
+                    ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
                 task.start()
                 AuditLogger.taskStart(this.id, task.description.name, LogEventSource.INTERNAL, null)
                 this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_START), teamId)
@@ -690,5 +734,6 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
 
     private fun teamHasRunningTask(teamId: TeamId) = this.run.currentTaskForTeam(teamId)?.isRunning == true
 
-    private fun teamHasPreparingTask(teamId: TeamId) = this.run.currentTaskForTeam(teamId)?.status == TaskRunStatus.PREPARING
+    private fun teamHasPreparingTask(teamId: TeamId) =
+        this.run.currentTaskForTeam(teamId)?.status == TaskRunStatus.PREPARING
 }

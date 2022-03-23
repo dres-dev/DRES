@@ -234,8 +234,9 @@ class InteractiveSynchronousRunManager(val run: InteractiveSynchronousCompetitio
             /* Update active task. */
             this.currentTaskDescription = this.description.tasks[index]
 
-            /* Update RunManager status. */
-            this.status = RunManagerStatus.ACTIVE
+            //FIXME since task run and competition run states are separated, this is not actually a state change
+//            /* Update RunManager status. */
+//            this.status = RunManagerStatus.ACTIVE
 
             /* Mark scoreboards for update. */
             this.scoreboardsUpdatable.dirty = true

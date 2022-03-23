@@ -136,7 +136,7 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
                                 it.id.string,
                                 it.name,
                                 it.description.description,
-                                if (it is InteractiveSynchronousCompetition) it.lastTask?.description?.name
+                                if (it is InteractiveSynchronousCompetition) it.currentTask?.description?.name
                                     ?: "N/A" else "N/A"
                             )
                         }"
@@ -170,7 +170,7 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
                                     it.id.string,
                                     it.name,
                                     it.description.description,
-                                    if (it is InteractiveSynchronousCompetition) it.lastTask?.description?.name
+                                    if (it is InteractiveSynchronousCompetition) it.currentTask?.description?.name
                                         ?: "N/A" else "N/A",
                                     status
                                 )

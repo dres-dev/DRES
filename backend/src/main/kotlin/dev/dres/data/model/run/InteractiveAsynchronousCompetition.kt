@@ -54,7 +54,7 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
         require(description.tasks.size > 0) { "Cannot create a run from a competition that doesn't have any tasks. "}
         require(description.teams.size > 0) { "Cannot create a run from a competition that doesn't have any teams. "}
         this.description.teams.forEach {
-            this.tasksMap[it.uid] = LinkedList()
+            this.tasksMap[it.uid] = ArrayList(this.description.tasks.size)
             this.navigationMap[it.uid] = this.description.tasks[0]
         }
     }

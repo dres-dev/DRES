@@ -42,10 +42,18 @@ class InteractiveSynchronousCompetition(override var id: CompetitionId, override
     /** List of [Task]s registered for this [InteractiveSynchronousCompetition]. */
     override val tasks: List<Task> = LinkedList<Task>()
 
+    /** Reference to the currently active [TaskDescription]. This is part of the task navigation. */
+    var currentTaskDescription = this.description.tasks[0]
+    private set
+
+    fun goTo(index: Int) {
+        currentTaskDescription = this.description.tasks[index]
+    }
+
     /** Returns the last [Task]. */
     @get:JsonIgnore
-    val lastTask: Task?
-        get() = this.tasks.lastOrNull()
+    val currentTask: Task?
+        get() = this.tasks.findLast { it.description.id == currentTaskDescription.id }
 
     override fun toString(): String = "InteractiveSynchronousCompetition(id=$id, name=${name})"
 

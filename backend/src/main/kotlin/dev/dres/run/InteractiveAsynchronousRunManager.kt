@@ -620,7 +620,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         for (teamId in this.run.description.teams.map { it.uid }) {
             if (this.statusMap[teamId] == RunManagerStatus.RUNNING_TASK) {
                 val task = this.run.currentTaskForTeam(teamId) ?: throw IllegalStateException("Could not find active task for team ${teamId} despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
-                val timeLeft = max(0L, task.duration * 1000L - (System.currentTimeMillis() - task.started!!))
+                val timeLeft = max(0L, task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
                 if (timeLeft <= 0) {
                     this.stateLock.write {
                         task.end()

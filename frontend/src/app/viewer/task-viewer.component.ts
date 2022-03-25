@@ -120,7 +120,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             sampleTime(1000), /* This is again sampled to only ever emit once every second. */
             switchMap(s => {
                 if (typeof s === 'string') {
-                    return this.runService.getApiV1RunStateWithRunid(s); /* Timer! Load run state! */
+                    return this.runService.getApiV1RunWithRunidState(s); /* Timer! Load run state! */
                 } else {
                     return of(s as RunState); /* This is a freshly loaded run state. */
                 }

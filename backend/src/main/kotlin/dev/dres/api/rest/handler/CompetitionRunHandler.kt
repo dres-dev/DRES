@@ -127,11 +127,11 @@ class ListCompetitionRunStatesHandler : AbstractCompetitionRunRestHandler(), Get
 
 class GetCompetitionRunInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<RunInfo> {
 
-    override val route = "run/info/{runId}"
+    override val route = "run/{runId}/info"
 
     @OpenApi(
         summary = "Returns a specific competition run.",
-        path = "/api/v1/run/info/{runId}",
+        path = "/api/v1/run/{runId}/info",
         tags = ["Competition Run"],
         pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
         responses = [
@@ -155,11 +155,11 @@ class GetCompetitionRunInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
 
 class GetCompetitionRunStateHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<RunState> {
 
-    override val route = "run/state/{runId}"
+    override val route = "run/{runId}/state"
 
     @OpenApi(
         summary = "Returns the state of a specific competition run.",
-        path = "/api/v1/run/state/{runId}",
+        path = "/api/v1/run/{runId}/state",
         tags = ["Competition Run"],
         pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
         responses = [
@@ -378,15 +378,15 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
 
 class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandler<List<SubmissionInfo>> {
 
-    override val route = "run/{runId}/task/{taskId}/submission/list"
+    override val route = "run/{runId}/task/{taskRunId}/submission/list"
 
     @OpenApi(
         summary = "Returns the submissions of a specific task run, regardless of whether it is currently running or has ended.",
-        path = "/api/v1/run/{runId}/task/{taskId}/submission/list",
+        path = "/api/v1/run/{runId}/task/{taskRunId}/submission/list",
         tags = ["Competition Run"],
         pathParams = [
             OpenApiParam("runId", String::class, "Competition Run ID"),
-            OpenApiParam("taskId", String::class, "Task run ID")
+            OpenApiParam("taskRunId", String::class, "Task run ID")
         ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<SubmissionInfo>::class)]),
@@ -405,15 +405,15 @@ class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
         }
 
 
-        val taskId = ctx.pathParamMap()["taskId"]?.UID() ?: throw ErrorStatusException(404, "Missing task id", ctx)
-        return if (run.currentTask(rac)?.description?.id == taskId && run.status == RunManagerStatus.RUNNING_TASK) {
+        val taskRunId = ctx.pathParamMap()["taskRunId"]?.UID() ?: throw ErrorStatusException(404, "Missing task id", ctx)
+        return if (run.currentTask(rac)?.description?.id == taskRunId && run.status == RunManagerStatus.RUNNING_TASK) {
             if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }) {
                 run.submissions(rac).map { SubmissionInfo.blind(it) }
             } else {
                 run.submissions(rac).map { SubmissionInfo(it) }
             }
         } else {
-            run.taskForId(rac, taskId)?.submissions?.map { SubmissionInfo(it) } ?: emptyList()
+            run.taskForId(rac, taskRunId)?.submissions?.map { SubmissionInfo(it) } ?: emptyList()
         }
     }
 }

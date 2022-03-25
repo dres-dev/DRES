@@ -1832,11 +1832,11 @@
         }
       }
     },
-    "/api/v1/run/info/{runId}" : {
+    "/api/v1/run/{runId}/info" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns a specific competition run.",
-        "operationId" : "getApiV1RunInfoWithRunid",
+        "operationId" : "getApiV1RunWithRunidInfo",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -1890,11 +1890,11 @@
         }
       }
     },
-    "/api/v1/run/state/{runId}" : {
+    "/api/v1/run/{runId}/state" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the state of a specific competition run.",
-        "operationId" : "getApiV1RunStateWithRunid",
+        "operationId" : "getApiV1RunWithRunidState",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2247,11 +2247,11 @@
         }
       }
     },
-    "/api/v1/run/{runId}/task/{taskId}/submission/list" : {
+    "/api/v1/run/{runId}/task/{taskRunId}/submission/list" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the submissions of a specific task run, regardless of whether it is currently running or has ended.",
-        "operationId" : "getApiV1RunWithRunidTaskWithTaskidSubmissionList",
+        "operationId" : "getApiV1RunWithRunidTaskWithTaskrunidSubmissionList",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2261,7 +2261,7 @@
             "type" : "string"
           }
         }, {
-          "name" : "taskId",
+          "name" : "taskRunId",
           "in" : "path",
           "description" : "Task run ID",
           "required" : true,

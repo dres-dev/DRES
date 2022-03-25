@@ -60,6 +60,26 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
     }
 
     /**
+     * When a run is deserialized, the pointers for individual teams need to be recalculated in order to be able to resume where they left of
+     */
+    fun reconstructNavigationMap() {
+        this.description.teams.forEach {
+            val tasks = this.tasksMap[it.uid]
+            if (tasks != null && tasks.isNotEmpty()) {
+                val lastTask = tasks.last()
+                val taskIndex = this.description.tasks.indexOf(lastTask.description)
+
+                if (lastTask.ended != null) {
+                    this.navigationMap[it.uid] = this.description.tasks[if (lastTask.descriptionId == description.tasks.last().id) description.tasks.size - 1 else taskIndex + 1]
+                } else {
+                    this.navigationMap[it.uid] = this.description.tasks[taskIndex]
+                }
+
+            }
+        }
+    }
+
+    /**
      * Returns the current [Task] for the given [TeamId].
      *
      * @param teamId The [TeamId] to lookup.

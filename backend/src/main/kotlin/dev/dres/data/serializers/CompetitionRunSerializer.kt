@@ -83,6 +83,7 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
                         taskRun.submissions.add(SubmissionSerializer.deserialize(input,available))
                     }
                 }
+                run.reconstructNavigationMap()
                 run
             }
             else -> throw IllegalArgumentException("Unknown CompetitionRun type: $type")

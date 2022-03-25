@@ -1948,15 +1948,23 @@
         }
       }
     },
-    "/api/v1/run/{runId}/hint" : {
+    "/api/v1/run/{runId}/hint/{taskId}" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the task hint for the current task run (i.e. the one that is currently selected).",
-        "operationId" : "getApiV1RunWithRunidHint",
+        "operationId" : "getApiV1RunWithRunidHintWithTaskid",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
           "description" : "Competition Run ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "taskId",
+          "in" : "path",
+          "description" : "Task Description ID",
           "required" : true,
           "schema" : {
             "type" : "string"
@@ -2006,15 +2014,23 @@
         }
       }
     },
-    "/api/v1/run/{runId}/target" : {
+    "/api/v1/run/{runId}/target/{taskId}" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the task target for the current task run (i.e. the one that is currently selected).",
-        "operationId" : "getApiV1RunWithRunidTarget",
+        "operationId" : "getApiV1RunWithRunidTargetWithTaskid",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
           "description" : "Competition Run ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "taskId",
+          "in" : "path",
+          "description" : "Task Description ID",
           "required" : true,
           "schema" : {
             "type" : "string"

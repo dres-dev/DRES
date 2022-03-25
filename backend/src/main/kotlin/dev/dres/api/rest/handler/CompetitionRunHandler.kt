@@ -14,6 +14,7 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
+import dev.dres.data.model.competition.TaskDescriptionId
 import dev.dres.data.model.competition.options.SimpleOption
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.InteractiveRunManager
@@ -217,13 +218,16 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
 class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRunRestHandler(),
     GetRestHandler<TaskHint> {
 
-    override val route = "run/{runId}/hint"
+    override val route = "run/{runId}/hint/{taskId}"
 
     @OpenApi(
         summary = "Returns the task hint for the current task run (i.e. the one that is currently selected).",
-        path = "/api/v1/run/{runId}/hint",
+        path = "/api/v1/run/{runId}/hint/{taskId}",
         tags = ["Competition Run"],
-        pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
+        pathParams = [
+            OpenApiParam("runId", String::class, "Competition Run ID"),
+            OpenApiParam("taskId", String::class, "Task Description ID")
+                     ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(TaskHint::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -239,10 +243,24 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
+        val taskId = ctx.pathParam("taskId").UID()
+
         val rac = runActionContext(ctx, run)
 
-        val task = run.currentTaskDescription(rac)
+        val currentTaskDescription = run.currentTaskDescription(rac)
+
+        val task = if(currentTaskDescription.id == taskId) {
+            currentTaskDescription
+        } else {
+            run.taskForId(rac, taskId)?.description
+        }
+
+        if (task == null) { //request to a task id that is either invalid or not yet available
+            throw ErrorStatusException(403, "Access denied.", ctx)
+        }
+
         try {
+            ctx.header("Cache-Control", "public, max-age=300") //can be cached for 5 minutes
             return task.toTaskHint(config)
         } catch (e: FileNotFoundException) {
             throw ErrorStatusException(404, "Query object cache file not found!", ctx)
@@ -255,13 +273,16 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
 class CurrentTaskTargetHandler(private val config: Config, private val collections: DAO<MediaCollection>) :
     AbstractCompetitionRunRestHandler(), GetRestHandler<TaskTarget> {
 
-    override val route = "run/{runId}/target"
+    override val route = "run/{runId}/target/{taskId}"
 
     @OpenApi(
         summary = "Returns the task target for the current task run (i.e. the one that is currently selected).",
-        path = "/api/v1/run/{runId}/target",
+        path = "/api/v1/run/{runId}/target/{taskId}",
         tags = ["Competition Run"],
-        pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
+        pathParams = [
+            OpenApiParam("runId", String::class, "Competition Run ID"),
+            OpenApiParam("taskId", String::class, "Task Description ID")
+                     ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(TaskTarget::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -283,11 +304,24 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
             throw ErrorStatusException(400, "Query target can only be loaded if task has just ended.", ctx)
         }
 
+        val taskId = ctx.pathParam("taskId").UID()
+
         val rac = runActionContext(ctx, run)
 
-        /* Fetch query target and transform it. */
-        val task = run.currentTaskDescription(rac)
+        val currentTaskDescription = run.currentTaskDescription(rac)
+
+        val task = if(currentTaskDescription.id == taskId) {
+            currentTaskDescription
+        } else {
+            run.taskForId(rac, taskId)?.description
+        }
+
+        if (task == null) { //request to a task id that is either invalid or not yet available
+            throw ErrorStatusException(403, "Access denied.", ctx)
+        }
+
         try {
+            ctx.header("Cache-Control", "public, max-age=300") //can be cached for 5 minutes
             return task.toTaskTarget(config, collections)
         } catch (e: FileNotFoundException) {
             throw ErrorStatusException(404, "Query object cache file not found!", ctx)

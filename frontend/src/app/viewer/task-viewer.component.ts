@@ -86,8 +86,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
 
         /*  Observable for the current query hint. */
         const currentTaskHint = this.taskChanged.pipe(
-            flatMap(task => this.runId),
-            switchMap(id => this.runService.getApiV1RunWithRunidHint(id).pipe(
+            withLatestFrom(this.runId),
+            switchMap(([task, runId]) => this.runService.getApiV1RunWithRunidHintWithTaskid(runId, task.id).pipe(
                 catchError(e => {
                     console.error('[TaskViewerComponent] Could not load current query object due to an error.', e);
                     return of(null);
@@ -98,8 +98,8 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
 
         /*  Observable for the current query target. */
         const currentTaskTarget = this.taskEnded.pipe(
-            flatMap(s => this.runId),
-            switchMap(id => this.runService.getApiV1RunWithRunidTarget(id).pipe(
+            withLatestFrom(this.runId),
+            switchMap(([task, runId]) => this.runService.getApiV1RunWithRunidTargetWithTaskid(runId, task.id).pipe(
                 catchError(e => {
                     console.error('[TaskViewerComponent] Could not load current query object due to an error.', e);
                     return of(null);

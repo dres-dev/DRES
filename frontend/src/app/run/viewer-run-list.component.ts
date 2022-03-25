@@ -10,6 +10,7 @@ import {Router} from '@angular/router';
 import {AccessChecking} from '../model/access-checking.interface';
 import {UserGroup} from '../model/user-group.model';
 import {AccessRoleService} from '../services/session/access-role.service';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
     selector: 'app-viewer-run-list',
@@ -26,8 +27,9 @@ export class ViewerRunListComponent extends AbstractRunListComponent implements 
                 scoreService: CompetitionRunScoresService,
                 downloadService: DownloadService,
                 router: Router,
+                snackBar: MatSnackBar,
                 private accessService: AccessRoleService) {
-        super(runService, runAdminService, scoreService, downloadService, router);
+        super(runService, runAdminService, scoreService, downloadService, router, snackBar);
     }
 
     hasAccessFor(group: UserGroup): boolean {

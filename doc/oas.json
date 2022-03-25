@@ -2733,7 +2733,7 @@
     "/api/v1/run/admin/{runId}/start" : {
       "post" : {
         "tags" : [ "Competition Run Admin" ],
-        "summary" : "Starts a competition run. This is a method for admins.",
+        "summary" : "Starts a competition run.",
         "operationId" : "postApiV1RunAdminWithRunidStart",
         "parameters" : [ {
           "name" : "runId",
@@ -4896,7 +4896,7 @@
         }
       },
       "RunInfo" : {
-        "required" : [ "competitionId", "id", "name", "participantsCanView", "tasks", "teams" ],
+        "required" : [ "competitionId", "id", "name", "participantsCanView", "tasks", "teams", "type" ],
         "type" : "object",
         "properties" : {
           "id" : {
@@ -4925,6 +4925,10 @@
           },
           "participantsCanView" : {
             "type" : "boolean"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "SYNCHRONOUS", "ASYNCHRONOUS" ]
           }
         }
       },
@@ -5648,7 +5652,7 @@
           },
           "status" : {
             "type" : "string",
-            "enum" : [ "CREATED", "ACTIVE", "PREPARING_TASK", "RUNNING_TASK", "TASK_ENDED", "TERMINATED" ]
+            "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
           }
         }
       },

@@ -47,11 +47,11 @@
                     <mat-icon>skip_previous</mat-icon>
                 </button>
 
-                <button *ngIf="row.status == 'ACTIVE' || row.status == 'TASK_ENDED'" mat-icon-button aria-label="Next task." matTooltip="Got to next task." (click)="nextTask(row.id)">
+                <button *ngIf="row.status == 'ACTIVE' || row.status == 'TASK_ENDED'" mat-icon-button aria-label="Next task." matTooltip="Go to next task." (click)="nextTask(row.id)">
                     <mat-icon>skip_next</mat-icon>
                 </button>
 
-                <button *ngIf="row.status == 'ACTIVE' || row.status == 'TASK_ENDED'" mat-icon-button aria-label="Start task." matTooltip="Start task '{{row.currentTask.name}}'." (click)="startTask(row.id)">
+                <button *ngIf="row.status == 'ACTIVE' || row.status == 'TASK_ENDED'" mat-icon-button aria-label="Start task." matTooltip="Start task." (click)="startTask(row.id)">
                     <mat-icon>play_circle_outline</mat-icon>
                 </button>
 

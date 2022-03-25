@@ -21,9 +21,9 @@ export class AdminRunListComponent extends AbstractRunListComponent {
                 scoreService: CompetitionRunScoresService,
                 downloadService: DownloadService,
                 router: Router,
-                private snackBar: MatSnackBar,
+                snackBar: MatSnackBar,
                 private dialog: MatDialog) {
-        super(runService, runAdminService, scoreService, downloadService, router);
+        super(runService, runAdminService, scoreService, downloadService, router, snackBar);
     }
 
     public start(runId: string) {
@@ -58,30 +58,8 @@ export class AdminRunListComponent extends AbstractRunListComponent {
         });
     }
 
-    public nextTask(runId: string) {
-        this.runAdminService.postApiV1RunAdminWithRunidTaskNext(runId).subscribe(
-            (r) => {
-                this.update.next();
-                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-            }, (r) => {
-                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-            }
-        );
-    }
-
     public previousTask(runId: string) {
         this.runAdminService.postApiV1RunAdminWithRunidTaskPrevious(runId).subscribe(
-            (r) => {
-                this.update.next();
-                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-            }, (r) => {
-                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-            }
-        );
-    }
-
-    public startTask(runId: string) {
-        this.runAdminService.postApiV1RunAdminWithRunidTaskStart(runId).subscribe(
             (r) => {
                 this.update.next();
                 this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});

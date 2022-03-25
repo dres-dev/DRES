@@ -8,7 +8,7 @@ import {
 } from '../../../openapi';
 import {flatMap, map, take} from 'rxjs/operators';
 import {Router} from '@angular/router';
-
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 export interface RunInfoWithState {
     id: string;
@@ -19,6 +19,7 @@ export interface RunInfoWithState {
     currentTask?: string;
     timeLeft: string;
     participantsCanView?: boolean;
+    asynchronous: Boolean;
 }
 
 export class AbstractRunListComponent {
@@ -32,7 +33,8 @@ export class AbstractRunListComponent {
                 protected runAdminService: CompetitionRunAdminService,
                 protected scoreService: CompetitionRunScoresService,
                 protected downloadService: DownloadService,
-                protected router: Router) {
+                protected router: Router,
+                protected snackBar: MatSnackBar,) {
 
         /**
          * Creates a combined observable that updates the state in a regular interval and the info +
@@ -52,7 +54,8 @@ export class AbstractRunListComponent {
                         status: s.status,
                         currentTask: s.currentTask?.name,
                         timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a',
-                        participantsCanView: v.participantsCanView
+                        participantsCanView: v.participantsCanView,
+                        asynchronous: v.type == 'ASYNCHRONOUS'
                     } as RunInfoWithState;
                 });
             })
@@ -114,6 +117,28 @@ export class AbstractRunListComponent {
             URL.revokeObjectURL(fake.href);
         });
     }
+
+    public nextTask(runId: string) {
+            this.runAdminService.postApiV1RunAdminWithRunidTaskNext(runId).subscribe(
+                (r) => {
+                    this.update.next();
+                    this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
+                }, (r) => {
+                    this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+                }
+            );
+        }
+
+    public startTask(runId: string) {
+            this.runAdminService.postApiV1RunAdminWithRunidTaskStart(runId).subscribe(
+                (r) => {
+                    this.update.next();
+                    this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
+                }, (r) => {
+                    this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+                }
+            );
+        }
 
     scoreDownloadProvider = (runId: string) => {
         return this.downloadService.getApiV1DownloadRunWithRunidScores(runId, 'body', false, {httpHeaderAccept: 'text/csv'}).pipe(take(1));

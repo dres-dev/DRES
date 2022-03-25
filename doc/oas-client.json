@@ -834,7 +834,7 @@
           },
           "status" : {
             "type" : "string",
-            "enum" : [ "CREATED", "ACTIVE", "PREPARING_TASK", "RUNNING_TASK", "TASK_ENDED", "TERMINATED" ]
+            "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
           }
         }
       },

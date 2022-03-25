@@ -551,15 +551,13 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @param submissionStatus The new [SubmissionStatus]
      *
      * @return Whether the update was successful or not
-     * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
     override fun updateSubmission(
         context: RunActionContext,
         submissionId: UID,
         submissionStatus: SubmissionStatus
     ): Boolean = this.stateLock.read {
-        /* Sanity check. TODO: Do we indeed only want to be able to update submissions for the current task? */
-        val found = this.submissions(context).find { it.uid == submissionId } ?: return false
+        val found = this.allSubmissions.find { it.uid == submissionId } ?: return false
 
         /* Actual update - currently, only status update is allowed */
         if (found.status != submissionStatus) {

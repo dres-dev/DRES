@@ -110,7 +110,7 @@ export class RunScoreHistoryComponent {
         /* Information about current run. */
         this.runId = this.activeRoute.params.pipe(map(a => a.runId));
         this.runInfo = this.runId.pipe(
-            switchMap(runId => this.runService.getApiV1RunInfoWithRunid(runId).pipe(
+            switchMap(runId => this.runService.getApiV1RunWithRunidInfo(runId).pipe(
                 catchError((err, o) => {
                     console.log(`[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`);
                     if (err.status === 404) {

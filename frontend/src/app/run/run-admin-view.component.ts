@@ -50,7 +50,7 @@ export class RunAdminViewComponent implements AfterViewInit{
         this.run = this.runId.pipe(
             switchMap(runId =>
                 combineLatest([
-                    this.runService.getApiV1RunInfoWithRunid(runId).pipe(
+                    this.runService.getApiV1RunWithRunidInfo(runId).pipe(
                         catchError((err, o) => {
                             console.log(`[RunAdminViewComponent] There was an error while loading information in the current run state: ${err?.message}`);
                             this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`);
@@ -62,7 +62,7 @@ export class RunAdminViewComponent implements AfterViewInit{
                         filter(q => q != null)
                     ),
                     merge(timer(0, 1000), this.update).pipe(
-                        switchMap(index => this.runService.getApiV1RunStateWithRunid(runId))
+                        switchMap(index => this.runService.getApiV1RunWithRunidState(runId))
                     )
                 ])
             ),

@@ -41,6 +41,7 @@ class CompetitionSerializer(private val mediaItems: DAO<MediaItem>): Serializer<
             out.writeUID(judge)
         }
         out.writeBoolean(value.participantCanView)
+        //out.writeBoolean(value.shuffleTasks)
     }
 
     override fun deserialize(input: DataInput2, available: Int): CompetitionDescription {
@@ -55,6 +56,7 @@ class CompetitionSerializer(private val mediaItems: DAO<MediaItem>): Serializer<
         val teamGroups = (0 until input.unpackInt()).map { TeamGroupSerializer.deserialize(input, teams) }.toMutableList()
         val judges = (0 until input.unpackInt()).map { input.readUID() as UserId }.toMutableList()
         val participantCanView = input.readBoolean()
-        return CompetitionDescription(id, name, description, taskTypes, taskGroups, tasks, teams, teamGroups, judges, participantCanView)
+        val shuffleTasks = false //input.readBoolean()
+        return CompetitionDescription(id, name, description, taskTypes, taskGroups, tasks, teams, teamGroups, judges, participantCanView, shuffleTasks) //FIXME shuffle tasks not currently serialized
     }
 }

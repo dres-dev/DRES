@@ -27,9 +27,19 @@ import java.util.concurrent.ConcurrentHashMap
  * @author Ralph Gasser
  * @param 1.0.0
  */
-class InteractiveAsynchronousCompetition(override var id: CompetitionId, override val name: String, override val description: CompetitionDescription): AbstractRun(), Competition {
+class InteractiveAsynchronousCompetition(override var id: CompetitionId, override val name: String, override val description: CompetitionDescription, val permutation: Map<TeamId, List<Int>>): AbstractRun(), Competition {
 
-    internal constructor(id: CompetitionId, name: String, competitionDescription: CompetitionDescription, started: Long, ended: Long) : this(id, name, competitionDescription) {
+    companion object {
+        fun generatePermutation(description: CompetitionDescription) : Map<TeamId, List<Int>> = if (description.shuffleTasks || true) {
+            description.teams.associate { it.uid to description.tasks.indices.toList().shuffled() }
+        } else {
+            description.teams.associate { it.uid to description.tasks.indices.toList() }
+        }
+    }
+
+    constructor(id: CompetitionId, name: String, competitionDescription: CompetitionDescription) : this(id, name, competitionDescription, generatePermutation(competitionDescription))
+
+    internal constructor(id: CompetitionId, name: String, competitionDescription: CompetitionDescription, started: Long, ended: Long, permutation: Map<TeamId, List<Int>>) : this(id, name, competitionDescription, permutation) {
         this.started = if (started == -1L) { null } else { started }
         this.ended = if (ended == -1L) { null } else { ended }
     }
@@ -45,7 +55,9 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
     private val navigationMap: MutableMap<TeamId, TaskDescription> = HashMap()
 
     fun goTo(teamId: TeamId, index: Int) {
-        navigationMap[teamId] = this.description.tasks[index]
+        navigationMap[teamId] = this.description.tasks[
+                permutation[teamId]!![index]
+        ]
     }
 
     fun currentTaskDescription(teamId: TeamId): TaskDescription = navigationMap[teamId] ?: throw IllegalTeamIdException(teamId)

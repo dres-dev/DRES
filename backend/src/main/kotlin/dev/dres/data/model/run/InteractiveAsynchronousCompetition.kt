@@ -22,18 +22,62 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Represents a concrete, interactive and asynchronous [Run] of a [CompetitionDescription].
  *
- * [InteractiveAsynchronousCompetition]s can be started and ended and they can be used to create new [Task]s and access the current [Task].
+ * [InteractiveAsynchronousCompetition]s can be started and ended, and they can be used to create new [Task]s and access the current [Task].
  *
- * @author Ralph Gasser
- * @param 1.0.0
  */
 class InteractiveAsynchronousCompetition(override var id: CompetitionId, override val name: String, override val description: CompetitionDescription, val permutation: Map<TeamId, List<Int>>): AbstractRun(), Competition {
 
     companion object {
         fun generatePermutation(description: CompetitionDescription) : Map<TeamId, List<Int>> = if (description.shuffleTasks || true) {
-            description.teams.associate { it.uid to description.tasks.indices.toList().shuffled() }
+            description.teams.associate { it.uid to makeLoop(description.tasks.size) }
         } else {
             description.teams.associate { it.uid to description.tasks.indices.toList() }
+        }
+
+        /**
+         * generates a sequence of tasks that loops through all tasks exactly once
+         */
+        private fun makeLoop(length: Int) : List<Int> {
+
+            if (length <= 0) {
+                return emptyList()
+            }
+
+            val positions = (0 until length).shuffled()
+
+            fun recursionStep(array: IntArray, open: List<Int>, idx: Int) : IntArray? {
+
+                //nothing left to do
+                if (open.isEmpty()) {
+                    return array
+                }
+
+                //invalid state, need to backtrack
+                if (array[idx] != -1) {
+                    return null
+                }
+
+                //for all remaining options...
+                for (nextPosition in open) {
+                    //...assign the next one...
+                    array[idx] = nextPosition
+                    //...and continue recursively
+                    val nextArray = recursionStep(array, (open - nextPosition), (nextPosition + 1) % array.size)
+                    //assignment succeeded
+                    if (nextArray != null) {
+                        return nextArray
+                    }
+                }
+
+                //there was no valid assignment in the given options, need to back track
+                array[idx] = -1
+                return null
+            }
+
+            val arr = recursionStep(IntArray(length) { -1 }, positions, 0) ?: error("Error during generation of task sequence")
+
+            return arr.toList()
+
         }
     }
 
@@ -67,7 +111,7 @@ class InteractiveAsynchronousCompetition(override var id: CompetitionId, overrid
         require(description.teams.size > 0) { "Cannot create a run from a competition that doesn't have any teams. "}
         this.description.teams.forEach {
             this.tasksMap[it.uid] = ArrayList(this.description.tasks.size)
-            this.navigationMap[it.uid] = this.description.tasks[0]
+            goTo(it.uid, 0)
         }
     }
 

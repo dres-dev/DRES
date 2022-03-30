@@ -298,24 +298,27 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         checkTeamStatus(context.teamId, RunManagerStatus.ACTIVE)//, RunManagerStatus.TASK_ENDED)
         require(!teamHasRunningTask(context.teamId)) { "Cannot change task while task is active" }
-        if (index >= 0 && index < this.description.tasks.size) {
 
-            /* Update active task. */
-            //this.run.navigationMap[context.teamId] = this.description.tasks[index]
-            this.run.goTo(context.teamId, index)
-            //FIXME since task run and competition run states are separated, this is not actually a state change
-            this.statusMap[context.teamId] = RunManagerStatus.ACTIVE
+        val idx = (index + this.description.tasks.size) % this.description.tasks.size
 
-            /* Mark scoreboards for update. */
-            this.scoreboardsUpdatable.dirty = true
 
-            /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.COMPETITION_UPDATE), context.teamId)
+        /* Update active task. */
+        //this.run.navigationMap[context.teamId] = this.description.tasks[index]
+        this.run.goTo(context.teamId, idx)
+        //FIXME since task run and competition run states are separated, this is not actually a state change
+        this.statusMap[context.teamId] = RunManagerStatus.ACTIVE
 
-            LOGGER.info("SynchronousRunManager ${this.id} set to task $index")
-        } else {
-            throw IndexOutOfBoundsException("Index $index is out of bounds for the number of available tasks.")
-        }
+        /* Mark scoreboards for update. */
+        this.scoreboardsUpdatable.dirty = true
+
+        /* Enqueue WS message for sending */
+        this.messageQueueUpdatable.enqueue(
+            ServerMessage(this.id.string, ServerMessageType.COMPETITION_UPDATE),
+            context.teamId
+        )
+
+        LOGGER.info("SynchronousRunManager ${this.id} set to task $idx")
+
 
     }
 
@@ -677,7 +680,10 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
             if (teamHasRunningTask(teamId)) {
                 val task = this.run.currentTaskForTeam(teamId)
                     ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
-                val timeLeft = max(0L, task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
+                val timeLeft = max(
+                    0L,
+                    task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
+                )
                 if (timeLeft <= 0) {
                     this.stateLock.write {
                         task.end()

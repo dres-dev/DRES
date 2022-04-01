@@ -5,7 +5,7 @@ import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 
 /**
- * Basic and most importantly static information about the [dres.data.model.competition.TaskDescription]
+ * Basic and most importantly static information about the [TaskDescription]
  * of a [InteractiveSynchronousCompetition]. Since this information usually doesn't change in the course of a run, it
  * allows for local caching  and other optimizations.
  *

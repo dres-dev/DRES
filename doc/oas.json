@@ -4989,7 +4989,7 @@
         }
       },
       "RunState" : {
-        "required" : [ "id", "status", "timeElapsed", "timeLeft" ],
+        "required" : [ "id", "runStatus", "status", "taskRunStatus", "timeElapsed", "timeLeft" ],
         "type" : "object",
         "properties" : {
           "id" : {
@@ -4998,6 +4998,14 @@
           "status" : {
             "type" : "string",
             "enum" : [ "CREATED", "ACTIVE", "PREPARING_TASK", "RUNNING_TASK", "TASK_ENDED", "TERMINATED" ]
+          },
+          "runStatus" : {
+            "type" : "string",
+            "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
+          },
+          "taskRunStatus" : {
+            "type" : "string",
+            "enum" : [ "NO_TASK", "CREATED", "PREPARING", "RUNNING", "ENDED" ]
           },
           "currentTask" : {
             "$ref" : "#/components/schemas/TaskInfo"

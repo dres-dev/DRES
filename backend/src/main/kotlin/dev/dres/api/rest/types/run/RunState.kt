@@ -9,12 +9,13 @@ import dev.dres.run.*
  *
  * This is information that changes in the course of a run and therefore must be updated frequently.
  *
- * @author Ralph Gasser and Loris Sauter
  * @version 1.1.1
  */
 data class RunState(
     val id: String,
-    val status: RestRunManagerStatus,
+    val status: RestRunManagerStatus, //TODO remove
+    val runStatus: RunManagerStatus,
+    val taskRunStatus: RestTaskRunStatus,
     val currentTask: TaskInfo?,
     val timeLeft: Long,
     val timeElapsed: Long
@@ -22,36 +23,25 @@ data class RunState(
     constructor(run: InteractiveRunManager, context: RunActionContext) : this(
         run.id.string,
         RestRunManagerStatus.getState(run, context),
+        run.status,
+        RestTaskRunStatus.fromTaskRunStatus(run.currentTask(context)?.status),
         try {
-            if (checkAsyncAdmin(run, context)) {
-                TaskInfo.EMPTY_INFO
-            } else {
-                TaskInfo(run.currentTaskDescription(context)) // TODO Loris@26.03 Might be worth to have asyncAdmin versions for these
-            }
-        } catch (e: Exception) {
+            TaskInfo(run.currentTaskDescription(context))
+        } catch (e: IllegalArgumentException) {
             TaskInfo.EMPTY_INFO
         },
-        if (checkAsyncAdmin(run, context)) {
-            0
-        } else {
-            run.timeLeft(context) / 1000
-        },
-        if (checkAsyncAdmin(run, context)) { // TODO Loris@26.03 Might be worth to have asyncAdmin versions for these
-            0
-        } else {
-            run.timeElapsed(context) / 1000 // TODO Loris@26.03 Might be worth to have asyncAdmin versions for these
-
-        }
+        run.timeLeft(context) / 1000,
+        run.timeElapsed(context) / 1000
     )
 
-    companion object {
-        /**
-         * Checks if the given run is asynchronous and the current user (from the context) is an admin.
-         */
-        fun checkAsyncAdmin(run: InteractiveRunManager, context: RunActionContext): Boolean {
-            return run is InteractiveAsynchronousRunManager && context.isAdmin
-        }
-    }
+//    companion object {
+//        /**
+//         * Checks if the given run is asynchronous and the current user (from the context) is an admin.
+//         */
+//        fun checkAsyncAdmin(run: InteractiveRunManager, context: RunActionContext): Boolean {
+//            return run is InteractiveAsynchronousRunManager && context.isAdmin
+//        }
+//    }
 
 }
 
@@ -79,12 +69,27 @@ enum class RestRunManagerStatus {
                         TaskRunStatus.RUNNING -> RUNNING_TASK
                         TaskRunStatus.ENDED -> TASK_ENDED
                     }
-
                 }
                 RunManagerStatus.TERMINATED -> TERMINATED
             }
-
         }
     }
+}
 
+enum class RestTaskRunStatus {
+    NO_TASK,
+    CREATED,
+    PREPARING,
+    RUNNING,
+    ENDED;
+
+    companion object {
+        fun fromTaskRunStatus(taskRunStatus: TaskRunStatus?): RestTaskRunStatus = when(taskRunStatus) {
+            TaskRunStatus.CREATED -> CREATED
+            TaskRunStatus.PREPARING -> PREPARING
+            TaskRunStatus.RUNNING -> RUNNING
+            TaskRunStatus.ENDED -> ENDED
+            null -> NO_TASK
+        }
+    }
 }

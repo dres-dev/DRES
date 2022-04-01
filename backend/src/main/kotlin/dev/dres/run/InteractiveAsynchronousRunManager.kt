@@ -468,10 +468,6 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @return [AbstractInteractiveTask] that is currently active or null, if no such task is active.
      */
     override fun currentTask(context: RunActionContext): AbstractInteractiveTask? = this.stateLock.read {
-        if(context.isAdmin){
-            /* FIXME Loris @ 26.3.2022:Is there a better semantic for an admin getting the _current_ task in async than no task?*/
-            return null
-        }
         require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         return this.run.currentTaskForTeam(context.teamId)
     }

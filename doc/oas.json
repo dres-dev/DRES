@@ -3482,6 +3482,64 @@
         }
       }
     },
+    "/api/v1/run/admin/{runId}/overview" : {
+      "get" : {
+        "tags" : [ "Competition Run Admin" ],
+        "summary" : "Provides a complete overview of a run.",
+        "operationId" : "getApiV1RunAdminWithRunidOverview",
+        "parameters" : [ {
+          "name" : "runId",
+          "in" : "path",
+          "description" : "Competition Run ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminRunOverview"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/run/{runId}/judge/next" : {
       "get" : {
         "tags" : [ "Judgement" ],
@@ -5253,6 +5311,58 @@
           "numberOfSubmissions" : {
             "type" : "integer",
             "format" : "int32"
+          }
+        }
+      },
+      "AdminRunOverview" : {
+        "required" : [ "state", "teamOverviews" ],
+        "type" : "object",
+        "properties" : {
+          "state" : {
+            "type" : "string",
+            "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
+          },
+          "teamOverviews" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TeamTaskOverview"
+            }
+          }
+        }
+      },
+      "TaskRunOverview" : {
+        "required" : [ "status", "taskId" ],
+        "type" : "object",
+        "properties" : {
+          "taskId" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "CREATED", "PREPARING", "RUNNING", "ENDED" ]
+          },
+          "started" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "ended" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "TeamTaskOverview" : {
+        "required" : [ "tasks", "teamId" ],
+        "type" : "object",
+        "properties" : {
+          "teamId" : {
+            "type" : "string"
+          },
+          "tasks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TaskRunOverview"
+            }
           }
         }
       },

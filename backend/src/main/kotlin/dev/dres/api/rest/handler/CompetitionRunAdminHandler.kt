@@ -852,3 +852,32 @@ class ForceViewerRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(
         }
     }
 }
+
+class OverviewRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), GetRestHandler<AdminRunOverview> {
+
+    override val route = "run/admin/{runId}/overview"
+    @OpenApi(
+        summary = "Provides a complete overview of a run.",
+        path = "/api/v1/run/admin/{runId}/overview",
+        method = HttpMethod.GET,
+        pathParams = [
+            OpenApiParam("runId", String::class, "Competition Run ID"),
+        ],
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(AdminRunOverview::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
+    )
+    override fun doGet(ctx: Context): AdminRunOverview {
+
+        val runId = runId(ctx)
+
+        val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
+
+        return AdminRunOverview.of(run)
+    }
+
+}

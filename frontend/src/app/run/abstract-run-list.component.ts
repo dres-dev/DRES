@@ -55,7 +55,7 @@ export class AbstractRunListComponent {
                         currentTask: s.currentTask?.name,
                         timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a',
                         participantsCanView: v.participantsCanView,
-                        asynchronous: v.type == 'ASYNCHRONOUS'
+                        asynchronous: v.type === 'ASYNCHRONOUS'
                     } as RunInfoWithState;
                 });
             })

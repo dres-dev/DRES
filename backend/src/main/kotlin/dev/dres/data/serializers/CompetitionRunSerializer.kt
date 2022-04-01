@@ -25,6 +25,7 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
         out.writeUID(value.id)
         out.writeUTF(value.name)
         this.competitionSerializer.serialize(out, value.description)
+        RunPropertiesSerializer.serialize(out, value.properties)
         out.writeLong(value.started ?: -1)
         out.writeLong(value.ended ?: -1)
         out.writeInt(value.tasks.size)
@@ -70,7 +71,7 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
     override fun deserialize(input: DataInput2, available: Int): Competition {
         return when(val type = input.unpackInt()) {
             1 -> {
-                val run = InteractiveSynchronousCompetition(input.readUTF().UID(), input.readUTF(), competitionSerializer.deserialize(input, available), input.readLong(), input.readLong())
+                val run = InteractiveSynchronousCompetition(input.readUTF().UID(), input.readUTF(), competitionSerializer.deserialize(input, available), RunPropertiesSerializer.deserialize(input, available), input.readLong(), input.readLong())
                 for (i in 0 until input.readInt()) {
                     val taskRun = run.Task(input.readUID(), input.readUID(), input.readLong(), input.readLong())
                     for (j in 0 until input.readInt()) {
@@ -87,6 +88,7 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
                 val id = input.readUID()
                 val name = input.readUTF()
                 val description = competitionSerializer.deserialize(input, available)
+                val properties = RunPropertiesSerializer.deserialize(input, available)
                 val start = input.readLong()
                 val end = input.readLong()
 
@@ -108,7 +110,7 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
                     teamId to indices
                 }
 
-                val run = InteractiveAsynchronousCompetition(id, name, description, start, end, permutations)
+                val run = InteractiveAsynchronousCompetition(id, name, description, properties, start, end, permutations)
 
                 tasks.forEach {
                     val taskRun = run.Task(it.runId, it.teamId, it.descriptionId, it.start, it.end)

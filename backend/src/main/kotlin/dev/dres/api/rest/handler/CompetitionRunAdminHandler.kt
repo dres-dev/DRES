@@ -172,11 +172,13 @@ class CreateCompetitionRunAdminHandler(
             val manager = when (competitionStartMessage.type) {
                 RunType.ASYNCHRONOUS -> InteractiveAsynchronousRunManager(
                     competitionToStart,
-                    competitionStartMessage.name
+                    competitionStartMessage.name,
+                    competitionStartMessage.properties
                 )
                 RunType.SYNCHRONOUS -> InteractiveSynchronousRunManager(
                     competitionToStart,
-                    competitionStartMessage.name
+                    competitionStartMessage.name,
+                    competitionStartMessage.properties
                 )
             }
 

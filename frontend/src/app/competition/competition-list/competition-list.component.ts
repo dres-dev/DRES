@@ -4,7 +4,8 @@ import {
     CompetitionOverview,
     CompetitionRunAdminService,
     CompetitionService,
-    CompetitionStartMessage, DownloadService
+    CompetitionStartMessage, DownloadService,
+    RunProperties
 } from '../../../../openapi';
 import {MatDialog} from '@angular/material/dialog';
 import {CompetitionCreateDialogComponent} from './competition-create-dialog.component';
@@ -55,8 +56,9 @@ export class CompetitionListComponent implements AfterViewInit {
             filter(r => r != null),
             tap(r => this.waitingForRun = true),
             flatMap((r: CompetitionStartDialogResult) => {
+                const properties = {participantCanView: r.participantCanView, shuffleTasks: r.shuffleTasks} as RunProperties;
                 return this.runAdminService.postApiV1RunAdminCreate(
-                    {competitionId: id, name: r.name, type: r.type, scoreboards: []} as CompetitionStartMessage
+                    {competitionId: id, name: r.name, type: r.type, properties: properties} as CompetitionStartMessage
                 );
             })
         ).subscribe((r) => {

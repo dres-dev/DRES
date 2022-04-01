@@ -29,12 +29,13 @@ class InteractiveAsynchronousCompetition(
     override var id: CompetitionId,
     override val name: String,
     override val description: CompetitionDescription,
+    override val properties: RunProperties,
     val permutation: Map<TeamId, List<Int>>
 ) : AbstractRun(), Competition {
 
     companion object {
-        fun generatePermutation(description: CompetitionDescription): Map<TeamId, List<Int>> =
-            if (description.shuffleTasks) {
+        fun generatePermutation(description: CompetitionDescription, shuffle: Boolean): Map<TeamId, List<Int>> =
+            if (shuffle) {
                 description.teams.associate { it.uid to makeLoop(description.tasks.size) }
             } else {
                 description.teams.associate { it.uid to description.tasks.indices.toList() }
@@ -92,21 +93,23 @@ class InteractiveAsynchronousCompetition(
         }
     }
 
-    constructor(id: CompetitionId, name: String, competitionDescription: CompetitionDescription) : this(
+    constructor(id: CompetitionId, name: String, competitionDescription: CompetitionDescription, properties: RunProperties) : this(
         id,
         name,
         competitionDescription,
-        generatePermutation(competitionDescription)
+        properties,
+        generatePermutation(competitionDescription, properties.shuffleTasks)
     )
 
     internal constructor(
         id: CompetitionId,
         name: String,
         competitionDescription: CompetitionDescription,
+        runProperties: RunProperties,
         started: Long,
         ended: Long,
         permutation: Map<TeamId, List<Int>>
-    ) : this(id, name, competitionDescription, permutation) {
+    ) : this(id, name, competitionDescription, runProperties, permutation) {
         this.started = if (started == -1L) {
             null
         } else {

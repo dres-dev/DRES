@@ -4,7 +4,8 @@ import {
     DownloadService,
     CompetitionRunScoresService,
     CompetitionRunService,
-    RunState
+    RunState,
+    RunProperties
 } from '../../../openapi';
 import {flatMap, map, take} from 'rxjs/operators';
 import {Router} from '@angular/router';
@@ -18,8 +19,8 @@ export interface RunInfoWithState {
     status: RunState.StatusEnum;
     currentTask?: string;
     timeLeft: string;
-    participantsCanView?: boolean;
     asynchronous: Boolean;
+    runProperties: RunProperties;
 }
 
 export class AbstractRunListComponent {
@@ -54,8 +55,8 @@ export class AbstractRunListComponent {
                         status: s.status,
                         currentTask: s.currentTask?.name,
                         timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a',
-                        participantsCanView: v.participantsCanView,
-                        asynchronous: v.type === 'ASYNCHRONOUS'
+                        asynchronous: v.type === 'ASYNCHRONOUS',
+                        runProperties: v.properties
                     } as RunInfoWithState;
                 });
             })

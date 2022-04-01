@@ -66,7 +66,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                 .validate { require(it.isNotEmpty()) { "Competition description must be non empty." } }
 
         override fun run() {
-            val newCompetition = CompetitionDescription(id = UID.EMPTY, name = name, description = description, taskTypes = mutableListOf(), taskGroups = mutableListOf(), teams = mutableListOf(), teamGroups = mutableListOf(), judges = mutableListOf(), tasks = mutableListOf(), participantCanView = true, shuffleTasks = false)
+            val newCompetition = CompetitionDescription(id = UID.EMPTY, name = name, description = description, taskTypes = mutableListOf(), taskGroups = mutableListOf(), teams = mutableListOf(), teamGroups = mutableListOf(), judges = mutableListOf(), tasks = mutableListOf())
             val id = this@CompetitionCommand.competitions.append(newCompetition)
             println("New competition '$newCompetition' created with ID=${id.string}.")
         }
@@ -83,11 +83,11 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                     paddingRight = 1
                 }
                 header {
-                    row("name", "id", "# teams", "# tasks", "description", "participants can view")
+                    row("name", "id", "# teams", "# tasks", "description", )
                 }
                 body {
                     this@CompetitionCommand.competitions.forEach {
-                        row(it.name, it.id.string, it.teams.size, it.tasks.size, it.description, if(it.participantCanView){"x"}else{""}).also { no++ }
+                        row(it.name, it.id.string, it.teams.size, it.tasks.size, it.description).also { no++ }
                     }
                 }
             })

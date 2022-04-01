@@ -27,16 +27,36 @@ import java.util.*
  * @author Ralph Gasser
  * @param 1.3.0
  */
-class InteractiveSynchronousCompetition(override var id: CompetitionId, override val name: String, override val description: CompetitionDescription): AbstractRun(), Competition {
+class InteractiveSynchronousCompetition(
+    override var id: CompetitionId,
+    override val name: String,
+    override val description: CompetitionDescription,
+    override val properties: RunProperties
+) : AbstractRun(), Competition {
 
-    internal constructor(id: CompetitionId, name: String, competitionDescription: CompetitionDescription, started: Long, ended: Long) : this(id, name, competitionDescription) {
-        this.started = if (started == -1L) { null } else { started }
-        this.ended = if (ended == -1L) { null } else { ended }
+    internal constructor(
+        id: CompetitionId,
+        name: String,
+        competitionDescription: CompetitionDescription,
+        runProperties: RunProperties,
+        started: Long,
+        ended: Long
+    ) : this(id, name, competitionDescription, runProperties) {
+        this.started = if (started == -1L) {
+            null
+        } else {
+            started
+        }
+        this.ended = if (ended == -1L) {
+            null
+        } else {
+            ended
+        }
     }
 
     init {
-        require(this.description.tasks.size > 0) { "Cannot create a run from a competition that doesn't have any tasks. "}
-        require(this.description.teams.size > 0) { "Cannot create a run from a competition that doesn't have any teams. "}
+        require(this.description.tasks.size > 0) { "Cannot create a run from a competition that doesn't have any tasks. " }
+        require(this.description.teams.size > 0) { "Cannot create a run from a competition that doesn't have any teams. " }
     }
 
     /** List of [Task]s registered for this [InteractiveSynchronousCompetition]. */
@@ -44,7 +64,7 @@ class InteractiveSynchronousCompetition(override var id: CompetitionId, override
 
     /** Reference to the currently active [TaskDescription]. This is part of the task navigation. */
     var currentTaskDescription = this.description.tasks[0]
-    private set
+        private set
 
     fun goTo(index: Int) {
         currentTaskDescription = this.description.tasks[index]
@@ -65,11 +85,20 @@ class InteractiveSynchronousCompetition(override var id: CompetitionId, override
      * @author Ralph Gasser
      */
     @JsonIgnoreProperties(value = ["competition"])
-    inner class Task(override val uid: TaskId = UID(), val taskDescriptionId: TaskDescriptionId): Run, AbstractInteractiveTask() {
+    inner class Task(override val uid: TaskId = UID(), val taskDescriptionId: TaskDescriptionId) : Run,
+        AbstractInteractiveTask() {
 
-        internal constructor(uid: TaskId, taskId: TaskDescriptionId, started: Long, ended: Long): this(uid, taskId) {
-            this.started =  if (started == -1L) { null } else { started }
-            this.ended = if (ended == -1L) { null } else { ended }
+        internal constructor(uid: TaskId, taskId: TaskDescriptionId, started: Long, ended: Long) : this(uid, taskId) {
+            this.started = if (started == -1L) {
+                null
+            } else {
+                started
+            }
+            this.ended = if (ended == -1L) {
+                null
+            } else {
+                ended
+            }
         }
 
         /** The [InteractiveSynchronousCompetition] this [Task] belongs to.*/
@@ -82,13 +111,16 @@ class InteractiveSynchronousCompetition(override var id: CompetitionId, override
 
         /** Reference to the [TaskDescription] describing this [Task]. */
         @Transient
-        override val description: TaskDescription = this@InteractiveSynchronousCompetition.description.tasks.find { it.id == this.taskDescriptionId } ?: throw IllegalArgumentException("There is no task with ID ${this.taskDescriptionId}.")
+        override val description: TaskDescription =
+            this@InteractiveSynchronousCompetition.description.tasks.find { it.id == this.taskDescriptionId }
+                ?: throw IllegalArgumentException("There is no task with ID ${this.taskDescriptionId}.")
 
         @Transient
         override val filter: SubmissionFilter = description.newFilter()
 
         @Transient
-        override val scorer: TeamTaskScorer = this.description.newScorer() as? TeamTaskScorer ?: throw IllegalArgumentException("specified scorer is not of type TeamTaskScorer")
+        override val scorer: TeamTaskScorer = this.description.newScorer() as? TeamTaskScorer
+            ?: throw IllegalArgumentException("specified scorer is not of type TeamTaskScorer")
 
         @Transient
         override val validator: SubmissionValidator = newValidator()

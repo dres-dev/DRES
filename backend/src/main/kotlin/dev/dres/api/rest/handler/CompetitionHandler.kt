@@ -50,7 +50,7 @@ data class CompetitionOverview(val id: String, val name: String, val description
 /**
  * Data class for creation of competition
  */
-data class CompetitionCreate(val name: String, val description: String, val participantsCanView: Boolean = true, val shuffleTasks: Boolean = false)
+data class CompetitionCreate(val name: String, val description: String)
 
 class GetTeamLogoHandler(val config: Config) : AbstractCompetitionRunRestHandler(), GetRestHandler<Any> {
 
@@ -218,7 +218,7 @@ class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        val competition = CompetitionDescription(UID.EMPTY, createRequest.name, createRequest.description, mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf(), createRequest.participantsCanView, createRequest.shuffleTasks)
+        val competition = CompetitionDescription(UID.EMPTY, createRequest.name, createRequest.description, mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf())
         val competitionId = this.competitions.append(competition)
         return SuccessStatus("Competition with ID ${competitionId.string} was created.")
     }

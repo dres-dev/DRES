@@ -253,7 +253,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     override fun previous(context: RunActionContext): Boolean = this.stateLock.write {
-        val newIndex = this.description.tasks.indexOf(this.currentTaskDescription(context)) + 1
+        val newIndex = this.description.tasks.indexOf(this.currentTaskDescription(context)) - 1
         return try {
             this.goTo(context, newIndex)
             true

@@ -172,11 +172,13 @@ class CreateCompetitionRunAdminHandler(
             val manager = when (competitionStartMessage.type) {
                 RunType.ASYNCHRONOUS -> InteractiveAsynchronousRunManager(
                     competitionToStart,
-                    competitionStartMessage.name
+                    competitionStartMessage.name,
+                    competitionStartMessage.properties
                 )
                 RunType.SYNCHRONOUS -> InteractiveSynchronousRunManager(
                     competitionToStart,
-                    competitionStartMessage.name
+                    competitionStartMessage.name,
+                    competitionStartMessage.properties
                 )
             }
 
@@ -453,7 +455,7 @@ class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(
                 400,
-                "Task '${run.currentTaskDescription(rac).name}' for run $runId could not be started because run is in the wrong state (state = ${run.status}).",
+                e.message ?: "",
                 ctx
             )
         } catch (e: IllegalAccessError) {

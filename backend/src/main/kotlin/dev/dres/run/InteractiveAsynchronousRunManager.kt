@@ -10,10 +10,7 @@ import dev.dres.data.model.admin.Role
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TeamId
-import dev.dres.data.model.run.AbstractInteractiveTask
-import dev.dres.data.model.run.InteractiveAsynchronousCompetition
-import dev.dres.data.model.run.InteractiveSynchronousCompetition
-import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.Task
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
@@ -47,7 +44,10 @@ import kotlin.math.max
  * @version 1.0.0
  * @author Ralph Gasser
  */
-class InteractiveAsynchronousRunManager(val run: InteractiveAsynchronousCompetition) : InteractiveRunManager {
+class InteractiveAsynchronousRunManager(
+    val run: InteractiveAsynchronousCompetition
+) :
+    InteractiveRunManager {
 
     companion object {
         private val LOGGER = LoggerFactory.getLogger(InteractiveAsynchronousRunManager::class.java)
@@ -55,13 +55,17 @@ class InteractiveAsynchronousRunManager(val run: InteractiveAsynchronousCompetit
         private const val MAXIMUM_ERROR_COUNT = 5
     }
 
-    constructor(description: CompetitionDescription, name: String) : this(
+    constructor(description: CompetitionDescription, name: String, runProperties: RunProperties) : this(
         InteractiveAsynchronousCompetition(
             UID.EMPTY,
             name,
-            description
-        ).apply { RunExecutor.runs.append(this) })
+            description,
+            runProperties
+        ).apply { RunExecutor.runs.append(this) }
+    )
 
+    override val runProperties: RunProperties
+        get() = run.properties
 
     /** Tracks the current [TaskDescription] per [TeamId]. */
     private val statusMap: MutableMap<TeamId, RunManagerStatus> = HashMap()
@@ -298,24 +302,27 @@ class InteractiveAsynchronousRunManager(val run: InteractiveAsynchronousCompetit
         require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         checkTeamStatus(context.teamId, RunManagerStatus.ACTIVE)//, RunManagerStatus.TASK_ENDED)
         require(!teamHasRunningTask(context.teamId)) { "Cannot change task while task is active" }
-        if (index >= 0 && index < this.description.tasks.size) {
 
-            /* Update active task. */
-            //this.run.navigationMap[context.teamId] = this.description.tasks[index]
-            this.run.goTo(context.teamId, index)
-            //FIXME since task run and competition run states are separated, this is not actually a state change
-            this.statusMap[context.teamId] = RunManagerStatus.ACTIVE
+        val idx = (index + this.description.tasks.size) % this.description.tasks.size
 
-            /* Mark scoreboards for update. */
-            this.scoreboardsUpdatable.dirty = true
 
-            /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.COMPETITION_UPDATE), context.teamId)
+        /* Update active task. */
+        //this.run.navigationMap[context.teamId] = this.description.tasks[index]
+        this.run.goTo(context.teamId, idx)
+        //FIXME since task run and competition run states are separated, this is not actually a state change
+        this.statusMap[context.teamId] = RunManagerStatus.ACTIVE
 
-            LOGGER.info("SynchronousRunManager ${this.id} set to task $index")
-        } else {
-            throw IndexOutOfBoundsException("Index $index is out of bounds for the number of available tasks.")
-        }
+        /* Mark scoreboards for update. */
+        this.scoreboardsUpdatable.dirty = true
+
+        /* Enqueue WS message for sending */
+        this.messageQueueUpdatable.enqueue(
+            ServerMessage(this.id.string, ServerMessageType.COMPETITION_UPDATE),
+            context.teamId
+        )
+
+        LOGGER.info("SynchronousRunManager ${this.id} set to task $idx")
+
 
     }
 
@@ -336,7 +343,12 @@ class InteractiveAsynchronousRunManager(val run: InteractiveAsynchronousCompetit
 
         /* Create task and update status. */
         val currentTaskDescription = this.run.currentTaskDescription(context.teamId)
-            ?: throw IllegalStateException("Could not find active task for team ${context.teamId} despite status of the team being ${this.statusMap[context.teamId]}. This is a programmer's error!")
+
+        /* Check for duplicate task runs */
+        if (!runProperties.allowRepeatedTasks && this.run.tasksForTeam(context.teamId).any { it.descriptionId == currentTaskDescription.id }) {
+            throw IllegalStateException("Task '${currentTaskDescription.name}' has already been used")
+        }
+
         val currentTaskRun =
             this.run.Task(teamId = context.teamId, descriptionId = currentTaskDescription.id)
         currentTaskRun.prepare()
@@ -416,8 +428,6 @@ class InteractiveAsynchronousRunManager(val run: InteractiveAsynchronousCompetit
     override fun timeElapsed(context: RunActionContext): Long = this.stateLock.read {
         val currentTaskRun = this.currentTask(context)
         return if (currentTaskRun?.isRunning == true) {
-            val currentTaskRun = this.currentTask(context)
-                ?: throw IllegalStateException("Run manager is in status ${this.status} but has no active task. This is a serious error!")
             System.currentTimeMillis() - (currentTaskRun.started!! + InteractiveRunManager.COUNTDOWN_DURATION)
         } else {
             -1L
@@ -687,7 +697,10 @@ class InteractiveAsynchronousRunManager(val run: InteractiveAsynchronousCompetit
             if (teamHasRunningTask(teamId)) {
                 val task = this.run.currentTaskForTeam(teamId)
                     ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
-                val timeLeft = max(0L, task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
+                val timeLeft = max(
+                    0L,
+                    task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
+                )
                 if (timeLeft <= 0) {
                     this.stateLock.write {
                         task.end()

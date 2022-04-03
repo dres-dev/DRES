@@ -4478,7 +4478,7 @@
         }
       },
       "CompetitionCreate" : {
-        "required" : [ "description", "name", "participantsCanView" ],
+        "required" : [ "description", "name" ],
         "type" : "object",
         "properties" : {
           "name" : {
@@ -4486,9 +4486,6 @@
           },
           "description" : {
             "type" : "string"
-          },
-          "participantsCanView" : {
-            "type" : "boolean"
           }
         }
       },
@@ -4573,7 +4570,7 @@
         }
       },
       "RestCompetitionDescription" : {
-        "required" : [ "id", "judges", "name", "participantCanView", "taskGroups", "taskTypes", "tasks", "teamGroups", "teams" ],
+        "required" : [ "id", "judges", "name", "taskGroups", "taskTypes", "tasks", "teamGroups", "teams" ],
         "type" : "object",
         "properties" : {
           "id" : {
@@ -4620,9 +4617,6 @@
             "items" : {
               "type" : "string"
             }
-          },
-          "participantCanView" : {
-            "type" : "boolean"
           }
         }
       },
@@ -4970,7 +4964,7 @@
         }
       },
       "RunInfo" : {
-        "required" : [ "competitionId", "id", "name", "participantsCanView", "tasks", "teams", "type" ],
+        "required" : [ "competitionId", "id", "name", "properties", "tasks", "teams", "type" ],
         "type" : "object",
         "properties" : {
           "id" : {
@@ -4997,12 +4991,27 @@
           "competitionId" : {
             "type" : "string"
           },
-          "participantsCanView" : {
-            "type" : "boolean"
+          "properties" : {
+            "$ref" : "#/components/schemas/RunProperties"
           },
           "type" : {
             "type" : "string",
             "enum" : [ "SYNCHRONOUS", "ASYNCHRONOUS" ]
+          }
+        }
+      },
+      "RunProperties" : {
+        "required" : [ "allowRepeatedTasks", "participantCanView", "shuffleTasks" ],
+        "type" : "object",
+        "properties" : {
+          "participantCanView" : {
+            "type" : "boolean"
+          },
+          "shuffleTasks" : {
+            "type" : "boolean"
+          },
+          "allowRepeatedTasks" : {
+            "type" : "boolean"
           }
         }
       },
@@ -5231,7 +5240,7 @@
         }
       },
       "CompetitionStartMessage" : {
-        "required" : [ "competitionId", "name", "scoreboards", "type" ],
+        "required" : [ "competitionId", "name", "properties", "type" ],
         "type" : "object",
         "properties" : {
           "competitionId" : {
@@ -5244,11 +5253,8 @@
             "type" : "string",
             "enum" : [ "SYNCHRONOUS", "ASYNCHRONOUS" ]
           },
-          "scoreboards" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
+          "properties" : {
+            "$ref" : "#/components/schemas/RunProperties"
           }
         }
       },

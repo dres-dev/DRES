@@ -1,6 +1,7 @@
 package dev.dres.api.rest.types.run
 
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.RunProperties
 import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.RunManager
 
@@ -19,7 +20,7 @@ data class RunInfo(
         val teams: List<TeamInfo>,
         val tasks: List<TaskInfo>,
         val competitionId: String,
-        val participantsCanView: Boolean,
+        val properties: RunProperties,
         val type: RunType
         ) {
     constructor(run: RunManager) : this(
@@ -29,7 +30,7 @@ data class RunInfo(
             run.description.teams.map { TeamInfo(it) },
             run.description.tasks.map { TaskInfo(it) },
             run.description.id.string,
-            run.description.participantCanView,
+            run.runProperties,
             if (run is InteractiveAsynchronousRunManager) {
                     RunType.ASYNCHRONOUS
             } else {

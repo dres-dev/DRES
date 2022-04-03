@@ -1,9 +1,13 @@
 package dev.dres.data.serializers
 
+import dev.dres.data.model.UID
+import dev.dres.data.model.competition.TaskDescriptionId
+import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.InteractiveAsynchronousCompetition
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.NonInteractiveCompetition
 import dev.dres.data.model.run.interfaces.Competition
+import dev.dres.data.model.submissions.Submission
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.readUID
 import dev.dres.utilities.extensions.writeUID
@@ -21,6 +25,7 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
         out.writeUID(value.id)
         out.writeUTF(value.name)
         this.competitionSerializer.serialize(out, value.description)
+        RunPropertiesSerializer.serialize(out, value.properties)
         out.writeLong(value.started ?: -1)
         out.writeLong(value.ended ?: -1)
         out.writeInt(value.tasks.size)
@@ -53,6 +58,10 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
                         SubmissionSerializer.serialize(out, submission)
                     }
                 }
+                value.permutation.forEach { teamId, indices ->
+                    out.writeUID(teamId)
+                    indices.forEach { out.packInt(it) }
+                }
             }
         }
 
@@ -62,7 +71,7 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
     override fun deserialize(input: DataInput2, available: Int): Competition {
         return when(val type = input.unpackInt()) {
             1 -> {
-                val run = InteractiveSynchronousCompetition(input.readUTF().UID(), input.readUTF(), competitionSerializer.deserialize(input, available), input.readLong(), input.readLong())
+                val run = InteractiveSynchronousCompetition(input.readUTF().UID(), input.readUTF(), competitionSerializer.deserialize(input, available), RunPropertiesSerializer.deserialize(input, available), input.readLong(), input.readLong())
                 for (i in 0 until input.readInt()) {
                     val taskRun = run.Task(input.readUID(), input.readUID(), input.readLong(), input.readLong())
                     for (j in 0 until input.readInt()) {
@@ -75,14 +84,41 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
                 TODO()
             }
             3 -> {
-                val run = InteractiveAsynchronousCompetition(input.readUTF().UID(), input.readUTF(), competitionSerializer.deserialize(input, available), input.readLong(), input.readLong())
+
+                val id = input.readUID()
+                val name = input.readUTF()
+                val description = competitionSerializer.deserialize(input, available)
+                val properties = RunPropertiesSerializer.deserialize(input, available)
+                val start = input.readLong()
+                val end = input.readLong()
+
+                val tasks = mutableListOf<TaskContainer>()
 
                 for (i in 0 until input.readInt()) {
-                    val taskRun = run.Task(input.readUID(), input.readUID(), input.readUID(), input.readLong(), input.readLong())
+                    val taskContainer = TaskContainer(input.readUID(), input.readUID(), input.readUID(), input.readLong(), input.readLong())
                     for (j in 0 until input.readInt()) {
-                        taskRun.submissions.add(SubmissionSerializer.deserialize(input,available))
+                        taskContainer.submissions.add(SubmissionSerializer.deserialize(input,available))
+                    }
+                    tasks.add(taskContainer)
+                }
+
+                val permutations = (0 until description.teams.size).associate {
+                    val teamId = input.readUID()
+                    val indices = (0 until description.tasks.size).map {
+                        input.unpackInt()
+                    }
+                    teamId to indices
+                }
+
+                val run = InteractiveAsynchronousCompetition(id, name, description, properties, start, end, permutations)
+
+                tasks.forEach {
+                    val taskRun = run.Task(it.runId, it.teamId, it.descriptionId, it.start, it.end)
+                    it.submissions.forEach { s ->
+                        taskRun.addSubmission(s)
                     }
                 }
+
                 run.reconstructNavigationMap()
                 run
             }
@@ -90,4 +126,14 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
         }
 
     }
+
+    data class TaskContainer(
+        val runId: UID,
+        val teamId: TeamId,
+        val descriptionId: TaskDescriptionId,
+        val start: Long,
+        val end: Long,
+        val submissions: MutableList<Submission> = mutableListOf()
+    )
+
 }

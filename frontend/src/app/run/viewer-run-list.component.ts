@@ -38,7 +38,7 @@ export class ViewerRunListComponent extends AbstractRunListComponent implements 
 
     cannotAccess(row: RunInfoWithState) {
         if (this.hasAccessFor(this.participantGroup)) {
-            return !row.participantsCanView;
+            return !row.runProperties.participantCanView;
         } else {
             return false;
         }

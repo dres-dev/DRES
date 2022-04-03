@@ -24,7 +24,6 @@ export class CompetitionCreateDialogComponent {
             this.dialogRef.close({
                 name: this.form.get('name').value,
                 description: this.form.get('description').value,
-                participantsCanView: this.participantsCanView
             } as CompetitionCreate);
         }
     }

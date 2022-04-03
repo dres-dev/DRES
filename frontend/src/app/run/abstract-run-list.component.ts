@@ -16,7 +16,8 @@ export interface RunInfoWithState {
     name: string;
     description?: string;
     teams: number;
-    status: RunState.StatusEnum;
+    runStatus: RunState.RunStatusEnum;
+    taskRunStatus: RunState.TaskRunStatusEnum;
     currentTask?: string;
     timeLeft: string;
     asynchronous: Boolean;
@@ -52,7 +53,8 @@ export class AbstractRunListComponent {
                         name: v.name,
                         description: v.description,
                         teams: v.teams.length,
-                        status: s.status,
+                        runStatus: s.runStatus,
+                        taskRunStatus: s.taskRunStatus,
                         currentTask: s.currentTask?.name,
                         timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a',
                         asynchronous: v.type === 'ASYNCHRONOUS',

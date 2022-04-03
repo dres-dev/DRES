@@ -139,16 +139,16 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
          * IMPORTANT: Unsubscribe onDestroy.
          */
         this.viewerStateSubscription = combineLatest([currentTaskHint, polledState]).subscribe(([h, s]) => {
-            switch (s.status) {
+            switch (s.taskRunStatus) {
+                case 'NO_TASK':
                 case 'CREATED':
-                case 'ACTIVE':
                     this.viewerState.next(ViewerState.VIEWER_WAITING_FOR_TASK);
                     break;
-                case 'PREPARING_TASK':
+                case 'PREPARING':
                     this.viewerState.next(ViewerState.VIEWER_SYNC);
                     if (h != null) { this.webSocketSubject.next({runId: s.id, type: 'ACK'} as IWsClientMessage); } /* Send ACK. */
                     break;
-                case 'RUNNING_TASK':
+                case 'RUNNING':
                     if (s.timeElapsed < 0) {
                         const countdown = Math.abs(s.timeElapsed) - 1;
                         this.viewerState.next(ViewerState.VIEWER_COUNTDOWN);
@@ -162,8 +162,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
                         this.viewerState.next(ViewerState.VIEWER_PLAYBACK);
                     }
                     break;
-                case 'TASK_ENDED':
-                case 'TERMINATED':
+                case 'ENDED':
                     return this.viewerState.next(ViewerState.VIEWER_TASK_ENDED);
             }
         });

@@ -7,7 +7,7 @@
                 <div style="display: flex;">
                     <div>
                         <app-back-button></app-back-button>
-                        <h1>Run {{(run | async)?.info.id}} ({{(run | async)?.state.status}})</h1>
+                        <h1>Run {{(run | async)?.info.id}} ({{(run | async)?.state.runStatus}}, {{(run | async)?.state.taskRunStatus}})</h1>
                         <p><strong>Name: </strong>{{(run | async)?.info.name}}</p>
                         <p><strong>Description: </strong>{{(run | async)?.info.description}}</p>
                         <p *ngIf="(run | async)?.state.timeLeft > 0"><strong>Time left:</strong> {{toFormattedTime((run | async)?.state.timeLeft)}}</p>
@@ -17,27 +17,27 @@
 
                     </div>
                     <div>
-                        <button *ngIf="(run | async)?.state.status == 'CREATED'" mat-icon-button aria-label="Start the competition run." matTooltip="Start the competition run." (click)="start()">
+                        <button *ngIf="(run | async)?.state.runStatus == 'CREATED'" mat-icon-button aria-label="Start the competition run." matTooltip="Start the competition run." (click)="start()">
                             <mat-icon>play_arrow</mat-icon>
                         </button>
 
-                        <button *ngIf="(run | async)?.state.status == 'ACTIVE' || (run | async)?.state.status == 'TASK_ENDED'" mat-icon-button aria-label="Previous task." matTooltip="Got to previous task." (click)="previousTask()">
+                        <button *ngIf="(run | async)?.state.taskRunStatus != 'PREPARING' && (run | async)?.state.taskRunStatus != 'RUNNING'" mat-icon-button aria-label="Previous task." matTooltip="Got to previous task." (click)="previousTask()">
                             <mat-icon>skip_previous</mat-icon>
                         </button>
 
-                        <button *ngIf="(run | async)?.state.status == 'ACTIVE' || (run | async)?.state.status == 'TASK_ENDED'" mat-icon-button aria-label="Next task." matTooltip="Got to next task." (click)="nextTask()">
+                        <button *ngIf="(run | async)?.state.taskRunStatus != 'PREPARING' && (run | async)?.state.taskRunStatus != 'RUNNING'" mat-icon-button aria-label="Next task." matTooltip="Got to next task." (click)="nextTask()">
                             <mat-icon>skip_next</mat-icon>
                         </button>
 
-                        <button *ngIf="(run | async)?.state.status == 'ACTIVE' || (run | async)?.state.status == 'TASK_ENDED'" mat-icon-button aria-label="Start task." matTooltip="Start task '{{(run | async)?.state.currentTask.name}}'." (click)="startTask()">
+                        <button *ngIf="(run | async)?.state.taskRunStatus != 'PREPARING' && (run | async)?.state.taskRunStatus != 'RUNNING'" mat-icon-button aria-label="Start task." matTooltip="Start task '{{(run | async)?.state.currentTask.name}}'." (click)="startTask()">
                             <mat-icon>play_circle_outline</mat-icon>
                         </button>
 
-                        <button *ngIf="(run | async)?.state.status == 'PREPARING_TASK' || (run | async)?.state.status == 'RUNNING_TASK'" mat-icon-button aria-label="Abort running task." matTooltip="Abort running task '{{(run | async)?.state.currentTask.name}}'." (click)="abortTask()">
+                        <button *ngIf="(run | async)?.state.taskRunStatus == 'PREPARING' || (run | async)?.state.taskRunStatus == 'RUNNING'" mat-icon-button aria-label="Abort running task." matTooltip="Abort running task '{{(run | async)?.state.currentTask.name}}'." (click)="abortTask()">
                             <mat-icon>cancel</mat-icon>
                         </button>
 
-                        <button *ngIf="(run | async)?.state.status == 'RUNNING_TASK'" mat-icon-button aria-label="Adjust duration." matTooltip="Adjust duration of task '{{(run | async)?.state.currentTask.name}}'." [matMenuTriggerFor]="menu">
+                        <button *ngIf="(run | async)?.state.taskRunStatus == 'RUNNING'" mat-icon-button aria-label="Adjust duration." matTooltip="Adjust duration of task '{{(run | async)?.state.currentTask.name}}'." [matMenuTriggerFor]="menu">
                             <mat-icon>alarm_add</mat-icon>
                         </button>
 
@@ -50,7 +50,7 @@
                             <button mat-menu-item (click)="adjustDuration(-30)">-30s</button>
                         </mat-menu>
 
-                        <button *ngIf="(run | async)?.state.status == 'CREATED' || (run | async)?.state.status == 'ACTIVE' || (run | async)?.state.status == 'TASK_ENDED'" mat-icon-button aria-label="Terminate competition run." matTooltip="Terminate competition run." (click)="terminate()">
+                        <button *ngIf="(run | async)?.state.runStatus == 'CREATED' || (run | async)?.state.runStatus == 'ACTIVE'" mat-icon-button aria-label="Terminate competition run." matTooltip="Terminate competition run." (click)="terminate()">
                             <mat-icon>stop</mat-icon>
                         </button>
 

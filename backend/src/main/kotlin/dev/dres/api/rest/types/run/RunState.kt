@@ -13,7 +13,6 @@ import dev.dres.run.*
  */
 data class RunState(
     val id: String,
-    val status: RestRunManagerStatus, //TODO remove
     val runStatus: RunManagerStatus,
     val taskRunStatus: RestTaskRunStatus,
     val currentTask: TaskInfo?,
@@ -22,7 +21,7 @@ data class RunState(
 ) {
     constructor(run: InteractiveRunManager, context: RunActionContext) : this(
         run.id.string,
-        RestRunManagerStatus.getState(run, context),
+        //RestRunManagerStatus.getState(run, context),
         run.status,
         RestTaskRunStatus.fromTaskRunStatus(run.currentTask(context)?.status),
         try {
@@ -43,37 +42,6 @@ data class RunState(
 //        }
 //    }
 
-}
-
-//FIXME this is only temporary to keep compatibility with the UI
-enum class RestRunManagerStatus {
-    CREATED,
-    ACTIVE,
-    PREPARING_TASK,
-    RUNNING_TASK,
-    TASK_ENDED,
-    TERMINATED;
-
-    companion object {
-        fun getState(run: InteractiveRunManager, context: RunActionContext): RestRunManagerStatus {
-
-            return when (run.status) {
-                RunManagerStatus.CREATED -> CREATED
-                RunManagerStatus.ACTIVE -> {
-
-                    val task = run.currentTask(context) ?: return ACTIVE
-
-                    return when (task.status) {
-                        TaskRunStatus.CREATED -> ACTIVE
-                        TaskRunStatus.PREPARING -> PREPARING_TASK
-                        TaskRunStatus.RUNNING -> RUNNING_TASK
-                        TaskRunStatus.ENDED -> TASK_ENDED
-                    }
-                }
-                RunManagerStatus.TERMINATED -> TERMINATED
-            }
-        }
-    }
 }
 
 enum class RestTaskRunStatus {

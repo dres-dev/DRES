@@ -154,7 +154,7 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         /* Basic observable that fires when a task starts.  */
         this.taskStarted = this.runState.pipe(
             pairwise(),
-            filter(([s1, s2]) => (s1 === null || s1.status === 'PREPARING_TASK') && s2.status === 'RUNNING_TASK'),
+            filter(([s1, s2]) => (s1 === null || s1.taskRunStatus === 'PREPARING') && s2.taskRunStatus === 'RUNNING'),
             map(([s1, s2]) => s2.currentTask),
             shareReplay({bufferSize: 1, refCount: true})
         );
@@ -162,7 +162,7 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         /* Basic observable that fires when a task ends.  */
         this.taskEnded = merge(of(null as RunState), this.runState).pipe(
             pairwise(),
-            filter(([s1, s2]) => (s1 === null || s1.status === 'RUNNING_TASK') && s2.status === 'TASK_ENDED'),
+            filter(([s1, s2]) => (s1 === null || s1.taskRunStatus === 'RUNNING') && s2.taskRunStatus === 'ENDED'),
             map(([s1, s2]) => s2.currentTask),
             shareReplay({bufferSize: 1, refCount: true})
         );

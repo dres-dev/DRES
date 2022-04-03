@@ -29,7 +29,7 @@
                     <mat-icon>settings</mat-icon>
                 </button>
 
-                <button *ngIf="row.status == 'CREATED'" mat-icon-button aria-label="Start the competition run." matTooltip="Start the competition run." (click)="start(row.id)">
+                <button *ngIf="row.runStatus == 'CREATED'" mat-icon-button aria-label="Start the competition run." matTooltip="Start the competition run." (click)="start(row.id)">
                     <mat-icon>play_arrow</mat-icon>
                 </button>
 
@@ -43,23 +43,23 @@
                     matTooltip="Download the scores of this run as CSV">
                 </app-download-button>
 
-                <button *ngIf="row.status == 'ACTIVE' || row.status == 'TASK_ENDED'" mat-icon-button aria-label="Previous task." matTooltip="Got to previous task." (click)="previousTask(row.id)">
+                <button *ngIf="row.taskRunStatus == 'NO_TASK' || row.taskRunStatus == 'ENDED' || row.taskRunStatus == 'CREATED'" mat-icon-button aria-label="Previous task." matTooltip="Got to previous task." (click)="previousTask(row.id)">
                     <mat-icon>skip_previous</mat-icon>
                 </button>
 
-                <button *ngIf="row.status == 'ACTIVE' || row.status == 'TASK_ENDED'" mat-icon-button aria-label="Next task." matTooltip="Go to next task." (click)="nextTask(row.id)">
+                <button *ngIf="row.taskRunStatus == 'NO_TASK' || row.taskRunStatus == 'ENDED' || row.taskRunStatus == 'CREATED'" mat-icon-button aria-label="Next task." matTooltip="Go to next task." (click)="nextTask(row.id)">
                     <mat-icon>skip_next</mat-icon>
                 </button>
 
-                <button *ngIf="row.status == 'ACTIVE' || row.status == 'TASK_ENDED'" mat-icon-button aria-label="Start task." matTooltip="Start task." (click)="startTask(row.id)">
+                <button *ngIf="row.taskRunStatus == 'NO_TASK' || row.taskRunStatus == 'ENDED' || row.taskRunStatus == 'CREATED'" mat-icon-button aria-label="Start task." matTooltip="Start task." (click)="startTask(row.id)">
                     <mat-icon>play_circle_outline</mat-icon>
                 </button>
 
-                <button *ngIf="row.status == 'PREPARING_TASK' || row.status == 'RUNNING_TASK'" mat-icon-button aria-label="Abort running task." matTooltip="Abort running task '{{row.currentTask.name}}'." (click)="abortTask(row.id)">
+                <button *ngIf="row.taskRunStatus == 'PREPARING' || row.taskRunStatus == 'RUNNING'" mat-icon-button aria-label="Abort running task." matTooltip="Abort running task '{{row.currentTask.name}}'." (click)="abortTask(row.id)">
                     <mat-icon>cancel</mat-icon>
                 </button>
 
-                <button *ngIf="row.status == 'CREATED' || row.status == 'ACTIVE' || row.status == 'TASK_ENDED'" mat-icon-button aria-label="Terminate competition run." matTooltip="Terminate competition run." (click)="terminate(row.id)">
+                <button *ngIf="row.runStatus == 'CREATED' || row.runStatus == 'ACTIVE'" mat-icon-button aria-label="Terminate competition run." matTooltip="Terminate competition run." (click)="terminate(row.id)">
                     <mat-icon>stop</mat-icon>
                 </button>
                 <app-download-button
@@ -86,7 +86,7 @@
         <!-- Status Column -->
         <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let row">{{row.status}}</td>
+            <td mat-cell *matCellDef="let row">{{row.runStatus}} ({{row.taskRunStatus}})</td>
         </ng-container>
 
         <!-- Task Column -->

@@ -5047,15 +5047,11 @@
         }
       },
       "RunState" : {
-        "required" : [ "id", "runStatus", "status", "taskRunStatus", "timeElapsed", "timeLeft" ],
+        "required" : [ "id", "runStatus", "taskRunStatus", "timeElapsed", "timeLeft" ],
         "type" : "object",
         "properties" : {
           "id" : {
             "type" : "string"
-          },
-          "status" : {
-            "type" : "string",
-            "enum" : [ "CREATED", "ACTIVE", "PREPARING_TASK", "RUNNING_TASK", "TASK_ENDED", "TERMINATED" ]
           },
           "runStatus" : {
             "type" : "string",

@@ -267,8 +267,15 @@ class InteractiveSynchronousRunManager(
         assureNoRunningTask()
         checkContext(context)
 
+        val currentTaskDescription = this.currentTaskDescription(context)
+
+        /* Check for duplicate task runs */
+        if (!runProperties.allowRepeatedTasks && this.run.tasks.any { it.description.id == currentTaskDescription.id }) {
+            throw IllegalStateException("Task '${currentTaskDescription.name}' has already been used")
+        }
+
         /* Create and prepare pipeline for submission. */
-        this.run.Task(taskDescriptionId = this.currentTaskDescription(context).id)
+        this.run.Task(taskDescriptionId = currentTaskDescription.id)
 
         /* Update status. */
         //this.status = RunManagerStatus.PREPARING_TASK

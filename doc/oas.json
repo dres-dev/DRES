@@ -5001,13 +5001,16 @@
         }
       },
       "RunProperties" : {
-        "required" : [ "participantCanView", "shuffleTasks" ],
+        "required" : [ "allowRepeatedTasks", "participantCanView", "shuffleTasks" ],
         "type" : "object",
         "properties" : {
           "participantCanView" : {
             "type" : "boolean"
           },
           "shuffleTasks" : {
+            "type" : "boolean"
+          },
+          "allowRepeatedTasks" : {
             "type" : "boolean"
           }
         }

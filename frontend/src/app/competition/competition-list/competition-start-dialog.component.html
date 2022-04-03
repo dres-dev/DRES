@@ -18,6 +18,13 @@
         </p>
 
         <p style="width: 100%;"
+           matTooltip="Whether a task can be started multiple times.">
+            <mat-checkbox formControlName="allowRepeatedTasks">
+                Allow repeated tasks
+            </mat-checkbox>
+        </p>
+
+        <p style="width: 100%;"
            matTooltip="Whether task order should be randomized for all teams.">
             <mat-checkbox formControlName="shuffleTasks">
                 Shuffle Tasks (Async only)

@@ -8,6 +8,7 @@ export interface CompetitionStartDialogResult {
     name: string;
     type: CompetitionStartMessage.TypeEnum;
     participantCanView: Boolean;
+    allowRepeatedTasks: Boolean;
     shuffleTasks: Boolean;
 }
 
@@ -16,7 +17,7 @@ export interface CompetitionStartDialogResult {
     templateUrl: 'competition-start-dialog.component.html',
 })
 export class CompetitionStartDialogComponent {
-    form: FormGroup = new FormGroup({name: new FormControl(''), type: new FormControl(''), participantsCanView: new FormControl(true), shuffleTasks: new FormControl(false)});
+    form: FormGroup = new FormGroup({name: new FormControl(''), type: new FormControl(''), participantsCanView: new FormControl(true), shuffleTasks: new FormControl(false), allowRepeatedTasks: new FormControl(false)});
     runTypes: CompetitionStartMessage.TypeEnum[] = ['SYNCHRONOUS', 'ASYNCHRONOUS'];
 
     constructor(public dialogRef: MatDialogRef<CompetitionStartDialogComponent>) {}
@@ -27,6 +28,7 @@ export class CompetitionStartDialogComponent {
                 name: this.form.get('name').value,
                 type: this.form.get('type').value,
                 participantCanView: this.form.get('participantsCanView').value,
+                allowRepeatedTasks: this.form.get('allowRepeatedTasks').value,
                 shuffleTasks: this.form.get('shuffleTasks').value } as CompetitionStartDialogResult);
         }
     }

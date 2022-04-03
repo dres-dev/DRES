@@ -343,6 +343,12 @@ class InteractiveAsynchronousRunManager(
 
         /* Create task and update status. */
         val currentTaskDescription = this.run.currentTaskDescription(context.teamId)
+
+        /* Check for duplicate task runs */
+        if (!runProperties.allowRepeatedTasks && this.run.tasksForTeam(context.teamId).any { it.descriptionId == currentTaskDescription.id }) {
+            throw IllegalStateException("Task '${currentTaskDescription.name}' has already been used")
+        }
+
         val currentTaskRun =
             this.run.Task(teamId = context.teamId, descriptionId = currentTaskDescription.id)
         currentTaskRun.prepare()

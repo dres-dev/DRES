@@ -43,15 +43,15 @@
                     matTooltip="Download the scores of this run as CSV">
                 </app-download-button>
 
-                <button *ngIf="row.taskRunStatus == 'NO_TASK' || row.taskRunStatus == 'ENDED' || row.taskRunStatus == 'CREATED'" mat-icon-button aria-label="Previous task." matTooltip="Got to previous task." (click)="previousTask(row.id)">
+                <button *ngIf="row.runStatus == 'ACTIVE' && row.taskRunStatus != 'PREPARING' && row.taskRunStatus != 'RUNNING'" mat-icon-button aria-label="Previous task." matTooltip="Got to previous task." (click)="previousTask(row.id)">
                     <mat-icon>skip_previous</mat-icon>
                 </button>
 
-                <button *ngIf="row.taskRunStatus == 'NO_TASK' || row.taskRunStatus == 'ENDED' || row.taskRunStatus == 'CREATED'" mat-icon-button aria-label="Next task." matTooltip="Go to next task." (click)="nextTask(row.id)">
+                <button *ngIf="row.runStatus == 'ACTIVE' && row.taskRunStatus != 'PREPARING' && row.taskRunStatus != 'RUNNING'" mat-icon-button aria-label="Next task." matTooltip="Go to next task." (click)="nextTask(row.id)">
                     <mat-icon>skip_next</mat-icon>
                 </button>
 
-                <button *ngIf="row.taskRunStatus == 'NO_TASK' || row.taskRunStatus == 'ENDED' || row.taskRunStatus == 'CREATED'" mat-icon-button aria-label="Start task." matTooltip="Start task." (click)="startTask(row.id)">
+                <button *ngIf="row.runStatus == 'ACTIVE' && row.taskRunStatus != 'PREPARING' && row.taskRunStatus != 'RUNNING'" mat-icon-button aria-label="Start task." matTooltip="Start task." (click)="startTask(row.id)">
                     <mat-icon>play_circle_outline</mat-icon>
                 </button>
 

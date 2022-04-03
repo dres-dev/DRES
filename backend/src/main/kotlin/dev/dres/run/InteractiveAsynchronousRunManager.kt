@@ -484,9 +484,19 @@ class InteractiveAsynchronousRunManager(val run: InteractiveAsynchronousCompetit
     /**
      * Adjusting task durations is not supported by the [InteractiveAsynchronousRunManager]s.
      *
-     * @return Time left (see [timeLeft]).
      */
-    override fun adjustDuration(context: RunActionContext, s: Int): Long = this.timeLeft(context)
+    override fun adjustDuration(context: RunActionContext, s: Int): Long {
+        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
+        require(teamHasRunningTask(context.teamId)) { "No running task for Team ${context.teamId}" }
+
+        val currentTaskRun = this.currentTask(context)
+            ?: throw IllegalStateException("No active TaskRun found. This is a serious error!")
+        val newDuration = currentTaskRun.duration + s
+        check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
+        currentTaskRun.duration = newDuration
+        return (currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!))
+
+    }
 
     /**
      * Overriding the ready state is not supported by the [InteractiveAsynchronousRunManager]s.

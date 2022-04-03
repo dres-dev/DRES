@@ -91,6 +91,9 @@ object RunExecutor : Consumer<WsConfig> {
             is InteractiveAsynchronousCompetition -> {
                 competition.tasks.forEach { t ->
                     t.submissions.forEach { s -> s.task = t }
+                    if (!t.hasEnded) {
+                        t.end() //abort tasks that were active during last save
+                    }
                 }
                 InteractiveAsynchronousRunManager(competition)
             }

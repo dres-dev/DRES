@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {interval, merge, Observable, of, Subscription} from 'rxjs';
+import {interval, merge, Observable, of, Subscription, zip} from 'rxjs';
 import {
     catchError,
     delay,
@@ -238,6 +238,23 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
     }
 
     /**
+     * Determines and returns the number of body {@link Widget}s.
+     *
+     * @return Observable of the number of body {@link Widget}s.
+     */
+    public numberOfBodyWidgets(): Observable<number> {
+        return zip(this.leftWidget, this.centerWidget, this.rightWidget).pipe(
+            map(([l, c, r]) => {
+                let n = 0;
+                if (l) { n += 1; }
+                if (c) { n += 1; }
+                if (r) { n += 1; }
+                return n;
+            })
+        );
+    }
+
+    /**
      * Returns a list of all available {@link Widget}s for the specified {@link Position}.
      *
      * @param position String representation of the {@link Position}.
@@ -255,5 +272,4 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
                 return [];
         }
     }
-
 }

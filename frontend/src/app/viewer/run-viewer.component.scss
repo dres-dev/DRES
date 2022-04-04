@@ -1,7 +1,6 @@
 .grid {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 2fr);
-  grid-auto-rows: 100px minmax(0, auto) minmax(0, 250px);
+  grid-template-rows: 100px minmax(0, auto) minmax(0, 250px);
   grid-column-gap: 10px;
   row-gap: 25px;
   width: 100%;
@@ -9,9 +8,9 @@
 }
 
 .header {
-  grid-column: 1 / span 3;
+  grid-column: 1 / span 5;
 }
 
 .footer {
-  grid-column: 1 / span 3;
+  grid-column: 1 / span 5;
 }

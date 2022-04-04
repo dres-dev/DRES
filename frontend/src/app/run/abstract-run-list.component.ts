@@ -46,7 +46,13 @@ export class AbstractRunListComponent {
      * @param runId ID of the run to navigate to.
      */
     public navigateToViewer(runId: string) {
-        this.router.navigate(['/run/viewer', runId]);
+        /* TODO: Setup depends on type of competition run. */
+        this.router.navigate(['/run/viewer', runId], {queryParams: {
+            center: 'player',
+            left: 'competition_score',
+            right: 'task_type_score',
+            bottom: 'team_score',
+        }, queryParamsHandling: 'merge'});
     }
 
     /**

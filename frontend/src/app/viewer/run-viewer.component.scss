@@ -1,37 +1,16 @@
 .grid {
+  display: grid;
+  grid-template-rows: 100px minmax(0, auto) minmax(0, 250px);
+  grid-column-gap: 10px;
+  row-gap: 25px;
   width: 100%;
   height: 90vh;
 }
 
 .header {
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-.body {
-  display: flex;
-  width: 100%;
-  margin-top: 10px;
-  margin-bottom: 10px;
+  grid-column: 1 / span 5;
 }
 
 .footer {
-  width: 100%;
-  margin-top: 10px;
-}
-
-.left {
-  width: 25%;
-  margin-right: auto;
-}
-
-.main {
-  width: 49%;
-  margin-right: auto;
-  margin-left: auto;
-}
-
-.right {
-  width: 25%;
-  margin-left: auto;
+  grid-column: 1 / span 5;
 }

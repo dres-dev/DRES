@@ -1,11 +1,11 @@
 import {combineLatest, merge, Observable, Subject, timer} from 'rxjs';
 import {
     CompetitionRunAdminService,
-    DownloadService,
     CompetitionRunScoresService,
     CompetitionRunService,
-    RunState,
-    RunProperties
+    DownloadService,
+    RunProperties,
+    RunState
 } from '../../../openapi';
 import {flatMap, map, take} from 'rxjs/operators';
 import {Router} from '@angular/router';
@@ -20,7 +20,7 @@ export interface RunInfoWithState {
     taskRunStatus: RunState.TaskRunStatusEnum;
     currentTask?: string;
     timeLeft: string;
-    asynchronous: Boolean;
+    asynchronous: boolean;
     runProperties: RunProperties;
 }
 
@@ -36,33 +36,8 @@ export class AbstractRunListComponent {
                 protected scoreService: CompetitionRunScoresService,
                 protected downloadService: DownloadService,
                 protected router: Router,
-                protected snackBar: MatSnackBar,) {
-
-        /**
-         * Creates a combined observable that updates the state in a regular interval and the info +
-         * state whenever a manual update is triggered.
-         */
-        const query = combineLatest([this.runService.getApiV1RunInfoList(), this.runService.getApiV1RunStateList()]);
-        this.runs = merge(timer(0, this.updateInterval), this.update).pipe(
-            flatMap(t => query),
-            map(([info, state]) => {
-                return info.map((v, i) => {
-                    const s = state.find((_) => _.id === v.id);
-                    return {
-                        id: v.id,
-                        name: v.name,
-                        description: v.description,
-                        teams: v.teams.length,
-                        runStatus: s.runStatus,
-                        taskRunStatus: s.taskRunStatus,
-                        currentTask: s.currentTask?.name,
-                        timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a',
-                        asynchronous: v.type === 'ASYNCHRONOUS',
-                        runProperties: v.properties
-                    } as RunInfoWithState;
-                });
-            })
-        );
+                protected snackBar: MatSnackBar) {
+        this.initStateUpdates();
     }
 
     /**
@@ -122,34 +97,34 @@ export class AbstractRunListComponent {
     }
 
     public nextTask(runId: string) {
-            this.runAdminService.postApiV1RunAdminWithRunidTaskNext(runId).subscribe(
-                (r) => {
-                    this.update.next();
-                    this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-                }, (r) => {
-                    this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-                }
-            );
-        }
+        this.runAdminService.postApiV1RunAdminWithRunidTaskNext(runId).subscribe(
+            (r) => {
+                this.update.next();
+                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
+            }, (r) => {
+                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+            }
+        );
+    }
 
     public startTask(runId: string) {
-            this.runAdminService.postApiV1RunAdminWithRunidTaskStart(runId).subscribe(
-                (r) => {
-                    this.update.next();
-                    this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-                }, (r) => {
-                    this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-                }
-            );
-        }
+        this.runAdminService.postApiV1RunAdminWithRunidTaskStart(runId).subscribe(
+            (r) => {
+                this.update.next();
+                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
+            }, (r) => {
+                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+            }
+        );
+    }
 
     scoreDownloadProvider = (runId: string) => {
         return this.downloadService.getApiV1DownloadRunWithRunidScores(runId, 'body', false, {httpHeaderAccept: 'text/csv'}).pipe(take(1));
-    }
+    };
 
     scoreFileProvider = (name: string) => {
         return () => `scores-${name}.csv`;
-    }
+    };
 
     downloadProvider = (runId) => {
         return this.downloadService.getApiV1DownloadRunWithRunid(runId)
@@ -157,7 +132,35 @@ export class AbstractRunListComponent {
         // .toPromise();
     }
 
-    fileProvider = (name: string ) => {
-        return () =>  name;
+    fileProvider = (name: string) => {
+        return () => name;
+    }
+
+    protected initStateUpdates() {
+        /**
+         * Creates a combined observable that updates the state in a regular interval and the info +
+         * state whenever a manual update is triggered.
+         */
+        const query = combineLatest([this.runService.getApiV1RunInfoList(), this.runService.getApiV1RunStateList()]);
+        this.runs = merge(timer(0, this.updateInterval), this.update).pipe(
+            flatMap(t => query),
+            map(([info, state]) => {
+                return info.map((v, i) => {
+                    const s = state.find((_) => _.id === v.id);
+                    return {
+                        id: v.id,
+                        name: v.name,
+                        description: v.description,
+                        teams: v.teams.length,
+                        runStatus: s.runStatus,
+                        taskRunStatus: s.taskRunStatus,
+                        currentTask: s.currentTask?.name,
+                        timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a',
+                        asynchronous: v.type === 'ASYNCHRONOUS',
+                        runProperties: v.properties
+                    } as RunInfoWithState;
+                });
+            })
+        );
     }
 }

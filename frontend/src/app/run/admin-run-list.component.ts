@@ -1,15 +1,26 @@
 import {Component} from '@angular/core';
-import {AbstractRunListComponent} from './abstract-run-list.component';
+import {AbstractRunListComponent, RunInfoWithState} from './abstract-run-list.component';
 import {
+    AdminRunOverview,
     CompetitionRunAdminService,
-    DownloadService,
     CompetitionRunScoresService,
-    CompetitionRunService
+    CompetitionRunService,
+    DownloadService,
+    RunInfo,
+    RunState
 } from '../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Router} from '@angular/router';
 import {MatDialog} from '@angular/material/dialog';
 import {ConfirmationDialogComponent, ConfirmationDialogComponentData} from '../shared/confirmation-dialog/confirmation-dialog.component';
+import {forkJoin, merge, timer} from 'rxjs';
+import {flatMap, map, switchMap} from 'rxjs/operators';
+import RunStatusEnum = RunState.RunStatusEnum;
+
+interface RunInfoOverviewTuple {
+    runInfo: RunInfo;
+    overview: AdminRunOverview;
+}
 
 @Component({
     selector: 'app-admin-run-list',
@@ -88,5 +99,31 @@ export class AdminRunListComponent extends AbstractRunListComponent {
                 );
             }
         });
+    }
+
+    protected initStateUpdates() {
+        this.runs = merge(timer(0, this.updateInterval), this.update).pipe(
+            flatMap(t => this.runService.getApiV1RunInfoList()),
+            map(runInfo => runInfo.map(run => this.runAdminService.getApiV1RunAdminWithRunidOverview(run.id).pipe(
+                    map((overview) => {
+                        return {
+                            id: run.id,
+                            name: run.name,
+                            description: run.description,
+                            teams: overview.teamOverviews.length,
+                            runStatus: overview.state,
+                            taskRunStatus: RunStatusEnum.ACTIVE, // FIXME how to handle async and sync?,
+                            currentTask: 'n/a',
+                            timeLeft: 'n/a',
+                            asynchronous: run.type === 'ASYNCHRONOUS',
+                            runProperties: run.properties
+                        } as RunInfoWithState;
+                    }),
+                )),
+            ),
+            switchMap(runs$ => forkJoin(...runs$)),
+            // https://betterprogramming.pub/how-to-turn-an-array-of-observable-into-an-observable-of-array-in-angular-d6cfe42a72d4
+        );
+
     }
 }

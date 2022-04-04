@@ -115,7 +115,7 @@ class CompetitionRunSerializer(private val competitionSerializer: CompetitionSer
                 tasks.forEach {
                     val taskRun = run.Task(it.runId, it.teamId, it.descriptionId, it.start, it.end)
                     it.submissions.forEach { s ->
-                        taskRun.addSubmission(s)
+                        taskRun.submissions.add(s)
                     }
                 }
 

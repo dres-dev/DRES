@@ -23,6 +23,8 @@ import {CompetitionRunService, RunInfo, RunState, TaskInfo} from '../../../opena
 import {IWsServerMessage} from '../model/ws/ws-server-message.interface';
 import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {Position} from './model/run-viewer-position';
+import {Widget} from './model/run-viewer-widgets';
 
 @Component({
     selector: 'app-run-viewer',
@@ -57,6 +59,18 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
     /** Internal WebSocket subscription for pinging the server. */
     private pingSubscription: Subscription;
 
+    /** Observable of the {@link Widget} that should be displayed on the left-hand side. */
+    leftWidget: Observable<Widget>;
+
+    /** Observable of the {@link Widget} that should be displayed on the right-hand side. */
+    rightWidget: Observable<Widget>;
+
+    /** Observable of the {@link Widget} that should be displayed at the center. */
+    centerWidget: Observable<Widget>;
+
+    /** Observable of the {@link Widget} that should be displayed at the bottom. */
+    bottomWidget: Observable<Widget>;
+
     /**
      * Constructor; extracts the runId and keeps a local reference.
      */
@@ -82,9 +96,23 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
             }
         } as WebSocketSubjectConfig<IWsMessage>);
 
-        /** Observable for the current run Id. */
+        /** Observable for the current run ID. */
         this.runId = this.activeRoute.params.pipe(
             map(a => a.runId)
+        );
+
+        /** Observable for the currently selected Widget. */
+        this.centerWidget = this.activeRoute.queryParams.pipe(
+            map(a => Widget.CENTER_WIDGETS.find(s => s.name === a?.center))
+        );
+        this.leftWidget = this.activeRoute.queryParams.pipe(
+            map(a => Widget.CENTER_WIDGETS.find(s => s.name === a?.left))
+        );
+        this.rightWidget = this.activeRoute.queryParams.pipe(
+            map(a => Widget.CENTER_WIDGETS.find(s => s.name === a?.right))
+        );
+        this.bottomWidget = this.activeRoute.queryParams.pipe(
+            map(a => Widget.BOTTOM_WIDGETS.find(s => s.name === a?.bottom))
         );
 
         /* Basic observable for general run info; this information is static and does not change over the course of a run. */
@@ -195,4 +223,37 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         this.pingSubscription.unsubscribe();
         this.pingSubscription = null;
     }
+
+
+    /**
+     * Updates the {@link Widget} for the specified position.
+     *
+     * @param position The {@link Position} to update.
+     * @param widget The name of the new {@link Widget}.
+     */
+    public updateWidgetForPosition(position: string, widget: string) {
+        const obj = {};
+        obj[position] = widget;
+        this.router.navigate([], {queryParams: obj, queryParamsHandling: 'merge'});
+    }
+
+    /**
+     * Returns a list of all available {@link Widget}s for the specified {@link Position}.
+     *
+     * @param position String representation of the {@link Position}.
+     * @return Array of {@link Widget}s
+     */
+    public widgetsForPosition(position: string): Array<Widget> {
+        switch (Position[position]) {
+            case Position.LEFT:
+            case Position.RIGHT:
+            case Position.CENTER:
+                return Widget.CENTER_WIDGETS;
+            case Position.BOTTOM:
+                return Widget.BOTTOM_WIDGETS;
+            default:
+                return [];
+        }
+    }
+
 }

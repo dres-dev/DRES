@@ -1,11 +1,11 @@
 import {combineLatest, merge, Observable, Subject, timer} from 'rxjs';
 import {
     CompetitionRunAdminService,
-    DownloadService,
     CompetitionRunScoresService,
     CompetitionRunService,
-    RunState,
-    RunProperties
+    DownloadService,
+    RunProperties,
+    RunState
 } from '../../../openapi';
 import {flatMap, map, take} from 'rxjs/operators';
 import {Router} from '@angular/router';
@@ -20,7 +20,7 @@ export interface RunInfoWithState {
     taskRunStatus: RunState.TaskRunStatusEnum;
     currentTask?: string;
     timeLeft: string;
-    asynchronous: Boolean;
+    asynchronous: boolean;
     runProperties: RunProperties;
 }
 
@@ -36,7 +36,7 @@ export class AbstractRunListComponent {
                 protected scoreService: CompetitionRunScoresService,
                 protected downloadService: DownloadService,
                 protected router: Router,
-                protected snackBar: MatSnackBar,) {
+                protected snackBar: MatSnackBar) {
 
         /**
          * Creates a combined observable that updates the state in a regular interval and the info +
@@ -71,7 +71,13 @@ export class AbstractRunListComponent {
      * @param runId ID of the run to navigate to.
      */
     public navigateToViewer(runId: string) {
-        this.router.navigate(['/run/viewer', runId]);
+        /* TODO: Setup depends on type of competition run. */
+        this.router.navigate(['/run/viewer', runId], {queryParams: {
+            center: 'player',
+            left: 'competition_score',
+            right: 'task_type_score',
+            bottom: 'team_score',
+        }, queryParamsHandling: 'merge'});
     }
 
     /**

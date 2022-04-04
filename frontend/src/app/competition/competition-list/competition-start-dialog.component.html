@@ -26,7 +26,7 @@
 
         <p style="width: 100%;"
            matTooltip="Whether task order should be randomized for all teams.">
-            <mat-checkbox formControlName="shuffleTasks">
+            <mat-checkbox formControlName="shuffleTasks" [disabled]="(typeObservable | async) !== 'ASYNCHRONOUS'">
                 Shuffle Tasks (Async only)
             </mat-checkbox>
         </p>

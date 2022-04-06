@@ -10,8 +10,7 @@
             <td mat-cell *matCellDef="let row">
                 <button mat-icon-button aria-label="Go to competition viewer."
                         matTooltip="Go to competition viewer." (click)="navigateToViewer(row.id)"
-                        [disabled]="cannotAccess(row)"
-                >
+                        [disabled]="cannotAccess(row)">
                     <mat-icon>visibility</mat-icon>
                 </button>
 

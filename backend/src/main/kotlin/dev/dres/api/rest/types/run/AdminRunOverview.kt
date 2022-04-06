@@ -30,8 +30,26 @@ data class AdminRunOverview(val state: RunManagerStatus, val teamOverviews: List
 
 }
 
-data class TaskRunOverview(val taskId: String, val status: TaskRunStatus, val started: Long?, val ended: Long?) {
-    constructor(task: Task) : this(task.uid.string, task.status, task.started, task.ended)
+data class TaskRunOverview(
+    val id:String,
+    val name: String,
+    val type: String,
+    val group: String,
+    val duration: Long,
+    val taskId: String,
+    val status: TaskRunStatus,
+    val started: Long?,
+    val ended: Long?) {
+    constructor(task: Task) : this(
+        task.description.id.string,
+        task.description.name,
+        task.description.taskGroup.name,
+        task.description.taskType.name,
+        task.description.duration,
+        task.uid.string,
+        task.status,
+        task.started,
+        task.ended)
 }
 
 data class TeamTaskOverview(val teamId: String, val tasks: List<TaskRunOverview>)

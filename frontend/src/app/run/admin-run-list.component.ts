@@ -17,7 +17,7 @@ import {forkJoin, merge, timer} from 'rxjs';
 import {flatMap, map, switchMap} from 'rxjs/operators';
 import RunStatusEnum = RunState.RunStatusEnum;
 
-interface RunInfoOverviewTuple {
+export interface RunInfoOverviewTuple {
     runInfo: RunInfo;
     overview: AdminRunOverview;
 }
@@ -110,7 +110,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
                             id: run.id,
                             name: run.name,
                             description: run.description,
-                            teams: overview.teamOverviews.length,
+                            teams: run.teams.length,
                             runStatus: overview.state,
                             taskRunStatus: RunStatusEnum.ACTIVE, // FIXME how to handle async and sync?,
                             currentTask: 'n/a',

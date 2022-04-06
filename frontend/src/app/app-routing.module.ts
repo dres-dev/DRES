@@ -19,6 +19,7 @@ import {RunAdminSubmissionsListComponent} from './run/run-admin-submissions-list
 import {RunScoreHistoryComponent} from './run/score-history/run-score-history.component';
 import {JudgementVotingViewerComponent} from './judgement/judgement-voting-viewer.component';
 import RoleEnum = UserDetails.RoleEnum;
+import {RunAsyncAdminViewComponent} from './run/run-async-admin-view/run-async-admin-view.component';
 
 
 const routes: Routes = [
@@ -50,6 +51,12 @@ const routes: Routes = [
     {
         path: 'run/scores/:runId',
         component: RunScoreHistoryComponent,
+        canActivate: [AuthenticationGuard],
+        data: {roles: [RoleEnum.ADMIN]}
+    },
+    {
+        path: 'run/admin/async/:runId',
+        component: RunAsyncAdminViewComponent,
         canActivate: [AuthenticationGuard],
         data: {roles: [RoleEnum.ADMIN]}
     },

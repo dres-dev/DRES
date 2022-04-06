@@ -28,6 +28,9 @@ import {RunScoreHistoryComponent} from './score-history/run-score-history.compon
 import {NgApexchartsModule} from 'ng-apexcharts';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatExpansionModule} from '@angular/material/expansion';
+import {RunAsyncAdminViewComponent} from './run-async-admin-view/run-async-admin-view.component';
+import {FlexModule} from '@angular/flex-layout';
+import {MatToolbarModule} from '@angular/material/toolbar';
 
 @NgModule({
     imports: [
@@ -53,10 +56,13 @@ import {MatExpansionModule} from '@angular/material/expansion';
         MatButtonToggleModule,
         MatSlideToggleModule,
         NgApexchartsModule,
-        MatExpansionModule
+        MatExpansionModule,
+        FlexModule,
+        MatToolbarModule
     ],
-    exports:      [ RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent ],
-    declarations: [ RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent, AdminRunListComponent, ViewerRunListComponent, RunAdminSubmissionsListComponent, SubmissionOverrideDialogComponent ],
-    providers:    [ ]
+    exports: [RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent],
+    declarations: [RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent, AdminRunListComponent, ViewerRunListComponent, RunAdminSubmissionsListComponent, SubmissionOverrideDialogComponent, RunAsyncAdminViewComponent],
+    providers: []
 })
-export class RunModule { }
+export class RunModule {
+}

@@ -27,11 +27,16 @@ export class NavigationService {
     /**
      * Navigates back in the local application navigation history
      */
-    back(): void {
+    back(forceBack: boolean = false): void {
         let destination = 'home'; // Anything that routes to **
         if (this.history.length > 1) {
             this.alternateHistory.push(this.history.pop()); // Current route is put into the alternate history
             destination = this.history.pop(); // The one before the current one is our next destination
+        }
+        if (forceBack) {
+            while (destination.includes('?')) {
+                destination = this.history.pop();
+            }
         }
         this.router.navigateByUrl(destination);
     }

@@ -4,7 +4,7 @@
         <mat-card>
             <mat-card-header>
                 <mat-card-title>
-                    <app-back-button></app-back-button>Viewer for '{{(runInfo | async)?.name}}'
+                    <app-back-button forceBack="true"></app-back-button>Viewer for '{{(runInfo | async)?.name}}'
                 </mat-card-title>
                 <mat-card-subtitle><strong>Description:</strong> {{(runInfo | async)?.description}}</mat-card-subtitle>
 

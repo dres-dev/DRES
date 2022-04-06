@@ -15,6 +15,10 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 /* Defines some spacer classes that can be used in flexboxes etc. */
 
+.spacer-xxlarge {
+  padding: 0 80px;
+}
+
 .spacer-xlarge {
   padding: 0 40px;
 }

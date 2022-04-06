@@ -5333,9 +5333,25 @@
         }
       },
       "TaskRunOverview" : {
-        "required" : [ "status", "taskId" ],
+        "required" : [ "duration", "group", "id", "name", "status", "taskId", "type" ],
         "type" : "object",
         "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "group" : {
+            "type" : "string"
+          },
+          "duration" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
           "taskId" : {
             "type" : "string"
           },

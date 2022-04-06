@@ -25,7 +25,7 @@
                     <mat-icon>stacked_line_chart</mat-icon>
                 </button>
 
-                <button mat-icon-button aria-label="Go to admin viewer." matTooltip="Go to admin viewer." (click)="navigateToAdmin(row.id)">
+                <button mat-icon-button aria-label="Go to admin viewer." matTooltip="Go to admin viewer." (click)="navigateToAdmin(row.id, row.asynchronous)">
                     <mat-icon>settings</mat-icon>
                 </button>
 
@@ -92,13 +92,20 @@
         <!-- Task Column -->
         <ng-container matColumnDef="currentTask">
             <th mat-header-cell *matHeaderCellDef>Task</th>
-            <td mat-cell *matCellDef="let row">{{row.currentTask}}</td>
+            <td mat-cell
+                *matCellDef="let row"
+                [matTooltip]="row.asynchronous ? 'Not available for async runs':'The currently active task'">
+                {{row.currentTask}}
+            </td>
         </ng-container>
 
         <!-- Task Column -->
         <ng-container matColumnDef="timeLeft">
             <th mat-header-cell *matHeaderCellDef>Time left</th>
-            <td mat-cell *matCellDef="let row">{{row.timeLeft}}</td>
+            <td mat-cell *matCellDef="let row"
+                [matTooltip]="row.asynchronous ? 'Not available for async runs':'The currently active task'">
+                {{row.timeLeft}}
+            </td>
         </ng-container>
 
         <!-- Description Column -->

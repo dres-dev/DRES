@@ -75,11 +75,9 @@ export class AbstractRunListComponent {
 
     /**
      * Navigates to admin viewer (for admins).
-     *
-     * @param runId ID of the run to navigate to.
      */
-    public navigateToAdmin(runId: string) {
-        this.router.navigate(['/run/admin', runId]);
+    public navigateToAdmin(runId: string, async: boolean = false) {
+        this.router.navigate([`/run/admin${async ? '/async' : ''}`, runId]);
     }
 
     /**

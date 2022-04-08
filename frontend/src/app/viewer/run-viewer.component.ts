@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, Inject, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {interval, merge, Observable, of, Subscription, zip} from 'rxjs';
 import {
@@ -25,6 +25,7 @@ import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Position} from './model/run-viewer-position';
 import {Widget} from './model/run-viewer-widgets';
+import {DOCUMENT} from '@angular/common';
 
 @Component({
     selector: 'app-run-viewer',
@@ -78,7 +79,9 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
                 private activeRoute: ActivatedRoute,
                 private config: AppConfig,
                 private runService: CompetitionRunService,
-                private snackBar: MatSnackBar) {
+                private snackBar: MatSnackBar,
+                @Inject(DOCUMENT) private document: Document
+                ) {
 
         /** Initialize basic WebSocketSubject. */
         const wsurl = this.config.webSocketUrl;
@@ -101,26 +104,30 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
             map(a => a.runId)
         );
 
-        /** Observable for the currently selected Widget. */
-        this.centerWidget = this.activeRoute.queryParams.pipe(
-            map(a => Widget.CENTER_WIDGETS.find(s => s.name === a?.center))
-        );
-        this.leftWidget = this.activeRoute.queryParams.pipe(
-            map(a => Widget.CENTER_WIDGETS.find(s => s.name === a?.left))
-        );
-        this.rightWidget = this.activeRoute.queryParams.pipe(
-            map(a => Widget.CENTER_WIDGETS.find(s => s.name === a?.right))
-        );
-        this.bottomWidget = this.activeRoute.queryParams.pipe(
-            map(a => Widget.BOTTOM_WIDGETS.find(s => s.name === a?.bottom))
-        );
+        /** Observable for the currently selected Widget. Also sets reasonable defaults */
+        let queryParams: any = new URL(unescape(this.document.URL));
+        console.log("URL", JSON.stringify(decodeURI(unescape(this.document.URL))));
+        console.log("QUERY PARAMS", JSON.stringify(queryParams as URL));
+        queryParams = queryParams.searchParams;
+        this.centerWidget = new Observable<Widget>(observer => {
+            observer.next(Widget.CENTER_WIDGETS.find(s => s.name === (queryParams.get('center') || 'player')));
+        });
+        this.leftWidget = new Observable<Widget>(observer => {
+            observer.next(Widget.CENTER_WIDGETS.find(s => s.name === (queryParams.get('left') || 'competition_score')));
+        });
+        this.rightWidget = new Observable<Widget>(observer => {
+            observer.next(Widget.CENTER_WIDGETS.find(s => s.name === (queryParams.get('right') || 'task_type_score')));
+        });
+        this.bottomWidget = new Observable<Widget>(observer => {
+            observer.next(Widget.BOTTOM_WIDGETS.find(s => s.name === (queryParams.get('bottom') || 'team_score')));
+        });
 
         /* Basic observable for general run info; this information is static and does not change over the course of a run. */
         this.runInfo = this.runId.pipe(
             switchMap(runId => this.runService.getApiV1RunWithRunidInfo(runId).pipe(
                 catchError((err, o) => {
                     console.log(`[RunViewerComponent] There was an error while loading information in the current run: ${err?.message}`);
-                    this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`);
+                    this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {duration: 5000});
                     if (err.status === 404) {
                         this.router.navigate(['/competition/list']);
                     }

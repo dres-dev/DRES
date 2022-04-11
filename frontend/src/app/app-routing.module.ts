@@ -1,5 +1,5 @@
 import {NgModule} from '@angular/core';
-import {RouterModule, Routes} from '@angular/router';
+import {DefaultUrlSerializer, RouterModule, Routes, UrlSerializer} from '@angular/router';
 import {CompetitionBuilderComponent} from './competition/competition-builder/competition-builder.component';
 import {CompetitionListComponent} from './competition/competition-list/competition-list.component';
 import {LoginComponent} from './user/login/login.component';
@@ -20,6 +20,7 @@ import {RunScoreHistoryComponent} from './run/score-history/run-score-history.co
 import {JudgementVotingViewerComponent} from './judgement/judgement-voting-viewer.component';
 import RoleEnum = UserDetails.RoleEnum;
 import {RunAsyncAdminViewComponent} from './run/run-async-admin-view/run-async-admin-view.component';
+import {NonescapingUrlserializerClass} from './nonescaping-urlserializer.class';
 
 
 const routes: Routes = [
@@ -125,8 +126,9 @@ const routes: Routes = [
 ];
 
 @NgModule({
-    imports: [RouterModule.forRoot(routes, { relativeLinkResolution: 'legacy' })],
-    exports: [RouterModule]
+    imports: [RouterModule.forRoot(routes, { relativeLinkResolution: 'legacy' , enableTracing: false})], // enable tracing for debugging
+    exports: [RouterModule],
+    providers: [{provide: UrlSerializer, useClass: NonescapingUrlserializerClass}]
 })
 export class AppRoutingModule {
 }

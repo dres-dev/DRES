@@ -123,14 +123,12 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
         const runId = this.runId.value;
 
         /* TODO: Setup depends on type of competition run. */
-        this.router.navigate(['/run/viewer', runId], {
-            queryParams: {
+        this.router.navigate(['/run/viewer', runId, {
                 center: 'player',
                 left: 'competition_score',
                 right: 'task_type_score',
                 bottom: 'team_score',
-            }, queryParamsHandling: 'merge'
-        });
+        }]);
     }
 
     public navigateToJudgement() {

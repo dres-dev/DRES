@@ -144,6 +144,10 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
         });
     }
 
+    resolveMediaItemById(_: number, item: RestMediaItem){
+        return item.id;
+    }
+
     /**
      * Builds the routerLink array for the given id
      */

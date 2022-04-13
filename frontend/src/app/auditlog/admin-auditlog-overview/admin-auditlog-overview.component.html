@@ -11,7 +11,7 @@
     <!-- Pagination -->
     <mat-paginator [length]="length" [pageSizeOptions]="[100, 250, 500]" showFirstLastButtons></mat-paginator>
 
-    <table mat-table [dataSource]="dataSource" style="width: 100%;">
+    <table mat-table [dataSource]="dataSource" style="width: 100%;" [trackBy]="resolveAuditLogEntryById">
         <!-- time column -->
         <ng-container matColumnDef="time">
             <th mat-header-cell *matHeaderCellDef [style.width]="'150px'">Time</th>

@@ -13,7 +13,7 @@
 </div>
 
 <div>
-    <table mat-table [dataSource]="collections" style="width: 100%;">
+    <table mat-table [dataSource]="collections" style="width: 100%;" [trackBy]="resolveMediaCollectionById">
         <!-- Actions column -->
         <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Actions</th>

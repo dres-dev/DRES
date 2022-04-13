@@ -111,4 +111,8 @@ export class CompetitionListComponent implements AfterViewInit {
     fileProvider = (name: string ) => {
         return () =>  name;
     }
+
+    resolveCompetitionOverviewById(_: number, item: CompetitionOverview){
+        return item.id;
+    }
 }

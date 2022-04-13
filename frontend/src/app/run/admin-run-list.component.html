@@ -4,7 +4,7 @@
 </div>
 
 <div>
-    <table mat-table [dataSource]="runs" style="width: 100%">
+    <table mat-table [dataSource]="runs" style="width: 100%" [trackBy]="resolveRunWithStateById">
         <!-- Name Column -->
         <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Actions</th>

@@ -15,7 +15,7 @@
 </div>
 
 <div>
-  <table mat-table [dataSource]="users" style="width:100%;">
+  <table mat-table [dataSource]="users" style="width:100%;" [trackBy]="resolveUserById">
     <!-- action col -->
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>Actions</th>

@@ -140,6 +140,10 @@ export class AbstractRunListComponent {
         return () => name;
     }
 
+    resolveRunWithStateById(_: number, item: RunInfoWithState){
+        return item.id;
+    }
+
     protected initStateUpdates() {
         /**
          * Creates a combined observable that updates the state in a regular interval and the info +

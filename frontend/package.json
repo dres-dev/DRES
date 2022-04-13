@@ -9,7 +9,9 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "prettier:check": "prettier --config .prettierrc --check \"src/**/*.{ts,scss,html}\""
+    "prettier:check": "prettier --config .prettierrc --check \"src/**/*.{ts,scss,html}\"",
+    "prepare": "cd .. && husky install frontend/.husky",
+    "postinstall": "cd .. && husky install frontend/.husky"
   },
   "husky": {
     "hooks": {
@@ -59,7 +61,7 @@
     "@typescript-eslint/eslint-plugin": "5.17.0",
     "@typescript-eslint/parser": "5.17.0",
     "eslint": "^8.12.0",
-    "husky": "^7.0.4",
+    "husky": "^7.0.0",
     "jasmine-core": "3.8.x",
     "jasmine-spec-reporter": "5.0.x",
     "karma": "6.3.x",

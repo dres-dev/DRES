@@ -13,8 +13,13 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn prettier:check"
+      "pre-commit": "yarn prettier --staged && ng lint"
     }
+  },
+  "lint-staged": {
+    "src/**/*.{ts,scss,html}": [
+      "yarn prettier:check"
+    ]
   },
   "private": true,
   "dependencies": {

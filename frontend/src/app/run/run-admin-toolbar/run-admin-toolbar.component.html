@@ -1,70 +1,68 @@
-<mat-toolbar style="margin-bottom: 2rem;">
-    <app-back-button></app-back-button>
-    <span class="spacer-small"></span>
-    <span>
-        {{(run | async)?.runInfo?.type === 'ASYNCHRONOUS' ? 'Asynchronous' : 'Synchronous'}}
-        Run: {{(run | async)?.runInfo?.name}}
-        <span>({{(run|async)?.runInfo?.id?.substring(0, 8)}})</span>
-    </span>
-    <span class="spacer-xxlarge"></span>
-    <button *ngIf="(run | async)?.overview?.state === 'CREATED'" mat-icon-button
-            aria-label="Start the competition run."
-            matTooltip="Start the competition run."
-            (click)="start()">
-        <mat-icon>play_arrow</mat-icon>
-    </button>
-    <span *ngIf="(run | async)?.overview?.state === 'ACTIVE'" class="spacer-small"></span>
-    <button *ngIf="(run | async)?.overview?.state === 'ACTIVE'"
-            mat-icon-button
-            aria-label="Terminate the competition run."
-            matTooltip="Terminate the competition run."
-            (click)="terminate()">
-        <mat-icon>stop</mat-icon>
-    </button>
-    <span class="spacer-small"></span>
-    <button mat-icon-button
-            aria-label="Go to competition viewer."
-            matTooltip="Go to competition viewer."
-            (click)="navigateToViewer()">
-        <mat-icon>visibility</mat-icon>
-    </button>
-    <span class="spacer-small"></span>
-    <button mat-icon-button
-            aria-label="Go to judgement viewer."
-            matTooltip="Go to judgement viewer."
-            (click)="navigateToJudgement()">
-        <mat-icon>gavel</mat-icon>
-    </button>
-    <span class="spacer-small"></span>
-    <button mat-icon-button
-            aria-label="Go to audience voting viewer."
-            matTooltip="Go to audience voting viewer."
-            (click)="navigateToVoting()">
-        <mat-icon>flaky</mat-icon>
-    </button>
-    <span class="spacer-small"></span>
-    <button mat-icon-button
-            aria-label="Go to score history."
-            matTooltip="Go to score history."
-            (click)="navigateToScoreHistory()">
-        <mat-icon>stacked_line_chart</mat-icon>
-    </button>
-    <span class="spacer-flex"></span>
-    <ng-content></ng-content>
-    <span class="spacer-flex"></span>
-    <app-download-button
-            [icon]="'file_download'"
-            [contentType]="'text/csv'"
-            [fileName]="scoreFileProvider((run | async)?.runInfo?.name)"
-            [downloadProvider]="scoreDownloadProvider(runId | async)"
-            [inline]="true"
-            matTooltip="Download the scores of this run as CSV">
-    </app-download-button>
-    <span class="spacer-small"></span>
-    <app-download-button
-            [fileName]="fileProvider((run | async)?.runInfo?.name)"
-            [downloadProvider]="downloadProvider(runId | async)"
-            [inline]="true"
-            matTooltip="Download the run as JSON">
-    </app-download-button>
+<mat-toolbar style="margin-bottom: 2rem;" fxLayout="row" fxLayout.lt-md="column" fxLayoutAlign="space-between center">
+    <div style="display: inline-flex">
+        <app-back-button></app-back-button>
+        <span>
+            {{(run | async)?.runInfo?.type === 'ASYNCHRONOUS' ? 'Asynchronous' : 'Synchronous'}}
+            Run: {{(run | async)?.runInfo?.name}}
+            <span>({{(run|async)?.runInfo?.id?.substring(0, 8)}})</span>
+        </span>
+    </div>
+    <div style="display: inline-flex">
+        <button *ngIf="(run | async)?.overview?.state === 'CREATED'" mat-icon-button
+                aria-label="Start the competition run."
+                matTooltip="Start the competition run."
+                (click)="start()">
+            <mat-icon>play_arrow</mat-icon>
+        </button>
+        <button *ngIf="(run | async)?.overview?.state === 'ACTIVE'"
+                mat-icon-button
+                aria-label="Terminate the competition run."
+                matTooltip="Terminate the competition run."
+                (click)="terminate()">
+            <mat-icon>stop</mat-icon>
+        </button>
+        <button mat-icon-button
+                aria-label="Go to competition viewer."
+                matTooltip="Go to competition viewer."
+                (click)="navigateToViewer()">
+            <mat-icon>visibility</mat-icon>
+        </button>
+        <button mat-icon-button
+                aria-label="Go to judgement viewer."
+                matTooltip="Go to judgement viewer."
+                (click)="navigateToJudgement()">
+            <mat-icon>gavel</mat-icon>
+        </button>
+        <button mat-icon-button
+                aria-label="Go to audience voting viewer."
+                matTooltip="Go to audience voting viewer."
+                (click)="navigateToVoting()">
+            <mat-icon>flaky</mat-icon>
+        </button>
+        <button mat-icon-button
+                aria-label="Go to score history."
+                matTooltip="Go to score history."
+                (click)="navigateToScoreHistory()">
+            <mat-icon>stacked_line_chart</mat-icon>
+        </button>
+    </div>
+    <div style="display: inline-flex">
+        <ng-content></ng-content>
+    </div>
+    <div style="display: inline-flex">
+        <app-download-button
+                [icon]="'file_download'"
+                [contentType]="'text/csv'"
+                [fileName]="scoreFileProvider((run | async)?.runInfo?.name)"
+                [downloadProvider]="scoreDownloadProvider(runId | async)"
+                [inline]="true"
+                matTooltip="Download the scores of this run as CSV">
+        </app-download-button>
+        <app-download-button
+                [fileName]="fileProvider((run | async)?.runInfo?.name)"
+                [downloadProvider]="downloadProvider(runId | async)"
+                [inline]="true"
+                matTooltip="Download the run as JSON">
+        </app-download-button>
+    </div>
 </mat-toolbar>

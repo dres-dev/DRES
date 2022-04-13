@@ -1,4 +1,4 @@
-import {AfterViewInit, Component} from '@angular/core';
+import {AfterViewInit, Component, ViewChild} from '@angular/core';
 import {BehaviorSubject, combineLatest, merge, Observable, of, Subject, timer} from 'rxjs';
 import {
     CompetitionRunAdminService,
@@ -7,7 +7,7 @@ import {
     CompetitionService,
     DownloadService,
     PastTaskInfo,
-    RestDetailedTeam,
+    RestDetailedTeam, RestTeam,
     TeamTaskOverview
 } from '../../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -16,6 +16,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatDialog} from '@angular/material/dialog';
 import {catchError, filter, map, shareReplay, switchMap} from 'rxjs/operators';
 import {RunInfoOverviewTuple} from '../admin-run-list.component';
+import {MatAccordion} from '@angular/material/expansion';
 
 @Component({
     selector: 'app-run-async-admin-view',
@@ -24,13 +25,15 @@ import {RunInfoOverviewTuple} from '../admin-run-list.component';
 })
 export class RunAsyncAdminViewComponent implements AfterViewInit {
 
+    @ViewChild(MatAccordion) accordion: MatAccordion;
+
     runId: BehaviorSubject<string> = new BehaviorSubject<string>('');
     run: Observable<RunInfoOverviewTuple>;
     update = new Subject();
 
     displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'past', 'action'];
     displayedColumnsTeamTasks: string[] = ['name', 'state', 'group', 'type', 'duration', 'past', 'action'];
-    teams: Observable<RestDetailedTeam[]>;
+    teams: Observable<RestTeam[]>;
     pastTasks = new BehaviorSubject<PastTaskInfo[]>([]);
     pastTasksValue: PastTaskInfo[];
 
@@ -72,7 +75,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
 
         this.teams = this.run.pipe(
             switchMap(runAndOverview => {
-                return this.competitionService.getApiV1CompetitionWithCompetitionidTeamListDetails(runAndOverview.runInfo.competitionId);
+                return this.competitionService.getApiV1CompetitionWithCompetitionidTeamList(runAndOverview.runInfo.competitionId);
             }),
             shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading. */
         );

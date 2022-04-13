@@ -1,8 +1,11 @@
 <mat-toolbar style="margin-bottom: 2rem;">
     <app-back-button></app-back-button>
     <span class="spacer-small"></span>
-    <span>{{(run | async)?.runInfo?.type === 'ASYNCHRONOUS' ? 'Asynchronous' : 'Synchronous'}} Run: {{(run | async)?.runInfo?.name}} <span>({{(run|async)?.runInfo?.id?.substring(0, 8)}}
-        )</span></span>
+    <span>
+        {{(run | async)?.runInfo?.type === 'ASYNCHRONOUS' ? 'Asynchronous' : 'Synchronous'}}
+        Run: {{(run | async)?.runInfo?.name}}
+        <span>({{(run|async)?.runInfo?.id?.substring(0, 8)}})</span>
+    </span>
     <span class="spacer-xxlarge"></span>
     <button *ngIf="(run | async)?.overview?.state === 'CREATED'" mat-icon-button
             aria-label="Start the competition run."
@@ -47,6 +50,8 @@
         <mat-icon>stacked_line_chart</mat-icon>
     </button>
     <span class="spacer-flex"></span>
+    <ng-content></ng-content>
+    <span class="spacer-flex"></span>
     <app-download-button
             [icon]="'file_download'"
             [contentType]="'text/csv'"
@@ -55,6 +60,7 @@
             [inline]="true"
             matTooltip="Download the scores of this run as CSV">
     </app-download-button>
+    <span class="spacer-small"></span>
     <app-download-button
             [fileName]="fileProvider((run | async)?.runInfo?.name)"
             [downloadProvider]="downloadProvider(runId | async)"

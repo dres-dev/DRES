@@ -78,6 +78,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
         );
     }
 
+
     public submissionsOf(task, property = 'id') {
         this.runId.subscribe(r => {
             this.router.navigateByUrl(`run/admin/submissions/${r}/${task[property]}`);

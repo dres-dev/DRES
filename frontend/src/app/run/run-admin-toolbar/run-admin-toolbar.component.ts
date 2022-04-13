@@ -9,7 +9,7 @@ import {
     CompetitionRunScoresService,
     CompetitionRunService,
     CompetitionService,
-    DownloadService
+    DownloadService, RunInfo
 } from '../../../../openapi';
 import {MatDialog} from '@angular/material/dialog';
 import {take} from 'rxjs/operators';

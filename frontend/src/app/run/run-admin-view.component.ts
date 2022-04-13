@@ -15,6 +15,7 @@ import {catchError, filter, flatMap, map, shareReplay, switchMap, tap} from 'rxj
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatDialog} from '@angular/material/dialog';
 import {ConfirmationDialogComponent, ConfirmationDialogComponentData} from '../shared/confirmation-dialog/confirmation-dialog.component';
+import {RunInfoOverviewTuple} from './admin-run-list.component';
 
 
 export interface CombinedRun {
@@ -30,7 +31,9 @@ export interface CombinedRun {
 export class RunAdminViewComponent implements AfterViewInit{
 
     runId: Observable<string>;
+    runIdAsSubject: BehaviorSubject<string> = new BehaviorSubject<string>('');
     run: Observable<CombinedRun>;
+    runOverview: Observable<RunInfoOverviewTuple>;
     viewers: Observable<ViewerInfo[]>;
     update = new Subject();
     displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'past', 'action'];
@@ -47,6 +50,7 @@ export class RunAdminViewComponent implements AfterViewInit{
                 private snackBar: MatSnackBar,
                 private dialog: MatDialog) {
         this.runId = this.activeRoute.params.pipe(map(a => a.runId));
+        this.runId.subscribe(this.runIdAsSubject);
         this.run = this.runId.pipe(
             switchMap(runId =>
                 combineLatest([
@@ -71,6 +75,30 @@ export class RunAdminViewComponent implements AfterViewInit{
             }),
             shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading. */
         );
+        this.runOverview = this.runId.pipe(
+            switchMap(runId =>
+                combineLatest([
+                    this.runService.getApiV1RunWithRunidInfo(runId).pipe(
+                        catchError((err, o) => {
+                            console.log(`[RunAdminViewComponent] There was an error while loading information in the current run state: ${err?.message}`);
+                            this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`);
+                            if (err.status === 404) {
+                                this.router.navigate(['/competition/list']);
+                            }
+                            return of(null);
+                        }),
+                        filter(q => q != null)
+                    ),
+                    merge(timer(0, 1000), this.update).pipe(
+                        switchMap(index => this.runAdminService.getApiV1RunAdminWithRunidOverview(runId))
+                    )
+                ])
+            ),
+            map(([run, overview]) => {
+                return {runInfo: run, overview} as RunInfoOverviewTuple;
+            }),
+            shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading. */
+        );
 
 
         this.viewers = this.runId.pipe(
@@ -85,6 +113,12 @@ export class RunAdminViewComponent implements AfterViewInit{
         );
     }
 
+
+    mapCombinedRunToRunInfo(){
+        return this.run.pipe(
+            map(runAndInfo => runAndInfo.info)
+        );
+    }
 
     public start() {
         this.runId.pipe(switchMap(id => this.runAdminService.postApiV1RunAdminWithRunidStart(id))).subscribe(

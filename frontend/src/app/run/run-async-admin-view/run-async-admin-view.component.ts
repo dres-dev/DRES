@@ -7,7 +7,7 @@ import {
     CompetitionService,
     DownloadService,
     PastTaskInfo,
-    RestDetailedTeam, RestTeam,
+    RestDetailedTeam, RestTeam, TeamInfo,
     TeamTaskOverview
 } from '../../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -36,6 +36,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
     teams: Observable<RestTeam[]>;
     pastTasks = new BehaviorSubject<PastTaskInfo[]>([]);
     pastTasksValue: PastTaskInfo[];
+    nbOpenTeamOverviews = 0;
 
     constructor(private router: Router,
                 private activeRoute: ActivatedRoute,
@@ -92,6 +93,10 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
         return item.teamId;
     }
 
+    public resolveTeamById(index: number, item: RestTeam){
+        return item.uid;
+    }
+
 
     ngAfterViewInit(): void {
         /* Cache past tasks initially */
@@ -111,5 +116,13 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
         });
     }
 
+    public openAllTeamOverviews(){
+        this.accordion.openAll();
+        this.nbOpenTeamOverviews = 10;
+    }
 
+    public closeAllTeamOverviews(){
+        this.accordion.closeAll();
+        this.nbOpenTeamOverviews = 0;
+    }
 }

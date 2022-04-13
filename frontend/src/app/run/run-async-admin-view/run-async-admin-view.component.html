@@ -58,17 +58,29 @@
             </mat-card-content>
         </mat-card>
         <mat-card fxFlex="49"><!-- Tasks per Team -->
-            <mat-card-header>
-                <mat-card-title>Tasks per Team <span class="spacer-flex"></span><button mat-icon-button (click)="accordion.closeAll()"><mat-icon>fullscreen_exit</mat-icon></button></mat-card-title>
+            <mat-card-header fxLayout="row" fxLayoutAlign="space-between center">
+                <mat-card-title>Tasks per Team
+                </mat-card-title>
+                <button mat-icon-button style="margin-left: auto;"
+                        (click)="nbOpenTeamOverviews > 0 ? closeAllTeamOverviews() : openAllTeamOverviews()"
+                        matTooltip="{{nbOpenTeamOverviews > 0 ? 'Collapse all Overviews' : 'Expand all Overviews'}}"
+                >
+                    <mat-icon>{{nbOpenTeamOverviews > 0 ? 'fullscreen_exit' : 'fullscreen'}}</mat-icon>
+                </button>
             </mat-card-header>
             <mat-card-content>
                 <mat-accordion multi>
                     <mat-expansion-panel
-                            *ngFor="let teamOverview of (run|async)?.overview.teamOverviews; trackBy: resolveTeamOverviewByTeamId">
+                            *ngFor="let teamOverview of (run|async)?.overview.teamOverviews; trackBy: resolveTeamOverviewByTeamId"
+                            (opened)="nbOpenTeamOverviews = nbOpenTeamOverviews+1"
+                            (closed)="nbOpenTeamOverviews = nbOpenTeamOverviews-1"
+                    >
                         <mat-expansion-panel-header>
-                            <mat-panel-title>Task Runs of: {{(teamOverview.teamId | resolveTeam: (teams | async))?. name || 'N/A'}}</mat-panel-title>
+                            <mat-panel-title>Task Runs
+                                of: {{(teamOverview.teamId | resolveTeam: (teams | async))?.name || 'N/A'}}</mat-panel-title>
                         </mat-expansion-panel-header>
-                        <table mat-table [dataSource]="teamOverview.tasks" style="width: 100%;">
+                        <table mat-table [dataSource]="teamOverview.tasks" style="width: 100%;"
+                               [trackBy]="resolveTeamById">
                             <!-- Name Column -->
                             <ng-container matColumnDef="name">
                                 <th mat-header-cell *matHeaderCellDef>Name</th>

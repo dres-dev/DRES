@@ -12,6 +12,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular-slider/ngx-slider": "2.0.x",
     "@angular/animations": "13.2.x",
     "@angular/cdk": "13.2.x",
     "@angular/common": "13.2.x",
@@ -23,7 +24,6 @@
     "@angular/platform-browser": "13.2.x",
     "@angular/platform-browser-dynamic": "13.2.x",
     "@angular/router": "13.2.x",
-    "@angular-slider/ngx-slider": "2.0.x",
     "angularx-qrcode": "13.0.x",
     "apexcharts": "3.33.x",
     "ng-apexcharts": "1.7.x",
@@ -52,5 +52,6 @@
     "ts-node": "8.3.x",
     "tslint": "6.1.x",
     "typescript": "4.5.x"
-  }
+  },
+  "packageManager": "yarn@3.2.0"
 }

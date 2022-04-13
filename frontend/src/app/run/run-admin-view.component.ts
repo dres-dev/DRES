@@ -1,17 +1,18 @@
-import {AfterViewInit, Component, OnInit} from '@angular/core';
+import {AfterViewInit, Component} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AppConfig} from '../app.config';
 import {
     CompetitionRunAdminService,
     CompetitionRunService,
-    CompetitionService, PastTaskInfo,
+    CompetitionService,
+    PastTaskInfo,
     RestDetailedTeam,
     RunInfo,
-    RunState,
+    RunState, TaskInfo,
     ViewerInfo
 } from '../../../openapi';
 import {BehaviorSubject, combineLatest, merge, Observable, of, Subject, timer} from 'rxjs';
-import {catchError, filter, flatMap, map, shareReplay, switchMap, tap} from 'rxjs/operators';
+import {catchError, filter, flatMap, map, shareReplay, switchMap} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatDialog} from '@angular/material/dialog';
 import {ConfirmationDialogComponent, ConfirmationDialogComponentData} from '../shared/confirmation-dialog/confirmation-dialog.component';
@@ -28,7 +29,7 @@ export interface CombinedRun {
     templateUrl: './run-admin-view.component.html',
     styleUrls: ['./run-admin-view.component.scss']
 })
-export class RunAdminViewComponent implements AfterViewInit{
+export class RunAdminViewComponent implements AfterViewInit {
 
     runId: Observable<string>;
     runIdAsSubject: BehaviorSubject<string> = new BehaviorSubject<string>('');
@@ -57,7 +58,7 @@ export class RunAdminViewComponent implements AfterViewInit{
                     this.runService.getApiV1RunWithRunidInfo(runId).pipe(
                         catchError((err, o) => {
                             console.log(`[RunAdminViewComponent] There was an error while loading information in the current run state: ${err?.message}`);
-                            this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`);
+                            this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {duration: 5000});
                             if (err.status === 404) {
                                 this.router.navigate(['/competition/list']);
                             }
@@ -81,7 +82,7 @@ export class RunAdminViewComponent implements AfterViewInit{
                     this.runService.getApiV1RunWithRunidInfo(runId).pipe(
                         catchError((err, o) => {
                             console.log(`[RunAdminViewComponent] There was an error while loading information in the current run state: ${err?.message}`);
-                            this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`);
+                            this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {duration: 5000});
                             if (err.status === 404) {
                                 this.router.navigate(['/competition/list']);
                             }
@@ -111,46 +112,6 @@ export class RunAdminViewComponent implements AfterViewInit{
             }),
             shareReplay({bufferSize: 1, refCount: true})
         );
-    }
-
-
-    mapCombinedRunToRunInfo(){
-        return this.run.pipe(
-            map(runAndInfo => runAndInfo.info)
-        );
-    }
-
-    public start() {
-        this.runId.pipe(switchMap(id => this.runAdminService.postApiV1RunAdminWithRunidStart(id))).subscribe(
-            (r) => {
-                this.update.next();
-                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-            }, (r) => {
-                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-            }
-        );
-    }
-
-    public terminate() {
-        const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-            data: {
-                text: 'You are about to terminate this run. This action cannot be undone. Do you want to proceed?',
-                color: 'warn'
-            } as ConfirmationDialogComponentData
-        });
-        dialogRef.afterClosed().subscribe(result => {
-            if (result) {
-                this.runId.pipe(switchMap(id => this.runAdminService.postApiV1RunAdminWithRunidTerminate(id))).subscribe(
-                    (r) => {
-                        this.update.next();
-                        this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-                    }, (r) => {
-                        this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-                    }
-                );
-            }
-        });
-
     }
 
     public nextTask() {
@@ -264,6 +225,22 @@ export class RunAdminViewComponent implements AfterViewInit{
         return this.config.resolveApiUrl(`/competition/logo/${team.logoId}`);
     }
 
+    resolveTeamByName(idx: number, item: RestDetailedTeam) {
+        return item.name;
+    }
+
+    resolveCombinedRunByRunId(_: number, item: CombinedRun) {
+        return item.info.id;
+    }
+
+    resolveTaskById(_: number, item: TaskInfo){
+        return item.id;
+    }
+
+    resolveViewerById(_: number, item: ViewerInfo) {
+        return item.viewersId;
+    }
+
     userNameOf(user: string): Observable<string> {
         // if (user) {
         //     return this.userService.getApiV1serWithId(user).pipe(
@@ -275,21 +252,22 @@ export class RunAdminViewComponent implements AfterViewInit{
         // }
     }
 
+
     ngAfterViewInit(): void {
         /* Cache past tasks initially */
         this.runId.subscribe(runId => {
-            this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe(arr => this.pastTasksValue = arr)
+            this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe(arr => this.pastTasksValue = arr);
         });
 
         /* On each update, update past tasks */
-        this.update.subscribe( _ => {
+        this.update.subscribe(_ => {
             this.runId.subscribe(runId => {
-                this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe(arr => this.pastTasksValue = arr)
+                this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe(arr => this.pastTasksValue = arr);
             });
         });
 
         this.run.subscribe(r => {
-            this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(r.info.id).subscribe(arr => this.pastTasksValue = arr)
+            this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(r.info.id).subscribe(arr => this.pastTasksValue = arr);
         });
     }
 }

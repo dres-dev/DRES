@@ -179,7 +179,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
             switchMap((runId) => this.runService.getApiV1RunWithRunidState(runId).pipe(
                 catchError((err, o) => {
                     console.log(`[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`);
-                    this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`);
+                    this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {duration: 5000});
                     if (err.status === 404) {
                         this.router.navigate(['/competition/list']);
                     }

@@ -76,7 +76,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
                 retry(3),
                 catchError((err, o) => {
                     console.log(`[CollectionViewer.${id}] There was an error while loading the current collection ${err?.message}`);
-                    this.snackBar.open(`There was an error while loading the current collection ${err?.message}`);
+                    this.snackBar.open(`There was an error while loading the current collection ${err?.message}`, null, {duration: 5000});
                     return of(null);
                 }),
                 filter(q => q != null)

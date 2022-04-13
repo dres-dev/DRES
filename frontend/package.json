@@ -8,7 +8,13 @@
     "pbuild": "ng build --prod=true --output-path=build/dist",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "prettier:check": "prettier --config .prettierrc --check \"src/**/*.{ts,scss,html}\""
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn prettier:check"
+    }
   },
   "private": true,
   "dependencies": {
@@ -34,13 +40,21 @@
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "13.2.x",
+    "@angular-eslint/builder": "13.2.0",
+    "@angular-eslint/eslint-plugin": "13.2.0",
+    "@angular-eslint/eslint-plugin-template": "13.2.0",
+    "@angular-eslint/schematics": "13.2.0",
+    "@angular-eslint/template-parser": "13.2.0",
     "@angular/cli": "13.2.x",
     "@angular/compiler-cli": "13.2.x",
     "@angular/language-service": "13.2.x",
     "@types/jasmine": "3.6.x",
     "@types/jasminewd2": "2.0.x",
     "@types/node": "12.11.x",
-    "codelyzer": "6.0.0",
+    "@typescript-eslint/eslint-plugin": "5.17.0",
+    "@typescript-eslint/parser": "5.17.0",
+    "eslint": "^8.12.0",
+    "husky": "^7.0.4",
     "jasmine-core": "3.8.x",
     "jasmine-spec-reporter": "5.0.x",
     "karma": "6.3.x",
@@ -48,9 +62,10 @@
     "karma-coverage-istanbul-reporter": "3.0.x",
     "karma-jasmine": "4.0.x",
     "karma-jasmine-html-reporter": "1.5.x",
+    "lint-staged": "^12.3.7",
+    "prettier": "2.6.2",
     "protractor": "7.0.x",
     "ts-node": "8.3.x",
-    "tslint": "6.1.x",
     "typescript": "4.5.x"
   },
   "packageManager": "yarn@3.2.0"

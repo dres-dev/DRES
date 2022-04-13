@@ -7,15 +7,15 @@ import {
     CompetitionService,
     DownloadService,
     PastTaskInfo,
-    RestDetailedTeam, TeamTaskOverview
+    RestDetailedTeam,
+    TeamTaskOverview
 } from '../../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AppConfig} from '../../app.config';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatDialog} from '@angular/material/dialog';
-import {catchError, filter, map, shareReplay, switchMap, take, tap} from 'rxjs/operators';
+import {catchError, filter, map, shareReplay, switchMap} from 'rxjs/operators';
 import {RunInfoOverviewTuple} from '../admin-run-list.component';
-import {ConfirmationDialogComponent, ConfirmationDialogComponentData} from '../../shared/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
     selector: 'app-run-async-admin-view',
@@ -78,136 +78,16 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
         );
     }
 
-    public start() {
-        this.runId.pipe(
-            tap(runId => {
-                this.runAdminService.postApiV1RunAdminWithRunidStart(runId).subscribe(
-                    (r) => {
-                        this.update.next();
-                        this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-                    }, (r) => {
-                        this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-                    }
-                );
-
-            })
-        );
-    }
-
-    public terminate() {
-        this.dialog.open(ConfirmationDialogComponent, {
-            data: {
-                text: 'You are about to terminate this run. This action cannot be udone. Do you want to prceed?',
-                color: 'warn'
-            } as ConfirmationDialogComponentData
-        })
-            .afterClosed().subscribe(result => {
-            if (result) {
-                this.runId.pipe(
-                    tap(runId => {
-                        this.runAdminService.postApiV1RunAdminWithRunidTerminate(runId).subscribe(
-                            (r) => {
-                                this.update.next();
-                                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-                            }, (r) => {
-                                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-                            }
-                        );
-                    })
-                );
-            }
-        });
-    }
-
-    public navigateToViewer() {
-        const runId = this.runId.value;
-
-        /* TODO: Setup depends on type of competition run. */
-        this.router.navigate(['/run/viewer', runId, {
-                center: 'player',
-                left: 'competition_score',
-                right: 'task_type_score',
-                bottom: 'team_score',
-        }]);
-    }
-
-    public navigateToJudgement() {
-        const runId = this.runId.value;
-        this.router.navigate(['/judge', runId]);
-    }
-
-    /**
-     * Navigates to audience voting judgment viewer.
-     *
-     */
-    public navigateToVoting() {
-        const runId = this.runId.value;
-        this.router.navigate(['/vote', runId]);
-    }
-
-    /**
-     * Navigates to admin viewer (for admins).
-     *
-     * @param runId ID of the run to navigate to.
-     */
-    public navigateToAdmin() {
-        const runId = this.runId.value;
-        this.router.navigate(['/run/admin', runId]);
-    }
-
-    /**
-     * Navigates to score history (for admins).
-     *
-     * @param runId ID of the run to navigate to.
-     */
-    public navigateToScoreHistory() {
-        const runId = this.runId.value;
-        this.router.navigate(['/run/scores', runId]);
-    }
-
-    public downloadScores(runId: string) {
-        this.downloadService.getApiV1DownloadRunWithRunidScores(runId).subscribe(scoresCSV => {
-            const csvBlob = new Blob([scoresCSV], {type: 'text/csv'});
-            const fake = document.createElement('a');
-            fake.href = URL.createObjectURL(csvBlob);
-            fake.download = `scores-${runId}.csv`;
-            fake.click();
-            URL.revokeObjectURL(fake.href);
-        });
-    }
-
-    public submissionsOf(task, property= 'id') {
+    public submissionsOf(task, property = 'id') {
         this.runId.subscribe(r => {
             this.router.navigateByUrl(`run/admin/submissions/${r}/${task[property]}`);
         });
     }
 
-    public resolveTeamOverviewByTeamId(index: number, item: TeamTaskOverview){
+    public resolveTeamOverviewByTeamId(index: number, item: TeamTaskOverview) {
         return item.teamId;
     }
 
-    scoreDownloadProvider = (runId: string) => {
-        return this.downloadService.getApiV1DownloadRunWithRunidScores(
-            runId,
-            'body',
-            false,
-            {httpHeaderAccept: 'text/csv'}
-        ).pipe(take(1));
-    };
-
-    scoreFileProvider = (name: string) => {
-        return () => `scores-${name}.csv`;
-    };
-
-    downloadProvider = (runId) => {
-        return this.downloadService.getApiV1DownloadRunWithRunid(runId)
-            .pipe(take(1));
-        // .toPromise();
-    };
-
-    fileProvider = (name: string) => {
-        return () => name;
-    };
 
     ngAfterViewInit(): void {
         /* Cache past tasks initially */
@@ -216,7 +96,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
         });
 
         /* On each update, update past tasks */
-        this.update.subscribe( _ => {
+        this.update.subscribe(_ => {
             this.runId.subscribe(runId => {
                 this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe(arr => this.pastTasksValue = arr);
             });

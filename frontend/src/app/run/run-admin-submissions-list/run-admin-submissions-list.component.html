@@ -17,14 +17,14 @@
 </div>
 <div>
     <mat-accordion>
-        <mat-expansion-panel *ngFor="let id of taskRunIds">
+        <mat-expansion-panel *ngFor="let id of taskRunIds; trackBy: resolveIdBySelf">
             <mat-expansion-panel-header>
                 <mat-panel-title>
                     Submissions of task run {{id.substring(0,8)}}
                 </mat-panel-title>
             </mat-expansion-panel-header>
             <mat-paginator [pageSizeOptions]="[50, 100, 250]" showFirstLastButtons></mat-paginator>
-            <table #table mat-table [dataSource]="dataSources.get(id)" style="width: 100%;">
+            <table #table mat-table [dataSource]="dataSources.get(id)" style="width: 100%;" [trackBy]="resolveSubmissionById">
                 <!-- ID COL -->
                 <ng-container matColumnDef="id">
                     <th mat-header-cell *matHeaderCellDef>ID</th>

@@ -129,4 +129,12 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     public previewForSubmission(submission: SubmissionInfo): Observable<string> {
         return this.runId.pipe(map(runId => this.config.resolveApiUrl(`/preview/submission/${runId}/${submission.id}`)));
     }
+
+    resolveIdBySelf(_: number, item: string){
+        return item;
+    }
+
+    resolveSubmissionById(_: number, item: SubmissionInfo){
+        return item.id;
+    }
 }

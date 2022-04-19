@@ -86,6 +86,10 @@ export class AdminAuditlogOverviewComponent implements AfterViewInit, OnDestroy 
         this.paginationSub = null;
     }
 
+    resolveAuditLogEntryById(_: number, item: RestAuditLogEntry){
+        return item.id;
+    }
+
     public detailsOf(log: RestAuditLogEntry): string {
         switch (log.type) {
             case 'COMPETITION_START':

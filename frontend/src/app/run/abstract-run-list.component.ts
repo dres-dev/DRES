@@ -47,12 +47,12 @@ export class AbstractRunListComponent {
      */
     public navigateToViewer(runId: string) {
         /* TODO: Setup depends on type of competition run. */
-        this.router.navigate(['/run/viewer', runId], {queryParams: {
+        this.router.navigate(['/run/viewer', runId,  {
             center: 'player',
             left: 'competition_score',
             right: 'task_type_score',
             bottom: 'team_score',
-        }, queryParamsHandling: 'merge'});
+        }]);
     }
 
     /**
@@ -138,6 +138,10 @@ export class AbstractRunListComponent {
 
     fileProvider = (name: string) => {
         return () => name;
+    }
+
+    resolveRunWithStateById(_: number, item: RunInfoWithState){
+        return item.id;
     }
 
     protected initStateUpdates() {

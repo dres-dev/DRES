@@ -4,7 +4,7 @@
 </div>
 
 <div>
-    <table mat-table [dataSource]="runs" style="width: 100%">
+    <table mat-table [dataSource]="runs" style="width: 100%" [trackBy]="resolveRunWithStateById">
         <!-- Name Column -->
         <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Actions</th>
@@ -12,7 +12,10 @@
                 <button mat-icon-button aria-label="Go to competition viewer." matTooltip="Go to competition viewer." (click)="navigateToViewer(row.id)">
                     <mat-icon>visibility</mat-icon>
                 </button>
-
+                <button mat-icon-button aria-label="Go to admin viewer." matTooltip="Go to admin viewer." (click)="navigateToAdmin(row.id, row.asynchronous)">
+                    <mat-icon>settings</mat-icon>
+                </button>
+                <span style="padding-right: 1rem;"></span>
                 <button mat-icon-button aria-label="Go to judgement viewer." matTooltip="Go to judgement viewer." (click)="navigateToJudgement(row.id)">
                     <mat-icon>gavel</mat-icon>
                 </button>
@@ -25,9 +28,6 @@
                     <mat-icon>stacked_line_chart</mat-icon>
                 </button>
 
-                <button mat-icon-button aria-label="Go to admin viewer." matTooltip="Go to admin viewer." (click)="navigateToAdmin(row.id, row.asynchronous)">
-                    <mat-icon>settings</mat-icon>
-                </button>
 
                 <button *ngIf="row.runStatus == 'CREATED'" mat-icon-button aria-label="Start the competition run." matTooltip="Start the competition run." (click)="start(row.id)">
                     <mat-icon>play_arrow</mat-icon>

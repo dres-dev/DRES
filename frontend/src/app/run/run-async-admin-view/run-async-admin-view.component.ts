@@ -1,4 +1,4 @@
-import {AfterViewInit, Component} from '@angular/core';
+import {AfterViewInit, Component, ViewChild} from '@angular/core';
 import {BehaviorSubject, combineLatest, merge, Observable, of, Subject, timer} from 'rxjs';
 import {
     CompetitionRunAdminService,
@@ -7,15 +7,16 @@ import {
     CompetitionService,
     DownloadService,
     PastTaskInfo,
-    RestDetailedTeam, TeamTaskOverview
+    RestDetailedTeam, RestTeam, TeamInfo,
+    TeamTaskOverview
 } from '../../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AppConfig} from '../../app.config';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatDialog} from '@angular/material/dialog';
-import {catchError, filter, map, shareReplay, switchMap, take, tap} from 'rxjs/operators';
+import {catchError, filter, map, shareReplay, switchMap} from 'rxjs/operators';
 import {RunInfoOverviewTuple} from '../admin-run-list.component';
-import {ConfirmationDialogComponent, ConfirmationDialogComponentData} from '../../shared/confirmation-dialog/confirmation-dialog.component';
+import {MatAccordion} from '@angular/material/expansion';
 
 @Component({
     selector: 'app-run-async-admin-view',
@@ -24,15 +25,18 @@ import {ConfirmationDialogComponent, ConfirmationDialogComponentData} from '../.
 })
 export class RunAsyncAdminViewComponent implements AfterViewInit {
 
+    @ViewChild(MatAccordion) accordion: MatAccordion;
+
     runId: BehaviorSubject<string> = new BehaviorSubject<string>('');
     run: Observable<RunInfoOverviewTuple>;
     update = new Subject();
 
     displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'past', 'action'];
     displayedColumnsTeamTasks: string[] = ['name', 'state', 'group', 'type', 'duration', 'past', 'action'];
-    teams: Observable<RestDetailedTeam[]>;
+    teams: Observable<RestTeam[]>;
     pastTasks = new BehaviorSubject<PastTaskInfo[]>([]);
     pastTasksValue: PastTaskInfo[];
+    nbOpenTeamOverviews = 0;
 
     constructor(private router: Router,
                 private activeRoute: ActivatedRoute,
@@ -72,144 +76,27 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
 
         this.teams = this.run.pipe(
             switchMap(runAndOverview => {
-                return this.competitionService.getApiV1CompetitionWithCompetitionidTeamListDetails(runAndOverview.runInfo.competitionId);
+                return this.competitionService.getApiV1CompetitionWithCompetitionidTeamList(runAndOverview.runInfo.competitionId);
             }),
             shareReplay({bufferSize: 1, refCount: true}) /* Cache last successful loading. */
         );
     }
 
-    public start() {
-        this.runId.pipe(
-            tap(runId => {
-                this.runAdminService.postApiV1RunAdminWithRunidStart(runId).subscribe(
-                    (r) => {
-                        this.update.next();
-                        this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-                    }, (r) => {
-                        this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-                    }
-                );
 
-            })
-        );
-    }
-
-    public terminate() {
-        this.dialog.open(ConfirmationDialogComponent, {
-            data: {
-                text: 'You are about to terminate this run. This action cannot be udone. Do you want to prceed?',
-                color: 'warn'
-            } as ConfirmationDialogComponentData
-        })
-            .afterClosed().subscribe(result => {
-            if (result) {
-                this.runId.pipe(
-                    tap(runId => {
-                        this.runAdminService.postApiV1RunAdminWithRunidTerminate(runId).subscribe(
-                            (r) => {
-                                this.update.next();
-                                this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-                            }, (r) => {
-                                this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-                            }
-                        );
-                    })
-                );
-            }
-        });
-    }
-
-    public navigateToViewer() {
-        const runId = this.runId.value;
-
-        /* TODO: Setup depends on type of competition run. */
-        this.router.navigate(['/run/viewer', runId], {
-            queryParams: {
-                center: 'player',
-                left: 'competition_score',
-                right: 'task_type_score',
-                bottom: 'team_score',
-            }, queryParamsHandling: 'merge'
-        });
-    }
-
-    public navigateToJudgement() {
-        const runId = this.runId.value;
-        this.router.navigate(['/judge', runId]);
-    }
-
-    /**
-     * Navigates to audience voting judgment viewer.
-     *
-     */
-    public navigateToVoting() {
-        const runId = this.runId.value;
-        this.router.navigate(['/vote', runId]);
-    }
-
-    /**
-     * Navigates to admin viewer (for admins).
-     *
-     * @param runId ID of the run to navigate to.
-     */
-    public navigateToAdmin() {
-        const runId = this.runId.value;
-        this.router.navigate(['/run/admin', runId]);
-    }
-
-    /**
-     * Navigates to score history (for admins).
-     *
-     * @param runId ID of the run to navigate to.
-     */
-    public navigateToScoreHistory() {
-        const runId = this.runId.value;
-        this.router.navigate(['/run/scores', runId]);
-    }
-
-    public downloadScores(runId: string) {
-        this.downloadService.getApiV1DownloadRunWithRunidScores(runId).subscribe(scoresCSV => {
-            const csvBlob = new Blob([scoresCSV], {type: 'text/csv'});
-            const fake = document.createElement('a');
-            fake.href = URL.createObjectURL(csvBlob);
-            fake.download = `scores-${runId}.csv`;
-            fake.click();
-            URL.revokeObjectURL(fake.href);
-        });
-    }
-
-    public submissionsOf(task, property= 'id') {
+    public submissionsOf(task, property = 'id') {
         this.runId.subscribe(r => {
             this.router.navigateByUrl(`run/admin/submissions/${r}/${task[property]}`);
         });
     }
 
-    public resolveTeamOverviewByTeamId(index: number, item: TeamTaskOverview){
+    public resolveTeamOverviewByTeamId(index: number, item: TeamTaskOverview) {
         return item.teamId;
     }
 
-    scoreDownloadProvider = (runId: string) => {
-        return this.downloadService.getApiV1DownloadRunWithRunidScores(
-            runId,
-            'body',
-            false,
-            {httpHeaderAccept: 'text/csv'}
-        ).pipe(take(1));
-    };
+    public resolveTeamById(index: number, item: RestTeam){
+        return item.uid;
+    }
 
-    scoreFileProvider = (name: string) => {
-        return () => `scores-${name}.csv`;
-    };
-
-    downloadProvider = (runId) => {
-        return this.downloadService.getApiV1DownloadRunWithRunid(runId)
-            .pipe(take(1));
-        // .toPromise();
-    };
-
-    fileProvider = (name: string) => {
-        return () => name;
-    };
 
     ngAfterViewInit(): void {
         /* Cache past tasks initially */
@@ -218,7 +105,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
         });
 
         /* On each update, update past tasks */
-        this.update.subscribe( _ => {
+        this.update.subscribe(_ => {
             this.runId.subscribe(runId => {
                 this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe(arr => this.pastTasksValue = arr);
             });
@@ -229,5 +116,13 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
         });
     }
 
+    public openAllTeamOverviews(){
+        this.accordion.openAll();
+        this.nbOpenTeamOverviews = 10;
+    }
 
+    public closeAllTeamOverviews(){
+        this.accordion.closeAll();
+        this.nbOpenTeamOverviews = 0;
+    }
 }

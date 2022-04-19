@@ -31,6 +31,7 @@ import {MatExpansionModule} from '@angular/material/expansion';
 import {RunAsyncAdminViewComponent} from './run-async-admin-view/run-async-admin-view.component';
 import {FlexModule} from '@angular/flex-layout';
 import {MatToolbarModule} from '@angular/material/toolbar';
+import { RunAdminToolbarComponent } from './run-admin-toolbar/run-admin-toolbar.component';
 
 @NgModule({
     imports: [
@@ -61,7 +62,7 @@ import {MatToolbarModule} from '@angular/material/toolbar';
         MatToolbarModule
     ],
     exports: [RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent],
-    declarations: [RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent, AdminRunListComponent, ViewerRunListComponent, RunAdminSubmissionsListComponent, SubmissionOverrideDialogComponent, RunAsyncAdminViewComponent],
+    declarations: [RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent, AdminRunListComponent, ViewerRunListComponent, RunAdminSubmissionsListComponent, SubmissionOverrideDialogComponent, RunAsyncAdminViewComponent, RunAdminToolbarComponent],
     providers: []
 })
 export class RunModule {

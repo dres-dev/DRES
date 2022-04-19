@@ -78,4 +78,8 @@ export class CollectionListComponent implements AfterViewInit {
         }
     }
 
+    resolveMediaCollectionById(_: number, item: RestMediaCollection){
+        return item.id;
+    }
+
 }

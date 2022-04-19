@@ -83,6 +83,10 @@ export class AdminUserListComponent implements AfterViewInit {
     this.refresh();
   }
 
+  resolveUserById(_: number, user: UserDetails) {
+    return user.id;
+  }
+
   private findForId(id: string) {
     this.users.forEach((u) => {
       if (u.id === id) {

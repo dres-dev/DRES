@@ -1,5 +1,5 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import {Component, Inject, OnDestroy, OnInit} from '@angular/core';
+import {ActivatedRoute, Params, Router} from '@angular/router';
 import {interval, merge, Observable, of, Subscription, zip} from 'rxjs';
 import {
     catchError,
@@ -25,13 +25,14 @@ import {IWsClientMessage} from '../model/ws/ws-client-message.interface';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Position} from './model/run-viewer-position';
 import {Widget} from './model/run-viewer-widgets';
+import {DOCUMENT} from '@angular/common';
 
 @Component({
     selector: 'app-run-viewer',
     templateUrl: './run-viewer.component.html',
     styleUrls: ['./run-viewer.component.scss']
 })
-export class RunViewerComponent implements OnInit, OnDestroy  {
+export class RunViewerComponent implements OnInit, OnDestroy {
     /** The WebSocketSubject that represent the WebSocket connection to the DRES endpoint. */
     webSocketSubject: WebSocketSubject<IWsMessage>;
 
@@ -55,21 +56,18 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
 
     /** Observable that fires whenever a task ends. Emits the task description of the task that just ended. */
     taskEnded: Observable<TaskInfo>;
-
-    /** Internal WebSocket subscription for pinging the server. */
-    private pingSubscription: Subscription;
-
     /** Observable of the {@link Widget} that should be displayed on the left-hand side. */
     leftWidget: Observable<Widget>;
-
     /** Observable of the {@link Widget} that should be displayed on the right-hand side. */
     rightWidget: Observable<Widget>;
-
     /** Observable of the {@link Widget} that should be displayed at the center. */
     centerWidget: Observable<Widget>;
-
     /** Observable of the {@link Widget} that should be displayed at the bottom. */
     bottomWidget: Observable<Widget>;
+    /** Internal WebSocket subscription for pinging the server. */
+    private pingSubscription: Subscription;
+    /** Cached config */
+    private p: any;
 
     /**
      * Constructor; extracts the runId and keeps a local reference.
@@ -78,7 +76,9 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
                 private activeRoute: ActivatedRoute,
                 private config: AppConfig,
                 private runService: CompetitionRunService,
-                private snackBar: MatSnackBar) {
+                private snackBar: MatSnackBar,
+                @Inject(DOCUMENT) private document: Document
+    ) {
 
         /** Initialize basic WebSocketSubject. */
         const wsurl = this.config.webSocketUrl;
@@ -98,29 +98,40 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
 
         /** Observable for the current run ID. */
         this.runId = this.activeRoute.params.pipe(
-            map(a => a.runId)
+            map(a => {
+                /* A hack since our custom url serializer kicks in too late */
+                if (a.runId.includes(';')) {
+                    return a.runId.split(';')[0];
+                } else if (a.runId.includes('%')) {
+                    return a.runId.split('%')[0];
+                } else {
+                    return a.runId;
+                }
+            }),
+            shareReplay({bufferSize: 1, refCount: true})
         );
 
-        /** Observable for the currently selected Widget. */
-        this.centerWidget = this.activeRoute.queryParams.pipe(
-            map(a => Widget.CENTER_WIDGETS.find(s => s.name === a?.center))
+        /** Observable for the currently selected Widget. Also sets reasonable defaults */
+        this.centerWidget = this.activeRoute.paramMap.pipe(
+            map(a => this.resolveWidgetFromParams(a, 'center'))
         );
-        this.leftWidget = this.activeRoute.queryParams.pipe(
-            map(a => Widget.CENTER_WIDGETS.find(s => s.name === a?.left))
+        this.leftWidget = this.activeRoute.paramMap.pipe(
+            map(a => this.resolveWidgetFromParams(a, 'left'))
         );
-        this.rightWidget = this.activeRoute.queryParams.pipe(
-            map(a => Widget.CENTER_WIDGETS.find(s => s.name === a?.right))
+        this.rightWidget = this.activeRoute.paramMap.pipe(
+            map(a => this.resolveWidgetFromParams(a, 'right'))
         );
-        this.bottomWidget = this.activeRoute.queryParams.pipe(
-            map(a => Widget.BOTTOM_WIDGETS.find(s => s.name === a?.bottom))
+        this.bottomWidget = this.activeRoute.paramMap.pipe(
+            map(a => this.resolveWidgetFromParams(a, 'bottom'))
         );
+
 
         /* Basic observable for general run info; this information is static and does not change over the course of a run. */
         this.runInfo = this.runId.pipe(
             switchMap(runId => this.runService.getApiV1RunWithRunidInfo(runId).pipe(
                 catchError((err, o) => {
                     console.log(`[RunViewerComponent] There was an error while loading information in the current run: ${err?.message}`);
-                    this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`);
+                    this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {duration: 5000});
                     if (err.status === 404) {
                         this.router.navigate(['/competition/list']);
                     }
@@ -168,7 +179,7 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
             switchMap((runId) => this.runService.getApiV1RunWithRunidState(runId).pipe(
                 catchError((err, o) => {
                     console.log(`[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`);
-                    this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`);
+                    this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {duration: 5000});
                     if (err.status === 404) {
                         this.router.navigate(['/competition/list']);
                     }
@@ -232,9 +243,14 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
      * @param widget The name of the new {@link Widget}.
      */
     public updateWidgetForPosition(position: string, widget: string) {
-        const obj = {};
-        obj[position] = widget;
-        this.router.navigate([], {queryParams: obj, queryParamsHandling: 'merge'});
+        const pCopy = {
+            left: this.p.left,
+            right: this.p.right,
+            center: this.p.center,
+            bottom: this.p.bottom
+        };
+        pCopy[position] = widget;
+        this.router.navigate([this.router.url.substring(0, this.router.url.indexOf(';')), pCopy]);
     }
 
     /**
@@ -246,9 +262,15 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
         return zip(this.leftWidget, this.centerWidget, this.rightWidget).pipe(
             map(([l, c, r]) => {
                 let n = 0;
-                if (l) { n += 1; }
-                if (c) { n += 1; }
-                if (r) { n += 1; }
+                if (l) {
+                    n += 1;
+                }
+                if (c) {
+                    n += 1;
+                }
+                if (r) {
+                    n += 1;
+                }
                 return n;
             })
         );
@@ -271,5 +293,29 @@ export class RunViewerComponent implements OnInit, OnDestroy  {
             default:
                 return [];
         }
+    }
+
+    private resolveWidgetFromParams(params: Params, position: string): Widget {
+        if (params?.params?.runId?.includes(';')) {
+            // We are in the case of broken url (i.e. reload)
+            this.p = this.parseMatrixParams(params.params.runId);
+        } else {
+            // first time load, all fine
+            this.p = params.params;
+        }
+        return Widget.resolveWidget(this.p[position], position);
+    }
+
+    /**
+     * Since angular breaks (for some reason), the matrix param parsing is replicated here
+     */
+    private parseMatrixParams(str: string) {
+        const paramMap = {};
+        const parts = str.split(';');
+        for (const part of parts) {
+            const [key, value] = part.split('=');
+            paramMap[key] = value;
+        }
+        return paramMap;
     }
 }

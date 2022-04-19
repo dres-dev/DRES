@@ -33,7 +33,7 @@ export class DownloadButtonComponent {
      */
     @ViewChild('dwnld-btn', {static: false}) btn: MatButton;
 
-    @Input() name = 'Download';
+    @Input() name = '';
 
     @Input() icon = 'cloud_download';
 

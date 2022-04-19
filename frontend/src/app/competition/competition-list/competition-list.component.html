@@ -17,7 +17,7 @@
 </div>
 
 <div>
-    <table mat-table [dataSource]="competitions" style="width: 100%">
+    <table mat-table [dataSource]="competitions" [trackBy]="resolveCompetitionOverviewById" style="width: 100%">
         <!-- Name Column -->
         <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Actions</th>

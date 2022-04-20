@@ -6,6 +6,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.competition.CompetitionDescription
+import dev.dres.data.model.run.InteractiveAsynchronousCompetition
 import dev.dres.data.model.run.interfaces.Competition
 import dev.dres.utilities.extensions.UID
 import io.javalin.core.security.RouteRole
@@ -94,6 +95,16 @@ sealed class DownloadHandler : AccessManagedRestHandler {
             /* Update response header. */
             ctx.contentType("text/csv")
             ctx.header("Content-Disposition", "attachment; filename=\"scores-${runId.string}.csv\"")
+
+            if (run is InteractiveAsynchronousCompetition) {
+
+                return "startTime,task,group,team,score\n" + run.tasks.filter { it.started != null }.sortedBy { it.started }
+                    .flatMap { task ->
+                        task.scorer.scores().filter { it.first == task.teamId }
+                            .map { "${task.started},\"${task.description.name}\",\"${task.description.taskGroup.name}\",\"${run.description.teams.find { t -> t.uid == it.first }?.name ?: "???"}\",${it.third}" }
+                    }.joinToString(separator = "\n")
+
+            }
 
             return "startTime,task,group,team,score\n" + run.tasks.filter { it.started != null }.sortedBy { it.started }
                 .flatMap { task ->

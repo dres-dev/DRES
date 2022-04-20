@@ -34,7 +34,7 @@ export class NavigationService {
             destination = this.history.pop(); // The one before the current one is our next destination
         }
         if (forceBack) {
-            while (destination.includes('?')) {
+            while (destination.includes('?') || destination.includes('#') || destination.includes(';')) {
                 destination = this.history.pop();
             }
         }

@@ -95,8 +95,9 @@ sealed class DownloadHandler : AccessManagedRestHandler {
             ctx.contentType("text/csv")
             ctx.header("Content-Disposition", "attachment; filename=\"scores-${runId.string}.csv\"")
 
-            return "task,group,team,resultName,score\n" + run.tasks.filter { it.started != null}.sortedBy { it.started }.flatMap { task ->
-                task.scorer.scores().map { "${task.description.name},${task.description.taskGroup.name},${run.description.teams.find { t -> t.uid == it.first }?.name ?: "???"},${it.second ?: "n/a"},${it.third}" }
+            return "startTime,task,group,team,score\n" + run.tasks.filter { it.started != null }.sortedBy { it.started }
+                .flatMap { task ->
+                    task.scorer.scores().map { "${task.started},\"${task.description.name}\",\"${task.description.taskGroup.name}\",\"${run.description.teams.find { t -> t.uid == it.first }?.name ?: "???"}\",${it.third}" }
             }.joinToString(separator = "\n")
         }
 

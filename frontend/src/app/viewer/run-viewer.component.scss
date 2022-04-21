@@ -1,16 +1,34 @@
 .grid {
-  display: grid;
-  grid-template-rows: 100px minmax(0, auto) minmax(0, 250px);
-  grid-column-gap: 10px;
-  row-gap: 25px;
   width: 100%;
   height: 90vh;
 }
 
 .header {
-  grid-column: 1 / span 5;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.body {
+  display: flex;
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .footer {
-  grid-column: 1 / span 5;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.left {
+  margin-right: auto;
+}
+
+.main {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.right {
+  margin-left: auto;
 }

@@ -113,16 +113,20 @@ export class RunViewerComponent implements OnInit, OnDestroy {
 
         /** Observable for the currently selected Widget. Also sets reasonable defaults */
         this.centerWidget = this.activeRoute.paramMap.pipe(
-            map(a => this.resolveWidgetFromParams(a, 'center'))
+            map(a => this.resolveWidgetFromParams(a, 'center')),
+            shareReplay({bufferSize: 1, refCount: true})
         );
         this.leftWidget = this.activeRoute.paramMap.pipe(
-            map(a => this.resolveWidgetFromParams(a, 'left'))
+            map(a => this.resolveWidgetFromParams(a, 'left')),
+            shareReplay({bufferSize: 1, refCount: true})
         );
         this.rightWidget = this.activeRoute.paramMap.pipe(
-            map(a => this.resolveWidgetFromParams(a, 'right'))
+            map(a => this.resolveWidgetFromParams(a, 'right')),
+            shareReplay({bufferSize: 1, refCount: true})
         );
         this.bottomWidget = this.activeRoute.paramMap.pipe(
-            map(a => this.resolveWidgetFromParams(a, 'bottom'))
+            map(a => this.resolveWidgetFromParams(a, 'bottom')),
+            shareReplay({bufferSize: 1, refCount: true})
         );
 
 
@@ -363,7 +367,9 @@ export class RunViewerComponent implements OnInit, OnDestroy {
             // first time load, all fine
             this.p = params.params;
         }
-        return Widget.resolveWidget(this.p[position], position);
+        const w = Widget.resolveWidget(this.p[position], position);
+        console.log(`Position ${this.p[position]}/${position} resolved to `, w)
+        return w;
     }
 
     /**

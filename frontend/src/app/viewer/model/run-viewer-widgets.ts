@@ -39,6 +39,9 @@ export class Widget {
      * Resolves the widget for the given position [left, right, center, bottom]
      */
     public static resolveWidget(name: string, position: string){
+        if(name === null || name === "null"){
+            return null;
+        }
         if(position === 'bottom'){
             return this.resolveBottomWidget(name, this.DEFAULTS[position]);
         }else{

@@ -1,4 +1,4 @@
-// tslint:disable-next-line:no-namespace
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace ServerMessageType {
     export type ServerMessageTypeEnum = 'COMPETITION_START' | 'COMPETITION_UPDATE' | 'COMPETITION_END' | 'TASK_PREPARE' | 'TASK_START' | 'TASK_UPDATED' | 'TASK_END' | 'PING';
     export const ServerMessageTypeEnum = {

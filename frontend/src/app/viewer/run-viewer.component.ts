@@ -280,6 +280,66 @@ export class RunViewerComponent implements OnInit, OnDestroy {
         );
     }
 
+    public leftWidgetWidth(): Observable<string> {
+        return zip(this.leftWidget, this.centerWidget, this.rightWidget).pipe(
+            map(([l, c, r]) => {
+                if (!l) {
+                    return '0%';
+                }
+                if (c) {
+                    if (r) {
+                        return '25%';
+                    }
+                    return '33%';
+                }
+                if (r) {
+                    return '49%';
+                }
+                return '100%';
+            })
+        );
+    }
+
+    public rightWidgetWidth(): Observable<string> {
+        return zip(this.leftWidget, this.centerWidget, this.rightWidget).pipe(
+            map(([l, c, r]) => {
+                if (!r) {
+                    return '0%';
+                }
+                if (c) {
+                    if (l) {
+                        return '25%';
+                    }
+                    return '33%';
+                }
+                if (l) {
+                    return '49%';
+                }
+                return '100%';
+            })
+        );
+    }
+
+    public centerWidgetWidth(): Observable<string> {
+        return zip(this.leftWidget, this.centerWidget, this.rightWidget).pipe(
+            map(([l, c, r]) => {
+                if (!c) {
+                    return '0%';
+                }
+                if (l) {
+                    if (r) {
+                        return '49%';
+                    }
+                    return '65%';
+                }
+                if (r) {
+                    return '50%';
+                }
+                return '100%';
+            })
+        );
+    }
+
     /**
      * Returns a list of all available {@link Widget}s for the specified {@link Position}.
      *

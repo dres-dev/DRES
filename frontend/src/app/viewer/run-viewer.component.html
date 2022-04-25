@@ -68,22 +68,24 @@
         </mat-card>
     </div>
 
-    <div class="left-body" *ngIf="(leftWidget | async)" [ngSwitch]="(leftWidget | async)?.name" [style.grid-column]="'1'">
-        <app-task-viewer *ngSwitchCase="'player'" [runId]="runId" [state]="runState" [taskChanged]="taskChanged" [taskStarted]="taskStarted" [taskEnded]="taskEnded" [webSocketSubject]="webSocketSubject"></app-task-viewer>
-        <app-competition-scoreboard-viewer *ngSwitchCase="'competition_score'" [competitionOverview]="true" [info]="runInfo" [state]="runState"></app-competition-scoreboard-viewer>
-        <app-competition-scoreboard-viewer *ngSwitchCase="'task_type_score'" [competitionOverview]="false" [info]="runInfo" [state]="runState"></app-competition-scoreboard-viewer>
-    </div>
+    <div class="body">
+        <div class="left" *ngIf="(leftWidget | async)" [ngSwitch]="(leftWidget | async)?.name" [style.width]="(leftWidgetWidth() | async)">
+            <app-task-viewer *ngSwitchCase="'player'" [runId]="runId" [state]="runState" [taskChanged]="taskChanged" [taskStarted]="taskStarted" [taskEnded]="taskEnded" [webSocketSubject]="webSocketSubject"></app-task-viewer>
+            <app-competition-scoreboard-viewer *ngSwitchCase="'competition_score'" [competitionOverview]="true" [info]="runInfo" [state]="runState"></app-competition-scoreboard-viewer>
+            <app-competition-scoreboard-viewer *ngSwitchCase="'task_type_score'" [competitionOverview]="false" [info]="runInfo" [state]="runState"></app-competition-scoreboard-viewer>
+        </div>
 
-    <div class="center-body" *ngIf="(centerWidget | async)" [ngSwitch]="(centerWidget | async)?.name" [style.grid-column]="(numberOfBodyWidgets() | async) == 1 ? '1 / span 5' : '2 / span 3'">
-        <app-task-viewer *ngSwitchCase="'player'" [runId]="runId" [state]="runState" [taskChanged]="taskChanged" [taskStarted]="taskStarted" [taskEnded]="taskEnded" [webSocketSubject]="webSocketSubject"></app-task-viewer>
-        <app-competition-scoreboard-viewer *ngSwitchCase="'competition_score'" [competitionOverview]="true" [info]="runInfo" [state]="runState"></app-competition-scoreboard-viewer>
-        <app-competition-scoreboard-viewer *ngSwitchCase="'task_type_score'" [competitionOverview]="false" [info]="runInfo" [state]="runState"></app-competition-scoreboard-viewer>
-    </div>
+        <div class="main" *ngIf="(centerWidget | async) != null" [ngSwitch]="(centerWidget | async)?.name" [style.width]="(centerWidgetWidth() | async)">
+            <app-task-viewer *ngSwitchCase="'player'" [runId]="runId" [state]="runState" [taskChanged]="taskChanged" [taskStarted]="taskStarted" [taskEnded]="taskEnded" [webSocketSubject]="webSocketSubject"></app-task-viewer>
+            <app-competition-scoreboard-viewer *ngSwitchCase="'competition_score'" [competitionOverview]="true" [info]="runInfo" [state]="runState"></app-competition-scoreboard-viewer>
+            <app-competition-scoreboard-viewer *ngSwitchCase="'task_type_score'" [competitionOverview]="false" [info]="runInfo" [state]="runState"></app-competition-scoreboard-viewer>
+        </div>
 
-    <div class="right-body" *ngIf="(rightWidget | async)" [ngSwitch]="(rightWidget | async)?.name" [style.grid-column]="'5'">
-        <app-task-viewer *ngSwitchCase="'player'" [runId]="runId" [state]="runState" [taskChanged]="taskChanged" [taskStarted]="taskStarted" [taskEnded]="taskEnded" [webSocketSubject]="webSocketSubject"></app-task-viewer>
-        <app-competition-scoreboard-viewer *ngSwitchCase="'competition_score'" [competitionOverview]="true" [info]="runInfo" [state]="runState"></app-competition-scoreboard-viewer>
-        <app-competition-scoreboard-viewer *ngSwitchCase="'task_type_score'" [competitionOverview]="false" [info]="runInfo" [state]="runState"></app-competition-scoreboard-viewer>
+        <div class="right" *ngIf="(rightWidget | async) != null" [ngSwitch]="(rightWidget | async)?.name" [style.width]="(rightWidgetWidth() | async)">
+            <app-task-viewer *ngSwitchCase="'player'" [runId]="runId" [state]="runState" [taskChanged]="taskChanged" [taskStarted]="taskStarted" [taskEnded]="taskEnded" [webSocketSubject]="webSocketSubject"></app-task-viewer>
+            <app-competition-scoreboard-viewer *ngSwitchCase="'competition_score'" [competitionOverview]="true" [info]="runInfo" [state]="runState"></app-competition-scoreboard-viewer>
+            <app-competition-scoreboard-viewer *ngSwitchCase="'task_type_score'" [competitionOverview]="false" [info]="runInfo" [state]="runState"></app-competition-scoreboard-viewer>
+        </div>
     </div>
 
     <div class="footer" *ngIf="(bottomWidget | async)" [ngSwitch]="(bottomWidget | async)?.name">

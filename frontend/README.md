@@ -54,3 +54,16 @@ The assumption for this snippet is, that the DRES backend is running on localhos
 ## Build
 
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+
+## Development
+
+This project uses [yarn](https://yarnpkg.com/) for development.
+For developers who start working on this project the very first time
+prepare your dev environment by running `yarn install`.
+
+## Linting
+
+We use [prettier](https://prettier.io/) in combination with [eslint](https://eslint.org/) for linting.
+[Husky](https://typicode.github.io/husky/#/) is used for version control hooks.
+Due to the repo structure, it's mandatory that husky hooks first move tho this directory
+(`cd frontend/`) before running the command.

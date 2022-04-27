@@ -18,8 +18,7 @@
   },
   "lint-staged": {
     "*.ts": "eslint --cache",
-    "*.{css,scss,sass,html}": "stylelint",
-    "*.**": "prettier --check --config .prettierrc.json --ignore-unkown"
+    "*.{css,scss,sass,html}": "stylelint"
   },
   "private": true,
   "dependencies": {

@@ -1,4 +1,5 @@
 #!/bin/sh
-#. "$(dirname "$0")/_/husky.sh"
-#cd frontend
-#yarn prettier --staged && ng lint
+. "$(dirname "$0")/_/husky.sh"
+. "$(dirname "$0")/common.sh"
+cd frontend
+yarn lint-staged

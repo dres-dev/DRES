@@ -7,21 +7,19 @@
     "build": "ng build",
     "pbuild": "ng build --configuration production --output-path=build/dist",
     "test": "ng test",
-    "lint": "ng lint",
     "e2e": "ng e2e",
-    "prettier:check": "prettier --config .prettierrc --check \"src/**/*.{ts,scss,html}\"",
+    "lint:ts": "eslint --ext \".ts\" --ignore-path .gitignore",
+    "lint:style": "stylelint \"**/*.{css,scss,sass,html}\" --ignore-path .gitignore",
+    "lint:prettier": "prettier --check --config .prettierrc.json --ignore-unkown .",
+    "lint": "yarn lint:ts && yarn lint:style && yarn lint:prettier",
+    "lintfix": "prettier --write --list-different . && yarn lint:ts --fix && yarn lint:style --fix",
     "prepare": "cd .. && husky install frontend/.husky",
     "postinstall": "cd .. && husky install frontend/.husky"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn prettier --staged && ng lint"
-    }
-  },
   "lint-staged": {
-    "src/**/*.{ts,scss,html}": [
-      "yarn prettier:check"
-    ]
+    "*.ts": "eslint --cache",
+    "*.{css,scss,sass,html}": "stylelint",
+    "*.**": "prettier --check --config .prettierrc.json --ignore-unkown"
   },
   "private": true,
   "dependencies": {
@@ -61,6 +59,8 @@
     "@typescript-eslint/eslint-plugin": "5.17.0",
     "@typescript-eslint/parser": "5.17.0",
     "eslint": "^8.12.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
     "husky": "^7.0.0",
     "jasmine-core": "3.8.x",
     "jasmine-spec-reporter": "5.0.x",
@@ -71,6 +71,7 @@
     "karma-jasmine-html-reporter": "1.5.x",
     "lint-staged": "^12.3.7",
     "prettier": "2.6.2",
+    "prettier-eslint": "^14.0.1",
     "protractor": "7.0.x",
     "ts-node": "8.3.x",
     "typescript": "4.5.x"

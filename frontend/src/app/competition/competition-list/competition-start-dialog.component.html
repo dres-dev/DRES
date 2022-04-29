@@ -1,49 +1,45 @@
 <h1 mat-dialog-title>Start competition run</h1>
 <div mat-dialog-content>
-    <form [formGroup]="form">
-        <p>
-            <mat-form-field style="width: 100%">
-                <mat-label>Name</mat-label>
-                <input type="text" matInput placeholder="Name" formControlName="name" required/>
-            </mat-form-field>
-        </p>
+  <form [formGroup]="form">
+    <p>
+      <mat-form-field style="width: 100%">
+        <mat-label>Name</mat-label>
+        <input type="text" matInput placeholder="Name" formControlName="name" required />
+      </mat-form-field>
+    </p>
 
-        <p style="width: 100%;"
-           matTooltip="Whether participants are allowed to view the tasks.
+    <p
+      style="width: 100%"
+      matTooltip="Whether participants are allowed to view the tasks.
                              Set to false if this is not desired.
-                             If false, only users with the role VIEWER can view the tasks.">
-            <mat-checkbox formControlName="participantsCanView">
-                Participants Can View
-            </mat-checkbox>
-        </p>
+                             If false, only users with the role VIEWER can view the tasks."
+    >
+      <mat-checkbox formControlName="participantsCanView"> Participants Can View </mat-checkbox>
+    </p>
 
-        <p style="width: 100%;"
-           matTooltip="Whether a task can be started multiple times.">
-            <mat-checkbox formControlName="allowRepeatedTasks">
-                Allow repeated tasks
-            </mat-checkbox>
-        </p>
+    <p style="width: 100%" matTooltip="Whether a task can be started multiple times.">
+      <mat-checkbox formControlName="allowRepeatedTasks"> Allow repeated tasks </mat-checkbox>
+    </p>
 
-        <p style="width: 100%;"
-           matTooltip="Whether task order should be randomized for all teams.">
-            <mat-checkbox formControlName="shuffleTasks" [disabled]="(typeObservable | async) !== 'ASYNCHRONOUS'">
-                Shuffle Tasks (Async only)
-            </mat-checkbox>
-        </p>
+    <p style="width: 100%" matTooltip="Whether task order should be randomized for all teams.">
+      <mat-checkbox formControlName="shuffleTasks" [disabled]="(typeObservable | async) !== 'ASYNCHRONOUS'">
+        Shuffle Tasks (Async only)
+      </mat-checkbox>
+    </p>
 
-        <p>
-            <mat-form-field style="width: 100%">
-                <mat-label>Type</mat-label>
-                <mat-select placeholder="Type" formControlName="type" required>
-                    <mat-option *ngFor="let type of runTypes" [value]="type">
-                        {{type}}
-                    </mat-option>
-                </mat-select>
-            </mat-form-field>
-        </p>
-    </form>
+    <p>
+      <mat-form-field style="width: 100%">
+        <mat-label>Type</mat-label>
+        <mat-select placeholder="Type" formControlName="type" required>
+          <mat-option *ngFor="let type of runTypes" [value]="type">
+            {{ type }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </p>
+  </form>
 </div>
 <div mat-dialog-actions>
-    <button mat-button (click)="close()">Cancel</button>
-    <button mat-button (click)="create()">Create</button>
+  <button mat-button (click)="close()">Cancel</button>
+  <button mat-button (click)="create()">Create</button>
 </div>

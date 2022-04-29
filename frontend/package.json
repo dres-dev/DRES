@@ -12,7 +12,7 @@
     "lint:style": "stylelint \"**/*.{css,scss,sass,html}\" --ignore-path .gitignore",
     "lint:prettier": "prettier --check --config .prettierrc.json --ignore-unkown .",
     "lint": "yarn lint:ts && yarn lint:style && yarn lint:prettier",
-    "lintfix": "prettier --write --list-different . && yarn lint:ts --fix && yarn lint:style --fix",
+    "lintfix": "prettier --write --list-different --ignore-unknown . && yarn lint:ts --fix",
     "prepare": "cd .. && husky install frontend/.husky",
     "postinstall": "cd .. && husky install frontend/.husky"
   },

@@ -1,77 +1,89 @@
 <div style="display: flex">
-    <app-back-button></app-back-button>
-    <div><h1>Competitions</h1></div>
+  <app-back-button></app-back-button>
+  <div><h1>Competitions</h1></div>
 
-    <div class="spacer-flex"></div>
+  <div class="spacer-flex"></div>
 
-    <div>
-        <button mat-icon-button aria-label="Refresh list of competitions." matTooltip="Refresh list of competitions." (click)="refresh()">
-            <mat-icon>refresh</mat-icon>
-        </button>
-    </div>
-    <div>
-        <button mat-icon-button aria-label="Create new competition." matTooltip="Create new competition." (click)="create()">
-            <mat-icon>note_add</mat-icon>
-        </button>
-    </div>
+  <div>
+    <button
+      mat-icon-button
+      aria-label="Refresh list of competitions."
+      matTooltip="Refresh list of competitions."
+      (click)="refresh()"
+    >
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+  <div>
+    <button mat-icon-button aria-label="Create new competition." matTooltip="Create new competition." (click)="create()">
+      <mat-icon>note_add</mat-icon>
+    </button>
+  </div>
 </div>
 
 <div>
-    <table mat-table [dataSource]="competitions" [trackBy]="resolveCompetitionOverviewById" style="width: 100%">
-        <!-- Name Column -->
-        <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let row">
+  <table mat-table [dataSource]="competitions" [trackBy]="resolveCompetitionOverviewById" style="width: 100%">
+    <!-- Name Column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let row">
+        <mat-spinner *ngIf="waitingForRun" [diameter]="20"></mat-spinner>
+        <button
+          *ngIf="!waitingForRun"
+          mat-icon-button
+          aria-label="Start new run for competition."
+          matTooltip="Start new run for competition."
+          (click)="createRun(row.id)"
+        >
+          <mat-icon>directions_run</mat-icon>
+          <!-- av_timer -- Could also be sensible-->
+        </button>
+        <button mat-icon-button aria-label="Edit competition." matTooltip="Edit competition." (click)="edit(row.id)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button aria-label="Delete competition." matTooltip="Delete competition." (click)="delete(row.id)">
+          <mat-icon>delete</mat-icon>
+        </button>
+        <app-download-button
+          [name]="''"
+          [fileName]="fileProvider(row.name)"
+          [downloadProvider]="downloadProvider(row.id)"
+          matTooltip="Download the entire competition as JSON"
+        ></app-download-button>
+      </td>
+    </ng-container>
 
-                <mat-spinner *ngIf="waitingForRun" [diameter]="20"></mat-spinner>
-                <button *ngIf="!waitingForRun" mat-icon-button aria-label="Start new run for competition." matTooltip="Start new run for competition." (click)="createRun(row.id)">
-                    <mat-icon>directions_run</mat-icon> <!-- av_timer -- Could also be sensible-->
-                </button>
-                <button mat-icon-button aria-label="Edit competition." matTooltip="Edit competition." (click)="edit(row.id)">
-                    <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button aria-label="Delete competition." matTooltip="Delete competition." (click)="delete(row.id)">
-                    <mat-icon>delete</mat-icon>
-                </button>
-                <app-download-button
-                        [name]="''"
-                        [fileName]="fileProvider(row.name)"
-                        [downloadProvider]="downloadProvider(row.id)"
-                        matTooltip="Download the entire competition as JSON"></app-download-button>
-            </td>
-        </ng-container>
+    <!-- Name Column -->
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef>ID</th>
+      <td mat-cell *matCellDef="let row">{{ row.id.substring(0, 8) }}</td>
+    </ng-container>
 
-        <!-- Name Column -->
-        <ng-container matColumnDef="id">
-            <th mat-header-cell *matHeaderCellDef>ID</th>
-            <td mat-cell *matCellDef="let row">{{row.id.substring(0, 8)}}</td>
-        </ng-container>
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+    </ng-container>
 
-        <!-- Name Column -->
-        <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Name</th>
-            <td mat-cell *matCellDef="let row">{{row.name}}</td>
-        </ng-container>
+    <!-- Description Column -->
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef>Description</th>
+      <td mat-cell *matCellDef="let row">{{ row.description }}</td>
+    </ng-container>
 
-        <!-- Description Column -->
-        <ng-container matColumnDef="description">
-            <th mat-header-cell *matHeaderCellDef>Description</th>
-            <td mat-cell *matCellDef="let row">{{row.description}}</td>
-        </ng-container>
+    <!-- Name Column -->
+    <ng-container matColumnDef="taskCount">
+      <th mat-header-cell *matHeaderCellDef># Tasks</th>
+      <td mat-cell *matCellDef="let row">{{ row.taskCount }}</td>
+    </ng-container>
 
-        <!-- Name Column -->
-        <ng-container matColumnDef="taskCount">
-            <th mat-header-cell *matHeaderCellDef># Tasks</th>
-            <td mat-cell *matCellDef="let row">{{row.taskCount}}</td>
-        </ng-container>
+    <!-- Name Column -->
+    <ng-container matColumnDef="teamCount">
+      <th mat-header-cell *matHeaderCellDef># Teams</th>
+      <td mat-cell *matCellDef="let row">{{ row.teamCount }}</td>
+    </ng-container>
 
-        <!-- Name Column -->
-        <ng-container matColumnDef="teamCount">
-            <th mat-header-cell *matHeaderCellDef># Teams</th>
-            <td mat-cell *matCellDef="let row">{{row.teamCount}}</td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
 </div>

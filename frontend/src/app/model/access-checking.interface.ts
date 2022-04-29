@@ -1,6 +1,5 @@
-import {UserGroup} from './user-group.model';
+import { UserGroup } from './user-group.model';
 
 export interface AccessChecking {
-
-    hasAccessFor(group: UserGroup): boolean;
+  hasAccessFor(group: UserGroup): boolean;
 }

@@ -1,126 +1,193 @@
 <div style="display: flex">
-    <app-back-button></app-back-button>
-    <div><h1>Ongoing runs</h1></div>
+  <app-back-button></app-back-button>
+  <div><h1>Ongoing runs</h1></div>
 </div>
 
 <div>
-    <table mat-table [dataSource]="runs" style="width: 100%" [trackBy]="resolveRunWithStateById">
-        <!-- Name Column -->
-        <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let row">
-                <button mat-icon-button aria-label="Go to competition viewer." matTooltip="Go to competition viewer." (click)="navigateToViewer(row.id)">
-                    <mat-icon>visibility</mat-icon>
-                </button>
-                <button mat-icon-button aria-label="Go to admin viewer." matTooltip="Go to admin viewer." (click)="navigateToAdmin(row.id, row.asynchronous)">
-                    <mat-icon>settings</mat-icon>
-                </button>
-                <span style="padding-right: 1rem;"></span>
-                <button mat-icon-button aria-label="Go to judgement viewer." matTooltip="Go to judgement viewer." (click)="navigateToJudgement(row.id)">
-                    <mat-icon>gavel</mat-icon>
-                </button>
+  <table mat-table [dataSource]="runs" style="width: 100%" [trackBy]="resolveRunWithStateById">
+    <!-- Name Column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let row">
+        <button
+          mat-icon-button
+          aria-label="Go to competition viewer."
+          matTooltip="Go to competition viewer."
+          (click)="navigateToViewer(row.id)"
+        >
+          <mat-icon>visibility</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          aria-label="Go to admin viewer."
+          matTooltip="Go to admin viewer."
+          (click)="navigateToAdmin(row.id, row.asynchronous)"
+        >
+          <mat-icon>settings</mat-icon>
+        </button>
+        <span style="padding-right: 1rem"></span>
+        <button
+          mat-icon-button
+          aria-label="Go to judgement viewer."
+          matTooltip="Go to judgement viewer."
+          (click)="navigateToJudgement(row.id)"
+        >
+          <mat-icon>gavel</mat-icon>
+        </button>
 
-                <button mat-icon-button aria-label="Go to audience voting viewer." matTooltip="Go to audience voting viewer." (click)="navigateToVoting(row.id)">
-                    <mat-icon>flaky</mat-icon>
-                </button>
+        <button
+          mat-icon-button
+          aria-label="Go to audience voting viewer."
+          matTooltip="Go to audience voting viewer."
+          (click)="navigateToVoting(row.id)"
+        >
+          <mat-icon>flaky</mat-icon>
+        </button>
 
-                <button mat-icon-button aria-label="Go to score history." matTooltip="Go to score history." (click)="navigateToScoreHistory(row.id)">
-                    <mat-icon>stacked_line_chart</mat-icon>
-                </button>
+        <button
+          mat-icon-button
+          aria-label="Go to score history."
+          matTooltip="Go to score history."
+          (click)="navigateToScoreHistory(row.id)"
+        >
+          <mat-icon>stacked_line_chart</mat-icon>
+        </button>
 
+        <button
+          *ngIf="row.runStatus == 'CREATED'"
+          mat-icon-button
+          aria-label="Start the competition run."
+          matTooltip="Start the competition run."
+          (click)="start(row.id)"
+        >
+          <mat-icon>play_arrow</mat-icon>
+        </button>
 
-                <button *ngIf="row.runStatus == 'CREATED'" mat-icon-button aria-label="Start the competition run." matTooltip="Start the competition run." (click)="start(row.id)">
-                    <mat-icon>play_arrow</mat-icon>
-                </button>
+        <app-download-button
+          [name]="''"
+          [icon]="'file_download'"
+          [contentType]="'text/csv'"
+          [fileName]="scoreFileProvider(row.name)"
+          [downloadProvider]="scoreDownloadProvider(row.id)"
+          [inline]="true"
+          matTooltip="Download the scores of this run as CSV"
+        >
+        </app-download-button>
 
-                <app-download-button
-                    [name] = "''"
-                    [icon]="'file_download'"
-                    [contentType]="'text/csv'"
-                    [fileName]="scoreFileProvider(row.name)"
-                    [downloadProvider]="scoreDownloadProvider(row.id)"
-                    [inline]="true"
-                    matTooltip="Download the scores of this run as CSV">
-                </app-download-button>
+        <button
+          *ngIf="row.runStatus == 'ACTIVE' && row.taskRunStatus != 'PREPARING' && row.taskRunStatus != 'RUNNING'"
+          mat-icon-button
+          aria-label="Previous task."
+          matTooltip="Got to previous task."
+          (click)="previousTask(row.id)"
+        >
+          <mat-icon>skip_previous</mat-icon>
+        </button>
 
-                <button *ngIf="row.runStatus == 'ACTIVE' && row.taskRunStatus != 'PREPARING' && row.taskRunStatus != 'RUNNING'" mat-icon-button aria-label="Previous task." matTooltip="Got to previous task." (click)="previousTask(row.id)">
-                    <mat-icon>skip_previous</mat-icon>
-                </button>
+        <button
+          *ngIf="row.runStatus == 'ACTIVE' && row.taskRunStatus != 'PREPARING' && row.taskRunStatus != 'RUNNING'"
+          mat-icon-button
+          aria-label="Next task."
+          matTooltip="Go to next task."
+          (click)="nextTask(row.id)"
+        >
+          <mat-icon>skip_next</mat-icon>
+        </button>
 
-                <button *ngIf="row.runStatus == 'ACTIVE' && row.taskRunStatus != 'PREPARING' && row.taskRunStatus != 'RUNNING'" mat-icon-button aria-label="Next task." matTooltip="Go to next task." (click)="nextTask(row.id)">
-                    <mat-icon>skip_next</mat-icon>
-                </button>
+        <button
+          *ngIf="row.runStatus == 'ACTIVE' && row.taskRunStatus != 'PREPARING' && row.taskRunStatus != 'RUNNING'"
+          mat-icon-button
+          aria-label="Start task."
+          matTooltip="Start task."
+          (click)="startTask(row.id)"
+        >
+          <mat-icon>play_circle_outline</mat-icon>
+        </button>
 
-                <button *ngIf="row.runStatus == 'ACTIVE' && row.taskRunStatus != 'PREPARING' && row.taskRunStatus != 'RUNNING'" mat-icon-button aria-label="Start task." matTooltip="Start task." (click)="startTask(row.id)">
-                    <mat-icon>play_circle_outline</mat-icon>
-                </button>
+        <button
+          *ngIf="row.taskRunStatus == 'PREPARING' || row.taskRunStatus == 'RUNNING'"
+          mat-icon-button
+          aria-label="Abort running task."
+          matTooltip="Abort running task '{{ row.currentTask.name }}'."
+          (click)="abortTask(row.id)"
+        >
+          <mat-icon>cancel</mat-icon>
+        </button>
 
-                <button *ngIf="row.taskRunStatus == 'PREPARING' || row.taskRunStatus == 'RUNNING'" mat-icon-button aria-label="Abort running task." matTooltip="Abort running task '{{row.currentTask.name}}'." (click)="abortTask(row.id)">
-                    <mat-icon>cancel</mat-icon>
-                </button>
+        <button
+          *ngIf="row.runStatus == 'CREATED' || row.runStatus == 'ACTIVE'"
+          mat-icon-button
+          aria-label="Terminate competition run."
+          matTooltip="Terminate competition run."
+          (click)="terminate(row.id)"
+        >
+          <mat-icon>stop</mat-icon>
+        </button>
+        <app-download-button
+          [name]="''"
+          [fileName]="fileProvider(row.name)"
+          [downloadProvider]="downloadProvider(row.id)"
+          [inline]="true"
+          matTooltip="Download the run as JSON"
+        ></app-download-button>
+      </td>
+    </ng-container>
 
-                <button *ngIf="row.runStatus == 'CREATED' || row.runStatus == 'ACTIVE'" mat-icon-button aria-label="Terminate competition run." matTooltip="Terminate competition run." (click)="terminate(row.id)">
-                    <mat-icon>stop</mat-icon>
-                </button>
-                <app-download-button
-                        [name]="''"
-                        [fileName]="fileProvider(row.name)"
-                        [downloadProvider]="downloadProvider(row.id)"
-                        [inline]="true"
-                        matTooltip="Download the run as JSON"></app-download-button>
-            </td>
-        </ng-container>
+    <!-- ID Column -->
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef>Run ID</th>
+      <td mat-cell *matCellDef="let row">{{ row.id }}</td>
+    </ng-container>
 
-        <!-- ID Column -->
-        <ng-container matColumnDef="id">
-            <th mat-header-cell *matHeaderCellDef>Run ID</th>
-            <td mat-cell *matCellDef="let row">{{row.id}}</td>
-        </ng-container>
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+    </ng-container>
 
-        <!-- Name Column -->
-        <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Name</th>
-            <td mat-cell *matCellDef="let row">{{row.name}}</td>
-        </ng-container>
+    <!-- Status Column -->
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let row">{{ row.runStatus }} ({{ row.taskRunStatus }})</td>
+    </ng-container>
 
-        <!-- Status Column -->
-        <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let row">{{row.runStatus}} ({{row.taskRunStatus}})</td>
-        </ng-container>
+    <!-- Task Column -->
+    <ng-container matColumnDef="currentTask">
+      <th mat-header-cell *matHeaderCellDef>Task</th>
+      <td
+        mat-cell
+        *matCellDef="let row"
+        [matTooltip]="row.asynchronous ? 'Not available for async runs' : 'The currently active task'"
+      >
+        {{ row.currentTask }}
+      </td>
+    </ng-container>
 
-        <!-- Task Column -->
-        <ng-container matColumnDef="currentTask">
-            <th mat-header-cell *matHeaderCellDef>Task</th>
-            <td mat-cell
-                *matCellDef="let row"
-                [matTooltip]="row.asynchronous ? 'Not available for async runs':'The currently active task'">
-                {{row.currentTask}}
-            </td>
-        </ng-container>
+    <!-- Task Column -->
+    <ng-container matColumnDef="timeLeft">
+      <th mat-header-cell *matHeaderCellDef>Time left</th>
+      <td
+        mat-cell
+        *matCellDef="let row"
+        [matTooltip]="row.asynchronous ? 'Not available for async runs' : 'The currently active task'"
+      >
+        {{ row.timeLeft }}
+      </td>
+    </ng-container>
 
-        <!-- Task Column -->
-        <ng-container matColumnDef="timeLeft">
-            <th mat-header-cell *matHeaderCellDef>Time left</th>
-            <td mat-cell *matCellDef="let row"
-                [matTooltip]="row.asynchronous ? 'Not available for async runs':'The currently active task'">
-                {{row.timeLeft}}
-            </td>
-        </ng-container>
+    <!-- Description Column -->
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef>Description</th>
+      <td mat-cell *matCellDef="let row">{{ row.description }}</td>
+    </ng-container>
 
-        <!-- Description Column -->
-        <ng-container matColumnDef="description">
-            <th mat-header-cell *matHeaderCellDef>Description</th>
-            <td mat-cell *matCellDef="let row">{{row.description}}</td>
-        </ng-container>
+    <!-- Name Column -->
+    <ng-container matColumnDef="teamCount">
+      <th mat-header-cell *matHeaderCellDef># Teams</th>
+      <td mat-cell *matCellDef="let row">{{ row.teams }}</td>
+    </ng-container>
 
-        <!-- Name Column -->
-        <ng-container matColumnDef="teamCount">
-            <th mat-header-cell *matHeaderCellDef># Teams</th>
-            <td mat-cell *matCellDef="let row">{{row.teams}}</td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
 </div>

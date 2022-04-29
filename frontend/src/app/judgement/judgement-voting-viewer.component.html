@@ -1,26 +1,21 @@
 <div class="grid">
-    <div class="header">
-        <app-back-button></app-back-button>
-        <h1>Vote for Submission</h1>
+  <div class="header">
+    <app-back-button></app-back-button>
+    <h1>Vote for Submission</h1>
 
-        <div fxLayout="row" fxLayoutAlign="space-between start" class="header-container">
-            <div fxFlex="100" class="header-main">
-                <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> {{judgementRequest?.taskDescription}}</p>
-            </div>
-        </div>
-
+    <div fxLayout="row" fxLayoutAlign="space-between start" class="header-container">
+      <div fxFlex="100" class="header-main">
+        <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> {{ judgementRequest?.taskDescription }}</p>
+      </div>
     </div>
-    <div class="body">
+  </div>
+  <div class="body">
+    <app-judgement-media-viewer id="judge-media-viewer" [req]="observableJudgementRequest"> </app-judgement-media-viewer>
 
-        <app-judgement-media-viewer id="judge-media-viewer" [req]="observableJudgementRequest">
-        </app-judgement-media-viewer>
+    <br />
 
-        <br>
-
-        <div fxLayoutAlign="center" fxFlex="100">
-            <qrcode [qrdata]="voteClientPath | async" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
-        </div>
-
+    <div fxLayoutAlign="center" fxFlex="100">
+      <qrcode [qrdata]="voteClientPath | async" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
     </div>
-
+  </div>
 </div>

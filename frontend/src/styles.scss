@@ -1,10 +1,15 @@
 /* You can add global styles to this file, and also import other style files */
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+}
 
 @import '@angular/material/prebuilt-themes/purple-green.css';
-
 
 /* */
 #container {
@@ -39,19 +44,17 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   padding: 0 5px;
 }
 
-.spacer-flex  {
+.spacer-flex {
   flex: 1 1 auto;
 }
 
 /* Hack for progressbar */
 app-judgement-media-viewer .mat-progress-bar-buffer {
-  background-color: #e1bee7!important; /* Not sure why this has to be done manually: https://material.angular.io/components/progress-bar/overview */
+  background-color: #e1bee7 !important; /* Not sure why this has to be done manually: https://material.angular.io/components/progress-bar/overview */
 }
 
 @import '~@angular/material/theming';
 @include mat-core();
-
-
 
 $primary: mat-palette($mat-purple);
 $accent: mat-palette($mat-green, A200);

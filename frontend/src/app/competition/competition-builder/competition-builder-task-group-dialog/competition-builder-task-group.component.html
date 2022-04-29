@@ -1,28 +1,28 @@
 <h1 mat-dialog-title>Add task group</h1>
 <div mat-dialog-content>
-    <form [formGroup]="form">
-        <p>
-            <mat-form-field style="width: 80%">
-                <mat-label>Name</mat-label>
-                <input type="text" matInput placeholder="Name" formControlName="name"/>
-            </mat-form-field>
-        </p>
+  <form [formGroup]="form">
+    <p>
+      <mat-form-field style="width: 80%">
+        <mat-label>Name</mat-label>
+        <input type="text" matInput placeholder="Name" formControlName="name" />
+      </mat-form-field>
+    </p>
 
-        <p>
-            <mat-form-field style="width: 100%">
-                <mat-select placeholder="Type" [formControl]="form.get('type')">
-                    <mat-option *ngFor="let type of supportedTaskTypes" [value]="type">
-                        {{type.name}} ({{type.targetType.option}} | {{type.score.option}})
-                    </mat-option>
-                </mat-select>
-            </mat-form-field>
-        </p>
-    </form>
+    <p>
+      <mat-form-field style="width: 100%">
+        <mat-select placeholder="Type" [formControl]="form.get('type')">
+          <mat-option *ngFor="let type of supportedTaskTypes" [value]="type">
+            {{ type.name }} ({{ type.targetType.option }} | {{ type.score.option }})
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </p>
+  </form>
 </div>
 <div mat-dialog-actions>
-    <button mat-button (click)="close()">Cancel</button>
-    <button mat-button (click)="save()">Save</button>
-    <!-- Disabled until proper import / export functionality exists
+  <button mat-button (click)="close()">Cancel</button>
+  <button mat-button (click)="save()">Save</button>
+  <!-- Disabled until proper import / export functionality exists
     <app-download-button
         [fileName]="fileProvider"
         [downloadable]="downloadProvider"

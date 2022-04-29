@@ -1,28 +1,28 @@
-<h1 mat-dialog-title>{{isEditing() ? "Edit" : "Create"}} Media Collection</h1>
+<h1 mat-dialog-title>{{ isEditing() ? 'Edit' : 'Create' }} Media Collection</h1>
 <div mat-dialog-content>
-    <form [formGroup]="form">
-        <p>
-            <mat-form-field style="width: 80%;">
-                <mat-label>Name</mat-label>
-                <input type="text" matInput placeholder="Name" formControlName="name" required/>
-            </mat-form-field>
-        </p>
-        <p>
-            <mat-form-field style="width: 80%;">
-                <mat-label>Description</mat-label>
-                <textarea matInput placeholder="Description" formControlName="description"></textarea>
-            </mat-form-field>
-        </p>
-        <p>
-            <mat-form-field style="width: 80%;">
-                <mat-label>Base Path</mat-label>
-                <input type="text" matInput placeholder="Base Path" formControlName="basePath" required/>
-            </mat-form-field>
-        </p>
-    </form>
+  <form [formGroup]="form">
+    <p>
+      <mat-form-field style="width: 80%">
+        <mat-label>Name</mat-label>
+        <input type="text" matInput placeholder="Name" formControlName="name" required />
+      </mat-form-field>
+    </p>
+    <p>
+      <mat-form-field style="width: 80%">
+        <mat-label>Description</mat-label>
+        <textarea matInput placeholder="Description" formControlName="description"></textarea>
+      </mat-form-field>
+    </p>
+    <p>
+      <mat-form-field style="width: 80%">
+        <mat-label>Base Path</mat-label>
+        <input type="text" matInput placeholder="Base Path" formControlName="basePath" required />
+      </mat-form-field>
+    </p>
+  </form>
 </div>
 <div mat-dialog-actions>
-    <button mat-button (click)="close()">Cancel</button>
-    <button mat-button (click)="save()">Save</button>
-    <button mat-button (click)="export()">Debug Export</button>
+  <button mat-button (click)="close()">Cancel</button>
+  <button mat-button (click)="save()">Save</button>
+  <button mat-button (click)="export()">Debug Export</button>
 </div>

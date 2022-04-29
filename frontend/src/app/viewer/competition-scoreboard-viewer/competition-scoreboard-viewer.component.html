@@ -1,18 +1,19 @@
 <mat-card>
-    <mat-card-title>
-        <span *ngIf="competitionOverview">Normalized Competition Scores</span>
-        <span *ngIf="!competitionOverview">Scores of {{currentTaskGroup | async}}</span>
-    </mat-card-title>
-    <mat-card-content id="chart">
-        <apx-chart
-            [series] = "(series | async)"
-            [dataLabels]="dataLabels"
-            [chart]= "chart"
-            [plotOptions]="plotOptions"
-            [stroke]="stroke"
-            [fill]="fill"
-            [legend]="legend"
-            [theme]="theme">
-        </apx-chart>
-    </mat-card-content>
+  <mat-card-title>
+    <span *ngIf="competitionOverview">Normalized Competition Scores</span>
+    <span *ngIf="!competitionOverview">Scores of {{ currentTaskGroup | async }}</span>
+  </mat-card-title>
+  <mat-card-content id="chart">
+    <apx-chart
+      [series]="series | async"
+      [dataLabels]="dataLabels"
+      [chart]="chart"
+      [plotOptions]="plotOptions"
+      [stroke]="stroke"
+      [fill]="fill"
+      [legend]="legend"
+      [theme]="theme"
+    >
+    </apx-chart>
+  </mat-card-content>
 </mat-card>

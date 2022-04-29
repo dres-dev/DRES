@@ -1,6 +1,6 @@
-import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
-import {CompetitionScoreboardViewerComponent} from './competition-scoreboard-viewer.component';
+import { CompetitionScoreboardViewerComponent } from './competition-scoreboard-viewer.component';
 
 describe('CompetitionScoreboardViewerComponent', () => {
   let component: CompetitionScoreboardViewerComponent;
@@ -8,9 +8,8 @@ describe('CompetitionScoreboardViewerComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ CompetitionScoreboardViewerComponent ]
-    })
-    .compileComponents();
+      declarations: [CompetitionScoreboardViewerComponent],
+    }).compileComponents();
   }));
 
   beforeEach(() => {

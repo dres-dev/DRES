@@ -1,22 +1,20 @@
-import {Component} from '@angular/core';
-import {Router} from '@angular/router';
-import {AuthenticationService} from './services/session/authentication.sevice';
-import {UserDetails} from '../../openapi';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {map} from 'rxjs/operators';
-import {Observable} from 'rxjs';
-import {AppConfig} from './app.config';
+import { Component } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthenticationService } from './services/session/authentication.sevice';
+import { UserDetails } from '../../openapi';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { AppConfig } from './app.config';
 import RoleEnum = UserDetails.RoleEnum;
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
   title = 'dres-frontend';
-
-
 
   user: Observable<UserDetails>;
   isAdmin: Observable<boolean>;
@@ -24,14 +22,15 @@ export class AppComponent {
   canJudge: Observable<boolean>;
 
   constructor(
-      private authenticationService: AuthenticationService,
-      private router: Router,
-      private snackBar: MatSnackBar,
-      public config: AppConfig) {
+    private authenticationService: AuthenticationService,
+    private router: Router,
+    private snackBar: MatSnackBar,
+    public config: AppConfig
+  ) {
     this.user = this.authenticationService.user;
     this.loggedIn = this.authenticationService.isLoggedIn;
-    this.isAdmin = this.authenticationService.user.pipe(map(u => u?.role === RoleEnum.ADMIN));
-    this.canJudge = this.authenticationService.user.pipe(map(u => u?.role === RoleEnum.ADMIN || u?.role === RoleEnum.JUDGE));
+    this.isAdmin = this.authenticationService.user.pipe(map((u) => u?.role === RoleEnum.ADMIN));
+    this.canJudge = this.authenticationService.user.pipe(map((u) => u?.role === RoleEnum.ADMIN || u?.role === RoleEnum.JUDGE));
   }
 
   /**
@@ -43,7 +42,7 @@ export class AppComponent {
 
   public logout() {
     this.authenticationService.logout().subscribe(() => {
-      this.snackBar.open(`Logout successful!`, null, {duration: 5000});
+      this.snackBar.open(`Logout successful!`, null, { duration: 5000 });
       this.router.navigate(['/']);
     });
   }

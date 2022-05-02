@@ -16,8 +16,6 @@ import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
-import dev.dres.run.eventstream.EventStreamProcessor
-import dev.dres.run.eventstream.TaskEndEvent
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.score.ScoreTimePoint
@@ -705,8 +703,7 @@ class InteractiveAsynchronousRunManager(
                     this.stateLock.write {
                         task.end()
                         //this.statusMap[teamId] = RunManagerStatus.TASK_ENDED
-                        AuditLogger.taskEnd(this.id, task.description.name, LogEventSource.INTERNAL, null)
-                        EventStreamProcessor.event(TaskEndEvent(this.id, task.uid))
+                        AuditLogger.taskEnd(this.id, task.uid, task.description, LogEventSource.INTERNAL, null)
                     }
 
                     /* Mark DAO for update. */
@@ -725,7 +722,7 @@ class InteractiveAsynchronousRunManager(
                 val task = this.run.currentTaskForTeam(teamId)
                     ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
                 task.start()
-                AuditLogger.taskStart(this.id, task.description.name, LogEventSource.INTERNAL, null)
+                AuditLogger.taskStart(this.id, task.uid, task.description, LogEventSource.INTERNAL, null)
                 this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_START), teamId)
 
             }

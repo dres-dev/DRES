@@ -634,7 +634,7 @@ class InteractiveSynchronousRunManager(
             this.stateLock.write {
                 this.run.currentTask!!.start()
                 //this.status = RunManagerStatus.RUNNING_TASK
-                AuditLogger.taskStart(this.id, this.run.currentTaskDescription.name, LogEventSource.INTERNAL, null)
+                AuditLogger.taskStart(this.id, this.run.currentTask!!.uid, this.run.currentTaskDescription, LogEventSource.INTERNAL, null)
             }
 
             /* Mark DAO for update. */
@@ -655,7 +655,7 @@ class InteractiveSynchronousRunManager(
                 this.stateLock.write {
                     task.end()
                     //this.status = RunManagerStatus.TASK_ENDED
-                    AuditLogger.taskEnd(this.id, this.run.currentTaskDescription.name, LogEventSource.INTERNAL, null)
+                    AuditLogger.taskEnd(this.id, this.run.currentTask!!.uid, this.run.currentTaskDescription, LogEventSource.INTERNAL, null)
                     EventStreamProcessor.event(TaskEndEvent(this.id, task.uid))
                 }
 

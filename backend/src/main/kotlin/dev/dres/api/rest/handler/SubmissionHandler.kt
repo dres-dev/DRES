@@ -24,8 +24,6 @@ import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunManager
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
-import dev.dres.run.eventstream.EventStreamProcessor
-import dev.dres.run.eventstream.SubmissionEvent
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionRejectedException
@@ -197,8 +195,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             throw ErrorStatusException(400, "Run manager does not know the given teamId ${rac.teamId}.", ctx)
         }
 
-        AuditLogger.submission(run.id, run.currentTaskDescription(rac).name, submission, LogEventSource.REST, ctx.sessionId(), ctx.req.remoteAddr)
-        EventStreamProcessor.event(SubmissionEvent(ctx.sessionId(), run.id, run.currentTask(rac)?.uid, submission))
+        AuditLogger.submission(run.id, run.currentTaskDescription(rac).name, run.currentTask(rac)?.uid, submission, LogEventSource.REST, ctx.sessionId(), ctx.req.remoteAddr)
 
         if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }) { //pre-generate preview
             generatePreview(submission)

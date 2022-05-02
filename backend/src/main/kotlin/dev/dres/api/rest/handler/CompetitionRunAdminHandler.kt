@@ -23,10 +23,6 @@ import dev.dres.mgmt.admin.UserManager
 import dev.dres.run.*
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
-import dev.dres.run.eventstream.EventStreamProcessor
-import dev.dres.run.eventstream.RunEndEvent
-import dev.dres.run.eventstream.RunStartEvent
-import dev.dres.run.eventstream.TaskStartEvent
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
@@ -224,8 +220,7 @@ class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(s
 
         try {
             run.start(rac)
-            AuditLogger.competitionStart(run.id, LogEventSource.REST, ctx.sessionId())
-            EventStreamProcessor.event(RunStartEvent(runId, run.description))
+            AuditLogger.competitionStart(run.id, run.description, LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Run $runId was successfully started.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(
@@ -440,16 +435,10 @@ class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
             run.startTask(rac)
             AuditLogger.taskStart(
                 run.id,
-                run.currentTaskDescription(rac).name,
+                run.currentTask(rac)!!.uid,
+                run.currentTaskDescription(rac),
                 LogEventSource.REST,
                 ctx.sessionId()
-            )
-            EventStreamProcessor.event(
-                TaskStartEvent(
-                    runId,
-                    run.currentTask(rac)!!.uid,
-                    run.currentTaskDescription(rac)
-                )
             )
             return SuccessStatus("Task '${run.currentTaskDescription(rac).name}' for run $runId was successfully started.")
         } catch (e: IllegalStateException) {
@@ -490,7 +479,7 @@ class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
         try {
             val task = run.currentTaskDescription(rac)
             run.abortTask(rac)
-            AuditLogger.taskEnd(run.id, task.name, LogEventSource.REST, ctx.sessionId())
+            AuditLogger.taskEnd(run.id, task.id, task, LogEventSource.REST, ctx.sessionId())
             return SuccessStatus("Task '${run.currentTaskDescription(rac).name}' for run $runId was successfully aborted.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(
@@ -531,7 +520,6 @@ class TerminateCompetitionRunAdminHandler :
         try {
             run.end(rac)
             AuditLogger.competitionEnd(run.id, LogEventSource.REST, ctx.sessionId())
-            EventStreamProcessor.event(RunEndEvent(runId))
             return SuccessStatus("Run $runId was successfully terminated.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(

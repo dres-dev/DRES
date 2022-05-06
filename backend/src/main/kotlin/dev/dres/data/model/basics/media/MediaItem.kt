@@ -23,6 +23,10 @@ sealed class MediaItem : Entity {
             override val location: String,
             override val collection: UID): MediaItem() {
         override fun withCollection(collection: UID): ImageItem = ImageItem(id, name, location, collection)
+
+        companion object {
+            val EMPTY = ImageItem(UID.EMPTY, "n/a", "", UID.EMPTY)
+        }
     }
 
     data class VideoItem constructor(
@@ -34,5 +38,10 @@ sealed class MediaItem : Entity {
             override val fps: Float
     ): MediaItem(), PlayableMediaItem {
         override fun withCollection(collection: UID): VideoItem = VideoItem(id, name, location, collection, durationMs, fps)
+
+        companion object {
+            val EMPTY = VideoItem(UID.EMPTY, "n/a", "", UID.EMPTY, 0, 0f)
+        }
+
     }
 }

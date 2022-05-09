@@ -15,7 +15,7 @@ import dev.dres.run.validation.interfaces.SubmissionBatchValidator
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractNonInteractiveTask: AbstractRun(), Task {
+abstract class AbstractNonInteractiveTask: AbstractTaskRun(), Task {
 
     @Transient
     val validator: SubmissionBatchValidator = newValidator()

@@ -1,6 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-
 /**
  * Rounds the given number to an integer.
  *
@@ -16,12 +15,10 @@ import { Pipe, PipeTransform } from '@angular/core';
  *   formats to 5
  */
 @Pipe({
-  name: 'round'
+  name: 'round',
 })
 export class RoundPipePipe implements PipeTransform {
-
   transform(value: number): number {
     return Math.round(value);
   }
-
 }

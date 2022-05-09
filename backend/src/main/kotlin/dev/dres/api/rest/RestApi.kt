@@ -160,6 +160,7 @@ object RestApi {
             ListSubmissionsPerTaskRunAdminHandler(),
             OverwriteSubmissionStatusRunAdminHandler(),
             ListPastTasksPerTaskRunAdminHandler(),
+            OverviewRunAdminHandler(),
 
             // Judgement
             NextOpenJudgementHandler(dataAccessLayer.collections),

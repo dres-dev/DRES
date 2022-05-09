@@ -1,6 +1,6 @@
-import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
-import {AdvancedBuilderDialogComponent} from './advanced-builder-dialog.component';
+import { AdvancedBuilderDialogComponent } from './advanced-builder-dialog.component';
 
 describe('AdvancedBuilderDialogComponent', () => {
   let component: AdvancedBuilderDialogComponent;
@@ -8,9 +8,8 @@ describe('AdvancedBuilderDialogComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ AdvancedBuilderDialogComponent ]
-    })
-    .compileComponents();
+      declarations: [AdvancedBuilderDialogComponent],
+    }).compileComponents();
   }));
 
   beforeEach(() => {

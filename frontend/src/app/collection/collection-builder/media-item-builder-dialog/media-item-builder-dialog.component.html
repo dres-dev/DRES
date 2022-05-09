@@ -1,41 +1,41 @@
-<h1 mat-dialog-title>{{isEditing() ? "Edit" : "Create"}} MediaItem</h1>
+<h1 mat-dialog-title>{{ isEditing() ? 'Edit' : 'Create' }} MediaItem</h1>
 <div mat-dialog-content>
-    <form [formGroup]="form">
-        <p>
-            <mat-form-field style="width: 80%;">
-                <mat-select placeholder="Type" formControlName="type">
-                    <mat-option *ngFor="let type of types" [value]="type" (click)="enableVideoItemControls( type === 'VIDEO')">
-                        {{type}}
-                    </mat-option>
-                </mat-select>
-            </mat-form-field>
-        </p>
-        <p>
-            <mat-form-field style="width: 80%;">
-                <mat-label>Name</mat-label>
-                <input type="text" matInput placeholder="Name" formControlName="name" required />
-            </mat-form-field>
-        </p>
-        <p>
-            <mat-form-field style="width: 80%;">
-                <mat-label>Location</mat-label>
-                <input type="text" matInput placeholder="Location" formControlName="location" required />
-            </mat-form-field>
-        </p>
-        <p *ngIf="form.get('durationMs')">
-            <mat-form-field style="width: 40%;">
-                <mat-label>Duration [ms]</mat-label>
-                <input matInput type="number" placeholder="Duration [ms]" formControlName="durationMs" />
-            </mat-form-field>
-            <mat-form-field style="width: 40%;">
-                <mat-label>FPS</mat-label>
-                <input matInput type="number" placeholder="FPS" formControlName="fps" />
-            </mat-form-field>
-        </p>
-    </form>
+  <form [formGroup]="form">
+    <p>
+      <mat-form-field style="width: 80%">
+        <mat-select placeholder="Type" formControlName="type">
+          <mat-option *ngFor="let type of types" [value]="type" (click)="enableVideoItemControls(type === 'VIDEO')">
+            {{ type }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </p>
+    <p>
+      <mat-form-field style="width: 80%">
+        <mat-label>Name</mat-label>
+        <input type="text" matInput placeholder="Name" formControlName="name" required />
+      </mat-form-field>
+    </p>
+    <p>
+      <mat-form-field style="width: 80%">
+        <mat-label>Location</mat-label>
+        <input type="text" matInput placeholder="Location" formControlName="location" required />
+      </mat-form-field>
+    </p>
+    <p *ngIf="form.get('durationMs')">
+      <mat-form-field style="width: 40%">
+        <mat-label>Duration [ms]</mat-label>
+        <input matInput type="number" placeholder="Duration [ms]" formControlName="durationMs" />
+      </mat-form-field>
+      <mat-form-field style="width: 40%">
+        <mat-label>FPS</mat-label>
+        <input matInput type="number" placeholder="FPS" formControlName="fps" />
+      </mat-form-field>
+    </p>
+  </form>
 </div>
 <div mat-dialog-actions>
-    <button mat-button (click)="close()">Cancel</button>
-    <button mat-button (click)="save()">Save</button>
-    <button mat-button (click)="export()">Export</button>
+  <button mat-button (click)="close()">Cancel</button>
+  <button mat-button (click)="save()">Save</button>
+  <button mat-button (click)="export()">Export</button>
 </div>

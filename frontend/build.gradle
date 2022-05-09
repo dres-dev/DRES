@@ -24,16 +24,16 @@ node {
     version = '16.10.0'
     download = true
     workDir = file("${project.projectDir}/.gradle/nodejs")
-    npmWorkDir = file("${project.projectDir}/.gradle/npm")
+    yarnWorkDir = file("${project.projectDir}/.gradle/yarn")
     nodeProjectDir = file("${project.projectDir}")
 }
 
-task buildFrontend(type: NpmTask) {
+task buildFrontend(type: YarnTask) {
     outputs.upToDateWhen {
         return file("$buildDir/dist").isDirectory()
     }
     args = ['run', 'pbuild']
-    dependsOn npmInstall
+    dependsOn yarn_install
     dependsOn rootProject.tasks.getByName('openApiGenerate')
 }
 

@@ -9,6 +9,7 @@ import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
+import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.InteractiveAsynchronousCompetition
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.NonInteractiveCompetition
@@ -50,7 +51,7 @@ object RunExecutor : Consumer<WsConfig> {
     private val connectedClients = HashSet<WebSocketConnection>()
 
     /** List of session IDs that are currently observing a competition. */
-    private val observingClients = HashMap<UID,MutableSet<WebSocketConnection>>()
+    private val observingClients = HashMap<UID, MutableSet<WebSocketConnection>>()
 
     /** Lock for accessing and changing all data structures related to WebSocket clients. */
     private val clientLock = StampedLock()
@@ -90,6 +91,9 @@ object RunExecutor : Consumer<WsConfig> {
             is InteractiveAsynchronousCompetition -> {
                 competition.tasks.forEach { t ->
                     t.submissions.forEach { s -> s.task = t }
+                    if (!t.hasEnded) {
+                        t.end() //abort tasks that were active during last save
+                    }
                 }
                 InteractiveAsynchronousRunManager(competition)
             }
@@ -245,6 +249,26 @@ object RunExecutor : Consumer<WsConfig> {
         this.runManagerLock.read {
             this.connectedClients.filter {
                 this.observingClients[runId]?.contains(it) ?: false
+            }.forEach {
+                it.send(message)
+            }
+        }
+    }
+
+    /**
+     * Broadcasts a [ServerMessage] to all clients currently connected and observing a specific [RunManager] and are member of the specified team.
+     *
+     * @param runId The run ID identifying the [RunManager] for which clients should received the message.
+     * @param teamId The [TeamId] of the relevant team
+     * @param message The [ServerMessage] that should be broadcast.
+     */
+    fun broadcastWsMessage(runId: UID, teamId: TeamId, message: ServerMessage) = this.clientLock.read {
+
+        val teamMembers = managerForId(runId)?.description?.teams?.find { it.uid == teamId }?.users ?: return@read
+
+        this.runManagerLock.read {
+            this.connectedClients.filter {
+                this.observingClients[runId]?.contains(it) ?: false && AccessManager.getUserIdForSession(it.httpSessionId) in teamMembers
             }.forEach {
                 it.send(message)
             }

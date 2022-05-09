@@ -2,6 +2,7 @@ package dev.dres.data.model.run.interfaces
 
 import dev.dres.data.model.Entity
 import dev.dres.data.model.competition.CompetitionDescription
+import dev.dres.data.model.run.RunProperties
 
 /**
  * Represents a [Competition] that a DRES user or client takes place in and that groups several [Task]s
@@ -21,4 +22,7 @@ interface Competition: Run, Entity {
 
     /** Collection of [Task]s that make up this [Competition]. */
     val tasks: List<Task>
+
+    /** Various run-specific settings */
+    val properties: RunProperties
 }

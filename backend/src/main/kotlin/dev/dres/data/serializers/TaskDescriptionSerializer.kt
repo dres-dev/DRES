@@ -137,8 +137,8 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
                     } else null)
                 }
             )
-            2 -> TaskDescriptionTarget.MediaItemTarget(mediaItems[input.readUID()]!!)
-            3 -> TaskDescriptionTarget.VideoSegmentTarget(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
+            2 -> TaskDescriptionTarget.MediaItemTarget(mediaItems[input.readUID()] ?: MediaItem.ImageItem.EMPTY)
+            3 -> TaskDescriptionTarget.VideoSegmentTarget((mediaItems[input.readUID()] ?: MediaItem.VideoItem.EMPTY) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available))
             4 -> TaskDescriptionTarget.MultipleMediaItemTarget((0 until input.unpackInt()).map { mediaItems[input.readUID()]!! })
             5 -> TaskDescriptionTarget.VoteTaskDescriptionTarget(
                 (0 until input.unpackInt()).map {
@@ -167,8 +167,8 @@ class TaskDescriptionSerializer(val taskGroups: List<TaskGroup>, val taskTypes: 
         val end = input.unpackLong().let { if (it == -1L) null else it  }
         when(val ordinal = input.unpackInt()) {
             1 -> TaskDescriptionHint.TextTaskDescriptionHint(input.readUTF(), start, end)
-            2 -> TaskDescriptionHint.ImageItemTaskDescriptionHint(mediaItems[input.readUID()]!! as MediaItem.ImageItem, start, end)
-            3 -> TaskDescriptionHint.VideoItemSegmentTaskDescriptionHint(mediaItems[input.readUID()]!! as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available), start, end)
+            2 -> TaskDescriptionHint.ImageItemTaskDescriptionHint((mediaItems[input.readUID()] ?: MediaItem.ImageItem.EMPTY) as MediaItem.ImageItem, start, end)
+            3 -> TaskDescriptionHint.VideoItemSegmentTaskDescriptionHint((mediaItems[input.readUID()] ?: MediaItem.VideoItem.EMPTY) as MediaItem.VideoItem, TemporalRangeSerializer.deserialize(input, available), start, end)
             4 -> TaskDescriptionHint.ExternalImageTaskDescriptionHint(Paths.get(input.readUTF()), start, end)
             5 -> TaskDescriptionHint.ExternalVideoTaskDescriptionHint(Paths.get(input.readUTF()), start, end)
             else -> throw IllegalArgumentException("Failed to deserialize Task Description Hint for ordinal $ordinal; not implemented.")

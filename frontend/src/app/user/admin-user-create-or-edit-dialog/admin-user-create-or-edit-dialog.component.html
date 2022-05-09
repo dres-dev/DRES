@@ -1,41 +1,40 @@
-<h1 *ngIf="isEdit()" mat-dialog-title>Edit User ({{this.usr.username}})</h1>
+<h1 *ngIf="isEdit()" mat-dialog-title>Edit User ({{ this.usr.username }})</h1>
 <h1 *ngIf="!isEdit()" mat-dialog-title>Create User</h1>
 
 <div mat-dialog-content>
-    <form [formGroup]="form">
-        <p>
-            <mat-form-field style="width:100%;">
-                <mat-label>Username</mat-label>
-                <input type="text" matInput placeholder="Username" formControlName="username"/>
-            </mat-form-field>
-        </p>
-        <p>
-            <mat-form-field style="width:100%;">
-                <mat-label>Password</mat-label>
-                <input tpye="password" matInput placeholder="Password" formControlName="password"/>
-            </mat-form-field>
-        </p>
-        <p>
-            <mat-form-field style="width:100%;">
-                <mat-label>Role</mat-label>
-                <mat-select formControlName="role">
-                    <mat-option *ngFor="let r of roles" [value]="r">
-                        {{r | titlecase}}
-                    </mat-option>
-                </mat-select>
-            </mat-form-field>
-        </p>
-    </form>
+  <form [formGroup]="form">
+    <p>
+      <mat-form-field style="width: 100%">
+        <mat-label>Username</mat-label>
+        <input type="text" matInput placeholder="Username" formControlName="username" />
+      </mat-form-field>
+    </p>
+    <p>
+      <mat-form-field style="width: 100%">
+        <mat-label>Password</mat-label>
+        <input tpye="password" matInput placeholder="Password" formControlName="password" />
+      </mat-form-field>
+    </p>
+    <p>
+      <mat-form-field style="width: 100%">
+        <mat-label>Role</mat-label>
+        <mat-select formControlName="role">
+          <mat-option *ngFor="let r of roles" [value]="r">
+            {{ r | titlecase }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </p>
+  </form>
 </div>
 
 <div mat-dialog-actions>
-    <button mat-button (click)="close()">Cancel</button>
-    <button mat-button (click)="create()">Save</button>
-    <app-download-button
-            [downloadable]="downloadProvider"
-            [fileName]="nameProvider"
-            matTooltip="Download the user as JSON"></app-download-button>
-    <app-upload-json-button
-        matTooltip="Upload user JSON"
-        [handler]="uploaded"></app-upload-json-button>
+  <button mat-button (click)="close()">Cancel</button>
+  <button mat-button (click)="create()">Save</button>
+  <app-download-button
+    [downloadable]="downloadProvider"
+    [fileName]="nameProvider"
+    matTooltip="Download the user as JSON"
+  ></app-download-button>
+  <app-upload-json-button matTooltip="Upload user JSON" [handler]="uploaded"></app-upload-json-button>
 </div>

@@ -1,6 +1,6 @@
-import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
-import {CompetitionBuilderComponent} from './competition-builder.component';
+import { CompetitionBuilderComponent } from './competition-builder.component';
 
 describe('CompetitionBuilerComponent', () => {
   let component: CompetitionBuilderComponent;
@@ -8,9 +8,8 @@ describe('CompetitionBuilerComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ CompetitionBuilderComponent ]
-    })
-    .compileComponents();
+      declarations: [CompetitionBuilderComponent],
+    }).compileComponents();
   }));
 
   beforeEach(() => {

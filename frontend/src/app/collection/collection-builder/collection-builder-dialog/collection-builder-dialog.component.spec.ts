@@ -1,6 +1,6 @@
-import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
-import {CollectionBuilderDialogComponent} from './collection-builder-dialog.component';
+import { CollectionBuilderDialogComponent } from './collection-builder-dialog.component';
 
 describe('CollectionBuilderDialogComponent', () => {
   let component: CollectionBuilderDialogComponent;
@@ -8,9 +8,8 @@ describe('CollectionBuilderDialogComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ CollectionBuilderDialogComponent ]
-    })
-    .compileComponents();
+      declarations: [CollectionBuilderDialogComponent],
+    }).compileComponents();
   }));
 
   beforeEach(() => {

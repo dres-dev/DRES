@@ -1,9 +1,8 @@
 package dev.dres.data.model.run.interfaces
 
 import dev.dres.data.model.competition.TaskDescription
-import dev.dres.data.model.competition.TeamAggregator
-import dev.dres.data.model.competition.TeamGroupId
 import dev.dres.data.model.run.InteractiveAsynchronousCompetition.Task
+import dev.dres.run.TaskRunStatus
 import dev.dres.run.score.interfaces.TaskScorer
 
 /**
@@ -27,6 +26,9 @@ interface Task: Run {
 
     /** The [TaskScorer] used to update score for this [Task]. */
     val scorer: TaskScorer
+
+    /** The current status of this [Task]. */
+    val status: TaskRunStatus
 
 
 }

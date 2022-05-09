@@ -1,6 +1,6 @@
-import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
-import {AdminUserListComponent} from './admin-user-list.component';
+import { AdminUserListComponent } from './admin-user-list.component';
 
 describe('AdminUserListComponent', () => {
   let component: AdminUserListComponent;
@@ -8,9 +8,8 @@ describe('AdminUserListComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ AdminUserListComponent ]
-    })
-    .compileComponents();
+      declarations: [AdminUserListComponent],
+    }).compileComponents();
   }));
 
   beforeEach(() => {

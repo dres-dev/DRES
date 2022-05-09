@@ -1,26 +1,26 @@
 <div class="grid">
-    <div class="header">
-        <mat-form-field appearance="fill">
-            <mat-label>Select scoreboard</mat-label>
-            <mat-select [(ngModel)]="selectedScoreboard">
-                <mat-option *ngFor="let scoreboard of (scoreboards | async)" [value]="scoreboard">{{scoreboard}}</mat-option>
-            </mat-select>
-        </mat-form-field>
+  <div class="header">
+    <mat-form-field appearance="fill">
+      <mat-label>Select scoreboard</mat-label>
+      <mat-select [(ngModel)]="selectedScoreboard">
+        <mat-option *ngFor="let scoreboard of scoreboards | async" [value]="scoreboard">{{ scoreboard }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="body">
+    <div *ngIf="selectedScoreboard" style="height: 90vh; width: 90vw">
+      <apx-chart
+        [series]="series | async"
+        [title]="title | async"
+        [noData]="noData"
+        [chart]="chart"
+        [stroke]="stroke"
+        [xaxis]="xaxis"
+        [yaxis]="yaxis"
+        [legend]="legend"
+        [theme]="theme"
+      >
+      </apx-chart>
     </div>
-    <div class="body" >
-        <div *ngIf="selectedScoreboard" style="height: 90vh; width: 90vw;">
-            <apx-chart
-                [series] = "(series | async)"
-                [title]= "(title | async)"
-                [noData]="noData"
-                [chart]= "chart"
-                [stroke]="stroke"
-                [xaxis]="xaxis"
-                [yaxis]="yaxis"
-                [legend]="legend"
-                [theme]="theme">
-            </apx-chart>
-        </div>
-    </div>
+  </div>
 </div>
-

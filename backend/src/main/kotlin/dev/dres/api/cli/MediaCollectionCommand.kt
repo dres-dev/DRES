@@ -1,6 +1,6 @@
 package dev.dres.api.cli
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
@@ -311,11 +311,29 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             }
 
             val base = File(collection.basePath)
+
+            if (!base.exists()) {
+                println("Cannot scan collection, '${collection.basePath}' does not exist.")
+                return
+            }
+
+            if (!base.isDirectory) {
+                println("Cannot scan collection, '${collection.basePath}' is no directory.")
+                return
+            }
+
+            if (!base.canRead()) {
+                println("Cannot scan collection, '${collection.basePath}' is not readable.")
+                return
+            }
+
             val files = base.walkTopDown().filter { it.isFile && (it.extension.toLowerCase() in imageTypes || it.extension in videoTypes) }
 
             val buffer = mutableListOf<MediaItem>()
 
             val issues = mutableMapOf<String, String>()
+
+            var fileCounter = 0
 
             files.forEach { file ->
 
@@ -383,6 +401,8 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                     println("done")
                 }
 
+                ++fileCounter
+
             }
 
             println()
@@ -394,11 +414,12 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             if(issues.isNotEmpty()){
                 val file = File("issues-scan-${collection.name}-${System.currentTimeMillis()}.json")
                 println("There have been ${issues.size} issues while scanning. You might want to check them at ${file.path}")
-                val om = ObjectMapper()
+                val om = jacksonObjectMapper()
                 om.writeValue(file, issues)
                 println("done")
             }
-            println()
+            println("\nAdded $fileCounter elements to collection")
+
 
         }
 

@@ -8,13 +8,16 @@ import {
   DownloadService,
   RunProperties,
 } from '../../../../openapi';
-import {MatDialog} from '@angular/material/dialog';
-import {CompetitionCreateDialogComponent} from './competition-create-dialog.component';
-import {filter, flatMap, take, tap} from 'rxjs/operators';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {Router} from '@angular/router';
-import {CompetitionStartDialogComponent, CompetitionStartDialogResult} from './competition-start-dialog.component';
-import {ConfirmationDialogComponent, ConfirmationDialogComponentData} from '../../shared/confirmation-dialog/confirmation-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { CompetitionCreateDialogComponent } from './competition-create-dialog.component';
+import { filter, flatMap, take, tap } from 'rxjs/operators';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
+import { CompetitionStartDialogComponent, CompetitionStartDialogResult } from './competition-start-dialog.component';
+import {
+  ConfirmationDialogComponent,
+  ConfirmationDialogComponentData,
+} from '../../shared/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-competition-list',
@@ -90,27 +93,27 @@ export class CompetitionListComponent implements AfterViewInit {
     this.routerService.navigate(['/competition/builder', competitionId]);
   }
 
-    public delete(competitionId: string) {
-        const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-            data: {
-                text: '`Do you really want to delete competition with ID ${competitionId}?`',
-                color: 'warn'
-            } as ConfirmationDialogComponentData
-        });
-        dialogRef.afterClosed().subscribe(result => {
-            if (result) {
-                this.competitionService.deleteApiV1CompetitionWithCompetitionid(competitionId).subscribe(
-                    (r) => {
-                        this.refresh();
-                        this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-                    },
-                    (r) => {
-                        this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-                    }
-                );
-            }
-        });
-    }
+  public delete(competitionId: string) {
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      data: {
+        text: '`Do you really want to delete competition with ID ${competitionId}?`',
+        color: 'warn',
+      } as ConfirmationDialogComponentData,
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.competitionService.deleteApiV1CompetitionWithCompetitionid(competitionId).subscribe(
+          (r) => {
+            this.refresh();
+            this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
+          },
+          (r) => {
+            this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
+          }
+        );
+      }
+    });
+  }
 
   public refresh() {
     this.competitionService.getApiV1CompetitionList().subscribe(
@@ -128,11 +131,10 @@ export class CompetitionListComponent implements AfterViewInit {
     this.refresh();
   }
 
-    downloadProvider = (competitionId) => {
-        return this.downloadService.getApiV1DownloadCompetitionWithCompetitionid(competitionId)
-            .pipe(take(1));
-        // .toPromise();
-    };
+  downloadProvider = (competitionId) => {
+    return this.downloadService.getApiV1DownloadCompetitionWithCompetitionid(competitionId).pipe(take(1));
+    // .toPromise();
+  };
 
   fileProvider = (name: string) => {
     return () => name;

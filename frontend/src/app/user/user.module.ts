@@ -19,6 +19,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { LoginComponent } from './login/login.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { SharedModule } from '../shared/shared.module';
+import { MatSortModule } from '@angular/material/sort';
 
 @NgModule({
   declarations: [LoginComponent, ProfileComponent, AdminUserListComponent, AdminUserCreateOrEditDialogComponent],
@@ -39,6 +40,7 @@ import { SharedModule } from '../shared/shared.module';
     MatSelectModule,
     ClipboardModule,
     SharedModule,
+    MatSortModule,
   ],
 })
 export class UserModule {}

@@ -96,7 +96,7 @@ export class CompetitionListComponent implements AfterViewInit {
   public delete(competitionId: string) {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       data: {
-        text: '`Do you really want to delete competition with ID ${competitionId}?`',
+        text: `Do you really want to delete competition with ID ${competitionId}?`,
         color: 'warn',
       } as ConfirmationDialogComponentData,
     });

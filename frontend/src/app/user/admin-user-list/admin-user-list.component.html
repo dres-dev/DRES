@@ -2,6 +2,22 @@
   <app-back-button></app-back-button>
   <div><h1>Users</h1></div>
   <div class="spacer-flex"></div>
+  <div *ngIf="isFilterInputActive" style="padding-right: 1.5rem;">
+    <mat-form-field class="example-form-field" appearance="fill">
+      <mat-label >Quick filter</mat-label>
+      <input matInput type="text" [(ngModel)]="filterValue" (keyup)="filter()">
+      <button *ngIf="filterValue" matSuffix mat-icon-button aria-label="Clear" (click)="filterValue=''">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+  </div>
+  <div>
+    <button mat-icon-button
+            aria-label="{{isFilterInputActive ? 'Close' : 'Open'}} quick filter"
+            matTooltip="{{isFilterInputActive ? 'Close' : 'Open'}} quick filter" (click)="isFilterInputActive = !isFilterInputActive">
+      <mat-icon>{{isFilterInputActive ? 'sort' : 'filter_list'}}</mat-icon>
+    </button>
+  </div>
   <div>
     <button mat-icon-button aria-label="Refresh list of users" matTooltip="Refresh list of users" (click)="refresh()">
       <mat-icon>refresh</mat-icon>

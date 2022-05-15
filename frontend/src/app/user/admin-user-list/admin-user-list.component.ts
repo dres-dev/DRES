@@ -21,6 +21,9 @@ export class AdminUserListComponent implements AfterViewInit {
   @ViewChild(MatSort) sort: MatSort;
   dataSource = new MatTableDataSource<UserDetails>([]);
 
+  isFilterInputActive = false;
+  filterValue = '';
+
   constructor(
     private snackBar: MatSnackBar,
     private userService: UserService,
@@ -105,6 +108,10 @@ export class AdminUserListComponent implements AfterViewInit {
 
   resolveUserById(_: number, user: UserDetails) {
     return user.id;
+  }
+
+  filter(){
+    this.dataSource.filter = this.filterValue.trim(); // Purposely case insensitive
   }
 
   private findForId(id: string) {

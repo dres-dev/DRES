@@ -4,6 +4,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.eventstream.*
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.PrintWriter
 
@@ -14,6 +15,8 @@ class SubmissionStatisticsHandler : StreamEventHandler {
     private val submissionTaskMap = mutableMapOf<UID, MutableList<Submission>>()
     private val taskStartMap = mutableMapOf<UID, Long>()
     private val taskNameMap = mutableMapOf<UID, String>()
+
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
     init {
         writer.println("task,team,type,value")
@@ -30,7 +33,16 @@ class SubmissionStatisticsHandler : StreamEventHandler {
                 submissionTaskMap[event.taskId]!!.add(event.submission)
             }
             is TaskEndEvent -> {
-                computeStatistics(submissionTaskMap[event.taskId]!!, taskStartMap[event.taskId]!!, taskNameMap[event.taskId]!!)
+                val submissions = submissionTaskMap[event.taskId]
+                val start = taskStartMap[event.taskId]
+                val name = taskNameMap[event.taskId]
+
+                if (submissions == null || start == null || name == null) {
+                    logger.info("Task '{}' not found in previously started tasks. Already ended previously?", name)
+                    return
+                }
+
+                computeStatistics(submissions, start, name)
                 submissionTaskMap.remove(event.taskId)
                 taskStartMap.remove(event.taskId)
                 taskNameMap.remove(event.taskId)

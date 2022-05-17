@@ -37,7 +37,7 @@ object FFmpegUtil {
 
     private data class FrameRequest(val video: Path, val timecode: String, val outputImage: Path)
 
-    private val frameRequestQueue = ConcurrentLinkedQueue<FrameRequest>()
+    private val frameRequestStack = ConcurrentLinkedDeque<FrameRequest>()
 
     private const val concurrentFrameRequests = 4
     private var threadRunning = true
@@ -62,7 +62,7 @@ object FFmpegUtil {
 
                 if (futureList.size < concurrentFrameRequests) {
 
-                    val request = frameRequestQueue.poll()
+                    val request = frameRequestStack.pollFirst()
 
                     if (request != null) {
                         futureList.add(
@@ -91,7 +91,7 @@ object FFmpegUtil {
 
     fun previewImageStream(path: Path): CompletableFuture<InputStream>? {
 
-        if (!Files.exists(path) && frameRequestQueue.none { it.outputImage == path }) {
+        if (!Files.exists(path) && frameRequestStack.none { it.outputImage == path }) {
             return null //image neither exists nor is scheduled to be generated
         }
 
@@ -158,8 +158,8 @@ object FFmpegUtil {
 
     fun extractFrame(video: Path, timecode: String, outputImage: Path) {
         val request = FrameRequest(video, timecode, outputImage)
-        if (!Files.exists(outputImage) && !frameRequestQueue.contains(request)) {
-            frameRequestQueue.add(request)
+        if (!Files.exists(outputImage) && !frameRequestStack.contains(request)) {
+            frameRequestStack.push(request)
             logger.info(logMarker, "Enqueued frame request $request")
         }
 

@@ -68,7 +68,11 @@ export class CompetitionListComponent implements AfterViewInit {
         filter((r) => r != null),
         tap((r) => (this.waitingForRun = true)),
         flatMap((r: CompetitionStartDialogResult) => {
-          const properties = { participantCanView: r.participantCanView, shuffleTasks: r.shuffleTasks } as RunProperties;
+          const properties = {
+            participantCanView: r.participantCanView,
+            shuffleTasks: r.shuffleTasks,
+            allowRepeatedTasks: r.allowRepeatedTasks
+          } as RunProperties;
           return this.runAdminService.postApiV1RunAdminCreate({
             competitionId: id,
             name: r.name,

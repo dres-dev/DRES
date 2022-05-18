@@ -458,10 +458,11 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         }
     }
 
-    inner class DeleteItemCommand : AbstractCollectionCommand("deleteItem", help = "Deletes a Media Item") {
+    inner class DeleteItemCommand : AbstractCollectionCommand("deleteItem", help = "Deletes Media Item(s)") {
 
         private val itemName: String by option("-in", "--itemName", help = "Name of the Item").default("")
         private val itemIdInput: UID? by option("-ii", "--itemId", help = "Id of the Item").convert { it.UID() }
+        private val nameRegex: Regex? by option("-e", "--regex", help="Regex for item names").convert { it.toRegex() }
 
         override fun run() {
 
@@ -471,21 +472,35 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 return
             }
 
-            if (itemName.isBlank() && itemIdInput == null) {
-                println("Item not specified.")
+            if ((itemName.isBlank() && itemIdInput == null) && nameRegex == null) {
+                println("Item(s) not specified.")
                 return
             }
+            if(itemName.isNotBlank() || itemIdInput != null){
+                val itemId = itemIdInput
+                        ?: this@MediaCollectionCommand.items.find { it.collection == collectionId && it.name == itemName }?.id
 
-            val itemId = itemIdInput
-                    ?: this@MediaCollectionCommand.items.find { it.collection == collectionId && it.name == itemName }?.id
+                if (itemId == null) {
+                    println("Item not found.")
+                    return
+                }
 
-            if (itemId == null) {
-                println("Item not found.")
-                return
+                this@MediaCollectionCommand.items.delete(itemId)
+                println("Item '${itemId.string}' deleted")
+            }else if(nameRegex != null){
+                val regex = nameRegex!!
+                val ids = this@MediaCollectionCommand.items.filter { it.collection == collectionId && regex.matches(it.name) }.map{it.id}
+                if(ids.isEmpty()){
+                    println("No items found for regex $regex")
+                    return
+                }
+                ids.forEach {
+                    this@MediaCollectionCommand.items.delete(it)
+                    println("Item '$it' deleted")
+                }
+            }else{
+                println("Nothing was specified, hence no deletion occured")
             }
-
-            this@MediaCollectionCommand.items.delete(itemId)
-            println("Item '${itemId.string}' deleted")
 
         }
     }

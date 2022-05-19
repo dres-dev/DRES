@@ -522,23 +522,22 @@ export class CompetitionFormBuilder {
     });
 
     /* Initialize start, end and time unit based on target. */
-    console.log(`type=${group.get('segment_time_unit').value}`);
     // fetch target time unit
     const targetTimeUnit = (this.form.get('target') as FormArray).controls[0].get('segment_time_unit').value;
     if (targetTimeUnit && this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT') {
       group.get('segment_time_unit').setValue(targetTimeUnit);
-      console.log(`Unit=${targetTimeUnit}`);
     }
 
-    console.log(`targetStart: ${!group.get('segment_start').value}, type=${this.taskType.targetType.option}`);
     if (!group.get('segment_start').value && this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT') {
       group.get('segment_start').setValue((this.form.get('target') as FormArray).controls[0].get('segment_start').value);
-      console.log(`Start=${(this.form.get('target') as FormArray).controls[0].get('segment_start').value}`);
     }
 
     if (!group.get('segment_end').value && this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT') {
       group.get('segment_end').setValue((this.form.get('target') as FormArray).controls[0].get('segment_end').value);
     }
+
+    /* Manually setting the duration of the hint equal to the duration of the task, this way the validators are happy */
+    group.get('end').setValue(this.taskType.taskDuration);
 
     group
       .get('segment_start')

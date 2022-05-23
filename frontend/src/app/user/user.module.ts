@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProfileComponent } from './profile/profile.component';
 import { MatCardModule } from '@angular/material/card';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatGridListModule } from '@angular/material/grid-list';
@@ -23,25 +23,25 @@ import { MatSortModule } from '@angular/material/sort';
 
 @NgModule({
   declarations: [LoginComponent, ProfileComponent, AdminUserListComponent, AdminUserCreateOrEditDialogComponent],
-    imports: [
-        CommonModule,
-        MatCardModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        FlexLayoutModule,
-        MatGridListModule,
-        MatDividerModule,
-        MatIconModule,
-        MatButtonModule,
-        MatInputModule,
-        MatTooltipModule,
-        MatTableModule,
-        MatDialogModule,
-        MatSelectModule,
-        ClipboardModule,
-        SharedModule,
-        MatSortModule,
-        FormsModule,
-    ],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    FlexLayoutModule,
+    MatGridListModule,
+    MatDividerModule,
+    MatIconModule,
+    MatButtonModule,
+    MatInputModule,
+    MatTooltipModule,
+    MatTableModule,
+    MatDialogModule,
+    MatSelectModule,
+    ClipboardModule,
+    SharedModule,
+    MatSortModule,
+    FormsModule,
+  ],
 })
 export class UserModule {}

@@ -71,7 +71,7 @@ export class CompetitionListComponent implements AfterViewInit {
           const properties = {
             participantCanView: r.participantCanView,
             shuffleTasks: r.shuffleTasks,
-            allowRepeatedTasks: r.allowRepeatedTasks
+            allowRepeatedTasks: r.allowRepeatedTasks,
           } as RunProperties;
           return this.runAdminService.postApiV1RunAdminCreate({
             competitionId: id,

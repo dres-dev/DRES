@@ -11,6 +11,7 @@ import { Epoch2DatePipePipe } from './pipes/epoch2date.pipe';
 import { CanDeactivateGuard } from './can-deactivate.guard';
 import { EnhanceTaskPastInfoPipe } from './pipes/enhance-task-past-info.pipe';
 import { ResolveTeamPipe } from './pipes/resolve-team.pipe';
+import { EnhanceTaskSubmissionInfoPipe } from './pipes/enhance-task-submission-info.pipe';
 
 /**
  * Provides the {@link AppConfig} reference.
@@ -37,6 +38,7 @@ export function initializeApiConfig(appConfig: AppConfig) {
     Epoch2DatePipePipe,
     EnhanceTaskPastInfoPipe,
     ResolveTeamPipe,
+    EnhanceTaskSubmissionInfoPipe,
   ],
   declarations: [
     RoundPipePipe,
@@ -46,6 +48,7 @@ export function initializeApiConfig(appConfig: AppConfig) {
     Epoch2DatePipePipe,
     EnhanceTaskPastInfoPipe,
     ResolveTeamPipe,
+    EnhanceTaskSubmissionInfoPipe,
   ],
   providers: [AuthenticationService, NavigationService, CanDeactivateGuard],
 })

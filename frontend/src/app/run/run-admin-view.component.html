@@ -125,7 +125,11 @@
             <ng-container matColumnDef="past">
               <th mat-header-cell *matHeaderCellDef>Submissions</th>
               <td mat-cell *matCellDef="let task">
-                {{ (task | enhanceTaskPastInfo: this.pastTasksValue)?.numberOfSubmissions || 'n/a' }}
+                {{
+                  (task | enhanceTaskPastInfo: this.pastTasksValue)?.numberOfSubmissions ||
+                    (task | enhanceTaskSubmissionInfo: this.currentSubmissions)?.submissions?.length ||
+                    'n/a'
+                }}
               </td>
             </ng-container>
 
@@ -145,7 +149,7 @@
                 <button
                   *ngIf="
                     (task | enhanceTaskPastInfo: this.pastTasksValue) != null ||
-                    (task.name === (run | async).state.currentTask.name && (run | async)?.state.status == 'RUNNING_TASK')
+                    (task.name === (run | async).state.currentTask.name && (run | async)?.state.taskRunStatus === 'RUNNING')
                   "
                   mat-icon-button
                   aria-label="See submissions"

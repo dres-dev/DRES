@@ -10,6 +10,7 @@ import {
   RunInfo,
   RunState,
   TaskInfo,
+  TaskRunSubmissionInfo,
   ViewerInfo,
 } from '../../../openapi';
 import { BehaviorSubject, combineLatest, merge, Observable, of, Subject, timer } from 'rxjs';
@@ -41,8 +42,8 @@ export class RunAdminViewComponent implements AfterViewInit {
   update = new Subject();
   displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'past', 'action'];
   teams: Observable<RestDetailedTeam[]>;
-  pastTasks = new BehaviorSubject<PastTaskInfo[]>([]);
   pastTasksValue: PastTaskInfo[];
+  currentSubmissions: TaskRunSubmissionInfo[];
 
   constructor(
     private router: Router,
@@ -275,18 +276,33 @@ export class RunAdminViewComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     /* Cache past tasks initially */
     this.runId.subscribe((runId) => {
-      this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe((arr) => (this.pastTasksValue = arr));
+      this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe((arr) => {
+        this.pastTasksValue = arr;
+        // console.log('Past Tasks Initial', this.pastTasksValue);
+      });
+      /* this.run.subscribe((run) => {
+          this.runAdminService.getApiV1RunAdminWithRunidSubmissionListWithTaskid(run.info.id, run?.state?.currentTask?.id)
+              .subscribe((arr) => (this.currentSubmissions = arr));
+      })*/
     });
 
     /* On each update, update past tasks */
     this.update.subscribe((_) => {
       this.runId.subscribe((runId) => {
-        this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe((arr) => (this.pastTasksValue = arr));
+        this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe((arr) => {
+          this.pastTasksValue = arr;
+          // console.log('Past Tasks Update', this.pastTasksValue);
+        });
       });
     });
 
     this.run.subscribe((r) => {
-      this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(r.info.id).subscribe((arr) => (this.pastTasksValue = arr));
+      this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(r.info.id).subscribe((arr) => {
+        this.pastTasksValue = arr;
+        // console.log('Past Tasks Run', this.pastTasksValue);
+      }); /*
+        this.runAdminService.getApiV1RunAdminWithRunidSubmissionListWithTaskid(r.info.id, r?.state?.currentTask?.id)
+            .subscribe((arr) => (this.currentSubmissions = arr));*/
     });
   }
 }

@@ -110,7 +110,7 @@ export class AdminUserListComponent implements AfterViewInit {
     return user.id;
   }
 
-  filter(){
+  filter() {
     this.dataSource.filter = this.filterValue.trim(); // Purposely case insensitive
   }
 

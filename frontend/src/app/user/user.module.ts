@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProfileComponent } from './profile/profile.component';
 import { MatCardModule } from '@angular/material/card';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatGridListModule } from '@angular/material/grid-list';
@@ -19,6 +19,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { LoginComponent } from './login/login.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { SharedModule } from '../shared/shared.module';
+import { MatSortModule } from '@angular/material/sort';
 
 @NgModule({
   declarations: [LoginComponent, ProfileComponent, AdminUserListComponent, AdminUserCreateOrEditDialogComponent],
@@ -39,6 +40,8 @@ import { SharedModule } from '../shared/shared.module';
     MatSelectModule,
     ClipboardModule,
     SharedModule,
+    MatSortModule,
+    FormsModule,
   ],
 })
 export class UserModule {}

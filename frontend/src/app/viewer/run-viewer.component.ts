@@ -90,8 +90,8 @@ export class RunViewerComponent implements OnInit, OnDestroy {
         },
       },
       closeObserver: {
-        next(closeEvent) {
-          console.log(`[RunViewerComponent] WebSocket connection to ${wsurl} closed!`);
+        next(closeEvent: CloseEvent) {
+          console.log(`[RunViewerComponent] WebSocket connection to ${wsurl} closed: ${closeEvent.reason}.`);
         },
       },
     } as WebSocketSubjectConfig<IWsMessage>);
@@ -248,8 +248,8 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     /* Register WebSocket ping. */
     this.pingSubscription = interval(5000)
       .pipe(
-        withLatestFrom(this.activeRoute.params),
-        tap(([i, a]) => this.webSocketSubject.next({ runId: a.runId, type: 'PING' } as IWsClientMessage))
+        withLatestFrom(this.runId),
+        tap(([i, runId]) => this.webSocketSubject.next({ runId: runId, type: 'PING' } as IWsClientMessage))
       )
       .subscribe();
   }

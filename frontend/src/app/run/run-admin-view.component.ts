@@ -33,7 +33,7 @@ export interface CombinedRun {
   templateUrl: './run-admin-view.component.html',
   styleUrls: ['./run-admin-view.component.scss'],
 })
-export class RunAdminViewComponent implements AfterViewInit {
+export class RunAdminViewComponent {
   runId: Observable<string>;
   runIdAsSubject: BehaviorSubject<string> = new BehaviorSubject<string>('');
   run: Observable<CombinedRun>;
@@ -42,8 +42,8 @@ export class RunAdminViewComponent implements AfterViewInit {
   update = new Subject();
   displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'past', 'action'];
   teams: Observable<RestDetailedTeam[]>;
-  pastTasksValue: PastTaskInfo[];
-  currentSubmissions: TaskRunSubmissionInfo[];
+  submissionsForPastTasks: Observable<Map<string,number>>;
+  submissionsForCurrentTask: Observable<Map<string,number>>;
 
   constructor(
     private router: Router,
@@ -83,6 +83,45 @@ export class RunAdminViewComponent implements AfterViewInit {
       }),
       shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading. */
     );
+
+    /** Observable for list of past tasks. */
+    this.submissionsForPastTasks = this.run.pipe(
+        switchMap(s => this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(s.info.id).pipe(
+            catchError((err, o) => {
+              console.log(`[RunAdminViewComponent] There was an error while loading the past task list: ${err?.message}`);
+              return of(null);
+            }),
+            filter(((pastTasks: Array<PastTaskInfo>) => pastTasks != null)),
+            map((pastTasks: Array<PastTaskInfo>) => {
+              const map = new Map<string,number>();
+              for (let p of pastTasks) {
+                map.set(p.descriptionId, p.numberOfSubmissions);
+              }
+              return map;
+            })
+        ))
+    );
+
+    /** Observable for list of submissions for current task. */
+    this.submissionsForCurrentTask = this.run.pipe(
+        switchMap(s => this.runAdminService.getApiV1RunAdminWithRunidSubmissionListWithTaskid(s.info.id, s.state.currentTask.id).pipe(
+            catchError((err, o) => {
+              console.log(`[RunAdminViewComponent] There was an error while submissions for the running task: ${err?.message}`);
+              return of(null);
+            }),
+            filter((q) => q != null),
+            map((submissions: Array<TaskRunSubmissionInfo>) => {
+              const map = new Map<string,number>();
+              if (submissions.length > 0) {
+                map.set(s.state.currentTask.id, submissions[submissions.length - 1].submissions.length);
+              } else {
+                map.set(s.state.currentTask.id, 0);
+              }
+              return map;
+            })
+        ))
+    )
+
     this.runOverview = this.runId.pipe(
       switchMap((runId) =>
         combineLatest([
@@ -260,49 +299,5 @@ export class RunAdminViewComponent implements AfterViewInit {
 
   resolveViewerById(_: number, item: ViewerInfo) {
     return item.viewersId;
-  }
-
-  userNameOf(user: string): Observable<string> {
-    // if (user) {
-    //     return this.userService.getApiV1serWithId(user).pipe(
-    //         map(u => u.username),
-    //         shareReplay(1)
-    //     );
-    // } else {
-    return null;
-    // }
-  }
-
-  ngAfterViewInit(): void {
-    /* Cache past tasks initially */
-    this.runId.subscribe((runId) => {
-      this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe((arr) => {
-        this.pastTasksValue = arr;
-        // console.log('Past Tasks Initial', this.pastTasksValue);
-      });
-      /* this.run.subscribe((run) => {
-          this.runAdminService.getApiV1RunAdminWithRunidSubmissionListWithTaskid(run.info.id, run?.state?.currentTask?.id)
-              .subscribe((arr) => (this.currentSubmissions = arr));
-      })*/
-    });
-
-    /* On each update, update past tasks */
-    this.update.subscribe((_) => {
-      this.runId.subscribe((runId) => {
-        this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe((arr) => {
-          this.pastTasksValue = arr;
-          // console.log('Past Tasks Update', this.pastTasksValue);
-        });
-      });
-    });
-
-    this.run.subscribe((r) => {
-      this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(r.info.id).subscribe((arr) => {
-        this.pastTasksValue = arr;
-        // console.log('Past Tasks Run', this.pastTasksValue);
-      }); /*
-        this.runAdminService.getApiV1RunAdminWithRunidSubmissionListWithTaskid(r.info.id, r?.state?.currentTask?.id)
-            .subscribe((arr) => (this.currentSubmissions = arr));*/
-    });
   }
 }

@@ -140,7 +140,7 @@ object FFmpegUtil {
         val seconds = (ms % 60_000) / 1000
         val milliseconds = ms % 1000
 
-        return "$hours:$minutes:$seconds.$milliseconds"
+        return "$hours:$minutes:$seconds.${"%03d".format(milliseconds)}"
     }
 
 

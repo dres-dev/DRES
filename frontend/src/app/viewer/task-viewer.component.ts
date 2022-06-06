@@ -3,10 +3,8 @@ import { CompetitionRunService, ContentElement, RunState, TaskInfo, TaskTarget }
 import { BehaviorSubject, combineLatest, interval, merge, Observable, of, Subscription, timer } from 'rxjs';
 import {
   catchError,
-  concatMap,
   delayWhen,
   filter,
-  finalize,
   flatMap,
   map,
   repeat,
@@ -24,6 +22,7 @@ import { WebSocketSubject } from 'rxjs/webSocket';
 import { AppConfig } from '../app.config';
 import { AudioPlayerUtilities } from '../utilities/audio-player.utilities';
 import { fromArray } from 'rxjs/internal/observable/fromArray';
+import TaskRunStatusEnum = RunState.TaskRunStatusEnum;
 
 /**
  * Internal enumeration used for TaskViewerComponent.
@@ -31,10 +30,10 @@ import { fromArray } from 'rxjs/internal/observable/fromArray';
 enum ViewerState {
   VIEWER_UNKNOWN = 0,
   VIEWER_WAITING_FOR_TASK,
-  VIEWER_TASK_ENDED,
   VIEWER_SYNC,
   VIEWER_COUNTDOWN,
   VIEWER_PLAYBACK,
+  VIEWER_TASK_ENDED
 }
 
 @Component({
@@ -56,9 +55,6 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   /** Time that has elapsed (only when a task is running). */
   timeElapsed: Observable<number>;
 
-  /** Observable that fires when all viewers have confirmed, that they are ready. */
-  taskReady: Observable<boolean>;
-
   /** A {@link BehaviorSubject} of task countdown objects. */
   taskCountdown: BehaviorSubject<number> = new BehaviorSubject(null);
 
@@ -71,7 +67,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   /** Reference to the current {@link TaskTarget} {@link ContentElement}. */
   currentTaskTarget: Observable<ContentElement>;
 
-  /** */
+  /** The subscription associated with the current viewer state. */
   viewerStateSubscription: Subscription;
 
   /** Reference to the audio element used during countdown. */
@@ -89,7 +85,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
       switchMap(([task, runId]) =>
         this.runService.getApiV1RunWithRunidHintWithTaskid(runId, task.id).pipe(
           catchError((e) => {
-            console.error('[TaskViewerComponent] Could not load current query object due to an error.', e);
+            console.error('[TaskViewerComponent] Could not load current query hint due to an error.', e);
             return of(null);
           })
         )
@@ -98,12 +94,12 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     );
 
     /*  Observable for the current query target. */
-    const currentTaskTarget = this.taskEnded.pipe(
-      withLatestFrom(this.runId),
-      switchMap(([task, runId]) =>
-        this.runService.getApiV1RunWithRunidTargetWithTaskid(runId, task.id).pipe(
+    const currentTaskTarget = this.state.pipe(
+      filter(s => s.taskRunStatus == TaskRunStatusEnum.ENDED),
+      switchMap((s) =>
+        this.runService.getApiV1RunWithRunidTargetWithTaskid(s.id, s.currentTask.id).pipe(
           catchError((e) => {
-            console.error('[TaskViewerComponent] Could not load current query object due to an error.', e);
+            console.error('[TaskViewerComponent] Could not load current task target due to an error.', e);
             return of(null);
           })
         )
@@ -168,7 +164,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
           }
           break;
         case 'ENDED':
-          return this.viewerState.next(ViewerState.VIEWER_TASK_ENDED);
+            return this.viewerState.next(ViewerState.VIEWER_TASK_ENDED);
       }
     });
 

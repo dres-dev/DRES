@@ -24,9 +24,12 @@ import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import java.io.File
+import java.io.FileNotFoundException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollection>, private val itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, config: Config) : GetRestHandler<Any>, AccessManagedRestHandler {
     override val apiVersion = "v1"
@@ -83,19 +86,27 @@ abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollecti
                 ctx.sendFile(imgPath.toFile())
             }else { //if not, wait for it if necessary
 
-                FFmpegUtil.extractFrame(Path.of(collection.basePath, item.location), time, imgPath)
+                //FFmpegUtil.extractFrame(Path.of(collection.basePath, item.location), time, imgPath)
 
-                val future = FFmpegUtil.previewImageStream(imgPath)
+                val future = FFmpegUtil.executeFFmpegAsync(Path.of(collection.basePath, item.location), time, imgPath)
 
-                if (future == null) { //image does not exist and is not scheduled
-                    ctx.status(404)
+
+                try{
+                    val path = future.get(3, TimeUnit.SECONDS)?: throw FileNotFoundException()
+                    ctx.contentType("image/jpg")
+                    ctx.sendFile(path.toFile())
+                }catch (e: TimeoutException){
+                    ctx.status(408)
                     ctx.header("Cache-Control", "max-age=31622400")
                     ctx.contentType("image/png")
                     ctx.result(this.javaClass.getResourceAsStream("/img/missing.png")!!)
-                } else {
-                    ctx.contentType("image/jpg")
-                    ctx.future(future)
+                }catch(t: Throwable){
+                    ctx.status(500)
+                    ctx.header("Cache-Control", "max-age=31622400")
+                    ctx.contentType("image/png")
+                    ctx.result(this.javaClass.getResourceAsStream("/img/missing.png")!!)
                 }
+
 
             }
 

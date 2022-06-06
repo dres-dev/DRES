@@ -298,6 +298,13 @@ object RestApi {
 
     }
 
+    private val pool = QueuedThreadPool(
+        1000, 8, 60000, -1, null, null, NamedThreadFactory("JavalinPool")
+    )
+
+    val nonIdleThreadCount: Int
+        get() = pool.readyThreads
+
     private fun setupHttpServer(config: Config): Server {
 
         val httpConfig = HttpConfiguration().apply {
@@ -309,9 +316,7 @@ object RestApi {
             }
         }
 
-        val pool = QueuedThreadPool(
-            1000, 8, 60000, -1, null, null, NamedThreadFactory("JavalinPool")
-        )
+
 
         if (config.enableSsl) {
             val httpsConfig = HttpConfiguration(httpConfig).apply {

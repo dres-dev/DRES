@@ -51,6 +51,7 @@ abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollecti
 
     }
 
+    private val placeholderImage = this.javaClass.getResourceAsStream("/img/missing.png")!!.readAllBytes()
 
     protected fun handlePreviewRequest(item: MediaItem, time: Long?, ctx: Context) {
 
@@ -92,19 +93,19 @@ abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollecti
 
 
                 try{
-                    val path = future.get(3, TimeUnit.SECONDS)?: throw FileNotFoundException()
-                    ctx.contentType("image/jpg")
+                    val path = future.get(3, TimeUnit.SECONDS) ?: throw FileNotFoundException()
                     ctx.sendFile(path.toFile())
                 }catch (e: TimeoutException){
                     ctx.status(408)
-                    ctx.header("Cache-Control", "max-age=31622400")
+                    ctx.header("Cache-Control", "max-age=30")
                     ctx.contentType("image/png")
-                    ctx.result(this.javaClass.getResourceAsStream("/img/missing.png")!!)
+                    ctx.result(placeholderImage)
                 }catch(t: Throwable){
-                    ctx.status(500)
-                    ctx.header("Cache-Control", "max-age=31622400")
+                    t.printStackTrace()
+                    ctx.status(429)
+                    ctx.header("Cache-Control", "max-age=30")
                     ctx.contentType("image/png")
-                    ctx.result(this.javaClass.getResourceAsStream("/img/missing.png")!!)
+                    ctx.result(placeholderImage)
                 }
 
 

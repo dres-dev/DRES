@@ -69,6 +69,7 @@ object FFmpegUtil {
     ) = extractedPaths.computeIfAbsent(outputImage) {
 
             ffmpegThreadPool.submit(Callable {
+
                 if (Files.exists(it)) {
                     return@Callable it
                 }

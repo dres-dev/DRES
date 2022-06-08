@@ -51,7 +51,8 @@ abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollecti
 
     }
 
-    private val placeholderImage = this.javaClass.getResourceAsStream("/img/missing.png")!!.readAllBytes()
+    private val missingImage = this.javaClass.getResourceAsStream("/img/missing.png")!!.readAllBytes()
+    private val waitingImage = this.javaClass.getResourceAsStream("/img/loading.png")!!.readAllBytes()
 
     protected fun handlePreviewRequest(item: MediaItem, time: Long?, ctx: Context) {
 
@@ -87,10 +88,7 @@ abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollecti
                 ctx.sendFile(imgPath.toFile())
             }else { //if not, wait for it if necessary
 
-                //FFmpegUtil.extractFrame(Path.of(collection.basePath, item.location), time, imgPath)
-
                 val future = FFmpegUtil.executeFFmpegAsync(Path.of(collection.basePath, item.location), time, imgPath)
-
 
                 try{
                     val path = future.get(3, TimeUnit.SECONDS) ?: throw FileNotFoundException()
@@ -99,15 +97,13 @@ abstract class AbstractPreviewHandler(private val collections: DAO<MediaCollecti
                     ctx.status(408)
                     ctx.header("Cache-Control", "max-age=30")
                     ctx.contentType("image/png")
-                    ctx.result(placeholderImage)
+                    ctx.result(waitingImage)
                 }catch(t: Throwable){
-                    t.printStackTrace()
                     ctx.status(429)
                     ctx.header("Cache-Control", "max-age=30")
                     ctx.contentType("image/png")
-                    ctx.result(placeholderImage)
+                    ctx.result(missingImage)
                 }
-
 
             }
 

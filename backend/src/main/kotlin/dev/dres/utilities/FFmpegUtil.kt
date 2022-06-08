@@ -60,23 +60,41 @@ object FFmpegUtil {
     )
 
 
-    private val extractedPaths = ConcurrentHashMap<Path, Future<Path?>>()
+    private val pendingFutures = ConcurrentHashMap<Path, Future<Path?>>()
 
     fun executeFFmpegAsync(
         video: Path,
         timestamp: Long,
         outputImage: Path
-    ) = extractedPaths.computeIfAbsent(outputImage) {
+    ): Future<Path?> {
 
-            ffmpegThreadPool.submit(Callable {
+        //currently in progress, return existing
+        val pending = pendingFutures[outputImage]
+        if (pending != null) {
+            if (pending.isDone || pending.isCancelled) {
+                pendingFutures.remove(outputImage)
+            }
+            return pending
+        }
 
-                if (Files.exists(it)) {
-                    return@Callable it
+        //already done, should not be requested, return dummy
+        if (Files.exists(outputImage)) {
+            val dummy = CompletableFuture<Path?>()
+            dummy.complete(outputImage)
+            return dummy
+        }
+
+        //schedule generation
+        return ffmpegThreadPool.submit(Callable {
+
+            try {
+                if (Files.exists(outputImage)) {
+                    return@Callable outputImage
                 }
 
                 FFmpeg.atPath(ffmpegBin)
                     .addInput(UrlInput.fromPath(video))
-                    .addOutput(UrlOutput.toPath(it))
+                    .addOutput(UrlOutput.toPath(outputImage))
                     .setOverwriteOutput(true)
                     .addArguments("-ss", toMillisecondTimeStamp(timestamp))
                     .addArguments("-vframes", "1")
@@ -84,17 +102,21 @@ object FFmpegUtil {
                     .setOutputListener { logger.debug(logMarker, it); true }
                     .execute()
 
-                if (Files.exists(it)) {
-                    extractedPaths.remove(it)
-                    it
+                if (Files.exists(outputImage)) {
+                    outputImage
                 } else {
+                    logger.info("Failed generating preview at ${outputImage.toFile().absolutePath}")
                     null
                 }
+            } catch (t: Throwable) {
+                logger.info(t.localizedMessage)
+                return@Callable null
             }
-
-            )
-
         }
+
+        )
+
+    }
 
     private fun extractFrameAsync(video: Path, timecode: String, outputImage: Path) =
         FFmpeg.atPath(ffmpegBin)

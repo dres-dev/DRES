@@ -24,5 +24,5 @@ interface Competition: Run, Entity {
     val tasks: List<Task>
 
     /** Various run-specific settings */
-    val properties: RunProperties
+    var properties: RunProperties
 }

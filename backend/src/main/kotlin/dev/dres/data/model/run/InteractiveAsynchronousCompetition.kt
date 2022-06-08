@@ -29,7 +29,7 @@ class InteractiveAsynchronousCompetition(
     override var id: CompetitionId,
     override val name: String,
     override val description: CompetitionDescription,
-    override val properties: RunProperties,
+    override var properties: RunProperties,
     val permutation: Map<TeamId, List<Int>>
 ) : AbstractRun(), Competition {
 

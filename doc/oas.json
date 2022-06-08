@@ -3540,6 +3540,73 @@
         }
       }
     },
+    "/api/v1/run/admin/{runId}/properties" : {
+      "patch" : {
+        "tags" : [ "Competition Run Admin" ],
+        "summary" : "Changes the properties of a run",
+        "operationId" : "patchApiV1RunAdminWithRunidProperties",
+        "parameters" : [ {
+          "name" : "runId",
+          "in" : "path",
+          "description" : "Competition Run ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RunProperties"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/run/{runId}/judge/next" : {
       "get" : {
         "tags" : [ "Judgement" ],
@@ -5001,7 +5068,7 @@
         }
       },
       "RunProperties" : {
-        "required" : [ "allowRepeatedTasks", "participantCanView", "shuffleTasks" ],
+        "required" : [ "allowRepeatedTasks", "limitSubmissionPreviews", "participantCanView", "shuffleTasks" ],
         "type" : "object",
         "properties" : {
           "participantCanView" : {
@@ -5012,6 +5079,10 @@
           },
           "allowRepeatedTasks" : {
             "type" : "boolean"
+          },
+          "limitSubmissionPreviews" : {
+            "type" : "integer",
+            "format" : "int32"
           }
         }
       },

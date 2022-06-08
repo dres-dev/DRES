@@ -31,14 +31,14 @@
 
     <Loggers>
         <Logger name="org.eclipse.jetty" additivity="false">
-            <AppenderRef ref="Console" level="WARN"/>
-            <AppenderRef ref="Libraries" level="WARN"/>
+            <!--<AppenderRef ref="Console" level="WARN"/>
+            <AppenderRef ref="Libraries" level="WARN"/>-->
             <AppenderRef ref="Everything" level="INFO" />
         </Logger>
 
         <Logger name="io.javalin" additivity="false">
-            <AppenderRef ref="Console" level="WARN"/>
-            <AppenderRef ref="Libraries" level="WARN"/>
+            <!--<AppenderRef ref="Console" level="WARN"/>
+            <AppenderRef ref="Libraries" level="WARN"/>-->
             <AppenderRef ref="Everything" level="INFO" />
         </Logger>
 
@@ -49,7 +49,7 @@
         </Logger>
 
         <Logger name="*" additivity="false">
-            <AppenderRef ref="Console" level="ERROR"/>
+            <!--<AppenderRef ref="Console" level="ERROR"/>-->
             <AppenderRef ref="Libraries" level="ERROR"/>
             <AppenderRef ref="Everything" level="INFO" />
         </Logger>

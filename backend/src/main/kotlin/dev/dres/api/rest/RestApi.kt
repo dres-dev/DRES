@@ -302,7 +302,7 @@ object RestApi {
         1000, 8, 60000, -1, null, null, NamedThreadFactory("JavalinPool")
     )
 
-    val nonIdleThreadCount: Int
+    val readyThreadCount: Int
         get() = pool.readyThreads
 
     private fun setupHttpServer(config: Config): Server {

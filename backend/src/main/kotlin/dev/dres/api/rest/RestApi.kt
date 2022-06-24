@@ -184,7 +184,7 @@ object RestApi {
 
             // Downloads
             DownloadHandler.CompetitionRun(dataAccessLayer.runs),
-            DownloadHandler.CompetitionRunScore(dataAccessLayer.runs),
+            DownloadHandler.CompetitionRunScoreHandler(dataAccessLayer.runs),
             DownloadHandler.CompetitionDesc(dataAccessLayer.competitions)
         )
 

@@ -16,7 +16,7 @@
             <MarkerFilter marker="REST" onMatch="ACCEPT" onMismatch="DENY"/>
         </File>
 
-        <File name="Audit" fileName="logs/audit.log">
+        <File name="Audit" fileName="logs/audit.log" bufferedIO="true" immediateFlush="true">
             <PatternLayout pattern="${LOG_PATTERN}"/>
             <MarkerFilter marker="AUDIT" onMatch="ACCEPT" onMismatch="DENY"/>
         </File>
@@ -24,45 +24,30 @@
         <File name="Libraries" fileName="logs/libraries.log">
             <PatternLayout pattern="${LOG_PATTERN}"/>
         </File>
+
         <File name="Everything" fileName="logs/42.log">
-            <PatternLayout pattern="${LOG_PATTERN}" />
+            <PatternLayout pattern="${LOG_PATTERN}"/>
         </File>
     </Appenders>
 
     <Loggers>
-        <Logger name="org.eclipse.jetty" additivity="false">
-            <!--<AppenderRef ref="Console" level="WARN"/>
-            <AppenderRef ref="Libraries" level="WARN"/>-->
-            <AppenderRef ref="Everything" level="INFO" />
+        <Logger name="org.eclipse.jetty" level="WARN">
+            <AppenderRef ref="Libraries"/>
         </Logger>
 
-        <Logger name="io.javalin" additivity="false">
-            <!--<AppenderRef ref="Console" level="WARN"/>
-            <AppenderRef ref="Libraries" level="WARN"/>-->
-            <AppenderRef ref="Everything" level="INFO" />
+        <Logger name="org.jline" level="WARN">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Libraries"/>
         </Logger>
 
-        <Logger name="org.jline" additivity="false">
-            <AppenderRef ref="Console" level="WARN"/>
-            <AppenderRef ref="Libraries" level="WARN"/>
-            <AppenderRef ref="Everything" level="INFO" />
+        <Logger name="dev.dres" level="INFO">
+            <AppenderRef ref="RestRequests"/>
+            <AppenderRef ref="Audit"/>
         </Logger>
 
-        <Logger name="*" additivity="false">
-            <!--<AppenderRef ref="Console" level="ERROR"/>-->
-            <AppenderRef ref="Libraries" level="ERROR"/>
-            <AppenderRef ref="Everything" level="INFO" />
-        </Logger>
-
-        <Logger name="dev.dres"  additivity="false">
-            <AppenderRef ref="Console" level="INFO"/>
-            <AppenderRef ref="RestRequests" level="INFO"/>
-            <AppenderRef ref="Audit" level="INFO"/>
-            <AppenderRef ref="Everything" level="DEBUG" />
-        </Logger>
-
-        <Root>
-            <AppenderRef ref="Everything" level="INFO" />
+        <Root level="INFO">
+            <AppenderRef ref="Everything"/>
         </Root>
     </Loggers>
+
 </Configuration>

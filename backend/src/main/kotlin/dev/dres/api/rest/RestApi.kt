@@ -250,7 +250,7 @@ object RestApi {
                 }) from ${it.req.remoteAddr}"
             )
             if (it.path().startsWith("/api/")) { //do not cache api requests
-                it.header("Cache-Control", "max-age=0")
+                it.header("Cache-Control", "no-store")
             }
         }.error(401) {
             it.json(ErrorStatus("Unauthorized request!"))

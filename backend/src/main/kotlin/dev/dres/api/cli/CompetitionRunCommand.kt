@@ -21,6 +21,7 @@ import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 import dev.dres.data.model.submissions.aspects.TextAspect
 import dev.dres.run.*
 import dev.dres.utilities.extensions.UID
+import dev.dres.utilities.extensions.toDateString
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.nio.file.Files
@@ -129,7 +130,7 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
         private val plain by option("-p", "--plain", help = "Plain print. No fancy tables").flag(default = false)
         override fun run() {
             if (plain) {
-                this@CompetitionRunCommand.runs.forEach {
+                this@CompetitionRunCommand.runs.sortedByDescending { it.started }.forEach {
                     println(
                         "${
                             RunSummary(
@@ -151,10 +152,10 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
                             paddingRight = 1
                         }
                         header {
-                            row("id", "name", "description", "lastTask", "status")
+                            row("id", "name", "description", "lastTask", "status", "start", "end")
                         }
                         body {
-                            this@CompetitionRunCommand.runs.forEach {
+                            this@CompetitionRunCommand.runs.sortedByDescending { it.started }.forEach {
                                 val status = if (it.hasStarted && !it.hasEnded && !it.isRunning) {
                                     "started"
                                 } else if (it.hasStarted && !it.hasEnded && it.isRunning) {
@@ -172,7 +173,9 @@ class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktComm
                                     it.description.description,
                                     if (it is InteractiveSynchronousCompetition) it.currentTask?.description?.name
                                         ?: "N/A" else "N/A",
-                                    status
+                                    status,
+                                    it.started?.toDateString() ?: "-",
+                                    it.ended?.toDateString() ?: "-",
                                 )
                             }
                         }

@@ -10,7 +10,7 @@ import {
   ApexPlotOptions,
   ApexStroke,
   ApexTheme,
-  ChartComponent,
+  ChartComponent
 } from 'ng-apexcharts';
 import { catchError, map, switchMap } from 'rxjs/operators';
 
@@ -83,6 +83,9 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
 
   dataLabels: ApexDataLabels = {
     enabled: true,
+    dropShadow: {
+        enabled: true
+    }
   } as ApexDataLabels;
 
   series: Observable<ApexAxisChartSeries>;

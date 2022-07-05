@@ -391,7 +391,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
       this.p = params.params;
     }
     const w = Widget.resolveWidget(this.p[position], position);
-    console.log(`Position ${this.p[position]}/${position} resolved to `, w);
+    //console.log(`Position ${this.p[position]}/${position} resolved to `, w);
     return w;
   }
 

@@ -24,7 +24,7 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
 
     companion object {
         private val counter = AtomicInteger()
-        private const val judgementTimeout = 30_000 //ms until a request is re-scheduled
+        private const val judgementTimeout = 60_000 //ms until a request is re-scheduled
     }
 
     override val id = "bjv${counter.incrementAndGet()}"

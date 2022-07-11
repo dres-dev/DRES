@@ -1,10 +1,10 @@
-<div class="grid">
+<div [@newDescBg]="isNewJudgementDesc ? 'fresh' : 'known'" class="grid">
   <div class="header">
     <app-back-button></app-back-button>
     <h1>Judgment for Submission</h1>
     <div fxLayout="row" fxLayoutAlign="space-between start" class="header-container">
-      <div [@newDesc]="isNewJudgementDesc ? 'fresh' : 'known'" fxFlex="75" class="header-main">
-        <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> {{ judgementRequest?.taskDescription }}</p>
+      <div  fxFlex="75" class="header-main">
+        <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> <span>{{ judgementRequest?.taskDescription }}</span></p>
         <p *ngIf="debug && isJudgmentAvailable">{{ judgePlayer?.videoUrlDebug | async }}</p>
         <div class="message" *ngIf="!isJudgmentAvailable">{{ noJudgementMessage }}</div>
       </div>

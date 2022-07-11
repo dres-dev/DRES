@@ -20,13 +20,13 @@ import {JudgementDialogContent} from './judgement-dialog/judgement-dialog-conten
     templateUrl: './judgement-viewer.component.html',
     styleUrls: ['./judgement-viewer.component.scss'],
     animations: [
-        trigger('newDesc', [
+        trigger('newDescBg', [
             state('known', style({backgroundColor: 'transparent'})),
             state('fresh', style({backgroundColor: 'transparent'})),
 
             transition('known => fresh', [
                 animate(
-                    '2s',
+                    '3s',
                     keyframes([
                         style({backgroundColor: 'transparent', offset: 0}),
                         style({backgroundColor: '#7b1fa2', offset: 0.2}), // TODO how to get access to primary color of theme
@@ -81,6 +81,11 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                     '        Your task will be to judge, whether the shown video segment fulfills the given description or not.\n' +
                     '        In case of doubt, you also can opt for <i>don\'t know</i>.\n' +
                     '    </p>\n' +
+                    '    <p>\n' +
+                    '        <b>Information:</b>\n' +
+                    '        Red border means this is for context only: You shall not judge what is in a red border.\n' +
+                    '        The colour change indicates a new task, hence a new description. Read it before you make a verdict.\n' +
+                    '    </p>' +
                     '    <p>\n' +
                     '        Thank you for being a fair Judge!\n' +
                     '    </p>',
@@ -189,6 +194,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                     console.log('new: ' + this.isNewJudgementDesc);
                     if (this.isNewJudgementDesc) {
                         this.status = 'fresh';
+                        window.scroll(0,0);
                     } else {
                         this.status = 'known';
                     }

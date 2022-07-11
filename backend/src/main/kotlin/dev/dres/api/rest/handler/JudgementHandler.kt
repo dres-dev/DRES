@@ -17,6 +17,7 @@ import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
+import dev.dres.run.exceptions.JudgementTimeoutException
 import dev.dres.run.validation.interfaces.VoteValidator
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
@@ -132,6 +133,7 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
+                OpenApiResponse("408", [OpenApiContent(ErrorStatus::class)], "On timeout: Judgement took too long"),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ]
     )
@@ -151,10 +153,8 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
 
         try {
             validator.judge(judgement.token, judgement.verdict)
-        }catch(ex: IllegalArgumentException){
-            if(ex.message?.startsWith("This JudgementValidator does not contain a submission for the token") == true){
-                throw ErrorStatusException(408, ex.message!!, ctx)
-            }
+        }catch(ex: JudgementTimeoutException){
+            throw ErrorStatusException(408, ex.message!!, ctx)
         }
         AuditLogger.judgement(run.id, judgement.validator, judgement.token, judgement.verdict, LogEventSource.REST, ctx.sessionId())
 

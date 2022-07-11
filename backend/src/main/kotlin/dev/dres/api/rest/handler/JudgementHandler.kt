@@ -149,8 +149,13 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
 
         val validator = run.judgementValidators.find { it.id == judgement.validator } ?: throw ErrorStatusException(404, "no matching task found with validator ${judgement.validator}", ctx)
 
-        validator.judge(judgement.token, judgement.verdict)
-
+        try {
+            validator.judge(judgement.token, judgement.verdict)
+        }catch(ex: IllegalArgumentException){
+            if(ex.message?.startsWith("This JudgementValidator does not contain a submission for the token") == true){
+                throw ErrorStatusException(408, ex.message!!, ctx)
+            }
+        }
         AuditLogger.judgement(run.id, judgement.validator, judgement.token, judgement.verdict, LogEventSource.REST, ctx.sessionId())
 
         return SuccessStatus("Verdict received and accepted. Thanks!")

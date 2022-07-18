@@ -158,7 +158,7 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
         }
         AuditLogger.judgement(run.id, judgement.validator, judgement.token, judgement.verdict, LogEventSource.REST, ctx.sessionId())
 
-        return SuccessStatus("Verdict received and accepted. Thanks!")
+        return SuccessStatus("Verdict ${judgement.verdict} received and accepted. Thanks!")
     }
 }
 

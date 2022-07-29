@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
+import {RestCompetitionDescription} from '../../../../../../openapi';
 
 @Component({
   selector: 'app-teams-judges-tab',
@@ -6,6 +7,8 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./teams-judges-tab.component.scss']
 })
 export class TeamsJudgesTabComponent implements OnInit {
+
+  @Input() competition: RestCompetitionDescription
 
   constructor() { }
 

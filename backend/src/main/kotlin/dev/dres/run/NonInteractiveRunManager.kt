@@ -9,6 +9,7 @@ import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.AbstractNonInteractiveTask
 import dev.dres.data.model.run.NonInteractiveCompetition
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunProperties
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.batch.SubmissionBatch
 import dev.dres.run.score.scoreboard.Scoreboard
@@ -26,6 +27,9 @@ class NonInteractiveRunManager(val run: NonInteractiveCompetition) : RunManager 
     private val SCOREBOARD_UPDATE_INTERVAL_MS = 10_000L // TODO make configurable
 
     private val LOGGER = LoggerFactory.getLogger(this.javaClass)
+
+    override val runProperties: RunProperties
+    get() = run.properties
 
     /** A lock for state changes to this [InteractiveSynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
@@ -184,7 +188,7 @@ class NonInteractiveRunManager(val run: NonInteractiveCompetition) : RunManager 
      */
     fun addSubmissionBatch(batch: SubmissionBatch<*>) = this.stateLock.read{
 
-        check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronousNonInteractiveRunManager is in status ${this.status} and can currently not accept submissions." }
+        //check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronousNonInteractiveRunManager is in status ${this.status} and can currently not accept submissions." } //FIXME
 
         this.run.tasks.forEach { task ->
             val taskResultBatches = batch.results.filter { it.task == task.uid }

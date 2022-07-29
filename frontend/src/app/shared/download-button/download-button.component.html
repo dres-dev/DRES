@@ -1,7 +1,7 @@
 <button *ngIf="!inline" mat-button (click)="download()">
-    <mat-icon style="vertical-align: middle;">{{icon}}</mat-icon> {{name}}
+  <mat-icon style="vertical-align: middle">{{ icon }}</mat-icon> {{ name }}
 </button>
 
 <button *ngIf="inline" mat-icon-button (click)="download()">
-    <mat-icon style="vertical-align: middle;">{{icon}}</mat-icon> {{name}}
+  <mat-icon style="vertical-align: middle">{{ icon }}</mat-icon> {{ name }}
 </button>

@@ -114,7 +114,7 @@ class CurrentTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
         val rac = RunActionContext.runActionContext(ctx, run)
 
-        if (!run.description.participantCanView && isParticipant(ctx)) {
+        if (!run.runProperties.participantCanView && isParticipant(ctx)) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
@@ -270,7 +270,7 @@ class TeamGroupScoreHandler : AbstractScoreRestHandler(), GetRestHandler<List<Te
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
         val rac = RunActionContext.runActionContext(ctx, run)
 
-        if (!run.description.participantCanView && isParticipant(ctx)) {
+        if (!run.runProperties.participantCanView && isParticipant(ctx)) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 

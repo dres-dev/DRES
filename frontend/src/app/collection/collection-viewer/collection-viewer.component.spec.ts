@@ -1,6 +1,6 @@
-import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
-import {CollectionViewerComponent} from './collection-viewer.component';
+import { CollectionViewerComponent } from './collection-viewer.component';
 
 describe('CollectionViewerComponent', () => {
   let component: CollectionViewerComponent;
@@ -8,9 +8,8 @@ describe('CollectionViewerComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ CollectionViewerComponent ]
-    })
-    .compileComponents();
+      declarations: [CollectionViewerComponent],
+    }).compileComponents();
   }));
 
   beforeEach(() => {

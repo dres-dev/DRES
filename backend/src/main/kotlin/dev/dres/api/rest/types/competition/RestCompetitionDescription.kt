@@ -26,8 +26,7 @@ data class RestCompetitionDescription(
         val tasks: List<RestTaskDescription>,
         val teams: List<RestTeam>,
         val teamGroups: List<RestTeamGroup>,
-        val judges: List<String>,
-        val participantCanView: Boolean
+        val judges: List<String>
 ) {
 
 
@@ -46,8 +45,7 @@ data class RestCompetitionDescription(
             competition.tasks.map { RestTaskDescription.fromTask(it) },
             competition.teams.map { RestTeam(it) },
             competition.teamGroups.map { RestTeamGroup(it) },
-            competition.judges.map { it.string },
-            competition.participantCanView
+            competition.judges.map { it.string }
         )
     }
 
@@ -70,8 +68,7 @@ data class RestCompetitionDescription(
             this.tasks.map { it.toTaskDescription(this.taskGroups, this.taskTypes, mediaItems) }.toMutableList(),
             teams,
             this.teamGroups.map { it.toTeamGroup(teams) }.toMutableList(),
-            this.judges.map { UserId(it) }.toMutableList(),
-            this.participantCanView
+            this.judges.map { UserId(it) }.toMutableList()
         )
     }
 }

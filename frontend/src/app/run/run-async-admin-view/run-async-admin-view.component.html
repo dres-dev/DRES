@@ -1,0 +1,145 @@
+<div fxLayout="column" fxLayoutAlign="space-evenly stretch">
+  <app-run-admin-toolbar [runId]="runId" [run]="run" [update]="update"></app-run-admin-toolbar>
+  <div fxLayout="row" fxLayoutAlign="space-between stretch">
+    <mat-card fxFlex="49"
+      ><!-- Overview of Tasks -->
+      <mat-card-header>
+        <mat-card-title>Tasks Overview</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <table #taskTable mat-table [dataSource]="(run | async)?.runInfo?.tasks" style="width: 100%">
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let task" [matTooltip]="'TaskId: ' + task.id">{{ task.name }}</td>
+          </ng-container>
+
+          <!-- Task Group Column -->
+          <ng-container matColumnDef="group">
+            <th mat-header-cell *matHeaderCellDef>Group</th>
+            <td mat-cell *matCellDef="let task">{{ task.taskGroup }}</td>
+          </ng-container>
+
+          <!-- Task Type Column -->
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef>Type</th>
+            <td mat-cell *matCellDef="let task">{{ task.taskType }}</td>
+          </ng-container>
+
+          <!-- Duration Column -->
+          <ng-container matColumnDef="duration">
+            <th mat-header-cell *matHeaderCellDef>Duration [s]</th>
+            <td mat-cell *matCellDef="let task">{{ task.duration }}</td>
+          </ng-container>
+
+          <!-- Submissions Column -->
+          <ng-container matColumnDef="past">
+            <th mat-header-cell *matHeaderCellDef>Submissions</th>
+            <td mat-cell *matCellDef="let task">
+              {{ (task | enhanceTaskPastInfo: this.pastTasksValue)?.numberOfSubmissions || 'n/a' }}
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let task; let i = index">
+              <button mat-icon-button aria-label="See submissions" matTooltip="See submissions" (click)="submissionsOf(task)">
+                <mat-icon>assignment_turned_in</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumnsTasks"></tr>
+          <tr mat-row *matRowDef="let task; columns: displayedColumnsTasks"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+    <mat-card fxFlex="49"
+      ><!-- Tasks per Team -->
+      <mat-card-header fxLayout="row" fxLayoutAlign="space-between center">
+        <mat-card-title>Tasks per Team </mat-card-title>
+        <button
+          mat-icon-button
+          style="margin-left: auto"
+          (click)="nbOpenTeamOverviews > 0 ? closeAllTeamOverviews() : openAllTeamOverviews()"
+          matTooltip="{{ nbOpenTeamOverviews > 0 ? 'Collapse all Overviews' : 'Expand all Overviews' }}"
+        >
+          <mat-icon>{{ nbOpenTeamOverviews > 0 ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+        </button>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-accordion multi>
+          <mat-expansion-panel
+            *ngFor="let teamOverview of (run | async)?.overview.teamOverviews; trackBy: resolveTeamOverviewByTeamId"
+            (opened)="nbOpenTeamOverviews = nbOpenTeamOverviews + 1"
+            (closed)="nbOpenTeamOverviews = nbOpenTeamOverviews - 1"
+          >
+            <mat-expansion-panel-header>
+              <mat-panel-title
+                >Task Runs of: {{ (teamOverview.teamId | resolveTeam: (teams | async))?.name || 'N/A' }}</mat-panel-title
+              >
+            </mat-expansion-panel-header>
+            <table mat-table [dataSource]="teamOverview.tasks" style="width: 100%" [trackBy]="resolveTeamById">
+              <!-- Name Column -->
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let task" [matTooltip]="'TaskId: ' + task.taskId">{{ task.name }}</td>
+              </ng-container>
+
+              <!-- Task Status Column -->
+              <ng-container matColumnDef="state">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let task">{{ task.status }}</td>
+              </ng-container>
+
+              <!-- Task Type Column -->
+              <ng-container matColumnDef="type">
+                <th mat-header-cell *matHeaderCellDef>Type</th>
+                <td mat-cell *matCellDef="let task">{{ task.type }}</td>
+              </ng-container>
+
+              <!-- Task Type Column -->
+              <ng-container matColumnDef="group">
+                <th mat-header-cell *matHeaderCellDef>Group</th>
+                <td mat-cell *matCellDef="let task">{{ task.group }}</td>
+              </ng-container>
+
+              <!-- Duration Column -->
+              <ng-container matColumnDef="duration">
+                <th mat-header-cell *matHeaderCellDef>Duration [s]</th>
+                <td mat-cell *matCellDef="let task">{{ task.duration }}</td>
+              </ng-container>
+
+              <!-- Submissions Column -->
+              <ng-container matColumnDef="past">
+                <th mat-header-cell *matHeaderCellDef>Submisssions</th>
+                <td mat-cell *matCellDef="let task">
+                  {{ (task | enhanceTaskPastInfo: this.pastTasksValue)?.numberOfSubmissions || 'n/a' }}
+                </td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let task; let i = index">
+                  <button
+                    mat-icon-button
+                    aria-label="See submissions"
+                    matTooltip="See submissions"
+                    (click)="submissionsOf(task, 'id')"
+                  >
+                    <mat-icon>assignment_turned_in</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumnsTeamTasks"></tr>
+              <tr mat-row *matRowDef="let task; columns: displayedColumnsTeamTasks"></tr>
+            </table>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

@@ -3,16 +3,18 @@ import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {TaskType} from '../../../../../openapi';
 import {TaskTypesComponent} from '../components/task-types/task-types.component';
 
-
+/**
+ * Wrapper to be able to have an enum value boolean tuple
+ */
 interface ActivatedType<T> {
-    type: T;
-    activated: boolean;
+  type: T;
+  activated: boolean;
 }
 
 @Component({
-    selector: 'app-competition-builder-task-type',
-    templateUrl: './competition-builder-task-type-dialog.component.html',
-    styleUrls: ['./competition-builder-task-type-dialog.component.scss']
+  selector: 'app-competition-builder-task-type',
+  templateUrl: './competition-builder-task-type-dialog.component.html',
+  styleUrls: ['./competition-builder-task-type-dialog.component.scss'],
 })
 export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterViewInit {
 
@@ -23,8 +25,7 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
         @Inject(MAT_DIALOG_DATA) public data: TaskType) {
     }
 
-    ngAfterViewInit(): void {
-    }
+  ngAfterViewInit(): void {}
 
     save(): void {
         if (this.comp.valid) {
@@ -32,17 +33,17 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
         }
     }
 
-    close(): void {
-        this.dialogRef.close(null);
-    }
+  close(): void {
+    this.dialogRef.close(null);
+  }
 
     fileProvider = () => this.comp.fileProvider();
 
     downloadProvider = () => this.comp.downloadProvider();
 
-    import(): void {
-        // TODO
-    }
+  import(): void {
+    // TODO
+  }
 
     ngOnInit(): void {
     }

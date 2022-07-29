@@ -1,6 +1,6 @@
-import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
-import {VideoPlayerSegmentBuilderComponent} from './video-player-segment-builder.component';
+import { VideoPlayerSegmentBuilderComponent } from './video-player-segment-builder.component';
 
 describe('VideoPlayerSegmentBuilderComponent', () => {
   let component: VideoPlayerSegmentBuilderComponent;
@@ -8,9 +8,8 @@ describe('VideoPlayerSegmentBuilderComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ VideoPlayerSegmentBuilderComponent ]
-    })
-    .compileComponents();
+      declarations: [VideoPlayerSegmentBuilderComponent],
+    }).compileComponents();
   }));
 
   beforeEach(() => {

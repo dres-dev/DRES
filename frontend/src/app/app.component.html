@@ -1,58 +1,70 @@
 <mat-toolbar color="primary">
-    <div>DRES</div>
-    <div class="spacer-small"></div>
-    <app-api-status></app-api-status>
+  <div>DRES</div>
+  <div class="spacer-small"></div>
+  <app-api-status></app-api-status>
 
-    <div class="spacer-flex"></div>
+  <div class="spacer-flex"></div>
 
-    <button *ngIf="isAdmin | async" mat-button aria-label="Competition builder and overview" matTooltip="Competition builder and overview" routerLink="/competition/list">
-        <mat-icon>build</mat-icon> Competition Builder
+  <button
+    *ngIf="isAdmin | async"
+    mat-button
+    aria-label="Competition builder and overview"
+    matTooltip="Competition builder and overview"
+    routerLink="/competition/list"
+  >
+    <mat-icon>build</mat-icon> Competition Builder
+  </button>
+
+  <button *ngIf="loggedIn | async" mat-button aria-label="Ongoing runs" matTooltip="Ongoing runs" routerLink="/run/list">
+    <mat-icon>directions_run</mat-icon> Competition Runs
+  </button>
+
+  <button *ngIf="isAdmin | async" mat-button aria-label="User Management" matTooltip="User Management" routerLink="/user/list">
+    <mat-icon>people</mat-icon> User Management
+  </button>
+
+  <button
+    *ngIf="isAdmin | async"
+    mat-button
+    aria-label="Media Collection management"
+    matTooltip="Media collection management"
+    routerLink="/collection/list"
+  >
+    <mat-icon>perm_media</mat-icon> Media Collection Management
+  </button>
+
+  <button *ngIf="isAdmin | async" mat-button aria-label="Audit Logs" matTooltip="Audit logs overview" routerLink="/logs/list">
+    <mat-icon>view_headline</mat-icon> Audit Logs
+  </button>
+
+  <div class="spacer-flex"></div>
+
+  <div>
+    <button
+      matTooltip="{{ (config.configAsObservable | async).effects.mute ? 'Unmute' : 'Mute' }}"
+      mat-button
+      (click)="toggleMute()"
+    >
+      <mat-icon *ngIf="!(config.configAsObservable | async).effects.mute">volume_up</mat-icon>
+      <mat-icon *ngIf="(config.configAsObservable | async).effects.mute">volume_off</mat-icon>
     </button>
+  </div>
 
-    <button *ngIf="loggedIn | async" mat-button aria-label="Ongoing runs" matTooltip="Ongoing runs" routerLink="/run/list">
-        <mat-icon>directions_run</mat-icon> Competition Runs
+  <div *ngIf="!(loggedIn | async)">
+    <button mat-button routerLink="/login">Login</button>
+  </div>
+  <div *ngIf="loggedIn | async">
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item (click)="profile()">User profile</button>
+      <button mat-menu-item (click)="logout()">Logout</button>
+    </mat-menu>
+    <button mat-button [matMenuTriggerFor]="userMenu">
+      <mat-icon>person</mat-icon>
+      {{ (user | async).username }}
     </button>
-
-    <button *ngIf="isAdmin | async" mat-button aria-label="User Management" matTooltip="User Management" routerLink="/user/list">
-        <mat-icon>people</mat-icon> User Management
-    </button>
-
-    <button *ngIf="isAdmin | async" mat-button aria-label="Media Collection management" matTooltip="Media collection management" routerLink="/collection/list">
-        <mat-icon>perm_media</mat-icon> Media Collection Management
-    </button>
-
-    <button *ngIf="isAdmin | async" mat-button aria-label="Audit Logs" matTooltip="Audit logs overview" routerLink="/logs/list">
-        <mat-icon>view_headline</mat-icon> Audit Logs
-    </button>
-
-
-    <div class="spacer-flex"></div>
-
-    <div>
-        <button matTooltip="{{(config.configAsObservable | async).effects.mute ? 'Unmute' : 'Mute'}}" mat-button (click)="toggleMute()">
-            <mat-icon *ngIf="!(config.configAsObservable | async).effects.mute">volume_up</mat-icon>
-            <mat-icon *ngIf="(config.configAsObservable | async).effects.mute">volume_off</mat-icon>
-        </button>
-    </div>
-
-    <div *ngIf="!(loggedIn | async)">
-        <button mat-button routerLink="/login">
-            Login
-        </button>
-    </div>
-    <div *ngIf="(loggedIn | async)">
-        <mat-menu #userMenu="matMenu">
-            <button mat-menu-item (click)="profile()">User profile</button>
-            <button mat-menu-item (click)="logout()">Logout</button>
-        </mat-menu>
-        <button mat-button [matMenuTriggerFor]="userMenu">
-            <mat-icon>person</mat-icon>
-            {{(user | async).username}}
-        </button>
-    </div>
-
+  </div>
 </mat-toolbar>
 
 <div id="container">
-    <router-outlet></router-outlet>
+  <router-outlet></router-outlet>
 </div>

@@ -101,5 +101,4 @@ import {MatTabsModule} from '@angular/material/tabs';
     ],
     providers: []
 })
-export class CompetitionBuilderModule {
-}
+export class CompetitionBuilderModule {}

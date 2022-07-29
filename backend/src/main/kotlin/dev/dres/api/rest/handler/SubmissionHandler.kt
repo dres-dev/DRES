@@ -22,11 +22,8 @@ import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunManager
-import dev.dres.run.RunManagerStatus
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
-import dev.dres.run.eventstream.EventStreamProcessor
-import dev.dres.run.eventstream.SubmissionEvent
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionRejectedException
@@ -63,7 +60,10 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
     private fun getRelevantManagers(userId: UID): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
     private fun getActiveRun(userId: UID, ctx: Context): InteractiveRunManager {
-        val managers = getRelevantManagers(userId).filterIsInstance(InteractiveRunManager::class.java).filter { it.status == RunManagerStatus.RUNNING_TASK }
+        val managers = getRelevantManagers(userId).filterIsInstance(InteractiveRunManager::class.java).filter {
+            val rac = RunActionContext.runActionContext(ctx, it)
+            it.currentTask(rac)?.isRunning == true
+        }
         if (managers.isEmpty()) {
             throw ErrorStatusException(404, "There is currently no eligible competition with an active task.", ctx)
         }
@@ -195,8 +195,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             throw ErrorStatusException(400, "Run manager does not know the given teamId ${rac.teamId}.", ctx)
         }
 
-        AuditLogger.submission(run.id, run.currentTaskDescription(rac).name, submission, LogEventSource.REST, ctx.sessionId(), ctx.req.remoteAddr)
-        EventStreamProcessor.event(SubmissionEvent(ctx.sessionId(), run.id, run.currentTask(rac)?.uid, submission))
+        AuditLogger.submission(run.id, run.currentTaskDescription(rac).name, run.currentTask(rac)?.uid, submission, LogEventSource.REST, ctx.sessionId(), ctx.req.remoteAddr)
 
         if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }) { //pre-generate preview
             generatePreview(submission)

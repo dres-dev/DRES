@@ -1832,11 +1832,11 @@
         }
       }
     },
-    "/api/v1/run/info/{runId}" : {
+    "/api/v1/run/{runId}/info" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns a specific competition run.",
-        "operationId" : "getApiV1RunInfoWithRunid",
+        "operationId" : "getApiV1RunWithRunidInfo",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -1890,11 +1890,11 @@
         }
       }
     },
-    "/api/v1/run/state/{runId}" : {
+    "/api/v1/run/{runId}/state" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the state of a specific competition run.",
-        "operationId" : "getApiV1RunStateWithRunid",
+        "operationId" : "getApiV1RunWithRunidState",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -1948,15 +1948,23 @@
         }
       }
     },
-    "/api/v1/run/{runId}/hint" : {
+    "/api/v1/run/{runId}/hint/{taskId}" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the task hint for the current task run (i.e. the one that is currently selected).",
-        "operationId" : "getApiV1RunWithRunidHint",
+        "operationId" : "getApiV1RunWithRunidHintWithTaskid",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
           "description" : "Competition Run ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "taskId",
+          "in" : "path",
+          "description" : "Task Description ID",
           "required" : true,
           "schema" : {
             "type" : "string"
@@ -2006,15 +2014,23 @@
         }
       }
     },
-    "/api/v1/run/{runId}/target" : {
+    "/api/v1/run/{runId}/target/{taskId}" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the task target for the current task run (i.e. the one that is currently selected).",
-        "operationId" : "getApiV1RunWithRunidTarget",
+        "operationId" : "getApiV1RunWithRunidTargetWithTaskid",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
           "description" : "Competition Run ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "taskId",
+          "in" : "path",
+          "description" : "Task Description ID",
           "required" : true,
           "schema" : {
             "type" : "string"
@@ -2247,11 +2263,11 @@
         }
       }
     },
-    "/api/v1/run/{runId}/task/{taskId}/submission/list" : {
+    "/api/v1/run/{runId}/task/{taskRunId}/submission/list" : {
       "get" : {
         "tags" : [ "Competition Run" ],
         "summary" : "Returns the submissions of a specific task run, regardless of whether it is currently running or has ended.",
-        "operationId" : "getApiV1RunWithRunidTaskWithTaskidSubmissionList",
+        "operationId" : "getApiV1RunWithRunidTaskWithTaskrunidSubmissionList",
         "parameters" : [ {
           "name" : "runId",
           "in" : "path",
@@ -2261,7 +2277,7 @@
             "type" : "string"
           }
         }, {
-          "name" : "taskId",
+          "name" : "taskRunId",
           "in" : "path",
           "description" : "Task run ID",
           "required" : true,
@@ -2733,7 +2749,7 @@
     "/api/v1/run/admin/{runId}/start" : {
       "post" : {
         "tags" : [ "Competition Run Admin" ],
-        "summary" : "Starts a competition run. This is a method for admins.",
+        "summary" : "Starts a competition run.",
         "operationId" : "postApiV1RunAdminWithRunidStart",
         "parameters" : [ {
           "name" : "runId",
@@ -3429,6 +3445,131 @@
                   "items" : {
                     "$ref" : "#/components/schemas/PastTaskInfo"
                   }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/run/admin/{runId}/overview" : {
+      "get" : {
+        "tags" : [ "Competition Run Admin" ],
+        "summary" : "Provides a complete overview of a run.",
+        "operationId" : "getApiV1RunAdminWithRunidOverview",
+        "parameters" : [ {
+          "name" : "runId",
+          "in" : "path",
+          "description" : "Competition Run ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminRunOverview"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/run/admin/{runId}/properties" : {
+      "patch" : {
+        "tags" : [ "Competition Run Admin" ],
+        "summary" : "Changes the properties of a run",
+        "operationId" : "patchApiV1RunAdminWithRunidProperties",
+        "parameters" : [ {
+          "name" : "runId",
+          "in" : "path",
+          "description" : "Competition Run ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RunProperties"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
                 }
               }
             }
@@ -4404,7 +4545,7 @@
         }
       },
       "CompetitionCreate" : {
-        "required" : [ "description", "name", "participantsCanView" ],
+        "required" : [ "description", "name" ],
         "type" : "object",
         "properties" : {
           "name" : {
@@ -4412,9 +4553,6 @@
           },
           "description" : {
             "type" : "string"
-          },
-          "participantsCanView" : {
-            "type" : "boolean"
           }
         }
       },
@@ -4499,7 +4637,7 @@
         }
       },
       "RestCompetitionDescription" : {
-        "required" : [ "id", "judges", "name", "participantCanView", "taskGroups", "taskTypes", "tasks", "teamGroups", "teams" ],
+        "required" : [ "id", "judges", "name", "taskGroups", "taskTypes", "tasks", "teamGroups", "teams" ],
         "type" : "object",
         "properties" : {
           "id" : {
@@ -4546,9 +4684,6 @@
             "items" : {
               "type" : "string"
             }
-          },
-          "participantCanView" : {
-            "type" : "boolean"
           }
         }
       },
@@ -4896,7 +5031,7 @@
         }
       },
       "RunInfo" : {
-        "required" : [ "competitionId", "id", "name", "participantsCanView", "tasks", "teams" ],
+        "required" : [ "competitionId", "id", "name", "properties", "tasks", "teams", "type" ],
         "type" : "object",
         "properties" : {
           "id" : {
@@ -4923,8 +5058,31 @@
           "competitionId" : {
             "type" : "string"
           },
-          "participantsCanView" : {
+          "properties" : {
+            "$ref" : "#/components/schemas/RunProperties"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "SYNCHRONOUS", "ASYNCHRONOUS" ]
+          }
+        }
+      },
+      "RunProperties" : {
+        "required" : [ "allowRepeatedTasks", "limitSubmissionPreviews", "participantCanView", "shuffleTasks" ],
+        "type" : "object",
+        "properties" : {
+          "participantCanView" : {
             "type" : "boolean"
+          },
+          "shuffleTasks" : {
+            "type" : "boolean"
+          },
+          "allowRepeatedTasks" : {
+            "type" : "boolean"
+          },
+          "limitSubmissionPreviews" : {
+            "type" : "integer",
+            "format" : "int32"
           }
         }
       },
@@ -4969,15 +5127,19 @@
         }
       },
       "RunState" : {
-        "required" : [ "id", "status", "timeElapsed", "timeLeft" ],
+        "required" : [ "id", "runStatus", "taskRunStatus", "timeElapsed", "timeLeft" ],
         "type" : "object",
         "properties" : {
           "id" : {
             "type" : "string"
           },
-          "status" : {
+          "runStatus" : {
             "type" : "string",
-            "enum" : [ "CREATED", "ACTIVE", "PREPARING_TASK", "RUNNING_TASK", "TASK_ENDED", "TERMINATED" ]
+            "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
+          },
+          "taskRunStatus" : {
+            "type" : "string",
+            "enum" : [ "NO_TASK", "CREATED", "PREPARING", "RUNNING", "ENDED" ]
           },
           "currentTask" : {
             "$ref" : "#/components/schemas/TaskInfo"
@@ -5149,7 +5311,7 @@
         }
       },
       "CompetitionStartMessage" : {
-        "required" : [ "competitionId", "name", "scoreboards", "type" ],
+        "required" : [ "competitionId", "name", "properties", "type" ],
         "type" : "object",
         "properties" : {
           "competitionId" : {
@@ -5162,11 +5324,8 @@
             "type" : "string",
             "enum" : [ "SYNCHRONOUS", "ASYNCHRONOUS" ]
           },
-          "scoreboards" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
+          "properties" : {
+            "$ref" : "#/components/schemas/RunProperties"
           }
         }
       },
@@ -5225,6 +5384,74 @@
           "numberOfSubmissions" : {
             "type" : "integer",
             "format" : "int32"
+          }
+        }
+      },
+      "AdminRunOverview" : {
+        "required" : [ "state", "teamOverviews" ],
+        "type" : "object",
+        "properties" : {
+          "state" : {
+            "type" : "string",
+            "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
+          },
+          "teamOverviews" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TeamTaskOverview"
+            }
+          }
+        }
+      },
+      "TaskRunOverview" : {
+        "required" : [ "duration", "group", "id", "name", "status", "taskId", "type" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "group" : {
+            "type" : "string"
+          },
+          "duration" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "taskId" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "CREATED", "PREPARING", "RUNNING", "ENDED" ]
+          },
+          "started" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "ended" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "TeamTaskOverview" : {
+        "required" : [ "tasks", "teamId" ],
+        "type" : "object",
+        "properties" : {
+          "teamId" : {
+            "type" : "string"
+          },
+          "tasks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TaskRunOverview"
+            }
           }
         }
       },
@@ -5648,7 +5875,7 @@
           },
           "status" : {
             "type" : "string",
-            "enum" : [ "CREATED", "ACTIVE", "PREPARING_TASK", "RUNNING_TASK", "TASK_ENDED", "TERMINATED" ]
+            "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
           }
         }
       },

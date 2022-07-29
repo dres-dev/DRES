@@ -1,6 +1,6 @@
 package dev.dres.api.cli
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
@@ -311,11 +311,29 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
             }
 
             val base = File(collection.basePath)
+
+            if (!base.exists()) {
+                println("Cannot scan collection, '${collection.basePath}' does not exist.")
+                return
+            }
+
+            if (!base.isDirectory) {
+                println("Cannot scan collection, '${collection.basePath}' is no directory.")
+                return
+            }
+
+            if (!base.canRead()) {
+                println("Cannot scan collection, '${collection.basePath}' is not readable.")
+                return
+            }
+
             val files = base.walkTopDown().filter { it.isFile && (it.extension.toLowerCase() in imageTypes || it.extension in videoTypes) }
 
             val buffer = mutableListOf<MediaItem>()
 
             val issues = mutableMapOf<String, String>()
+
+            var fileCounter = 0
 
             files.forEach { file ->
 
@@ -383,6 +401,8 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                     println("done")
                 }
 
+                ++fileCounter
+
             }
 
             println()
@@ -395,11 +415,12 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 // TODO resolve issues file relative to config
                 val file = File("issues-scan-${collection.name}-${System.currentTimeMillis()}.json")
                 println("There have been ${issues.size} issues while scanning. You might want to check them at ${file.path}")
-                val om = ObjectMapper()
+                val om = jacksonObjectMapper()
                 om.writeValue(file, issues)
                 println("done")
             }
-            println()
+            println("\nAdded $fileCounter elements to collection")
+
 
         }
 
@@ -438,10 +459,11 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
         }
     }
 
-    inner class DeleteItemCommand : AbstractCollectionCommand("deleteItem", help = "Deletes a Media Item") {
+    inner class DeleteItemCommand : AbstractCollectionCommand("deleteItem", help = "Deletes Media Item(s)") {
 
         private val itemName: String by option("-in", "--itemName", help = "Name of the Item").default("")
         private val itemIdInput: UID? by option("-ii", "--itemId", help = "Id of the Item").convert { it.UID() }
+        private val nameRegex: Regex? by option("-e", "--regex", help="Regex for item names").convert { it.toRegex() }
 
         override fun run() {
 
@@ -451,21 +473,35 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 return
             }
 
-            if (itemName.isBlank() && itemIdInput == null) {
-                println("Item not specified.")
+            if ((itemName.isBlank() && itemIdInput == null) && nameRegex == null) {
+                println("Item(s) not specified.")
                 return
             }
+            if(itemName.isNotBlank() || itemIdInput != null){
+                val itemId = itemIdInput
+                        ?: this@MediaCollectionCommand.items.find { it.collection == collectionId && it.name == itemName }?.id
 
-            val itemId = itemIdInput
-                    ?: this@MediaCollectionCommand.items.find { it.collection == collectionId && it.name == itemName }?.id
+                if (itemId == null) {
+                    println("Item not found.")
+                    return
+                }
 
-            if (itemId == null) {
-                println("Item not found.")
-                return
+                this@MediaCollectionCommand.items.delete(itemId)
+                println("Item '${itemId.string}' deleted")
+            }else if(nameRegex != null){
+                val regex = nameRegex!!
+                val ids = this@MediaCollectionCommand.items.filter { it.collection == collectionId && regex.matches(it.name) }.map{it.id}
+                if(ids.isEmpty()){
+                    println("No items found for regex $regex")
+                    return
+                }
+                ids.forEach {
+                    this@MediaCollectionCommand.items.delete(it)
+                    println("Item '$it' deleted")
+                }
+            }else{
+                println("Nothing was specified, hence no deletion occured")
             }
-
-            this@MediaCollectionCommand.items.delete(itemId)
-            println("Item '${itemId.string}' deleted")
 
         }
     }

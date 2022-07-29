@@ -23,7 +23,7 @@ import java.util.*
 class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdatable, val messageQueueUpdatable: MessageQueueUpdatable, val daoUpdatable: DAOUpdatable<*>): Updatable {
 
     companion object {
-        val ELIGIBLE_STATUS = arrayOf(RunManagerStatus.ACTIVE, RunManagerStatus.RUNNING_TASK, RunManagerStatus.PREPARING_TASK, RunManagerStatus.TASK_ENDED)
+        val ELIGIBLE_STATUS = arrayOf(RunManagerStatus.ACTIVE/*, RunManagerStatus.RUNNING_TASK, RunManagerStatus.PREPARING_TASK, RunManagerStatus.TASK_ENDED*/)
     }
 
     /** Internal list of [Submission] that pend processing. */

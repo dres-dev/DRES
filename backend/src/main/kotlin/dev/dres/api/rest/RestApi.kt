@@ -160,6 +160,8 @@ object RestApi {
             ListSubmissionsPerTaskRunAdminHandler(),
             OverwriteSubmissionStatusRunAdminHandler(),
             ListPastTasksPerTaskRunAdminHandler(),
+            OverviewRunAdminHandler(),
+            UpdateRunPropertiesAdminHandler(),
 
             // Judgement
             NextOpenJudgementHandler(dataAccessLayer.collections),
@@ -182,7 +184,7 @@ object RestApi {
 
             // Downloads
             DownloadHandler.CompetitionRun(dataAccessLayer.runs),
-            DownloadHandler.CompetitionRunScore(dataAccessLayer.runs),
+            DownloadHandler.CompetitionRunScoreHandler(dataAccessLayer.runs),
             DownloadHandler.CompetitionDesc(dataAccessLayer.competitions)
         )
 
@@ -248,7 +250,7 @@ object RestApi {
                 }) from ${it.req.remoteAddr}"
             )
             if (it.path().startsWith("/api/")) { //do not cache api requests
-                it.header("Cache-Control", "max-age=0")
+                it.header("Cache-Control", "no-store")
             }
         }.error(401) {
             it.json(ErrorStatus("Unauthorized request!"))
@@ -297,6 +299,13 @@ object RestApi {
 
     }
 
+    private val pool = QueuedThreadPool(
+        1000, 8, 60000, -1, null, null, NamedThreadFactory("JavalinPool")
+    )
+
+    val readyThreadCount: Int
+        get() = pool.readyThreads
+
     private fun setupHttpServer(config: Config): Server {
 
         val httpConfig = HttpConfiguration().apply {
@@ -308,9 +317,7 @@ object RestApi {
             }
         }
 
-        val pool = QueuedThreadPool(
-            1000, 8, 60000, -1, null, null, NamedThreadFactory("JavalinPool")
-        )
+
 
         if (config.enableSsl) {
             val httpsConfig = HttpConfiguration(httpConfig).apply {

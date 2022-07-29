@@ -18,7 +18,7 @@ class DAOUpdatable<T: Entity>(val dao: DAO<T>, val obj: T): StatefulUpdatable {
         val ELIGIBLE_RUNNING_STATES = arrayOf(
             RunManagerStatus.CREATED,
             RunManagerStatus.ACTIVE,
-            RunManagerStatus.TASK_ENDED,
+            //RunManagerStatus.TASK_ENDED,
             RunManagerStatus.TERMINATED
         )
     }

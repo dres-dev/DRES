@@ -37,11 +37,11 @@
 }
 
 .alt-list-avatar {
-  border-radius: 5%!important;
+  border-radius: 5% !important;
 }
 
 .outline-white {
-  text-shadow: 1px 1px white, 1px -1px white, -1px 1px white, -1px -1px white
+  text-shadow: 1px 1px white, 1px -1px white, -1px 1px white, -1px -1px white;
 }
 
 .p4 {
@@ -51,6 +51,6 @@
 .image-fit-to-container {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   overflow: hidden;
 }

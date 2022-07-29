@@ -13,15 +13,21 @@ import dev.dres.data.model.submissions.batch.ResultBatch
 import dev.dres.run.score.interfaces.ResultBatchTaskScorer
 
 
-class NonInteractiveCompetition(override var id: CompetitionId, override val name: String, override val description: CompetitionDescription): AbstractRun(), Competition {
+class NonInteractiveCompetition(
+    override var id: CompetitionId,
+    override val name: String,
+    override val description: CompetitionDescription,
+    override var properties: RunProperties
+) : AbstractRun(), Competition {
 
     /** */
     override val tasks: List<TaskContainer> = this.description.tasks.map { TaskContainer(taskDescriptionId = it.id) }
 
 
-    inner class TaskContainer(override val uid: TaskId = UID(), val taskDescriptionId: TaskDescriptionId) : AbstractNonInteractiveTask() {
+    inner class TaskContainer(override val uid: TaskId = UID(), val taskDescriptionId: TaskDescriptionId) :
+        AbstractNonInteractiveTask() {
 
-        internal val submissions : MutableMap<Pair<TeamId, String>, ResultBatch<*>> = mutableMapOf()
+        internal val submissions: MutableMap<Pair<TeamId, String>, ResultBatch<*>> = mutableMapOf()
 
         @Synchronized
         override fun addSubmissionBatch(origin: OriginAspect, batches: List<ResultBatch<*>>) {
@@ -39,9 +45,11 @@ class NonInteractiveCompetition(override var id: CompetitionId, override val nam
             get() = this@NonInteractiveCompetition.tasks.indexOf(this)
 
         override val description: TaskDescription = this@NonInteractiveCompetition.description.tasks
-            .find { it.id == this.taskDescriptionId } ?: throw IllegalArgumentException("There is no task with ID ${this.taskDescriptionId}.")
+            .find { it.id == this.taskDescriptionId }
+            ?: throw IllegalArgumentException("There is no task with ID ${this.taskDescriptionId}.")
 
         @Transient
-        override val scorer: ResultBatchTaskScorer = description.newScorer() as? ResultBatchTaskScorer ?: throw IllegalArgumentException("specified scorer is not of type ResultBatchTaskScorer")
+        override val scorer: ResultBatchTaskScorer = description.newScorer() as? ResultBatchTaskScorer
+            ?: throw IllegalArgumentException("specified scorer is not of type ResultBatchTaskScorer")
     }
 }

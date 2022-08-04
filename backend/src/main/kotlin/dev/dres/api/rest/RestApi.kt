@@ -120,6 +120,11 @@ object RestApi {
                 dataAccessLayer.mediaSegmentItemIdIndex,
                 config
             ),
+            JsonBatchSubmissionHandler(
+                dataAccessLayer.collections,
+                dataAccessLayer.mediaItemCollectionNameIndex,
+                dataAccessLayer.mediaSegmentItemIdIndex
+            ),
 
             // Log
             QueryLogHandler(),

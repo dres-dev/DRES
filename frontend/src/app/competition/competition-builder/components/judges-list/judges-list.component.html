@@ -1,7 +1,7 @@
 <div style="display: flex; align-items: center">
     <h2>Judges</h2>
     <div class="spacer-flex"></div>
-    <button mat-button [matMenuTriggerFor]="judgesSelection" aria-label="Add new judge." matTooltip="Add new judge.">
+    <button mat-button [matMenuTriggerFor]="judgesSelection" aria-label="Add new judge." matTooltip="Add new judge." (click)="refreshAvailableJudges()">
         <mat-icon>add</mat-icon>
         Add judge
     </button>
@@ -31,7 +31,7 @@
         </div>
     </mat-menu>
 </div>
-<table #judgesTable mat-table [dataSource]="competition.judges" [style.width]="'100%'">
+<table #judgesTable mat-table [dataSource]="(judges|async)" [style.width]="'100%'">
     <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef>Name</th>
         <td mat-cell *matCellDef="let judge">{{ (judgeFor(judge) | async)?.username }}</td>

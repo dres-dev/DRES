@@ -1,24 +1,35 @@
-import {CompetionBuilderService} from '../../competion-builder.service';
-import {CompetitionService, RestCompetitionDescription} from '../../../../../../openapi';
-import {Observable, Subscription} from 'rxjs';
+import {CompetitionBuilderService} from '../../competition-builder.service';
+import {RestCompetitionDescription} from '../../../../../../openapi';
+import {Subscription} from 'rxjs';
 
-export class AbstractCompetitionBuilderComponent{
+export abstract class AbstractCompetitionBuilderComponent {
 
 
-    competition: RestCompetitionDescription
-    competitionSub: Subscription
+    competition: RestCompetitionDescription;
+    competitionSub: Subscription;
 
-    constructor(public builderService: CompetionBuilderService,
-                ) {
+    protected constructor(public builderService: CompetitionBuilderService,
+    ) {
 
     }
 
-    onInit(){
-        this.competitionSub = this.builderService.asObservable().subscribe(c => this.competition=c)
+    onInit() {
+        this.competitionSub = this.builderService.asObservable().subscribe(c => {
+            this.competition = c;
+            this.onChange(c);
+        });
     }
 
-    onDestroy(){
+    onDestroy() {
         this.competitionSub?.unsubscribe();
+    }
+
+    update() {
+        this.builderService.update(this.competition);
+    }
+
+    onChange(competition: RestCompetitionDescription){
+
     }
 
 

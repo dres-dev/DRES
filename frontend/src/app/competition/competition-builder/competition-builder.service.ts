@@ -9,21 +9,21 @@ import {RestCompetitionDescription} from '../../../../openapi';
 @Injectable({
   providedIn: 'root'
 })
-export class CompetionBuilderService {
+export class CompetitionBuilderService {
 
 
-  private competitionSubject:BehaviorSubject<RestCompetitionDescription>
+  private competitionSubject:BehaviorSubject<RestCompetitionDescription> = new BehaviorSubject<RestCompetitionDescription>(null)
   private dirty = false;
 
   constructor() { }
 
   public initialise(competition: RestCompetitionDescription){
-    this.competitionSubject = new BehaviorSubject<RestCompetitionDescription>(competition)
+    this.competitionSubject.next(competition)
     this.unmarkDirty()
   }
 
   public asObservable(){
-    return this.competitionSubject?.asObservable()
+    return this.competitionSubject.asObservable()
   }
 
   public hasCompetition(){
@@ -32,7 +32,7 @@ export class CompetionBuilderService {
 
   public update(competition: RestCompetitionDescription){
     this.competitionSubject.next(competition)
-    this.dirty = true;
+    this.markDirty()
   }
 
   public get(){
@@ -40,7 +40,7 @@ export class CompetionBuilderService {
   }
 
   public clear(){
-    this.dirty = false;
+    this.unmarkDirty()
     this.competitionSubject = undefined;
   }
 
@@ -53,9 +53,15 @@ export class CompetionBuilderService {
 
   public unmarkDirty(){
     this.dirty = false;
+    console.log('dirty = false')
   }
 
   public markDirty(){
     this.dirty = true;
+    console.log('dirty = true')
+  }
+
+  public isDirty(){
+    return this.dirty;
   }
 }

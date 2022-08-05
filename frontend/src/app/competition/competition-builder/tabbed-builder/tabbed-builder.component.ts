@@ -7,16 +7,16 @@ import {AppConfig} from '../../../app.config';
 import {Observable, Subscription} from 'rxjs';
 import {take} from 'rxjs/operators';
 import {DeactivationGuarded} from '../../../services/can-deactivate.guard';
-import {CompetionBuilderService} from '../competion-builder.service';
+import {CompetitionBuilderService} from '../competition-builder.service';
+import {Refreshable} from '../components/shared/refreshable.interface';
 
 @Component({
     selector: 'app-tabbed-builder',
     templateUrl: './tabbed-builder.component.html',
     styleUrls: ['./tabbed-builder.component.scss']
 })
-export class TabbedBuilderComponent implements OnInit, OnDestroy, DeactivationGuarded {
+export class TabbedBuilderComponent implements OnInit, OnDestroy, DeactivationGuarded, Refreshable{
 
-    dirty = false;
     routeSubscription: Subscription;
     changeSubscription: Subscription;
     competitionSub: Subscription;
@@ -25,7 +25,7 @@ export class TabbedBuilderComponent implements OnInit, OnDestroy, DeactivationGu
     competition: RestCompetitionDescription;
 
     constructor(
-        private builderService: CompetionBuilderService,
+        public builderService: CompetitionBuilderService,
         private competitionService: CompetitionService,
         private userService: UserService,
         private downloadService: DownloadService,
@@ -80,7 +80,7 @@ export class TabbedBuilderComponent implements OnInit, OnDestroy, DeactivationGu
             this.competitionService.patchApiV1Competition(this.competition).subscribe(
                 (c) => {
                     this.snackBar.open(c.description, null, {duration: 5000});
-                    this.dirty = false;
+                    this.builderService.unmarkDirty();
                 },
                 (r) => {
                     this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
@@ -109,25 +109,11 @@ export class TabbedBuilderComponent implements OnInit, OnDestroy, DeactivationGu
         delete event.returnValue;
     }
 
-    /**
-     * @deprecated
-     */
-    public refresh() {
-        if (this.builderService.checkDirty()) {
-            this.competitionService.getApiV1CompetitionWithCompetitionid(this.competitionId).subscribe(
-                (c) => {
-                    this.competition = c;
-                    /*this.form.get('name').setValue(c.name);
-                    this.form.get('description').setValue(c.description);
-                    */
-                    // TODO fetch other stuff
-                    this.dirty = false;
-                },
-                (r) => {
-                    this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
-                }
-            );
+    refresh() {
+        if(this.builderService.checkDirty()){
+            this.ngOnInit();
         }
     }
+
 
 }

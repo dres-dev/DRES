@@ -3,8 +3,8 @@
         <button mat-icon-button (click)="back()">
             <mat-icon>arrow_back</mat-icon>
         </button>
-        <h1 *ngIf="!dirty">Edit competition {{competitionId}}</h1>
-        <h1 *ngIf="dirty">Edit competition {{competitionId}} <span class="warn-color">(unsaved changes)</span></h1>
+        <h1 *ngIf="!builderService.isDirty()">Edit competition {{competitionId}}</h1>
+        <h1 *ngIf="builderService.isDirty()">Edit competition {{competitionId}} <span class="warn-color">(unsaved changes)</span></h1>
     </div>
 
     <div class="spacer-flex"></div>

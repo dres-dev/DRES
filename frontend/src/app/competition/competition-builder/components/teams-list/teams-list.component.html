@@ -9,7 +9,7 @@
     </button>
 </div>
 
-<table #teamTable mat-table [dataSource]="competition.teams" [style.width]="'100%'">
+<table #teamTable mat-table [dataSource]="(teams | async)" [style.width]="'100%'">
     <ng-container matColumnDef="logo">
         <th mat-header-cell *matHeaderCellDef>Logo</th>
         <td mat-cell *matCellDef="let team">

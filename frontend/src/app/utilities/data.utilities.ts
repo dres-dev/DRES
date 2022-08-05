@@ -24,3 +24,11 @@ export interface ActivatedType<T>{
     type: T;
     activated: boolean;
 }
+
+/**
+ * Wrapper to be able to have an enum value boolean tuple
+ */
+export interface ActivatedType<T>{
+    type: T;
+    activated: boolean;
+}

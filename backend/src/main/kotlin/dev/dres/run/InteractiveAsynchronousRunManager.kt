@@ -68,8 +68,8 @@ class InteractiveAsynchronousRunManager(
     /** Tracks the current [TaskDescription] per [TeamId]. */
     private val statusMap: MutableMap<TeamId, RunManagerStatus> = HashMap()
 
-    /** A [Map] of all viewers, i.e., DRES cliets currently registered with this [InteractiveAsynchronousRunManager]. */
-    private val viewers = ConcurrentHashMap<WebSocketConnection, Boolean>()
+    /** A [Map] of all viewers, i.e., DRES clients currently registered with this [InteractiveAsynchronousRunManager]. */
+    private val viewers = ConcurrentHashMap<WebSocketConnection,Boolean>()
 
     /** A lock for state changes to this [InteractiveAsynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
@@ -431,6 +431,7 @@ class InteractiveAsynchronousRunManager(
             -1L
         }
     }
+
 
     /**
      * Returns the number of  [AbstractInteractiveTask]s for this [InteractiveAsynchronousRunManager].

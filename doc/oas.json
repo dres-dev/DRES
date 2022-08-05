@@ -3817,6 +3817,16 @@
               }
             }
           },
+          "408" : {
+            "description" : "On timeout: Judgement took too long",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
           "404" : {
             "description" : "Not Found",
             "content" : {

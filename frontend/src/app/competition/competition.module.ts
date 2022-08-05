@@ -19,6 +19,7 @@ import { CompetitionStartDialogComponent } from './competition-list/competition-
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SharedModule } from '../shared/shared.module';
+import {CompetionBuilderService} from './competition-builder/competion-builder.service';
 
 @NgModule({
   imports: [
@@ -42,6 +43,6 @@ import { SharedModule } from '../shared/shared.module';
   ],
   exports: [CompetitionListComponent],
   declarations: [CompetitionListComponent, CompetitionCreateDialogComponent, CompetitionStartDialogComponent],
-  providers: [],
+  providers: [CompetionBuilderService],
 })
 export class CompetitionModule {}

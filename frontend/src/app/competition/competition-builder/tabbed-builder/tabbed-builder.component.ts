@@ -7,6 +7,7 @@ import {AppConfig} from '../../../app.config';
 import {Observable, Subscription} from 'rxjs';
 import {take} from 'rxjs/operators';
 import {DeactivationGuarded} from '../../../services/can-deactivate.guard';
+import {CompetionBuilderService} from '../competion-builder.service';
 
 @Component({
     selector: 'app-tabbed-builder',
@@ -18,11 +19,13 @@ export class TabbedBuilderComponent implements OnInit, OnDestroy, DeactivationGu
     dirty = false;
     routeSubscription: Subscription;
     changeSubscription: Subscription;
+    competitionSub: Subscription;
 
     competitionId: string;
     competition: RestCompetitionDescription;
 
     constructor(
+        private builderService: CompetionBuilderService,
         private competitionService: CompetitionService,
         private userService: UserService,
         private downloadService: DownloadService,
@@ -42,8 +45,19 @@ export class TabbedBuilderComponent implements OnInit, OnDestroy, DeactivationGu
     ngOnInit(): void {
         this.routeSubscription = this.route.params.subscribe(p => {
             this.competitionId = p.competitionId;
-            // this.refresh();
+            this.competitionService.getApiV1CompetitionWithCompetitionid(this.competitionId).subscribe(
+                (c) => {
+                    /* initialise service with competition from route */
+                    this.builderService.initialise(c)
+                    /* subscribe to changes on the competition & store local copy */
+                    this.competitionSub = this.builderService.asObservable().subscribe(c => this.competition = c)
+                },
+                (r) => {
+                    this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
+                }
+            );
         });
+
         // this.changeSubscription = this.form.valueChanges.subscribe(() => {
         //   this.dirty = true;
         // });
@@ -76,18 +90,18 @@ export class TabbedBuilderComponent implements OnInit, OnDestroy, DeactivationGu
     }
 
     public back() {
-        if (this.checkDirty()) {
+        if (this.builderService.checkDirty()) {
             this.routerService.navigate(['/competition/list']);
         }
     }
 
     canDeactivate(nextState?: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
-        return this.checkDirty();
+        return this.builderService.checkDirty();
     }
 
     @HostListener('window:beforeunload', ['$event'])
     handleBeforeUnload(event: BeforeUnloadEvent) {
-        if (!this.checkDirty()) {
+        if (!this.builderService.checkDirty()) {
             event.preventDefault();
             event.returnValue = '';
             return;
@@ -95,8 +109,11 @@ export class TabbedBuilderComponent implements OnInit, OnDestroy, DeactivationGu
         delete event.returnValue;
     }
 
+    /**
+     * @deprecated
+     */
     public refresh() {
-        if (this.checkDirty()) {
+        if (this.builderService.checkDirty()) {
             this.competitionService.getApiV1CompetitionWithCompetitionid(this.competitionId).subscribe(
                 (c) => {
                     this.competition = c;
@@ -113,10 +130,4 @@ export class TabbedBuilderComponent implements OnInit, OnDestroy, DeactivationGu
         }
     }
 
-    private checkDirty(): boolean {
-        if (!this.dirty) {
-            return true;
-        }
-        return confirm('There are unsaved changes in this competition that will be lost. Do you really want to proceed?');
-    }
 }

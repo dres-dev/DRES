@@ -1,19 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Subscription} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {CompetitionService} from '../../../../../../openapi';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {AbstractCompetitionBuilderComponent} from '../shared/abstract-competition-builder.component';
+import {CompetionBuilderService} from '../../competion-builder.service';
 
 @Component({
   selector: 'app-general-competition',
   templateUrl: './general-competition.component.html',
   styleUrls: ['./general-competition.component.scss']
 })
-export class GeneralCompetitionComponent implements OnInit {
+export class GeneralCompetitionComponent extends AbstractCompetitionBuilderComponent implements OnInit, OnDestroy {
 
   form: FormGroup = new FormGroup({name: new FormControl(''), description: new FormControl('')});
-  dirty = false;
   routeSubscription: Subscription;
   changeSubscription: Subscription;
   competitionId: string;
@@ -21,19 +22,29 @@ export class GeneralCompetitionComponent implements OnInit {
   constructor(
       private route: ActivatedRoute,
       private competitionService: CompetitionService,
-      private snackBar: MatSnackBar
-  ) { }
-
-  ngOnInit(): void {
-    this.routeSubscription = this.route.params.subscribe(p => {
-      this.competitionId = p.competitionId;
-      this.refresh();
-    });
-    this.changeSubscription = this.form.valueChanges.subscribe(() => {
-      this.dirty = true;
-    });
+      private snackBar: MatSnackBar,
+      builderService: CompetionBuilderService
+  ) {
+    super(builderService)
   }
 
+  ngOnInit(): void {
+    this.onInit();
+    this.form.get('name').setValue(this.competition.name);
+    this.form.get('description').setValue(this.competition.description);
+    this.changeSubscription = this.form.valueChanges.subscribe(() => {
+      this.builderService.markDirty()
+    });
+
+  }
+
+  ngOnDestroy() {
+    this.onDestroy()
+  }
+
+  /**
+   * @deprecated
+   */
   public fetchData() {
     return {
       competitionId: this.competitionId,
@@ -42,27 +53,22 @@ export class GeneralCompetitionComponent implements OnInit {
     };
   }
 
+  /**
+   * @deprecated
+   */
   public refresh() {
-    if (this.checkDirty()) {
+    if (this.builderService.checkDirty()) {
       this.competitionService.getApiV1CompetitionWithCompetitionid(this.competitionId).subscribe(
           (c) => {
             this.form.get('name').setValue(c.name);
             this.form.get('description').setValue(c.description);
             // TODO fetch other stuff
-            this.dirty = false;
           },
           (r) => {
             this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
           }
       );
     }
-  }
-
-  private checkDirty(): boolean {
-    if (!this.dirty) {
-      return true;
-    }
-    return confirm('There are unsaved changes in this competition that will be lost. Do you really want to proceed?');
   }
 
 }

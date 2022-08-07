@@ -45,6 +45,10 @@ import { TypesGroupsTabComponent } from './tabs/types-groups-tab/types-groups-ta
 import { GeneralInfoTabComponent } from './tabs/general-info-tab/general-info-tab.component';
 import { TabbedBuilderComponent } from './tabbed-builder/tabbed-builder.component';
 import {MatTabsModule} from '@angular/material/tabs';
+import { TaskTypesListComponent } from './components/task-types-list/task-types-list.component';
+import { TaskGroupListComponent } from './components/task-group-list/task-group-list.component';
+import { TaskListComponent } from './components/task-list/task-list.component';
+import { EditableTaskComponent } from './components/editable-task/editable-task.component';
 
 @NgModule({
     imports: [
@@ -97,7 +101,11 @@ import {MatTabsModule} from '@angular/material/tabs';
         TeamsJudgesTabComponent,
         TypesGroupsTabComponent,
         GeneralInfoTabComponent,
-        TabbedBuilderComponent
+        TabbedBuilderComponent,
+        TaskTypesListComponent,
+        TaskGroupListComponent,
+        TaskListComponent,
+        EditableTaskComponent
     ],
     providers: []
 })

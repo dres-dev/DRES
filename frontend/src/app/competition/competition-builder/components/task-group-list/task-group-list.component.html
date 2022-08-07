@@ -1,0 +1,23 @@
+<h2>
+    Task groups
+    <button mat-button aria-label="Add new task group." matTooltip="Add new task group." (click)="addTaskGroup()">
+        <mat-icon>add</mat-icon>
+        Add task group
+    </button>
+
+    <mat-list style="display: inline-block">
+        <mat-chip-list>
+            <mat-chip
+                    *ngFor="let group of (groups | async)"
+                    [removable]="true"
+                    (removed)="removeTaskGroup(group)"
+                    [matTooltip]="'Type: ' + group.type"
+                    color="primary"
+                    (click)="addTaskGroup(group)"
+            >
+                {{ group.name }}
+                <mat-icon matChipRemove>cancel</mat-icon>
+            </mat-chip>
+        </mat-chip-list>
+    </mat-list>
+</h2>

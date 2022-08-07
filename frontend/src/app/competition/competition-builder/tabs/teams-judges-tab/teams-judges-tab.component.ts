@@ -8,8 +8,6 @@ import {RestCompetitionDescription} from '../../../../../../openapi';
 })
 export class TeamsJudgesTabComponent implements OnInit {
 
-  @Input() competition: RestCompetitionDescription
-
   constructor() { }
 
   ngOnInit(): void {

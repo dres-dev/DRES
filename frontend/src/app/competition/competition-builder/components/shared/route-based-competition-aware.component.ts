@@ -5,6 +5,9 @@ import {CompetitionService, RestCompetitionDescription} from '../../../../../../
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Refreshable} from './refreshable.interface';
 
+/**
+ * @deprecated
+ */
 export class RouteBasedCompetitionAwareComponent implements Refreshable{
 
   dirty = false;

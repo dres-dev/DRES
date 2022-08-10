@@ -33,11 +33,11 @@ import {
 export class EditableTaskComponent implements OnInit {
 
   @Input()
-  task?: RestTaskDescription
+  public task?: RestTaskDescription
   @Input()
-  taskType: TaskType;
+  public taskType: TaskType;
   @Input()
-  taskGroup: TaskGroup;
+  public taskGroup: TaskGroup;
 
   form: FormGroup;
   units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
@@ -56,12 +56,32 @@ export class EditableTaskComponent implements OnInit {
       public config: AppConfig,
       private dialog: MatDialog
   ) {
+  }
+
+  ngOnInit(): void {
+    if(!this.isInactive()){
+      this.init();
+    }
+  }
+
+  public init(){
     this.builder = new CompetitionFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.task);
     this.form = this.builder.form;
     this.mediaCollectionSource = this.collectionService.getApiV1CollectionList();
   }
 
-  ngOnInit(): void {
+  public isInactive(){
+    const hasNoType = this.taskType == null
+    const hasNoGroup = this.taskGroup == null
+    return (hasNoGroup && hasNoType)
+  }
+
+  public isFormValid(){
+    return this.form.valid;
+  }
+
+  public fetchData(){
+    return this.builder.fetchFormData();
   }
 
   private static randInt(min: number, max: number): number {

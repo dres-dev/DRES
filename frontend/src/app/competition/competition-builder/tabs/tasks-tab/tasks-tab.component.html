@@ -1,3 +1,4 @@
 <div fxLayout="row" fxLayoutAlign="space-between start">
-    <app-task-list fxFlex="48"></app-task-list>
+    <app-task-list [parent]="this" fxFlex="48"></app-task-list>
+    <app-editable-task #taskEditor fxFlex="48" ></app-editable-task>
 </div>

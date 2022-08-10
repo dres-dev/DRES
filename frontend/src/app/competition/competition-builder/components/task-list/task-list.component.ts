@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {AbstractCompetitionBuilderComponent} from '../shared/abstract-competition-builder.component';
 import {CompetitionBuilderService} from '../../competition-builder.service';
 import {RestCompetitionDescription, RestTaskDescription, TaskGroup} from '../../../../../../openapi';
@@ -10,6 +10,7 @@ import {filter} from 'rxjs/operators';
 import {MatTable} from '@angular/material/table';
 import {MatDialog} from '@angular/material/dialog';
 import {Observable} from 'rxjs';
+import {TasksTabComponent} from '../../tabs/tasks-tab/tasks-tab.component';
 
 @Component({
     selector: 'app-task-list',
@@ -17,6 +18,9 @@ import {Observable} from 'rxjs';
     styleUrls: ['./task-list.component.scss']
 })
 export class TaskListComponent extends AbstractCompetitionBuilderComponent implements OnInit, OnDestroy {
+
+    @Input()
+    parent: TasksTabComponent;
 
     @ViewChild('taskTable')
     taskTable: MatTable<any>;
@@ -37,6 +41,8 @@ export class TaskListComponent extends AbstractCompetitionBuilderComponent imple
      */
     public addTask(group: TaskGroup) {
         const type = this.competition.taskTypes.find((v) => v.name === group.type);
+        this.parent.editTask(type, group, null);
+        /*
         const width = 750;
         const dialogRef = this.dialog.open(CompetitionBuilderTaskDialogComponent, {
             data: {taskGroup: group, taskType: type, task: null} as CompetitionBuilderTaskDialogData,
@@ -49,7 +55,7 @@ export class TaskListComponent extends AbstractCompetitionBuilderComponent imple
                 this.competition.tasks.push(t);
                 this.update();
                 this.taskTable.renderRows();
-            });
+            });*/
     }
 
     /**
@@ -61,7 +67,12 @@ export class TaskListComponent extends AbstractCompetitionBuilderComponent imple
         const index = this.competition.tasks.indexOf(task);
         const width = 750;
         if (index > -1) {
-            const dialogRef = this.dialog.open(CompetitionBuilderTaskDialogComponent, {
+            this.parent.editTask(
+                this.competition.taskTypes.find((g) => g.name === task.taskType),
+                this.competition.taskGroups.find((g) => g.name === task.taskGroup),
+                task
+            );
+            /*const dialogRef = this.dialog.open(CompetitionBuilderTaskDialogComponent, {
                 data: {
                     taskGroup: this.competition.taskGroups.find((g) => g.name === task.taskGroup),
                     taskType: this.competition.taskTypes.find((g) => g.name === task.taskType),
@@ -76,7 +87,7 @@ export class TaskListComponent extends AbstractCompetitionBuilderComponent imple
                     this.competition.tasks[index] = t;
                     this.update();
                     this.taskTable.renderRows();
-                });
+                });*/
         }
     }
 

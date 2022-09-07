@@ -36,9 +36,16 @@ export class CompetitionBuilderService {
         this.markDirty();
     }
 
+    public updateTask(task: RestTaskDescription){
+        const idx = this.competitionSubject.getValue().tasks.findIndex(t => t.id === task.id)
+        this.competitionSubject.getValue().tasks[idx] = task;
+        this.markDirty()
+    }
+
     public get() {
         return this.competitionSubject.getValue();
     }
+
 
     public clear() {
         this.unmarkDirty();

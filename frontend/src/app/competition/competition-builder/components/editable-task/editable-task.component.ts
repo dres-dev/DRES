@@ -22,6 +22,7 @@ import {
   AdvancedBuilderDialogComponent,
   AdvancedBuilderDialogData
 } from '../../competition-builder-task-dialog/advanced-builder-dialog/advanced-builder-dialog.component';
+import {CompetitionBuilderService} from '../../competition-builder.service';
 
 
 
@@ -54,7 +55,8 @@ export class EditableTaskComponent implements OnInit {
   constructor(
       public collectionService: CollectionService,
       public config: AppConfig,
-      private dialog: MatDialog
+      private dialog: MatDialog,
+      private builderService: CompetitionBuilderService
   ) {
   }
 
@@ -67,6 +69,10 @@ export class EditableTaskComponent implements OnInit {
   public init(){
     this.builder = new CompetitionFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.task);
     this.form = this.builder.form;
+    this.form.valueChanges.subscribe(newValue => {
+      this.builderService.updateTask(this.builder.fetchFormData())
+      this.builderService.markDirty()
+    });
     this.mediaCollectionSource = this.collectionService.getApiV1CollectionList();
   }
 

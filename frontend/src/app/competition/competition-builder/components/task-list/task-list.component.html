@@ -72,5 +72,5 @@
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumnsTasks"></tr>
-    <tr mat-row *matRowDef="let task; columns: displayedColumnsTasks"></tr>
+    <tr mat-row [class.dres-selected-row]="selection.isSelected(task)" *matRowDef="let task; columns: displayedColumnsTasks"></tr>
 </table>

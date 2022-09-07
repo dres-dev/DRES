@@ -11,6 +11,7 @@ import {MatTable} from '@angular/material/table';
 import {MatDialog} from '@angular/material/dialog';
 import {Observable} from 'rxjs';
 import {TasksTabComponent} from '../../tabs/tasks-tab/tasks-tab.component';
+import {SelectionModel} from '@angular/cdk/collections';
 
 @Component({
     selector: 'app-task-list',
@@ -27,6 +28,8 @@ export class TaskListComponent extends AbstractCompetitionBuilderComponent imple
     displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'action'];
     tasks = new Observable<Array<RestTaskDescription>>((o) => o.next([]));
     groups = new Observable<Array<TaskGroup>>((o) => o.next([]));
+
+    selection = new SelectionModel(false,[], false)
 
     constructor(builderService: CompetitionBuilderService,
                 private dialog: MatDialog) {
@@ -67,6 +70,7 @@ export class TaskListComponent extends AbstractCompetitionBuilderComponent imple
         const index = this.competition.tasks.indexOf(task);
         const width = 750;
         if (index > -1) {
+            this.selection.toggle(task)
             this.parent.editTask(
                 this.competition.taskTypes.find((g) => g.name === task.taskType),
                 this.competition.taskGroups.find((g) => g.name === task.taskGroup),

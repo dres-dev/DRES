@@ -5,12 +5,14 @@ import dev.dres.api.rest.RestApiRole
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
+import dev.dres.api.rest.types.submission.RunResult
 import dev.dres.data.dbo.DAO
 import dev.dres.data.dbo.DaoIndexer
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.basics.media.MediaItemSegmentList
+import dev.dres.data.model.basics.time.TemporalPoint
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.batch.*
 import dev.dres.run.InteractiveRunManager
@@ -40,21 +42,15 @@ abstract class BatchSubmissionHandler(internal val collections: DAO<MediaCollect
             = AccessManager.getRunManagerForUser(userId).filterIsInstance<NonInteractiveRunManager>().find { it.id == runId }
 }
 
-data class JsonBatchSubmission(val batches : List<JsonTaskResultBatch>)
-
-data class JsonTaskResultBatch(val taskName: String, val resultName: String, val results: List<JsonTaskResult>)
-
-data class JsonTaskResult(val item: String, val segment: Int?)
-
 class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, segmentIndex: DaoIndexer<MediaItemSegmentList, UID>) : BatchSubmissionHandler(collections, itemIndex, segmentIndex) {
 
-    override val route: String = "batchSubmit/{runId}/json"
+    override val route: String = "submit/{runId}"
 
     @OpenApi(summary = "Endpoint to accept batch submissions in JSON format",
-        path = "/api/v1/batchSubmit/{runId}/json",
+        path = "/api/v1/submit/{runId}",
         method = HttpMethod.POST,
         pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
-        requestBody = OpenApiRequestBody([OpenApiContent(JsonBatchSubmission::class)]),
+        requestBody = OpenApiRequestBody([OpenApiContent(RunResult::class)]),
         tags = ["Batch Submission"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -72,8 +68,8 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
 
         val rac = RunActionContext.runActionContext(ctx, runManager)
 
-        val jsonBatch = try{
-            ctx.bodyAsClass<JsonBatchSubmission>()
+        val runResult = try{
+            ctx.bodyAsClass<RunResult>()
         } catch (e: Exception) {
             throw ErrorStatusException(400, "Error parsing json batch", ctx)
         }
@@ -82,25 +78,45 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
             it.users.contains(userId)
         }?.uid ?: throw ErrorStatusException(404, "No team for user '$userId' could not be found.", ctx)
 
-        val resultBatches = jsonBatch.batches.mapNotNull { batch ->
-            val task = runManager.tasks(rac).find { it.description.name == batch.taskName } ?: return@mapNotNull null
+        val resultBatches = runResult.tasks.mapNotNull { taskResult ->
+            val task = runManager.tasks(rac).find { it.description.name == taskResult.task } ?: return@mapNotNull null
             val mediaCollectionId = task.description.mediaCollectionId
-            val results = batch.results.map { result ->
-                val mediaItem = this.itemIndex[mediaCollectionId to result.item].first() //TODO deal with invalid name
-                return@map if (mediaItem is MediaItem.VideoItem && result.segment != null) {
-                    val segmentList = segmentIndex[mediaItem.id].first()
-                    val time = TimeUtil.shotToTime(result.segment.toString(), segmentList)!!
-                    TemporalBatchElement(mediaItem, time.first, time.second)
-                } else {
-                    ItemBatchElement(mediaItem)
+            val results = taskResult.results.map { result ->
+                if (result.item != null) {
+                    val mediaItem =
+                        this.itemIndex[mediaCollectionId to result.item].first() //TODO deal with invalid name
+                    return@map if (mediaItem is MediaItem.VideoItem && (result.startTimeCode != null || result.endTimeCode != null || result.index != null)) {
+
+                        val time = if (result.index != null) {
+                            val segmentList = segmentIndex[mediaItem.id].first()
+                            TimeUtil.shotToTime(result.index.toString(), segmentList)!!
+                        } else {
+                            val start = if (result.startTimeCode != null) {
+                                TemporalPoint.Timecode.timeCodeToMilliseconds(result.startTimeCode, mediaItem.fps)!! //FIXME error handling
+                            } else {
+                                TemporalPoint.Timecode.timeCodeToMilliseconds(result.endTimeCode!!, mediaItem.fps)!!
+                            }
+                            val end = if (result.endTimeCode != null) {
+                                TemporalPoint.Timecode.timeCodeToMilliseconds(result.endTimeCode, mediaItem.fps)!!
+                            } else {
+                                start
+                            }
+                            start to end
+                        }
+                        TemporalBatchElement(mediaItem, time.first, time.second)
+                    } else {
+                        ItemBatchElement(mediaItem)
+                    }
+                } else { //TODO deal with text
+                    TODO("text batch submissions not yet supported")
                 }
             }
 
             if (results.all { it is TemporalBatchElement }) {
                 @Suppress("UNCHECKED_CAST")
-                (BaseResultBatch(mediaCollectionId, batch.resultName, team, results as List<TemporalBatchElement>))
+                (BaseResultBatch(mediaCollectionId, taskResult.resultName, team, results as List<TemporalBatchElement>))
             } else {
-                BaseResultBatch(mediaCollectionId, batch.resultName, team, results)
+                BaseResultBatch(mediaCollectionId, taskResult.resultName, team, results)
             }
 
         }
@@ -117,7 +133,5 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
         return SuccessStatus("Submission batch received")
 
     }
-
-
 
 }

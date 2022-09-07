@@ -16,7 +16,8 @@ enum class SubmissionFilterOption : Option {
     LIMIT_CORRECT_PER_MEMBER,
     TEMPORAL_SUBMISSION,
     TEXTUAL_SUBMISSION,
-    ITEM_SUBMISSION;
+    ITEM_SUBMISSION,
+    MINIMUM_TIME_GAP;
 
     /**
      * Returns the [SubmissionFilter] for this [SubmissionFilterOption] and the given [parameters].
@@ -32,5 +33,6 @@ enum class SubmissionFilterOption : Option {
         TEMPORAL_SUBMISSION -> TemporalSubmissionFilter()
         TEXTUAL_SUBMISSION -> TextualSubmissionFilter()
         ITEM_SUBMISSION -> ItemSubmissionFilter()
+        MINIMUM_TIME_GAP -> SubmissionRateFilter(parameters)
     }
 }

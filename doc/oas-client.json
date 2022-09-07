@@ -246,6 +246,73 @@
         }
       }
     },
+    "/api/v1/submit/{runId}" : {
+      "post" : {
+        "tags" : [ "Batch Submission" ],
+        "summary" : "Endpoint to accept batch submissions in JSON format",
+        "operationId" : "postApiV1SubmitWithRunid",
+        "parameters" : [ {
+          "name" : "runId",
+          "in" : "path",
+          "description" : "Competition Run ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RunResult"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/log/query" : {
       "post" : {
         "tags" : [ "Log" ],
@@ -717,6 +784,72 @@
           },
           "status" : {
             "type" : "boolean"
+          }
+        }
+      },
+      "ResultElement" : {
+        "type" : "object",
+        "properties" : {
+          "item" : {
+            "type" : "string"
+          },
+          "text" : {
+            "type" : "string"
+          },
+          "startTimeCode" : {
+            "type" : "string"
+          },
+          "endTimeCode" : {
+            "type" : "string"
+          },
+          "index" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "rank" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "weight" : {
+            "type" : "number",
+            "format" : "float"
+          }
+        }
+      },
+      "RunResult" : {
+        "required" : [ "tasks", "timeStamp" ],
+        "type" : "object",
+        "properties" : {
+          "tasks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TaskResult"
+            }
+          },
+          "timeStamp" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "TaskResult" : {
+        "required" : [ "resultName", "results", "task" ],
+        "type" : "object",
+        "properties" : {
+          "task" : {
+            "type" : "string"
+          },
+          "resultName" : {
+            "type" : "string"
+          },
+          "resultType" : {
+            "type" : "string"
+          },
+          "results" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ResultElement"
+            }
           }
         }
       },

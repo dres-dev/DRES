@@ -16,13 +16,12 @@ import kotlin.concurrent.write
 /**
  * The new AVS Scorer.
  */
-class AvsTaskScorer(private val submissionWindow: Double) : RecalculatingSubmissionTaskScorer,
+class AvsTaskScorer(private val penaltyConstant: Double) : RecalculatingSubmissionTaskScorer,
     TeamTaskScorer {
 
     private var lastScores: Map<TeamId, Double> = emptyMap()
     private val lastScoresLock = ReentrantReadWriteLock()
 
-    val fraction = 1.0 / submissionWindow
 
     constructor(parameters: Map<String, String>) : this(
         parameters.getOrDefault("submissionWindow", "$defaultSubmissionWindow").toDoubleOrNull()
@@ -48,14 +47,14 @@ class AvsTaskScorer(private val submissionWindow: Double) : RecalculatingSubmiss
                             val firstCorrectIdx = it.value.sortedBy { it.timestamp }
                                 .indexOfFirst { it.status == SubmissionStatus.CORRECT }
 
-                            if (firstCorrectIdx == -1 ||
-                                firstCorrectIdx > submissionWindow
+                            val c = if (firstCorrectIdx == -1
                             ) {
-                                -1.0
+                                0.0
                             } else {
                                 distinctVideos.add(it.key.id)
-                                1 - (firstCorrectIdx + 1) * fraction
+                                1.0
                             }
+                            c - firstCorrectIdx * penaltyConstant
                         }.sum()
             }.toMap().mapValues { it.value / distinctVideos.size }
 

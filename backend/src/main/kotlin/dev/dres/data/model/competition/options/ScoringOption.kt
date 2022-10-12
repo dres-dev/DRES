@@ -1,7 +1,7 @@
 package dev.dres.data.model.competition.options
 
 import dev.dres.run.score.interfaces.TaskScorer
-import dev.dres.run.score.scorer.AvsTaskScorer
+import dev.dres.run.score.scorer.LegacyAvsTaskScorer
 import dev.dres.run.score.scorer.KisTaskScorer
 
 /**
@@ -20,6 +20,6 @@ enum class ScoringOption: Option {
      */
     fun scorer(parameters: Map<String, String>): TaskScorer = when(this) {
         KIS -> KisTaskScorer(parameters)
-        AVS -> AvsTaskScorer()
+        AVS -> LegacyAvsTaskScorer()
     }
 }

@@ -5,15 +5,15 @@ import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.score.TaskContext
-import dev.dres.run.score.scorer.AvsTaskScorer
+import dev.dres.run.score.scorer.LegacyAvsTaskScorer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 
-class AvsTaskScorerTest {
+class LegacyAvsTaskScorerTest {
 
-    private lateinit var scorer: AvsTaskScorer
+    private lateinit var scorer: LegacyAvsTaskScorer
     private val teams = listOf(UID(), UID(), UID()) //3 random team ids
     private val defaultTaskDuration = 5 * 60L
     private val dummyImageItems: List<MediaItem.ImageItem>
@@ -43,7 +43,7 @@ class AvsTaskScorerTest {
 
     @BeforeEach
     fun setup() {
-        this.scorer = AvsTaskScorer()
+        this.scorer = LegacyAvsTaskScorer()
     }
 
     @Test

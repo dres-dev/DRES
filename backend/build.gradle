@@ -31,6 +31,7 @@ configurations {
 
 repositories {
     mavenCentral()
+    maven { url 'https://maven.reposilite.com/snapshots' } //javalin openapi snapshot
 }
 
 compileKotlin {
@@ -60,8 +61,8 @@ dependencies {
     implementation group: 'io.javalin', name:  'javalin', version: "$javalin"
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalin")
 
-    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: "$javalin"
-    implementation group: 'io.javalin.community.openapi', name:'javalin-swagger-plugin', version: "$javalin"
+    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: "5.1.2-SNAPSHOT"
+    implementation group: 'io.javalin.community.openapi', name:'javalin-swagger-plugin', version: "5.1.2-SNAPSHOT"
     implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: "$javalin"
 
     implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.0'

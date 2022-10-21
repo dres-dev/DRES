@@ -14,7 +14,7 @@ import dev.dres.run.audit.LogEventSource
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.*
+import io.javalin.openapi.*
 
 class LoginHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, PostRestHandler<UserDetails> {
 
@@ -24,7 +24,7 @@ class LoginHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, PostRes
 
     @OpenApi(summary = "Sets roles for session based on user account and returns a session cookie.",
         path = "/api/v1/login",
-        method = HttpMethod.POST,
+        methods = [HttpMethod.POST],
         tags = ["User"],
         requestBody = OpenApiRequestBody([OpenApiContent(LoginRequest::class)]),
         responses = [

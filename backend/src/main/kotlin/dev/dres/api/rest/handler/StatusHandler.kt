@@ -1,10 +1,10 @@
 package dev.dres.api.rest.handler
 
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.HttpMethod
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.openapi.HttpMethod
+import io.javalin.openapi.OpenApi
+import io.javalin.openapi.OpenApiContent
+import io.javalin.openapi.OpenApiResponse
 
 data class CurrentTime(val timeStamp: Long = System.currentTimeMillis())
 
@@ -15,7 +15,7 @@ class CurrentTimeHandler : GetRestHandler<CurrentTime> {
 
     @OpenApi(summary = "Returns the current time on the server.",
         path = "/api/v1/status/time",
-        method = HttpMethod.GET,
+        methods = [HttpMethod.GET],
         tags = ["Status"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(CurrentTime::class)])

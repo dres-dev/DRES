@@ -9,12 +9,9 @@ import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.InteractiveAsynchronousCompetition
 import dev.dres.data.model.run.interfaces.Competition
 import dev.dres.utilities.extensions.UID
-import io.javalin.core.security.RouteRole
+import io.javalin.security.RouteRole
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.openapi.*
 
 /**
  * A [AccessManagedRestHandler] implementation that provides certain data structures as downloadable files.
@@ -50,7 +47,8 @@ sealed class DownloadHandler : AccessManagedRestHandler {
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+            methods = [HttpMethod.GET]
         )
         override fun doGet(ctx: Context): String {
             /* Obtain run id and run. */
@@ -85,7 +83,8 @@ sealed class DownloadHandler : AccessManagedRestHandler {
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+            methods = [HttpMethod.GET]
         )
         override fun doGet(ctx: Context): String {
 
@@ -134,7 +133,8 @@ sealed class DownloadHandler : AccessManagedRestHandler {
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+            methods = [HttpMethod.GET]
         )
         override fun doGet(ctx: Context): String {
             /* Obtain run id and run. */

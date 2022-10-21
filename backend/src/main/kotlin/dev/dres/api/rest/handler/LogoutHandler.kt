@@ -9,10 +9,7 @@ import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.openapi.*
 
 class LogoutHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, GetRestHandler<SuccessStatus> {
 
@@ -27,7 +24,8 @@ class LogoutHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, GetRes
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): SuccessStatus {
         AccessManager.clearUserSession(ctx.sessionId())

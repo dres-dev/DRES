@@ -7,8 +7,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import com.github.kittinunf.fuel.Fuel
 import dev.dres.api.rest.OpenApiEndpointOptions
-import dev.dres.api.rest.RestApi
-import io.swagger.util.Json
+
 import java.io.File
 
 class OpenApiCommand : CliktCommand(name="openapi",help =  "Generates and writes the OpenAPI Specifications") {

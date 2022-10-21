@@ -7,8 +7,8 @@ import dev.dres.utilities.extensions.UID
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.nio.file.Files
+import java.util.*
 import javax.imageio.ImageIO
-import javax.xml.bind.DatatypeConverter
 
 
 data class RestTeam(val uid: String? = null,
@@ -41,7 +41,7 @@ data class RestTeam(val uid: String? = null,
         fun storeLogo(config: Config, data: String, logoId: UID = UID()): UID {
             /* Parse image data. */
             val base64Image: String = data.substringAfter(",")
-            val imageBytes = DatatypeConverter.parseBase64Binary(base64Image)
+            val imageBytes = Base64.getDecoder().decode(base64Image)
             val image = ByteArrayInputStream(imageBytes).use {
                 val original = ImageIO.read(it)
                 if (original.width <= config.logoMaxSize && original.height <= config.logoMaxSize) {

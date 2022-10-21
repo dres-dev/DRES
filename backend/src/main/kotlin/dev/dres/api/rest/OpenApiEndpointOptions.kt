@@ -1,7 +1,7 @@
 package dev.dres.api.rest
 
-import io.javalin.plugin.openapi.annotations.HttpMethod
-import okhttp3.internal.toImmutableList
+import io.javalin.openapi.HttpMethod
+
 
 /**
  * Options to configure an OpenApi Specifications endpoint in use with Javalin OpenApi Plugin.
@@ -22,7 +22,7 @@ data class OpenApiEndpointOptions(
 ) {
 
     fun ignored(): List<Pair<String, List<HttpMethod>>> {
-        return _ignored.toImmutableList()
+        return _ignored
     }
 
     private val _ignored = ignores.map {

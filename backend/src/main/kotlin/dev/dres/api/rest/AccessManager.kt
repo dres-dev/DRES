@@ -4,7 +4,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.admin.User
 import dev.dres.run.RunManager
 import dev.dres.utilities.extensions.sessionId
-import io.javalin.core.security.RouteRole
+import io.javalin.security.RouteRole
 import io.javalin.http.Context
 import io.javalin.http.Handler
 import java.util.concurrent.ConcurrentHashMap

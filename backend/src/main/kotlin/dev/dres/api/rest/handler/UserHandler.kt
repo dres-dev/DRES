@@ -14,7 +14,8 @@ import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
 import dev.dres.utilities.extensions.toSessionId
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.*
+import io.javalin.http.bodyAsClass
+import io.javalin.openapi.*
 
 data class SessionId(val sessionId: String)
 
@@ -52,7 +53,7 @@ abstract class UserHandler : RestHandler {
     }
 
     protected fun getCreateUserFromBody(ctx: Context): UserRequest {
-        return ctx.bodyAsClass<UserRequest>()
+        return ctx.bodyAsClass()
     }
 }
 
@@ -63,7 +64,8 @@ class ListUsersHandler : UserHandler(), GetRestHandler<List<UserDetails>>, Acces
             summary = "Lists all available users.",
             path = "/api/v1/user/list",
             tags = ["User"],
-            responses = [OpenApiResponse("200", [OpenApiContent(Array<UserDetails>::class)])]
+            responses = [OpenApiResponse("200", [OpenApiContent(Array<UserDetails>::class)])],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context) = UserManager.list().map(UserDetails.Companion::of)
 
@@ -87,7 +89,8 @@ class UserDetailsHandler : UserHandler(), GetRestHandler<UserDetails>, AccessMan
                 OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)], description = "If the user could not be found"),
                 OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context) = UserDetails.of(getUserFromId(ctx))
 
@@ -100,7 +103,7 @@ class DeleteUsersHandler : UserHandler(), DeleteRestHandler<UserDetails>, Access
 
     @OpenApi(
             summary = "Deletes the specified user. Requires ADMIN privileges",
-            path = "/api/v1/user/{userId}", method = HttpMethod.DELETE,
+            path = "/api/v1/user/{userId}", methods = [HttpMethod.DELETE],
             pathParams = [OpenApiParam("userId", Long::class, "User ID")],
             tags = ["User"],
             responses = [
@@ -128,7 +131,7 @@ class CreateUsersHandler : UserHandler(), PostRestHandler<UserDetails>, AccessMa
 
     @OpenApi(
             summary = "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
-            path = "/api/v1/user", method = HttpMethod.POST,
+            path = "/api/v1/user", methods = [HttpMethod.POST],
             requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
             tags = ["User"],
             responses = [
@@ -156,7 +159,7 @@ class UpdateUsersHandler : UserHandler(), PatchRestHandler<UserDetails>, AccessM
 
     @OpenApi(
             summary = "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone",
-            path = "/api/v1/user/{userId}", method = HttpMethod.PATCH,
+            path = "/api/v1/user/{userId}", methods = [HttpMethod.PATCH],
             pathParams = [OpenApiParam("userId", String::class, "User ID")],
             requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
             tags = ["User"],
@@ -208,7 +211,8 @@ class CurrentUsersHandler : UserHandler(), GetRestHandler<UserDetails>, AccessMa
             responses = [
                 OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
                 OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): UserDetails {
         return UserDetails.create(getFromSessionOrDie(ctx), ctx)
@@ -232,7 +236,8 @@ class CurrentUsersSessionIdHandler : UserHandler(), GetRestHandler<SessionId>, A
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SessionId::class)]),
                 OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): SessionId {
         return ctx.sessionId().toSessionId()
@@ -257,7 +262,8 @@ class ActiveSessionsHandler(private val users: DAO<User>) : GetRestHandler<List<
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<UserDetails>::class)]),
                 OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): List<UserDetails> {
 

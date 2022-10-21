@@ -22,12 +22,9 @@ import dev.dres.run.RunExecutor
 import dev.dres.run.TaskRunStatus
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
-import io.javalin.core.security.RouteRole
+import io.javalin.security.RouteRole
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.openapi.*
 import java.io.FileNotFoundException
 import java.io.IOException
 
@@ -98,7 +95,8 @@ class ListCompetitionRunInfosHandler : AbstractCompetitionRunRestHandler(), GetR
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<RunInfo>::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): List<RunInfo> = getRelevantManagers(ctx).map { RunInfo(it) }
 }
@@ -114,7 +112,8 @@ class ListCompetitionRunStatesHandler : AbstractCompetitionRunRestHandler(), Get
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<RunState>::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): List<RunState> =
         getRelevantManagers(ctx).map {
@@ -140,7 +139,8 @@ class GetCompetitionRunInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): RunInfo {
         val runId = runId(ctx)
@@ -168,7 +168,8 @@ class GetCompetitionRunStateHandler : AbstractCompetitionRunRestHandler(), GetRe
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): RunState {
         val runId = runId(ctx)
@@ -198,7 +199,8 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): TaskInfo {
 
@@ -233,7 +235,8 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): TaskHint {
         val runId = runId(ctx)
@@ -288,7 +291,8 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): TaskTarget {
         val runId = runId(ctx)
@@ -344,7 +348,8 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
@@ -410,7 +415,8 @@ class RecentSubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRest
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)
@@ -452,7 +458,8 @@ class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): List<SubmissionInfo> {
         val runId = runId(ctx)

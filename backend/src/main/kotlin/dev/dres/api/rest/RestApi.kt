@@ -28,16 +28,8 @@ object RestApi {
 
     private var javalin: Javalin? = null
 
-    private lateinit var openApiPlugin: OpenApiPlugin
-
     private val logMarker = MarkerFactory.getMarker("REST")
     private val logger = LoggerFactory.getLogger(this.javaClass)
-
-    //private val mapper = JacksonToJsonMapper.defaultObjectMapper.enable(SerializationFeature.INDENT_OUTPUT)
-
-    fun getOpenApiPlugin(): OpenApiPlugin {
-        return openApiPlugin
-    }
 
     fun init(config: Config, dataAccessLayer: DataAccessLayer) {
 
@@ -190,23 +182,11 @@ object RestApi {
         )
 
         javalin = Javalin.create {
-            it.plugins.enableCors{ cors ->
-                cors.add{ corsPluginConfig ->
+            it.plugins.enableCors { cors ->
+                cors.add { corsPluginConfig ->
                     corsPluginConfig.anyHost()
                 }
             }
-            //it.jetty.server { setupHttpServer(config) }
-//            it.registerPlugin(
-//                OpenApiPlugin(
-//                    /* "Internal" DRES openapi (<host>/swagger-ui) */
-//                    getOpenApiOptionsFor(),
-//
-//                ),
-//                OpenApiPlugin(
-//                    /* "Public" client endpoint (<host>/swagger-client */
-//                    getOpenApiOptionsFor(OpenApiEndpointOptions.dresSubmittingClientOptions)
-//                )
-//            )
 
             it.plugins.register(
                 OpenApiPlugin(
@@ -220,6 +200,10 @@ object RestApi {
             )
 
             it.plugins.register(
+                ClientOpenApiPlugin()
+            )
+
+            it.plugins.register(
                 SwaggerPlugin(
                     SwaggerConfiguration().apply {
                         this.documentationPath = "/swagger-docs"
@@ -228,10 +212,11 @@ object RestApi {
                 )
             )
 
-            //FIXME client openAPI
+            it.plugins.register(ClientSwaggerPlugin())
 
             it.http.defaultContentType = "application/json"
             it.http.prefer405over404 = true
+            it.jetty.server { setupHttpServer() }
             it.jetty.sessionHandler { fileSessionHandler(config) }
             it.accessManager(AccessManager::manage)
             it.staticFiles.add("html", Location.CLASSPATH)
@@ -298,7 +283,7 @@ object RestApi {
         }.error(401) {
             it.json(ErrorStatus("Unauthorized request!"))
         }.exception(Exception::class.java) { e, ctx ->
-            ctx.status(500).json(ErrorStatus("Internal server error!"))
+            ctx.status(500).json(ErrorStatus("Internal server error: ${e.localizedMessage}"))
             logger.error("Exception during handling of request to ${ctx.path()}", e)
         }
             .start(config.httpPort)
@@ -308,24 +293,6 @@ object RestApi {
         javalin?.stop()
         javalin = null
     }
-
-
-
-//    private fun getOpenApiOptionsFor(options: OpenApiEndpointOptions = OpenApiEndpointOptions.dresDefaultOptions) =
-//        OpenApiOptions(
-//            Info().apply {
-//                title("DRES API")
-//                version("1.0")
-//                description("API for DRES (Distributed Retrieval Evaluation Server), Version 1.0")
-//            }
-//        ).apply {
-//            path(options.oasPath) // endpoint for OpenAPI json
-//            swagger(SwaggerOptions(options.swaggerUi)) // endpoint for swagger-ui
-//            activateAnnotationScanningFor("dev.dres.api.rest.handler")
-//            options.ignored().forEach { it.second.forEach { method -> ignorePath(it.first, method) } }
-//            toJsonMapper(JacksonToJsonMapper(jacksonMapper))
-//        }
-
 
     private fun fileSessionHandler(config: Config) = SessionHandler().apply {
         sessionCache = DefaultSessionCache(this).apply {
@@ -350,71 +317,8 @@ object RestApi {
     val readyThreadCount: Int
         get() = pool.readyThreads
 
-    private fun setupHttpServer(config: Config): Server {
+    private fun setupHttpServer(): Server {
         return Server(pool)
     }
-//
-//        val httpConfig = HttpConfiguration().apply {
-//            sendServerVersion = false
-//            sendXPoweredBy = false
-//            if (config.enableSsl) {
-//                secureScheme = "https"
-//                securePort = config.httpsPort
-//            }
-//        }
-//
-//
-//
-//        if (config.enableSsl) {
-//            val httpsConfig = HttpConfiguration(httpConfig).apply {
-//                addCustomizer(SecureRequestCustomizer())
-//            }
-//
-//            val alpn = ALPNServerConnectionFactory().apply {
-//                defaultProtocol = "http/1.1"
-//            }
-//
-//            val sslContextFactory = SslContextFactory.Server().apply {
-//                keyStorePath = config.keystorePath
-//                setKeyStorePassword(config.keystorePassword)
-//                //cipherComparator = HTTP2Cipher.COMPARATOR
-//                provider = "Conscrypt"
-//            }
-//
-//            val ssl = SslConnectionFactory(sslContextFactory, alpn.protocol)
-//
-//            val http2 = HTTP2ServerConnectionFactory(httpsConfig)
-//
-//            val fallback = HttpConnectionFactory(httpsConfig)
-//
-//            return Server(pool).apply {
-//                //HTTP Connector
-//                addConnector(
-//                    ServerConnector(
-//                        server,
-//                        HttpConnectionFactory(httpConfig),
-//                        HTTP2ServerConnectionFactory(httpConfig)
-//                    ).apply {
-//                        port = config.httpPort
-//                    })
-//                // HTTPS Connector
-//                addConnector(ServerConnector(server, ssl, alpn, http2, fallback).apply {
-//                    port = config.httpsPort
-//                })
-//            }
-//        } else {
-//            return Server(pool).apply {
-//                //HTTP Connector
-//                addConnector(
-//                    ServerConnector(
-//                        server,
-//                        HttpConnectionFactory(httpConfig),
-//                        HTTP2ServerConnectionFactory(httpConfig)
-//                    ).apply {
-//                        port = config.httpPort
-//                    })
-//
-//            }
-//        }
-//    }
+
 }

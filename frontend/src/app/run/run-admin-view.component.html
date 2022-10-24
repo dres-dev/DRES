@@ -125,7 +125,11 @@
             <ng-container matColumnDef="past">
               <th mat-header-cell *matHeaderCellDef>Submissions</th>
               <td mat-cell *matCellDef="let task">
-                {{ (task | enhanceTaskPastInfo: this.pastTasksValue)?.numberOfSubmissions || 'n/a' }}
+                <ng-container *ngIf="(this.submissionsForCurrentTask | async)?.has(task.id); else noRunningTaskTask">
+                  {{(this.submissionsForCurrentTask | async)?.get(task.id)}}
+                </ng-container>
+
+                <ng-template #noRunningTaskTask>{{(this.submissionsForPastTasks | async)?.get(task.id)}}</ng-template>
               </td>
             </ng-container>
 
@@ -134,19 +138,15 @@
               <th mat-header-cell *matHeaderCellDef>Actions</th>
               <td mat-cell *matCellDef="let task; let i = index">
                 <button
+                  *ngIf="task.name !== (run | async).state.currentTask.name && (run | async)?.state.status != 'RUNNING_TASK'"
                   mat-icon-button
                   aria-label="Switch to task."
                   matTooltip="Switch to task."
                   (click)="switchTask(i)"
-                  *ngIf="task.name !== (run | async).state.currentTask.name && (run | async)?.state.status != 'RUNNING_TASK'"
                 >
                   <mat-icon>directions</mat-icon>
                 </button>
-                <button
-                  *ngIf="
-                    (task | enhanceTaskPastInfo: this.pastTasksValue) != null ||
-                    (task.name === (run | async).state.currentTask.name && (run | async)?.state.status == 'RUNNING_TASK')
-                  "
+                <button *ngIf="(this.submissionsForCurrentTask | async)?.has(task.id) || (this.submissionsForPastTasks | async)?.has(task.id)"
                   mat-icon-button
                   aria-label="See submissions"
                   matTooltip="See submissions"

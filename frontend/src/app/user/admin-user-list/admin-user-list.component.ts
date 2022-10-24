@@ -1,9 +1,12 @@
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UserDetails, UserRequest, UserService } from '../../../../openapi';
 import { MatDialog } from '@angular/material/dialog';
 import { AdminUserCreateOrEditDialogComponent } from '../admin-user-create-or-edit-dialog/admin-user-create-or-edit-dialog.component';
 import { filter, flatMap } from 'rxjs/operators';
+import { MatSort, Sort } from '@angular/material/sort';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { MatTableDataSource } from '@angular/material/table';
 
 @Component({
   selector: 'app-admin-user-list',
@@ -14,9 +17,19 @@ export class AdminUserListComponent implements AfterViewInit {
   // TODO Add Team info / link
 
   displayColumns = ['actions', 'id', 'name', 'role'];
-  users: UserDetails[] = [];
 
-  constructor(private snackBar: MatSnackBar, private userService: UserService, private dialog: MatDialog) {}
+  @ViewChild(MatSort) sort: MatSort;
+  dataSource = new MatTableDataSource<UserDetails>([]);
+
+  isFilterInputActive = false;
+  filterValue = '';
+
+  constructor(
+    private snackBar: MatSnackBar,
+    private userService: UserService,
+    private dialog: MatDialog,
+    private liveAnnouncer: LiveAnnouncer
+  ) {}
 
   public create() {
     const dialogRef = this.dialog.open(AdminUserCreateOrEditDialogComponent, { width: '500px' });
@@ -78,10 +91,12 @@ export class AdminUserListComponent implements AfterViewInit {
   public refresh() {
     this.userService.getApiV1UserList().subscribe(
       (users: UserDetails[]) => {
-        this.users = users;
+        this.dataSource.data = users;
+        this.dataSource.sort = this.sort;
       },
       (error) => {
-        this.users = [];
+        this.dataSource.data = [];
+        this.dataSource.sort = this.sort;
         this.snackBar.open(`Error: ${error.error.description}`, null, { duration: 5000 });
       }
     );
@@ -95,12 +110,29 @@ export class AdminUserListComponent implements AfterViewInit {
     return user.id;
   }
 
+  filter() {
+    this.dataSource.filter = this.filterValue.trim(); // Purposely case insensitive
+  }
+
   private findForId(id: string) {
-    this.users.forEach((u) => {
+    this.dataSource.data.forEach((u) => {
       if (u.id === id) {
         return u;
       }
     });
     return null;
+  }
+
+  /**
+   * Announce sort change state for assistive technology.
+   * Direct adoption from the angular material docs.
+   * We only support English everywhere, thus these announcements are in English too.
+   */
+  announceSortChangeForAccessibility($event: Sort) {
+    if ($event.direction) {
+      this.liveAnnouncer.announce(`Sorted ${$event.direction}ending on column ${$event.active}`);
+    } else {
+      this.liveAnnouncer.announce('Sorting cleared0');
+    }
   }
 }

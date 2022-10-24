@@ -157,7 +157,7 @@ class CreateCompetitionRunAdminHandler(
 
             val outputFile = File(cacheLocation, it.cacheItemName())
             if (!outputFile.exists()) {
-                logger.warn("query video file for item ${it.item} not found, rendering to ${outputFile.absolutePath}")
+                logger.warn("Query video file for item ${it.item} not found, rendering to ${outputFile.absolutePath}")
                 FFmpegUtil.prepareMediaSegmentTask(it, collection.basePath, cacheLocation)
             }
 

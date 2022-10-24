@@ -1,5 +1,6 @@
 package dev.dres.data.model.run
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
@@ -34,7 +35,10 @@ class InteractiveAsynchronousCompetition(
 ) : AbstractRun(), Competition {
 
     companion object {
-        fun generatePermutation(description: CompetitionDescription, shuffle: Boolean): Map<TeamId, List<Int>> =
+        fun generatePermutation(
+            description: CompetitionDescription,
+            shuffle: Boolean
+        ): Map<TeamId, List<Int>> =
             if (shuffle) {
                 description.teams.associate { it.uid to makeLoop(description.tasks.size) }
             } else {
@@ -72,7 +76,8 @@ class InteractiveAsynchronousCompetition(
                     //...and continue recursively
                     if (recursionStep(
                             (open - nextPosition), //without the last assigned value
-                            (nextPosition + 1) % array.size) //at the index after the last assigned position
+                            (nextPosition + 1) % array.size
+                        ) //at the index after the last assigned position
                     ) {
                         //assignment succeeded
                         return true
@@ -93,7 +98,12 @@ class InteractiveAsynchronousCompetition(
         }
     }
 
-    constructor(id: CompetitionId, name: String, competitionDescription: CompetitionDescription, properties: RunProperties) : this(
+    constructor(
+        id: CompetitionId,
+        name: String,
+        competitionDescription: CompetitionDescription,
+        properties: RunProperties
+    ) : this(
         id,
         name,
         competitionDescription,
@@ -192,7 +202,8 @@ class InteractiveAsynchronousCompetition(
      * @return List []
      */
     fun tasksForTeam(teamId: TeamId) =
-        this.tasksMap[teamId] ?: throw IllegalArgumentException("Given $teamId is unknown to this competition $id.")
+        this.tasksMap[teamId]
+            ?: throw IllegalArgumentException("Given $teamId is unknown to this competition $id.")
 
     /**
      * Generates and returns a [String] representation for this [InteractiveAsynchronousCompetition].
@@ -211,7 +222,13 @@ class InteractiveAsynchronousCompetition(
         val descriptionId: TaskDescriptionId
     ) : AbstractInteractiveTask() {
 
-        internal constructor(uid: TaskId, teamId: TeamId, taskId: TaskDescriptionId, started: Long, ended: Long) : this(
+        internal constructor(
+            uid: TaskId,
+            teamId: TeamId,
+            taskId: TaskDescriptionId,
+            started: Long,
+            ended: Long
+        ) : this(
             uid,
             teamId,
             taskId
@@ -230,11 +247,12 @@ class InteractiveAsynchronousCompetition(
 
         /** The [InteractiveAsynchronousCompetition] this [Task] belongs to.*/
         override val competition: InteractiveAsynchronousCompetition
-            get() = this@InteractiveAsynchronousCompetition
+            @JsonIgnore get() = this@InteractiveAsynchronousCompetition
 
         /** The position of this [Task] within the [InteractiveAsynchronousCompetition]. */
         override val position: Int
-            get() = this@InteractiveAsynchronousCompetition.tasksMap[this.teamId]?.indexOf(this) ?: -1
+            get() = this@InteractiveAsynchronousCompetition.tasksMap[this.teamId]?.indexOf(this)
+                ?: -1
 
         @Transient
         override val description: TaskDescription =

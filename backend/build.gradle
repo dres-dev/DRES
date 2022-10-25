@@ -45,8 +45,8 @@ compileTestKotlin {
 }
 
 dependencies {
-    def javalin = '5.1.1'
-    def log4jVersion = '2.17.0'
+    def javalin = '5.1.2'
+    def log4jVersion = '2.17.1'
 
     ///// Frontend files (produced by sub-project).
     implementation frontendClasspath(project(path: ":frontend", configuration: 'frontendFiles'))
@@ -58,14 +58,14 @@ dependencies {
     implementation group: 'org.mapdb', name: 'mapdb', version: '3.0.8'
 
     ////// Javalin
-    implementation group: 'io.javalin', name:  'javalin', version: "$javalin"
+    implementation group: 'io.javalin', name:  'javalin', version: javalin
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalin")
 
     implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: "5.1.2-SNAPSHOT"
     implementation group: 'io.javalin.community.openapi', name:'javalin-swagger-plugin', version: "5.1.2-SNAPSHOT"
-    implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: "$javalin"
+    implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: javalin
 
-    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.0'
+    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.13.4'
 
 
 

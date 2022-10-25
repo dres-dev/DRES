@@ -131,6 +131,7 @@ class DeleteCollectionHandler(collections: DAO<MediaCollection>, items: DAO<Medi
     @OpenApi(
         summary = "Deletes a media collection",
         path = "/api/v1/collection/{collectionId}",
+        pathParams = [OpenApiParam("collectionId", String::class, "Collection ID")],
         tags = ["Collection"],
         methods = [HttpMethod.DELETE],
         responses = [

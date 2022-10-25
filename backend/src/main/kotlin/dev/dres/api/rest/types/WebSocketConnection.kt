@@ -14,7 +14,8 @@ import java.nio.ByteBuffer
  * @author Ralph Gasser
  * @version 1.0
  */
-inline class WebSocketConnection(val context: WsContext) {
+@JvmInline
+value class WebSocketConnection(val context: WsContext) {
 
     companion object {
         val jsonMapper = jacksonObjectMapper()
@@ -26,7 +27,7 @@ inline class WebSocketConnection(val context: WsContext) {
 
     /** ID of the HTTP session that generated this [WebSocketConnection]. */
     val httpSessionId
-        get() = (this.context.session.upgradeRequest.session as Session).id
+        get() = (this.context.session as Session).id
 
     /** Name of the user that generated this [WebSocketConnection]. */
     val userName
@@ -37,9 +38,9 @@ inline class WebSocketConnection(val context: WsContext) {
         get() {
             val xff = this.context.header("X-Forwarded-For")
             return if (xff != null) {
-                "$xff via ${this.context.session.remoteAddress.hostString}"
+                "$xff via ${this.context.host()}"
             } else {
-                this.context.session.remoteAddress.hostString
+                this.context.host()
             }
 
         }

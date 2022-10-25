@@ -20,10 +20,7 @@ import dev.dres.utilities.extensions.errorResponse
 import dev.dres.utilities.extensions.sendFile
 import dev.dres.utilities.extensions.streamFile
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.openapi.*
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Files
@@ -144,7 +141,8 @@ class MediaPreviewHandler(
             "200",
             [OpenApiContent(type = "image/png")]
         ), OpenApiResponse("401"), OpenApiResponse("400")],
-        ignore = true
+        ignore = true,
+        methods = [HttpMethod.GET]
     )
     override fun get(ctx: Context) {
 
@@ -190,7 +188,8 @@ class SubmissionPreviewHandler(
             "200",
             [OpenApiContent(type = "image/png")]
         ), OpenApiResponse("401"), OpenApiResponse("400")],
-        ignore = true
+        ignore = true,
+        methods = [HttpMethod.GET]
     )
     override fun get(ctx: Context) {
 

@@ -16,10 +16,10 @@ import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.Team
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.errorResponse
-import io.javalin.core.security.RouteRole
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.*
+import io.javalin.openapi.*
+import io.javalin.security.RouteRole
 import java.io.IOException
 import java.nio.file.Files
 
@@ -66,7 +66,8 @@ class GetTeamLogoHandler(val config: Config) : AbstractCompetitionRunRestHandler
             tags = ["Competition Run", "Media"],
             pathParams = [OpenApiParam("logoId", String::class, "The ID of the logo.")],
             responses = [OpenApiResponse("200"), OpenApiResponse("401"), OpenApiResponse("400"), OpenApiResponse("404")],
-            ignore = true
+            ignore = true,
+        methods = [HttpMethod.GET]
     )
     override fun get(ctx: Context) {
 
@@ -107,7 +108,8 @@ class ListCompetitionHandler(competitions: DAO<CompetitionDescription>) : Compet
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<CompetitionOverview>::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context)  = competitions.map { CompetitionOverview.of(it) }
 
@@ -126,7 +128,8 @@ class GetCompetitionHandler(competitions: DAO<CompetitionDescription>) : Competi
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context) = RestCompetitionDescription.fromCompetition(competitionFromContext(ctx))
 
@@ -147,7 +150,8 @@ class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context) = competitionFromContext(ctx).teams.map { RestTeam(it) }
 
@@ -171,7 +175,8 @@ class ListDetailedTeamHandler(competitions: DAO<CompetitionDescription>) : Compe
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context) = competitionFromContext(ctx).teams.map{ RestDetailedTeam.of(it) }
 
@@ -191,7 +196,8 @@ class ListTaskHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
 
     override fun doGet(ctx: Context) = competitionFromContext(ctx).tasks.map { RestTaskDescription.fromTask(it) }
@@ -201,7 +207,8 @@ class ListTaskHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
 class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), PostRestHandler<SuccessStatus> {
     @OpenApi(
             summary = "Creates a new competition.",
-            path = "/api/v1/competition", method = HttpMethod.POST,
+            path = "/api/v1/competition",
+            methods = [HttpMethod.POST],
             requestBody = OpenApiRequestBody([OpenApiContent(CompetitionCreate::class)]),
             tags = ["Competition"],
             responses = [
@@ -229,7 +236,8 @@ class CreateCompetitionHandler(competitions: DAO<CompetitionDescription>) : Comp
 class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>, val config: Config, val mediaItems: DAO<MediaItem>) : CompetitionHandler(competitions), PatchRestHandler<SuccessStatus> {
     @OpenApi(
             summary = "Updates an existing competition.",
-            path = "/api/v1/competition", method = HttpMethod.PATCH,
+            path = "/api/v1/competition",
+            methods = [HttpMethod.PATCH],
             requestBody = OpenApiRequestBody([OpenApiContent(RestCompetitionDescription::class)]),
             tags = ["Competition"],
             responses = [
@@ -269,7 +277,8 @@ class UpdateCompetitionHandler(competitions: DAO<CompetitionDescription>, val co
 class DeleteCompetitionHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), DeleteRestHandler<SuccessStatus> {
     @OpenApi(
             summary = "Deletes the competition with the given competition ID.",
-            path = "/api/v1/competition/{competitionId}", method = HttpMethod.DELETE,
+            path = "/api/v1/competition/{competitionId}",
+            methods = [HttpMethod.DELETE],
             pathParams = [OpenApiParam("competitionId", String::class, "Competition ID")],
             tags = ["Competition"],
             responses = [

@@ -20,9 +20,10 @@ import dev.dres.run.NonInteractiveRunManager
 import dev.dres.utilities.TimeUtil
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
-import io.javalin.core.security.RouteRole
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.*
+import io.javalin.http.bodyAsClass
+import io.javalin.openapi.*
+import io.javalin.security.RouteRole
 
 abstract class BatchSubmissionHandler(internal val collections: DAO<MediaCollection>, internal val itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, internal val segmentIndex: DaoIndexer<MediaItemSegmentList, UID>) : PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
 
@@ -48,7 +49,7 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
 
     @OpenApi(summary = "Endpoint to accept batch submissions in JSON format",
         path = "/api/v1/submit/{runId}",
-        method = HttpMethod.POST,
+        methods = [HttpMethod.POST],
         pathParams = [OpenApiParam("runId", String::class, "Competition Run ID")],
         requestBody = OpenApiRequestBody([OpenApiContent(RunResult::class)]),
         tags = ["Batch Submission"],

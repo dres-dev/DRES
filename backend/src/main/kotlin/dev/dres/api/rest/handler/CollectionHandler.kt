@@ -16,10 +16,10 @@ import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.cleanPathString
-import io.javalin.core.security.RouteRole
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.*
+import io.javalin.openapi.*
+import io.javalin.security.RouteRole
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -58,6 +58,7 @@ class ListCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaI
         summary = "Lists all available media collections with basic information about their content.",
         path = "/api/v1/collection/list",
         tags = ["Collection"],
+        methods = [HttpMethod.GET],
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<RestMediaCollection>::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
@@ -76,7 +77,7 @@ class AddCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaIt
         summary = "Adds a new media collection",
         path = "/api/v1/collection",
         tags = ["Collection"],
-        method = HttpMethod.POST,
+        methods = [HttpMethod.POST],
         requestBody = OpenApiRequestBody([OpenApiContent(RestMediaCollection::class)]),
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -131,7 +132,7 @@ class DeleteCollectionHandler(collections: DAO<MediaCollection>, items: DAO<Medi
         summary = "Deletes a media collection",
         path = "/api/v1/collection/{collectionId}",
         tags = ["Collection"],
-        method = HttpMethod.DELETE,
+        methods = [HttpMethod.DELETE],
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
@@ -157,7 +158,7 @@ class UpdateCollectionHandler(collections: DAO<MediaCollection>, items: DAO<Medi
         summary = "Updates a media collection",
         path = "/api/v1/collection",
         tags = ["Collection"],
-        method = HttpMethod.PATCH,
+        methods = [HttpMethod.PATCH],
         requestBody = OpenApiRequestBody([OpenApiContent(RestMediaCollection::class)]),
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -208,7 +209,8 @@ class ShowCollectionHandler(collections: DAO<MediaCollection>, items: DAO<MediaI
             OpenApiResponse("200", [OpenApiContent(RestFullMediaCollection::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): RestFullMediaCollection {
         val collection = collectionFromContext(ctx) //also checks if collection exists
@@ -225,7 +227,8 @@ class AddMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
 
     @OpenApi(
         summary = "Adds a Media Item to the specified Media Collection.",
-        path = "/api/v1/mediaItem", method = HttpMethod.POST,
+        path = "/api/v1/mediaItem",
+        methods = [HttpMethod.POST],
         requestBody = OpenApiRequestBody([OpenApiContent(RestMediaItem::class)]),
         tags = ["Collection"],
         responses = [
@@ -274,7 +277,8 @@ class UpdateMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<Media
 
     @OpenApi(
         summary = "Updates a Media Item to the specified Media Collection.",
-        path = "/api/v1/mediaItem", method = HttpMethod.PATCH,
+        path = "/api/v1/mediaItem",
+        methods = [HttpMethod.PATCH],
         requestBody = OpenApiRequestBody([OpenApiContent(RestMediaItem::class)]),
         tags = ["Collection"],
         responses = [
@@ -319,7 +323,8 @@ class GetMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<MediaIte
 
     @OpenApi(
         summary = "Selects and returns a specific media item.",
-        path = "/api/v1/mediaItem/{mediaId}", method = HttpMethod.GET,
+        path = "/api/v1/mediaItem/{mediaId}",
+        methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam("mediaId", String::class, "Media item ID")
         ],
@@ -352,7 +357,8 @@ class DeleteMediaItemHandler(collections: DAO<MediaCollection>, items: DAO<Media
 
     @OpenApi(
         summary = "Selects and returns a specific media item.",
-        path = "/api/v1/mediaItem/{mediaId}", method = HttpMethod.DELETE,
+        path = "/api/v1/mediaItem/{mediaId}",
+        methods = [HttpMethod.DELETE],
         pathParams = [
             OpenApiParam("mediaId", String::class, "Media item ID")
         ],
@@ -391,7 +397,8 @@ class ResolveMediaItemListByNameHandler(
 
     @OpenApi(
         summary = "Resolves a list of media item names to media items",
-        path = "/api/v1/collection/{collectionId}/resolve", method = HttpMethod.POST,
+        path = "/api/v1/collection/{collectionId}/resolve",
+        methods = [HttpMethod.POST],
         pathParams = [
             OpenApiParam("collectionId", String::class, "Collection ID")
         ],
@@ -433,7 +440,8 @@ class ListMediaItemHandler(
 ) : CollectionHandler(collections, items), GetRestHandler<List<RestMediaItem>> {
     @OpenApi(
         summary = "Lists media items from a given media collection whose name start with the given string.",
-        path = "/api/v1/collection/{collectionId}/{startsWith}", method = HttpMethod.GET,
+        path = "/api/v1/collection/{collectionId}/{startsWith}",
+        methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam("collectionId", String::class, "Collection ID"),
             OpenApiParam("startsWith", String::class, "Name starts with", required = false)
@@ -475,7 +483,8 @@ class RandomMediaItemHandler(
 
     @OpenApi(
         summary = "Selects and returns a random media item from a given media collection.",
-        path = "/api/v1/collection/{collectionId}/random", method = HttpMethod.GET,
+        path = "/api/v1/collection/{collectionId}/random",
+        methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam("collectionId", String::class, "Collection ID")
         ],
@@ -516,7 +525,8 @@ class ListExternalItemHandler(config: Config) : GetRestHandler<Array<String>> {
 
     @OpenApi(
         summary = "Lists items from the external media collection whose name start with the given string.",
-        path = "/api/v1/external/<startsWith>", method = HttpMethod.GET,
+        path = "/api/v1/external/<startsWith>",
+        methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam("startsWith", String::class, "Name starts with.", required = false)
         ],

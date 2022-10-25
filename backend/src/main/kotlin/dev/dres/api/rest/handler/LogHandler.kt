@@ -15,10 +15,11 @@ import dev.dres.run.eventstream.InvalidRequestEvent
 import dev.dres.run.eventstream.QueryEventLogEvent
 import dev.dres.run.eventstream.QueryResultLogEvent
 import dev.dres.utilities.extensions.sessionId
-import io.javalin.core.security.RouteRole
+import io.javalin.security.RouteRole
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.*
+import io.javalin.http.bodyAsClass
+import io.javalin.openapi.*
 
 abstract class LogHandler : PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
 
@@ -47,7 +48,7 @@ class QueryLogHandler : LogHandler() {
 
     @OpenApi(summary = "Accepts query logs from participants",
             path = "/api/v1/log/query",
-            method = HttpMethod.POST,
+            methods = [HttpMethod.POST],
             requestBody = OpenApiRequestBody([OpenApiContent(QueryEventLog::class)]),
             tags = ["Log"],
             queryParams = [
@@ -84,7 +85,7 @@ class ResultLogHandler : LogHandler() {
 
     @OpenApi(summary = "Accepts result logs from participants",
             path = "/api/v1/log/result",
-            method = HttpMethod.POST,
+            methods = [HttpMethod.POST],
             requestBody = OpenApiRequestBody([OpenApiContent(QueryResultLog::class)]),
             tags = ["Log"],
             queryParams = [
@@ -101,7 +102,7 @@ class ResultLogHandler : LogHandler() {
         val run = getActiveRun(userId, ctx)
 
         val queryResultLog = try {
-            ctx.bodyAsClass<QueryResultLog>()
+            ctx.bodyAsClass(QueryResultLog::class.java)
         } catch (e: BadRequestResponse){
             EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionId(), run.id, ctx.body()))
             throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}", ctx)

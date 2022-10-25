@@ -26,7 +26,7 @@ fun Context.streamFile(file: File) {
     }
     val mimeType = MimeTypeHelper.mimeType(file)
     this.contentType(mimeType) //needs to be set, probably a bug in Javalin
-    this.seekableStream(file.inputStream(), mimeType)
+    this.writeSeekableStream(file.inputStream(), mimeType)
 }
 
 fun Context.streamFile(path: Path) {
@@ -36,7 +36,7 @@ fun Context.streamFile(path: Path) {
     }
     val mimeType = MimeTypeHelper.mimeType(path.toFile())
     this.contentType(mimeType)
-    this.seekableStream(Files.newInputStream(path, StandardOpenOption.READ), mimeType)
+    this.writeSeekableStream(Files.newInputStream(path, StandardOpenOption.READ), mimeType)
 }
 
 fun Context.sendFile(file: File) {
@@ -49,4 +49,4 @@ fun Context.sendFile(file: File) {
     this.result(file.inputStream())
 }
 
-fun Context.sessionId(): String = this.queryParam("session") ?: this.req.session.id
+fun Context.sessionId(): String = this.queryParam("session") ?: this.req().session.id

@@ -21,10 +21,10 @@ import dev.dres.run.exceptions.JudgementTimeoutException
 import dev.dres.run.validation.interfaces.VoteValidator
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
-import io.javalin.core.security.RouteRole
+import io.javalin.security.RouteRole
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.*
+import io.javalin.openapi.*
 
 abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler {
     override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.JUDGE)
@@ -79,7 +79,8 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): JudgementRequest {
         val runId = this.runId(ctx)
@@ -124,7 +125,7 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
 
     @OpenApi(
             summary = "Returns a Judgement.",
-            path = "/api/v1/run/{runId}/judge", method = HttpMethod.POST,
+            path = "/api/v1/run/{runId}/judge", methods = [HttpMethod.POST],
             pathParams = [OpenApiParam("runId", String::class, "Run ID")],
             requestBody = OpenApiRequestBody([OpenApiContent(Judgement::class)]),
             tags = ["Judgement"],
@@ -178,7 +179,8 @@ class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, A
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): List<JudgementValidatorStatus> {
 
@@ -204,7 +206,7 @@ class JudgementVoteHandler : PostRestHandler<SuccessStatus> {
 
     @OpenApi(
         summary = "Returns a Vote.",
-        path = "/api/v1/run/{runId}/judge/vote", method = HttpMethod.POST,
+        path = "/api/v1/run/{runId}/judge/vote", methods = [HttpMethod.POST],
         pathParams = [OpenApiParam("runId", String::class, "Run ID")],
         requestBody = OpenApiRequestBody([OpenApiContent(JudgementVote::class)]),
         tags = ["Judgement"],
@@ -255,7 +257,8 @@ class NextOpenVoteJudgementHandler(val collections: DAO<MediaCollection>) : Abst
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): JudgementRequest {
         val runId = this.runId(ctx)

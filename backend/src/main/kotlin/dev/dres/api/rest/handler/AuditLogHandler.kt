@@ -8,12 +8,9 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.dbo.NumericDaoIndexer
 import dev.dres.run.audit.AuditLogEntry
 import dev.dres.utilities.extensions.toPathParamKey
-import io.javalin.core.security.RouteRole
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.openapi.*
+import io.javalin.security.RouteRole
 
 abstract class AuditLogHandler(val auditTimes: NumericDaoIndexer<AuditLogEntry, Long>) : RestHandler, AccessManagedRestHandler {
     override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.ADMIN)
@@ -32,7 +29,8 @@ class GetAuditLogInfoHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>)
             responses = [
                 OpenApiResponse("200", [OpenApiContent(AuditLogInfo::class)], description = "The audit log info"),
                 OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)], description = "Whenever a non-admin user starts the call")
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): AuditLogInfo {
         return AuditLogInfo(size = auditTimes.index.size, latest = auditTimes.index.keys.maxOrNull() ?: 0L)
@@ -55,7 +53,8 @@ class ListAuditLogsInRangeHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, L
             responses = [
                 OpenApiResponse("200", [OpenApiContent(Array<RestAuditLogEntry>::class)], description = "The audit logs"),
                 OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)], description = "Whenever a non-admin user starts the call")
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): Array<RestAuditLogEntry> {
         var settings = 0
@@ -129,7 +128,8 @@ class ListAuditLogsHandler(auditTimes: NumericDaoIndexer<AuditLogEntry, Long>, v
 //                OpenApiResponse("200", [OpenApiContent(AuditLogPage::class)], description = "The audit logs"),
                 OpenApiResponse("200", [OpenApiContent(Array<RestAuditLogEntry>::class)], description = "The audit logs"),
                 OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)], description = "Whenever a non-admin user starts the call")
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): Array<RestAuditLogEntry> {
         val limit = getLimitFromParams(ctx)

@@ -13,12 +13,9 @@ import dev.dres.run.score.scoreboard.Score
 import dev.dres.run.score.scoreboard.ScoreOverview
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
-import io.javalin.core.security.RouteRole
+import io.javalin.security.RouteRole
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.openapi.*
 
 /**
  * A collection of [RestHandler]s that deal with [ScoreOverview]s for ongoing
@@ -78,7 +75,8 @@ class ListCompetitionScoreHandler : AbstractScoreRestHandler(), GetRestHandler<L
                 OpenApiResponse("200", [OpenApiContent(Array<ScoreOverview>::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): List<ScoreOverview> {
         val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()
@@ -107,7 +105,8 @@ class CurrentTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): ScoreOverview {
         val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()
@@ -154,7 +153,8 @@ class HistoryTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): ScoreOverview {
         val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()
@@ -201,7 +201,8 @@ class ListScoreboardsHandler : AbstractScoreRestHandler(), GetRestHandler<List<S
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): List<String> {
         val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()
@@ -229,7 +230,8 @@ class ListScoreSeriesHandler : AbstractScoreRestHandler(), GetRestHandler<List<S
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): List<ScoreSeries> {
         val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()
@@ -263,7 +265,8 @@ class TeamGroupScoreHandler : AbstractScoreRestHandler(), GetRestHandler<List<Te
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): List<TeamGroupValue> {
         val runId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'runId' is missing!'", ctx) }.UID()

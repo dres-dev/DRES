@@ -2,7 +2,7 @@ package dev.dres.api.rest.handler
 
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.utilities.extensions.errorResponse
-import io.javalin.core.security.RouteRole
+import io.javalin.security.RouteRole
 import io.javalin.http.Context
 
 interface RestHandler {

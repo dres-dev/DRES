@@ -31,10 +31,7 @@ import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.TimeUtil
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.openapi.*
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
@@ -174,7 +171,8 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("412", [OpenApiContent(ErrorStatus::class)])
-            ]
+            ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): SuccessfulSubmissionsStatus {
         val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
@@ -195,7 +193,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             throw ErrorStatusException(400, "Run manager does not know the given teamId ${rac.teamId}.", ctx)
         }
 
-        AuditLogger.submission(run.id, run.currentTaskDescription(rac).name, run.currentTask(rac)?.uid, submission, LogEventSource.REST, ctx.sessionId(), ctx.req.remoteAddr)
+        AuditLogger.submission(run.id, run.currentTaskDescription(rac).name, run.currentTask(rac)?.uid, submission, LogEventSource.REST, ctx.sessionId(), ctx.req().remoteAddr)
 
         if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }) { //pre-generate preview
             generatePreview(submission)

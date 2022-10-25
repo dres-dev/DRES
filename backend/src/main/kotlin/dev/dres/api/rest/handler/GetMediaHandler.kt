@@ -9,9 +9,10 @@ import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.errorResponse
 import dev.dres.utilities.extensions.streamFile
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.openapi.HttpMethod
+import io.javalin.openapi.OpenApi
+import io.javalin.openapi.OpenApiParam
+import io.javalin.openapi.OpenApiResponse
 import java.io.File
 
 class GetMediaHandler(private val itemCache: DaoIndexer<MediaItem, Pair<UID,UID>>, private val collectionCache : DaoIndexer<MediaCollection, UID>) : GetRestHandler<Any>, AccessManagedRestHandler {
@@ -31,7 +32,8 @@ class GetMediaHandler(private val itemCache: DaoIndexer<MediaItem, Pair<UID,UID>
             ],
             tags = ["Media"],
             responses = [OpenApiResponse("200"), OpenApiResponse("401"), OpenApiResponse("400"), OpenApiResponse("404")],
-            ignore = true
+            ignore = true,
+        methods = [HttpMethod.GET]
     )
     override fun get(ctx: Context) {
 

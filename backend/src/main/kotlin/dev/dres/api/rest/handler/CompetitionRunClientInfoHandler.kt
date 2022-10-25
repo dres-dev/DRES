@@ -9,12 +9,9 @@ import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.*
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.sessionId
-import io.javalin.core.security.RouteRole
+import io.javalin.security.RouteRole
 import io.javalin.http.Context
-import io.javalin.plugin.openapi.annotations.OpenApi
-import io.javalin.plugin.openapi.annotations.OpenApiContent
-import io.javalin.plugin.openapi.annotations.OpenApiParam
-import io.javalin.plugin.openapi.annotations.OpenApiResponse
+import io.javalin.openapi.*
 
 abstract class AbstractCompetitionRunClientInfoHandler : RestHandler, AccessManagedRestHandler {
 
@@ -76,7 +73,8 @@ class ListCompetitionRunClientInfoHandler : AbstractCompetitionRunClientInfoHand
         responses = [
             OpenApiResponse("200", [OpenApiContent(ClientRunInfoList::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): ClientRunInfoList =
         ClientRunInfoList(getRelevantManagers(ctx).map { ClientRunInfo(it) })
@@ -106,7 +104,8 @@ class CompetitionRunClientCurrentTaskInfoHandler : AbstractCompetitionRunClientI
             OpenApiResponse("200", [OpenApiContent(ClientTaskInfo::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-        ]
+        ],
+        methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): ClientTaskInfo {
 

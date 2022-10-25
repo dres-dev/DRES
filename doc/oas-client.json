@@ -1,28 +1,52 @@
 {
-  "openapi" : "3.0.1",
+  "openapi" : "3.0.3",
   "info" : {
-    "title" : "DRES API",
+    "title" : "DRES API (client)",
+    "summary" : null,
     "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 1.0",
+    "termsOfService" : null,
+    "contact" : null,
+    "license" : null,
     "version" : "1.0"
   },
   "paths" : {
-    "/api/v1/login" : {
-      "post" : {
-        "tags" : [ "User" ],
-        "summary" : "Sets roles for session based on user account and returns a session cookie.",
-        "operationId" : "postApiV1Login",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/LoginRequest"
+    "/api/v1/status/info/admin" : {
+      "get" : {
+        "tags" : [ "Status" ],
+        "summary" : "Returns an extensive overview of the server properties.",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DresAdminInfo"
+                }
               }
             }
           }
         },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v1/user" : {
+      "post" : {
+        "tags" : [ "User" ],
+        "summary" : "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
+        "parameters" : [ ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UserRequest"
+              }
+            }
+          },
+          "required" : false
+        },
         "responses" : {
           "200" : {
-            "description" : "OK",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -32,7 +56,7 @@
             }
           },
           "400" : {
-            "description" : "Bad Request",
+            "description" : "If the username is already taken",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -41,8 +65,7 @@
               }
             }
           },
-          "401" : {
-            "description" : "Unauthorized",
+          "500" : {
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -51,54 +74,16 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/logout" : {
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Clears all user roles of the current session.",
-        "operationId" : "getApiV1Logout",
-        "parameters" : [ {
-          "name" : "session",
-          "in" : "query",
-          "description" : "Session Token",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/user" : {
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
       "get" : {
         "tags" : [ "User" ],
         "summary" : "Get information about the current user.",
-        "operationId" : "getApiV1User",
+        "parameters" : [ ],
         "responses" : {
           "200" : {
-            "description" : "OK",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -108,7 +93,6 @@
             }
           },
           "500" : {
-            "description" : "Server Error",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -117,94 +101,98 @@
               }
             }
           }
-        }
+        },
+        "deprecated" : false,
+        "security" : [ ]
       }
     },
-    "/api/v1/submit" : {
+    "/api/v1/status/time" : {
       "get" : {
-        "tags" : [ "Submission" ],
-        "summary" : "Endpoint to accept submissions",
-        "operationId" : "getApiV1Submit",
+        "tags" : [ "Status" ],
+        "summary" : "Returns the current time on the server.",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CurrentTime"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v1/user/session" : {
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Get current sessionId",
         "parameters" : [ {
-          "name" : "collection",
-          "in" : "query",
-          "description" : "Collection identifier. Optional, in which case the default collection for the run will be considered.",
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "item",
-          "in" : "query",
-          "description" : "Identifier for the actual media object or media file.",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "text",
-          "in" : "query",
-          "description" : "Text to be submitted. ONLY for tasks with target type TEXT. If this parameter is provided, it superseeds all athers.",
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "frame",
-          "in" : "query",
-          "description" : "Frame number for media with temporal progression (e.g. video).",
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "shot",
-          "in" : "query",
-          "description" : "Shot number for media with temporal progression (e.g. video).",
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "timecode",
-          "in" : "query",
-          "description" : "Timecode for media with temporal progression (e.g. video).",
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
           "name" : "session",
           "in" : "query",
           "description" : "Session Token",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
           }
         } ],
         "responses" : {
           "200" : {
-            "description" : "OK",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
+                  "$ref" : "#/components/schemas/SessionId"
                 }
               }
             }
           },
-          "202" : {
-            "description" : "Accepted",
+          "500" : {
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v1/user/{userId}" : {
+      "delete" : {
+        "tags" : [ "User" ],
+        "summary" : "Deletes the specified user. Requires ADMIN privileges",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "description" : "User ID",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "number",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserDetails"
                 }
               }
             }
           },
-          "400" : {
-            "description" : "Bad Request",
+          "404" : {
+            "description" : "If the user could not be found",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -213,8 +201,54 @@
               }
             }
           },
-          "401" : {
-            "description" : "Unauthorized",
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "patch" : {
+        "tags" : [ "User" ],
+        "summary" : "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "description" : "User ID",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UserRequest"
+              }
+            }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserDetails"
+                }
+              }
+            }
+          },
+          "400" : {
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -224,7 +258,6 @@
             }
           },
           "404" : {
-            "description" : "Not Found",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -233,8 +266,7 @@
               }
             }
           },
-          "412" : {
-            "description" : "Precondition Failed",
+          "500" : {
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -243,19 +275,252 @@
               }
             }
           }
-        }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Gets details of the user with the given id",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "description" : "User's UID",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserDetails"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "If the user could not be found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v1/status/info" : {
+      "get" : {
+        "tags" : [ "Status" ],
+        "summary" : "Returns an overview of the server properties.",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DresInfo"
+                }
+              }
+            }
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v1/submit/{runId}" : {
+      "post" : {
+        "tags" : [ "Batch Submission" ],
+        "summary" : "Endpoint to accept batch submissions in JSON format",
+        "parameters" : [ {
+          "name" : "runId",
+          "in" : "path",
+          "description" : "Competition Run ID",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RunResult"
+              }
+            }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v1/login" : {
+      "post" : {
+        "tags" : [ "User" ],
+        "summary" : "Sets roles for session based on user account and returns a session cookie.",
+        "parameters" : [ ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserDetails"
+                }
+              }
+            }
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v1/logout" : {
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Clears all user roles of the current session.",
+        "parameters" : [ {
+          "name" : "session",
+          "in" : "query",
+          "description" : "Session Token",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
       }
     },
     "/api/v1/log/query" : {
       "post" : {
         "tags" : [ "Log" ],
         "summary" : "Accepts query logs from participants",
-        "operationId" : "postApiV1LogQuery",
         "parameters" : [ {
           "name" : "session",
           "in" : "query",
           "description" : "Session Token",
           "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
           }
@@ -267,11 +532,11 @@
                 "$ref" : "#/components/schemas/QueryEventLog"
               }
             }
-          }
+          },
+          "required" : false
         },
         "responses" : {
           "200" : {
-            "description" : "OK",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -281,7 +546,6 @@
             }
           },
           "400" : {
-            "description" : "Bad Request",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -291,7 +555,6 @@
             }
           },
           "401" : {
-            "description" : "Unauthorized",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -300,19 +563,22 @@
               }
             }
           }
-        }
+        },
+        "deprecated" : false,
+        "security" : [ ]
       }
     },
     "/api/v1/log/result" : {
       "post" : {
         "tags" : [ "Log" ],
         "summary" : "Accepts result logs from participants",
-        "operationId" : "postApiV1LogResult",
         "parameters" : [ {
           "name" : "session",
           "in" : "query",
           "description" : "Session Token",
           "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
           }
@@ -324,11 +590,11 @@
                 "$ref" : "#/components/schemas/QueryResultLog"
               }
             }
-          }
+          },
+          "required" : false
         },
         "responses" : {
           "200" : {
-            "description" : "OK",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -338,7 +604,6 @@
             }
           },
           "400" : {
-            "description" : "Bad Request",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -348,7 +613,6 @@
             }
           },
           "401" : {
-            "description" : "Unauthorized",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -357,75 +621,74 @@
               }
             }
           }
-        }
+        },
+        "deprecated" : false,
+        "security" : [ ]
       }
     },
-    "/api/v1/status/time" : {
+    "/api/v1/submit" : {
       "get" : {
-        "tags" : [ "Status" ],
-        "summary" : "Returns the current time on the server.",
-        "operationId" : "getApiV1StatusTime",
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CurrentTime"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/client/run/info/list" : {
-      "get" : {
-        "tags" : [ "Client Run Info" ],
-        "summary" : "Lists an overview of all competition runs visible to the current client",
-        "operationId" : "getApiV1ClientRunInfoList",
+        "tags" : [ "Submission" ],
+        "summary" : "Endpoint to accept submissions",
         "parameters" : [ {
-          "name" : "session",
+          "name" : "collection",
           "in" : "query",
-          "description" : "Session Token",
-          "required" : true,
+          "description" : "Collection identifier. Optional, in which case the default collection for the run will be considered.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : true,
           "schema" : {
             "type" : "string"
           }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ClientRunInfoList"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
+        }, {
+          "name" : "item",
+          "in" : "query",
+          "description" : "Identifier for the actual media object or media file.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
           }
-        }
-      }
-    },
-    "/api/v1/client/run/info/currentTask/{runId}" : {
-      "get" : {
-        "tags" : [ "Client Run Info" ],
-        "summary" : "Returns an overview of the currently active task for a run",
-        "operationId" : "getApiV1ClientRunInfoCurrenttaskWithRunid",
-        "parameters" : [ {
-          "name" : "runId",
-          "in" : "path",
-          "required" : true,
+        }, {
+          "name" : "text",
+          "in" : "query",
+          "description" : "Text to be submitted. ONLY for tasks with target type TEXT. If this parameter is provided, it superseeds all athers.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "frame",
+          "in" : "query",
+          "description" : "Frame number for media with temporal progression (e.g. video).",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "shot",
+          "in" : "query",
+          "description" : "Shot number for media with temporal progression (e.g. video).",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "timecode",
+          "in" : "query",
+          "description" : "Timecode for media with temporal progression (e.g. video).",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : true,
           "schema" : {
             "type" : "string"
           }
@@ -433,72 +696,33 @@
           "name" : "session",
           "in" : "query",
           "description" : "Session Token",
-          "required" : true,
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
           "schema" : {
             "type" : "string"
           }
         } ],
         "responses" : {
           "200" : {
-            "description" : "OK",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ClientTaskInfo"
+                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
                 }
               }
             }
           },
-          "401" : {
-            "description" : "Unauthorized",
+          "202" : {
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/download/run/{runId}" : {
-      "get" : {
-        "tags" : [ "Download" ],
-        "summary" : "Provides a JSON download of the entire competition run structure.",
-        "operationId" : "getApiV1DownloadRunWithRunid",
-        "parameters" : [ {
-          "name" : "runId",
-          "in" : "path",
-          "description" : "Competition run ID",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "string"
+                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
                 }
               }
             }
           },
           "400" : {
-            "description" : "Bad Request",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -508,7 +732,6 @@
             }
           },
           "401" : {
-            "description" : "Unauthorized",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -518,7 +741,15 @@
             }
           },
           "404" : {
-            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "412" : {
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -527,142 +758,33 @@
               }
             }
           }
-        }
-      }
-    },
-    "/api/v1/download/run/{runId}/scores" : {
-      "get" : {
-        "tags" : [ "Download" ],
-        "summary" : "Provides a CSV download with the scores for a given competition run.",
-        "operationId" : "getApiV1DownloadRunWithRunidScores",
-        "parameters" : [ {
-          "name" : "runId",
-          "in" : "path",
-          "description" : "Competition run ID",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "text/csv" : {
-                "schema" : {
-                  "type" : "string"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/download/competition/{competitionId}" : {
-      "get" : {
-        "tags" : [ "Download" ],
-        "summary" : "Provides a JSON download of the entire competition description structure.",
-        "operationId" : "getApiV1DownloadCompetitionWithCompetitionid",
-        "parameters" : [ {
-          "name" : "competitionId",
-          "in" : "path",
-          "description" : "Competition ID",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "string"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        }
+        },
+        "deprecated" : false,
+        "security" : [ ]
       }
     }
   },
   "components" : {
     "schemas" : {
-      "LoginRequest" : {
-        "required" : [ "password", "username" ],
+      "SuccessStatus" : {
         "type" : "object",
         "properties" : {
-          "username" : {
-            "type" : "string"
-          },
-          "password" : {
+          "description" : {
             "type" : "string"
           }
-        }
+        },
+        "required" : [ "description" ]
+      },
+      "ErrorStatus" : {
+        "type" : "object",
+        "properties" : {
+          "description" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "description" ]
       },
       "UserDetails" : {
-        "required" : [ "id", "role", "username" ],
         "type" : "object",
         "properties" : {
           "id" : {
@@ -672,80 +794,785 @@
             "type" : "string"
           },
           "role" : {
-            "type" : "string",
-            "enum" : [ "ADMIN", "JUDGE", "VIEWER", "PARTICIPANT" ]
+            "$ref" : "#/components/schemas/Role"
           },
           "sessionId" : {
             "type" : "string"
           }
-        }
+        },
+        "required" : [ "id", "username", "role" ]
       },
-      "ErrorStatus" : {
-        "required" : [ "description", "status" ],
+      "RestMediaCollection" : {
         "type" : "object",
         "properties" : {
-          "description" : {
+          "id" : {
             "type" : "string"
           },
-          "status" : {
-            "type" : "boolean"
-          }
-        }
-      },
-      "SuccessStatus" : {
-        "required" : [ "description", "status" ],
-        "type" : "object",
-        "properties" : {
-          "description" : {
+          "name" : {
             "type" : "string"
-          },
-          "status" : {
-            "type" : "boolean"
-          }
-        }
-      },
-      "SuccessfulSubmissionsStatus" : {
-        "required" : [ "description", "status", "submission" ],
-        "type" : "object",
-        "properties" : {
-          "submission" : {
-            "type" : "string",
-            "enum" : [ "CORRECT", "WRONG", "INDETERMINATE", "UNDECIDABLE" ]
           },
           "description" : {
             "type" : "string"
           },
-          "status" : {
-            "type" : "boolean"
+          "basePath" : {
+            "type" : "string"
           }
-        }
+        },
+        "required" : [ "id", "name" ]
       },
-      "QueryEvent" : {
-        "required" : [ "category", "timestamp", "type", "value" ],
+      "RestMediaItem" : {
         "type" : "object",
         "properties" : {
-          "timestamp" : {
-            "type" : "integer",
-            "format" : "int64"
+          "id" : {
+            "type" : "string"
           },
-          "category" : {
-            "type" : "string",
-            "enum" : [ "TEXT", "IMAGE", "SKETCH", "FILTER", "BROWSING", "COOPERATION", "OTHER" ]
+          "name" : {
+            "type" : "string"
           },
           "type" : {
+            "$ref" : "#/components/schemas/RestMediaItemType"
+          },
+          "collectionId" : {
             "type" : "string"
           },
-          "value" : {
+          "location" : {
+            "type" : "string"
+          },
+          "durationMs" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "fps" : {
+            "type" : "number",
+            "format" : "float"
+          }
+        },
+        "required" : [ "id", "name", "type", "collectionId", "location" ]
+      },
+      "DresAdminInfo" : {
+        "type" : "object",
+        "properties" : {
+          "version" : {
+            "type" : "string"
+          },
+          "startTime" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "uptime" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "os" : {
+            "type" : "string"
+          },
+          "jvm" : {
+            "type" : "string"
+          },
+          "args" : {
+            "type" : "string"
+          },
+          "cores" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "freeMemory" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "totalMemory" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "load" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "availableSeverThreads" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "version", "startTime", "uptime", "os", "jvm", "args", "cores", "freeMemory", "totalMemory", "load", "availableSeverThreads" ]
+      },
+      "ClientTaskInfo" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "taskGroup" : {
+            "type" : "string"
+          },
+          "remainingTime" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "running" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "id", "name", "taskGroup", "remainingTime", "running" ]
+      },
+      "CompetitionCreate" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
             "type" : "string"
           }
-        }
+        },
+        "required" : [ "name", "description" ]
       },
-      "QueryEventLog" : {
-        "required" : [ "events", "timestamp" ],
+      "CompetitionStartMessage" : {
+        "type" : "object",
+        "properties" : {
+          "competitionId" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/RunType"
+          },
+          "properties" : {
+            "$ref" : "#/components/schemas/RunProperties"
+          }
+        },
+        "required" : [ "competitionId", "name", "type", "properties" ]
+      },
+      "UserRequest" : {
+        "type" : "object",
+        "properties" : {
+          "username" : {
+            "type" : "string"
+          },
+          "password" : {
+            "type" : "string"
+          },
+          "role" : {
+            "$ref" : "#/components/schemas/Role"
+          }
+        },
+        "required" : [ "username" ]
+      },
+      "TaskHint" : {
+        "type" : "object",
+        "properties" : {
+          "taskId" : {
+            "type" : "string"
+          },
+          "sequence" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ContentElement"
+            }
+          },
+          "loop" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "taskId", "sequence", "loop" ]
+      },
+      "TaskInfo" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "taskGroup" : {
+            "type" : "string"
+          },
+          "taskType" : {
+            "type" : "string"
+          },
+          "duration" : {
+            "type" : "number",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "id", "name", "taskGroup", "taskType", "duration" ]
+      },
+      "ScoreOverview" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "taskGroup" : {
+            "type" : "string"
+          },
+          "scores" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Score"
+            }
+          }
+        },
+        "required" : [ "name", "scores" ]
+      },
+      "TaskTarget" : {
+        "type" : "object",
+        "properties" : {
+          "taskId" : {
+            "type" : "string"
+          },
+          "sequence" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ContentElement"
+            }
+          }
+        },
+        "required" : [ "taskId", "sequence" ]
+      },
+      "CurrentTime" : {
+        "type" : "object",
+        "properties" : {
+          "timeStamp" : {
+            "type" : "number",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "timeStamp" ]
+      },
+      "SessionId" : {
+        "type" : "object",
+        "properties" : {
+          "sessionId" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "sessionId" ]
+      },
+      "AuditLogInfo" : {
         "type" : "object",
         "properties" : {
           "timestamp" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "size" : {
             "type" : "integer",
+            "format" : "int32"
+          },
+          "latest" : {
+            "type" : "number",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "timestamp", "size", "latest" ]
+      },
+      "RestCompetitionDescription" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "taskTypes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TaskType"
+            }
+          },
+          "taskGroups" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TaskGroup"
+            }
+          },
+          "tasks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RestTaskDescription"
+            }
+          },
+          "teams" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RestTeam"
+            }
+          },
+          "teamGroups" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RestTeamGroup"
+            }
+          },
+          "judges" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "id", "name", "taskTypes", "taskGroups", "tasks", "teams", "teamGroups", "judges" ]
+      },
+      "RunInfo" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "teams" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TeamInfo"
+            }
+          },
+          "tasks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TaskInfo"
+            }
+          },
+          "competitionId" : {
+            "type" : "string"
+          },
+          "properties" : {
+            "$ref" : "#/components/schemas/RunProperties"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/RunType"
+          }
+        },
+        "required" : [ "id", "name", "teams", "tasks", "competitionId", "properties", "type" ]
+      },
+      "RunState" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "runStatus" : {
+            "$ref" : "#/components/schemas/RunManagerStatus"
+          },
+          "taskRunStatus" : {
+            "$ref" : "#/components/schemas/RestTaskRunStatus"
+          },
+          "currentTask" : {
+            "$ref" : "#/components/schemas/TaskInfo"
+          },
+          "timeLeft" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "timeElapsed" : {
+            "type" : "number",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "id", "runStatus", "taskRunStatus", "timeLeft", "timeElapsed" ]
+      },
+      "SubmissionInfo" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "teamId" : {
+            "type" : "string"
+          },
+          "teamName" : {
+            "type" : "string"
+          },
+          "memberId" : {
+            "type" : "string"
+          },
+          "memberName" : {
+            "type" : "string"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/SubmissionStatus"
+          },
+          "timestamp" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "item" : {
+            "$ref" : "#/components/schemas/RestMediaItem"
+          },
+          "text" : {
+            "type" : "string"
+          },
+          "start" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "end" : {
+            "type" : "number",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "teamId", "memberId", "status", "timestamp" ]
+      },
+      "DresInfo" : {
+        "type" : "object",
+        "properties" : {
+          "version" : {
+            "type" : "string"
+          },
+          "startTime" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "uptime" : {
+            "type" : "number",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "version", "startTime", "uptime" ]
+      },
+      "RunResult" : {
+        "type" : "object",
+        "properties" : {
+          "tasks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TaskResult"
+            }
+          },
+          "timeStamp" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "serverTimeStamp$backend" : {
+            "type" : "number",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "tasks", "timeStamp", "serverTimeStamp$backend" ]
+      },
+      "JudgementValidatorStatus" : {
+        "type" : "object",
+        "properties" : {
+          "validator" : {
+            "type" : "string"
+          },
+          "pending" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "open" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "validator", "pending", "open" ]
+      },
+      "JudgementVote" : {
+        "type" : "object",
+        "properties" : {
+          "verdict" : {
+            "$ref" : "#/components/schemas/SubmissionStatus"
+          }
+        },
+        "required" : [ "verdict" ]
+      },
+      "RestAuditLogEntry" : {
+        "type" : "object",
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/AuditLogEntryType"
+          },
+          "timestamp" : {
+            "type" : "number",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "type", "timestamp" ]
+      },
+      "CompetitionOverview" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "taskCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "teamCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "id", "name", "description", "taskCount", "teamCount" ]
+      },
+      "ClientRunInfoList" : {
+        "type" : "object",
+        "properties" : {
+          "runs" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ClientRunInfo"
+            }
+          }
+        },
+        "required" : [ "runs" ]
+      },
+      "RestDetailedTeam" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "color" : {
+            "type" : "string"
+          },
+          "logoId" : {
+            "type" : "string"
+          },
+          "users" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/UserDetails"
+            }
+          }
+        },
+        "required" : [ "name", "color", "logoId", "users" ]
+      },
+      "PastTaskInfo" : {
+        "type" : "object",
+        "properties" : {
+          "taskId" : {
+            "type" : "string"
+          },
+          "descriptionId" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "taskGroup" : {
+            "type" : "string"
+          },
+          "taskType" : {
+            "type" : "string"
+          },
+          "numberOfSubmissions" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "taskId", "descriptionId", "name", "taskGroup", "taskType", "numberOfSubmissions" ]
+      },
+      "ScoreSeries" : {
+        "type" : "object",
+        "properties" : {
+          "team" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "points" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ScoreSeriesPoint"
+            }
+          }
+        },
+        "required" : [ "team", "name", "points" ]
+      },
+      "TaskRunSubmissionInfo" : {
+        "type" : "object",
+        "properties" : {
+          "taskRunId" : {
+            "type" : "string"
+          },
+          "submissions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SubmissionInfo"
+            }
+          }
+        },
+        "required" : [ "taskRunId", "submissions" ]
+      },
+      "RestTaskDescription" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "taskGroup" : {
+            "type" : "string"
+          },
+          "taskType" : {
+            "type" : "string"
+          },
+          "duration" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "mediaCollectionId" : {
+            "type" : "string"
+          },
+          "target" : {
+            "$ref" : "#/components/schemas/RestTaskDescriptionTarget"
+          },
+          "components" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RestTaskDescriptionComponent"
+            }
+          }
+        },
+        "required" : [ "id", "name", "taskGroup", "taskType", "duration", "mediaCollectionId", "target", "components" ]
+      },
+      "RestTeam" : {
+        "type" : "object",
+        "properties" : {
+          "uid" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "color" : {
+            "type" : "string"
+          },
+          "logoData" : {
+            "type" : "string"
+          },
+          "logoId" : {
+            "type" : "string"
+          },
+          "users" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "name", "color", "users" ]
+      },
+      "ViewerInfo" : {
+        "type" : "object",
+        "properties" : {
+          "viewersId" : {
+            "type" : "string"
+          },
+          "username" : {
+            "type" : "string"
+          },
+          "host" : {
+            "type" : "string"
+          },
+          "ready" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "viewersId", "username", "host", "ready" ]
+      },
+      "LoginRequest" : {
+        "type" : "object",
+        "properties" : {
+          "username" : {
+            "type" : "string"
+          },
+          "password" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "username", "password" ]
+      },
+      "JudgementRequest" : {
+        "type" : "object",
+        "properties" : {
+          "token" : {
+            "type" : "string"
+          },
+          "mediaType" : {
+            "$ref" : "#/components/schemas/JudgementRequestMediaType"
+          },
+          "validator" : {
+            "type" : "string"
+          },
+          "collection" : {
+            "type" : "string"
+          },
+          "item" : {
+            "type" : "string"
+          },
+          "taskDescription" : {
+            "type" : "string"
+          },
+          "startTime" : {
+            "type" : "string"
+          },
+          "endTime" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "token", "mediaType", "validator", "collection", "item", "taskDescription" ]
+      },
+      "AdminRunOverview" : {
+        "type" : "object",
+        "properties" : {
+          "state" : {
+            "$ref" : "#/components/schemas/RunManagerStatus"
+          },
+          "teamOverviews" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TeamTaskOverview"
+            }
+          }
+        },
+        "required" : [ "state", "teamOverviews" ]
+      },
+      "Judgement" : {
+        "type" : "object",
+        "properties" : {
+          "token" : {
+            "type" : "string"
+          },
+          "validator" : {
+            "type" : "string"
+          },
+          "verdict" : {
+            "$ref" : "#/components/schemas/SubmissionStatus"
+          }
+        },
+        "required" : [ "token", "validator", "verdict" ]
+      },
+      "QueryEventLog" : {
+        "type" : "object",
+        "properties" : {
+          "timestamp" : {
+            "type" : "number",
             "format" : "int64"
           },
           "events" : {
@@ -753,11 +1580,376 @@
             "items" : {
               "$ref" : "#/components/schemas/QueryEvent"
             }
+          },
+          "serverTimeStamp$backend" : {
+            "type" : "number",
+            "format" : "int64"
           }
-        }
+        },
+        "required" : [ "timestamp", "events", "serverTimeStamp$backend" ]
+      },
+      "QueryResultLog" : {
+        "type" : "object",
+        "properties" : {
+          "timestamp" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "sortType" : {
+            "type" : "string"
+          },
+          "resultSetAvailability" : {
+            "type" : "string"
+          },
+          "results" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/QueryResult"
+            }
+          },
+          "events" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/QueryEvent"
+            }
+          },
+          "serverTimeStamp$backend" : {
+            "type" : "number",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "timestamp", "sortType", "resultSetAvailability", "results", "events", "serverTimeStamp$backend" ]
+      },
+      "RestFullMediaCollection" : {
+        "type" : "object",
+        "properties" : {
+          "collection" : {
+            "$ref" : "#/components/schemas/RestMediaCollection"
+          },
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RestMediaItem"
+            }
+          }
+        },
+        "required" : [ "collection", "items" ]
+      },
+      "SuccessfulSubmissionsStatus" : {
+        "type" : "object",
+        "properties" : {
+          "submission" : {
+            "$ref" : "#/components/schemas/SubmissionStatus"
+          },
+          "description" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "submission", "description" ]
+      },
+      "RunProperties" : {
+        "type" : "object",
+        "properties" : {
+          "participantCanView" : {
+            "type" : "boolean"
+          },
+          "shuffleTasks" : {
+            "type" : "boolean"
+          },
+          "allowRepeatedTasks" : {
+            "type" : "boolean"
+          },
+          "limitSubmissionPreviews" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "participantCanView", "shuffleTasks", "allowRepeatedTasks", "limitSubmissionPreviews" ]
+      },
+      "Role" : {
+        "type" : "object",
+        "properties" : { }
+      },
+      "RestMediaItemType" : {
+        "type" : "object",
+        "properties" : { }
+      },
+      "RunType" : {
+        "type" : "object",
+        "properties" : { }
+      },
+      "ContentElement" : {
+        "type" : "object",
+        "properties" : {
+          "contentType" : {
+            "$ref" : "#/components/schemas/ContentType"
+          },
+          "content" : {
+            "type" : "string"
+          },
+          "offset" : {
+            "type" : "number",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "contentType", "offset" ]
+      },
+      "Score" : {
+        "type" : "object",
+        "properties" : {
+          "teamId" : {
+            "type" : "string"
+          },
+          "score" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        },
+        "required" : [ "teamId", "score" ]
+      },
+      "TaskType" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "taskDuration" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "targetType" : {
+            "$ref" : "#/components/schemas/ConfiguredOption"
+          },
+          "components" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ConfiguredOption"
+            }
+          },
+          "score" : {
+            "$ref" : "#/components/schemas/ConfiguredOption"
+          },
+          "filter" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ConfiguredOption"
+            }
+          },
+          "options" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ConfiguredOption"
+            }
+          }
+        },
+        "required" : [ "name", "taskDuration", "targetType", "components", "score", "filter", "options" ]
+      },
+      "TaskGroup" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name", "type" ]
+      },
+      "RestTeamGroup" : {
+        "type" : "object",
+        "properties" : {
+          "uid" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "teams" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "aggregation" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name", "teams", "aggregation" ]
+      },
+      "TeamInfo" : {
+        "type" : "object",
+        "properties" : {
+          "uid" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "color" : {
+            "type" : "string"
+          },
+          "logoId" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "uid", "name", "color", "logoId" ]
+      },
+      "RunManagerStatus" : {
+        "type" : "object",
+        "properties" : { }
+      },
+      "RestTaskRunStatus" : {
+        "type" : "object",
+        "properties" : { }
+      },
+      "SubmissionStatus" : {
+        "type" : "object",
+        "properties" : { }
+      },
+      "TaskResult" : {
+        "type" : "object",
+        "properties" : {
+          "task" : {
+            "type" : "string"
+          },
+          "resultName" : {
+            "type" : "string"
+          },
+          "resultType" : {
+            "type" : "string"
+          },
+          "results" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ResultElement"
+            }
+          }
+        },
+        "required" : [ "task", "resultName", "results" ]
+      },
+      "AuditLogEntryType" : {
+        "type" : "object",
+        "properties" : { }
+      },
+      "ClientRunInfo" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/RunManagerStatus"
+          }
+        },
+        "required" : [ "id", "name", "status" ]
+      },
+      "ScoreSeriesPoint" : {
+        "type" : "object",
+        "properties" : {
+          "score" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "timestamp" : {
+            "type" : "number",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "score", "timestamp" ]
+      },
+      "RestTaskDescriptionTarget" : {
+        "type" : "object",
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/TargetOption"
+          },
+          "mediaItems" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RestTaskDescriptionTargetItem"
+            }
+          }
+        },
+        "required" : [ "type", "mediaItems" ]
+      },
+      "RestTaskDescriptionComponent" : {
+        "type" : "object",
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/QueryComponentOption"
+          },
+          "start" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "end" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "path" : {
+            "type" : "string"
+          },
+          "dataType" : {
+            "type" : "string"
+          },
+          "mediaItem" : {
+            "type" : "string"
+          },
+          "range" : {
+            "$ref" : "#/components/schemas/RestTemporalRange"
+          }
+        },
+        "required" : [ "type" ]
+      },
+      "JudgementRequestMediaType" : {
+        "type" : "object",
+        "properties" : { }
+      },
+      "TeamTaskOverview" : {
+        "type" : "object",
+        "properties" : {
+          "teamId" : {
+            "type" : "string"
+          },
+          "tasks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TaskRunOverview"
+            }
+          }
+        },
+        "required" : [ "teamId", "tasks" ]
+      },
+      "QueryEvent" : {
+        "type" : "object",
+        "properties" : {
+          "timestamp" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "category" : {
+            "$ref" : "#/components/schemas/QueryEventCategory"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "value" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "timestamp", "category", "type", "value" ]
       },
       "QueryResult" : {
-        "required" : [ "item" ],
         "type" : "object",
         "properties" : {
           "item" : {
@@ -779,48 +1971,120 @@
             "type" : "integer",
             "format" : "int32"
           }
-        }
+        },
+        "required" : [ "item" ]
       },
-      "QueryResultLog" : {
-        "required" : [ "events", "resultSetAvailability", "results", "sortType", "timestamp" ],
+      "ContentType" : {
         "type" : "object",
         "properties" : {
-          "timestamp" : {
+          "mimeType" : {
+            "type" : "string"
+          },
+          "base64" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "mimeType", "base64" ]
+      },
+      "ConfiguredOption" : {
+        "type" : "object",
+        "properties" : {
+          "option" : {
+            "$ref" : "#/components/schemas/Option"
+          },
+          "parameters" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "" : {
+            "type" : "string"
+          },
+          "asBool" : {
+            "type" : "boolean"
+          },
+          "asInt" : {
             "type" : "integer",
+            "format" : "int32"
+          },
+          "asLong" : {
+            "type" : "number",
             "format" : "int64"
           },
-          "sortType" : {
+          "asFloat" : {
+            "type" : "number",
+            "format" : "float"
+          },
+          "asDouble" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        },
+        "required" : [ "option", "parameters" ]
+      },
+      "ResultElement" : {
+        "type" : "object",
+        "properties" : {
+          "item" : {
             "type" : "string"
           },
-          "resultSetAvailability" : {
+          "text" : {
             "type" : "string"
           },
-          "results" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/QueryResult"
-            }
+          "startTimeCode" : {
+            "type" : "string"
           },
-          "events" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/QueryEvent"
-            }
+          "endTimeCode" : {
+            "type" : "string"
+          },
+          "index" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "rank" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "weight" : {
+            "type" : "number",
+            "format" : "float"
           }
         }
       },
-      "CurrentTime" : {
-        "required" : [ "timeStamp" ],
+      "TargetOption" : {
+        "type" : "object",
+        "properties" : { }
+      },
+      "RestTaskDescriptionTargetItem" : {
         "type" : "object",
         "properties" : {
-          "timeStamp" : {
-            "type" : "integer",
-            "format" : "int64"
+          "mediaItem" : {
+            "type" : "string"
+          },
+          "temporalRange" : {
+            "$ref" : "#/components/schemas/RestTemporalRange"
           }
-        }
+        },
+        "required" : [ "mediaItem" ]
       },
-      "ClientRunInfo" : {
-        "required" : [ "id", "name", "status" ],
+      "QueryComponentOption" : {
+        "type" : "object",
+        "properties" : { }
+      },
+      "RestTemporalRange" : {
+        "type" : "object",
+        "properties" : {
+          "start" : {
+            "$ref" : "#/components/schemas/RestTemporalPoint"
+          },
+          "end" : {
+            "$ref" : "#/components/schemas/RestTemporalPoint"
+          }
+        },
+        "required" : [ "start", "end" ]
+      },
+      "TaskRunOverview" : {
         "type" : "object",
         "properties" : {
           "id" : {
@@ -829,49 +2093,70 @@
           "name" : {
             "type" : "string"
           },
-          "description" : {
+          "type" : {
+            "type" : "string"
+          },
+          "group" : {
+            "type" : "string"
+          },
+          "duration" : {
+            "type" : "number",
+            "format" : "int64"
+          },
+          "taskId" : {
             "type" : "string"
           },
           "status" : {
-            "type" : "string",
-            "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
-          }
-        }
-      },
-      "ClientRunInfoList" : {
-        "required" : [ "runs" ],
-        "type" : "object",
-        "properties" : {
-          "runs" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ClientRunInfo"
-            }
-          }
-        }
-      },
-      "ClientTaskInfo" : {
-        "required" : [ "id", "name", "remainingTime", "running", "taskGroup" ],
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string"
+            "$ref" : "#/components/schemas/TaskRunStatus"
           },
-          "name" : {
-            "type" : "string"
-          },
-          "taskGroup" : {
-            "type" : "string"
-          },
-          "remainingTime" : {
-            "type" : "integer",
+          "started" : {
+            "type" : "number",
             "format" : "int64"
           },
-          "running" : {
-            "type" : "boolean"
+          "ended" : {
+            "type" : "number",
+            "format" : "int64"
           }
-        }
+        },
+        "required" : [ "id", "name", "type", "group", "duration", "taskId", "status" ]
+      },
+      "QueryEventCategory" : {
+        "type" : "object",
+        "properties" : { }
+      },
+      "Option" : {
+        "type" : "object",
+        "properties" : {
+          "ordinal" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "ordinal" ]
+      },
+      "RestTemporalPoint" : {
+        "type" : "object",
+        "properties" : {
+          "value" : {
+            "type" : "string"
+          },
+          "unit" : {
+            "$ref" : "#/components/schemas/RestTemporalUnit"
+          }
+        },
+        "required" : [ "value", "unit" ]
+      },
+      "TaskRunStatus" : {
+        "type" : "object",
+        "properties" : { }
+      },
+      "RestTemporalUnit" : {
+        "type" : "object",
+        "properties" : { }
       }
-    }
-  }
+    },
+    "securitySchemes" : { }
+  },
+  "servers" : [ ],
+  "security" : null
 }

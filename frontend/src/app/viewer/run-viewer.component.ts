@@ -26,6 +26,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Position } from './model/run-viewer-position';
 import { Widget } from './model/run-viewer-widgets';
 import { DOCUMENT } from '@angular/common';
+import {Title} from '@angular/platform-browser';
 
 @Component({
   selector: 'app-run-viewer',
@@ -78,6 +79,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     private config: AppConfig,
     private runService: CompetitionRunService,
     private snackBar: MatSnackBar,
+    private titleService: Title,
     @Inject(DOCUMENT) private document: Document
   ) {
     /** Initialize basic WebSocketSubject. */
@@ -239,6 +241,10 @@ export class RunViewerComponent implements OnInit, OnDestroy {
       map(([s1, s2]) => s2.currentTask),
       shareReplay({ bufferSize: 1, refCount: true })
     );
+
+    this.runInfo.subscribe((info: RunInfo) => {
+        this.titleService.setTitle(info.name + ' - DRES');
+    })
   }
 
   /**
@@ -261,6 +267,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     /* Unregister Ping service. */
     this.pingSubscription.unsubscribe();
     this.pingSubscription = null;
+    this.titleService.setTitle('DRES');
   }
 
   /**

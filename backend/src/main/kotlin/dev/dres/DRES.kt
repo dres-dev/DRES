@@ -18,6 +18,8 @@ import java.nio.file.Paths
 
 object DRES {
 
+    const val VERSION = "1.2.2"
+
     /** Application root; shoud pe relative to JAR file or classes path. */
     val rootPath = File(FFmpegUtil::class.java.protectionDomain.codeSource.location.toURI()).toPath()
 

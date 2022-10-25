@@ -1,7 +1,7 @@
 package dev.dres.run.updatables
 
 import dev.dres.data.dbo.DAO
-import dev.dres.data.model.Entity
+import dev.dres.data.model.PersistentEntity
 import dev.dres.run.RunManagerStatus
 
 /**
@@ -11,7 +11,7 @@ import dev.dres.run.RunManagerStatus
  * @author Ralph Gasser
  * @version 1.0
  */
-class DAOUpdatable<T: Entity>(val dao: DAO<T>, val obj: T): StatefulUpdatable {
+class DAOUpdatable<T: PersistentEntity>(val dao: DAO<T>, val obj: T): StatefulUpdatable {
 
 
     companion object {

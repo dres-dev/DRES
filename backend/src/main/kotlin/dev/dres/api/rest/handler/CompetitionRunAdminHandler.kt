@@ -1,11 +1,9 @@
 package dev.dres.api.rest.handler
 
-import com.sun.net.httpserver.Authenticator
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.RestApiRole
 import dev.dres.api.rest.types.collection.RestMediaItem
 import dev.dres.api.rest.types.competition.CompetitionStartMessage
-import dev.dres.api.rest.types.competition.RestCompetitionDescription
 import dev.dres.api.rest.types.run.*
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
@@ -152,7 +150,7 @@ class CreateCompetitionRunAdminHandler(
             val collection = this.collections[item.collection]
                 ?: throw ErrorStatusException(400, "collection ${item.collection} not found", ctx)
 
-            val videoFile = File(File(collection.basePath), item.location)
+            val videoFile = File(File(collection.path), item.location)
 
             if (!videoFile.exists()) {
                 logger.error("file ${videoFile.absolutePath} not found for item ${item.name}")
@@ -162,7 +160,7 @@ class CreateCompetitionRunAdminHandler(
             val outputFile = File(cacheLocation, it.cacheItemName())
             if (!outputFile.exists()) {
                 logger.warn("Query video file for item ${it.item} not found, rendering to ${outputFile.absolutePath}")
-                FFmpegUtil.prepareMediaSegmentTask(it, collection.basePath, cacheLocation)
+                FFmpegUtil.prepareMediaSegmentTask(it, collection.path, cacheLocation)
             }
 
         }

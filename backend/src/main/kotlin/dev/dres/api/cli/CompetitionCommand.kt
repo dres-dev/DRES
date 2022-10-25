@@ -136,7 +136,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                     return
                 }
 
-                val videoFile = File(File(collection.basePath), item.location)
+                val videoFile = File(File(collection.path), item.location)
 
                 if (!videoFile.exists()) {
                     println("ERROR: file ${videoFile.absolutePath} not found for item ${item.name}")
@@ -144,7 +144,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                 }
 
                 println("rendering ${it.item} at ${it.temporalRange}")
-                FFmpegUtil.prepareMediaSegmentTask(it, collection.basePath, this@CompetitionCommand.taskCacheLocation)
+                FFmpegUtil.prepareMediaSegmentTask(it, collection.path, this@CompetitionCommand.taskCacheLocation)
 
             }
 

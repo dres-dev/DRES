@@ -12,13 +12,7 @@ import java.nio.file.Paths
  * @author Ralph Gasser, Loris Sauter, Luca Rossetto
  * @version 1.2.0
  */
-data class Team constructor(
-        val uid: TeamId,
-        val name: String,
-        val color: String,
-        val logoId: UID,
-        val users: MutableList<UserId>) {
-
+data class Team constructor(val uid: TeamId, val name: String, val color: String, val logoId: UID, val users: MutableList<UserId>) {
     companion object {
         /**
          * Generates and returns the [Path] to the team logo with the given [logoId].

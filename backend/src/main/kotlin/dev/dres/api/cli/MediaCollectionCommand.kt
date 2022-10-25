@@ -121,7 +121,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 dirty = true
                 basePath!!
             }else{
-                collection.basePath
+                collection.path
             }
 
             if(dirty){
@@ -159,7 +159,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                             }
                             body {
                                 this@MediaCollectionCommand.collections.forEach {
-                                    row(it.id.string, it.name, it.description ?: "", it.basePath, this@MediaCollectionCommand.mediaItemCollectionIndex.filter { uid -> it.id.equals(uid) }.size)
+                                    row(it.id.string, it.name, it.description ?: "", it.path, this@MediaCollectionCommand.mediaItemCollectionIndex.filter { uid -> it.id.equals(uid) }.size)
                                 }
                             }
                         }
@@ -262,7 +262,7 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
 
             val collectionItems = this@MediaCollectionCommand.items.filter { it.collection == collectionId }
 
-            val baseFile = File(collection.basePath)
+            val baseFile = File(collection.path)
 
             var counter = 0
 
@@ -310,20 +310,20 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 return
             }
 
-            val base = File(collection.basePath)
+            val base = File(collection.path)
 
             if (!base.exists()) {
-                println("Cannot scan collection, '${collection.basePath}' does not exist.")
+                println("Cannot scan collection, '${collection.path}' does not exist.")
                 return
             }
 
             if (!base.isDirectory) {
-                println("Cannot scan collection, '${collection.basePath}' is no directory.")
+                println("Cannot scan collection, '${collection.path}' is no directory.")
                 return
             }
 
             if (!base.canRead()) {
-                println("Cannot scan collection, '${collection.basePath}' is not readable.")
+                println("Cannot scan collection, '${collection.path}' is not readable.")
                 return
             }
 

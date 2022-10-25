@@ -61,7 +61,7 @@ abstract class AbstractPreviewHandler(
         val collection = this.collections[item.collection]
             ?: throw ErrorStatusException(404, "Collection ${item.collection} does not exist.", ctx)
 
-        val basePath = File(collection.basePath)
+        val basePath = File(collection.path)
 
 
         if (item is MediaItem.ImageItem) {
@@ -90,7 +90,7 @@ abstract class AbstractPreviewHandler(
                 ctx.sendFile(imgPath.toFile())
             } else { //if not, wait for it if necessary
 
-                val future = FFmpegUtil.executeFFmpegAsync(Path.of(collection.basePath, item.location), time, imgPath)
+                val future = FFmpegUtil.executeFFmpegAsync(Path.of(collection.path, item.location), time, imgPath)
 
                 val waitTime = if (RestApi.readyThreadCount > 500) {
                     3L

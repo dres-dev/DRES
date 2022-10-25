@@ -21,7 +21,7 @@ data class RestMediaCollection(val id: String = UID.EMPTY.string, val name: Stri
          *
          * @param task The [TaskDescription] to convert.
          */
-        fun fromMediaCollection(item: MediaCollection) = RestMediaCollection(item.id.string, item.name, item.description, item.basePath)
+        fun fromMediaCollection(item: MediaCollection) = RestMediaCollection(item.id.string, item.name, item.description, item.path)
     }
 
     /**

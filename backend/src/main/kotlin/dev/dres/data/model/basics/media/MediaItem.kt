@@ -1,47 +1,38 @@
 package dev.dres.data.model.basics.media
 
-import dev.dres.data.model.Entity
-import dev.dres.data.model.UID
+import dev.dres.data.model.PersistentEntity
+import jetbrains.exodus.entitystore.Entity
+import kotlinx.dnq.*
 
 /**
  * A media item such as a video or an image
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 2.0.0
  */
-sealed class MediaItem : Entity {
+class MediaItem(entity: Entity) : PersistentEntity(entity) {
 
-    abstract val collection: UID
-    abstract val name: String
-    abstract val location: String
+    /** */
+    companion object : XdNaturalEntityType<MediaItem>()
 
-    abstract fun withCollection(collection: UID): MediaItem
+    /** The name of this [MediaItem]. */
+    var name by xdRequiredStringProp(unique = false, trimmed = false)
 
-    data class ImageItem constructor(
-            override var id: UID,
-            override val name: String,
-            override val location: String,
-            override val collection: UID): MediaItem() {
-        override fun withCollection(collection: UID): ImageItem = ImageItem(id, name, location, collection)
+    /** The location of this [MediaItem] on disk. */
+    var location by xdRequiredStringProp(unique = false, trimmed = false)
 
-        companion object {
-            val EMPTY = ImageItem(UID.EMPTY, "n/a", "", UID.EMPTY)
-        }
-    }
+    /** Frame rate of the [MediaItem] in frames per second. Null for type without temporal development. */
+    var fps by xdNullableFloatProp()
 
-    data class VideoItem constructor(
-           override var id: UID,
-            override val name: String,
-            override val location: String,
-            override val collection: UID,
-            override val durationMs: Long,
-            override val fps: Float
-    ): MediaItem(), PlayableMediaItem {
-        override fun withCollection(collection: UID): VideoItem = VideoItem(id, name, location, collection, durationMs, fps)
+    /** Duration of the [MediaItem] in milliseconds. Null for type without temporal development. */
+    var durationMs by xdNullableLongProp()
 
-        companion object {
-            val EMPTY = VideoItem(UID.EMPTY, "n/a", "", UID.EMPTY, 0, 0f)
-        }
+    /** The [MediaType] of this [MediaItem]. */
+    var type by xdLink1(MediaType)
 
-    }
+    /** The [MediaCollection] this [MediaItem] belongs to. */
+    var collection by xdLink1(MediaCollection)
+
+    /** List of [MediaItemSegment] that this [MediaItem] contains.  */
+    val segments by xdLink0_N(MediaItemSegment::item)
 }

@@ -46,6 +46,7 @@ compileTestKotlin {
 
 dependencies {
     def javalin = '5.1.1'
+    def xodusVersion = '2.0.1'
     def log4jVersion = '2.17.0'
 
     ///// Frontend files (produced by sub-project).
@@ -54,8 +55,12 @@ dependencies {
     ///// FFMpeg dependency
     implementation files("$buildDir/ext") {builtBy 'setupFFMpeg'}
 
-    ///// MapDB
-    implementation group: 'org.mapdb', name: 'mapdb', version: '3.0.8'
+    ///// Xodus & Xodus DNQ
+    implementation group: 'org.jetbrains.xodus', name: 'xodus-openAPI', version: xodusVersion
+    implementation group: 'org.jetbrains.xodus', name: 'xodus-environment', version: xodusVersion
+    implementation group: 'org.jetbrains.xodus', name: 'xodus-entity-store', version: xodusVersion
+    implementation group: 'org.jetbrains.xodus', name: 'xodus-vfs', version:  xodusVersion
+    implementation group: 'org.jetbrains.xodus', name: 'dnq', version: '2.0.0'
 
     ////// Javalin
     implementation group: 'io.javalin', name:  'javalin', version: "$javalin"
@@ -80,7 +85,6 @@ dependencies {
     implementation group: 'org.jline', name: 'jline-reader', version: '3.20.0'
     implementation group: 'org.jline', name: 'jline-builtins', version: '3.20.0'
     implementation group: 'com.jakewharton.picnic', name: 'picnic', version: '0.5.0'
-
 
     ///// Fuel
     implementation group: 'com.github.kittinunf.fuel', name: 'fuel', version: '2.3.1'

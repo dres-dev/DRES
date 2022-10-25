@@ -65,7 +65,7 @@ sealed class TaskDescriptionTarget {
         override fun textDescription() = "Media Item ${item.name}"
         override fun toQueryContentElement(config: Config, collections: DAO<MediaCollection>): List<ContentElement>  {
             val collection = collections[this.item.collection]!!
-            val file = File(File(collection.basePath), this.item.location)
+            val file = File(File(collection.path), this.item.location)
             val contentElements = mutableListOf<ContentElement>()
             FileInputStream(file).use { imageInFile ->
                 val fileData = ByteArray(file.length().toInt())
@@ -117,7 +117,7 @@ sealed class TaskDescriptionTarget {
             val contentElements = mutableListOf<ContentElement>()
             this.items.forEach { item ->
                 val collection = collections[item.collection]!!
-                val file = File(File(collection.basePath), item.location)
+                val file = File(File(collection.path), item.location)
                 FileInputStream(file).use { imageInFile ->
                     val fileData = ByteArray(file.length().toInt())
                     imageInFile.read(fileData)

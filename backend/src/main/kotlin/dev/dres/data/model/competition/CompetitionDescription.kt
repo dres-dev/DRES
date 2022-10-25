@@ -1,7 +1,7 @@
 package dev.dres.data.model.competition
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import dev.dres.data.model.Entity
+import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.UID
 import dev.dres.data.model.admin.UserId
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
@@ -18,7 +18,7 @@ data class CompetitionDescription(
     val teams: MutableList<Team>,
     val teamGroups: MutableList<TeamGroup>,
     val judges: MutableList<UserId>
-) : Entity {
+) : PersistentEntity {
 
     fun validate() {
         for (group in this.taskGroups) {

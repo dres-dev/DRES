@@ -2,7 +2,7 @@ package dev.dres.data.model.admin
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
-import dev.dres.data.model.Entity
+import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.UID
 import org.mindrot.jbcrypt.BCrypt
 
@@ -12,7 +12,7 @@ data class User constructor(
         override var id: UserId = UID.EMPTY,
         val username: UserName,
         val password: HashedPassword,
-        val role: Role) : Entity {
+        val role: Role) : PersistentEntity {
     override fun toString(): String = "User(id=$id, username=${username.name}, role=$role)"
 }
 

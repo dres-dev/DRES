@@ -60,7 +60,7 @@ class GetMediaHandler(private val itemCache: DaoIndexer<MediaItem, Pair<UID,UID>
             return
         }
 
-        val basePath = File(collection.basePath)
+        val basePath = File(collection.path)
         val itemFile = File(basePath, item.location)
 
         try{

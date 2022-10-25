@@ -1,6 +1,6 @@
 package dev.dres.run.audit
 
-import dev.dres.data.model.Entity
+import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.UID
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
@@ -28,7 +28,7 @@ enum class LogEventSource {
     INTERNAL
 }
 
-sealed class AuditLogEntry(val type: AuditLogEntryType): Entity{
+sealed class AuditLogEntry(val type: AuditLogEntryType): PersistentEntity{
 
     var timestamp: Long = System.currentTimeMillis()
         internal set

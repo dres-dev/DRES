@@ -223,7 +223,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         if (Files.exists(imgPath)){
             return
         }
-        val mediaItemLocation = Path.of(collection.basePath, submission.item.location)
+        val mediaItemLocation = Path.of(collection.path, submission.item.location)
         FFmpegUtil.extractFrame(mediaItemLocation, submission.start, imgPath)
 
     }

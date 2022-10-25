@@ -1,6 +1,6 @@
 package dev.dres.data.model.run.interfaces
 
-import dev.dres.data.model.Entity
+import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.RunProperties
 
@@ -10,7 +10,7 @@ import dev.dres.data.model.run.RunProperties
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Competition: Run, Entity {
+interface Competition: Run, PersistentEntity {
     /** The unique [CompetitionId] that identifies this [Competition]. Used by the persistence layer. */
     override var id: CompetitionId
 

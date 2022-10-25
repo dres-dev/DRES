@@ -205,14 +205,14 @@ object RestApi {
                 ClientOpenApiPlugin()
             )
 
-            it.plugins.register(
-                SwaggerPlugin(
-                    SwaggerConfiguration().apply {
-                        this.documentationPath = "/swagger-docs"
-                        this.uiPath = "/swagger-ui"
-                    }
-                )
-            )
+//            it.plugins.register(
+//                SwaggerPlugin(
+//                    SwaggerConfiguration().apply {
+//                        this.documentationPath = "/swagger-docs"
+//                        this.uiPath = "/swagger-ui"
+//                    }
+//                )
+//            )
 
             it.plugins.register(ClientSwaggerPlugin())
 

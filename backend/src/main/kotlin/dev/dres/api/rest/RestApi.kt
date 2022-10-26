@@ -31,7 +31,7 @@ object RestApi {
     private val logMarker = MarkerFactory.getMarker("REST")
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
-    fun init(config: Config, dataAccessLayer: DataAccessLayer) {
+    fun init(config: Config, store: Entity) {
 
         val runExecutor = RunExecutor
 

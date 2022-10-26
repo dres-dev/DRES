@@ -19,7 +19,7 @@ import io.javalin.openapi.*
 
 data class SessionId(val sessionId: String)
 
-data class UserRequest(val username: String, val password: String?, val role: Role?)
+data class UserRequest(val username: String, val password: String?, val role: RestApiRole?)
 
 data class UserDetails(val id: String, val username: String, val role: Role, val sessionId: String? = null) {
 

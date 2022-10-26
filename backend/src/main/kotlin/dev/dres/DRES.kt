@@ -3,8 +3,11 @@ package dev.dres
 import dev.dres.api.cli.Cli
 import dev.dres.api.cli.OpenApiCommand
 import dev.dres.api.rest.RestApi
-import dev.dres.data.dbo.DataAccessLayer
 import dev.dres.data.model.Config
+import dev.dres.data.model.basics.media.MediaCollection
+import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.basics.media.MediaItemSegment
+import dev.dres.data.model.basics.media.MediaType
 import dev.dres.mgmt.admin.UserManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.audit.AuditLogger
@@ -13,8 +16,11 @@ import dev.dres.run.eventstream.handlers.ResultLogStatisticsHandler
 import dev.dres.run.eventstream.handlers.SubmissionStatisticsHandler
 import dev.dres.run.eventstream.handlers.TeamCombinationScoreHandler
 import dev.dres.utilities.FFmpegUtil
+import kotlinx.dnq.XdModel
+import kotlinx.dnq.store.container.StaticStoreContainer
+import kotlinx.dnq.util.initMetaData
 import java.io.File
-import java.nio.file.Paths
+
 
 object DRES {
 
@@ -38,11 +44,18 @@ object DRES {
         println("Found FFmpeg at ${FFmpegUtil.ffmpegBin}")
         println("Initializing...")
 
-        /* Initialize data access layer. */
-        val dataAccessLayer = DataAccessLayer(Paths.get(config.dataPath))
+        /* Initialize Xodus based data store. */
+        XdModel.registerNodes(
+            MediaType,
+            MediaCollection,
+            MediaItem,
+            MediaItemSegment
+        )
+        val store = StaticStoreContainer.init(dbFolder = File(config.dataPath), entityStoreName = "dres-db")
+        initMetaData(XdModel.hierarchy, store)
 
         /* Initialize user manager. */
-        UserManager.init(dataAccessLayer.users)
+        UserManager.init(store)
 
         /* Initialize run executor. */
         RunExecutor.init(dataAccessLayer.runs)

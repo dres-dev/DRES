@@ -1,7 +1,6 @@
 package dev.dres.data.model.basics.media
 
 import dev.dres.data.model.PersistentEntity
-import dev.dres.data.model.UID
 import dev.dres.data.model.basics.time.TemporalPoint
 import dev.dres.data.model.basics.time.TemporalRange
 import jetbrains.exodus.entitystore.Entity

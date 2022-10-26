@@ -1,201 +1,193 @@
 package dev.dres.mgmt.admin
 
-import dev.dres.api.rest.handler.UserHandler
 import dev.dres.api.rest.handler.UserRequest
-import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
 import dev.dres.data.model.admin.*
-import dev.dres.utilities.extensions.toPlainPassword
-import dev.dres.utilities.extensions.toUsername
+import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.*
 
 /**
- * User management of DRES.
- * Single access to DAO for users. Requires initialisation ONCE
+ * User management class of DRES. Requires one-time initialisation
  *
  * @author Loris Sauter
- * @version 1.0
+ * @version 2.0.0
  */
 object UserManager {
 
-    const val MIN_LENGTH_USERNAME = 4
     const val MIN_LENGTH_PASSWORD = 6
 
-    private lateinit var users: DAO<User>
+    /** The [TransientEntityStore] instance used by this [UserManager]. */
+    private lateinit var store: TransientEntityStore
 
-
-    fun init(users: DAO<User>) {
-        this.users = users
-    }
-
-    fun create(username: UserName, password: HashedPassword, role: Role): Boolean {
-        validateInitalised()
-        validateUsernameLengthOrEscalate(username)
-        validateUsernameUniqueOrEscalate(username)
-        val newUser = User(username = username, password = password, role = role)
-        return create(newUser)
-    }
-
-    fun create(username: UserName, password: PlainPassword, role: Role): Boolean {
-        validateInitalised()
-        validateUsernameLengthOrEscalate(username)
-        validateUsernameUniqueOrEscalate(username)
-        validatePasswordLengthOrEscalate(password)
-        val newUser = User(username = username, password = password.hash(), role = role)
-        return create(newUser)
-    }
-
-    private fun validateUsernameLengthOrEscalate(username: UserName){
-        if(username.length < MIN_LENGTH_USERNAME){
-            throw RuntimeException("Username is less than $MIN_LENGTH_USERNAME characters")
-        }
-    }
-
-    private fun validatePasswordLengthOrEscalate(password: PlainPassword){
-        if(password.length < MIN_LENGTH_PASSWORD){
-            throw RuntimeException("Password is less than $MIN_LENGTH_PASSWORD characters")
-        }
-    }
-
-    private fun validateUsernameUniqueOrEscalate(username: UserName){
-        if(username in users.map ( User::username )){
-            throw RuntimeException("Username is already taken: $username")
-        }
-    }
-
-    private fun create(user:User): Boolean{
-        for (existingUser in this.users) {
-            if (existingUser in users) {
-                return false
-            }
-        }
-        users.append(user)
-        return true
-    }
-
-    fun update(id: UID?, username: UserName?, password: HashedPassword?, role: Role?): Boolean {
-        validateInitalised()
-        val updateId = id(id, username)
-        if (updateId != null) {
-            val currentUser = users[updateId]
-            if (currentUser != null) {
-                val updatedUser = currentUser.copy(id = currentUser.id, username = username ?: currentUser.username, password = password ?: currentUser.password, role = role ?: currentUser.role)
-                users.update(updatedUser)
-                return true
-            }
-        }
-        return false
-    }
-
-    fun update(id: UID?, username: UserName?, password: PlainPassword?, role: Role?): Boolean {
-        validateInitalised()
-        val updateId = id(id, username)
-        if (updateId != null) {
-            val currentUser = users[updateId]
-            if (currentUser != null) {
-                val updatedUser = currentUser.copy(id = currentUser.id, username = username ?: currentUser.username, password = password?.hash()
-                        ?: currentUser.password, role = role ?: currentUser.role)
-                users.update(updatedUser)
-                return true
-            }
-        }
-        return false
-    }
-
-    fun delete(id: UID?, username: UserName?): Boolean {
-        validateInitalised()
-        val delId = id(id, username)
-        if (delId != null && exists(delId)) {
-            this.users.delete(delId)
-            return true
-        } else {
-            return false
-        }
-    }
-
-    fun delete(id:UID?):Boolean{
-        return delete(id=id,username = null)
-    }
-
-    fun list(): List<User> {
-        validateInitalised()
-        return users.toList()
-    }
-
-    fun exists(id: UID?, username: UserName?): Boolean {
-        validateInitalised()
-        val searchId = id(id, username)
-        return this.users.exists(searchId ?: UID.EMPTY)
-    }
-
-    fun exists(id: UID?): Boolean {
-        return exists(id = id, username = null)
-    }
-
-    fun exists(username: UserName?): Boolean {
-        return exists(id = null, username = username)
-    }
-
-    fun get(id: UID?, username: UserName?): User? {
-        validateInitalised()
-        val _id = id(id, username)
-        return if (exists(id = _id)) {
-            users[_id!!] // !! is safe here, because theres a nulll check in exists
-        } else {
-            null
-        }
-    }
-
-    fun get(id: UID?): User? {
-        return get(id = id, username = null)
-    }
-
-    fun get(username: UserName?): User? {
-        return get(id = null, username = username)
+    fun init(store: TransientEntityStore) {
+        this.store = store
     }
 
     /**
-     * Returns the id
-     *   if the id is not null
-     *   if the username is not null, the corresponding id
-     *   null if failed
+     * Creates a [User] with the given [username], [password] and [role].
+     *
+     * @param username The name of the [User]. Must be unique.
+     * @param password The [Password.Hashed] of the user.
+     * @param role The [Role] of the new user.
      */
-    fun id(id: UID?, username: UserName?): UID? {
-        return when {
-            id != null -> id
-            username != null -> users.find { it.username == username }?.id
-            else -> null
+    fun create(username: String, password: Password.Hashed, role: Role): Boolean {
+        check(::store.isInitialized) { "PUserManager requires an initialized store which is unavailable. This is a programmer's error!"}
+        try {
+            this.store.transactional {
+                User.new {
+                    this.username = username
+                    this.password = password.password
+                    this.role = role
+                }
+            }
+        } catch (e: Throwable) {
+            return false
         }
+        return true
+    }
+
+    /**
+     * Creates a [User] with the given [username], [password] and [role].
+     *
+     * @param username The name of the [User]. Must be unique.
+     * @param password The [Password.Plain] of the user.
+     * @param role The [Role] of the new user.
+     */
+    fun create(username: String, password: Password.Plain, role: Role): Boolean {
+        check(::store.isInitialized) { "UserManager requires an initialized store which is unavailable. This is a programmer's error!"}
+        return create(username, password.hash(), role)
+    }
+
+    /**
+     * Updates a [User] with the given [UID], [username], [password] and [role].
+     *
+     * @param id The [UID] of the user to update.
+     * @param username The name of the [User]. Must be unique.
+     * @param password The [Password.Hashed] of the user.
+     * @param role The [Role] of the new user.
+     */
+    fun update(id: UID?, username: String?, password: Password.Hashed?, role: Role?): Boolean = this.store.transactional {
+        val user = if (id != null) {
+            User.query(User::id eq id.string).firstOrNull()
+        } else if (username != null) {
+            User.query(User::username eq username).firstOrNull()
+        } else {
+            null
+        }
+        if (user == null) return@transactional false
+        if (username != null) user.username = username
+        if (password != null) user.password = password.password
+        if (role != null) user.role = role
+        true
+    }
+
+    /**
+     * Updates a [User] with the given [UID], [username], [password] and [role].
+     *
+     * @param id The [UID] of the user to update.
+     * @param username The name of the [User]. Must be unique.
+     * @param password The [Password.Plain] of the user.
+     * @param role The [Role] of the new user.
+     */
+    fun update(id: UID?, username: String?, password: Password.Plain?, role: Role?): Boolean
+        = update(id, username, password?.hash(), role)
+
+    /**
+     * Updates a [User] for the given [id] based o the [request].
+     *
+     * @param id The [UID] of the user to update.
+     * @param request The [UserRequest] detailing the update
+     * @return True on success, false otherwise.
+     */
+    fun update(id: UID?, request: UserRequest): Boolean
+        = update(id = id, username = request.username, password = request.password?.let { Password.Plain(it) }, role = request.role?.let { Role.fromRestRole(it) })
+
+    /**
+     * Deletes the [User] for the given [UID].
+     *
+     * @param username The name of the [User] to delete.
+     * @return True on success, false otherwise.
+     */
+    fun delete(username: String): Boolean = this.store.transactional {
+        val user = User.query(User::username eq username).firstOrNull()
+        if (user != null) {
+            user.delete()
+            true
+        } else {
+            false
+        }
+    }
+
+    /**
+     * Deletes the [User] for the given [UID].
+     *
+     * @param id The [UID] of the [User] to delete.
+     * @return True on success, false otherwise.
+     */
+    fun delete(id: UID):Boolean = this.store.transactional {
+        val user = User.query(User::id eq id.string).firstOrNull()
+        if (user != null) {
+            user.delete()
+            true
+        } else {
+            false
+        }
+    }
+
+    /**
+     * Lists all [User] objects in DRES.
+     *
+     * @return List of all [User]s.
+     */
+    fun list(): List<User> = this.store.transactional(readonly = true) {
+        User.all().toList()
+    }
+
+    /**
+     * Checks for the existence of the [User] with the given [UID].
+     *
+     * @param id [UID] to check.
+     * @return True if [User] exists, false otherwise.
+     */
+    fun exists(id: UID): Boolean = this.store.transactional(readonly = true) {
+        User.query(User::id eq id.string).isNotEmpty
+    }
+
+    /**
+     * Checks for the existence of the [User] with the given [UID].
+     *
+     * @param username User name to check.
+     * @return True if [User] exists, false otherwise.
+     */
+    fun exists(username: String): Boolean = this.store.transactional(readonly = true) {
+        User.query(User::username eq username).isNotEmpty
+    }
+
+    /**
+     * Returns the [User] for the given [UID] or null if [User] doesn't exist.
+     *
+     * @param id The [UID] of the [User] to fetch.
+     * @return [User] or null
+     */
+    fun get(id: UID): User? = this.store.transactional(readonly = true) {
+        User.query(User::id eq id.string).firstOrNull()
+    }
+
+    /**
+     * Returns the [User] for the given [username] or null if [User] doesn't exist.
+     *
+     * @param username The name of the [User] to fetch.
+     * @return [User] or null
+     */
+    fun get(username: String): User? = this.store.transactional(readonly = true) {
+        User.query(User::username eq username).firstOrNull()
     }
 
     /**
      * Either returns a user for this username/password tuple or null
      */
-    fun getMatchingUser(username: UserName, password: PlainPassword) : User?  {
-        val user = users.find { it.username == username } ?: return null
-        return if (user.password.check(password)) user else null
-    }
-
-    private fun validateInitalised() {
-        if (isInit().not()) {
-            throw RuntimeException("The UserManager was not initialised with a DAO")
-        }
-    }
-
-    private fun isInit(): Boolean {
-        return ::users.isInitialized
-    }
-
-    fun create(toCreate: UserRequest): Boolean {
-        return create(UserName(toCreate.username), if(toCreate.password != null){PlainPassword(toCreate.password)}else{
-            PlainPassword("")
-        }, toCreate.role!!)
-    }
-
-    fun updateEntirely(id:UID?, user: UserRequest): Boolean {
-        return update(id=id, username = user.username.toUsername(), password = user.password.toPlainPassword(), role = user.role)
-    }
-
-    fun update(id:UID?, user:UserRequest):Boolean{
-        return update(id=id, username = user.username.toUsername(), password = user.password?.toPlainPassword(), role=user.role)
+    fun getMatchingUser(username: String, password: Password.Plain) : User?  {
+        val user = get(username)
+        return if (user?.hashedPassword()?.check(password) == true) user else null
     }
 }

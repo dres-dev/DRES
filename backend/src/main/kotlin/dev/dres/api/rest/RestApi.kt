@@ -186,7 +186,8 @@ object RestApi {
         javalin = Javalin.create {
             it.plugins.enableCors { cors ->
                 cors.add { corsPluginConfig ->
-                    corsPluginConfig.anyHost()
+                    corsPluginConfig.reflectClientOrigin = true // anyHost() has similar implications and might be used in production? I'm not sure how to cope with production and dev here simultaneously
+                    corsPluginConfig.allowCredentials = true
                 }
             }
 

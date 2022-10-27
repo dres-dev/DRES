@@ -67,9 +67,6 @@ class ListCompetitionRunClientInfoHandler : AbstractCompetitionRunClientInfoHand
         summary = "Lists an overview of all competition runs visible to the current client",
         path = "/api/v1/client/run/info/list",
         tags = ["Client Run Info"],
-        queryParams = [
-            OpenApiParam("session", String::class, "Session Token", required = true, allowEmptyValue = false)
-        ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(ClientRunInfoList::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
@@ -98,7 +95,7 @@ class CompetitionRunClientCurrentTaskInfoHandler : AbstractCompetitionRunClientI
         path = "/api/v1/client/run/info/currentTask/{runId}",
         tags = ["Client Run Info"],
         queryParams = [
-            OpenApiParam("session", String::class, "Session Token", required = true, allowEmptyValue = false)
+            OpenApiParam("runId", String::class, "The runId of the run th ecurent task is queried", required = true, allowEmptyValue = false)
         ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(ClientTaskInfo::class)]),

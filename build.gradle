@@ -25,6 +25,7 @@ openApiGenerate {
     generateApiTests = false // No tests please
     generateModelTests = false // No tests please
     validateSpec = false // No validation please (as in command above)
+    skipValidateSpec = true
 
     generatorName = 'typescript-angular'
     inputSpec = oasFile

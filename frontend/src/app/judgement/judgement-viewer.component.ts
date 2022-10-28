@@ -29,7 +29,7 @@ import {JudgementDialogContent} from './judgement-dialog/judgement-dialog-conten
                     '3s',
                     keyframes([
                         style({backgroundColor: 'transparent', offset: 0}),
-                        style({backgroundColor: '#7b1fa2', offset: 0.2}), // TODO how to get access to primary color of theme
+                        style({backgroundColor: '#FFFFFF', offset: 0.2}),
                         style({backgroundColor: 'transparent', offset: 1}),
                     ])
                 ),
@@ -166,10 +166,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                                 const httperr = err as HttpErrorResponse;
                                 if (httperr) {
                                     if (httperr.status === 404) {
-                                        const snack = this.snackBar.open(`Invalid runId: ${runId}`, null, {duration: 2000});
-                                        snack.afterDismissed().subscribe(() => {
-                                            this.router.navigate(['/run/list']);
-                                        });
+                                        this.router.navigate(['/run/list']);
                                     } else if (httperr.status === 408) {
                                         this.snackBar.open(`You were inactive for too long and the verdict was not accepted by teh server`, null, {duration: 2000});
                                         return of(null);

@@ -7,19 +7,20 @@ import dev.dres.api.rest.types.run.websocket.ClientMessage
 import dev.dres.api.rest.types.run.websocket.ClientMessageType
 import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
-import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.InteractiveAsynchronousCompetition
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.NonInteractiveCompetition
 import dev.dres.data.model.run.interfaces.Competition
+import dev.dres.run.audit.AuditLogger
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.read
 import dev.dres.utilities.extensions.write
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
+import jetbrains.exodus.database.TransientEntityStore
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.*
@@ -62,19 +63,21 @@ object RunExecutor : Consumer<WsConfig> {
     /** Internal array of [Future]s for cleaning after [RunManager]s. See [RunExecutor.cleanerThread]*/
     private val results = HashMap<Future<*>, UID>()
 
-    /** Instance of shared [DAO] used to access [InteractiveSynchronousCompetition]s. */
-    lateinit var runs: DAO<Competition>
+    /** The [TransientEntityStore] instance used by this [AuditLogger]. */
+    private lateinit var store: TransientEntityStore
 
     /**
      * Initializes this [RunExecutor].
      *
-     * @param runs The shared [DAO] used to access [InteractiveSynchronousCompetition]s.
+     * @param store The shared [TransientEntityStore].
      */
-    fun init(runs: DAO<Competition>) {
-        this.runs = runs
-        this.runs.filter { !it.hasEnded }.forEach { //TODO needs more distinction
+    fun init(store: TransientEntityStore) {
+        this.store = store
+        /* TODO: Schedule runs that have not ended
+        *  this.runs.filter { !it.hasEnded }.forEach { //TODO needs more distinction
             schedule(it)
         }
+        */
     }
 
     fun schedule(competition: Competition) {
@@ -268,7 +271,7 @@ object RunExecutor : Consumer<WsConfig> {
 
         this.runManagerLock.read {
             this.connectedClients.filter {
-                this.observingClients[runId]?.contains(it) ?: false && AccessManager.getUserIdForSession(it.httpSessionId) in teamMembers
+                this.observingClients[runId]?.contains(it) ?: false && AccessManager.userIdForSession(it.httpSessionId) in teamMembers
             }.forEach {
                 it.send(message)
             }

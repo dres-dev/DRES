@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler
 
 import dev.dres.api.rest.AccessManager
-import dev.dres.api.rest.RestApiRole
+import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.run.RunInfo
 import dev.dres.api.rest.types.run.RunState
 import dev.dres.api.rest.types.run.SubmissionInfo
@@ -31,19 +31,19 @@ import java.io.IOException
 
 abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRestHandler {
 
-    override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.VIEWER)
+    override val permittedRoles: Set<RouteRole> = setOf(ApiRole.VIEWER)
     override val apiVersion = "v1"
 
-    private fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionId())!!
+    private fun userId(ctx: Context): UID = AccessManager.userIdForSession(ctx.sessionId())!!
 
     private fun isJudge(ctx: Context): Boolean {
         val roles = AccessManager.rolesOfSession(ctx.sessionId())
-        return roles.contains(RestApiRole.JUDGE) && !roles.contains(RestApiRole.ADMIN)
+        return roles.contains(ApiRole.JUDGE) && !roles.contains(ApiRole.ADMIN)
     }
 
     fun isParticipant(ctx: Context): Boolean {
         val roles = AccessManager.rolesOfSession(ctx.sessionId())
-        return roles.contains(RestApiRole.PARTICIPANT) && !roles.contains(RestApiRole.ADMIN)
+        return roles.contains(ApiRole.PARTICIPANT) && !roles.contains(ApiRole.ADMIN)
     }
 
     fun getRelevantManagers(ctx: Context): List<InteractiveRunManager> {

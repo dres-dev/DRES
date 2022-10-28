@@ -1,20 +1,27 @@
-package dev.dres.api.rest.handler
+package dev.dres.api.rest.handler.system
 
 import dev.dres.api.rest.AccessManager
+import dev.dres.api.rest.handler.PostRestHandler
+import dev.dres.api.rest.handler.RestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.admin.Password
+import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.mgmt.admin.UserManager
 import dev.dres.mgmt.admin.UserManager.getMatchingUser
-import dev.dres.run.audit.AuditLogEntry
 import dev.dres.run.audit.AuditLogger
-import dev.dres.run.audit.LogEventSource
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
 
-class LoginHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, PostRestHandler<UserDetails> {
+/**
+ * A [GetRestHandler] that handles user-requests to login.
+ *
+ * @version 1.0.0
+ * @author Luca Rossetto
+ */
+class LoginHandler : RestHandler, PostRestHandler<UserDetails> {
 
     override val apiVersion = "v1"
 
@@ -44,11 +51,11 @@ class LoginHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, PostRes
         val password = Password.Plain(loginRequest.password)
         val user = getMatchingUser(username, password) ?: throw ErrorStatusException(401, "Invalid credentials. Please try again!", ctx)
 
-        AccessManager.setUserForSession(ctx.sessionId(), user)
-        AuditLogger.login(loginRequest.username, ctx.sessionId(), LogEventSource.REST)
+        /* Begin user session. */
+        AccessManager.registerUserForSession(ctx.sessionId(), user)
+        AuditLogger.login(user.userId, AuditLogSource.REST, ctx.sessionId())
 
         return UserDetails.create(UserManager.get(username)!!, ctx)
-
     }
 
     override val route = "login"

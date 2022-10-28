@@ -1,6 +1,6 @@
 package dev.dres.mgmt.admin
 
-import dev.dres.api.rest.handler.UserRequest
+import dev.dres.api.rest.types.users.UserRequest
 import dev.dres.data.model.UID
 import dev.dres.data.model.admin.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -13,8 +13,6 @@ import kotlinx.dnq.query.*
  * @version 2.0.0
  */
 object UserManager {
-
-    const val MIN_LENGTH_PASSWORD = 6
 
     /** The [TransientEntityStore] instance used by this [UserManager]. */
     private lateinit var store: TransientEntityStore
@@ -59,16 +57,16 @@ object UserManager {
     }
 
     /**
-     * Updates a [User] with the given [UID], [username], [password] and [role].
+     * Updates a [User] with the given [UserId], [username], [password] and [role].
      *
-     * @param id The [UID] of the user to update.
+     * @param id The [UserId] of the user to update.
      * @param username The name of the [User]. Must be unique.
      * @param password The [Password.Hashed] of the user.
      * @param role The [Role] of the new user.
      */
-    fun update(id: UID?, username: String?, password: Password.Hashed?, role: Role?): Boolean = this.store.transactional {
+    fun update(id: UserId?, username: String?, password: Password.Hashed?, role: Role?): Boolean = this.store.transactional {
         val user = if (id != null) {
-            User.query(User::id eq id.string).firstOrNull()
+            User.query(User::id eq id).firstOrNull()
         } else if (username != null) {
             User.query(User::username eq username).firstOrNull()
         } else {
@@ -82,50 +80,40 @@ object UserManager {
     }
 
     /**
-     * Updates a [User] with the given [UID], [username], [password] and [role].
+     * Updates a [User] with the given [UserId], [username], [password] and [role].
      *
-     * @param id The [UID] of the user to update.
+     * @param id The [UserId] of the user to update.
      * @param username The name of the [User]. Must be unique.
      * @param password The [Password.Plain] of the user.
      * @param role The [Role] of the new user.
      */
-    fun update(id: UID?, username: String?, password: Password.Plain?, role: Role?): Boolean
+    fun update(id: UserId?, username: String?, password: Password.Plain?, role: Role?): Boolean
         = update(id, username, password?.hash(), role)
 
     /**
      * Updates a [User] for the given [id] based o the [request].
      *
-     * @param id The [UID] of the user to update.
+     * @param id The [UserId] of the user to update.
      * @param request The [UserRequest] detailing the update
      * @return True on success, false otherwise.
      */
-    fun update(id: UID?, request: UserRequest): Boolean
-        = update(id = id, username = request.username, password = request.password?.let { Password.Plain(it) }, role = request.role?.let { Role.fromRestRole(it) })
+    fun update(id: UserId?, request: UserRequest): Boolean
+        = update(id = id, username = request.username, password = request.password?.let { Password.Plain(it) }, role = request.role?.let { Role.convertApiRole(it) })
 
     /**
-     * Deletes the [User] for the given [UID].
+     * Deletes the [User] for the given [UserId].
      *
      * @param username The name of the [User] to delete.
      * @return True on success, false otherwise.
      */
-    fun delete(username: String): Boolean = this.store.transactional {
-        val user = User.query(User::username eq username).firstOrNull()
-        if (user != null) {
-            user.delete()
-            true
+    fun delete(id: UserId? = null, username: String? = null): Boolean = this.store.transactional {
+        val user = if (id != null) {
+            User.query(User::id eq id).firstOrNull()
+        } else if (username != null) {
+            User.query(User::username eq username).firstOrNull()
         } else {
-            false
+            null
         }
-    }
-
-    /**
-     * Deletes the [User] for the given [UID].
-     *
-     * @param id The [UID] of the [User] to delete.
-     * @return True on success, false otherwise.
-     */
-    fun delete(id: UID):Boolean = this.store.transactional {
-        val user = User.query(User::id eq id.string).firstOrNull()
         if (user != null) {
             user.delete()
             true
@@ -149,18 +137,14 @@ object UserManager {
      * @param id [UID] to check.
      * @return True if [User] exists, false otherwise.
      */
-    fun exists(id: UID): Boolean = this.store.transactional(readonly = true) {
-        User.query(User::id eq id.string).isNotEmpty
-    }
-
-    /**
-     * Checks for the existence of the [User] with the given [UID].
-     *
-     * @param username User name to check.
-     * @return True if [User] exists, false otherwise.
-     */
-    fun exists(username: String): Boolean = this.store.transactional(readonly = true) {
-        User.query(User::username eq username).isNotEmpty
+    fun exists(id: UserId? = null, username: String? = null): Boolean = this.store.transactional(readonly = true) {
+        if (id != null) {
+            User.query(User::id eq id).isNotEmpty
+        } else if (username != null) {
+            User.query(User::username eq username).isNotEmpty
+        } else {
+            throw IllegalArgumentException("Either user ID or username must be non-null!")
+        }
     }
 
     /**
@@ -169,25 +153,21 @@ object UserManager {
      * @param id The [UID] of the [User] to fetch.
      * @return [User] or null
      */
-    fun get(id: UID): User? = this.store.transactional(readonly = true) {
-        User.query(User::id eq id.string).firstOrNull()
-    }
-
-    /**
-     * Returns the [User] for the given [username] or null if [User] doesn't exist.
-     *
-     * @param username The name of the [User] to fetch.
-     * @return [User] or null
-     */
-    fun get(username: String): User? = this.store.transactional(readonly = true) {
-        User.query(User::username eq username).firstOrNull()
+    fun get(id: UserId? = null, username: String? = null): User? = this.store.transactional(readonly = true) {
+        if (id != null) {
+            User.query(User::id eq id).firstOrNull()
+        } else if (username != null) {
+            User.query(User::username eq username).firstOrNull()
+        } else {
+            null
+        }
     }
 
     /**
      * Either returns a user for this username/password tuple or null
      */
     fun getMatchingUser(username: String, password: Password.Plain) : User?  {
-        val user = get(username)
+        val user = get(null, username)
         return if (user?.hashedPassword()?.check(password) == true) user else null
     }
 }

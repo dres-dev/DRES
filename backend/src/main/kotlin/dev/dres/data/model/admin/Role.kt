@@ -1,6 +1,6 @@
 package dev.dres.data.model.admin
 
-import dev.dres.api.rest.RestApiRole
+import dev.dres.api.rest.types.users.ApiRole
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity
 import kotlinx.dnq.XdEnumEntityType
@@ -16,20 +16,38 @@ class Role(entity: Entity) : XdEnumEntity(entity) {
     companion object : XdEnumEntityType<Role>() {
         val VIEWER by enumField { description = "VIEWER" }
         val PARTICIPANT by enumField { description = "PARTICIPANT" }
-        val JUDGE by enumField { description = "JDUGE" }
+        val JUDGE by enumField { description = "JUDGE" }
         val ADMIN by enumField { description = "ADMIN" }
 
         /**
-         * Generates and returns the [Role] that corresponds to the given [RestApiRole].
+         * Returns a list of all [Role] values.
          *
-         * @param role [RestApiRole]
+         * @return List of all [Role] values.
          */
-        fun fromRestRole(role: RestApiRole): Role = when(role) {
-            RestApiRole.ANYONE,
-            RestApiRole.VIEWER -> VIEWER
-            RestApiRole.PARTICIPANT -> PARTICIPANT
-            RestApiRole.JUDGE -> JUDGE
-            RestApiRole.ADMIN -> ADMIN
+        fun values() = listOf(VIEWER, PARTICIPANT, JUDGE, ADMIN)
+
+        /**
+         * Parses a [Role] instance from a [String].
+         */
+        fun parse(string: String) = when(string.uppercase()) {
+            "VIEWER" -> VIEWER
+            "PARTICIPANT" -> PARTICIPANT
+            "JUDGE" -> JUDGE
+            "ADMIN", "ADMINISTRATOR" -> ADMIN
+            else -> throw IllegalArgumentException("Failed to parse role '$string'.")
+        }
+
+        /**
+         * Generates and returns the [Role] that corresponds to the given [ApiRole].
+         *
+         * @param role [ApiRole]
+         */
+        fun convertApiRole(role: ApiRole): Role = when(role) {
+            ApiRole.ANYONE,
+            ApiRole.VIEWER -> VIEWER
+            ApiRole.PARTICIPANT -> PARTICIPANT
+            ApiRole.JUDGE -> JUDGE
+            ApiRole.ADMIN -> ADMIN
         }
     }
 

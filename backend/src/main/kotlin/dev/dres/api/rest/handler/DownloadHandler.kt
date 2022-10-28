@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import dev.dres.api.rest.RestApiRole
+import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.dbo.DAO
@@ -25,7 +25,7 @@ sealed class DownloadHandler : AccessManagedRestHandler {
     override val apiVersion = "v1"
 
     /** The roles permitted to access the [DownloadHandler]. */
-    override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.ADMIN, RestApiRole.PARTICIPANT)
+    override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN, ApiRole.PARTICIPANT)
 
     /**
      * REST handler to download the competition run information.

@@ -31,8 +31,8 @@ class MediaItem(entity: Entity) : PersistentEntity(entity) {
     var type by xdLink1(MediaType)
 
     /** The [MediaCollection] this [MediaItem] belongs to. */
-    var collection by xdLink1(MediaCollection)
+    var collection: MediaCollection by xdParent(MediaCollection::items)
 
     /** List of [MediaItemSegment] that this [MediaItem] contains.  */
-    val segments by xdLink0_N(MediaItemSegment::item)
+    val segments by xdChildren0_N<MediaItem,MediaItemSegment>(MediaItemSegment::item)
 }

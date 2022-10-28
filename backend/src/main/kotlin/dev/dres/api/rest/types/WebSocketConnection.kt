@@ -31,7 +31,7 @@ value class WebSocketConnection(val context: WsContext) {
 
     /** Name of the user that generated this [WebSocketConnection]. */
     val userName
-        get() = UserManager.get(AccessManager.getUserIdForSession(this.httpSessionId) ?: UID.EMPTY)?.username?.name ?: "UNKNOWN"
+        get() = UserManager.get(AccessManager.userIdForSession(this.httpSessionId) ?: UID.EMPTY)?.username?.name ?: "UNKNOWN"
 
     /** IP address of the client. */
     val host: String

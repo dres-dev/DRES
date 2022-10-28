@@ -7,8 +7,8 @@ import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.output.CliktHelpFormatter
 import com.github.ajalt.clikt.output.HelpFormatter
-import dev.dres.data.dbo.DataAccessLayer
 import dev.dres.data.model.Config
+import jetbrains.exodus.database.TransientEntityStore
 import org.jline.builtins.Completers
 import org.jline.builtins.Completers.TreeCompleter.node
 import org.jline.reader.*
@@ -20,7 +20,12 @@ import java.util.*
 import java.util.regex.Pattern
 import kotlin.system.exitProcess
 
-
+/**
+ * This is a singleton instance of the [Cli].
+ *
+ * @version 1.0.0
+ * @author Loris Sauter
+ */
 object Cli {
 
     private const val PROMPT = "DRES> "
@@ -28,21 +33,18 @@ object Cli {
     private lateinit var clikt:CliktCommand
 
     /**
-     * blocking call
+     * Blocking call that executes the CLI subsystem.
+     *
+     * @param store The [TransientEntityStore] instance used to access persistent data.
+     * @param config The [Config] instance with which DRES was started.
      */
-    fun loop(dataAccessLayer: DataAccessLayer, config: Config) {
+    fun loop(store: TransientEntityStore, config: Config) {
 
         clikt = DRESBaseCommand().subcommands(
-            CompetitionCommand(dataAccessLayer.competitions, dataAccessLayer.collections, config),
+            CompetitionCommand(store, config),
             UserCommand(),
-            MediaCollectionCommand(
-                dataAccessLayer.collections,
-                dataAccessLayer.mediaItems,
-                dataAccessLayer.mediaItemPathIndex,
-                dataAccessLayer.mediaItemCollectionIndex,
-                dataAccessLayer.mediaSegments
-            ),
-            CompetitionRunCommand(dataAccessLayer.runs),
+            MediaCollectionCommand(store),
+            CompetitionRunCommand(store),
             OpenApiCommand(),
             ExecutionCommand()
         )
@@ -88,7 +90,7 @@ object Cli {
         while (true) {
             try {
                 val line = lineReader.readLine(PROMPT).trim()
-                if (line.toLowerCase() == "exit" || line.toLowerCase() == "quit") {
+                if (line.toLowerCase() == "exit" || line.lowercase() == "quit") {
                     break
                 }
                 if (line.toLowerCase() == "help") {
@@ -105,9 +107,9 @@ object Cli {
                     when (e) {
                         is com.github.ajalt.clikt.core.NoSuchSubcommand -> println("command not found")
                         is com.github.ajalt.clikt.core.PrintHelpMessage -> println(e.command.getFormattedHelp())
-                        is com.github.ajalt.clikt.core.UsageError -> println("invalid command")
-//                        is com.github.ajalt.clikt.core.MissingParameter -> println(e.localizedMessage)
+                        is com.github.ajalt.clikt.core.MissingParameter -> println(e.localizedMessage)
                         is com.github.ajalt.clikt.core.NoSuchOption -> println(e.localizedMessage)
+                        is com.github.ajalt.clikt.core.UsageError -> println("invalid command")
                         else -> e.printStackTrace()
                     }
                 }

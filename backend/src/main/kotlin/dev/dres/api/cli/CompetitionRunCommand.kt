@@ -22,13 +22,17 @@ import dev.dres.data.model.submissions.aspects.TextAspect
 import dev.dres.run.*
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.toDateString
+import jetbrains.exodus.database.TransientEntityStore
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
-class CompetitionRunCommand(internal val runs: DAO<Competition>) : NoOpCliktCommand(name = "run") {
+/**
+ * 
+ */
+class CompetitionRunCommand(internal val store: TransientEntityStore) : NoOpCliktCommand(name = "run") {
 
     init {
         subcommands(

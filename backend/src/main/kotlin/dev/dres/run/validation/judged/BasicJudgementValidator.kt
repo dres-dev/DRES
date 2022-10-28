@@ -125,7 +125,7 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
             val token = UUID.randomUUID().toString()
             this.waiting[token] = next
             this.timeouts.add((System.currentTimeMillis() + judgementTimeout) to token)
-            AuditLogger.prepareJudgement(this.id, token, next)
+            AuditLogger.prepareJudgement(next, this, token)
             Pair(token, next)
         } else {
             null

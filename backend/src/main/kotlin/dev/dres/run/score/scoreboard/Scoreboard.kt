@@ -1,7 +1,7 @@
 package dev.dres.run.score.scoreboard
 
 import dev.dres.data.model.UID
-import dev.dres.data.model.competition.Team
+import dev.dres.data.model.competition.team.Team
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.run.interfaces.TaskId

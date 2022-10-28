@@ -1,13 +1,13 @@
 package dev.dres.api.rest.handler
 
 import dev.dres.api.rest.AccessManager
-import dev.dres.api.rest.RestApiRole
+import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.dbo.DAO
+import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.data.model.basics.media.MediaCollection
-import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.basics.media.PlayableMediaItem
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.ItemAspect
@@ -16,7 +16,6 @@ import dev.dres.data.model.submissions.aspects.TextAspect
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager
 import dev.dres.run.audit.AuditLogger
-import dev.dres.run.audit.LogEventSource
 import dev.dres.run.exceptions.JudgementTimeoutException
 import dev.dres.run.validation.interfaces.VoteValidator
 import dev.dres.utilities.extensions.UID
@@ -27,7 +26,7 @@ import io.javalin.http.Context
 import io.javalin.openapi.*
 
 abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler {
-    override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.JUDGE)
+    override val permittedRoles: Set<RouteRole> = setOf(ApiRole.JUDGE)
     override val apiVersion = "v1"
 
     protected fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
@@ -37,12 +36,12 @@ abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler 
 
     companion object {
         fun checkRunManagerAccess(ctx: Context, runManager: RunManager) {
-            val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(
+            val userId = AccessManager.userIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(
                 403,
                 "No valid user.",
                 ctx
             )
-            if (AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)) {
+            if (AccessManager.rolesOfSession(ctx.sessionId()).contains(ApiRole.ADMIN)) {
                 return //Admins require no further check
             }
             if (userId !in runManager.description.judges) {
@@ -151,20 +150,19 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
         }
 
         val validator = run.judgementValidators.find { it.id == judgement.validator } ?: throw ErrorStatusException(404, "no matching task found with validator ${judgement.validator}", ctx)
-
         try {
             validator.judge(judgement.token, judgement.verdict)
-        }catch(ex: JudgementTimeoutException){
+        } catch(ex: JudgementTimeoutException) {
             throw ErrorStatusException(408, ex.message!!, ctx)
         }
-        AuditLogger.judgement(run.id, judgement.validator, judgement.token, judgement.verdict, LogEventSource.REST, ctx.sessionId())
+        AuditLogger.judgement(run.id, validator, judgement.token, judgement.verdict, AuditLogSource.REST, ctx.sessionId())
 
         return SuccessStatus("Verdict ${judgement.verdict} received and accepted. Thanks!")
     }
 }
 
 class JudgementStatusHandler : GetRestHandler<List<JudgementValidatorStatus>>, AccessManagedRestHandler {
-    override val permittedRoles = setOf(RestApiRole.VIEWER)
+    override val permittedRoles = setOf(ApiRole.VIEWER)
     override val route = "run/{runId}/judge/status"
     override val apiVersion = "v1"
 

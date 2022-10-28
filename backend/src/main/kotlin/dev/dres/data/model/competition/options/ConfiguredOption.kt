@@ -1,7 +1,7 @@
 package dev.dres.data.model.competition.options
 
 /**
- * A concrete instance for an [Option] including named paramters.
+ * A concrete instance for an [Option] including named parameters.
  *
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.1.0

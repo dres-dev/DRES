@@ -1,42 +1,34 @@
 package dev.dres.api.rest.types.collection
 
-import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.competition.TaskDescription
-import dev.dres.utilities.extensions.UID
-import dev.dres.utilities.extensions.cleanPathString
+import dev.dres.data.model.basics.media.MediaType
 
 /**
- * The RESTful API equivalent for [dres.data.model.basics.media.MediaItem].
+ * The RESTful API equivalent for [MediaItem].
  *
- * @see dres.data.model.basics.media.MediaItem
+ * @see MediaItem
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.1.0
  */
 data class RestMediaItem(val id: String= UID.EMPTY.string, val name: String, val type: RestMediaItemType, val collectionId: String, val location: String, val durationMs: Long? = null, val fps: Float? = null) {
     companion object {
         /**
-         * Generates a [RestMediaItem] from a [TaskDescription] and returns it.
+         * Generates a [RestMediaItem] from a [MediaItem] and returns it.
          *
-         * @param task The [TaskDescription] to convert.
+         * @param item The [MediaItem] to convert.
          */
-        fun fromMediaItem(item: MediaItem) = when (item) {
-            is MediaItem.ImageItem -> RestMediaItem(item.id.string, item.name, RestMediaItemType.IMAGE, item.collection.string, item.location)
-            is MediaItem.VideoItem -> RestMediaItem(item.id.string, item.name, RestMediaItemType.VIDEO, item.collection.string, item.location, item.durationMs, item.fps)
+        fun fromMediaItem(item: MediaItem) = when (item.type) {
+            MediaType.IMAGE -> RestMediaItem(item.id, item.name, RestMediaItemType.IMAGE, item.collection.id, item.location)
+            MediaType.VIDEO -> RestMediaItem(item.id, item.name, RestMediaItemType.VIDEO, item.collection.id, item.location, item.durationMs, item.fps)
+            else -> throw IllegalArgumentException("Unsupported media type ${item.type}.")
         }
     }
 
-    /**
-     * Converts this [RestMediaItem] to the corresponding [MediaItem] and returns it,
-     * by looking it up in the collection
-     *
-     * @param mediaItems The [DAO] to perform lookups
-     */
-    fun lookup(mediaItems: DAO<MediaItem>) = mediaItems[this.id.UID()]
-
-    fun toMediaItem(): MediaItem = when(type){
-        RestMediaItemType.IMAGE -> MediaItem.ImageItem(id.UID(), name.trim(), location.cleanPathString(), collectionId.UID())
-        RestMediaItemType.VIDEO -> MediaItem.VideoItem(id.UID(), name.trim(), location.cleanPathString(), collectionId.UID(), durationMs!!, fps!!)
+    init {
+        if (this.type == RestMediaItemType.VIDEO) {
+            require(this.durationMs != null) { "Duration must  be set for a video item." }
+            require(this.fps != null) { "Duration must be set for a video item." }
+        }
     }
 }

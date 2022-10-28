@@ -39,6 +39,16 @@ fun Context.streamFile(path: Path) {
     this.writeSeekableStream(Files.newInputStream(path, StandardOpenOption.READ), mimeType)
 }
 
+fun Context.sendFile(path: Path) {
+    if (!Files.exists(path)){
+        this.errorResponse(404, "File $path not found!")
+        return
+    }
+    val mimeType = MimeTypeHelper.mimeType(path.toFile())
+    this.contentType(mimeType)
+    this.result(Files.newInputStream(path, StandardOpenOption.READ))
+}
+
 fun Context.sendFile(file: File) {
     if (!file.exists()){
         this.errorResponse(404, "'${file.name}' not found")

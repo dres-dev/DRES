@@ -2,7 +2,7 @@ package dev.dres.api.rest.types.competition
 
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
-import dev.dres.data.model.competition.Team
+import dev.dres.data.model.competition.team.Team
 import dev.dres.utilities.extensions.UID
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream

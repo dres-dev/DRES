@@ -7,6 +7,7 @@ import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.model.UID
 import dev.dres.data.model.admin.Role
+import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.TeamId
@@ -722,7 +723,7 @@ class InteractiveAsynchronousRunManager(
                 val task = this.run.currentTaskForTeam(teamId)
                     ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
                 task.start()
-                AuditLogger.taskStart(this.id, task.uid, task.description, LogEventSource.INTERNAL, null)
+                AuditLogger.taskStart(this.id, task.uid, task.description, AuditLogSource.REST, null)
                 this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_START), teamId)
 
             }

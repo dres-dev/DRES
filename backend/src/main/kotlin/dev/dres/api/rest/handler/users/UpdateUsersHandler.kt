@@ -1,0 +1,65 @@
+package dev.dres.api.rest.handler.users
+
+import dev.dres.api.rest.types.users.ApiRole
+import dev.dres.api.rest.handler.AccessManagedRestHandler
+import dev.dres.api.rest.handler.PatchRestHandler
+import dev.dres.api.rest.types.status.ErrorStatus
+import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.api.rest.types.users.UserDetails
+import dev.dres.api.rest.types.users.UserRequest
+import dev.dres.data.model.admin.Role
+import dev.dres.data.model.admin.User
+import dev.dres.mgmt.admin.UserManager
+import io.javalin.http.BadRequestResponse
+import io.javalin.http.Context
+import io.javalin.openapi.*
+
+/**
+ * An [AbstractUserHandler] to update an existing [User]s.
+ *
+ * @author Loris Sauter
+ * @version 2.0.0
+ */
+class UpdateUsersHandler : AbstractUserHandler(), PatchRestHandler<UserDetails>, AccessManagedRestHandler {
+
+    /** [UpdateUsersHandler] can be used by [ApiRole.ADMIN], [[ApiRole.VIEWER], [ApiRole.PARTICIPANT]*/
+    override val permittedRoles = setOf(ApiRole.VIEWER, ApiRole.ADMIN, ApiRole.PARTICIPANT)
+
+    override val route = "user/{userId}"
+
+    @OpenApi(
+        summary = "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone.",
+        path = "/api/v1/user/{userId}", methods = [HttpMethod.PATCH],
+        pathParams = [OpenApiParam("userId", String::class, "User ID")],
+        requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
+        tags = ["User"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
+        ]
+    )
+    override fun doPatch(ctx: Context): UserDetails {
+        val request = try {
+            ctx.bodyAsClass(UserRequest::class.java)
+        } catch (e: BadRequestResponse) {
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
+        }
+
+        /* Fetch existing objects. */
+        val user = userFromContext(ctx)
+        val caller = userFromSession(ctx)
+
+        if (caller.role == Role.ADMIN || user.id == caller.id) {
+            val success = UserManager.update(id = user.id, request = request)
+            if (success) {
+                return UserDetails.of(UserManager.get(id = user.id)!!)
+            } else {
+                throw ErrorStatusException(500, "Could not update user!", ctx)
+            }
+        } else {
+            throw ErrorStatusException(403, "You do not have permissions to edit user (${user.id}) as $caller!", ctx)
+        }
+    }
+}

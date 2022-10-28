@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler
 
 import dev.dres.api.rest.AccessManager
-import dev.dres.api.rest.RestApiRole
+import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -43,7 +43,7 @@ abstract class LogHandler : PostRestHandler<SuccessStatus>, AccessManagedRestHan
 }
 
 class QueryLogHandler : LogHandler() {
-    override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.ADMIN, RestApiRole.PARTICIPANT)
+    override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN, ApiRole.PARTICIPANT)
     override val route = "log/query"
 
     @OpenApi(summary = "Accepts query logs from participants",
@@ -61,7 +61,7 @@ class QueryLogHandler : LogHandler() {
     )
     override fun doPost(ctx: Context): SuccessStatus {
 
-        val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
+        val userId = AccessManager.userIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
         val run = getActiveRun(userId, ctx)
 
 
@@ -80,7 +80,7 @@ class QueryLogHandler : LogHandler() {
 }
 
 class ResultLogHandler : LogHandler() {
-    override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.ADMIN, RestApiRole.PARTICIPANT)
+    override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN, ApiRole.PARTICIPANT)
     override val route = "log/result"
 
     @OpenApi(summary = "Accepts result logs from participants",
@@ -98,7 +98,7 @@ class ResultLogHandler : LogHandler() {
     )
     override fun doPost(ctx: Context): SuccessStatus {
 
-        val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
+        val userId = AccessManager.userIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
         val run = getActiveRun(userId, ctx)
 
         val queryResultLog = try {

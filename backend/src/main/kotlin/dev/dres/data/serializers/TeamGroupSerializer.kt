@@ -1,13 +1,12 @@
 package dev.dres.data.serializers
 
-import dev.dres.data.model.competition.Team
+import dev.dres.data.model.competition.team.Team
 import dev.dres.data.model.competition.TeamGroup
 import dev.dres.data.model.competition.TeamGroupAggregation
 import dev.dres.utilities.extensions.readUID
 import dev.dres.utilities.extensions.writeUID
 import org.mapdb.DataInput2
 import org.mapdb.DataOutput2
-import org.mapdb.Serializer
 
 object TeamGroupSerializer {
     fun serialize(out: DataOutput2, value: TeamGroup) {

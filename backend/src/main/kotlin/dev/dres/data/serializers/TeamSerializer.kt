@@ -1,6 +1,6 @@
 package dev.dres.data.serializers
 
-import dev.dres.data.model.competition.Team
+import dev.dres.data.model.competition.team.Team
 import dev.dres.utilities.extensions.readUID
 import dev.dres.utilities.extensions.writeUID
 import org.mapdb.DataInput2

@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler
 
 import dev.dres.api.rest.AccessManager
-import dev.dres.api.rest.RestApiRole
+import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -28,9 +28,9 @@ import io.javalin.security.RouteRole
 abstract class BatchSubmissionHandler(internal val collections: DAO<MediaCollection>, internal val itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, internal val segmentIndex: DaoIndexer<MediaItemSegmentList, UID>) : PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
 
     override val apiVersion = "v1"
-    override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.PARTICIPANT)
+    override val permittedRoles: Set<RouteRole> = setOf(ApiRole.PARTICIPANT)
 
-    internal fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
+    internal fun userId(ctx: Context): UID = AccessManager.userIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
 
     fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
         throw ErrorStatusException(404, "Parameter 'runId' is missing!'", ctx)

@@ -1,6 +1,6 @@
 package dev.dres.api.rest.types.run
 
-import dev.dres.data.model.competition.Team
+import dev.dres.data.model.competition.team.Team
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 
 /**

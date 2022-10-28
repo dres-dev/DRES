@@ -1,8 +1,20 @@
 package dev.dres.api.rest
 
+import GetAuditLogInfoHandler
 import dev.dres.api.rest.handler.*
+import dev.dres.api.rest.handler.audit.ListAuditLogsHandler
+import dev.dres.api.rest.handler.audit.ListAuditLogsInRangeHandler
+import dev.dres.api.rest.handler.collection.*
+import dev.dres.api.rest.handler.preview.GetMediaHandler
+import dev.dres.api.rest.handler.preview.MediaPreviewHandler
+import dev.dres.api.rest.handler.preview.SubmissionPreviewHandler
+import dev.dres.api.rest.handler.submission.SubmissionHandler
+import dev.dres.api.rest.handler.system.CurrentTimeHandler
+import dev.dres.api.rest.handler.system.InfoHandler
+import dev.dres.api.rest.handler.system.LoginHandler
+import dev.dres.api.rest.handler.system.LogoutHandler
+import dev.dres.api.rest.handler.users.*
 import dev.dres.api.rest.types.status.ErrorStatus
-import dev.dres.data.dbo.DataAccessLayer
 import dev.dres.data.model.Config
 import dev.dres.run.RunExecutor
 import dev.dres.utilities.NamedThreadFactory
@@ -12,8 +24,7 @@ import io.javalin.community.ssl.SSLPlugin
 import io.javalin.http.staticfiles.Location
 import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiPlugin
-import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
-import io.javalin.openapi.plugin.swagger.SwaggerPlugin
+import jetbrains.exodus.database.TransientEntityStore
 import org.eclipse.jetty.http.HttpCookie
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.session.DefaultSessionCache
@@ -31,7 +42,7 @@ object RestApi {
     private val logMarker = MarkerFactory.getMarker("REST")
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
-    fun init(config: Config, store: Entity) {
+    fun init(config: Config, store: TransientEntityStore) {
 
         val runExecutor = RunExecutor
 
@@ -47,72 +58,51 @@ object RestApi {
         val apiRestHandlers = listOf(
 
             // User
-            LoginHandler(dataAccessLayer.audit),
-            LogoutHandler(dataAccessLayer.audit),
+            LoginHandler(),
+            LogoutHandler(),
             ListUsersHandler(),
-            CurrentUsersHandler(),
-            DeleteUsersHandler(),
+            ListActiveUsersHandler(),
+            ShowCurrentUserHandler(),
+            ShowCurrentSessionHandler(),
             CreateUsersHandler(),
+            DeleteUsersHandler(),
             UpdateUsersHandler(),
-            CurrentUsersSessionIdHandler(),
-            UserDetailsHandler(), // Must be AFTER CurrentUserHandler
-            ActiveSessionsHandler(dataAccessLayer.users),
+            UserDetailsHandler(),
 
             // Media
-            MediaPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
-            SubmissionPreviewHandler(dataAccessLayer.collections, dataAccessLayer.mediaItemCollectionNameIndex, config),
-            GetMediaHandler(dataAccessLayer.mediaItemCollectionUidIndex, dataAccessLayer.collectionUidIndex),
+            MediaPreviewHandler(store, config),
+            SubmissionPreviewHandler(store, config),
+            GetMediaHandler(store),
 
             // Collection
-            ListCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-            ShowCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-            AddCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-            UpdateCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-            DeleteCollectionHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-            AddMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-            UpdateMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-            DeleteMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-            GetMediaItemHandler(dataAccessLayer.collections, dataAccessLayer.mediaItems),
-            RandomMediaItemHandler(
-                dataAccessLayer.collections,
-                dataAccessLayer.mediaItems,
-                dataAccessLayer.mediaItemCollectionUidIndex
-            ), // Must be before ListMediaItem
-            ResolveMediaItemListByNameHandler(
-                dataAccessLayer.collections,
-                dataAccessLayer.mediaItems,
-                dataAccessLayer.mediaItemCollectionNameIndex
-            ), // Must be before ListMediaItem
-            ListMediaItemHandler(
-                dataAccessLayer.collections,
-                dataAccessLayer.mediaItems,
-                dataAccessLayer.mediaItemCollectionNameIndex
-            ),
+            ListCollectionHandler(store),
+            ShowCollectionHandler(store),
+            AddCollectionHandler(store),
+            UpdateCollectionHandler(store),
+            DeleteCollectionHandler(store),
+            AddMediaItemHandler(store),
+            UpdateMediaItemHandler(store),
+            DeleteMediaItemHandler(store),
+            ShowCollectionHandler(store),
+            RandomMediaItemHandler(store), // Must be before ListMediaItem
+            ResolveMediaItemListByNameHandler(store), // Must be before ListMediaItem
+            ListMediaItemHandler(store),
             ListExternalItemHandler(config),
 
             // Competition
-            ListCompetitionHandler(dataAccessLayer.competitions),
-            CreateCompetitionHandler(dataAccessLayer.competitions),
-            UpdateCompetitionHandler(dataAccessLayer.competitions, config, dataAccessLayer.mediaItems),
-            GetCompetitionHandler(dataAccessLayer.competitions),
-            DeleteCompetitionHandler(dataAccessLayer.competitions),
-            ListTeamHandler(dataAccessLayer.competitions),
-            ListDetailedTeamHandler(dataAccessLayer.competitions),
-            ListTaskHandler(dataAccessLayer.competitions),
+            ListCompetitionHandler(store),
+            CreateCompetitionHandler(store),
+            UpdateCompetitionHandler(store, config),
+            GetCompetitionHandler(store),
+            DeleteCompetitionHandler(store),
+            ListTeamHandler(store),
+            ListDetailedTeamHandler(store),
+            ListTaskHandler(store),
             GetTeamLogoHandler(config),
 
             // Submission
-            SubmissionHandler(
-                dataAccessLayer.collections,
-                dataAccessLayer.mediaItemCollectionNameIndex,
-                dataAccessLayer.mediaSegmentItemIdIndex,
-                config
-            ),
-            JsonBatchSubmissionHandler(
-                dataAccessLayer.collections,
-                dataAccessLayer.mediaItemCollectionNameIndex,
-                dataAccessLayer.mediaSegmentItemIdIndex
-            ),
+            SubmissionHandler(store, config),
+            JsonBatchSubmissionHandler(store),
 
             // Log
             QueryLogHandler(),
@@ -124,7 +114,7 @@ object RestApi {
             GetCompetitionRunInfoHandler(),
             GetCompetitionRunStateHandler(),
             CurrentTaskHintHandler(config),
-            CurrentTaskTargetHandler(config, dataAccessLayer.collections),
+            CurrentTaskTargetHandler(config, store),
             CurrentTaskInfoHandler(),
             SubmissionInfoHandler(),
             RecentSubmissionInfoHandler(),
@@ -139,7 +129,7 @@ object RestApi {
             TeamGroupScoreHandler(),
 
             // Competition run admin
-            CreateCompetitionRunAdminHandler(dataAccessLayer.competitions, dataAccessLayer.collections, config),
+            CreateCompetitionRunAdminHandler(store, config),
             StartCompetitionRunAdminHandler(),
             NextTaskCompetitionRunAdminHandler(),
             PreviousTaskCompetitionRunAdminHandler(),
@@ -157,30 +147,29 @@ object RestApi {
             UpdateRunPropertiesAdminHandler(),
 
             // Judgement
-            NextOpenJudgementHandler(dataAccessLayer.collections),
-            NextOpenVoteJudgementHandler(dataAccessLayer.collections),
+            NextOpenJudgementHandler(store),
+            NextOpenVoteJudgementHandler(store),
             PostJudgementHandler(),
             JudgementStatusHandler(),
             JudgementVoteHandler(),
 
             // Audit Log
-            GetAuditLogInfoHandler(dataAccessLayer.auditTimes),
-            ListAuditLogsInRangeHandler(dataAccessLayer.auditTimes, dataAccessLayer.audit),
-            ListAuditLogsHandler(dataAccessLayer.auditTimes, dataAccessLayer.audit),
+            GetAuditLogInfoHandler(store),
+            ListAuditLogsInRangeHandler(store),
+            ListAuditLogsHandler(store),
 
             // Status
             CurrentTimeHandler(),
             InfoHandler(),
-            AdminInfoHandler(),
 
             //API Client
             ListCompetitionRunClientInfoHandler(),
             CompetitionRunClientCurrentTaskInfoHandler(),
 
             // Downloads
-            DownloadHandler.CompetitionRun(dataAccessLayer.runs),
-            DownloadHandler.CompetitionRunScoreHandler(dataAccessLayer.runs),
-            DownloadHandler.CompetitionDesc(dataAccessLayer.competitions)
+            DownloadHandler.CompetitionRun(store),
+            DownloadHandler.CompetitionRunScoreHandler(store),
+            DownloadHandler.CompetitionDesc(store)
         )
 
         javalin = Javalin.create {
@@ -243,11 +232,10 @@ object RestApi {
                     path(apiGroup.key) {
                         apiGroup.value.forEach { handler ->
                             path(handler.route) {
-
                                 val permittedRoles = if (handler is AccessManagedRestHandler) {
                                     handler.permittedRoles.toTypedArray()
                                 } else {
-                                    arrayOf(RestApiRole.ANYONE)
+                                    arrayOf(ApiRole.ANYONE)
                                 }
 
                                 if (handler is GetRestHandler<*>) {

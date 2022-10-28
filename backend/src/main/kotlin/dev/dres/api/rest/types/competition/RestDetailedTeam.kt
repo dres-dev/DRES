@@ -1,7 +1,7 @@
 package dev.dres.api.rest.types.competition
 
 import dev.dres.api.rest.handler.UserDetails
-import dev.dres.data.model.competition.Team
+import dev.dres.data.model.competition.team.Team
 import dev.dres.mgmt.admin.UserManager
 
 data class RestDetailedTeam(val name: String, val color: String, val logoId: String, val users: List<UserDetails>) {

@@ -6,13 +6,6 @@ import java.util.*
 import java.util.regex.Matcher
 
 /**
- * Converts a [String] to a [SessionId].
- *
- * @return [SessionId]
- */
-fun String.toSessionId(): SessionId = SessionId(this)
-
-/**
  * Converts a [String] to a [UID].
  *
  * @return [UID]

@@ -4,11 +4,8 @@ import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.basics.time.TemporalPoint
 import dev.dres.data.model.basics.time.TemporalRange
 import jetbrains.exodus.entitystore.Entity
-import kotlinx.dnq.XdNaturalEntityType
+import kotlinx.dnq.*
 import kotlinx.dnq.simple.min
-import kotlinx.dnq.xdLink1
-import kotlinx.dnq.xdRequiredIntProp
-import kotlinx.dnq.xdRequiredStringProp
 
 /**
  * A segment of a [MediaItem] as mostly used by items that exhibit temporal progression.
@@ -23,7 +20,7 @@ class MediaItemSegment(entity: Entity) : PersistentEntity(entity) {
     var name by xdRequiredStringProp(unique = false, trimmed = false)
 
     /** The [MediaType] of this [MediaItem]. */
-    var item by xdLink1(MediaItem)
+    var item by xdParent<MediaItemSegment,MediaItem>(MediaItem::segments)
 
     /** The start frame number of this [MediaItemSegment]. */
     var startFrame by xdRequiredIntProp() { min(0) }

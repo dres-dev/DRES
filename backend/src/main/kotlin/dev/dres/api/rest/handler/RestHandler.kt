@@ -25,7 +25,6 @@ interface GetRestHandler<T: Any> : RestHandler {
     }
 
     fun doGet(ctx: Context): T
-
 }
 
 interface PostRestHandler<T: Any> : RestHandler {

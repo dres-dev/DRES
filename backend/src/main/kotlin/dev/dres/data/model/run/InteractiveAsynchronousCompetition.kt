@@ -302,7 +302,7 @@ class InteractiveAsynchronousCompetition(
             /* Process Submission. */
             this.submissions.add(submission)
             this.validator.validate(submission)
-            AuditLogger.validateSubmission(submission, validator)
+            AuditLogger.validateSubmission(submission, this.validator)
         }
     }
 }

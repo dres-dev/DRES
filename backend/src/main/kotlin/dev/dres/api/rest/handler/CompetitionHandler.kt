@@ -1,6 +1,6 @@
 package dev.dres.api.rest.handler
 
-import dev.dres.api.rest.RestApiRole
+import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.competition.RestCompetitionDescription
 import dev.dres.api.rest.types.competition.RestDetailedTeam
 import dev.dres.api.rest.types.competition.RestTaskDescription
@@ -13,7 +13,7 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.competition.Team
+import dev.dres.data.model.competition.team.Team
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.errorResponse
 import io.javalin.http.BadRequestResponse
@@ -25,7 +25,7 @@ import java.nio.file.Files
 
 abstract class CompetitionHandler(protected val competitions: DAO<CompetitionDescription>) : RestHandler, AccessManagedRestHandler {
 
-    override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.ADMIN)
+    override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)
     override val apiVersion = "v1"
 
     private fun competitionId(ctx: Context): UID =

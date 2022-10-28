@@ -4,8 +4,3 @@ import dev.dres.data.model.UID
 
 /** The ID of a [TaskDescription]. */
 typealias TaskDescriptionId = UID
-
-/** The ID of a [Team]. */
-typealias TeamId = UID
-
-typealias TeamGroupId = UID

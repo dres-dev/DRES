@@ -4,6 +4,9 @@ import dev.dres.api.cli.Cli
 import dev.dres.api.cli.OpenApiCommand
 import dev.dres.api.rest.RestApi
 import dev.dres.data.model.Config
+import dev.dres.data.model.audit.AuditLogEntry
+import dev.dres.data.model.audit.AuditLogSource
+import dev.dres.data.model.audit.AuditLogType
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.basics.media.MediaItemSegment
@@ -48,6 +51,9 @@ object DRES {
 
         /* Initialize Xodus based data store. */
         XdModel.registerNodes(
+            AuditLogSource,
+            AuditLogType,
+            AuditLogEntry,
             MediaType,
             MediaCollection,
             MediaItem,
@@ -56,30 +62,31 @@ object DRES {
         val store = StaticStoreContainer.init(dbFolder = File(config.dataPath), entityStoreName = "dres-db")
         initMetaData(XdModel.hierarchy, store)
 
-        /* Initialize user manager. */
+        /* Initialize UserManager. */
         UserManager.init(store)
 
-        /* Initialize run executor. */
-        RunExecutor.init(dataAccessLayer.runs)
+        /* Initialize RunExecutor. */
+        RunExecutor.init(store)
 
-        /* Initialize audit logger */
-        AuditLogger.init(dataAccessLayer.audit)
+        /* Initialize AuditLogger */
+        AuditLogger.init(store)
 
-        /* Initialize Event Stream Processor */
-        EventStreamProcessor.register(SubmissionStatisticsHandler(), ResultLogStatisticsHandler(dataAccessLayer.mediaSegmentItemIdIndex), TeamCombinationScoreHandler())
+        /* Initialize EventStreamProcessor */
+        EventStreamProcessor.register(SubmissionStatisticsHandler(), ResultLogStatisticsHandler(store), TeamCombinationScoreHandler())
         EventStreamProcessor.init()
 
         /* Initialize Rest API. */
-        RestApi.init(config, dataAccessLayer)
+        RestApi.init(config, store)
 
-        println("done")
+        println("Initialization complete!")
 
-        if(args.isNotEmpty() && args.first() == "openapi"){
+        if (args.isNotEmpty() && args.first() == "openapi") {
             OpenApiCommand().parse(args)
-        }else{
-            Cli.loop(dataAccessLayer, config) //blocks until quit command is given
+        } else {
+            Cli.loop(store, config) //blocks until quit command is given
         }
 
+        /* Stop. */
         RestApi.stop()
         RunExecutor.stop()
         EventStreamProcessor.stop()

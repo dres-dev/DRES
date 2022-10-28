@@ -6,6 +6,7 @@ import dev.dres.api.rest.types.run.websocket.ClientMessageType
 import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.model.UID
+import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.competition.options.ConfiguredOption
@@ -18,7 +19,6 @@ import dev.dres.data.model.run.RunProperties
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.audit.AuditLogger
-import dev.dres.run.audit.LogEventSource
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
 import dev.dres.run.exceptions.IllegalRunStateException
@@ -634,7 +634,7 @@ class InteractiveSynchronousRunManager(
             this.stateLock.write {
                 this.run.currentTask!!.start()
                 //this.status = RunManagerStatus.RUNNING_TASK
-                AuditLogger.taskStart(this.id, this.run.currentTask!!.uid, this.run.currentTaskDescription, LogEventSource.INTERNAL, null)
+                AuditLogger.taskStart(this.id, this.run.currentTask!!.uid, this.run.currentTaskDescription, AuditLogSource.INTERNAL, null)
             }
 
             /* Mark DAO for update. */
@@ -655,7 +655,7 @@ class InteractiveSynchronousRunManager(
                 this.stateLock.write {
                     task.end()
                     //this.status = RunManagerStatus.TASK_ENDED
-                    AuditLogger.taskEnd(this.id, this.run.currentTask!!.uid, this.run.currentTaskDescription, LogEventSource.INTERNAL, null)
+                    AuditLogger.taskEnd(this.id, this.run.currentTask!!.uid, AuditLogSource.INTERNAL, null)
                     EventStreamProcessor.event(TaskEndEvent(this.id, task.uid))
                 }
 

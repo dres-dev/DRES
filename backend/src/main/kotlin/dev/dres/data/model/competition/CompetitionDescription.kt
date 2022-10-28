@@ -1,24 +1,50 @@
 package dev.dres.data.model.competition
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import dev.dres.data.model.Config
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.UID
+import dev.dres.data.model.admin.User
 import dev.dres.data.model.admin.UserId
+import dev.dres.data.model.competition.team.Team
+import dev.dres.data.model.competition.team.TeamGroup
+import dev.dres.data.model.competition.team.TeamGroupId
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
+import jetbrains.exodus.entitystore.Entity
+import kotlinx.dnq.*
+import kotlinx.dnq.link.OnDeletePolicy
+import java.nio.file.Paths
 
-data class CompetitionDescription(
-    override var id: UID,
-    val name: String,
-    val description: String?,
+/**
+ *
+ */
+class CompetitionDescription(entity: Entity) : PersistentEntity(entity){
+    companion object: XdNaturalEntityType<CompetitionDescription>()
+
+    /** The name held by this [CompetitionDescription]. Must be unique!*/
+    var name by xdRequiredStringProp(unique = true, trimmed = false)
+
+    /** An optional description of this [CompetitionDescription]. */
+    var description by xdStringProp(trimmed = false)
+
+    /** The [TaskGroup]s that are part of this [CompetitionDescription]. */
+    val taskGroups by xdChildren0_N<CompetitionDescription,TaskGroup>(TaskGroup::competition)
+
+    /** The [Team]s that are part of this [CompetitionDescription]. */
+    val teams by xdChildren0_N<CompetitionDescription,Team>(Team::competition)
+
+    /** The [Team]s that are part of this [CompetitionDescription]. */
+    val teamsGroups by xdChildren0_N<CompetitionDescription,TeamGroup>(TeamGroup::competition)
+
+    /** The [User]s that act as judge for this [CompetitionDescription] */
+    val judges by xdLink0_N(User::judges, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)
+
+    /*
     val taskTypes: MutableList<TaskType>,
-    val taskGroups: MutableList<TaskGroup>,
     val tasks: MutableList<TaskDescription>,
-    val teams: MutableList<Team>,
-    val teamGroups: MutableList<TeamGroup>,
-    val judges: MutableList<UserId>
-) : PersistentEntity {
+  */
 
     fun validate() {
         for (group in this.taskGroups) {

@@ -9,10 +9,10 @@ import dev.dres.api.rest.types.submission.RunResult
 import dev.dres.data.dbo.DAO
 import dev.dres.data.dbo.DaoIndexer
 import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.MediaCollection
-import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.basics.media.MediaItemSegmentList
-import dev.dres.data.model.basics.time.TemporalPoint
+import dev.dres.data.model.media.MediaCollection
+import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.MediaItemSegmentList
+import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.batch.*
 import dev.dres.run.InteractiveRunManager

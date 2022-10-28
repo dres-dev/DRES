@@ -1,12 +1,14 @@
 package dev.dres.api.rest.types.competition
 
 import dev.dres.api.rest.types.competition.tasks.RestTaskDescriptionComponent
-import dev.dres.api.rest.types.competition.tasks.RestTaskDescriptionTarget
+import dev.dres.api.rest.types.competition.tasks.ApiTarget
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.competition.*
-import dev.dres.data.model.competition.TaskDescription
+import dev.dres.data.model.competition.task.TaskDescription
+import dev.dres.data.model.competition.task.TaskGroup
+import dev.dres.data.model.competition.task.TaskType
 import dev.dres.utilities.extensions.UID
 
 /**
@@ -17,14 +19,14 @@ import dev.dres.utilities.extensions.UID
  * @version 1.0
  */
 class RestTaskDescription(
-        val id: String = UID().string,
-        val name: String,
-        val taskGroup: String,
-        val taskType: String,
-        val duration: Long,
-        val mediaCollectionId: String,
-        val target: RestTaskDescriptionTarget,
-        val components: List<RestTaskDescriptionComponent>
+    val id: String = UID().string,
+    val name: String,
+    val taskGroup: String,
+    val taskType: String,
+    val duration: Long,
+    val mediaCollectionId: String,
+    val target: ApiTarget,
+    val components: List<RestTaskDescriptionComponent>
 
 ) {
 
@@ -41,7 +43,7 @@ class RestTaskDescription(
             task.taskType.name,
             task.duration,
             task.mediaCollectionId.string,
-            RestTaskDescriptionTarget.fromTarget(task.target),
+            ApiTarget.fromTarget(task.target),
             task.hints.map {
                 RestTaskDescriptionComponent.fromComponent(it)
             }

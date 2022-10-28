@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.audit
 
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.types.audit.RestAuditLogEntry
+import dev.dres.api.rest.types.audit.ApiAuditLogEntry
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.audit.AuditLogEntry
@@ -17,7 +17,7 @@ import org.joda.time.DateTime
  * @author Loris Sauter
  * @version 1.0.0
  */
-class ListAuditLogsInRangeHandler(store: TransientEntityStore): AbstractAuditLogHandler(store), GetRestHandler<List<RestAuditLogEntry>> {
+class ListAuditLogsInRangeHandler(store: TransientEntityStore): AbstractAuditLogHandler(store), GetRestHandler<List<ApiAuditLogEntry>> {
 
     override val route = "audit/log/list/since/{since}/{upto}"
 
@@ -30,12 +30,12 @@ class ListAuditLogsInRangeHandler(store: TransientEntityStore): AbstractAuditLog
         ],
         tags = ["Audit"],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(Array<RestAuditLogEntry>::class)], description = "The audit logs"),
+            OpenApiResponse("200", [OpenApiContent(Array<ApiAuditLogEntry>::class)], description = "The audit logs"),
             OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)], description = "Whenever a non-admin user starts the call")
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): List<RestAuditLogEntry> {
+    override fun doGet(ctx: Context): List<ApiAuditLogEntry> {
         val since = DateTime(ctx.pathParamMap()["since"]?.toLongOrNull() ?: 0L)
         val upto = DateTime(ctx.pathParamMap()["upto"]?.toLongOrNull() ?:Long.MAX_VALUE)
 
@@ -43,7 +43,7 @@ class ListAuditLogsInRangeHandler(store: TransientEntityStore): AbstractAuditLog
 
         return this.store.transactional(true) {
             AuditLogEntry.query((AuditLogEntry::timestamp gt since) and (AuditLogEntry::timestamp lt upto)).asSequence().map {
-                RestAuditLogEntry.convert(it)
+                ApiAuditLogEntry.convert(it)
             }.toList()
         }
     }

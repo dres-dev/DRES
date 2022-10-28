@@ -13,7 +13,7 @@ import com.jakewharton.picnic.table
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.MediaCollection
+import dev.dres.data.model.media.MediaCollection
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.utilities.FFmpegUtil
 import java.io.File

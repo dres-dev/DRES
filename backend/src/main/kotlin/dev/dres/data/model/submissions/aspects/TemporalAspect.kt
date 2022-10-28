@@ -1,6 +1,6 @@
 package dev.dres.data.model.submissions.aspects
 
-import dev.dres.data.model.basics.time.TemporalRange
+import dev.dres.data.model.media.time.TemporalRange
 
 /**
  *

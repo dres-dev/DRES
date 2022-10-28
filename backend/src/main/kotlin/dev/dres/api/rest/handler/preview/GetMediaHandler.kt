@@ -3,7 +3,7 @@ package dev.dres.api.rest.handler.preview
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.media.MediaItem
 import dev.dres.utilities.extensions.errorResponse
 import dev.dres.utilities.extensions.streamFile
 import io.javalin.http.Context

@@ -8,7 +8,7 @@ package dev.dres.api.rest.types.task
  * @version 1.0
  *
  * @param taskId of the [TaskDescription] this [TaskHint] was derived from.
- * @param sequence Sequence of [ContentElement]s to display.
- * @param loop Specifies if last [ContentElement] should be displayed until the end or if the entire sequence should be looped.
+ * @param sequence Sequence of [ApiContentElement]s to display.
+ * @param loop Specifies if last [ApiContentElement] should be displayed until the end or if the entire sequence should be looped.
  */
-data class TaskHint(val taskId: String, val sequence: List<ContentElement> = emptyList(), val loop: Boolean = false)
+data class TaskHint(val taskId: String, val sequence: List<ApiContentElement> = emptyList(), val loop: Boolean = false)

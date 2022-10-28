@@ -3,9 +3,9 @@ package dev.dres.api.rest.handler.collection
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.collection.RestFullMediaCollection
 import dev.dres.api.rest.types.collection.RestMediaCollection
-import dev.dres.api.rest.types.collection.RestMediaItem
+import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.status.ErrorStatus
-import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.media.MediaItem
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -36,7 +36,7 @@ class ShowCollectionHandler(store: TransientEntityStore) : AbstractCollectionHan
     )
     override fun doGet(ctx: Context): RestFullMediaCollection = this.store.transactional(true) {
         val collection = collectionFromContext(ctx) //also checks if collection exists
-        val items = MediaItem.query(MediaItem::collection eq collection).asSequence().map { RestMediaItem.fromMediaItem(it) }.toList()
+        val items = MediaItem.query(MediaItem::collection eq collection).asSequence().map { it.toApi() }.toList()
         RestFullMediaCollection(RestMediaCollection.fromMediaCollection(collection), items)
     }
 }

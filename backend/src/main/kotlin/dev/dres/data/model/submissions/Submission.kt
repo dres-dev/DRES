@@ -2,9 +2,9 @@ package dev.dres.data.model.submissions
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.basics.time.TemporalPoint
-import dev.dres.data.model.basics.time.TemporalRange
+import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.time.TemporalPoint
+import dev.dres.data.model.media.time.TemporalRange
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.submissions.aspects.BaseSubmissionAspect
 import dev.dres.data.model.submissions.aspects.ItemAspect

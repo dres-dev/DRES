@@ -2,7 +2,7 @@ package dev.dres.api.rest.handler
 
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.competition.RestCompetitionDescription
-import dev.dres.api.rest.types.competition.RestDetailedTeam
+import dev.dres.api.rest.types.competition.ApiTeam
 import dev.dres.api.rest.types.competition.RestTaskDescription
 import dev.dres.api.rest.types.competition.RestTeam
 import dev.dres.api.rest.types.status.ErrorStatus
@@ -11,7 +11,7 @@ import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.team.Team
 import dev.dres.utilities.extensions.UID
@@ -161,7 +161,7 @@ class ListTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHa
 /**
  * REST handler to list all teams for a [CompetitionDescription], inclusive [UserDetails]
  */
-class ListDetailedTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<RestDetailedTeam>>{
+class ListDetailedTeamHandler(competitions: DAO<CompetitionDescription>) : CompetitionHandler(competitions), GetRestHandler<List<ApiTeam>>{
 
     override val route: String = "competition/{competitionId}/team/list/details"
 
@@ -171,14 +171,14 @@ class ListDetailedTeamHandler(competitions: DAO<CompetitionDescription>) : Compe
             pathParams= [OpenApiParam("competitionId", String::class, "Competition ID")],
             tags = ["Competition"],
             responses = [
-                OpenApiResponse("200", [OpenApiContent(Array<RestDetailedTeam>::class)]),
+                OpenApiResponse("200", [OpenApiContent(Array<ApiTeam>::class)]),
                 OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
                 OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
             ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context) = competitionFromContext(ctx).teams.map{ RestDetailedTeam.of(it) }
+    override fun doGet(ctx: Context) = competitionFromContext(ctx).teams.map{ ApiTeam.of(it) }
 
 }
 

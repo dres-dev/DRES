@@ -4,7 +4,7 @@ import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.RestHandler
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.basics.media.MediaCollection
+import dev.dres.data.model.media.MediaCollection
 import io.javalin.http.Context
 import io.javalin.security.RouteRole
 import jetbrains.exodus.database.TransientEntityStore

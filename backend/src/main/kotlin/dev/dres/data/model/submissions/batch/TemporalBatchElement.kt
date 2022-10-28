@@ -1,8 +1,8 @@
 package dev.dres.data.model.submissions.batch
 
-import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.basics.time.TemporalPoint
-import dev.dres.data.model.basics.time.TemporalRange
+import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.time.TemporalPoint
+import dev.dres.data.model.media.time.TemporalRange
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.TemporalAspect
 

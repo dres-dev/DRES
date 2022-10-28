@@ -1,13 +1,10 @@
 package dev.dres.data.model.admin
 
+import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.PersistentEntity
-import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.competition.team.Team
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdNaturalEntityType
-import kotlinx.dnq.link.OnDeletePolicy
 import kotlinx.dnq.simple.length
-import kotlinx.dnq.xdLink0_N
 import kotlinx.dnq.xdLink1
 import kotlinx.dnq.xdRequiredStringProp
 
@@ -42,16 +39,19 @@ class User(entity: Entity): PersistentEntity(entity) {
     /** The [Role] of this [User]. */
     var role by xdLink1(Role)
 
-    /** The [Team]s this [User] belongs to. */
-    val teams by xdLink0_N<User, Team>(Team::users, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)
-
-    /** The [CompetitionDescription]s this [User] acts as judge for. */
-    val judges by xdLink0_N(CompetitionDescription::judges, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)
-
     /**
      * The [Password.Hashed] held by this [User].
      */
     fun hashedPassword() = Password.Hashed(this.password)
 
     override fun toString(): String = "User(id=$id, username=${username}, role=$role)"
+
+    /**
+     * Converts this [User] to a RESTful API representation [ApiUser].
+     *
+     * This is a convenience method and requires an active transaction context.
+     *
+     * @return [ApiUser]
+     */
+    fun toApi() = ApiUser(id = this.userId, username = this.username, role = this.role.toApi())
 }

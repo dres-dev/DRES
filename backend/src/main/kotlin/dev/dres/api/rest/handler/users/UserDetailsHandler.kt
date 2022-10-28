@@ -4,7 +4,7 @@ import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
-import dev.dres.api.rest.types.users.UserDetails
+import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.User
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -15,7 +15,7 @@ import io.javalin.openapi.*
  * @author Loris Sauter
  * @version 2.0.0
  */
-class UserDetailsHandler : AbstractUserHandler(), GetRestHandler<UserDetails>, AccessManagedRestHandler {
+class UserDetailsHandler : AbstractUserHandler(), GetRestHandler<ApiUser>, AccessManagedRestHandler {
     override val route = "user/{userId}"
 
     /** [UserDetailsHandler] requires [ApiRole.ADMIN]. */
@@ -29,13 +29,13 @@ class UserDetailsHandler : AbstractUserHandler(), GetRestHandler<UserDetails>, A
         ],
         tags = ["User"],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
+            OpenApiResponse("200", [OpenApiContent(ApiUser::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)], description = "If the user could not be found."),
             OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context) = UserDetails.of(userFromContext(ctx))
+    override fun doGet(ctx: Context) = userFromContext(ctx).toApi()
 
 
 }

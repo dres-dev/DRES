@@ -5,7 +5,7 @@ import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.users.ApiRole
-import dev.dres.api.rest.types.users.UserDetails
+import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.UID
 import dev.dres.data.model.admin.Role
 import dev.dres.data.model.admin.User
@@ -22,7 +22,7 @@ import io.javalin.openapi.OpenApiResponse
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ListActiveUsersHandler() : GetRestHandler<List<UserDetails>>, AccessManagedRestHandler {
+class ListActiveUsersHandler : GetRestHandler<List<ApiUser>>, AccessManagedRestHandler {
     override val permittedRoles = setOf(ApiRole.ADMIN)
 
     /** All [UserDetailsHandler] requires [ApiRole.ADMIN]. */
@@ -30,22 +30,21 @@ class ListActiveUsersHandler() : GetRestHandler<List<UserDetails>>, AccessManage
 
     override val apiVersion = "v1"
 
-
     @OpenApi(
         summary = "Get details of all current user sessions",
         path = "/api/v1/user/session/active/list",
         tags = ["User"],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(Array<UserDetails>::class)]),
+            OpenApiResponse("200", [OpenApiContent(Array<ApiUser>::class)]),
             OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): List<UserDetails> = AccessManager.currentSessions.map { session ->
+    override fun doGet(ctx: Context): List<ApiUser> = AccessManager.currentSessions.map { session ->
         AccessManager.userIdForSession(session)?.let {
             UserManager.get(id = it)
         }?.let {
-            UserDetails.of(it)
-        } ?: return@map UserDetails(UID.EMPTY.string, "??", Role.VIEWER, session)
+            it.toApi()
+        } ?: return@map ApiUser(UID.EMPTY.string, "??", ApiRole.VIEWER, session)
     }
 }

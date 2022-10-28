@@ -14,11 +14,11 @@ import com.jakewharton.picnic.table
 import dev.dres.data.dbo.DAO
 import dev.dres.data.dbo.DaoIndexer
 import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.MediaCollection
-import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.basics.media.MediaItemSegment
-import dev.dres.data.model.basics.media.MediaItemSegmentList
-import dev.dres.data.model.basics.time.TemporalRange
+import dev.dres.data.model.media.MediaCollection
+import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.MediaItemSegment
+import dev.dres.data.model.media.MediaItemSegmentList
+import dev.dres.data.model.media.time.TemporalRange
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.cleanPathString

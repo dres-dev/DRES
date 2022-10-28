@@ -1,6 +1,6 @@
 package dev.dres.run.validation
 
-import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.batch.ResultBatch
 import dev.dres.run.validation.interfaces.SubmissionBatchValidator

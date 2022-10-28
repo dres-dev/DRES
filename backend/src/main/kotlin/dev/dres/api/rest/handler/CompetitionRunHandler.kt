@@ -13,7 +13,7 @@ import dev.dres.api.rest.types.task.TaskTarget
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.MediaCollection
+import dev.dres.data.model.media.MediaCollection
 import dev.dres.data.model.competition.options.SimpleOption
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.data.model.submissions.Submission

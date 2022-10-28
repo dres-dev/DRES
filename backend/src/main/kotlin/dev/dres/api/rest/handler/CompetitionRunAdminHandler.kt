@@ -2,7 +2,7 @@ package dev.dres.api.rest.handler
 
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.users.ApiRole
-import dev.dres.api.rest.types.collection.RestMediaItem
+import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.competition.CompetitionStartMessage
 import dev.dres.api.rest.types.run.*
 import dev.dres.api.rest.types.status.ErrorStatus
@@ -11,7 +11,7 @@ import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.audit.AuditLogSource
-import dev.dres.data.model.basics.media.MediaCollection
+import dev.dres.data.model.media.MediaCollection
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
@@ -141,7 +141,7 @@ class CreateCompetitionRunAdminHandler(
             )
         }
 
-        val segmentTasks = competitionToStart.getAllCachedVideoItems()
+        val segmentTasks = competitionToStart.getAllVideos()
 
         /* check videos */
         segmentTasks.forEach {
@@ -679,7 +679,7 @@ class ListSubmissionsPerTaskRunAdminHandler :
                         memberName = UserManager.get(sub.memberId)?.username,
                         status = sub.status,
                         timestamp = sub.timestamp,
-                        item = if (sub is ItemAspect) RestMediaItem.fromMediaItem(sub.item) else null,
+                        item = if (sub is ItemAspect) sub.item.toApi() else null,
                         text = if (sub is TextAspect) sub.text else null,
                         start = if (sub is TemporalSubmissionAspect) sub.start else null,
                         end = if (sub is TemporalSubmissionAspect) sub.end else null

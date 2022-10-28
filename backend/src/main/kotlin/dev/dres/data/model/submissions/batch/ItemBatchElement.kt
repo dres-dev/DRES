@@ -1,6 +1,6 @@
 package dev.dres.data.model.submissions.batch
 
-import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.submissions.SubmissionStatus
 
 /**

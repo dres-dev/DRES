@@ -8,7 +8,7 @@ import dev.dres.api.rest.types.run.websocket.ClientMessageType
 import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.model.UID
-import dev.dres.data.model.competition.TeamId
+import dev.dres.data.model.competition.team.TeamId
 import dev.dres.data.model.run.InteractiveAsynchronousCompetition
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.NonInteractiveCompetition
@@ -21,6 +21,7 @@ import dev.dres.utilities.extensions.write
 import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.*
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.*
@@ -223,7 +224,9 @@ object RunExecutor : Consumer<WsConfig> {
         }
 
         /* Register [RunManager] with AccessManager. */
-        AccessManager.registerRunManager(manager)
+        this.store.transactional(true) {
+            AccessManager.registerRunManager(manager)
+        }
 
         /* Setup all the required data structures. */
         this.runManagers[manager.id] = manager
@@ -266,14 +269,17 @@ object RunExecutor : Consumer<WsConfig> {
      * @param message The [ServerMessage] that should be broadcast.
      */
     fun broadcastWsMessage(runId: UID, teamId: TeamId, message: ServerMessage) = this.clientLock.read {
-
-        val teamMembers = managerForId(runId)?.description?.teams?.find { it.uid == teamId }?.users ?: return@read
-
-        this.runManagerLock.read {
-            this.connectedClients.filter {
-                this.observingClients[runId]?.contains(it) ?: false && AccessManager.userIdForSession(it.httpSessionId) in teamMembers
-            }.forEach {
-                it.send(message)
+        val manager = managerForId(runId)
+        if (manager != null) {
+            val teamMembers = this.store.transactional(true) {
+                manager.description.teams.filter { it.id eq teamId }.flatMapDistinct { it.users }.asSequence().map { it.userId }.toList()
+            }
+            this.runManagerLock.read {
+                this.connectedClients.filter {
+                    this.observingClients[runId]?.contains(it) ?: false && AccessManager.userIdForSession(it.httpSessionId) in teamMembers
+                }.forEach {
+                    it.send(message)
+                }
             }
         }
     }

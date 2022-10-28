@@ -8,7 +8,7 @@ import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.model.UID
 import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.competition.TaskDescription
+import dev.dres.data.model.competition.task.TaskDescription
 import dev.dres.data.model.competition.options.ConfiguredOption
 import dev.dres.data.model.competition.options.Option
 import dev.dres.data.model.competition.options.SimpleOption

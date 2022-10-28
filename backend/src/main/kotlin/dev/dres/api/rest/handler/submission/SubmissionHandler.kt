@@ -13,9 +13,9 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.audit.AuditLogSource
-import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.basics.media.PlayableMediaItem
-import dev.dres.data.model.basics.time.TemporalPoint
+import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.PlayableMediaItem
+import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.competition.options.SimpleOption
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.Submission

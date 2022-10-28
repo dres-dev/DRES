@@ -1,7 +1,7 @@
 package dev.dres.run.score.scorer
 
 import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus

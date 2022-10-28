@@ -5,10 +5,9 @@ import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.api.rest.types.users.UserDetails
+import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.api.rest.types.users.UserRequest
 import dev.dres.data.model.admin.Password
-import dev.dres.data.model.admin.Role
 import dev.dres.data.model.admin.User
 import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.BadRequestResponse
@@ -21,7 +20,7 @@ import io.javalin.openapi.*
  * @author Loris Sauter
  * @version 2.0.0
  */
-class CreateUsersHandler : AbstractUserHandler(), PostRestHandler<UserDetails>, AccessManagedRestHandler {
+class CreateUsersHandler : AbstractUserHandler(), PostRestHandler<ApiUser>, AccessManagedRestHandler {
     override val route = "user"
 
     /** [CreateUsersHandler] requires [ApiRole.ADMIN]. */
@@ -33,12 +32,12 @@ class CreateUsersHandler : AbstractUserHandler(), PostRestHandler<UserDetails>, 
         requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
         tags = ["User"],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
+            OpenApiResponse("200", [OpenApiContent(ApiUser::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)], description = "If the username is already taken"),
             OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
         ]
     )
-    override fun doPost(ctx: Context): UserDetails {
+    override fun doPost(ctx: Context): ApiUser {
         val req = try {
             ctx.bodyAsClass(UserRequest::class.java)
         } catch (e: BadRequestResponse) {
@@ -52,9 +51,9 @@ class CreateUsersHandler : AbstractUserHandler(), PostRestHandler<UserDetails>, 
         if (req.role == null)
             throw ErrorStatusException(400, "Invalid parameters. Role must be defined.", ctx)
 
-        val success = UserManager.create(req.username, Password.Plain(req.password), Role.convertApiRole(req.role))
+        val success = UserManager.create(req.username, Password.Plain(req.password), req.role.role ?: throw ErrorStatusException(400, "Invalid parameters. Provided role is undefined or invalid!", ctx))
         if (success) {
-            return UserDetails.of(UserManager.get(username = req.username)!!)
+            return UserManager.get(username = req.username)!!.toApi()
         } else {
             throw ErrorStatusException(400, "The request could not be fulfilled.", ctx)
         }

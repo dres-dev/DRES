@@ -4,8 +4,8 @@ import dev.dres.api.rest.handler.AbstractPreviewHandler
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.MediaCollection
-import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.media.MediaCollection
+import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.submissions.aspects.ItemAspect
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 import dev.dres.data.model.submissions.aspects.TextAspect

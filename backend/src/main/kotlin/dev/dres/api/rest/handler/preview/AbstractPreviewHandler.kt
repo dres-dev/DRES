@@ -7,10 +7,10 @@ import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.handler.collection.AbstractCollectionHandler
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.Config
-import dev.dres.data.model.basics.media.CollectionId
-import dev.dres.data.model.basics.media.MediaCollection
-import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.basics.media.MediaType
+import dev.dres.data.model.media.CollectionId
+import dev.dres.data.model.media.MediaCollection
+import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.MediaType
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.extensions.sendFile
 import dev.dres.utilities.extensions.streamFile

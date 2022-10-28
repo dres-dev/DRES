@@ -1,7 +1,7 @@
 package dev.dres.utilities
 
-import dev.dres.data.model.basics.media.MediaItemSegmentList
-import dev.dres.data.model.basics.time.TemporalRange
+import dev.dres.data.model.media.MediaItemSegmentList
+import dev.dres.data.model.media.time.TemporalRange
 import kotlin.math.abs
 
 object TimeUtil {

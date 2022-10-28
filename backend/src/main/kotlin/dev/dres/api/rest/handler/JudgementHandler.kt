@@ -7,8 +7,8 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.audit.AuditLogSource
-import dev.dres.data.model.basics.media.MediaCollection
-import dev.dres.data.model.basics.media.PlayableMediaItem
+import dev.dres.data.model.media.MediaCollection
+import dev.dres.data.model.media.PlayableMediaItem
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.ItemAspect
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect

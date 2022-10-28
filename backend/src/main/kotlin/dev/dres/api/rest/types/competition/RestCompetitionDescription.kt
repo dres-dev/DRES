@@ -3,10 +3,10 @@ package dev.dres.api.rest.types.competition
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
 import dev.dres.data.model.admin.UserId
-import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.competition.TaskGroup
-import dev.dres.data.model.competition.TaskType
+import dev.dres.data.model.competition.task.TaskGroup
+import dev.dres.data.model.competition.task.TaskType
 import dev.dres.utilities.extensions.UID
 
 /**
@@ -18,15 +18,15 @@ import dev.dres.utilities.extensions.UID
  *
  */
 data class RestCompetitionDescription(
-        val id: String,
-        val name: String,
-        val description: String?,
-        val taskTypes: List<TaskType>,
-        val taskGroups: List<TaskGroup>,
-        val tasks: List<RestTaskDescription>,
-        val teams: List<RestTeam>,
-        val teamGroups: List<RestTeamGroup>,
-        val judges: List<String>
+    val id: String,
+    val name: String,
+    val description: String?,
+    val taskTypes: List<TaskType>,
+    val taskGroups: List<TaskGroup>,
+    val tasks: List<RestTaskDescription>,
+    val teams: List<RestTeam>,
+    val teamGroups: List<RestTeamGroup>,
+    val judges: List<String>
 ) {
 
 

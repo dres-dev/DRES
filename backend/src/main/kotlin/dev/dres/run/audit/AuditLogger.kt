@@ -7,7 +7,7 @@ import dev.dres.data.model.audit.AuditLogEntry
 import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.data.model.audit.AuditLogType
 import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.competition.TaskDescription
+import dev.dres.data.model.competition.task.TaskDescription
 import dev.dres.data.model.run.interfaces.CompetitionId
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.Submission

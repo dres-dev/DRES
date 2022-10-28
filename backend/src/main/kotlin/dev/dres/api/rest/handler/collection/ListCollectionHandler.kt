@@ -3,7 +3,7 @@ package dev.dres.api.rest.handler.collection
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.collection.RestMediaCollection
 import dev.dres.api.rest.types.status.ErrorStatus
-import dev.dres.data.model.basics.media.MediaCollection
+import dev.dres.data.model.media.MediaCollection
 import io.javalin.http.Context
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi

@@ -3,7 +3,6 @@ package dev.dres.api.rest.handler.users
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.handler.SessionId
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.http.Context

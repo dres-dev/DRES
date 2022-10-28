@@ -8,9 +8,8 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.path
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.jakewharton.picnic.table
-import dev.dres.data.dbo.DAO
 import dev.dres.data.model.UID
-import dev.dres.data.model.competition.TaskDescriptionTarget
+import dev.dres.data.model.competition.task.TaskDescriptionTarget
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.RunActionContext

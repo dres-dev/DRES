@@ -1,6 +1,6 @@
 package dev.dres.data.model.run.interfaces
 
-import dev.dres.data.model.competition.TaskDescription
+import dev.dres.data.model.competition.task.TaskDescription
 import dev.dres.data.model.run.InteractiveAsynchronousCompetition.Task
 import dev.dres.run.TaskRunStatus
 import dev.dres.run.score.interfaces.TaskScorer

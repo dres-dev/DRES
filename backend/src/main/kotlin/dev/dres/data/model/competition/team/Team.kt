@@ -1,5 +1,7 @@
 package dev.dres.data.model.competition.team
 
+import dev.dres.api.rest.types.competition.ApiTeam
+import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.Config
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.admin.User
@@ -7,6 +9,7 @@ import dev.dres.data.model.competition.CompetitionDescription
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.link.OnDeletePolicy
+import kotlinx.dnq.query.asSequence
 import java.nio.file.Paths
 
 /** The ID of a [Team]. */
@@ -23,6 +26,11 @@ typealias LogoId = String
  */
 class Team(entity: Entity) : PersistentEntity(entity) {
     companion object: XdNaturalEntityType<Team>() {
+        /** Combination of [Team] name / competition must be unique. */
+        override val compositeIndices = listOf(
+            listOf(Team::name, Team::competition)
+        )
+
         /**
          * Generates and returns the [Path] to the team logo with the given [logoId].
          *
@@ -32,7 +40,7 @@ class Team(entity: Entity) : PersistentEntity(entity) {
         fun logoPath(config: Config, logoId: LogoId) = Paths.get(config.cachePath, "logos", "${logoId}.png")
     }
 
-    /** The [UserId] of this [User]. */
+    /** The [TeamId] of this [Team]. */
     var teamId: TeamId
         get() = this.id
         set(value) { this.id = value }
@@ -50,8 +58,17 @@ class Team(entity: Entity) : PersistentEntity(entity) {
     var competition by xdParent<Team,CompetitionDescription>(CompetitionDescription::teams)
 
     /** The [TeamGroup] this [Team] belongs to (or null if not assigned to a group). */
-    var group by xdLink0_1<Team,TeamGroup>(TeamGroup::teams)
+    var group by xdLink0_1(TeamGroup::teams)
 
     /** The [User]s that belong to this [Team]. */
-    val users by xdLink0_N(User::teams, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)
+    val users by xdLink0_N(User, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)
+
+    /**
+     * Converts this [Team] to a RESTful API representation [ApiTeam].
+     *
+     * This is a convenience method and requires an active transaction context.
+     *
+     * @return [ApiTeam]
+     */
+    fun toApi() = ApiTeam(this.name, this.color, this.logoId, this.users.asSequence().map { it.toApi() }.toList())
 }

@@ -2,6 +2,7 @@ package dev.dres.data.model.run
 
 import dev.dres.data.model.competition.*
 import dev.dres.data.model.competition.options.TargetOption
+import dev.dres.data.model.competition.task.TaskDescriptionTarget
 import dev.dres.data.model.run.interfaces.Task
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.filter.SubmissionFilter

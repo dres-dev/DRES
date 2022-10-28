@@ -5,7 +5,7 @@ import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.PatchRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.api.rest.types.users.UserDetails
+import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.api.rest.types.users.UserRequest
 import dev.dres.data.model.admin.Role
 import dev.dres.data.model.admin.User
@@ -20,7 +20,7 @@ import io.javalin.openapi.*
  * @author Loris Sauter
  * @version 2.0.0
  */
-class UpdateUsersHandler : AbstractUserHandler(), PatchRestHandler<UserDetails>, AccessManagedRestHandler {
+class UpdateUsersHandler : AbstractUserHandler(), PatchRestHandler<ApiUser>, AccessManagedRestHandler {
 
     /** [UpdateUsersHandler] can be used by [ApiRole.ADMIN], [[ApiRole.VIEWER], [ApiRole.PARTICIPANT]*/
     override val permittedRoles = setOf(ApiRole.VIEWER, ApiRole.ADMIN, ApiRole.PARTICIPANT)
@@ -34,13 +34,13 @@ class UpdateUsersHandler : AbstractUserHandler(), PatchRestHandler<UserDetails>,
         requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
         tags = ["User"],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
+            OpenApiResponse("200", [OpenApiContent(ApiUser::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
         ]
     )
-    override fun doPatch(ctx: Context): UserDetails {
+    override fun doPatch(ctx: Context): ApiUser {
         val request = try {
             ctx.bodyAsClass(UserRequest::class.java)
         } catch (e: BadRequestResponse) {
@@ -54,7 +54,7 @@ class UpdateUsersHandler : AbstractUserHandler(), PatchRestHandler<UserDetails>,
         if (caller.role == Role.ADMIN || user.id == caller.id) {
             val success = UserManager.update(id = user.id, request = request)
             if (success) {
-                return UserDetails.of(UserManager.get(id = user.id)!!)
+                return UserManager.get(id = user.id)!!.toApi()
             } else {
                 throw ErrorStatusException(500, "Could not update user!", ctx)
             }

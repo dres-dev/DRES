@@ -1,14 +1,13 @@
 package dev.dres.api.rest.handler.collection
 
 import dev.dres.api.rest.handler.PostRestHandler
-import dev.dres.api.rest.types.collection.RestMediaItem
-import dev.dres.api.rest.types.collection.RestMediaItemType
+import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.basics.media.MediaCollection
-import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.basics.media.MediaType
+import dev.dres.data.model.media.MediaCollection
+import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.MediaType
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -29,7 +28,7 @@ class AddMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHandl
         summary = "Adds a media item to the specified media collection.",
         path = "/api/v1/mediaItem",
         methods = [HttpMethod.POST],
-        requestBody = OpenApiRequestBody([OpenApiContent(RestMediaItem::class)]),
+        requestBody = OpenApiRequestBody([OpenApiContent(ApiMediaItem::class)]),
         tags = ["Collection"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -40,7 +39,7 @@ class AddMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHandl
 
         /* Parse media item and perform sanity checks */
         val mediaItem = try {
-            ctx.bodyAsClass(RestMediaItem::class.java)
+            ctx.bodyAsClass(ApiMediaItem::class.java)
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         } catch (e: IllegalArgumentException) {

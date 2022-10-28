@@ -8,6 +8,6 @@ package dev.dres.api.rest.types.task
  * @version 1.0
  *
  * @param taskId of the [TaskDescription] this [TaskTarget] was derived from.
- * @param sequence Sequence of [ContentElement]s to display.
+ * @param sequence Sequence of [ApiContentElement]s to display.
  */
-data class TaskTarget(val taskId: String, val sequence: List<ContentElement> = emptyList())
+data class TaskTarget(val taskId: String, val sequence: List<ApiContentElement> = emptyList())

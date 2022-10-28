@@ -1,6 +1,6 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.competition.TaskDescriptionTarget
+import dev.dres.data.model.competition.task.TaskDescriptionTarget
 import dev.dres.data.model.competition.options.TargetOption
 import dev.dres.data.model.run.interfaces.Task
 import dev.dres.data.model.submissions.aspects.OriginAspect

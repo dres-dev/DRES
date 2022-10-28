@@ -10,6 +10,8 @@ import dev.dres.utilities.extensions.sessionId
 import io.javalin.security.RouteRole
 import io.javalin.http.Context
 import io.javalin.http.Handler
+import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.flatMapDistinct
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -114,11 +116,11 @@ object AccessManager {
      * @param runManager The [RunManager] to register.
      */
     fun registerRunManager(runManager: RunManager) = this.locks.write {
-        runManager.description.teams.flatMap { t -> t.users }.forEach {
-            if (this.usersToRunMap.containsKey(it)) {
-                this.usersToRunMap[it]?.add(runManager)
+        runManager.description.teams.flatMapDistinct { it.users }.asSequence().forEach {
+            if (this.usersToRunMap.containsKey(it.id)) {
+                this.usersToRunMap[it.id]?.add(runManager)
             } else {
-                this.usersToRunMap[it] = mutableSetOf(runManager)
+                this.usersToRunMap[it.id] = mutableSetOf(runManager)
             }
         }
     }

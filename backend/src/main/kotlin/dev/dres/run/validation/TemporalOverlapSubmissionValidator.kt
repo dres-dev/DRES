@@ -1,6 +1,6 @@
 package dev.dres.run.validation
 
-import dev.dres.data.model.competition.TaskDescription
+import dev.dres.data.model.competition.task.TaskDescription
 import dev.dres.data.model.competition.VideoSegment
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus

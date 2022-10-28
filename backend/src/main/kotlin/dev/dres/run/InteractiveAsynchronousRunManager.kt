@@ -9,7 +9,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.admin.Role
 import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.competition.TaskDescription
+import dev.dres.data.model.competition.task.TaskDescription
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.Task

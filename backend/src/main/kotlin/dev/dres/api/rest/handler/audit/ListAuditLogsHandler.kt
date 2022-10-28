@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.audit
 
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.types.audit.RestAuditLogEntry
+import dev.dres.api.rest.types.audit.ApiAuditLogEntry
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.model.audit.AuditLogEntry
 import dev.dres.utilities.extensions.toPathParamKey
@@ -18,7 +18,7 @@ import kotlinx.dnq.query.take
  * @author Loris Sauter
  * @version 1.0.0
  */
-class ListAuditLogsHandler(store: TransientEntityStore) : AbstractAuditLogHandler(store), GetRestHandler<List<RestAuditLogEntry>> {
+class ListAuditLogsHandler(store: TransientEntityStore) : AbstractAuditLogHandler(store), GetRestHandler<List<ApiAuditLogEntry>> {
     override val route = "audit/log/list/limit/${LIMIT_PARAM.toPathParamKey()}/${PAGE_INDEX_PARAM.toPathParamKey()}"
 
     companion object {
@@ -47,14 +47,14 @@ class ListAuditLogsHandler(store: TransientEntityStore) : AbstractAuditLogHandle
         ],
         tags = ["Audit"],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(Array<RestAuditLogEntry>::class)], description = "The audit logs"),
+            OpenApiResponse("200", [OpenApiContent(Array<ApiAuditLogEntry>::class)], description = "The audit logs"),
             OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)], description = "Whenever a non-admin user starts the call")
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): List<RestAuditLogEntry> = this.store.transactional(true) {
+    override fun doGet(ctx: Context): List<ApiAuditLogEntry> = this.store.transactional(true) {
         val limit = (ctx.pathParamMap()[LIMIT_PARAM]?.toIntOrNull() ?: DEFAULT_LIMIT).coerceAtLeast(0)
         val index = (ctx.pathParamMap()[PAGE_INDEX_PARAM]?.toIntOrNull() ?: 0).coerceAtLeast(0)
-        AuditLogEntry.all().drop(index * limit).take(limit).asSequence().map { RestAuditLogEntry.convert(it) }.toList()
+        AuditLogEntry.all().drop(index * limit).take(limit).asSequence().map { ApiAuditLogEntry.convert(it) }.toList()
     }
 }

@@ -1,27 +1,39 @@
 package dev.dres.data.model.competition
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-import dev.dres.data.model.Config
 import dev.dres.data.model.PersistentEntity
-import dev.dres.data.model.UID
 import dev.dres.data.model.admin.User
-import dev.dres.data.model.admin.UserId
+import dev.dres.data.model.competition.task.TaskDescription
+import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.MediaType
+import dev.dres.data.model.competition.task.TaskGroup
+import dev.dres.data.model.competition.task.TaskType
 import dev.dres.data.model.competition.team.Team
 import dev.dres.data.model.competition.team.TeamGroup
-import dev.dres.data.model.competition.team.TeamGroupId
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.link.OnDeletePolicy
-import java.nio.file.Paths
+import kotlinx.dnq.query.*
+
+typealias CompetitionDescriptionId = String
 
 /**
+ * Basic description of a competitions as executed in DRES.
  *
+ * Defines basic attributes such as its name and the [TaskType]s and [TaskGroup]s it contains.
+ *
+ * @version 2.0.0
+ * @author Luca Rossetto & Ralph Gasser
  */
 class CompetitionDescription(entity: Entity) : PersistentEntity(entity){
     companion object: XdNaturalEntityType<CompetitionDescription>()
+
+    /** The [CompetitionDescriptionId] of this [CompetitionDescription]. */
+    var teamId: CompetitionDescriptionId
+        get() = this.id
+        set(value) { this.id = value }
 
     /** The name held by this [CompetitionDescription]. Must be unique!*/
     var name by xdRequiredStringProp(unique = true, trimmed = false)
@@ -29,8 +41,11 @@ class CompetitionDescription(entity: Entity) : PersistentEntity(entity){
     /** An optional description of this [CompetitionDescription]. */
     var description by xdStringProp(trimmed = false)
 
+    /** The [TaskType]s defined within this [CompetitionDescription]. */
+    val taskTypes by xdChildren0_N<CompetitionDescription, TaskType>(TaskType::competition)
+
     /** The [TaskGroup]s that are part of this [CompetitionDescription]. */
-    val taskGroups by xdChildren0_N<CompetitionDescription,TaskGroup>(TaskGroup::competition)
+    val taskGroups by xdChildren0_N<CompetitionDescription, TaskGroup>(TaskGroup::competition)
 
     /** The [Team]s that are part of this [CompetitionDescription]. */
     val teams by xdChildren0_N<CompetitionDescription,Team>(Team::competition)
@@ -41,56 +56,39 @@ class CompetitionDescription(entity: Entity) : PersistentEntity(entity){
     /** The [User]s that act as judge for this [CompetitionDescription] */
     val judges by xdLink0_N(User::judges, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)
 
-    /*
-    val taskTypes: MutableList<TaskType>,
-    val tasks: MutableList<TaskDescription>,
-  */
-
-    fun validate() {
-        for (group in this.taskGroups) {
-            if (this.taskGroups.map { it.name }.count { it == group.name } > 1) {
-                throw IllegalArgumentException("Duplicate group with name '${group.name}'!")
-            }
-        }
-
-        for (task in this.tasks) {
-            if (this.tasks.map { it.name }.count { it == task.name } > 1) {
-                throw IllegalArgumentException("Duplicate task with name '${task.name}'!")
-            }
-        }
-
-        for (team in this.teams) {
-            if (this.teams.map { it.name }.count { it == team.name } > 1) {
-                throw IllegalArgumentException("Duplicate team with name '${team.name}'!")
-            }
-        }
-
-        tasks.forEach { it.validate() }
-    }
-
     /**
-     * Generates and returns the default [Scoreboard] implementations for this [CompetitionDescription]
+     * Generates and returns the default [Scoreboard] implementations for this [CompetitionDescription].
+     *
+     * This is a convenience method and requires an active transaction context.
      *
      * @return List of [Scoreboard] implementations.
      */
     fun generateDefaultScoreboards(): List<Scoreboard> {
-        val groupBoards = this.taskGroups.map { group ->
-            MaxNormalizingScoreBoard(group.name, this.teams, {task -> task.taskGroup == group}, group.name)
-        }
+        val teams = this.teams.toList()
+        val groupBoards = this.taskGroups.asSequence().map { group ->
+            MaxNormalizingScoreBoard(group.name, teams, {task -> task.taskGroup.id == group.id}, group.name)
+        }.toList()
         val aggregateScoreBoard = SumAggregateScoreBoard("sum", groupBoards)
         return groupBoards.plus(aggregateScoreBoard)
     }
 
     /**
-     * Generates and returns a list of all [CachedVideoItem] for this [CompetitionDescription].
+     * Generates and returns a list of all [MediaItem] for this [CompetitionDescription].
      *
-     * This is a convenience method and cannot be serialized!
+     * This is a convenience method and requires an active transaction context.
      *
-     * @return [List] of [CachedVideoItem]s
+     * @return [List] of [MediaItem]s
      */
-    @JsonIgnore
-    fun getAllCachedVideoItems(): List<CachedVideoItem> = this.tasks
-        .flatMap { it.hints }
-        .filterIsInstance(CachedVideoItem::class.java)
-        .plus(tasks.map { it.target }.filterIsInstance(CachedVideoItem::class.java))
+    fun getAllVideos(): List<MediaItem> {
+        return (this.taskGroups.flatMapDistinct { it.tasks }
+            .flatMapDistinct { it.hints }
+            .filter { it.hintItem ne null }
+            .mapDistinct { it.hintItem } union
+        this.taskGroups.flatMapDistinct { it.tasks }
+            .flatMapDistinct { it.targets }
+            .filter { it.item ne null }
+            .mapDistinct { it.item }).filter {
+                it.type eq MediaType.VIDEO
+            }.toList()
+    }
 }

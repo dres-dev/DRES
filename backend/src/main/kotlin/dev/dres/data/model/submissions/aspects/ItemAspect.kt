@@ -1,6 +1,6 @@
 package dev.dres.data.model.submissions.aspects
 
-import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.media.MediaItem
 
 /**
  *

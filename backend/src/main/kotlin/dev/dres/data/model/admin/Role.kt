@@ -1,6 +1,8 @@
 package dev.dres.data.model.admin
 
+import dev.dres.api.rest.types.collection.ApiMediaType
 import dev.dres.api.rest.types.users.ApiRole
+import dev.dres.api.rest.types.users.ApiUser
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity
 import kotlinx.dnq.XdEnumEntityType
@@ -36,22 +38,17 @@ class Role(entity: Entity) : XdEnumEntity(entity) {
             "ADMIN", "ADMINISTRATOR" -> ADMIN
             else -> throw IllegalArgumentException("Failed to parse role '$string'.")
         }
-
-        /**
-         * Generates and returns the [Role] that corresponds to the given [ApiRole].
-         *
-         * @param role [ApiRole]
-         */
-        fun convertApiRole(role: ApiRole): Role = when(role) {
-            ApiRole.ANYONE,
-            ApiRole.VIEWER -> VIEWER
-            ApiRole.PARTICIPANT -> PARTICIPANT
-            ApiRole.JUDGE -> JUDGE
-            ApiRole.ADMIN -> ADMIN
-        }
     }
 
     /** Name / description of the [Role]. */
     var description by xdRequiredStringProp(unique = true)
         private set
+
+    /**
+     * Converts this [Role] to a RESTful API representation [ApiRole].
+     *
+     * @return [ApiRole]
+     */
+    fun toApi(): ApiRole
+        = ApiRole.values().find { it.role == this } ?: throw IllegalStateException("Role ${this.description} is not supported.")
 }

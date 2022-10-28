@@ -9,7 +9,6 @@ import dev.dres.run.filter.SubmissionFilter
  * @version 1.0.0
  */
 interface SubmissionFilterFactory {
-
     /**
      * Generates and returns a [SubmissionFilter]. Depending on the implementation, the returned instance
      * is a new instance or can re-used.

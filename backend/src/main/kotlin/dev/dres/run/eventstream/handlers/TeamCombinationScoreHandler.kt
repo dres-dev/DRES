@@ -1,7 +1,7 @@
 package dev.dres.run.eventstream.handlers
 
 import dev.dres.data.model.UID
-import dev.dres.data.model.competition.TaskDescription
+import dev.dres.data.model.competition.task.TaskDescription
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.eventstream.*
 import dev.dres.run.score.TaskContext

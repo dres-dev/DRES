@@ -1,5 +1,6 @@
 package dev.dres.data.model.audit
 
+import dev.dres.api.rest.types.audit.ApiAuditLogSource
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity
 import kotlinx.dnq.XdEnumEntityType
@@ -21,4 +22,12 @@ class AuditLogSource(entity: Entity) : XdEnumEntity(entity) {
     /** Name / description of the [AuditLogType]. */
     var description by xdRequiredStringProp(unique = true)
         private set
+
+    /**
+     * Converts this [AuditLogSource] to a RESTful API representation [ApiAuditLogSource].
+     *
+     * @return [ApiAuditLogSource]
+     */
+    fun toApi(): ApiAuditLogSource
+        = ApiAuditLogSource.values().find { it.source == this } ?: throw IllegalStateException("Audit log source ${this.description} is not supported.")
 }

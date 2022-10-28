@@ -29,15 +29,13 @@ sealed class UserCommand : NoOpCliktCommand(name = "user") {
         this.subcommands(Create(), Update(), Delete(), List(), Roles(), Export(), Import())
     }
 
-    override fun aliases(): Map<String, List<String>> {
-        return mapOf(
-            "ls" to listOf("list"),
-            "remove" to listOf("delete"),
-            "rm" to listOf("delete"),
-            "drop" to listOf("delete"),
-            "add" to listOf("create")
-        )
-    }
+    override fun aliases() = mapOf(
+        "ls" to listOf("list"),
+        "remove" to listOf("delete"),
+        "rm" to listOf("delete"),
+        "drop" to listOf("delete"),
+        "add" to listOf("create")
+    )
 
     /**
      * [CliktCommand] to create a new [User].

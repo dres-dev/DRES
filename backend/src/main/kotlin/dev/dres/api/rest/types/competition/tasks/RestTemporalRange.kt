@@ -1,6 +1,8 @@
 package dev.dres.api.rest.types.competition.tasks
 
 import dev.dres.data.model.basics.time.*
+import dev.dres.data.model.media.time.TemporalPoint
+import dev.dres.data.model.media.time.TemporalRange
 
 data class RestTemporalRange(val start: RestTemporalPoint, val end: RestTemporalPoint) {
     constructor(range: TemporalRange) : this(RestTemporalPoint.fromTemporalPoint(range.start), RestTemporalPoint.fromTemporalPoint(range.end))

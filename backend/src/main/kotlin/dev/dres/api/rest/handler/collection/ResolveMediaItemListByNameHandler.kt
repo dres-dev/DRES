@@ -1,27 +1,22 @@
 package dev.dres.api.rest.handler.collection
 
 import dev.dres.api.rest.handler.PostRestHandler
-import dev.dres.api.rest.types.collection.RestMediaItem
+import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.MediaCollection
-import dev.dres.data.model.basics.media.MediaItem
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.filter
-import kotlinx.dnq.query.query
-import kotlinx.dnq.query.toList
 
 /**
  *
  * @author Ralph Gasser
  * @version 1.0
  */
-class ResolveMediaItemListByNameHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), PostRestHandler<List<RestMediaItem>> {
+class ResolveMediaItemListByNameHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), PostRestHandler<List<ApiMediaItem>> {
     override val route = "collection/{collectionId}/resolve"
 
     @OpenApi(
@@ -34,13 +29,13 @@ class ResolveMediaItemListByNameHandler(store: TransientEntityStore) : AbstractC
         requestBody = OpenApiRequestBody([OpenApiContent(Array<String>::class)]),
         tags = ["Collection"],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(Array<RestMediaItem>::class)]),
+            OpenApiResponse("200", [OpenApiContent(Array<ApiMediaItem>::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
         ]
     )
-    override fun doPost(ctx: Context): List<RestMediaItem> {
+    override fun doPost(ctx: Context): List<ApiMediaItem> {
         val queriedNames = try {
             ctx.bodyAsClass(Array<String>::class.java)
         } catch (e: BadRequestResponse) {
@@ -55,7 +50,7 @@ class ResolveMediaItemListByNameHandler(store: TransientEntityStore) : AbstractC
         /** Execute query. */
         return this.store.transactional(true) {
             val collection = collectionFromContext(ctx)
-            collection.items.filter { it.name isIn(queriedNames.asIterable()) }.asSequence().map { RestMediaItem.fromMediaItem(it) }.toList()
+            collection.items.filter { it.name isIn(queriedNames.asIterable()) }.asSequence().map { it.toApi() }.toList()
         }
     }
 

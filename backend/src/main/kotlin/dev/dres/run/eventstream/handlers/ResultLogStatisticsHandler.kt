@@ -2,12 +2,12 @@ package dev.dres.run.eventstream.handlers
 
 import dev.dres.data.dbo.DaoIndexer
 import dev.dres.data.model.UID
-import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.basics.media.MediaItemSegmentList
-import dev.dres.data.model.basics.time.TemporalPoint
-import dev.dres.data.model.basics.time.TemporalRange
-import dev.dres.data.model.competition.TaskDescription
-import dev.dres.data.model.competition.TaskDescriptionTarget
+import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.MediaItemSegmentList
+import dev.dres.data.model.media.time.TemporalPoint
+import dev.dres.data.model.media.time.TemporalRange
+import dev.dres.data.model.competition.task.TaskDescription
+import dev.dres.data.model.competition.task.TaskDescriptionTarget
 import dev.dres.run.eventstream.QueryResultLogEvent
 import dev.dres.run.eventstream.StreamEvent
 import dev.dres.run.eventstream.StreamEventHandler

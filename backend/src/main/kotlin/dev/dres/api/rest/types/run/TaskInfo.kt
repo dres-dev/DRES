@@ -1,7 +1,7 @@
 package dev.dres.api.rest.types.run
 
 import dev.dres.data.model.UID
-import dev.dres.data.model.competition.TaskDescription
+import dev.dres.data.model.competition.task.TaskDescription
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 
 /**

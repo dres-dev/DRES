@@ -1,9 +1,10 @@
 package dev.dres.api.rest.types.competition.tasks
 
 import dev.dres.data.dbo.DAO
-import dev.dres.data.model.basics.media.MediaItem
+import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.competition.*
 import dev.dres.data.model.competition.options.QueryComponentOption
+import dev.dres.data.model.competition.task.TaskDescriptionHint
 import dev.dres.utilities.extensions.UID
 import java.nio.file.Paths
 

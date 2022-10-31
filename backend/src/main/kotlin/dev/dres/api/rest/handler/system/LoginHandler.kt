@@ -5,6 +5,7 @@ import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.handler.RestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.Password
 import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.mgmt.admin.UserManager
@@ -16,12 +17,12 @@ import io.javalin.http.Context
 import io.javalin.openapi.*
 
 /**
- * A [GetRestHandler] that handles user-requests to login.
+ * A [PostRestHandler] that handles user-requests to login.
  *
  * @version 1.0.0
  * @author Luca Rossetto
  */
-class LoginHandler : RestHandler, PostRestHandler<UserDetails> {
+class LoginHandler : RestHandler, PostRestHandler<ApiUser> {
 
     override val apiVersion = "v1"
 
@@ -33,12 +34,12 @@ class LoginHandler : RestHandler, PostRestHandler<UserDetails> {
         tags = ["User"],
         requestBody = OpenApiRequestBody([OpenApiContent(LoginRequest::class)]),
         responses = [
-            OpenApiResponse("200", [OpenApiContent(UserDetails::class)]),
+            OpenApiResponse("200", [OpenApiContent(ApiUser::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
         ]
     )
-    override fun doPost(ctx: Context) : UserDetails{
+    override fun doPost(ctx: Context): ApiUser {
 
         val loginRequest = try {
             ctx.bodyAsClass(LoginRequest::class.java)
@@ -55,7 +56,9 @@ class LoginHandler : RestHandler, PostRestHandler<UserDetails> {
         AccessManager.registerUserForSession(ctx.sessionId(), user)
         AuditLogger.login(user.userId, AuditLogSource.REST, ctx.sessionId())
 
-        return UserDetails.create(UserManager.get(username)!!, ctx)
+        val ret = UserManager.get(username)!!.toApi()
+        ret.sessionId = ctx.sessionId()
+        return ret
     }
 
     override val route = "login"

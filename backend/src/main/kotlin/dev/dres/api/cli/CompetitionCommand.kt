@@ -10,71 +10,121 @@ import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
 import com.github.ajalt.clikt.parameters.types.path
 import com.jakewharton.picnic.table
-import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
-import dev.dres.data.model.UID
-import dev.dres.data.model.media.MediaCollection
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.utilities.FFmpegUtil
-import java.io.File
+import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.*
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
+import java.util.*
 
 /**
- * A collection of [CliktCommand]s for user management
+ * A collection of [CliktCommand]s for [CompetitionDescription] management.
  *
- * @author Luca Rossetto & Ralph Gasser
- * @version 1.1
+ * @author Luca Rossetto
+ * @author Ralph Gasser
+ * @version 2.0.0
  */
-class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>, internal val collections: DAO<MediaCollection>, config: Config) : NoOpCliktCommand(name = "competition") {
+class CompetitionCommand(private val store: TransientEntityStore, config: Config) : NoOpCliktCommand(name = "competition") {
 
     init {
-        this.subcommands(CreateCompetitionCommand(), ListCompetitionCommand(), ShowCompetitionCommand(), PrepareCompetitionCommand(), DeleteCompetitionCommand(), CopyCompetitionCommand(), ExportCompetitionCommand(), ImportCompetitionCommand())
+        this.subcommands(
+            Create(),
+            ListCompetitionCommand(),
+            ShowCompetitionCommand(),
+            PrepareCompetitionCommand(),
+            DeleteCompetitionCommand(),
+            CopyCompetitionCommand(),
+            ExportCompetitionCommand(),
+            ImportCompetitionCommand()
+        )
     }
 
     override fun aliases(): Map<String, List<String>> {
         return mapOf(
-                "ls" to listOf("list"),
-                "remove" to listOf("delete"),
-                "drop" to listOf("delete"),
-                "add" to listOf("create")
+            "ls" to listOf("list"),
+            "remove" to listOf("delete"),
+            "drop" to listOf("delete"),
+            "add" to listOf("create")
         )
     }
 
-    private val taskCacheLocation = File(config.cachePath + "/tasks")
+    /** The cache location [Paths]. */
+    private val cacheLocation = Paths.get(config.cachePath, "tasks")
 
     abstract inner class AbstractCompetitionCommand(name: String, help: String, printHelpOnEmptyArgs: Boolean = true) : CliktCommand(name = name, help = help, printHelpOnEmptyArgs = printHelpOnEmptyArgs) {
-        private val id: String? by option("-i", "--id")
-        private val competition: String? by option("-c", "--competition")
-        protected val competitionId: UID
-            get() = when {
-                this.id != null -> UID(this.id!!)
-                this.competition != null -> this@CompetitionCommand.competitions.find { c -> c.name == this.competition!! }?.id
-                        ?: UID.EMPTY
-                else -> UID.EMPTY
-            }
+        protected val id: String? by option("-i", "--id")
+        protected val name: String? by option("-c", "--competition")
     }
 
-    inner class CreateCompetitionCommand : CliktCommand(name = "create", help = "Creates a new Competition") {
-        private val name: String by option("-n", "--name", help = "Name of the new Competition")
-                .required()
-                .validate { require(it.isNotEmpty()) { "Competition name must be non empty." } }
+    /**
+     * [CliktCommand] to create a new [CompetitionDescription].
+     */
+    inner class Create : CliktCommand(name = "create", help = "Creates a new Competition") {
+
+        private val name: String by option("-c", "--competition", help = "Name of the new Competition")
+            .required()
+            .validate { require(it.isNotEmpty()) { "Competition description must be non empty." } }
 
         private val description: String by option("-d", "--description", help = "Description of the new Competition")
                 .required()
                 .validate { require(it.isNotEmpty()) { "Competition description must be non empty." } }
 
-        override fun run() {
-            val newCompetition = CompetitionDescription(id = UID.EMPTY, name = name, description = description, taskTypes = mutableListOf(), taskGroups = mutableListOf(), teams = mutableListOf(), teamGroups = mutableListOf(), judges = mutableListOf(), tasks = mutableListOf())
-            val id = this@CompetitionCommand.competitions.append(newCompetition)
-            println("New competition '$newCompetition' created with ID=${id.string}.")
+        override fun run()  {
+            val newCompetition = this@CompetitionCommand.store.transactional {
+                CompetitionDescription.new {
+                    this.id = UUID.randomUUID().toString()
+                    this.name = this@Create.name
+                    this.description = this@Create.description
+                }
+            }
+            println("New competition '$newCompetition' created with ID = ${newCompetition.id}.")
         }
     }
 
-
-    inner class ListCompetitionCommand : CliktCommand(name = "list", help = "Lists an overview of all Competitions") {
+    /**
+     * [CliktCommand] to delete a [CompetitionDescription].
+     */
+    inner class DeleteCompetitionCommand : AbstractCompetitionCommand(name = "delete", help = "Deletes a competition") {
         override fun run() {
+            this@CompetitionCommand.store.transactional {
+                val competition = CompetitionDescription.query((CompetitionDescription::id eq this.id).or(CompetitionDescription::name eq this.name)).firstOrNull()
+                if (competition == null) {
+                    println("Could not find competition to delete.")
+                    return@transactional
+                }
+                competition.delete()
+            }
+            println("Successfully deleted competition description.")
+        }
+    }
+
+    /**
+     * [CliktCommand] to copy a [CompetitionDescription].
+     */
+    inner class CopyCompetitionCommand : AbstractCompetitionCommand(name = "copy", help = "Copies a Competition") {
+        override fun run() {
+            this@CompetitionCommand.store.transactional {
+                val competition = CompetitionDescription.query((CompetitionDescription::id eq this.id).or(CompetitionDescription::name eq this.name)).firstOrNull()
+                if (competition == null) {
+                    println("Could not find competition to copy.")
+                    return@transactional
+                }
+
+                /* TODO: Copy competition. */
+            }
+            println("Successfully copied competition.")
+        }
+    }
+
+    /**
+     * [CliktCommand] to list all [CompetitionDescription]s.
+     */
+    inner class ListCompetitionCommand : CliktCommand(name = "list", help = "Lists an overview of all Competitions") {
+        override fun run() = this@CompetitionCommand.store.transactional(true) {
             var no = 0
             println(table {
                 cellStyle {
@@ -86,8 +136,8 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                     row("name", "id", "# teams", "# tasks", "description", )
                 }
                 body {
-                    this@CompetitionCommand.competitions.forEach {
-                        row(it.name, it.id.string, it.teams.size, it.tasks.size, it.description).also { no++ }
+                    CompetitionDescription.all().asSequence().forEach { c ->
+                        row(c.name, c.id, c.teams.size(), c.taskGroups.flatMapDistinct { it.tasks }.size(), c.description).also { no++ }
                     }
                 }
             })
@@ -95,105 +145,67 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
         }
     }
 
+    /**
+     * [CliktCommand] to show a specific [CompetitionDescription].
+     */
     inner class ShowCompetitionCommand : AbstractCompetitionCommand(name = "show", help = "Shows details of a Competition") {
+        override fun run() = this@CompetitionCommand.store.transactional(true) {
+            val competition = CompetitionDescription.query(
+                (CompetitionDescription::id eq this.id).or(CompetitionDescription::name eq this.name)
+            ).firstOrNull()
 
-        override fun run() {
-            // TODO fancification
-            val competition = this@CompetitionCommand.competitions[competitionId]!!
+            if (competition == null) {
+                println("Could not find specified competition description.")
+                return@transactional
+            }
 
             println("${competition.name}: ${competition.description}")
             println("Teams:")
 
-            competition.teams.forEach(::println)
+            competition.teams.asSequence().forEach(::println)
 
             println()
             println("Tasks:")
 
-            competition.tasks.forEach {
-                it.printOverview(System.out)
+            competition.taskGroups.flatMapDistinct { it.tasks }.asSequence().forEach { _ ->
+                /* TODO: it.printOverview(System.out) */
                 println()
             }
-
             println()
         }
 
     }
 
+    /**
+     * [CliktCommand] to prepare a specific [CompetitionDescription].
+     */
     inner class PrepareCompetitionCommand : AbstractCompetitionCommand(name = "prepare", help = "Checks the used Media Items and generates precomputed Queries") {
 
-        override fun run() {
-            val competition = this@CompetitionCommand.competitions[competitionId]!!
+        override fun run() = this@CompetitionCommand.store.transactional(true) {
+            val competition = CompetitionDescription.query(
+                (CompetitionDescription::id eq this.id).or(CompetitionDescription::name eq this.name)
+            ).firstOrNull()
 
+            if (competition == null) {
+                println("Could not find specified competition description.")
+                return@transactional
+            }
 
-            val segmentTasks = competition.getAllCachedVideoItems()
-
-            segmentTasks.forEach {
-                val item = it.item
-                val collection = this@CompetitionCommand.collections[item.collection]
-
-                if (collection == null) {
-                    println("ERROR: collection ${item.collection} not found")
-                    return
-                }
-
-                val videoFile = File(File(collection.path), item.location)
-
-                if (!videoFile.exists()) {
-                    println("ERROR: file ${videoFile.absolutePath} not found for item ${item.name}")
+            /* Fetch all videos in the competition. */
+            val videos = competition.getAllVideos()
+            videos.forEach { item ->
+                val path = item.first.pathToOriginal()
+                if (!Files.exists(path)) {
+                    println("ERROR: Media file $path not found for item ${item.first.name}")
                     return@forEach
                 }
 
-                println("rendering ${it.item} at ${it.temporalRange}")
-                FFmpegUtil.prepareMediaSegmentTask(it, collection.path, this@CompetitionCommand.taskCacheLocation)
-
+                println("Rendering ${item.first.name}$ at ${item.second}")
+                FFmpegUtil.extractSegment(item.first, item.second, this@CompetitionCommand.cacheLocation)
             }
-
         }
-
     }
 
-    inner class DeleteCompetitionCommand : AbstractCompetitionCommand(name = "delete", help = "Deletes a Competition") {
-
-        override fun run() {
-            val competition = this@CompetitionCommand.competitions.delete(competitionId)
-
-            if (competition != null) {
-                println("Successfully deleted $competition")
-            } else {
-                println("Could not find competition to delete") //should not happen
-            }
-
-        }
-
-    }
-
-    inner class CopyCompetitionCommand : AbstractCompetitionCommand(name = "copy", help = "Copies a Competition") {
-
-        private val name: String by option("-n", "--name", help = "Name of the copied Competition")
-                .required()
-                .validate { require(it.isNotEmpty()) { "Competition name must be non empty." } }
-
-
-        override fun run() {
-
-            if (this@CompetitionCommand.competitions.any { it.name == name }) {
-                println("Competition with name '$name' already exists")
-                return
-            }
-
-            val competition = this@CompetitionCommand.competitions[competitionId]!!
-            val newCompetition = competition.copy(id = UID.EMPTY, name = name)
-
-            this@CompetitionCommand.competitions.append(newCompetition)
-
-            println("Copied")
-            println(competition)
-            println("to")
-            println(newCompetition)
-
-        }
-
-    }
 
     /**
      * Exports a specific competition to a JSON file.
@@ -206,12 +218,16 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
         /** Flag indicating whether export should be pretty printed.*/
         private val pretty: Boolean by option("-p", "--pretty", help = "Flag indicating whether exported JSON should be pretty printed.").flag("-u", "--ugly", default = true)
 
-        override fun run() {
-            val competition = this@CompetitionCommand.competitions[this.competitionId]
+        override fun run() = this@CompetitionCommand.store.transactional(true) {
+            val competition = CompetitionDescription.query(
+                (CompetitionDescription::id eq this.id).or(CompetitionDescription::name eq this.name)
+            ).firstOrNull()
+
             if (competition == null) {
-                println("Competition ${this.competitionId} does not seem to exist.")
-                return
+                println("Could not find specified competition description.")
+                return@transactional
             }
+
             val mapper = jacksonObjectMapper()
             Files.newBufferedWriter(this.path, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE).use {
                 val writer = if (this.pretty) {
@@ -238,10 +254,9 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
         private val path: Path by option("-i", "--in", help = "The file to import the competition from.").path().required()
 
         override fun run() {
-
-            /* Read competition from file. */
-
-            val reader = jacksonObjectMapper().readerFor(CompetitionDescription::class.java)
+            /* TODO: Probably won't work this way. */
+            /* Read competition from file */
+            /*val reader = jacksonObjectMapper().readerFor(CompetitionDescription::class.java)
             val competition = try {
                 Files.newBufferedReader(this.path).use {
                     val tree = reader.readTree(it)
@@ -269,7 +284,7 @@ class CompetitionCommand(internal val competitions: DAO<CompetitionDescription>,
                 }
             } else {
                 println("Could not import competition from $path: Unknown format.")
-            }
+            }*/
         }
     }
 }

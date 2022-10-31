@@ -1,14 +1,15 @@
 package dev.dres.data.model.competition
 
+import dev.dres.api.rest.types.competition.ApiCompetitionDescription
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.admin.User
-import dev.dres.data.model.competition.task.TaskDescription
 import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.MediaType
 import dev.dres.data.model.competition.task.TaskGroup
 import dev.dres.data.model.competition.task.TaskType
 import dev.dres.data.model.competition.team.Team
 import dev.dres.data.model.competition.team.TeamGroup
+import dev.dres.data.model.media.time.TemporalRange
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
@@ -54,7 +55,25 @@ class CompetitionDescription(entity: Entity) : PersistentEntity(entity){
     val teamsGroups by xdChildren0_N<CompetitionDescription,TeamGroup>(TeamGroup::competition)
 
     /** The [User]s that act as judge for this [CompetitionDescription] */
-    val judges by xdLink0_N(User::judges, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)
+    val judges by xdLink0_N(User, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)
+
+    /**
+     * Converts this [CompetitionDescription] to a RESTful API representation [ApiCompetitionDescription].
+     *
+     * This is a convenience method and it requires and active transaction context.
+     *
+     * @return [ApiCompetitionDescription]
+     */
+    fun toApi(): ApiCompetitionDescription = ApiCompetitionDescription(
+        id = this.id,
+        name = this.name,
+        description = this.description,
+        taskTypes = this.taskTypes.asSequence().map { it.toApi() }.toList(),
+        taskGroups = this.taskGroups.asSequence().map { it.toApi() }.toList(),
+        teams = this.teams.asSequence().map { it.toApi() }.toList(),
+        teamGroups = this.teamsGroups.asSequence().map { it.toApi() }.toList(),
+        judges = this.judges.asSequence().map { it.id }.toList()
+    )
 
     /**
      * Generates and returns the default [Scoreboard] implementations for this [CompetitionDescription].
@@ -66,7 +85,7 @@ class CompetitionDescription(entity: Entity) : PersistentEntity(entity){
     fun generateDefaultScoreboards(): List<Scoreboard> {
         val teams = this.teams.toList()
         val groupBoards = this.taskGroups.asSequence().map { group ->
-            MaxNormalizingScoreBoard(group.name, teams, {task -> task.taskGroup.id == group.id}, group.name)
+            MaxNormalizingScoreBoard(group.name, teams, {task -> task.taskGroup.name == group.name}, group.name)
         }.toList()
         val aggregateScoreBoard = SumAggregateScoreBoard("sum", groupBoards)
         return groupBoards.plus(aggregateScoreBoard)
@@ -79,16 +98,19 @@ class CompetitionDescription(entity: Entity) : PersistentEntity(entity){
      *
      * @return [List] of [MediaItem]s
      */
-    fun getAllVideos(): List<MediaItem> {
-        return (this.taskGroups.flatMapDistinct { it.tasks }
+    fun getAllVideos(): List<Pair<MediaItem,TemporalRange>> {
+        val hints = this.taskGroups.flatMapDistinct { it.tasks }
             .flatMapDistinct { it.hints }
-            .filter { it.hintItem ne null }
-            .mapDistinct { it.hintItem } union
-        this.taskGroups.flatMapDistinct { it.tasks }
+            .filter { (it.item ne null) and (it.item!!.type eq MediaType.VIDEO) }.asSequence().map {
+                it.item!!to it.range!!
+            }
+
+        val targets = this.taskGroups.flatMapDistinct { it.tasks }
             .flatMapDistinct { it.targets }
-            .filter { it.item ne null }
-            .mapDistinct { it.item }).filter {
-                it.type eq MediaType.VIDEO
-            }.toList()
+            .filter { (it.item ne null) and (it.item!!.type eq MediaType.VIDEO) }.asSequence().map {
+            it.item!! to it.range!!
+        }
+
+        return (hints + targets).toList()
     }
 }

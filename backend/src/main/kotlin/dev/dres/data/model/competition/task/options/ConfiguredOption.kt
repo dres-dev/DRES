@@ -16,10 +16,10 @@ class ConfiguredOption(entity: Entity) : XdEntity(entity) {
     companion object: XdNaturalEntityType<ConfiguredOption>()
 
     /** The key for this [ConfiguredOption]. Identifies the option. */
-    val key by xdRequiredStringProp()
+    var key by xdRequiredStringProp()
 
     /** The conifgured value for this [ConfiguredOption]. */
-    val value by xdRequiredStringProp()
+    var value by xdRequiredStringProp()
 
     /** The [TaskDescription] this [ConfiguredOption] belongs to. */
     val task by xdParent<ConfiguredOption,TaskType>(TaskType::configurations)

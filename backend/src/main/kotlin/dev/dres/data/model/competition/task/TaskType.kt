@@ -1,6 +1,6 @@
 package dev.dres.data.model.competition.task
 
-import dev.dres.data.model.PersistentEntity
+import dev.dres.api.rest.types.competition.tasks.ApiTaskType
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.task.options.*
 import dev.dres.data.model.competition.task.options.ConfiguredOption
@@ -11,10 +11,7 @@ import dev.dres.run.score.interfaces.TaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
-import kotlinx.dnq.query.asSequence
-import kotlinx.dnq.query.eq
-import kotlinx.dnq.query.isEmpty
-import kotlinx.dnq.query.query
+import kotlinx.dnq.query.*
 import kotlinx.dnq.simple.min
 
 /**
@@ -40,23 +37,39 @@ class TaskType(entity: Entity) : XdEntity(entity) {
     /** The (default) duration of this [TaskType] in seconds. */
     var duration by xdRequiredLongProp() { min(0L) }
 
-    /** The [TaskTargetOption] for this [TaskType]. Specifies the type of target. */
-    var target by xdLink1(TaskTargetOption)
+    /** The [TargetOption] for this [TaskType]. Specifies the type of target. */
+    val targets by xdLink1_N(TargetOption)
 
-    /** The [TaskScoreOption] for this [TaskType]. Specifies the type of scorer that should be used. */
-    var score by xdLink1(TaskScoreOption)
+    /** The [HintOption]s that make-up this [TaskType]. */
+    val hints by xdLink0_N(HintOption)
 
-    /** The [TaskComponentOption]s that make-up this [TaskType]. */
-    val components by xdLink0_N(TaskComponentOption)
+    /** The [SubmissionOption]s for this [TaskType]. */
+    val submission by xdLink0_N(SubmissionOption)
 
-    /** The [TaskSubmissionOption]s for this [TaskType]. */
-    val submission by xdLink0_N(TaskSubmissionOption)
+    /** The [ScoreOption] for this [TaskType]. Specifies the type of scorer that should be used. */
+    var score by xdLink1(ScoreOption)
 
     /** The [TaskOption]s for this [TaskType]. */
     val options by xdLink0_N(TaskOption)
 
     /** [ConfiguredOption]s registered for this [TaskDescription]. */
     val configurations by xdChildren0_N<TaskType,ConfiguredOption>(ConfiguredOption::task)
+
+    /**
+     * Converts this [TaskType] to a RESTful API representation [ApiTaskType].
+     *
+     * @return [ApiTaskType]
+     */
+    fun toApi(): ApiTaskType = ApiTaskType(
+        name = this.name,
+        duration = this.duration,
+        targetOptions = this.targets.asSequence().map { it.toApi() }.toList(),
+        hintOptions = this.hints.asSequence().map { it.toApi() }.toList(),
+        submissionOptions = this.submission.asSequence().map { it.toApi() }.toList(),
+        taskOptions = this.options.asSequence().map { it.toApi() }.toList(),
+        scoreOption = this.score.toApi(),
+        configuration = this.configurations.asSequence().map { it.key to it.value }.toMap()
+    )
 
     /**
      * Generates a new [TaskScorer] for this [TaskDescription]. Depending

@@ -1,7 +1,5 @@
 package dev.dres.api.rest.types.users
 
-import dev.dres.api.rest.types.users.ApiRole
-
 /**
  * A request surrounding manipulation of users.
  *

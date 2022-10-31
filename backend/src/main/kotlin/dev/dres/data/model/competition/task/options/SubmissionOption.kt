@@ -1,6 +1,6 @@
 package dev.dres.data.model.competition.task.options
 
-import dev.dres.data.model.competition.options.SubmissionFilterOption
+import dev.dres.api.rest.types.competition.tasks.options.ApiSubmissionOption
 import dev.dres.run.filter.*
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity
@@ -13,8 +13,8 @@ import kotlinx.dnq.xdRequiredStringProp
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class TaskSubmissionOption(entity: Entity) : XdEnumEntity(entity) {
-    companion object : XdEnumEntityType<TaskSubmissionOption>() {
+class SubmissionOption(entity: Entity) : XdEnumEntity(entity) {
+    companion object : XdEnumEntityType<SubmissionOption>() {
         val NO_DUPLICATES by enumField { description = "NO_DUPLICATES" }
         val LIMIT_CORRECT_PER_TEAM by enumField { description = "LIMIT_CORRECT_PER_TEAM" }
         val LIMIT_WRONG_PER_TEAM by enumField { description = "LIMIT_WRONG_PER_TEAM" }
@@ -26,7 +26,7 @@ class TaskSubmissionOption(entity: Entity) : XdEnumEntity(entity) {
         val MINIMUM_TIME_GAP by enumField { description = "MINIMUM_TIME_GAP" }
     }
 
-    /** Name / description of the [TaskScoreOption]. */
+    /** Name / description of the [ScoreOption]. */
     var description by xdRequiredStringProp(unique = true)
         private set
 
@@ -47,4 +47,11 @@ class TaskSubmissionOption(entity: Entity) : XdEnumEntity(entity) {
         MINIMUM_TIME_GAP -> SubmissionRateFilter(parameters)
         else -> throw IllegalStateException("The task filter option ${this.description} is currently not supported.")
     }
+
+    /**
+     * Converts this [HintOption] to a RESTful API representation [ApiSubmissionOption].
+     *
+     * @return [ApiSubmissionOption]
+     */
+    fun toApi() = ApiSubmissionOption.values().find { it.option == this } ?: throw IllegalStateException("Option ${this.description} is not supported.")
 }

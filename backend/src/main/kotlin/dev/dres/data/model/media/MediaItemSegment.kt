@@ -14,7 +14,12 @@ import kotlinx.dnq.simple.min
  * @version 2.0.0
  */
 class MediaItemSegment(entity: Entity) : PersistentEntity(entity) {
-    companion object : XdNaturalEntityType<MediaItemSegment>()
+    companion object : XdNaturalEntityType<MediaItemSegment>() {
+        /** Combination of [MediaItemSegment] name / item must be unique. */
+        override val compositeIndices = listOf(
+            listOf(MediaItemSegment::name, MediaItemSegment::item)
+        )
+    }
 
     /** The name of this [MediaItemSegment]. */
     var name by xdRequiredStringProp(unique = false, trimmed = false)
@@ -23,12 +28,12 @@ class MediaItemSegment(entity: Entity) : PersistentEntity(entity) {
     var item by xdParent<MediaItemSegment, MediaItem>(MediaItem::segments)
 
     /** The start frame number of this [MediaItemSegment]. */
-    var startFrame by xdRequiredIntProp() { min(0) }
+    var start by xdRequiredIntProp { min(0L) }
 
     /** The end frame number of this [MediaItemSegment]. */
-    var endFrame by xdRequiredIntProp() { min(0) }
+    var end by xdRequiredIntProp { min(0L) }
 
     /** Returns the [range] of this [MediaItemSegment] as [TemporalRange]. */
     val range: TemporalRange
-        get() = TemporalRange(TemporalPoint.Frame(this.startFrame, this.item.fps ?: 1.0f), TemporalPoint.Frame(this.endFrame, this.item.fps ?: 1.0f))
+        get() = TemporalRange(TemporalPoint.Frame(this.start, this.item.fps ?: 1.0f), TemporalPoint.Frame(this.end, this.item.fps ?: 1.0f))
 }

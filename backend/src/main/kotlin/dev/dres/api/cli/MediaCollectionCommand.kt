@@ -11,407 +11,366 @@ import com.github.ajalt.clikt.parameters.types.long
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.jakewharton.picnic.table
-import dev.dres.data.dbo.DAO
-import dev.dres.data.dbo.DaoIndexer
-import dev.dres.data.model.UID
-import dev.dres.data.model.media.MediaCollection
-import dev.dres.data.model.media.MediaItem
-import dev.dres.data.model.media.MediaItemSegment
-import dev.dres.data.model.media.MediaItemSegmentList
-import dev.dres.data.model.media.time.TemporalRange
+import dev.dres.api.rest.types.collection.ApiMediaType
+import dev.dres.data.model.media.*
 import dev.dres.utilities.FFmpegUtil
-import dev.dres.utilities.extensions.UID
-import dev.dres.utilities.extensions.cleanPathString
+import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.*
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
 import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStream
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.StandardOpenOption
+import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.extension
+import kotlin.io.path.nameWithoutExtension
+import kotlin.io.path.relativeTo
 
-class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: DAO<MediaItem>, val itemPathIndex: DaoIndexer<MediaItem, String>, val mediaItemCollectionIndex: DaoIndexer<MediaItem, UID>, val segments: DAO<MediaItemSegmentList>) :
-        NoOpCliktCommand(name = "collection") {
+/**
+ * A collection of [CliktCommand]s for [MediaItem], [MediaCollection] and [MediaItemSegment] management.
+ *
+ * @author Luca Rossetto
+ * @author Ralph Gasser
+ * @version 2.0.0
+ */
+class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpCliktCommand(name = "collection") {
     private val logMarker = MarkerFactory.getMarker("CLI")
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
-    override fun aliases(): Map<String, List<String>> {
+    init {
+        this.subcommands(Create(), Delete(), Update(), List(), Show(), Check(), Scan(), AddItem(), DeleteItem(), Export(), Import(), ImportSegments())
+    }
+
+    override fun aliases(): Map<String, kotlin.collections.List<String>> {
         return mapOf(
-                "ls" to listOf("list"),
-                "remove" to listOf("delete"),
-                "drop" to listOf("delete")
+            "ls" to listOf("list"),
+            "remove" to listOf("delete"),
+            "drop" to listOf("delete")
         )
     }
 
     companion object {
         enum class SortField {
-            ID,
-            NAME,
-            LOCATION,
-            DURATION,
-            FPS
+            ID, NAME, LOCATION, DURATION, FPS
         }
     }
 
-    init {
-        this.subcommands(CreateCollectionCommand(),UpdateCollectionCommand(), ListCollectionsCommand(), ShowCollectionCommand(), CheckCollectionCommand(), ScanCollectionCommand(), AddMediaItemCommand(), DeleteItemCommand(), ExportCollectionCommand(), ImportCollectionCommand(), DeleteCollectionCommand(), ImportMediaSegmentsCommand())
-    }
-
+    /**
+     *
+     */
     abstract inner class AbstractCollectionCommand(name: String, help: String) : CliktCommand(name = name, help = help, printHelpOnEmptyArgs = true) {
-        private val collectionNameInput: String? by option("-c", "--collection", help = "Name of the Collection")
 
-        private val collectionIdInput: UID? by option("-i", "--id", help = "Id of the Collection").convert { it.UID() }
+        /** The [CollectionId] of the [MediaCollection] affected by this [AbstractCollectionCommand]. */
+        protected val id: CollectionId? by option("-i", "--id", help = "ID of a media collection.")
 
-        fun actualCollectionId(): UID? = this.collectionIdInput ?: this.collectionNameInput?.let {
-            this@MediaCollectionCommand.collections.find { c -> c.name == it }?.id
-        }
+        /** The name of the [MediaCollection] affected by this [AbstractCollectionCommand]. */
+        protected val name: String? by option("-c", "--collection", help = "Name of a media collection.")
+
+        /**
+         * Loads and returns the [MediaCollection] for the specified parameters.
+         * This is a convenience method and requires a transaction context.
+         *
+         * @return [MediaCollection] or null
+         */
+        protected fun getCollection(): MediaCollection?
+            = MediaCollection.query((MediaCollection::id eq this.id).or(MediaCollection::name eq this.name)).firstOrNull()
     }
 
-    inner class CreateCollectionCommand : CliktCommand(name = "create", help = "Creates a new Collection", printHelpOnEmptyArgs = true) {
+    /**
+     * [CliktCommand] to create a new [MediaCollection].
+     */
+    inner class Create: CliktCommand(name = "create", help = "Creates a new media collection.", printHelpOnEmptyArgs = true) {
 
-        private val name: String by option("-n", "--name", help = "Name of the Collection to be created")
-                .required()
-                .validate { require(!this@MediaCollectionCommand.collections.any { c -> c.name == it }) { "collection with name '$it' already exists" } }
+        /** The name of the new [MediaCollection]. */
+        private val name: String by option("-n", "--name", help = "Name of the Collection to be created").required()
 
-        private val description: String by option("-d", "--description", help = "Description of the Collection to be created")
-                .default("")
+        /** A description of the new [MediaCollection]. */
+        private val description: String by option("-d", "--description", help = "Description of the Collection to be created").default("")
 
-        private val basePath: String by option("-p", "--path", help = "Base path of the Collection all contained Items will be specified relative to")
-                .required()
+        /** The base path to the new [MediaCollection]. */
+        private val basePath: String by option("-p", "--path", help = "Base path of the Collection all contained Items will be specified relative to").required()
 
         override fun run() {
-            this@MediaCollectionCommand.collections.append(
-                    MediaCollection(name = name.trim(), description = description, basePath = basePath.cleanPathString())
-            )
-            println("Successfully added collection")
+            if (!Files.exists(Paths.get(this.basePath))) {
+                this@MediaCollectionCommand.logger.warn("Collection base path ${this.basePath} does not exist!")
+            }
+            this@MediaCollectionCommand.store.transactional {
+                MediaCollection.new {
+                    this.id = UUID.randomUUID().toString()
+                    this.name = this@Create.name
+                    this.description = this@Create.description
+                    this.path = this@Create.basePath
+                }
+            }
+            println("Successfully added new media collection.")
         }
     }
 
-    inner class UpdateCollectionCommand : AbstractCollectionCommand(name = "update", help = "Updates an existing Collection") {
+    /**
+     * [CliktCommand] to create a new [MediaCollection].
+     */
+    inner class Delete: AbstractCollectionCommand("delete", help = "Deletes a media collection.") {
+        override fun run() {
+            this@MediaCollectionCommand.store.transactional {
+                val collection = this.getCollection()
+                if (collection == null) {
+                    println("Failed to delete collection; specified collection not found.")
+                    return@transactional
+                }
+                collection.delete()
+            }
+            println("Collection deleted successfully.")
+        }
+    }
 
-        private val name: String? by option("-n", "--name", help = "The new name of the collection")
-                .validate { require(!this@MediaCollectionCommand.collections.any { c -> c.name == it }) { "collection with name '$it' already exists" } }
+    /**
+     * [CliktCommand] to create a new [MediaCollection].
+     */
+    inner class Update : AbstractCollectionCommand(name = "update", help = "Updates an existing Collection") {
 
-        private val description: String? by option("-d", "--description", help = "Description of the Collection to be created")
+        /** The new name for the [MediaCollection]. */
+        private val newName: String? by option("-n", "--name", help = "The new name of the collection")
 
+        /** The new description for the [MediaCollection]. */
+        private val newDescription: String? by option("-d", "--description", help = "Description of the Collection to be created")
 
-        private val basePath: String? by option("-p", "--path", help = "Base path of the Collection all contained Items will be specified relative to")
-
+        /** The new path for the [MediaCollection]. */
+        private val newPath: String? by option("-p", "--path", help = "Base path of the Collection all contained Items will be specified relative to")
 
         override fun run() {
-            val id = actualCollectionId()
-            if (id == null) {
-                System.err.println("Couldn't find the given collection")
-                return
-            }
-            var dirty = false
-            val collection = this@MediaCollectionCommand.collections[id]!!
-            val newName = if(name != null){
-                dirty = true
-                name!!
-            }else{
-                collection.name
-            }
-            val newDesc =if(description != null){
-                dirty = true
-                description
-            }else{
-                collection.description ?: ""
-            }
-            val newBasePath = if(basePath != null){
-                dirty = true
-                basePath!!
-            }else{
-                collection.path
-            }
+            this@MediaCollectionCommand.store.transactional {
+                val collection = this.getCollection()
+                if (collection == null) {
+                    println("Failed to update collection; specified collection not found.")
+                    return@transactional
+                }
 
-            if(dirty){
-                this@MediaCollectionCommand.collections.delete(id)
-                val newCollection = MediaCollection(id, newName, newDesc, newBasePath)
-                this@MediaCollectionCommand.collections.append(newCollection)
-                println("Updated collection with id ${id.string}")
-            }else{
-                println("Done. Nothing to update")
+                /* Update collection. */
+                collection.name = (this.newName ?: collection.name)
+                collection.description = (this.newDescription ?: collection.path)
+                collection.path = (this.newPath ?: collection.path)
+
             }
+            println("Successfully updated media collection.")
         }
-
     }
 
-
-    inner class ListCollectionsCommand : CliktCommand(name = "list", help = "Lists all Collections") {
+    /**
+     * [CliktCommand] to list all [MediaCollection]s.
+     */
+    inner class List : CliktCommand(name = "list", help = "Lists all media collections.") {
         val plain by option("-p", "--plain", help = "Plain print: No fancy table presentation for machine readable output").flag(default = false)
 
-        override fun run() {
-            println("Available media collections ${this@MediaCollectionCommand.collections.toSet().size}")
-            if (plain) {
-                this@MediaCollectionCommand.collections.forEach {
-                    println(it)
-                }
+        override fun run() = this@MediaCollectionCommand.store.transactional(true) {
+            println("Available media collections ${MediaCollection.all().size()}")
+            if (this.plain) {
+                MediaCollection.all().asSequence().forEach { println(it) }
             } else {
                 println(
-                        table {
-                            cellStyle {
-                                border = true
-                                paddingLeft = 1
-                                paddingRight = 1
-                            }
-                            header {
-                                row("id", "name", "description", "basePath", "# items")
-                            }
-                            body {
-                                this@MediaCollectionCommand.collections.forEach {
-                                    row(it.id.string, it.name, it.description ?: "", it.path, this@MediaCollectionCommand.mediaItemCollectionIndex.filter { uid -> it.id.equals(uid) }.size)
-                                }
+                    table {
+                        cellStyle {
+                            border = true
+                            paddingLeft = 1
+                            paddingRight = 1
+                        }
+                        header {
+                            row("id", "name", "description", "basePath", "# items")
+                        }
+                        body {
+                            MediaCollection.all().asSequence().forEach { c ->
+                                row(c.id, c.name, c.description ?: "", c.path, c.items.size())
                             }
                         }
-                )
-            }
-        }
-    }
-
-    inner class ShowCollectionCommand : AbstractCollectionCommand("show", help = "Shows the content of a Collection") {
-        val sort by option("-s", "--sort", help = "Chose which sorting to use").enum<SortField>(ignoreCase = true).defaultLazy { SortField.NAME }
-        val plain by option("-p", "--plain", help = "Plain formatting. No fancy tables").flag(default = false)
-
-        override fun run() {
-
-            val collectionId = this.actualCollectionId()
-            if (collectionId == null) {
-                println("Collection not found.")
-                return
-            }
-
-            val collectionItems = this@MediaCollectionCommand
-                    .items.filter { it.collection == collectionId }
-                    // First sort reversed by type (i.e. Video before Image), then by name
-                    .sortedWith(compareBy<MediaItem> { it.javaClass.name }.reversed().thenBy {
-                        when (sort) {
-                            SortField.ID -> it.id.string
-                            SortField.NAME -> it.name
-                            SortField.LOCATION -> it.location
-                            /* Small hack as images do not have these properties */
-                            SortField.DURATION -> if (it is MediaItem.VideoItem) {
-                                it.durationMs
-                            } else {
-                                it.name
-                            }
-                            SortField.FPS -> if (it is MediaItem.VideoItem) {
-                                it.fps
-                            } else {
-                                it.name
-                            }
-                        }
-                    })
-
-            if (plain) {
-                collectionItems.forEach {
-                    println(it)
-                }
-
-            } else {
-                println(
-                        table {
-                            cellStyle {
-                                border = true
-                                paddingLeft = 1
-                                paddingRight = 1
-                            }
-                            header {
-                                row("id", "name", "location", "type", "durationMs", "fps")
-                            }
-                            body {
-                                collectionItems.forEach {
-                                    row {
-                                        cell(it.id.string)
-                                        cell(it.name)
-                                        cell(it.location)
-                                        when (it) {
-                                            is MediaItem.ImageItem -> {
-                                                cell("image") {
-                                                    columnSpan = 3
-                                                }
-                                            }
-                                            is MediaItem.VideoItem -> {
-                                                cell("video")
-                                                cell(it.durationMs)
-                                                cell(it.fps)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                )
-            }
-
-            println("listed ${collectionItems.size} Media Items")
-
-
-        }
-    }
-
-    inner class CheckCollectionCommand : AbstractCollectionCommand("check", help = "Checks if all the files in a collection are present and accessible") {
-        override fun run() {
-
-            val collectionId = this.actualCollectionId()
-            if (collectionId == null) {
-                println("Collection not found.")
-                return
-            }
-
-            val collection = this@MediaCollectionCommand.collections[collectionId]!!
-
-            val collectionItems = this@MediaCollectionCommand.items.filter { it.collection == collectionId }
-
-            val baseFile = File(collection.path)
-
-            var counter = 0
-
-            collectionItems.forEach {
-
-                val file = File(baseFile, it.location)
-
-                if (file.exists()) {
-
-                    if (file.canRead()) {
-                        ++counter
-                    } else {
-                        println("item ${it.name} at ${file.absolutePath} not readable")
                     }
-
-                } else {
-                    println("item ${it.name} at ${file.absolutePath} not found")
-                }
-
+                )
             }
-
-            println("successfully checked $counter of ${collectionItems.size} Media Items")
-
-
         }
     }
 
-    inner class ScanCollectionCommand : AbstractCollectionCommand("scan", help = "Scans a collection directory and adds found items") {
+    /**
+     * [CliktCommand] to show a [MediaCollection]'s [MediaItem]s in detail.
+     */
+    inner class Show : AbstractCollectionCommand("show", help = "Lists the content of a media collection.") {
 
-        val imageTypes by option("-it", "--imageType", help = "Image file types (endings) to be considered in the scan").convert { it.toLowerCase() }.multiple()
-        val videoTypes by option("-vt", "--videoType", help = "Video file types (endings) to be considered in the scan").convert { it.toLowerCase() }.multiple()
+        /** The property of the [MediaItem]s to sort by. */
+        private val sort by option("-s", "--sort", help = "Chose which sorting to use").enum<SortField>(ignoreCase = true).defaultLazy { SortField.NAME }
 
-        override fun run() {
+        private val plain by option("-p", "--plain", help = "Plain formatting. No fancy tables").flag(default = false)
 
-            val collectionId = this.actualCollectionId()
-            if (collectionId == null) {
+        override fun run() = this@MediaCollectionCommand.store.transactional(true) {
+            /* Find media collection. */
+            val collection = this.getCollection()
+            if (collection == null) {
                 println("Collection not found.")
-                return
+                return@transactional
             }
 
-            val collection = this@MediaCollectionCommand.collections[collectionId]!!
+            /* Query for items.. */
+            val query = collection.items.sortedBy(
+                when (this.sort) {
+                    SortField.ID -> MediaItem::id
+                    SortField.NAME -> MediaItem::name
+                    SortField.LOCATION -> MediaItem::location
+                    SortField.DURATION -> MediaItem::durationMs
+                    SortField.FPS -> MediaItem::fps
+                }
+            )
 
+            /* Print items. */
+            if (this.plain) {
+                query.asSequence().forEach { println(it) }
+            } else {
+                println(
+                    table {
+                        cellStyle {
+                            border = true
+                            paddingLeft = 1
+                            paddingRight = 1
+                        }
+                        header {
+                            row("id", "name", "location", "type", "durationMs", "fps")
+                        }
+                        body {
+                            query.asSequence().forEach {
+                                row(it.id, it.name, it.location, it.type.description, it.durationMs ?: "n/a", it.fps ?: "n/a")
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    /**
+     * [CliktCommand] to validate a [MediaCollection]'s [MediaItem]s.
+     */
+    inner class Check : AbstractCollectionCommand("check", help = "Checks if all the files in a media collection are present and accessible.") {
+        override fun run() = this@MediaCollectionCommand.store.transactional(true) {
+            /* Find media collection. */
+            val collection = this.getCollection()
+            if (collection == null) {
+                println("Collection not found.")
+                return@transactional
+            }
+
+            /* Check items. */
+            var counter = 0
+            for (item in collection.items.asSequence()) {
+                val path = item.pathToOriginal()
+                if (Files.exists(path)) {
+                    if (Files.isReadable(path)) {
+                        counter++
+                    } else {
+                        println("Item ${item.name} at $path not readable.")
+                    }
+                } else {
+                    println("Item ${item.name} at $path not found.")
+                }
+            }
+            println("Successfully checked $counter of ${collection.items.size()} media itemss")
+        }
+    }
+
+    /**
+     * [CliktCommand] to validate a [MediaCollection]'s [MediaItem]s.
+     */
+    inner class Scan : AbstractCollectionCommand("scan", help = "Scans a collection directory and adds found items") {
+
+        /** The file suffices that should be considered as images. */
+        private val imageTypes by option("-it", "--imageType", help = "Image file types (endings) to be considered in the scan").convert { it.lowercase() }.multiple()        /** The file suffices that should be considered as images. */
+
+        /** The file suffices that should be considered as videos. */
+        private val videoTypes by option("-vt", "--videoType", help = "Video file types (endings) to be considered in the scan").convert { it.lowercase() }.multiple()
+
+        override fun run() = this@MediaCollectionCommand.store.transactional {
+            /* Sanity cehck. */
             if (imageTypes.isEmpty() && videoTypes.isEmpty()) {
                 println("No file types specified.")
-                return
+                return@transactional
             }
 
-            val base = File(collection.path)
-
-            if (!base.exists()) {
-                println("Cannot scan collection, '${collection.path}' does not exist.")
-                return
+            /* Find media collection. */
+            val collection = this.getCollection()
+            if (collection == null) {
+                println("Collection not found.")
+                return@transactional
             }
 
-            if (!base.isDirectory) {
-                println("Cannot scan collection, '${collection.path}' is no directory.")
-                return
+            val base = Paths.get(collection.path)
+            if (!Files.exists(base)) {
+                println("Failed to scan collection; '${collection.path}' does not exist.")
+                return@transactional
             }
 
-            if (!base.canRead()) {
-                println("Cannot scan collection, '${collection.path}' is not readable.")
-                return
+            if (!Files.isReadable(base)) {
+                println("Failed to scan collection;  '${collection.path}' is not readable.")
+                return@transactional
             }
 
-            val files = base.walkTopDown().filter { it.isFile && (it.extension.toLowerCase() in imageTypes || it.extension in videoTypes) }
+            if (!Files.isDirectory(base)) {
+                println("Failed to scan collection; '${collection.path}' is no directory.")
+                return@transactional
+            }
 
-            val buffer = mutableListOf<MediaItem>()
-
-            val issues = mutableMapOf<String, String>()
-
+            /* Now scan directory. */
+            val issues = mutableMapOf<Path, String>()
             var fileCounter = 0
-
-            files.forEach { file ->
-
-                println("found ${file.absolutePath}")
-
-                val relativePath = file.relativeTo(base).path
-
-                val existing = this@MediaCollectionCommand.itemPathIndex[relativePath].find { it.collection == collectionId }
-                try {
-                    when (file.extension.toLowerCase()) {
-                        in imageTypes -> {
-
-                            if (existing == null) { //add
-                                val newItem = MediaItem.ImageItem(UID.EMPTY, file.nameWithoutExtension, relativePath, collection.id)
-                                buffer.add(newItem)
-                            } else { //skip
-                                println("Image ${existing.name} already present")
+            Files.walk(base).filter {
+                Files.isRegularFile(it) && (it.extension in imageTypes || it.extension in videoTypes)
+            }.forEach {
+                val relativePath = it.relativeTo(base)
+                val exists = MediaItem.query((MediaItem::collection eq collection) and (MediaItem::location eq relativePath.toString())).isNotEmpty
+                if (!exists) {
+                    try {
+                        when (it.extension.lowercase()) {
+                            in this.imageTypes -> {
+                                println("Found image $it; analyzing...")
+                                collection.items.add(MediaItem.new {
+                                    this.id = UUID.randomUUID().toString()
+                                    this.type = MediaType.IMAGE
+                                    this.name = it.fileName.nameWithoutExtension
+                                    this.location = relativePath.toString()
+                                })
                             }
-
-
-                        }
-                        in videoTypes -> {
-
-                            println("Analyzing ${file.absolutePath}")
-
-                            val result = FFmpegUtil.analyze(file.toPath()).streams.first()
-                            val fps = (result.rFrameRate ?: result.avgFrameRate!!).toFloat()
-                            val duration = result.getDuration(TimeUnit.MILLISECONDS).let {
-                                if (it != null) {
-                                    it
-                                } else {
-                                    println("Cannot read duration from file, counting frames")
-                                    val analysis = FFmpegUtil.analyze(file.toPath(), countFrames = true)
-                                    val frames = analysis.streams.first().nbReadFrames
-                                    println("Counted $frames frames")
-                                    ((frames * 1000) / fps).toLong()
+                            in videoTypes -> {
+                                println("Found video $it; analyzing...")
+                                val result = FFmpegUtil.analyze(it).streams.first()
+                                val fps = (result.rFrameRate ?: result.avgFrameRate!!).toFloat()
+                                val duration = result.getDuration(TimeUnit.MILLISECONDS).let { duration ->
+                                    if (duration != null) {
+                                        duration
+                                    } else {
+                                        println("Cannot read duration from file, counting frames")
+                                        val analysis = FFmpegUtil.analyze(it, countFrames = true)
+                                        val frames = analysis.streams.first().nbReadFrames
+                                        println("Counted $frames frames")
+                                        ((frames * 1000) / fps).toLong()
+                                    }
                                 }
+
+                                println("Found frame rate to be $fps frames per seconds and duration $duration ms")
+                                collection.items.add(MediaItem.new {
+                                    this.id = UUID.randomUUID().toString()
+                                    this.type = MediaType.VIDEO
+                                    this.name = it.fileName.nameWithoutExtension
+                                    this.location = relativePath.toString()
+                                    this.durationMs = duration
+                                    this.fps = fps
+                                })
                             }
-
-                            println("Found frame rate to be $fps frames per seconds and duration $duration ms")
-
-                            if (existing == null) { //add
-                                val newItem = MediaItem.VideoItem(UID.EMPTY, file.nameWithoutExtension, relativePath, collection.id, duration, fps)
-                                buffer.add(newItem)
-                            } else { //skip
-                                val newItem = MediaItem.VideoItem(existing.id, existing.name, relativePath, collection.id, duration, fps)
-                                this@MediaCollectionCommand.items.update(newItem)
-                                println("Updated Video ${newItem.name}")
-                            }
-
                         }
+                    } catch(e:Throwable) {
+                        this@MediaCollectionCommand.logger.error(this@MediaCollectionCommand.logMarker, "An error occurred with $it. Noting and skipping...")
+                        println("An error occurred with $it. Noting and skipping...")
+                        issues[it] = e.stackTraceToString()
                     }
-                }catch(e:Throwable){
-                    this@MediaCollectionCommand.logger.error(this@MediaCollectionCommand.logMarker, "An error occurred with $file. Noting and skipping...")
-                    println("An error occurred with $file. Noting and skipping...")
-                    issues[file.path] = e.stackTraceToString()
                 }
-                println()
-
-                if (buffer.size >= 1000) {
-                    println()
-                    print("Storing buffer...")
-                    this@MediaCollectionCommand.items.batchAppend(buffer)
-                    buffer.clear()
-                    println("done")
-                }
-
                 ++fileCounter
-
             }
-
-            println()
-            if (buffer.isNotEmpty()) {
-                print("Storing buffer...")
-                this@MediaCollectionCommand.items.batchAppend(buffer)
-                println("done")
-            }
-            if(issues.isNotEmpty()){
+            if (issues.isNotEmpty()) {
                 val file = File("issues-scan-${collection.name}-${System.currentTimeMillis()}.json")
                 println("There have been ${issues.size} issues while scanning. You might want to check them at ${file.path}")
                 val om = jacksonObjectMapper()
@@ -419,293 +378,234 @@ class MediaCollectionCommand(val collections: DAO<MediaCollection>, val items: D
                 println("done")
             }
             println("\nAdded $fileCounter elements to collection")
-
-
-        }
-
-
-    }
-
-    inner class DeleteCollectionCommand : AbstractCollectionCommand("delete", help = "Deletes a Collection") {
-        override fun run() {
-
-            val collectionId = this.actualCollectionId()
-            if (collectionId == null) {
-                println("Collection not found.")
-                return
-            }
-            print("looking up Media Items...")
-            val itemIds = this@MediaCollectionCommand.items.filter { it.collection == collectionId }.map { it.id }
-            println("done, found ${itemIds.size} Items")
-
-            print("looking up Media Item Segments...")
-            val itemIdSet = itemIds.toSet()
-            val segmentIds = this@MediaCollectionCommand.segments.filter { itemIdSet.contains(it.mediaItemId) }.map { it.id }
-            println("done, found ${segmentIds.size} Segments")
-
-            print("Deleting Media Item Segments...")
-            this@MediaCollectionCommand.segments.batchDelete(segmentIds)
-            println("done")
-
-            print("Deleting Media Items...")
-            this@MediaCollectionCommand.items.batchDelete(itemIds)
-            println("done")
-
-            print("Deleting Collection...")
-            this@MediaCollectionCommand.collections.delete(collectionId)
-            println("done")
-
         }
     }
 
-    inner class DeleteItemCommand : AbstractCollectionCommand("deleteItem", help = "Deletes Media Item(s)") {
+    /**
+     * [CliktCommand] to delete [MediaItem]s.
+     */
+    inner class DeleteItem : AbstractCollectionCommand("deleteItem", help = "Deletes media item(s).") {
+        /** The item ID matching the name of the [MediaItem] to delete. */
+        private val itemId: MediaId? by option("-ii", "--itemId", help = "ID of the media item.")
 
-        private val itemName: String by option("-in", "--itemName", help = "Name of the Item").default("")
-        private val itemIdInput: UID? by option("-ii", "--itemId", help = "Id of the Item").convert { it.UID() }
-        private val nameRegex: Regex? by option("-e", "--regex", help="Regex for item names").convert { it.toRegex() }
+        /** The name of the [MediaItem] to delete. */
+        private val itemName: String? by option("-in", "--itemName", help = "The exact name of the media item.")
 
-        override fun run() {
+        /** A RegEx matching the name of the [MediaItem] to delete. */
+        private val itemNameRegex: Regex? by option("-e", "--regex", help="Regex for item names").convert { it.toRegex() }
 
-            val collectionId = this.actualCollectionId()
-            if (collectionId == null && itemIdInput == null) {
-                println("Collection not found.")
-                return
-            }
 
-            if ((itemName.isBlank() && itemIdInput == null) && nameRegex == null) {
+
+        override fun run() = this@MediaCollectionCommand.store.transactional {
+            /* Sanity check. */
+            if (itemName == null && itemId == null && itemNameRegex == null) {
                 println("Item(s) not specified.")
-                return
-            }
-            if(itemName.isNotBlank() || itemIdInput != null){
-                val itemId = itemIdInput
-                        ?: this@MediaCollectionCommand.items.find { it.collection == collectionId && it.name == itemName }?.id
-
-                if (itemId == null) {
-                    println("Item not found.")
-                    return
-                }
-
-                this@MediaCollectionCommand.items.delete(itemId)
-                println("Item '${itemId.string}' deleted")
-            }else if(nameRegex != null){
-                val regex = nameRegex!!
-                val ids = this@MediaCollectionCommand.items.filter { it.collection == collectionId && regex.matches(it.name) }.map{it.id}
-                if(ids.isEmpty()){
-                    println("No items found for regex $regex")
-                    return
-                }
-                ids.forEach {
-                    this@MediaCollectionCommand.items.delete(it)
-                    println("Item '$it' deleted")
-                }
-            }else{
-                println("Nothing was specified, hence no deletion occured")
+                return@transactional
             }
 
+            /* Find media collection. */
+            val collection = this.getCollection()
+            if (collection == null) {
+                println("Collection not found.")
+                return@transactional
+            }
+
+            var counter = 0
+            if (this.itemId != null || this.itemName != null) {
+                collection.items.filter { (it.id eq itemId).or(it.name eq itemName) }.asSequence().forEach {
+                    it.delete()
+                    counter += 1
+                }
+            } else if (this.itemNameRegex != null) {
+                collection.items.asSequence().forEach {
+                    if (this.itemNameRegex!!.matches(it.name)) {
+                        it.delete()
+                        counter += 1
+                    }
+                }
+            }
+            println("$counter media items deleted successfully.")
         }
     }
 
-    inner class AddMediaItemCommand : NoOpCliktCommand(name = "add", help = "Adds a Media Item to a Collection") {
+    /**
+     * [CliktCommand] to delete [MediaItem]s.
+     */
+    inner class AddItem : AbstractCollectionCommand(name = "add", help = "Adds a media item to a media collection.") {
 
-        init {
-            this.subcommands(AddImageCommand(), AddVideoCommand())
-        }
+        /** The [ApiMediaType] of the new [MediaItem]. */
+        private val type: ApiMediaType by option("-t", "--type", help = "Type of the new media item.").enum<ApiMediaType>().required()
 
+        /** The relative path of the new [MediaItem]. */
+        private val path: String by option("-p", "--path", help = "Path of the new media item. relative to the collection base path").required()
 
-        inner class AddImageCommand : AbstractCollectionCommand(name = "image", help = "Adds a new Image Media Item") {
+        /** The duration of the new [MediaItem]. */
+        private val duration: Long? by option("-d", "--duration", help = "video duration in seconds").long()
 
-            private val name: String by option("-n", "--name", help = "Name of the Item").required()
-            private val path: String by option("-p", "--path", help = "Path of the Item relative to the Collection base path")
-                    .required()
+        /** The fps rate of the new [MediaItem]. */
+        private val fps: Float? by option("-f", "--fps").float().required()
 
-            override fun run() {
-
-                val collectionId = this.actualCollectionId()
-                if (collectionId == null) {
-                    println("Collection not found.")
-                    return
-                }
-
-                val existing = this@MediaCollectionCommand.items.filterIsInstance<MediaItem.ImageItem>().find { it.collection == collectionId && it.name == name }
-                if (existing != null) {
-                    println("item with name '$name' already exists in collection:")
-                    println(existing)
-                    return
-                }
-                this@MediaCollectionCommand.items.append(MediaItem.ImageItem(name = name.trim(), location = path.cleanPathString(), collection = collectionId, id = UID.EMPTY))
-                println("item added")
+        override fun run() = this@MediaCollectionCommand.store.transactional {
+            /* Find media collection. */
+            val collection = this.getCollection()
+            if (collection == null) {
+                println("Collection not found.")
+                return@transactional
             }
 
-        }
-
-        inner class AddVideoCommand : AbstractCollectionCommand(name = "video", help = "Adds a new Video Media Item") {
-
-            private val name: String by option("-n", "--name", help = "Name of the Item").required()
-            private val path: String by option("-p", "--path", help = "Path of the Item relative to the Collection base path")
-                    .required()
-
-            private val duration: Long by option("-d", "--duration", help = "video duration in seconds").long().required()
-            private val fps: Float by option("-f", "--fps").float().required()
-
-            override fun run() {
-                val collectionId = this.actualCollectionId()
-                if (collectionId == null) {
-                    println("Collection not found.")
-                    return
-                }
-
-                val existing = this@MediaCollectionCommand.items.filterIsInstance<MediaItem.VideoItem>().find { it.collection == collectionId && it.name == name }
-                if (existing != null) {
-                    println("item with name '$name' already exists in collection:")
-                    println(existing)
-                    return
-                }
-                this@MediaCollectionCommand.items.append(MediaItem.VideoItem(name = name, location = path, collection = collectionId, durationMs = duration, fps = fps, id = UID.EMPTY))
-                println("item added")
+            /* Check if file exists. */
+            val fullPath = Paths.get(collection.path, this@AddItem.path)
+            if (!Files.exists(fullPath)) {
+                println("Warning: Media item $fullPath doesn't seem to exist. Continuing anyway...")
             }
 
-        }
+            /* Add new media item. */
+            collection.items.add(MediaItem.new {
+                this.id = UUID.randomUUID().toString()
+                this.type = this@AddItem.type.type
+                this.name = Paths.get(this@AddItem.path).nameWithoutExtension
+                this.location = this@AddItem.path
+                this.durationMs = this@AddItem.duration
+                this.fps = this@AddItem.fps
+            })
 
+            println("Media item added successfully.")
+        }
     }
 
-    inner class ExportCollectionCommand : AbstractCollectionCommand("export", help = "Exports a Collection to a CSV file") {
+    /**
+     * [CliktCommand] to export a [MediaCollection].
+     */
+    inner class Export : AbstractCollectionCommand("export", help = "Exports a media collection into a CSV file.") {
 
-        private fun fileOutputStream(file: String): OutputStream = FileOutputStream(file)
+        /** The output path for the export.. */
+        private val output: Path by option("-o", "--output", help = "Path of the file the media collection should to be exported to.").convert { Paths.get(it)}.required()
 
-        private val outputStream: OutputStream by option("-f", "--file", help = "Path of the file the Collection is to be exported to")
-                .convert { fileOutputStream(it) }
-                .default(System.out)
-
-        private fun toRow(item: MediaItem): List<String?> = when (item) {
-            is MediaItem.ImageItem -> listOf("image", item.name, item.location, null, null)
-            is MediaItem.VideoItem -> listOf("video", item.name, item.location, item.duration.toMillis().toString(), item.fps.toString())
-        }
-
+        /** The header of an exported CSV file. */
         private val header = listOf("itemType", "name", "location", "duration", "fps")
 
-        override fun run() {
-            csvWriter().open(outputStream) {
-                writeRow(header)
-                this@MediaCollectionCommand.items.forEach {
-                    writeRow(toRow(it))
-                }
-            }
-        }
-    }
-
-    inner class ImportCollectionCommand : AbstractCollectionCommand("import", help = "Imports a Collection from a CSV file") {
-
-        private val inputFile: File by option("-f", "--file", help = "Path of the file the Collection is to be imported from")
-                .convert { File(it) }
-                .required()
-                .validate { require(it.exists()) { "Input File not found" } }
-
-        private fun fromRow(map: Map<String, String>, collectionId: UID): MediaItem? {
-
-            if (!map.containsKey("itemType") || !map.containsKey("name") || !map.containsKey("location")) {
-                return null
+        override fun run() = this@MediaCollectionCommand.store.transactional(true) {
+            /* Find media collection. */
+            val collection = this.getCollection()
+            if (collection == null) {
+                println("Collection not found.")
+                return@transactional
             }
 
-            return when (map.getValue("itemType")) {
-                "image" -> MediaItem.ImageItem(UID.EMPTY, map.getValue("name"), map.getValue("location"), collectionId)
-                "video" -> {
-                    if (map.containsKey("duration") && map.containsKey("fps")) {
-                        return MediaItem.VideoItem(UID.EMPTY, map.getValue("name"), map.getValue("location"), collectionId, map.getValue("duration").toLong(), map.getValue("fps").toFloat())
+            Files.newOutputStream(this.output, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW).use { os ->
+                csvWriter().open(os) {
+                    writeRow(this@Export.header)
+                    collection.items.asSequence().forEach {
+                        writeRow(listOf(it.type.description, it.name, it.location, it.durationMs?.toString(), it.fps?.toString()))
                     }
-                    return null
                 }
-                else -> null
             }
         }
-
-        override fun run() {
-            val collectionId = this.actualCollectionId()
-            if (collectionId == null) {
-                println("Collection not found.")
-                return
-            }
-
-            val rows: List<Map<String, String>> = csvReader().readAllWithHeader(inputFile)
-            val itemsFromFile = rows.mapNotNull { this.fromRow(it, collectionId) }
-
-            val collectionItems = this@MediaCollectionCommand.items.filter { it.collection == collectionId }.toList()
-
-            val itemsToInsert = itemsFromFile.filter { item ->
-                collectionItems.none { it.name == item.name && it.location == item.location }
-            }
-
-            this@MediaCollectionCommand.items.batchAppend(itemsToInsert)
-            println("Successfully imported ${itemsToInsert.size} of ${rows.size} rows")
-        }
-
     }
 
-    inner class ImportMediaSegmentsCommand : AbstractCollectionCommand("importSegments", "Imports the Segment information for the Items in a Collection from a CSV file") {
+    /**
+     * [CliktCommand] to import a [MediaCollection].
+     */
+    inner class Import : AbstractCollectionCommand("import", help = "Imports a media collection from a CSV file.") {
 
-        private val inputFile: File by option("-f", "--file", help = "Path of the file the Segments are to be imported from")
-                .convert { File(it) }
-                .required()
-                .validate { require(it.exists()) { "Input File not found" } }
+        /** [Path] to the input file. */
+        private val input: Path by option("-i", "--input", help = "Path of the file the media collection should be imported from.")
+            .convert { Paths.get(it) }.required()
 
         override fun run() {
+            var inserted = 0
 
-            val collectionId = this.actualCollectionId()
-            if (collectionId == null) {
-                println("Collection not found.")
+            /* Check for input file's existence. */
+            if (!Files.exists(this.input)) {
+                println("Input file not found.")
                 return
             }
 
-            print("loading collection information...")
-            val itemIds = this@MediaCollectionCommand.items.filter { it.collection == collectionId }.map { it.name to it.id }.toMap()
-            val mediaItemIds = itemIds.values.toSet()
-            print(".")
-            val existingSegments = this@MediaCollectionCommand.segments
-                    .filter { mediaItemIds.contains(it.mediaItemId) }.flatMap { it.segments.map { s -> it.mediaItemId to s.name } }.toMutableSet()
-            println("done")
-
-            print("reading input file...")
-            val rows: List<Map<String, String>> = csvReader().readAllWithHeader(inputFile)
-            println("done, read ${rows.size} rows")
-
-            print("analyzing segments...")
-            val segments = rows.map {
-                val video = it["video"] ?: return@map null
-                val name = it["name"] ?: return@map null
-                val start = it["start"]?.toLong() ?: return@map null
-                val end = it["end"]?.toLong() ?: return@map null
-
-                val videoId = itemIds[video] ?: return@map null
-
-                //check for duplicates
-                val pair = videoId to name
-                if (existingSegments.contains(pair)) {
-                    return@map null
+            /* Load file. */
+            this@MediaCollectionCommand.store.transactional {
+                /* Find media collection. */
+                val collection = this.getCollection()
+                if (collection == null) {
+                    println("Collection not found.")
+                    return@transactional
                 }
-                existingSegments.add(pair)
 
-                MediaItemSegment(videoId, name, TemporalRange(start, end))
-            }.filterNotNull()
-            println("done, generated ${segments.size} valid, non-duplicate segments")
+                Files.newInputStream(this.input, StandardOpenOption.READ).use { ips ->
+                    val rows: kotlin.collections.List<Map<String, String>> = csvReader().readAllWithHeader(ips)
+                    for (row in rows) {
+                        inserted += 1
+                        collection.items.add(MediaItem.new {
+                            this.id = UUID.randomUUID().toString()
+                            this.type = ApiMediaType.valueOf(row.getValue("type").uppercase()).type
+                            this.name = row.getValue("name")
+                            this.location = row.getValue("location")
+                            this.durationMs = row["duration"]?.toLongOrNull()
+                            this.fps = row["fps"]?.toFloatOrNull()
+                        })
+                    }
+                }
 
-            val grouped = segments.groupBy { it.mediaItemId }
-            val affected = this@MediaCollectionCommand.segments.filter { grouped.keys.contains(it.mediaItemId) }
-
-            affected.forEach {
-                it.segments.addAll(grouped[it.mediaItemId] ?: emptyList())
             }
-
-            val affectedMediaItemIds = affected.map { it.mediaItemId }.toSet()
-
-            val new = grouped.filter { !affectedMediaItemIds.contains(it.key) }.map { MediaItemSegmentList(UID.EMPTY, it.key, it.value.toMutableList()) }
-
-
-            print("storing segments...")
-            affected.forEach {
-                this@MediaCollectionCommand.segments.update(it)
-            }
-            this@MediaCollectionCommand.segments.batchAppend(new)
-            println("done")
+            println("Successfully imported $inserted media items.")
         }
+    }
 
+
+    /**
+     * [CliktCommand] to import a [MediaItemSegment]s.
+     *
+     * Uses the VBS format.
+     */
+    inner class ImportSegments : AbstractCollectionCommand("importSegments", "Imports the Segment information for the Items in a Collection from a CSV file") {
+
+        /** [Path] to the input file. */
+        private val input: Path by option("-i", "--input", help = "Path of the file the media segments should be imported from.")
+            .convert { Paths.get(it) }.required()
+
+        override fun run() {
+            var inserted = 0
+
+            /* Check for input file's existence. */
+            if (!Files.exists(this.input)) {
+                println("Input file not found.")
+                return
+            }
+
+            /* Load file. */
+            this@MediaCollectionCommand.store.transactional {
+                /* Find media collection. */
+                val collection = this.getCollection()
+                if (collection == null) {
+                    println("Collection not found.")
+                    return@transactional
+                }
+
+                Files.newInputStream(this.input, StandardOpenOption.READ).use { ips ->
+                    print("Reading input file...")
+                    val rows: kotlin.collections.List<Map<String, String>> = csvReader().readAllWithHeader(ips)
+                    println("Done! Reading ${rows.size} rows")
+                    for (row in rows) {
+                        val videoName = row["name"] ?: continue
+                        val start = row["start"]?.toIntOrNull() ?: continue
+                        val end = row["end"]?.toIntOrNull() ?: continue
+                        val videoItem = collection.items.filter { it.name eq videoName }.firstOrNull()
+                        if (videoItem != null) {
+                            inserted += 1
+                            videoItem.segments.add(
+                                MediaItemSegment.new {
+                                    this.id = UUID.randomUUID().toString()
+                                    this.name = videoName
+                                    this.start = start
+                                    this.end = end
+                                }
+                            )
+                        }
+
+                    }
+                    println("Done! Read $inserted valid segments.")
+                }
+            }
+            println("Done! Inserted $inserted valid segments.")
+        }
     }
 }

@@ -1,7 +1,5 @@
 package dev.dres.data.model.media.time
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.annotation.JsonTypeName
 import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.PlayableMediaItem
 import java.lang.IllegalArgumentException
@@ -9,10 +7,9 @@ import java.lang.IllegalArgumentException
 /**
  * Notion of a [TemporalPoint] within a [MediaItem] that exhibits temporal development (e.g. [VideoItem]).
  *
- * @version 2.1.0
+ * @version 2.2.0
  * @author Luca Rossetto & Ralph Gasser
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 sealed class TemporalPoint {
     abstract fun niceText(): String
     abstract fun toMilliseconds(): Long
@@ -20,7 +17,6 @@ sealed class TemporalPoint {
     /**
      * A [TemporalPoint] represented by a frame number and a fps value.
      */
-    @JsonTypeName("Frame")
     data class Frame(val frame: Int, val fps: Float) : TemporalPoint(){
 
         companion object {
@@ -35,7 +31,6 @@ sealed class TemporalPoint {
     /**
      * A [TemporalPoint] represented by a millsecond value.
      */
-    @JsonTypeName("Millisecond")
     data class Millisecond(val millisecond: Long) : TemporalPoint() {
         override fun niceText(): String = "MilliSecondTemporalPoint($millisecond)"
 
@@ -45,7 +40,6 @@ sealed class TemporalPoint {
     /**
      * A [TemporalPoint] represented by a timecode and a fps value.
      */
-    @JsonTypeName("Timecode")
     data class Timecode(val timecode: String, val fps: Float) : TemporalPoint(){
 
         companion object {

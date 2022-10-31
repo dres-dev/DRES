@@ -1,9 +1,9 @@
 package dev.dres.data.model.competition.task
 
+import dev.dres.api.rest.types.competition.tasks.*
+import dev.dres.api.rest.types.competition.team.ApiTeam
 import dev.dres.api.rest.types.task.ApiContentElement
 import dev.dres.api.rest.types.task.ApiContentType
-import dev.dres.api.rest.types.task.TaskHint
-import dev.dres.api.rest.types.task.TaskTarget
 import dev.dres.data.model.Config
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.media.MediaCollection
@@ -35,7 +35,7 @@ class TaskDescription(entity: Entity) : PersistentEntity(entity), TaskScorerFact
     companion object: XdNaturalEntityType<TaskDescription>()
 
     /** The [TaskDescriptionId] of this [TaskDescription]. */
-    var teamId: TaskDescriptionId
+    var taskId: TaskDescriptionId
         get() = this.id
         set(value) { this.id = value }
 
@@ -74,18 +74,19 @@ class TaskDescription(entity: Entity) : PersistentEntity(entity), TaskScorerFact
      */
     override fun newFilter(): SubmissionFilter = this.taskGroup.type.newFilter()
 
+
     /**
-     * Generates and returns a [TaskHint] object to be used by the RESTful interface.
+     * Generates and returns a [ApiHintContent] object to be used by the RESTful interface.
      *
      * Requires a valid transaction.
      *
      * @param config The [Config] used of path resolution.
-     * @return [TaskHint]
+     * @return [ApiHintContent]
      *
      * @throws FileNotFoundException
      * @throws IOException
      */
-    fun toTaskHint(config: Config): TaskHint {
+    fun toTaskHint(config: Config): ApiHintContent {
         val sequence =  this.hints.asSequence().groupBy { it.type }.flatMap { group ->
             var index = 0
             group.value.sortedBy { it.start ?: 0 }.flatMap {
@@ -101,21 +102,21 @@ class TaskDescription(entity: Entity) : PersistentEntity(entity), TaskScorerFact
                 ret
             }
         }
-        return TaskHint(this.id, sequence, false)
+        return ApiHintContent(this.id, sequence, false)
     }
 
     /**
-     * Generates and returns a [TaskTarget] object to be used by the RESTful interface.
+     * Generates and returns a [ApiTargetContent] object to be used by the RESTful interface.
      *
      * Requires a valid transaction.
      *
      * @param config The [Config] used of path resolution.
-     * @return [TaskTarget]
+     * @return [ApiTargetContent]
      *
      * @throws FileNotFoundException
      * @throws IOException
      */
-    fun toTaskTarget(config: Config): TaskTarget {
+    fun toTaskTarget(config: Config): ApiTargetContent {
         var cummulativeOffset = 0L
         val sequence = this.targets.asSequence().flatMap {
             cummulativeOffset += Math.floorDiv(it.item!!.durationMs!!, 1000L) + 1L
@@ -124,7 +125,7 @@ class TaskDescription(entity: Entity) : PersistentEntity(entity), TaskScorerFact
                 ApiContentElement(ApiContentType.EMPTY, null, cummulativeOffset)
             )
         }.toList()
-        return TaskTarget(this.id, sequence)
+        return ApiTargetContent(this.id, sequence)
     }
 
     /**
@@ -132,7 +133,25 @@ class TaskDescription(entity: Entity) : PersistentEntity(entity), TaskScorerFact
      *
      * @return Textual description of this [TaskDescription]'s content,
      */
-    fun textualDescription(): String = this.hints.asSequence().filter { it.type == HintType.TEXT }.maxByOrNull { it.start ?: 0 }?.hintText ?: name
+    fun textualDescription(): String = this.hints.asSequence().filter { it.type == HintType.TEXT }.maxByOrNull { it.start ?: 0 }?.text ?: name
+
+    /**
+     * Converts this [TaskDescription] to a RESTful API representation [ApiTaskDescription].
+     *
+     * This is a convenience method and requires an active transaction context.
+     *
+     * @return [ApiTeam]
+     */
+    fun toApi(): ApiTaskDescription = ApiTaskDescription(
+        this.id,
+        this.name,
+        this.taskGroup.name,
+        this.taskGroup.type.name,
+        this.duration,
+        this.collection.id,
+        this.targets.asSequence().map { it.toApi() }.toList(),
+        this.hints.asSequence().map { it.toApi() }.toList()
+    )
 
     /**
      * Checks if no components of the same type overlap

@@ -1,12 +1,15 @@
 package dev.dres.run.score.interfaces
 
 import dev.dres.data.model.UID
-import dev.dres.data.model.competition.TeamId
+import dev.dres.data.model.competition.team.Team
+import dev.dres.data.model.competition.team.TeamId
 import dev.dres.data.model.run.interfaces.Task
-import dev.dres.run.score.ScoreEntry
+
+/** Type alias for a */
+typealias ScoreEntry = Triple<TeamId, String?, Double>
 
 /**
- * A scorer for a [Task]. A score is a [Double] value that captures a teams performance.
+ * A scorer for a [Task]. A score is a [Double] value that captures a [Team] performance.
  * The [TaskScorer] calculates and tracks these scores per [TeamId].
  *
  * @version 1.1.0
@@ -19,5 +22,4 @@ interface TaskScorer {
      * @return Map of team [UID] to team score
      */
     fun scores(): List<ScoreEntry>
-
 }

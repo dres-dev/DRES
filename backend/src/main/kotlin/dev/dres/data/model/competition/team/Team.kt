@@ -1,7 +1,6 @@
 package dev.dres.data.model.competition.team
 
-import dev.dres.api.rest.types.competition.ApiTeam
-import dev.dres.api.rest.types.users.ApiUser
+import dev.dres.api.rest.types.competition.team.ApiTeam
 import dev.dres.data.model.Config
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.admin.User
@@ -10,7 +9,12 @@ import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.link.OnDeletePolicy
 import kotlinx.dnq.query.asSequence
+import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
+import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.*
+import javax.imageio.ImageIO
 
 /** The ID of a [Team]. */
 typealias TeamId = String
@@ -30,6 +34,50 @@ class Team(entity: Entity) : PersistentEntity(entity) {
         override val compositeIndices = listOf(
             listOf(Team::name, Team::competition)
         )
+
+        /**
+         * Stores the given image data to disk.
+         *
+         * @param config The [Config] object with global configuration.
+         * @param data The Base64 encoded image data.
+         * @param logoId The [LogoId] of the logo to store.
+         *
+         * @return The UID of the image.
+         */
+        fun storeLogo(config: Config, data: String, logoId: LogoId): LogoId {
+            /* Parse image data. */
+            val base64Image: String = data.substringAfter(",")
+            val imageBytes = Base64.getDecoder().decode(base64Image)
+            val image = ByteArrayInputStream(imageBytes).use {
+                val original = ImageIO.read(it)
+                if (original.width <= config.logoMaxSize && original.height <= config.logoMaxSize) {
+                    original
+                } else {
+                    val target = if (original.width > original.height) {
+                        Pair(config.logoMaxSize, (original.height * (config.logoMaxSize.toDouble() / original.width)).toInt())
+                    } else {
+                        Pair((original.width * (config.logoMaxSize.toDouble() / original.height)).toInt(), config.logoMaxSize)
+                    }
+                    val resizedImage = BufferedImage(target.first, target.second, BufferedImage.TYPE_INT_ARGB)
+                    val graphics2D = resizedImage.createGraphics()
+                    graphics2D.drawImage(original, 0, 0, target.first, target.second, null)
+                    graphics2D.dispose()
+                    resizedImage
+                }
+            }
+
+            /* Generate UID and prepare file path. */
+            val path = Team.logoPath(config, logoId)
+            if (!Files.exists(path.parent)) {
+                Files.createDirectories(path.parent)
+            }
+
+            /* Generate UID and write image to disk. */
+            Files.newOutputStream(path).use {
+                ImageIO.write(image, "PNG", it)
+            }
+            return logoId
+        }
 
         /**
          * Generates and returns the [Path] to the team logo with the given [logoId].
@@ -70,5 +118,5 @@ class Team(entity: Entity) : PersistentEntity(entity) {
      *
      * @return [ApiTeam]
      */
-    fun toApi() = ApiTeam(this.name, this.color, this.logoId, this.users.asSequence().map { it.toApi() }.toList())
+    fun toApi() = ApiTeam(this.teamId, this.name, this.color, this.logoId, this.users.asSequence().map { it.toApi() }.toList())
 }

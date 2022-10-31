@@ -1,21 +1,21 @@
 package dev.dres.run.score.scoreboard
 
-import dev.dres.data.model.UID
 import dev.dres.data.model.competition.task.TaskDescription
+import dev.dres.data.model.competition.task.TaskDescriptionId
 import dev.dres.data.model.competition.team.Team
+import dev.dres.data.model.competition.team.TeamId
 import dev.dres.data.model.run.AbstractInteractiveTask
-import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.run.score.interfaces.TaskScorer
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
 class MaxNormalizingScoreBoard(override val name: String, teams: List<Team>, private val taskFilter: (TaskDescription) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 100.0) : Scoreboard {
 
-    private val scorePerTaskMap = ConcurrentHashMap<UID, Map<UID, Double>>()
+    private val scorePerTaskMap = ConcurrentHashMap<TaskDescriptionId, Map<TaskDescriptionId, Double>>()
 
-    private val teamIds = teams.map { it.uid }
+    private val teamIds = teams.map { it.teamId }
 
-    private fun overallScoreMap(): Map<UID, Double> {
+    private fun overallScoreMap(): Map<TaskDescriptionId, Double> {
         val scoreSums = scorePerTaskMap.values
                 .flatMap {it.entries} //all team to score pairs independent of task
                 .groupBy { it.key } //individual scores per team
@@ -29,13 +29,13 @@ class MaxNormalizingScoreBoard(override val name: String, teams: List<Team>, pri
 
     override fun scores(): List<Score> {
         val scores = overallScoreMap()
-        return this.teamIds.map { Score(it.string, scores[it] ?: 0.0) }
+        return this.teamIds.map { Score(it, scores[it] ?: 0.0) }
     }
 
-    override fun score(teamId: UID) = overallScoreMap()[teamId] ?: 0.0
+    override fun score(teamId: TeamId) = overallScoreMap()[teamId] ?: 0.0
 
 
-    override fun update(scorers: Map<TaskId, TaskScorer>) {
+    override fun update(scorers: Map<TaskDescriptionId, TaskScorer>) {
         this.scorePerTaskMap.clear()
         this.scorePerTaskMap.putAll(scorers.map {
             it.key to it.value.scores().groupBy { it.first }.mapValues {

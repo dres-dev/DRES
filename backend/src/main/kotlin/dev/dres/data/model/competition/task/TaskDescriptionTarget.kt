@@ -1,12 +1,10 @@
 package dev.dres.data.model.competition.task
 
+import dev.dres.api.rest.types.collection.time.ApiTemporalRange
 import dev.dres.api.rest.types.competition.tasks.ApiTarget
-import dev.dres.api.rest.types.competition.tasks.ApiTargetItem
-import dev.dres.api.rest.types.competition.tasks.RestTemporalRange
 import dev.dres.api.rest.types.task.ApiContentElement
+import dev.dres.api.rest.types.task.ApiContentType
 import dev.dres.data.model.Config
-import dev.dres.data.model.PersistentEntity
-import dev.dres.data.model.competition.team.Team
 import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.MediaType
 import dev.dres.data.model.media.time.TemporalPoint
@@ -42,20 +40,19 @@ class TaskDescriptionTarget(entity: Entity) : XdEntity(entity) {
     var text by xdStringProp() { requireIf { item == null }}
 
     /** The start of a (potential) range. */
-    var temporalRangeStart by xdNullableIntProp { requireIf { item?.type == MediaType.VIDEO } }
+    var temporalRangeStart by xdNullableLongProp { requireIf { item?.type == MediaType.VIDEO } }
 
     /** The start of a (potential) range. */
-    var temporalRangeEnd by xdNullableIntProp { requireIf { item?.type == MediaType.VIDEO } }
+    var temporalRangeEnd by xdNullableLongProp { requireIf { item?.type == MediaType.VIDEO } }
 
     /** Returns the [TemporalRange] of this [TaskDescriptionTarget]. */
     val range: TemporalRange?
-        get() {
-            return if (this.temporalRangeStart != null && this.temporalRangeEnd != null) {
-                return TemporalRange(TemporalPoint.Frame(this.temporalRangeStart!!, this.item!!.fps ?: 1.0f), TemporalPoint.Frame(this.temporalRangeEnd!!, this.item!!.fps ?: 1.0f))
-            } else {
-                null
-            }
+        get() = if (this.temporalRangeStart != null && this.temporalRangeEnd != null) {
+            TemporalRange(TemporalPoint.Millisecond(this.temporalRangeStart!!), TemporalPoint.Millisecond(this.temporalRangeEnd!!))
+        } else {
+            null
         }
+
 
     /**
      * Generates and returns a textual description of this [TaskDescriptionTarget].
@@ -74,26 +71,14 @@ class TaskDescriptionTarget(entity: Entity) : XdEntity(entity) {
     /**
      *
      */
-    fun toApi() = if (this.temporalRangeStart != null && this.temporalRangeEnd != null) {
-        ApiTarget(this.type.toApi(), ApiTargetItem(this.item.id))
-    } else {
-        ApiTarget(this.type.toApi(), ApiTargetItem(this.item.id))
+    fun toApi(): ApiTarget = when(this.type) {
+        TargetType.JUDGEMENT,
+        TargetType.JUDGEMENT_WITH_VOTE -> ApiTarget(this.type.toApi(), null)
+        TargetType.MEDIA_ITEM,
+        TargetType.MEDIA_ITEM_TEMPORAL_RANGE -> ApiTarget(this.type.toApi(), this.item?.id, this.range?.let { ApiTemporalRange(it) })
+        TargetType.TEXT -> ApiTarget(this.type.toApi(), this.text)
+        else -> throw IllegalStateException("Task description of type ${this.type.description} is not supported.")
     }
-        /**
-         * Generates a [ApiTarget] from a [TaskDescriptionTarget] and returns it.
-         *
-         * @param target The [TaskDescriptionTarget] to convert.
-         */
-        fun fromTarget(target: TaskDescriptionTarget) = when(target.type) {
-            is TaskDescriptionTarget.JudgementTaskDescriptionTarget -> ApiTarget(TargetOption.JUDGEMENT, target.targets.map { ApiTargetItem(it.first.id.string, if (it.second == null) null else RestTemporalRange(it.second!!)) })
-            is TaskDescriptionTarget.VideoSegmentTarget -> ApiTarget(TargetOption.SINGLE_MEDIA_SEGMENT, listOf(
-                ApiTargetItem(target.item.id.string, RestTemporalRange(target.temporalRange))
-            ))
-            is TaskDescriptionTarget.MediaItemTarget -> ApiTarget(TargetOption.SINGLE_MEDIA_ITEM, listOf(ApiTargetItem(target.item.id.string)))
-            is TaskDescriptionTarget.MultipleMediaItemTarget -> ApiTarget(TargetOption.MULTIPLE_MEDIA_ITEMS, target.items.map { ApiTargetItem(it.id.string) })
-            is TaskDescriptionTarget.VoteTaskDescriptionTarget -> ApiTarget(TargetOption.VOTE, target.targets.map { ApiTargetItem(it.first.id.string, if (it.second == null) null else RestTemporalRange(it.second!!)) })
-            is TaskDescriptionTarget.TextTaskDescriptionTarget -> ApiTarget(TargetOption.TEXT, target.targets.map { ApiTargetItem(it, null) })
-        }
 
     /**
      * Generates and returns a [ApiContentElement] object of this [Hint] to be used by the RESTful interface.
@@ -105,20 +90,25 @@ class TaskDescriptionTarget(entity: Entity) : XdEntity(entity) {
      * @throws IOException
      */
     fun toQueryContentElement(config: Config): ApiContentElement {
-        val content = when (this.type) {
+        val (content, type) = when (this.type) {
             TargetType.JUDGEMENT,
-            TargetType.JUDGEMENT_WITH_VOTE -> null
+            TargetType.JUDGEMENT_WITH_VOTE -> null to ApiContentType.EMPTY
             TargetType.MEDIA_ITEM -> {
-                val path = this.item?.pathToCachedItem(config, this.temporalRangeStart, this.temporalRangeEnd)
+                val type = when (this.item?.type) {
+                    MediaType.VIDEO -> ApiContentType.VIDEO
+                    MediaType.IMAGE -> ApiContentType.IMAGE
+                    else -> throw IllegalStateException("Invalid target description; type indicates presence of media item but item seems unsupported or unspecified.")
+                }
+                val path = this.item?.cachedItemName(config, this.temporalRangeStart, this.temporalRangeEnd)
                     ?:  throw IllegalArgumentException("A target of type  ${this.type.description} must have a valid media item.")
                 val data = Files.newInputStream(path, StandardOpenOption.READ).use { stream ->
                     stream.readAllBytes()
                 }
-                Base64.getEncoder().encodeToString(data)
+                Base64.getEncoder().encodeToString(data) to type
             }
-            TargetType.TEXT -> this.text
+            TargetType.TEXT -> this.text to ApiContentType.TEXT
             else -> throw IllegalStateException("The content type ${this.type.description} is not supported.")
         }
-        return ApiContentElement(contentType = this.type.toApi(), content = content, offset = 0L)
+        return ApiContentElement(contentType = type, content = content, offset = 0L)
     }
 }

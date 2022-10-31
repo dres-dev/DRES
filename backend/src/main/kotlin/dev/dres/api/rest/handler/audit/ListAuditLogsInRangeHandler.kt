@@ -43,7 +43,7 @@ class ListAuditLogsInRangeHandler(store: TransientEntityStore): AbstractAuditLog
 
         return this.store.transactional(true) {
             AuditLogEntry.query((AuditLogEntry::timestamp gt since) and (AuditLogEntry::timestamp lt upto)).asSequence().map {
-                ApiAuditLogEntry.convert(it)
+                it.toApi()
             }.toList()
         }
     }

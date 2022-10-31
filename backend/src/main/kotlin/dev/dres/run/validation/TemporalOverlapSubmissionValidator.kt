@@ -1,20 +1,20 @@
 package dev.dres.run.validation
 
 import dev.dres.data.model.competition.task.TaskDescription
-import dev.dres.data.model.competition.VideoSegment
+import dev.dres.data.model.media.MediaItemSegment
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
 import dev.dres.run.validation.interfaces.SubmissionValidator
 
 /**
- * A validator class that checks, if a submission is correct based on the target segment and the
+ * A [SubmissionValidator] class that checks, if a submission is correct based on the target segment and the
  * temporal overlap of the [Submission] with the provided [MediaSegmentTaskDescription].
  *
  * @author Luca Rossetto & Ralph Gasser
- * @version 1.0
+ * @version 1.0.1
  */
-class TemporalOverlapSubmissionValidator(private val targetSegment: VideoSegment) : SubmissionValidator {
+class TemporalOverlapSubmissionValidator(private val targetSegment: MediaItemSegment) : SubmissionValidator {
 
     /**
      * Validates a [Submission] based on the target segment and the temporal overlap of the
@@ -31,7 +31,7 @@ class TemporalOverlapSubmissionValidator(private val targetSegment: VideoSegment
             submission.start > submission.end -> SubmissionStatus.WRONG
             submission.item != targetSegment.item ->  SubmissionStatus.WRONG
             else -> {
-                val outer = this.targetSegment.temporalRange.toMilliseconds()
+                val outer = this.targetSegment.range.toMilliseconds()
                 if ((outer.first <= submission.start && outer.second >= submission.start)  || (outer.first <= submission.end && outer.second >= submission.end)) {
                     SubmissionStatus.CORRECT
                 } else {

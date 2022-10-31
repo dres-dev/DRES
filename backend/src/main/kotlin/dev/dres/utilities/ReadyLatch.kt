@@ -2,7 +2,7 @@ package dev.dres.utilities
 
 import dev.dres.utilities.extensions.read
 import dev.dres.utilities.extensions.write
-import org.eclipse.collections.impl.map.mutable.primitive.ObjectBooleanHashMap
+import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap
 import java.util.HashMap
 import java.util.concurrent.locks.StampedLock
 
@@ -15,7 +15,7 @@ import java.util.concurrent.locks.StampedLock
 class ReadyLatch<T> {
 
     /** Internal map that maps object of type [T] to its ready state. */
-    private val map = ObjectBooleanHashMap<T>()
+    private val map = Object2BooleanOpenHashMap<T>()
 
     /** Internal lock to mediate access to map. */
     private val lock = StampedLock()
@@ -37,7 +37,7 @@ class ReadyLatch<T> {
      * @param o The object [T] to unregister.
      */
     fun unregister(o: T) = this.lock.write {
-        this.map.remove(o)
+        this.map.removeBoolean(o)
     }
 
     /**
@@ -46,9 +46,7 @@ class ReadyLatch<T> {
      * @return Current state of this [ReadyLatch].
      */
     fun state() = this.lock.read {
-        val map = HashMap<T,Boolean>()
-        this.map.forEachKeyValue { k, v -> map[k] = v}
-        map
+        HashMap<T,Boolean>(this.map)
     }
 
     /**
@@ -77,7 +75,7 @@ class ReadyLatch<T> {
      * @param timeout specifies an optional timeout in seconds after which [allReadyOrTimedOut] is considered to be true in any case
      */
     fun reset(timeout: Long? = null) = this.lock.write {
-        this.map.updateValues { _, _ -> false }
+        this.map. { _, _ -> false }
         this.timeout = if (timeout != null) (1000L * timeout) + System.currentTimeMillis() else null
     }
 
@@ -92,7 +90,7 @@ class ReadyLatch<T> {
      * Returns true if and only if all objects registered with this [ReadyLatch] are in the ready state.
      */
     fun allReady() = this.lock.read {
-        this.map.allSatisfy { it }
+        this.map.all { it.value }
     }
 
     /**

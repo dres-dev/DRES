@@ -1,10 +1,11 @@
 package dev.dres.data.model.competition.task
 
-import dev.dres.data.model.PersistentEntity
+import dev.dres.api.rest.types.competition.tasks.ApiTargetType
+import dev.dres.api.rest.types.competition.tasks.ApiTaskGroup
 import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.competition.team.Team
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
+import kotlinx.dnq.query.asSequence
 
 /**
  * A [TaskGroup] allows the user to specify common traits among a group of [Task]s.
@@ -31,4 +32,14 @@ class TaskGroup(entity: Entity) : XdEntity(entity) {
 
     /** The [TaskDescription]s contained in this [TaskGroup]*/
     val tasks by xdChildren0_N<TaskGroup, TaskDescription>(TaskDescription::taskGroup)
+
+    /**
+     * Converts this [TargetType] to a RESTful API representation [ApiTargetType].
+     *
+     * This is a convenience method and it requires and active transaction context.
+     *
+     * @return [ApiTargetType]
+     */
+    fun toApi(): ApiTaskGroup
+        = ApiTaskGroup(this.name,this.type.name,this.tasks.asSequence().map { it.toApi() }.toList())
 }

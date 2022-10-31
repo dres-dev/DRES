@@ -18,13 +18,12 @@ import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
 /**
- * A collection of [CliktCommand]s for user management
+ * A collection of [CliktCommand]s for [User] management
  *
  * @author Ralph Gasser
  * @version 2.0.0
  */
-sealed class UserCommand : NoOpCliktCommand(name = "user") {
-
+class UserCommand : NoOpCliktCommand(name = "user") {
     init {
         this.subcommands(Create(), Update(), Delete(), List(), Roles(), Export(), Import())
     }
@@ -40,7 +39,7 @@ sealed class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to create a new [User].
      */
-    inner class Create : CliktCommand(name = "create", help = "Creates a new User", printHelpOnEmptyArgs = true) {
+    inner class Create: CliktCommand(name = "create", help = "Creates a new User", printHelpOnEmptyArgs = true) {
         /** The name of the newly created user. */
         private val username: String by option("-u", "--username", help = "Username of at least $MIN_LENGTH_USERNAME characters length. Must be unique!")
                 .required()
@@ -59,7 +58,6 @@ sealed class UserCommand : NoOpCliktCommand(name = "user") {
             val successful = UserManager.create(username = this.username, password = this.password, role = role)
             if (successful) {
                 println("New user '${UserManager.get(username = this.username)}' created.")
-
             } else {
                 println("Could not create user '${this.username}' because a user with that name already exists.")
 
@@ -70,7 +68,7 @@ sealed class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to update an existing [User].
      */
-    inner class Update : CliktCommand(name = "update", help = "Updates Password or Role of an existing User", printHelpOnEmptyArgs = true) {
+    inner class Update: CliktCommand(name = "update", help = "Updates Password or Role of an existing User", printHelpOnEmptyArgs = true) {
         private val id: UserId? by option("-i", "--id")
 
         /** The new username. */

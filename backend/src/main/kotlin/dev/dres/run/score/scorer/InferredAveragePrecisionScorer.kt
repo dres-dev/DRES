@@ -1,12 +1,12 @@
 package dev.dres.run.score.scorer
 
-import dev.dres.data.model.competition.TeamId
+import dev.dres.data.model.competition.team.TeamId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.StatusAspect
 import dev.dres.data.model.submissions.batch.ResultBatch
-import dev.dres.run.score.ScoreEntry
 import dev.dres.run.score.interfaces.ResultBatchTaskScorer
+import dev.dres.run.score.interfaces.ScoreEntry
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write

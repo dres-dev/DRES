@@ -14,11 +14,11 @@ import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
 import java.util.*
 
 /**
- * This is a [Updatable] that runs necessary post-processing after a [Submission] has been validated;
- * it update the scores for the respective [InteractiveSynchronousCompetition.Task].
+ * This is a [Updatable] that runs necessary post-processing after a [Submission] has been validated and
+ * updates the scores for the respective [InteractiveSynchronousCompetition.Task].
  *
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 1.2.0
  */
 class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdatable, val messageQueueUpdatable: MessageQueueUpdatable, val daoUpdatable: DAOUpdatable<*>): Updatable {
 

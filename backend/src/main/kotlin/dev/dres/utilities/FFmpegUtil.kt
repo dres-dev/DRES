@@ -2,18 +2,15 @@ package dev.dres.utilities
 
 import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg
-import com.github.kokorin.jaffree.ffmpeg.FFmpegResult
 import com.github.kokorin.jaffree.ffmpeg.UrlInput
 import com.github.kokorin.jaffree.ffmpeg.UrlOutput
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import com.github.kokorin.jaffree.ffprobe.FFprobeResult
 import dev.dres.DRES
-import dev.dres.data.model.competition.CachedVideoItem
+import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.time.TemporalRange
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -171,25 +168,20 @@ object FFmpegUtil {
         }
     }
 
-    fun prepareMediaSegmentTask(
-        description: CachedVideoItem,
-        collectionBasePath: String,
-        cacheLocation: File
-    ) {
-
-        cacheLocation.mkdirs()
-
-        val input = File(File(collectionBasePath), description.item.location).toPath()
-        val output = File(cacheLocation, description.cacheItemName()).toPath()
-        val range = description.temporalRange.toMilliseconds()
-
-        extractSegment(
-            input,
-            toMillisecondTimeStamp(range.first),
-            toMillisecondTimeStamp(range.second),
-            output
-        )
-
+    /**
+     * Extracts and renders the previews for a [MediaItem].
+     *
+     * @param item The [MediaItem] to handle.
+     * @param range The [TemporalRange] within the [MediaItem] to handle.
+     * @param cacheLocation The cache location [Path]
+     */
+    fun extractSegment(item: MediaItem, range: TemporalRange, cacheLocation: Path) {
+        Files.createDirectories(cacheLocation)
+        val start = range.start.toMilliseconds()
+        val end = range.end.toMilliseconds()
+        val input = item.pathToOriginal()
+        val output = cacheLocation.resolve(item.cachedItemName(start, end))
+        extractSegment(input, toMillisecondTimeStamp(start), toMillisecondTimeStamp(end), output)
     }
 
     fun analyze(videoPath: Path, countFrames: Boolean = false): FFprobeResult =

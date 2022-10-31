@@ -1,6 +1,7 @@
 package dev.dres.data.model.submissions.aspects
 
 import dev.dres.data.model.UID
+import dev.dres.data.model.competition.team.TeamId
 
 /**
  *
@@ -9,6 +10,6 @@ import dev.dres.data.model.UID
  */
 interface OriginAspect {
     val uid: UID
-    val teamId: UID
+    val teamId: TeamId
     val memberId: UID
 }

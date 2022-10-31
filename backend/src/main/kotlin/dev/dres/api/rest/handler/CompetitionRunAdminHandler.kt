@@ -2,7 +2,6 @@ package dev.dres.api.rest.handler
 
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.users.ApiRole
-import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.competition.CompetitionStartMessage
 import dev.dres.api.rest.types.run.*
 import dev.dres.api.rest.types.status.ErrorStatus
@@ -159,7 +158,7 @@ class CreateCompetitionRunAdminHandler(
             val outputFile = File(cacheLocation, it.cacheItemName())
             if (!outputFile.exists()) {
                 logger.warn("Query video file for item ${it.item} not found, rendering to ${outputFile.absolutePath}")
-                FFmpegUtil.prepareMediaSegmentTask(it, collection.path, cacheLocation)
+                FFmpegUtil.extractSegment(it, collection.path, cacheLocation)
             }
 
         }

@@ -9,6 +9,8 @@ import kotlinx.dnq.simple.requireIf
 import java.nio.file.Path
 import java.nio.file.Paths
 
+typealias MediaId = String
+
 /**
  * A media item such as a video or an image
  *
@@ -52,25 +54,23 @@ class MediaItem(entity: Entity) : PersistentEntity(entity) {
     fun toApi(): ApiMediaItem
         = ApiMediaItem(this.id, this.name, this.type.toApi(), this.collection.id, this.location, this.durationMs, this.fps)
 
-
     /**
      * Returns the [Path] to the original file for this [MediaItem].
      *
      * @return [Path]
      */
-    fun pathToOriginal(): Path = Paths.get(this.collection.path).resolve(this.location)
+    fun pathToOriginal(): Path = Paths.get(this.collection.path, this.location)
 
     /**
      * Returns the [Path] to the cached file for this [MediaItem].
      *
-     * @param config
      * @param start
      * @param end
      * @return [Path]
      */
-    fun pathToCachedItem(config: Config, start: Int? = null, end: Int? = null) = if (start != null && end != null) {
-        Paths.get(config.cachePath).resolve("media").resolve("${this.collection.name}-${this.id}-$start-$end.${this.type.suffix}")
+    fun cachedItemName(start: Long? = null, end: Long? = null) = if (start != null && end != null) {
+        "${this.collection.name}-${this.id}-$start-$end.${this.type.suffix}"
     }  else {
-        Paths.get(config.cachePath).resolve("media").resolve("${this.collection.name}-${this.id}.${this.type.suffix}")
+        "${this.collection.name}-${this.id}.${this.type.suffix}"
     }
 }

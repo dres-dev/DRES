@@ -1,10 +1,12 @@
 package dev.dres.data.model.competition.team
 
+import dev.dres.api.rest.types.competition.team.ApiTeamGroup
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.admin.User
 import dev.dres.data.model.competition.CompetitionDescription
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
+import kotlinx.dnq.query.asSequence
 
 typealias TeamGroupId = String
 
@@ -32,8 +34,18 @@ class TeamGroup(entity: Entity) : PersistentEntity(entity) {
     var defaultAggregator by xdLink1(TeamAggregator)
 
     /** The [CompetitionDescription] this [Team] belongs to. */
-    var competition by xdParent(CompetitionDescription::teamsGroups)
+    var competition by xdParent<TeamGroup,CompetitionDescription>(CompetitionDescription::teamsGroups)
 
     /** The [Team]s that belong to this [TeamGroup]. */
     val teams by xdLink0_N<TeamGroup,Team>(Team::group)
+
+
+    /**
+     * Converts this [TeamGroup] to a RESTful API representation [ApiTeamGroup].
+     *
+     * This is a convenience method and requires an active transaction context.
+     *
+     * @return [ApiTeamGroup]
+     */
+    fun toApi() = ApiTeamGroup(this.teamGroupId, this.name, this.teams.asSequence().map { it.toApi() }.toList(), this.defaultAggregator.name)
 }

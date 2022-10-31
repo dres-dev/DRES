@@ -1,12 +1,9 @@
 package dev.dres.data.model.media.time
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-import dev.dres.utilities.TimeUtil
-
 /**
  * Notion of a [TemporalRange] within a [MediaItem] that exhibits temporal development (e.g. [VideoItem].
  *
- * @version 2.0
+ * @version 2.1.0
  *
  * @param start The start of the [TemporalRange]
  * @param end The end of the [TemporalRange]
@@ -41,7 +38,5 @@ data class TemporalRange constructor(val start: TemporalPoint, val end: Temporal
     fun toMilliseconds(): Pair<Long, Long> = Pair(start.toMilliseconds(), end.toMilliseconds())
 
     val center
-        @JsonIgnore
         get() = (end.toMilliseconds() - start.toMilliseconds()) / 2
-
 }

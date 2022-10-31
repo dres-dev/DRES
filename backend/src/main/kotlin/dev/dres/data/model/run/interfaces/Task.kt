@@ -1,6 +1,7 @@
 package dev.dres.data.model.run.interfaces
 
 import dev.dres.data.model.competition.task.TaskDescription
+import dev.dres.data.model.competition.task.TaskDescriptionId
 import dev.dres.data.model.run.InteractiveAsynchronousCompetition.Task
 import dev.dres.run.TaskRunStatus
 import dev.dres.run.score.interfaces.TaskScorer
@@ -13,7 +14,7 @@ import dev.dres.run.score.interfaces.TaskScorer
  */
 interface Task: Run {
     /** The unique [TaskId] that identifies this [Task]. Used by the persistence layer. */
-    val uid: TaskId
+    val uid: TaskDescriptionId
 
     /** Reference to the [Competition] this [Task] belongs to. */
     val competition: Competition
@@ -29,6 +30,4 @@ interface Task: Run {
 
     /** The current status of this [Task]. */
     val status: TaskRunStatus
-
-
 }

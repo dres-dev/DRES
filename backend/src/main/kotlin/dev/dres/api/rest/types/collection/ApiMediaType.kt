@@ -7,9 +7,9 @@ import dev.dres.data.model.media.MediaType
  *
  * @see ApiMediaItem
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.0.0
  */
-enum class ApiMediaType(val mediaType: MediaType) {
+enum class ApiMediaType(val type: MediaType) {
     IMAGE(MediaType.IMAGE),
     VIDEO(MediaType.VIDEO)
 }

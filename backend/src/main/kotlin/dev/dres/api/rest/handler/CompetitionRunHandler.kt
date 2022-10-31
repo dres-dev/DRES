@@ -8,8 +8,8 @@ import dev.dres.api.rest.types.run.SubmissionInfo
 import dev.dres.api.rest.types.run.TaskInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.api.rest.types.task.TaskHint
-import dev.dres.api.rest.types.task.TaskTarget
+import dev.dres.api.rest.types.competition.tasks.ApiHintContent
+import dev.dres.api.rest.types.competition.tasks.ApiTargetContent
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
@@ -218,7 +218,7 @@ class CurrentTaskInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandl
 }
 
 class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRunRestHandler(),
-    GetRestHandler<TaskHint> {
+    GetRestHandler<ApiHintContent> {
 
     override val route = "run/{runId}/hint/{taskId}"
 
@@ -231,14 +231,14 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
             OpenApiParam("taskId", String::class, "Task Description ID")
         ],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(TaskHint::class)]),
+            OpenApiResponse("200", [OpenApiContent(ApiHintContent::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): TaskHint {
+    override fun doGet(ctx: Context): ApiHintContent {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 
@@ -274,7 +274,7 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
 }
 
 class CurrentTaskTargetHandler(private val config: Config, private val collections: DAO<MediaCollection>) :
-    AbstractCompetitionRunRestHandler(), GetRestHandler<TaskTarget> {
+    AbstractCompetitionRunRestHandler(), GetRestHandler<ApiTargetContent> {
 
     override val route = "run/{runId}/target/{taskId}"
 
@@ -287,14 +287,14 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
             OpenApiParam("taskId", String::class, "Task Description ID")
         ],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(TaskTarget::class)]),
+            OpenApiResponse("200", [OpenApiContent(ApiTargetContent::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): TaskTarget {
+    override fun doGet(ctx: Context): ApiTargetContent {
         val runId = runId(ctx)
         val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
 

@@ -1,7 +1,8 @@
 package dev.dres.data.model.competition.task
 
+import dev.dres.api.rest.types.competition.tasks.ApiHintType
 import dev.dres.api.rest.types.task.ApiContentType
-import dev.dres.data.model.competition.task.options.TaskScoreOption
+import dev.dres.data.model.competition.task.options.ScoreOption
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity
 import kotlinx.dnq.XdEnumEntityType
@@ -17,18 +18,18 @@ class HintType(entity: Entity) : XdEnumEntity(entity) {
 
     }
 
-    /** Name / description of the [TaskScoreOption]. */
+    /** Name / description of the [ScoreOption]. */
     var description by xdRequiredStringProp(unique = true)
         private set
 
-    /** Name / description of the [TaskScoreOption]. */
+    /** Name / description of the [ScoreOption]. */
     var mimeType by xdRequiredStringProp(unique = true)
         private set
 
-    /** Name / description of the [TaskScoreOption]. */
+    /** Name / description of the [ScoreOption]. */
     var suffix by xdRequiredStringProp(unique = true)
 
-    /** Name / description of the [TaskScoreOption]. */
+    /** Name / description of the [ScoreOption]. */
     var base64 by xdBooleanProp()
 
     /**
@@ -36,11 +37,6 @@ class HintType(entity: Entity) : XdEnumEntity(entity) {
      *
      * @return [ApiContentType] equivalent to this [HintType].
      */
-    fun toApi() = when(this) {
-        EMPTY -> ApiContentType.EMPTY
-        TEXT -> ApiContentType.TEXT
-        VIDEO -> ApiContentType.VIDEO
-        IMAGE  -> ApiContentType.IMAGE
-        else -> throw IllegalStateException("The content type ${this.description} is not supported.")
-    }
+    fun toApi(): ApiHintType
+            = ApiHintType.values().find { it.type == this } ?: throw IllegalStateException("Hint type ${this.description} is not supported.")
 }

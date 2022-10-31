@@ -55,6 +55,6 @@ class ListAuditLogsHandler(store: TransientEntityStore) : AbstractAuditLogHandle
     override fun doGet(ctx: Context): List<ApiAuditLogEntry> = this.store.transactional(true) {
         val limit = (ctx.pathParamMap()[LIMIT_PARAM]?.toIntOrNull() ?: DEFAULT_LIMIT).coerceAtLeast(0)
         val index = (ctx.pathParamMap()[PAGE_INDEX_PARAM]?.toIntOrNull() ?: 0).coerceAtLeast(0)
-        AuditLogEntry.all().drop(index * limit).take(limit).asSequence().map { ApiAuditLogEntry.convert(it) }.toList()
+        AuditLogEntry.all().drop(index * limit).take(limit).asSequence().map { it.toApi() }.toList()
     }
 }

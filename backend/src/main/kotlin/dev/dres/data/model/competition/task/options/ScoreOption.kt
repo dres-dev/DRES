@@ -1,6 +1,6 @@
 package dev.dres.data.model.competition.task.options
 
-import dev.dres.data.model.competition.options.ScoringOption
+import dev.dres.api.rest.types.competition.tasks.options.ApiScoreOption
 import dev.dres.run.score.interfaces.TaskScorer
 import dev.dres.run.score.scorer.AvsTaskScorer
 import dev.dres.run.score.scorer.KisTaskScorer
@@ -15,13 +15,13 @@ import kotlinx.dnq.xdRequiredStringProp
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class TaskScoreOption(entity: Entity) : XdEnumEntity(entity) {
-    companion object : XdEnumEntityType<TaskScoreOption>() {
+class ScoreOption(entity: Entity) : XdEnumEntity(entity) {
+    companion object : XdEnumEntityType<ScoreOption>() {
         val KIS by enumField { description = "KIS" }
         val AVS by enumField { description = "AVS" }
     }
 
-    /** Name / description of the [TaskScoreOption]. */
+    /** Name / description of the [ScoreOption]. */
     var description by xdRequiredStringProp(unique = true)
         private set
 
@@ -35,4 +35,11 @@ class TaskScoreOption(entity: Entity) : XdEnumEntity(entity) {
         AVS -> AvsTaskScorer()
         else -> throw IllegalStateException("The task score option ${this.description} is currently not supported.")
     }
+
+    /**
+     * Converts this [HintOption] to a RESTful API representation [ApiScoreOption].
+     *
+     * @return [ApiScoreOption]
+     */
+    fun toApi() = ApiScoreOption.values().find { it.option == this } ?: throw IllegalStateException("Option ${this.description} is not supported.")
 }

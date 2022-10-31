@@ -1,10 +1,12 @@
 package dev.dres.api.rest
 
 import GetAuditLogInfoHandler
+import dev.dres.api.cli.Cli
 import dev.dres.api.rest.handler.*
 import dev.dres.api.rest.handler.audit.ListAuditLogsHandler
 import dev.dres.api.rest.handler.audit.ListAuditLogsInRangeHandler
 import dev.dres.api.rest.handler.collection.*
+import dev.dres.api.rest.handler.description.*
 import dev.dres.api.rest.handler.preview.GetMediaHandler
 import dev.dres.api.rest.handler.preview.MediaPreviewHandler
 import dev.dres.api.rest.handler.preview.SubmissionPreviewHandler
@@ -35,6 +37,12 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
 import java.io.File
 
+/**
+ * This is a singleton instance of the RESTful API
+ *
+ * @version 1.0.1
+ * @author Luca Rossetto
+ */
 object RestApi {
 
     private var javalin: Javalin? = null
@@ -93,12 +101,11 @@ object RestApi {
             ListCompetitionHandler(store),
             CreateCompetitionHandler(store),
             UpdateCompetitionHandler(store, config),
-            GetCompetitionHandler(store),
+            ShowCompetitionHandler(store),
             DeleteCompetitionHandler(store),
             ListTeamHandler(store),
-            ListDetailedTeamHandler(store),
-            ListTaskHandler(store),
-            GetTeamLogoHandler(config),
+            ListTasksHandler(store),
+            GetTeamLogoHandler(store),
 
             // Submission
             SubmissionHandler(store, config),

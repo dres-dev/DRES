@@ -1,11 +1,11 @@
 package dev.dres.data.model.competition.task.options
 
+import dev.dres.api.rest.types.competition.tasks.options.ApiTaskOption
 import dev.dres.data.model.competition.task.TaskDescription
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity
 import kotlinx.dnq.XdEnumEntityType
 import kotlinx.dnq.xdRequiredStringProp
-
 
 /**
  * An enumeration of potential general options for [TaskDescription].
@@ -20,7 +20,14 @@ class TaskOption(entity: Entity) : XdEnumEntity(entity) {
         val PROLONG_ON_SUBMISSION by enumField { description = "PROLONG_ON_SUBMISSION" } /** Prolongs a task if a submission arrives within a certain time limit towards the end. */
     }
 
-    /** Name / description of the [TaskScoreOption]. */
+    /** Name / description of the [ScoreOption]. */
     var description by xdRequiredStringProp(unique = true)
         private set
+
+    /**
+     * Converts this [HintOption] to a RESTful API representation [ApiTaskOption].
+     *
+     * @return [ApiTaskOption]
+     */
+    fun toApi() = ApiTaskOption.values().find { it.option == this } ?: throw IllegalStateException("Option ${this.description} is not supported.")
 }

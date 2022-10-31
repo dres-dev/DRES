@@ -1,14 +1,13 @@
 package dev.dres.run.score.scorer
 
-import dev.dres.data.model.UID
-import dev.dres.data.model.media.MediaItem
-import dev.dres.data.model.competition.TeamId
+import dev.dres.data.model.competition.team.TeamId
+import dev.dres.data.model.media.MediaType
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.ItemAspect
-import dev.dres.run.score.ScoreEntry
 import dev.dres.run.score.TaskContext
 import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
+import dev.dres.run.score.interfaces.ScoreEntry
 import dev.dres.run.score.interfaces.TeamTaskScorer
 import dev.dres.utilities.TimeUtil
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -20,8 +19,7 @@ class AvsTaskScorer: RecalculatingSubmissionTaskScorer, TeamTaskScorer {
     private var lastScores: Map<TeamId, Double> = emptyMap()
     private val lastScoresLock = ReentrantReadWriteLock()
 
-    override fun computeScores(submissions: Collection<Submission>, context: TaskContext): Map<UID, Double> {
-
+    override fun computeScores(submissions: Collection<Submission>, context: TaskContext): Map<TeamId, Double> {
         val correctSubmissions = submissions.filter { it.status == SubmissionStatus.CORRECT }
         val wrongSubmissions = submissions.filter { it.status == SubmissionStatus.WRONG }
 
@@ -44,20 +42,19 @@ class AvsTaskScorer: RecalculatingSubmissionTaskScorer, TeamTaskScorer {
                         (countQuantized(correctSubs).toDouble() / totalCorrectQuantized)
             }.toMap()
         }
-
-
         return teamScoreMap()
     }
 
     private fun countQuantized(submissions: Collection<Submission>): Int {
 
         return submissions.filterIsInstance<ItemAspect>().groupBy { it.item }.map {
-            when(it.key) {
-                is MediaItem.ImageItem -> 1
-                is MediaItem.VideoItem -> {
+            when(it.key.type) {
+                MediaType.IMAGE -> 1
+                MediaType.VIDEO -> {
                     val ranges = it.value.map { s -> (s as Submission.Temporal).temporalRange }
                     TimeUtil.merge(ranges, overlap = 1).size
                 }
+                else -> throw IllegalStateException("Unsupported media type ${it.key.type} for AVS task scorer.")
             }
         }.sum()
 
@@ -68,6 +65,4 @@ class AvsTaskScorer: RecalculatingSubmissionTaskScorer, TeamTaskScorer {
     override fun scores(): List<ScoreEntry> = this.lastScoresLock.read {
         this.lastScores.map { ScoreEntry(it.key, null, it.value) }
     }
-
-
 }

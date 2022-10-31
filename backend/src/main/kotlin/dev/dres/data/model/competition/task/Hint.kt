@@ -1,8 +1,10 @@
 package dev.dres.data.model.competition.task
 
+import dev.dres.api.rest.types.collection.time.ApiTemporalRange
+import dev.dres.api.rest.types.competition.tasks.ApiHint
 import dev.dres.api.rest.types.task.ApiContentElement
+import dev.dres.api.rest.types.task.ApiContentType
 import dev.dres.data.model.Config
-import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.media.time.TemporalRange
@@ -40,29 +42,45 @@ class Hint(entity: Entity) : XdEntity(entity) {
     var task by xdParent<Hint,TaskDescription>(TaskDescription::hints)
 
     /** The[MediaItem] shown as part of the [Hint]. Can be null. */
-    var hintItem by xdLink0_1(MediaItem)
+    var item by xdLink0_1(MediaItem)
 
     /** The target text. Can be null. */
-    var hintText by xdStringProp() { requireIf { type == HintType.TEXT }}
+    var text by xdStringProp() { requireIf { type == HintType.TEXT }}
 
     /** The target text. Can be null. */
-    var hintExternalLocation by xdStringProp()
+    var path by xdStringProp()
 
     /** The start of a (potential) range. */
-    var temporalRangeStart by xdNullableIntProp { requireIf { type == HintType.VIDEO } }
+    var temporalRangeStart by xdNullableLongProp { requireIf { type == HintType.VIDEO } }
 
     /** The start of a (potential) range. */
-    var temporalRangeEnd by xdNullableIntProp { requireIf { type == HintType.VIDEO  } }
+    var temporalRangeEnd by xdNullableLongProp { requireIf { type == HintType.VIDEO  } }
 
     /** Returns the [TemporalRange] of this [TaskDescriptionTarget]. */
     val range: TemporalRange?
-        get() {
-            return if (this.temporalRangeStart != null && this.temporalRangeEnd != null) {
-                return TemporalRange(TemporalPoint.Frame(this.temporalRangeStart!!, this.hintItem?.fps ?: 1.0f), TemporalPoint.Frame(this.temporalRangeEnd!!, this.hintItem?.fps ?: 1.0f))
-            } else {
-                null
-            }
+        get() = if (this.temporalRangeStart != null && this.temporalRangeEnd != null) {
+            TemporalRange(TemporalPoint.Millisecond(this.temporalRangeStart!!), TemporalPoint.Millisecond(this.temporalRangeEnd!!))
+        } else {
+            null
         }
+
+
+    /**
+     * Converts this [Hint] to a RESTful API representation [ApiHint].
+     *
+     * This is a convenience method and requires an active transaction context.
+     *
+     * @return [ApiHint]
+     */
+    fun toApi(): ApiHint = ApiHint(
+        type = this.type.toApi(),
+        start = this.start,
+        end = this.end,
+        mediaItem = this.item?.id,
+        dataType = this.type.mimeType,
+        path = this.path,
+        range = this.range?.let { ApiTemporalRange(it) }
+    )
 
     /**
      * Generates and returns a textual description of this [Hint].
@@ -70,19 +88,19 @@ class Hint(entity: Entity) : XdEntity(entity) {
      * @return Text
      */
     fun textDescription(): String = when (this.type) {
-        HintType.TEXT -> "\"${this.hintText}\" from ${this.start ?: "beginning"} to ${end ?: "end"}"
+        HintType.TEXT -> "\"${this.text}\" from ${this.start ?: "beginning"} to ${end ?: "end"}"
         HintType.VIDEO -> {
-            if (this.hintItem != null) {
-                "Image ${this.hintItem!!.name} from ${start ?: "beginning"} to ${end ?: "end"}"
+            if (this.item != null) {
+                "Image ${this.item!!.name} from ${start ?: "beginning"} to ${end ?: "end"}"
             } else {
-                "Image ${this.hintExternalLocation} from ${start ?: "beginning"} to ${end ?: "end"}"
+                "Image ${this.path} from ${start ?: "beginning"} to ${end ?: "end"}"
             }
         }
         HintType.IMAGE -> {
-            if (this.hintItem != null) {
-                "Image ${this.hintItem!!.name}"
+            if (this.item != null) {
+                "Image ${this.item!!.name}"
             } else {
-                "Image ${this.hintExternalLocation}"
+                "Image ${this.path}"
             }
         }
         HintType.EMPTY -> "Empty item"
@@ -102,10 +120,10 @@ class Hint(entity: Entity) : XdEntity(entity) {
         val content = when (this.type) {
             HintType.IMAGE,
             HintType.VIDEO -> {
-                val path = if (this.hintItem != null) {
-                    this.hintItem!!.pathToCachedItem(config, this.temporalRangeStart, this.temporalRangeEnd)
-                } else if (this.hintExternalLocation != null) {
-                    Paths.get(this.hintExternalLocation!!)
+                val path = if (this.item != null) {
+                    this.item!!.cachedItemName(config, this.temporalRangeStart, this.temporalRangeEnd)
+                } else if (this.path != null) {
+                    Paths.get(this.path!!)
                 } else {
                     throw IllegalArgumentException("A hint of type  ${this.type.description} must have a valid media item or external path.")
                 }
@@ -115,10 +133,19 @@ class Hint(entity: Entity) : XdEntity(entity) {
                 Base64.getEncoder().encodeToString(data)
             }
             HintType.EMPTY -> ""
-            HintType.TEXT -> this.hintText ?: throw IllegalStateException("A hint of type  ${this.type.description} must have a valid text.")
-            else -> throw IllegalStateException("The content type ${this.type.description} is not supported.")
+            HintType.TEXT -> this.text ?: throw IllegalStateException("A hint of type  ${this.type.description} must have a valid text.")
+            else -> throw IllegalStateException("The hint type ${this.type.description} is not supported.")
         }
-        return ApiContentElement(contentType = this.type.toApi(), content = content, offset = this.start ?: 0L)
+
+        val contentType = when (this.type) {
+            HintType.IMAGE -> ApiContentType.IMAGE
+            HintType.VIDEO -> ApiContentType.VIDEO
+            HintType.TEXT -> ApiContentType.TEXT
+            HintType.EMPTY -> ApiContentType.EMPTY
+            else ->  throw IllegalStateException("The hint type ${this.type.description} is not supported.")
+        }
+
+        return ApiContentElement(contentType = contentType, content = content, offset = this.start ?: 0L)
     }
 }
 

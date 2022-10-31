@@ -23,7 +23,7 @@ import kotlin.system.exitProcess
 /**
  * This is a singleton instance of the [Cli].
  *
- * @version 1.0.0
+ * @version 1.0.1
  * @author Loris Sauter
  */
 object Cli {
@@ -90,10 +90,10 @@ object Cli {
         while (true) {
             try {
                 val line = lineReader.readLine(PROMPT).trim()
-                if (line.toLowerCase() == "exit" || line.lowercase() == "quit") {
+                if (line.lowercase() == "exit" || line.lowercase() == "quit") {
                     break
                 }
-                if (line.toLowerCase() == "help") {
+                if (line.lowercase() == "help") {
                     println(clikt.getFormattedHelp()) //TODO overwrite with something more useful in a cli context
                     continue
                 }

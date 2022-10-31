@@ -1,14 +1,14 @@
 package dev.dres.data.model.competition.task
 
-import dev.dres.api.rest.types.task.ApiContentType
-import dev.dres.data.model.competition.task.options.TaskScoreOption
+import dev.dres.api.rest.types.competition.tasks.ApiTargetType
+import dev.dres.data.model.competition.task.options.ScoreOption
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity
 import kotlinx.dnq.XdEnumEntityType
 import kotlinx.dnq.xdRequiredStringProp
 
 /**
- *
+ * The type of target for a
  */
 class TargetType(entity: Entity): XdEnumEntity(entity) {
     companion object : XdEnumEntityType<TargetType>() {
@@ -19,21 +19,15 @@ class TargetType(entity: Entity): XdEnumEntity(entity) {
         val TEXT by enumField { description = "EXTERNAL_IMAGE" }
     }
 
-    /** Name / description of the [TaskScoreOption]. */
+    /** Name / description of the [ScoreOption]. */
     var description by xdRequiredStringProp(unique = true)
         private set
 
     /**
-     * Converts this [HintType] to the RESTful API representation [ApiContentType].
+     * Converts this [TargetType] to a RESTful API representation [ApiTargetType].
      *
-     * @return [ApiContentType] equivalent to this [HintType].
+     * @return [ApiTargetType]
      */
-    fun toApi() = when(this) {
-        JUDGEMENT,
-        JUDGEMENT_WITH_VOTE  -> ApiContentType.EMPTY
-        MEDIA_ITEM -> ApiContentType.IMAGE
-        MEDIA_ITEM_TEMPORAL_RANGE -> ApiContentType.VIDEO
-        TEXT -> ApiContentType.TEXT
-        else -> throw IllegalStateException("The target type ${this.description} is not supported.")
-    }
+    fun toApi(): ApiTargetType
+        = ApiTargetType.values().find { it.type == this } ?: throw IllegalStateException("Target type ${this.description} is not supported.")
 }

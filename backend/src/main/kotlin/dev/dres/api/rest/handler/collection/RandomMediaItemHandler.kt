@@ -20,7 +20,7 @@ import java.util.SplittableRandom
  */
 class RandomMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), GetRestHandler<ApiMediaItem> {
 
-    private val rand = SplittableRandom(System.currentTimeMillis()) // TODO Decide upon seed -- time based or fixed?
+    private val rand = SplittableRandom(System.currentTimeMillis())
 
     override val route: String = "collection/{collectionId}/random"
 

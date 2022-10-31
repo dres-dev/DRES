@@ -8,6 +8,7 @@ import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.competition.CompetitionDescription
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
+import io.javalin.http.bodyAsClass
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import java.util.*
@@ -39,7 +40,7 @@ class CreateCompetitionHandler(store: TransientEntityStore) : AbstractCompetitio
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val createRequest = try {
-            ctx.bodyAsClass(ApiCreateCompetition::class.java)
+            ctx.bodyAsClass<ApiCreateCompetition>()
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }

@@ -30,12 +30,6 @@ class ListAuditLogsHandler(store: TransientEntityStore) : AbstractAuditLogHandle
         const val RELATION_PARAM = "when"
         const val BEFORE_PARAM_KEY = "before"
         const val UPTO_PARAM_KEY = "upto"
-        /*
-        // See https://github.com/tipsy/javalin/issues/1047 - we currently are behind
-        enum class TemporalRelation{
-            BEFORE,
-            UPTO
-        }*/
     }
 
     @OpenApi(

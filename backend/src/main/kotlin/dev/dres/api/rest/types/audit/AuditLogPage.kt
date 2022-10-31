@@ -1,14 +1,16 @@
 package dev.dres.api.rest.types.audit
 
-import dev.dres.run.audit.AuditLogEntry
 
 /**
- * A collection of [AuditLogEntry]s with pagination information
+ * A collection of [ApiAuditLogEntry]s with pagination information
+ *
+ * @author Loris Sauter
+ * @version 1.0.0
  */
 data class AuditLogPage(
-        val index: Int = 0,
-        val entries: List<AuditLogEntry>,
-        val timestamp: Long = System.currentTimeMillis(),
-        val oldest: Long
+val index: Int = 0,
+val entries: List<ApiAuditLogEntry>,
+val timestamp: Long = System.currentTimeMillis(),
+val oldest: Long
 )
 

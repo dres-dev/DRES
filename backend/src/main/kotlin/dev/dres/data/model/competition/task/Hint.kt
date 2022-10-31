@@ -19,7 +19,6 @@ import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.util.*
 
-
 /**
  * Represents the hint given by a [TaskDescription], e.g., a media item or text that is shown.
  *
@@ -121,7 +120,7 @@ class Hint(entity: Entity) : XdEntity(entity) {
             HintType.IMAGE,
             HintType.VIDEO -> {
                 val path = if (this.item != null) {
-                    this.item!!.cachedItemName(config, this.temporalRangeStart, this.temporalRangeEnd)
+                    Paths.get(config.cachePath, this.item!!.cachedItemName(this.temporalRangeStart, this.temporalRangeEnd))
                 } else if (this.path != null) {
                     Paths.get(this.path!!)
                 } else {

@@ -1,5 +1,6 @@
 package dev.dres.utilities
 
+import dev.dres.data.model.media.MediaItemSegment
 import dev.dres.data.model.media.MediaItemSegmentList
 import dev.dres.data.model.media.time.TemporalRange
 import kotlin.math.abs
@@ -41,25 +42,23 @@ object TimeUtil {
     }
 
     /**
-     * Converts a shot number to a timestamp in milliseconds.
+     * Converts a shot number to a timestamp in milliseconds given a list of [MediaItemSegment]s.
      */
-    fun shotToTime(shot: String, segmentList: MediaItemSegmentList): Pair<Long,Long>? {
-        val segment = segmentList.segments.find { it.name == shot } ?: return null
+    fun shotToTime(shot: String, segments: List<MediaItemSegment>): Pair<Long,Long>? {
+        val segment = segments.find { it.name == shot } ?: return null
         return segment.range.toMilliseconds()
     }
 
-
-    fun timeToSegment(time: Long, segmentList: MediaItemSegmentList): Pair<Long,Long>? {
-        if (segmentList.segments.isEmpty()) {
-            return null
-        }
-        val segment = segmentList.segments.find {
+    /**
+     * Converts a shot number to a timestamp in milliseconds given a list of [MediaItemSegment]s.
+     */
+    fun timeToSegment(time: Long, segments: List<MediaItemSegment>): Pair<Long,Long>? {
+        if (segments.isEmpty()) return null
+        val segment = segments.find {
             val range = it.range.toMilliseconds()
             range.first <= time && range.second >= time
-        } ?: segmentList.segments.minByOrNull { abs(it.range.center - time) }!!
+        } ?: segments.minByOrNull { abs(it.range.center - time) }!!
 
         return segment.range.toMilliseconds()
     }
-
-
 }

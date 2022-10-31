@@ -60,7 +60,7 @@ dependencies {
     ////// Javalin
     implementation group: 'io.javalin', name:  'javalin', version: "$version_javalin"
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$version_javalin")
-        implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalin
+    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalin
     implementation group: 'io.javalin.community.openapi', name:'javalin-swagger-plugin', version: version_javalin
     implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: version_javalin
 

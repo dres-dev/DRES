@@ -15,6 +15,7 @@ import kotlinx.dnq.simple.requireIf
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.util.*
 
@@ -99,7 +100,7 @@ class TaskDescriptionTarget(entity: Entity) : XdEntity(entity) {
                     MediaType.IMAGE -> ApiContentType.IMAGE
                     else -> throw IllegalStateException("Invalid target description; type indicates presence of media item but item seems unsupported or unspecified.")
                 }
-                val path = this.item?.cachedItemName(config, this.temporalRangeStart, this.temporalRangeEnd)
+                val path = Paths.get(config.cachePath, this.item?.cachedItemName(this.temporalRangeStart, this.temporalRangeEnd))
                     ?:  throw IllegalArgumentException("A target of type  ${this.type.description} must have a valid media item.")
                 val data = Files.newInputStream(path, StandardOpenOption.READ).use { stream ->
                     stream.readAllBytes()

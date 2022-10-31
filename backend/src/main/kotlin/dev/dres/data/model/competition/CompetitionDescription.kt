@@ -37,7 +37,10 @@ class CompetitionDescription(entity: Entity) : PersistentEntity(entity){
         set(value) { this.id = value }
 
     /** The name held by this [CompetitionDescription]. Must be unique!*/
-    var name by xdRequiredStringProp(unique = true, trimmed = false)
+    var name by xdRequiredStringProp(unique = true, trimmed = true)
+
+    /** If set, this [CompetitionDescription] is considered a template!*/
+    var template by xdBooleanProp()
 
     /** An optional description of this [CompetitionDescription]. */
     var description by xdStringProp(trimmed = false)

@@ -14,7 +14,6 @@ data class ApiTeam(
     val teamId: TeamId,
     val name: String,
     val color: String,
-    val logoId: String,
     val users: List<ApiUser> = emptyList(),
     var logoData: String? = null
 )

@@ -6,6 +6,7 @@ import dev.dres.api.rest.types.task.ApiContentElement
 import dev.dres.api.rest.types.task.ApiContentType
 import dev.dres.data.model.Config
 import dev.dres.data.model.PersistentEntity
+import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.media.MediaCollection
 import dev.dres.data.model.competition.interfaces.SubmissionFilterFactory
 import dev.dres.data.model.competition.interfaces.TaskScorerFactory
@@ -40,7 +41,10 @@ class TaskDescription(entity: Entity) : PersistentEntity(entity), TaskScorerFact
         set(value) { this.id = value }
 
     /** The name held by this [Team]. Must be unique!*/
-    var name by xdRequiredStringProp(unique = false, trimmed = false)
+    var name by xdRequiredStringProp(unique = false, trimmed = true)
+
+    /** If set, this [CompetitionDescription] is considered a template!*/
+    var template by xdBooleanProp()
 
     /** The [TaskGroup] this [TaskDescription] belongs to. */
     var taskGroup by xdParent<TaskDescription, TaskGroup>(TaskGroup::tasks)

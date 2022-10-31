@@ -31,10 +31,10 @@ class User(entity: Entity): PersistentEntity(entity) {
         set(value) { this.id = value }
 
     /** The name held by this [User]. Must be unique!*/
-    var username by xdRequiredStringProp(unique = true, trimmed = false) { length(MIN_LENGTH_USERNAME, 16, "Username must consist of between 4 and 16 characters")}
+    var username by xdRequiredStringProp(unique = true, trimmed = true) { length(MIN_LENGTH_USERNAME, 16, "Username must consist of between 4 and 16 characters")}
 
     /** The password held by this [User]. */
-    var password by xdRequiredStringProp(unique = false, trimmed = false)
+    var password by xdRequiredStringProp(unique = false, trimmed = true)
 
     /** The [Role] of this [User]. */
     var role by xdLink1(Role)

@@ -10,7 +10,7 @@ import java.util.concurrent.locks.StampedLock
  * A simple latch that tracks for all object it contains whether they are ready (true) or not (false).
  *
  * @author Ralph Gasser
- * @version 1.1
+ * @version 1.1.1
  */
 class ReadyLatch<T> {
 
@@ -75,7 +75,9 @@ class ReadyLatch<T> {
      * @param timeout specifies an optional timeout in seconds after which [allReadyOrTimedOut] is considered to be true in any case
      */
     fun reset(timeout: Long? = null) = this.lock.write {
-        this.map. { _, _ -> false }
+        for (e in this.map.keys) {
+            this.map[e] = false
+        }
         this.timeout = if (timeout != null) (1000L * timeout) + System.currentTimeMillis() else null
     }
 
@@ -96,5 +98,6 @@ class ReadyLatch<T> {
     /**
      * Equivalent to [allReady] in case no timeout was set in [reset]
      */
-    fun allReadyOrTimedOut() = allReady() || if (timeout != null) timeout ?: Long.MAX_VALUE <= System.currentTimeMillis() else false
+    fun allReadyOrTimedOut()
+        = allReady() || (this.timeout ?: Long.MAX_VALUE) <= System.currentTimeMillis()
 }

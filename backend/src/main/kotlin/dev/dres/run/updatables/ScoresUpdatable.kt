@@ -4,7 +4,7 @@ import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
 import dev.dres.data.model.UID
 import dev.dres.data.model.run.AbstractInteractiveTask
-import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.RunManagerStatus
@@ -15,7 +15,7 @@ import java.util.*
 
 /**
  * This is a [Updatable] that runs necessary post-processing after a [Submission] has been validated and
- * updates the scores for the respective [InteractiveSynchronousCompetition.Task].
+ * updates the scores for the respective [InteractiveSynchronousEvaluation.Task].
  *
  * @author Ralph Gasser
  * @version 1.2.0

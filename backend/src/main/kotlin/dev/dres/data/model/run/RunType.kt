@@ -6,7 +6,7 @@ import kotlinx.dnq.XdEnumEntityType
 import kotlinx.dnq.xdRequiredStringProp
 
 /**
- * Enumeration of the type of [Competition].
+ * Enumeration of the type of [Evaluation].
  *
  * @author Ralph Gasser
  * @version 1.0.0

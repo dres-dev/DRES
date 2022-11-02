@@ -10,57 +10,57 @@ import dev.dres.data.model.run.interfaces.Run
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractCompetitionRun(protected val competition: Competition): dev.dres.data.model.run.interfaces.Competition {
+abstract class AbstractEvaluation(protected val evaluation: Evaluation): dev.dres.data.model.run.interfaces.EvaluationRun {
 
-    /** The name of this [AbstractCompetitionRun]. */
-    override val id: CompetitionId
-        get() = this.competition.id
+    /** The name of this [AbstractEvaluation]. */
+    override val id: EvaluationId
+        get() = this.evaluation.id
 
-    /** The name of this [AbstractCompetitionRun]. */
+    /** The name of this [AbstractEvaluation]. */
     override val name: String
-        get() = this.competition.name
+        get() = this.evaluation.name
 
-    /** The [CompetitionDescription] of this [AbstractCompetitionRun]. */
+    /** The [CompetitionDescription] of this [AbstractEvaluation]. */
     override val description: CompetitionDescription
-        get() = this.competition.description
+        get() = this.evaluation.description
 
-    /** Timestamp of when this [AbstractCompetitionRun] was started. */
+    /** Timestamp of when this [AbstractEvaluation] was started. */
     override var started: Long
-        get() = this.competition.started
+        get() = this.evaluation.started
         protected set(value) {
-            this.competition.started = value
+            this.evaluation.started = value
         }
 
-    /** Timestamp of when this [AbstractCompetitionRun] was ended. */
+    /** Timestamp of when this [AbstractEvaluation] was ended. */
     override var ended: Long?
-        get() = this.competition.ended
+        get() = this.evaluation.ended
         protected set(value) {
-            this.competition.ended = value
+            this.evaluation.ended = value
         }
 
-    /** Flag indicating that participants can also use the viewer for this [Competition]. */
+    /** Flag indicating that participants can also use the viewer for this [Evaluation]. */
     override var participantCanView: Boolean
-        get() = this.competition.participantCanView
+        get() = this.evaluation.participantCanView
         set(value) {
-            this.competition.participantCanView = value
+            this.evaluation.participantCanView = value
         }
 
     /** Flag indicating that tasks can be repeated.*/
     override var allowRepeatedTasks: Boolean
-        get() = this.competition.allowRepeatedTasks
+        get() = this.evaluation.allowRepeatedTasks
         set(value) {
-            this.competition.allowRepeatedTasks = value
+            this.evaluation.allowRepeatedTasks = value
         }
 
     /** A fixed limit on submission previews. */
     override var limitSubmissionPreviews: Int
-        get() = this.competition.limitSubmissionPreviews
+        get() = this.evaluation.limitSubmissionPreviews
         set(value) {
-            this.competition.limitSubmissionPreviews = value
+            this.evaluation.limitSubmissionPreviews = value
         }
 
     /**
-     * Starts this [AbstractCompetitionRun].
+     * Starts this [AbstractEvaluation].
      */
     override fun start() {
         if (this.hasStarted) {
@@ -70,7 +70,7 @@ abstract class AbstractCompetitionRun(protected val competition: Competition): d
     }
 
     /**
-     * Ends this [AbstractCompetitionRun].
+     * Ends this [AbstractEvaluation].
      */
     override fun end() {
         if (!this.isRunning) {

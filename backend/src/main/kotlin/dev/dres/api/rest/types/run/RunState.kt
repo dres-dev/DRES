@@ -1,11 +1,11 @@
 package dev.dres.api.rest.types.run
 
-import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.run.*
 
 /**
- * Contains the information about the state of a [InteractiveSynchronousCompetition] and the associated [RunManager].
+ * Contains the information about the state of a [InteractiveSynchronousEvaluation] and the associated [RunManager].
  *
  * This is information that changes in the course of a run and therefore must be updated frequently.
  *

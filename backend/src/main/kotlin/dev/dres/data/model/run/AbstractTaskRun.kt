@@ -1,5 +1,6 @@
 package dev.dres.data.model.run
 
+import dev.dres.data.model.competition.task.TaskDescription
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.run.TaskRunStatus
 
@@ -9,7 +10,7 @@ import dev.dres.run.TaskRunStatus
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractTaskRun(protected val task: Task): dev.dres.data.model.run.interfaces.Task {
+abstract class AbstractTaskRun(protected val task: Task): dev.dres.data.model.run.interfaces.TaskRun {
     /** The Id of this [AbstractTaskRun]. */
     override val id: TaskId
         get() = this.task.id
@@ -27,6 +28,10 @@ abstract class AbstractTaskRun(protected val task: Task): dev.dres.data.model.ru
         protected set(value) {
             this.task.ended = value
         }
+
+    /** Reference to the [TaskDescription] describing this [AbstractTaskRun]. */
+    override val description: TaskDescription
+        get() = this.task.description
 
     @Volatile
     override var status: TaskRunStatus = TaskRunStatus.CREATED

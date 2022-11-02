@@ -1,7 +1,7 @@
 package dev.dres.run.updatables
 
 import dev.dres.data.model.run.AbstractInteractiveTask
-import dev.dres.data.model.run.interfaces.Competition
+import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
 import dev.dres.run.score.ScoreTimePoint
@@ -15,7 +15,7 @@ import java.util.*
  * @author Ralph Gasser & Luca Rossetto
  * @version 1.1.0
  */
-class ScoreboardsUpdatable(val scoreboards: List<Scoreboard>, private val updateIntervalMs: Long, private val competition: Competition): StatefulUpdatable {
+class ScoreboardsUpdatable(val scoreboards: List<Scoreboard>, private val updateIntervalMs: Long, private val competition: EvaluationRun): StatefulUpdatable {
 
     companion object {
        val ELIGIBLE_STATUS = arrayOf(RunManagerStatus.ACTIVE/*, RunManagerStatus.RUNNING_TASK, RunManagerStatus.TASK_ENDED, RunManagerStatus.PREPARING_TASK*/)

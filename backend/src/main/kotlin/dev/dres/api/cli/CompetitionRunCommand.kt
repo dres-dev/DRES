@@ -11,9 +11,9 @@ import com.jakewharton.picnic.table
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.task.TaskDescriptionTarget
 import dev.dres.data.model.run.AbstractInteractiveTask
-import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.run.interfaces.Competition
+import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.ItemAspect
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
@@ -140,7 +140,7 @@ class CompetitionRunCommand(internal val store: TransientEntityStore) : NoOpClik
                                 it.id.string,
                                 it.name,
                                 it.description.description,
-                                if (it is InteractiveSynchronousCompetition) it.currentTask?.description?.name
+                                if (it is InteractiveSynchronousEvaluation) it.currentTask?.description?.name
                                     ?: "N/A" else "N/A"
                             )
                         }"
@@ -174,7 +174,7 @@ class CompetitionRunCommand(internal val store: TransientEntityStore) : NoOpClik
                                     it.id.string,
                                     it.name,
                                     it.description.description,
-                                    if (it is InteractiveSynchronousCompetition) it.currentTask?.description?.name
+                                    if (it is InteractiveSynchronousEvaluation) it.currentTask?.description?.name
                                         ?: "N/A" else "N/A",
                                     status,
                                     it.started?.toDateString() ?: "-",
@@ -214,7 +214,7 @@ class CompetitionRunCommand(internal val store: TransientEntityStore) : NoOpClik
      */
     inner class ExportRunCommand : CliktCommand(name = "export", help = "Exports the selected competition run to a JSON file.", printHelpOnEmptyArgs = true) {
 
-        /** [UID] of the [Competition] that should be exported. .*/
+        /** [UID] of the [EvaluationRun] that should be exported. .*/
         private val id: UID by option("-i", "--id").convert { it.UID() }.required()
 
         /** Path to the file that should be created .*/
@@ -329,7 +329,7 @@ class CompetitionRunCommand(internal val store: TransientEntityStore) : NoOpClik
                 it.tasks.forEach { t ->
                     println(t.description)
 
-                    if (t is InteractiveSynchronousCompetition.Task) {
+                    if (t is InteractiveSynchronousEvaluation.Task) {
                         println("Submissions")
                         t.submissions.forEach { s -> println(s) }
                     }
@@ -378,7 +378,7 @@ class CompetitionRunCommand(internal val store: TransientEntityStore) : NoOpClik
                     return
                 }
 
-                if (run is InteractiveSynchronousCompetition) {
+                if (run is InteractiveSynchronousEvaluation) {
 
                     /* Fetch submissions and reset them. */
                     val submissions = run.tasks.flatMap {
@@ -416,7 +416,7 @@ class CompetitionRunCommand(internal val store: TransientEntityStore) : NoOpClik
                     return
                 }
 
-                if (run is InteractiveSynchronousCompetition) {
+                if (run is InteractiveSynchronousEvaluation) {
                     /* Fetch submissions and reset them. */
                     val submissions = run.tasks.filter {
                         it.uid.string in ids
@@ -455,7 +455,7 @@ class CompetitionRunCommand(internal val store: TransientEntityStore) : NoOpClik
                     return
                 }
 
-                if (run is InteractiveSynchronousCompetition) {
+                if (run is InteractiveSynchronousEvaluation) {
 
                     val submissions =
                         run.tasks.filter { it.description.taskGroup.name == taskGroup }.flatMap { it.submissions }

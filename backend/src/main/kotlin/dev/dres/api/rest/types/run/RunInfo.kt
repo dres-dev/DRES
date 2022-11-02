@@ -1,12 +1,12 @@
 package dev.dres.api.rest.types.run
 
-import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunProperties
 import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.RunManager
 
 /**
- * Contains the basic and most importantly static information about a [InteractiveSynchronousCompetition] and the
+ * Contains the basic and most importantly static information about a [InteractiveSynchronousEvaluation] and the
  * associated [RunManager]. Since this information usually doesn't change in the course of a run,
  * it allows for local caching and other optimizations.
  *

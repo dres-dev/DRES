@@ -5,9 +5,7 @@ import dev.dres.api.rest.types.collection.RestMediaCollection
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.UID
 import dev.dres.data.model.media.MediaCollection
-import dev.dres.data.model.media.MediaItem
 import dev.dres.utilities.extensions.cleanPathString
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context

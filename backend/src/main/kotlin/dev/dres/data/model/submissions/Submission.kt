@@ -1,14 +1,12 @@
 package dev.dres.data.model.submissions
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.admin.User
 import dev.dres.data.model.competition.team.Team
 import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.media.time.TemporalRange
-import dev.dres.data.model.run.AbstractInteractiveTask
-import dev.dres.data.model.submissions.aspects.BaseSubmissionAspect
+import dev.dres.data.model.run.Task
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.simple.min
@@ -22,7 +20,7 @@ typealias SubmissionId = String
  * @author Ralph Gasser & Luca Rossetto
  * @version 1.1.0
  */
-sealed class Submission(entity: Entity) : PersistentEntity(entity), BaseSubmissionAspect {
+sealed class Submission(entity: Entity) : PersistentEntity(entity) {
     companion object : XdNaturalEntityType<Submission>()
 
     /** The [SubmissionId] of this [User]. */
@@ -31,10 +29,13 @@ sealed class Submission(entity: Entity) : PersistentEntity(entity), BaseSubmissi
         set(value) { this.id = value }
 
     /** The timestamp of this [Submission]. */
-    override var timestamp by xdRequiredLongProp { min(0L) }
+    var timestamp by xdRequiredLongProp { min(0L) }
 
     /** The [SubmissionStatus] of this [Submission]. */
-    override var status by xdLink1(SubmissionStatus)
+    var status by xdLink1(SubmissionStatus)
+
+    /** The [Task] this [Submission] belongs to. */
+    var task by xdParent<Submission,Task>(Task::submissions)
 
     /** The [Team] that submitted this [Submission] */
     var team by xdLink1(Team)
@@ -56,10 +57,6 @@ sealed class Submission(entity: Entity) : PersistentEntity(entity), BaseSubmissi
 
     /** The text submitted. Only for [SubmissionType.TEXT] . */
     var text by xdStringProp { requireIf { this.type == SubmissionType.TEXT } }
-
-    /** The [AbstractInteractiveTask] this [Submission] belongs to. */
-    @JsonIgnore
-    override var task: AbstractInteractiveTask? = null
 
     /**  */
     val temporalRange: TemporalRange

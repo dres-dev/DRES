@@ -7,7 +7,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.AbstractNonInteractiveTask
-import dev.dres.data.model.run.NonInteractiveCompetition
+import dev.dres.data.model.run.NonInteractiveEvaluation
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.RunProperties
 import dev.dres.data.model.run.interfaces.TaskId
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 
-class NonInteractiveRunManager(val run: NonInteractiveCompetition) : RunManager {
+class NonInteractiveRunManager(val run: NonInteractiveEvaluation) : RunManager {
 
     private val SCOREBOARD_UPDATE_INTERVAL_MS = 10_000L // TODO make configurable
 

@@ -13,7 +13,7 @@ import dev.dres.data.model.competition.options.ConfiguredOption
 import dev.dres.data.model.competition.options.Option
 import dev.dres.data.model.competition.options.SimpleOption
 import dev.dres.data.model.competition.options.SimpleOptionParameters
-import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.RunProperties
 import dev.dres.data.model.submissions.Submission
@@ -35,13 +35,13 @@ import kotlin.math.max
 
 /**
  * An implementation of [RunManager] aimed at distributed execution having a single DRES Server instance and multiple
- * viewers connected via WebSocket. Before starting a [InteractiveSynchronousCompetition.Task], all viewer instances are synchronized.
+ * viewers connected via WebSocket. Before starting a [InteractiveSynchronousEvaluation.Task], all viewer instances are synchronized.
  *
  * @version 2.1.0
  * @author Ralph Gasser
  */
 class InteractiveSynchronousRunManager(
-    val run: InteractiveSynchronousCompetition
+    val run: InteractiveSynchronousEvaluation
 ) : InteractiveRunManager {
 
     private val VIEWER_TIME_OUT = 30L //TODO make configurable
@@ -54,10 +54,10 @@ class InteractiveSynchronousRunManager(
     private val maxErrorCount = 5
 
     /**
-     * Alternative constructor from existing [InteractiveSynchronousCompetition].
+     * Alternative constructor from existing [InteractiveSynchronousEvaluation].
      */
     constructor(description: CompetitionDescription, name: String, runProperties: RunProperties) : this(
-        InteractiveSynchronousCompetition(UID.EMPTY, name, description, runProperties).apply {
+        InteractiveSynchronousEvaluation(UID.EMPTY, name, description, runProperties).apply {
             RunExecutor.runs.append(this)
         }
     )
@@ -315,14 +315,14 @@ class InteractiveSynchronousRunManager(
         LOGGER.info("SynchronousRunManager ${this.id} aborted task task ${this.run.currentTaskDescription}")
     }
 
-    /** List of [InteractiveSynchronousCompetition.Task] for this [InteractiveSynchronousRunManager]. */
-    override fun tasks(context: RunActionContext): List<InteractiveSynchronousCompetition.Task> = this.run.tasks
+    /** List of [InteractiveSynchronousEvaluation.Task] for this [InteractiveSynchronousRunManager]. */
+    override fun tasks(context: RunActionContext): List<InteractiveSynchronousEvaluation.Task> = this.run.tasks
 
     /**
-     * Returns the currently active [InteractiveSynchronousCompetition.Task]s or null, if no such task is active.
+     * Returns the currently active [InteractiveSynchronousEvaluation.Task]s or null, if no such task is active.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return [InteractiveSynchronousCompetition.Task] or null
+     * @return [InteractiveSynchronousEvaluation.Task] or null
      */
     override fun currentTask(context: RunActionContext) = this.stateLock.read {
 //        when (this.status) {
@@ -342,31 +342,31 @@ class InteractiveSynchronousRunManager(
     }
 
     /**
-     * Returns [InteractiveSynchronousCompetition.Task]s for a specific task [UID]. May be empty.
+     * Returns [InteractiveSynchronousEvaluation.Task]s for a specific task [UID]. May be empty.
      *
-     * @param taskId The [UID] of the [InteractiveSynchronousCompetition.Task].
+     * @param taskId The [UID] of the [InteractiveSynchronousEvaluation.Task].
      */
-    override fun taskForId(context: RunActionContext, taskId: UID): InteractiveSynchronousCompetition.Task? =
+    override fun taskForId(context: RunActionContext, taskId: UID): InteractiveSynchronousEvaluation.Task? =
         this.run.tasks.find { it.uid == taskId }
 
     /**
-     * Returns the [Submission]s for all currently active [InteractiveSynchronousCompetition.Task]s or an empty [List], if no such task is active.
+     * Returns the [Submission]s for all currently active [InteractiveSynchronousEvaluation.Task]s or an empty [List], if no such task is active.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return List of [Submission]s for the currently active [InteractiveSynchronousCompetition.Task]
+     * @return List of [Submission]s for the currently active [InteractiveSynchronousEvaluation.Task]
      */
     override fun submissions(context: RunActionContext): List<Submission> =
         this.currentTask(context)?.submissions?.toList() ?: emptyList()
 
     /**
-     * Returns the number of [InteractiveSynchronousCompetition.Task]s held by this [RunManager].
+     * Returns the number of [InteractiveSynchronousEvaluation.Task]s held by this [RunManager].
      *
-     * @return The number of [InteractiveSynchronousCompetition.Task]s held by this [RunManager]
+     * @return The number of [InteractiveSynchronousEvaluation.Task]s held by this [RunManager]
      */
     override fun taskCount(context: RunActionContext): Int = this.run.tasks.size
 
     /**
-     * Adjusts the duration of the current [InteractiveSynchronousCompetition.Task] by the specified amount. Amount can be either positive or negative.
+     * Adjusts the duration of the current [InteractiveSynchronousEvaluation.Task] by the specified amount. Amount can be either positive or negative.
      *
      * @param s The number of seconds to adjust the duration by.
      * @return Time remaining until the task will end in milliseconds
@@ -387,7 +387,7 @@ class InteractiveSynchronousRunManager(
     }
 
     /**
-     * Returns the time in milliseconds that is left until the end of the current [InteractiveSynchronousCompetition.Task].
+     * Returns the time in milliseconds that is left until the end of the current [InteractiveSynchronousEvaluation.Task].
      * Only works if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no task is running,
      * this method returns -1L.
      *
@@ -407,7 +407,7 @@ class InteractiveSynchronousRunManager(
     }
 
     /**
-     * Returns the time in milliseconds that has elapsed since the start of the current [InteractiveSynchronousCompetition.Task].
+     * Returns the time in milliseconds that has elapsed since the start of the current [InteractiveSynchronousEvaluation.Task].
      * Only works if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no task is running, this method returns -1L.
      *
      * @return Time remaining until the task will end or -1, if no task is running.
@@ -476,8 +476,8 @@ class InteractiveSynchronousRunManager(
         }
 
     /**
-     * Processes incoming [Submission]s. If a [InteractiveSynchronousCompetition.Task] is running then that [Submission] will usually
-     * be associated with that [InteractiveSynchronousCompetition.Task].
+     * Processes incoming [Submission]s. If a [InteractiveSynchronousEvaluation.Task] is running then that [Submission] will usually
+     * be associated with that [InteractiveSynchronousEvaluation.Task].
      *
      * This method will not throw an exception and instead return false if a [Submission] was
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
@@ -513,8 +513,8 @@ class InteractiveSynchronousRunManager(
     }
 
     /**
-     * Processes incoming [Submission]s. If a [InteractiveSynchronousCompetition.Task] is running then that [Submission] will usually
-     * be associated with that [InteractiveSynchronousCompetition.Task].
+     * Processes incoming [Submission]s. If a [InteractiveSynchronousEvaluation.Task] is running then that [Submission] will usually
+     * be associated with that [InteractiveSynchronousEvaluation.Task].
      *
      * This method will not throw an exception and instead return false if a [Submission] was
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
@@ -553,7 +553,7 @@ class InteractiveSynchronousRunManager(
     }
 
     /**
-     * Internal method that orchestrates the internal progression of the [InteractiveSynchronousCompetition].
+     * Internal method that orchestrates the internal progression of the [InteractiveSynchronousEvaluation].
      */
     override fun run() {
         /** Sort list of by [Phase] in ascending order. */

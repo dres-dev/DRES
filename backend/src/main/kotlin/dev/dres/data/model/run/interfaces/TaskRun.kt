@@ -1,8 +1,7 @@
 package dev.dres.data.model.run.interfaces
 
 import dev.dres.data.model.competition.task.TaskDescription
-import dev.dres.data.model.competition.task.TaskDescriptionId
-import dev.dres.data.model.run.InteractiveAsynchronousCompetition.Task
+import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.Task
 import dev.dres.run.TaskRunStatus
 import dev.dres.run.score.interfaces.TaskScorer
 typealias TaskId = String
@@ -13,14 +12,14 @@ typealias TaskId = String
  * @author Ralph Gasser
  * @version 1.0.0
  */
-interface Task: Run {
+interface TaskRun: Run {
     /** The unique [TaskId] that identifies this [Task]. Used by the persistence layer. */
     val id: TaskId
 
-    /** Reference to the [Competition] this [Task] belongs to. */
-    val competition: Competition
+    /** Reference to the [EvaluationRun] this [Task] belongs to. */
+    val competition: EvaluationRun
 
-    /** The position of this [Task] within the enclosing [Competition]. */
+    /** The position of this [Task] within the enclosing [EvaluationRun]. */
     val position: Int
 
     /** Reference to the [TaskDescription] describing this [Task]. */

@@ -6,8 +6,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.dbo.DAO
 import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.run.InteractiveAsynchronousCompetition
-import dev.dres.data.model.run.interfaces.Competition
+import dev.dres.data.model.run.InteractiveAsynchronousEvaluation
 import dev.dres.utilities.extensions.UID
 import io.javalin.security.RouteRole
 import io.javalin.http.Context
@@ -30,7 +29,7 @@ sealed class DownloadHandler : AccessManagedRestHandler {
     /**
      * REST handler to download the competition run information.
      */
-    class CompetitionRun(private val runs: DAO<Competition>) : DownloadHandler(), GetRestHandler<String> {
+    class CompetitionRun(private val runs: DAO<dev.dres.data.model.run.interfaces.EvaluationRun>) : DownloadHandler(), GetRestHandler<String> {
 
         /** The route of this [DownloadHandler.CompetitionRun]. */
         override val route = "download/run/{runId}"
@@ -67,7 +66,7 @@ sealed class DownloadHandler : AccessManagedRestHandler {
     /**
      * REST handler to download the competition run scores description information.
      */
-    class CompetitionRunScoreHandler(private val runs: DAO<Competition>) : AbstractScoreRestHandler(), GetRestHandler<String> {
+    class CompetitionRunScoreHandler(private val runs: DAO<dev.dres.data.model.run.interfaces.EvaluationRun>) : AbstractScoreRestHandler(), GetRestHandler<String> {
 
         override val route = "download/run/{runId}/scores"
 
@@ -95,7 +94,7 @@ sealed class DownloadHandler : AccessManagedRestHandler {
             ctx.contentType("text/csv")
             ctx.header("Content-Disposition", "attachment; filename=\"scores-${runId.string}.csv\"")
 
-            if (run is InteractiveAsynchronousCompetition) {
+            if (run is InteractiveAsynchronousEvaluation) {
 
                 return "startTime,task,group,team,score\n" + run.tasks.filter { it.started != null }.sortedBy { it.started }
                     .flatMap { task ->

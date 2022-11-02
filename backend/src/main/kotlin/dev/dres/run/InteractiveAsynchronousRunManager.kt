@@ -12,7 +12,7 @@ import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.task.TaskDescription
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.*
-import dev.dres.data.model.run.interfaces.Task
+import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.audit.AuditLogger
@@ -43,7 +43,7 @@ import kotlin.math.max
  * @author Ralph Gasser
  */
 class InteractiveAsynchronousRunManager(
-    val run: InteractiveAsynchronousCompetition
+    val run: InteractiveAsynchronousEvaluation
 ) :
     InteractiveRunManager {
 
@@ -54,7 +54,7 @@ class InteractiveAsynchronousRunManager(
     }
 
     constructor(description: CompetitionDescription, name: String, runProperties: RunProperties) : this(
-        InteractiveAsynchronousCompetition(
+        InteractiveAsynchronousEvaluation(
             UID.EMPTY,
             name,
             description,
@@ -91,11 +91,11 @@ class InteractiveAsynchronousRunManager(
     /** List of [Updatable] held by this [InteractiveAsynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
 
-    /** Run ID of this [InteractiveAsynchronousCompetition]. */
+    /** Run ID of this [InteractiveAsynchronousEvaluation]. */
     override val id: UID
         get() = this.run.id
 
-    /** Name of this [InteractiveAsynchronousCompetition]. */
+    /** Name of this [InteractiveAsynchronousEvaluation]. */
     override val name: String
         get() = this.run.name
 
@@ -172,7 +172,7 @@ class InteractiveAsynchronousRunManager(
     }
 
     /**
-     * Starts this [InteractiveAsynchronousCompetition] moving [RunManager.status] from [RunManagerStatus.CREATED] to
+     * Starts this [InteractiveAsynchronousEvaluation] moving [RunManager.status] from [RunManagerStatus.CREATED] to
      * [RunManagerStatus.ACTIVE] for all teams. This can only be executed by an administrator.
      *
      * As all state affecting methods, this method throws an [IllegalStateException] if invocation does not match the current state.
@@ -201,7 +201,7 @@ class InteractiveAsynchronousRunManager(
     }
 
     /**
-     * Ends this [InteractiveAsynchronousCompetition] moving [RunManager.status] from [RunManagerStatus.ACTIVE] to
+     * Ends this [InteractiveAsynchronousEvaluation] moving [RunManager.status] from [RunManagerStatus.ACTIVE] to
      * [RunManagerStatus.TERMINATED] for all teams.  This can only be executed by an administrator.
      *
      * As all state affecting methods, this method throws an [IllegalStateException] if invocation
@@ -243,7 +243,7 @@ class InteractiveAsynchronousRunManager(
     }
 
     /**
-     * Prepares this [InteractiveAsynchronousCompetition] for the execution of previous [TaskDescription]
+     * Prepares this [InteractiveAsynchronousEvaluation] for the execution of previous [TaskDescription]
      * as per order defined in [CompetitionDescription.tasks]. Requires [RunManager.status] for the requesting team
      * to be [RunManagerStatus.ACTIVE].
      *
@@ -265,7 +265,7 @@ class InteractiveAsynchronousRunManager(
     }
 
     /**
-     * Prepares this [InteractiveAsynchronousCompetition] for the execution of next [TaskDescription]
+     * Prepares this [InteractiveAsynchronousEvaluation] for the execution of next [TaskDescription]
      * as per order defined in [CompetitionDescription.tasks]. Requires [RunManager.status] for the requesting
      * team to be [RunManagerStatus.ACTIVE].
      *
@@ -286,7 +286,7 @@ class InteractiveAsynchronousRunManager(
     }
 
     /**
-     * Prepares this [InteractiveAsynchronousCompetition] for the execution of [TaskDescription] with the given [index]
+     * Prepares this [InteractiveAsynchronousEvaluation] for the execution of [TaskDescription] with the given [index]
      * as per order defined in [CompetitionDescription.tasks]. Requires [RunManager.status] for the requesting
      * team to be [RunManagerStatus.ACTIVE].
      *
@@ -418,7 +418,7 @@ class InteractiveAsynchronousRunManager(
     }
 
     /**
-     * Returns the time in milliseconds that has elapsed since the start of the current [InteractiveSynchronousCompetition.Task].
+     * Returns the time in milliseconds that has elapsed since the start of the current [InteractiveSynchronousEvaluation.Task].
      * Only works if the [RunManager] is in state [RunManagerStatus.RUNNING_TASK]. If no task is running, this method returns -1L.
      *
      * @return Time remaining until the task will end or -1, if no task is running.
@@ -516,7 +516,7 @@ class InteractiveAsynchronousRunManager(
     }
 
     /**
-     * Invoked by an external caller to post a new [Submission] for the [Task] that is currently being
+     * Invoked by an external caller to post a new [Submission] for the [TaskRun] that is currently being
      * executed by this [InteractiveAsynchronousRunManager]. [Submission]s usually cause updates to the
      * internal state and/or the [Scoreboard] of this [InteractiveRunManager].
      *

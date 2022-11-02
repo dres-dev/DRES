@@ -1,6 +1,6 @@
 package dev.dres.api.rest.types.run
 
-import dev.dres.data.model.run.interfaces.Task
+import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.run.*
 
 data class AdminRunOverview(val state: RunManagerStatus, val teamOverviews: List<TeamTaskOverview>) {
@@ -40,7 +40,7 @@ data class TaskRunOverview(
     val status: TaskRunStatus,
     val started: Long?,
     val ended: Long?) {
-    constructor(task: Task) : this(
+    constructor(task: TaskRun) : this(
         task.description.id.string,
         task.description.name,
         task.description.taskGroup.name,

@@ -7,7 +7,6 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.UID
-import dev.dres.data.model.admin.Role
 import dev.dres.data.model.admin.User
 import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.Context

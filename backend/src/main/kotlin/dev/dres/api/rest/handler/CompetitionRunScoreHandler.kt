@@ -19,7 +19,7 @@ import io.javalin.openapi.*
 
 /**
  * A collection of [RestHandler]s that deal with [ScoreOverview]s for ongoing
- * [dev.dres.data.model.run.InteractiveSynchronousCompetition]s.
+ * [dev.dres.data.model.run.InteractiveSynchronousEvaluation]s.
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -57,7 +57,7 @@ abstract class AbstractScoreRestHandler : RestHandler, AccessManagedRestHandler 
 }
 
 /**
- * Generates and lists all [ScoreOverview]s for the provided [dev.dres.data.model.run.InteractiveSynchronousCompetition].
+ * Generates and lists all [ScoreOverview]s for the provided [dev.dres.data.model.run.InteractiveSynchronousEvaluation].
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -86,7 +86,7 @@ class ListCompetitionScoreHandler : AbstractScoreRestHandler(), GetRestHandler<L
 }
 
 /**
- * Generates and lists the [ScoreOverview] for the currently active [dev.dres.data.model.run.InteractiveSynchronousCompetition.Task].
+ * Generates and lists the [ScoreOverview] for the currently active [dev.dres.data.model.run.InteractiveSynchronousEvaluation.Task].
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -130,7 +130,7 @@ class CurrentTaskScoreHandler : AbstractScoreRestHandler(), GetRestHandler<Score
 }
 
 /**
- * Generates and lists the [ScoreOverview] for the specified [dev.dres.data.model.run.InteractiveSynchronousCompetition.Task].
+ * Generates and lists the [ScoreOverview] for the specified [dev.dres.data.model.run.InteractiveSynchronousEvaluation.Task].
  * Can only be invoked by admins.
  *
  * @author Ralph Gasser

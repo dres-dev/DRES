@@ -5,8 +5,8 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.task.TaskDescription
 import dev.dres.data.model.competition.TaskDescriptionId
-import dev.dres.data.model.competition.TeamId
-import dev.dres.data.model.run.InteractiveAsynchronousCompetition.Task
+import dev.dres.data.model.competition.team.TeamId
+import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.Task
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.Submission
@@ -21,10 +21,10 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Represents a concrete, interactive and asynchronous [Run] of a [CompetitionDescription].
  *
- * [InteractiveAsynchronousCompetition]s can be started and ended, and they can be used to create new [Task]s and access the current [Task].
+ * [InteractiveAsynchronousEvaluation]s can be started and ended, and they can be used to create new [Task]s and access the current [Task].
  *
  */
-class InteractiveAsynchronousCompetition(competition: Competition, val permutation: Map<TeamId, List<Int>>) : AbstractCompetitionRun(competition) {
+class InteractiveAsynchronousEvaluation(evaluation: Evaluation, val permutation: Map<TeamId, List<Int>>) : AbstractEvaluation(evaluation) {
 
     companion object {
         fun generatePermutation(
@@ -41,11 +41,9 @@ class InteractiveAsynchronousCompetition(competition: Competition, val permutati
          * generates a sequence of tasks that loops through all tasks exactly once
          */
         private fun makeLoop(length: Int): List<Int> {
-
             if (length <= 0) {
                 return emptyList()
             }
-
             val positions = (0 until length).shuffled()
             val array = IntArray(length) { -1 }
 
@@ -86,12 +84,11 @@ class InteractiveAsynchronousCompetition(competition: Competition, val permutati
             }
 
             return array.toList()
-
         }
     }
 
     constructor(
-        id: CompetitionId,
+        id: EvaluationId,
         name: String,
         competitionDescription: CompetitionDescription,
         properties: RunProperties
@@ -104,7 +101,7 @@ class InteractiveAsynchronousCompetition(competition: Competition, val permutati
     )
 
     internal constructor(
-        id: CompetitionId,
+        id: EvaluationId,
         name: String,
         competitionDescription: CompetitionDescription,
         runProperties: RunProperties,
@@ -198,12 +195,12 @@ class InteractiveAsynchronousCompetition(competition: Competition, val permutati
             ?: throw IllegalArgumentException("Given $teamId is unknown to this competition $id.")
 
     /**
-     * Generates and returns a [String] representation for this [InteractiveAsynchronousCompetition].
+     * Generates and returns a [String] representation for this [InteractiveAsynchronousEvaluation].
      */
     override fun toString(): String = "InteractiveAsynchronousCompetition(id=$id, name=${name})"
 
     /**
-     * A [AbstractInteractiveTask] that takes place as part of the [InteractiveAsynchronousCompetition].
+     * A [AbstractInteractiveTask] that takes place as part of the [InteractiveAsynchronousEvaluation].
      *
      * @author Ralph Gasser
      * @version 1.0.0
@@ -237,18 +234,18 @@ class InteractiveAsynchronousCompetition(competition: Competition, val permutati
             }
         }
 
-        /** The [InteractiveAsynchronousCompetition] this [Task] belongs to.*/
-        override val competition: InteractiveAsynchronousCompetition
-            @JsonIgnore get() = this@InteractiveAsynchronousCompetition
+        /** The [InteractiveAsynchronousEvaluation] this [Task] belongs to.*/
+        override val competition: InteractiveAsynchronousEvaluation
+            @JsonIgnore get() = this@InteractiveAsynchronousEvaluation
 
-        /** The position of this [Task] within the [InteractiveAsynchronousCompetition]. */
+        /** The position of this [Task] within the [InteractiveAsynchronousEvaluation]. */
         override val position: Int
-            get() = this@InteractiveAsynchronousCompetition.tasksMap[this.teamId]?.indexOf(this)
+            get() = this@InteractiveAsynchronousEvaluation.tasksMap[this.teamId]?.indexOf(this)
                 ?: -1
 
         @Transient
         override val description: TaskDescription =
-            this@InteractiveAsynchronousCompetition.description.tasks.find { it.id == this.descriptionId }
+            this@InteractiveAsynchronousEvaluation.description.tasks.find { it.id == this.descriptionId }
                 ?: throw IllegalArgumentException("Task with taskId ${this.descriptionId} not found.")
 
         @Transient
@@ -266,10 +263,10 @@ class InteractiveAsynchronousCompetition(competition: Competition, val permutati
 
 
         init {
-            check(this@InteractiveAsynchronousCompetition.description.teams.any { it.uid == this.teamId }) {
+            check(this@InteractiveAsynchronousEvaluation.description.teams.any { it.uid == this.teamId }) {
                 "Cannot start a new task run for team with ID ${this.teamId}. Team is not registered for competition."
             }
-            this@InteractiveAsynchronousCompetition.tasksMap.compute(this.teamId) { _, v ->
+            this@InteractiveAsynchronousEvaluation.tasksMap.compute(this.teamId) { _, v ->
                 val list = v ?: LinkedList<Task>()
                 check(list.isEmpty() || list.last().hasEnded) { "Cannot create a new task. Another task is currently running." }
                 list.add(this)
@@ -278,14 +275,14 @@ class InteractiveAsynchronousCompetition(competition: Competition, val permutati
         }
 
         /**
-         * Adds a [Submission] to this [InteractiveAsynchronousCompetition.Task].
+         * Adds a [Submission] to this [InteractiveAsynchronousEvaluation.Task].
          *
          * @param submission The [Submission] to add.
          * @throws IllegalArgumentException If [Submission] could not be added for any reason.
          */
         @Synchronized
         override fun postSubmission(submission: Submission) {
-            check(this.isRunning) { "Task run '${this@InteractiveAsynchronousCompetition.name}.${this.position}' is currently not running. This is a programmer's error!" }
+            check(this.isRunning) { "Task run '${this@InteractiveAsynchronousEvaluation.name}.${this.position}' is currently not running. This is a programmer's error!" }
             check(this.teamId == submission.teamId) { "Team ${submission.teamId} is not eligible to submit to this task. This is a programmer's error!" }
 
             /* Execute submission filters. */

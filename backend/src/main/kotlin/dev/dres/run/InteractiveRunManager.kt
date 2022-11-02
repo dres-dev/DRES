@@ -4,7 +4,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.task.TaskDescription
 import dev.dres.data.model.run.*
-import dev.dres.data.model.run.interfaces.Task
+import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.score.ScoreTimePoint
@@ -19,7 +19,7 @@ interface InteractiveRunManager : RunManager {
     /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
     val scoreHistory: List<ScoreTimePoint>
 
-    /** List of all [Submission]s for this [InteractiveRunManager], irrespective of the [InteractiveSynchronousCompetition.Task] it belongs to. */
+    /** List of all [Submission]s for this [InteractiveRunManager], irrespective of the [InteractiveSynchronousEvaluation.Task] it belongs to. */
     val allSubmissions: List<Submission>
 
     /**
@@ -30,7 +30,7 @@ interface InteractiveRunManager : RunManager {
      * an [IllegalStateException] if invocation does not match the current state.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return True if [Task] was moved, false otherwise. Usually happens if last [Task] has been reached.
+     * @return True if [TaskRun] was moved, false otherwise. Usually happens if last [TaskRun] has been reached.
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     fun previous(context: RunActionContext): Boolean
@@ -43,7 +43,7 @@ interface InteractiveRunManager : RunManager {
      * an [IllegalStateException] if invocation oes not match the current state.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return True if [Task] was moved, false otherwise. Usually happens if last [Task] has been reached.
+     * @return True if [TaskRun] was moved, false otherwise. Usually happens if last [TaskRun] has been reached.
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     fun next(context: RunActionContext): Boolean
@@ -168,7 +168,7 @@ interface InteractiveRunManager : RunManager {
     fun overrideReadyState(context: RunActionContext, viewerId: String): Boolean
 
     /**
-     * Invoked by an external caller to post a new [Submission] for the [Task] that is currently being
+     * Invoked by an external caller to post a new [Submission] for the [TaskRun] that is currently being
      * executed by this [InteractiveRunManager]. [Submission]s usually cause updates to the internal state and/or
      * the [Scoreboard] of this [InteractiveRunManager].
      *

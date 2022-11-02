@@ -1,7 +1,7 @@
 package dev.dres.api.rest.types.run
 
 /**
- * Information of past task in a [dev.dres.data.model.run.InteractiveSynchronousCompetition].
+ * Information of past task in a [dev.dres.data.model.run.InteractiveSynchronousEvaluation].
  * The information includes the [dev.dres.data.model.competition.TaskDescription],
  * the actual task, its name, [dev.dres.data.model.competition.TaskGroup],
  * [dev.dres.data.model.competition.TaskType] and the number of submissions.

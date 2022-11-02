@@ -7,15 +7,14 @@ import dev.dres.api.rest.types.run.websocket.ClientMessage
 import dev.dres.api.rest.types.run.websocket.ClientMessageType
 import dev.dres.api.rest.types.run.websocket.ServerMessage
 import dev.dres.api.rest.types.run.websocket.ServerMessageType
-import dev.dres.data.model.UID
 import dev.dres.data.model.competition.team.TeamId
-import dev.dres.data.model.run.InteractiveAsynchronousCompetition
-import dev.dres.data.model.run.InteractiveSynchronousCompetition
-import dev.dres.data.model.run.NonInteractiveCompetition
-import dev.dres.data.model.run.interfaces.Competition
+import dev.dres.data.model.run.EvaluationId
+import dev.dres.data.model.run.InteractiveAsynchronousEvaluation
+import dev.dres.data.model.run.InteractiveSynchronousEvaluation
+import dev.dres.data.model.run.NonInteractiveEvaluation
+import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.validation.interfaces.JudgementValidator
-import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.read
 import dev.dres.utilities.extensions.write
 import io.javalin.websocket.WsConfig
@@ -34,7 +33,7 @@ import java.util.function.Consumer
  * The execution environment for [RunManager]s
  *
  * @author Ralph Gasser
- * @version 1.1
+ * @version 1.2.0
  */
 object RunExecutor : Consumer<WsConfig> {
 
@@ -44,7 +43,7 @@ object RunExecutor : Consumer<WsConfig> {
     private val executor = Executors.newCachedThreadPool()
 
     /** List of [RunManager] executed by this [RunExecutor]. */
-    private val runManagers = HashMap<UID,RunManager>()
+    private val runManagers = HashMap<EvaluationId,RunManager>()
 
     /** List of [JudgementValidator]s registered with this [RunExecutor]. */
     private val judgementValidators = LinkedList<JudgementValidator>()
@@ -53,7 +52,7 @@ object RunExecutor : Consumer<WsConfig> {
     private val connectedClients = HashSet<WebSocketConnection>()
 
     /** List of session IDs that are currently observing a competition. */
-    private val observingClients = HashMap<UID, MutableSet<WebSocketConnection>>()
+    private val observingClients = HashMap<EvaluationId, MutableSet<WebSocketConnection>>()
 
     /** Lock for accessing and changing all data structures related to WebSocket clients. */
     private val clientLock = StampedLock()
@@ -62,7 +61,7 @@ object RunExecutor : Consumer<WsConfig> {
     private val runManagerLock = StampedLock()
 
     /** Internal array of [Future]s for cleaning after [RunManager]s. See [RunExecutor.cleanerThread]*/
-    private val results = HashMap<Future<*>, UID>()
+    private val results = HashMap<Future<*>, EvaluationId>()
 
     /** The [TransientEntityStore] instance used by this [AuditLogger]. */
     private lateinit var store: TransientEntityStore
@@ -81,18 +80,21 @@ object RunExecutor : Consumer<WsConfig> {
         */
     }
 
-    fun schedule(competition: Competition) {
+    /**
+     *
+     */
+    fun schedule(competition: EvaluationRun) {
         val run = when(competition) {
-            is InteractiveSynchronousCompetition -> {
+            is InteractiveSynchronousEvaluation -> {
                 competition.tasks.forEach { t ->
                     t.submissions.forEach { s -> s.task = t }
                 }
                 InteractiveSynchronousRunManager(competition)
             }
-            is NonInteractiveCompetition -> {
+            is NonInteractiveEvaluation -> {
                 NonInteractiveRunManager(competition)
             }
-            is InteractiveAsynchronousCompetition -> {
+            is InteractiveAsynchronousEvaluation -> {
                 competition.tasks.forEach { t ->
                     t.submissions.forEach { s -> s.task = t }
                     if (!t.hasEnded) {
@@ -107,8 +109,8 @@ object RunExecutor : Consumer<WsConfig> {
     }
 
     /** A thread that cleans after [RunManager] have finished. */
-    private val cleanerThread = Thread(Runnable {
-        while(!this@RunExecutor.executor.isShutdown) {
+    private val cleanerThread = Thread {
+        while (!this@RunExecutor.executor.isShutdown) {
             var stamp = this@RunExecutor.runManagerLock.readLock()
             try {
                 this@RunExecutor.results.entries.removeIf { entry ->
@@ -135,7 +137,7 @@ object RunExecutor : Consumer<WsConfig> {
             }
             Thread.sleep(500)
         }
-    })
+    }
 
     init {
         this.cleanerThread.priority = Thread.MIN_PRIORITY
@@ -147,7 +149,7 @@ object RunExecutor : Consumer<WsConfig> {
     /**
      * Callback for when registering this [RunExecutor] as handler for Javalin's WebSocket.
      *
-     * @param t The [WsHandler] of the WebSocket endpoint.
+     * @param t The [WsConfig] of the WebSocket endpoint.
      */
     override fun accept(t: WsConfig) {
         t.onConnect {
@@ -162,10 +164,10 @@ object RunExecutor : Consumer<WsConfig> {
                 val connection = WebSocketConnection(it)
                 this.connectedClients.remove(connection)
                 this.runManagerLock.read {
-                    for (m in runManagers) {
+                    for (m in this.runManagers) {
                         if (this.observingClients[m.key]?.contains(connection) == true) {
                             this.observingClients[m.key]?.remove(connection)
-                            m.value.wsMessageReceived(session, ClientMessage(m.key.string, ClientMessageType.UNREGISTER)) /* Send implicit unregister message associated with a disconnect. */
+                            m.value.wsMessageReceived(session, ClientMessage(m.key, ClientMessageType.UNREGISTER)) /* Send implicit unregister message associated with a disconnect. */
                         }
                     }
                 }
@@ -181,14 +183,14 @@ object RunExecutor : Consumer<WsConfig> {
             val session = WebSocketConnection(it)
             logger.debug("Received WebSocket message: $message from ${it.session.policy}")
             this.runManagerLock.read {
-                if (this.runManagers.containsKey(message.runId.UID())) {
+                if (this.runManagers.containsKey(message.runId)) {
                     when (message.type) {
                         ClientMessageType.ACK -> {}
-                        ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId.UID()]?.add(WebSocketConnection(it)) }
-                        ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId.UID()]?.remove(WebSocketConnection(it)) }
+                        ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.add(WebSocketConnection(it)) }
+                        ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.remove(WebSocketConnection(it)) }
                         ClientMessageType.PING -> it.send(ServerMessage(message.runId, ServerMessageType.PING))
                     }
-                    this.runManagers[message.runId.UID()]!!.wsMessageReceived(session, message) /* Forward message to RunManager. */
+                    this.runManagers[message.runId]!!.wsMessageReceived(session, message) /* Forward message to RunManager. */
                 }
             }
         }
@@ -206,11 +208,11 @@ object RunExecutor : Consumer<WsConfig> {
     /**
      * Returns the [RunManager] for the given ID if such a [RunManager] exists.
      *
-     * @param runId The ID for which to return the [RunManager].
+     * @param evaluationId The ID for which to return the [RunManager].
      * @return Optional [RunManager].
      */
-    fun managerForId(runId: UID): RunManager? = this.runManagerLock.read {
-        return this.runManagers[runId]
+    fun managerForId(evaluationId: EvaluationId): RunManager? = this.runManagerLock.read {
+        return this.runManagers[evaluationId]
     }
 
     /**
@@ -248,13 +250,13 @@ object RunExecutor : Consumer<WsConfig> {
     /**
      * Broadcasts a [ServerMessage] to all clients currently connected and observing a specific [RunManager].
      *
-     * @param runId The run ID identifying the [RunManager] for which clients should received the message.
+     * @param evaluationId The run ID identifying the [RunManager] for which clients should received the message.
      * @param message The [ServerMessage] that should be broadcast.
      */
-    fun broadcastWsMessage(runId: UID, message: ServerMessage) = this.clientLock.read {
+    fun broadcastWsMessage(evaluationId: EvaluationId, message: ServerMessage) = this.clientLock.read {
         this.runManagerLock.read {
             this.connectedClients.filter {
-                this.observingClients[runId]?.contains(it) ?: false
+                this.observingClients[evaluationId]?.contains(it) ?: false
             }.forEach {
                 it.send(message)
             }
@@ -264,19 +266,19 @@ object RunExecutor : Consumer<WsConfig> {
     /**
      * Broadcasts a [ServerMessage] to all clients currently connected and observing a specific [RunManager] and are member of the specified team.
      *
-     * @param runId The run ID identifying the [RunManager] for which clients should received the message.
+     * @param evaluationId The run ID identifying the [RunManager] for which clients should receive the message.
      * @param teamId The [TeamId] of the relevant team
      * @param message The [ServerMessage] that should be broadcast.
      */
-    fun broadcastWsMessage(runId: UID, teamId: TeamId, message: ServerMessage) = this.clientLock.read {
-        val manager = managerForId(runId)
+    fun broadcastWsMessage(evaluationId: EvaluationId, teamId: TeamId, message: ServerMessage) = this.clientLock.read {
+        val manager = managerForId(evaluationId)
         if (manager != null) {
             val teamMembers = this.store.transactional(true) {
                 manager.description.teams.filter { it.id eq teamId }.flatMapDistinct { it.users }.asSequence().map { it.userId }.toList()
             }
             this.runManagerLock.read {
                 this.connectedClients.filter {
-                    this.observingClients[runId]?.contains(it) ?: false && AccessManager.userIdForSession(it.httpSessionId) in teamMembers
+                    this.observingClients[evaluationId]?.contains(it) ?: false && AccessManager.userIdForSession(it.httpSessionId) in teamMembers
                 }.forEach {
                     it.send(message)
                 }
@@ -293,13 +295,13 @@ object RunExecutor : Consumer<WsConfig> {
 
 
     /**
-     * Dumps the given [Competition] to a file.
+     * Dumps the given [EvaluationRun] to a file.
      *
-     * @param competition [Competition] that should be dumped.
+     * @param competition [EvaluationRun] that should be dumped.
      */
-    fun dump(competition: Competition) {
+    fun dump(competition: EvaluationRun) {
         try {
-            val file = File("run_dump_${competition.id.string}.json")
+            val file = File("run_dump_${competition.id}.json")
             jacksonObjectMapper().writeValue(file, competition)
             this.logger.info("Wrote current run state to ${file.absolutePath}")
         } catch (e: Exception){

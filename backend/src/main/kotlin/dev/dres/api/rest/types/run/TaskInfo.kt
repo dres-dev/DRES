@@ -2,11 +2,11 @@ package dev.dres.api.rest.types.run
 
 import dev.dres.data.model.UID
 import dev.dres.data.model.competition.task.TaskDescription
-import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 
 /**
  * Basic and most importantly static information about the [TaskDescription]
- * of a [InteractiveSynchronousCompetition]. Since this information usually doesn't change in the course of a run, it
+ * of a [InteractiveSynchronousEvaluation]. Since this information usually doesn't change in the course of a run, it
  * allows for local caching  and other optimizations.
  *
  * @author Ralph Gasser and Loris Sauter

@@ -11,7 +11,7 @@ import dev.dres.data.model.media.MediaCollection
 import dev.dres.data.model.competition.interfaces.SubmissionFilterFactory
 import dev.dres.data.model.competition.interfaces.TaskScorerFactory
 import dev.dres.data.model.competition.team.Team
-import dev.dres.data.model.run.interfaces.Task
+import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.score.interfaces.TaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
@@ -26,7 +26,7 @@ import java.lang.Long.max
 typealias TaskDescriptionId = String
 
 /**
- * Basic description of a [Task] as executed in DRES. Defines basic attributes such as its name, its duration,
+ * Basic description of a [TaskRun] as executed in DRES. Defines basic attributes such as its name, its duration,
  * the [TaskDescriptionTarget] and the [Hint]s, that should be presented to the user.
  *
  * @version 2.0.0

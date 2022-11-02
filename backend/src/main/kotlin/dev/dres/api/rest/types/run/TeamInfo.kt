@@ -1,10 +1,10 @@
 package dev.dres.api.rest.types.run
 
 import dev.dres.data.model.competition.team.Team
-import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 
 /**
- * Basic and most importantly static information about the [Team] partaking in a [InteractiveSynchronousCompetition].
+ * Basic and most importantly static information about the [Team] partaking in a [InteractiveSynchronousEvaluation].
  * Since this information usually doesn't change in the course of a run,t allows for local caching
  * and other optimizations.
  *

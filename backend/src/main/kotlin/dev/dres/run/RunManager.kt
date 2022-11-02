@@ -2,26 +2,26 @@ package dev.dres.run
 
 import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.run.websocket.ClientMessage
-import dev.dres.data.model.UID
 import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.EvaluationId
+import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.RunProperties
-import dev.dres.data.model.run.interfaces.Task
+import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
 
 /**
- * A managing class for concrete executions of [CompetitionDescription], i.e. [InteractiveSynchronousCompetition]s.
+ * A managing class for concrete executions of [CompetitionDescription], i.e. [InteractiveSynchronousEvaluation]s.
  *
- * @see InteractiveSynchronousCompetition
+ * @see InteractiveSynchronousEvaluation
  *
  * @author Ralph Gasser
  * @version 1.5.0
  */
 interface RunManager : Runnable {
-    /** Unique, public, numeric ID for this [RunManager]. */
-    val id: UID
+    /** Unique, public [EvaluationId] for this [RunManager]. */
+    val id: EvaluationId
 
     /** A name for identifying this [RunManager]. */
     val name: String
@@ -66,20 +66,20 @@ interface RunManager : Runnable {
 
 
     /**
-     * Returns the number of [InteractiveSynchronousCompetition.Task]s held by this [RunManager].
+     * Returns the number of [InteractiveSynchronousEvaluation.Task]s held by this [RunManager].
      *
      * @param context The [RunActionContext] for this invocation.
-     * @return The number of [InteractiveSynchronousCompetition.Task]s held by this [RunManager]
+     * @return The number of [InteractiveSynchronousEvaluation.Task]s held by this [RunManager]
      */
     fun taskCount(context: RunActionContext): Int
 
     /**
-     * Returns a list of all [Task]s that took or are taking place in the scope of this [RunManager].
+     * Returns a list of all [TaskRun]s that took or are taking place in the scope of this [RunManager].
      *
      * @param context The [RunActionContext] for this invocation.
-     * @return List of [Task] that took place (are taking place).
+     * @return List of [TaskRun] that took place (are taking place).
      */
-    fun tasks(context: RunActionContext): List<Task>
+    fun tasks(context: RunActionContext): List<TaskRun>
 
     /**
      * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.

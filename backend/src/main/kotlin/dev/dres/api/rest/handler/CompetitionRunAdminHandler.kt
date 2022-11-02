@@ -12,7 +12,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.data.model.media.MediaCollection
 import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.run.InteractiveSynchronousCompetition
+import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.data.model.run.RunProperties
 import dev.dres.data.model.submissions.SubmissionStatus
@@ -84,7 +84,7 @@ abstract class AbstractCompetitionRunAdminRestHandler(
 }
 
 /**
- * REST handler to create a [InteractiveSynchronousCompetition].
+ * REST handler to create a [InteractiveSynchronousEvaluation].
  */
 class CreateCompetitionRunAdminHandler(
     private val competitions: DAO<CompetitionDescription>,
@@ -193,7 +193,7 @@ class CreateCompetitionRunAdminHandler(
 }
 
 /**
- * REST handler to start a [InteractiveSynchronousCompetition].
+ * REST handler to start a [InteractiveSynchronousEvaluation].
  */
 class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(ApiRole.ADMIN)),
     PostRestHandler<SuccessStatus> {
@@ -235,7 +235,7 @@ class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(s
 }
 
 /**
- * REST handler to move to the next task in a [InteractiveSynchronousCompetition].
+ * REST handler to move to the next task in a [InteractiveSynchronousEvaluation].
  */
 class NextTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(),
     PostRestHandler<SuccessStatus> {
@@ -296,7 +296,7 @@ class NextTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandle
 }
 
 /**
- * REST handler to move to the next task in a [InteractiveSynchronousCompetition].
+ * REST handler to move to the next task in a [InteractiveSynchronousEvaluation].
  */
 class SwitchTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(ApiRole.ADMIN)),
     PostRestHandler<SuccessStatus> {
@@ -354,7 +354,7 @@ class SwitchTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHand
 }
 
 /**
- * REST handler to move to the previous task in a [InteractiveSynchronousCompetition].
+ * REST handler to move to the previous task in a [InteractiveSynchronousEvaluation].
  */
 class PreviousTaskCompetitionRunAdminHandler :
     AbstractCompetitionRunAdminRestHandler(setOf(ApiRole.ADMIN)),
@@ -406,7 +406,7 @@ class PreviousTaskCompetitionRunAdminHandler :
 }
 
 /**
- * REST handler to start the current task in a [InteractiveSynchronousCompetition].
+ * REST handler to start the current task in a [InteractiveSynchronousEvaluation].
  */
 class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(),
     PostRestHandler<SuccessStatus> {
@@ -448,7 +448,7 @@ class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
 }
 
 /**
- * REST handler to abort the current task in a [InteractiveSynchronousCompetition].
+ * REST handler to abort the current task in a [InteractiveSynchronousEvaluation].
  */
 class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(ApiRole.ADMIN)),
     PostRestHandler<SuccessStatus> {
@@ -488,7 +488,7 @@ class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
 }
 
 /**
- * REST handler to terminate a [InteractiveSynchronousCompetition].
+ * REST handler to terminate a [InteractiveSynchronousEvaluation].
  */
 class TerminateCompetitionRunAdminHandler :
     AbstractCompetitionRunAdminRestHandler(setOf(ApiRole.ADMIN)),
@@ -528,7 +528,7 @@ class TerminateCompetitionRunAdminHandler :
 }
 
 /**
- * REST handler to adjust a [InteractiveSynchronousCompetition.Task]'s duration.
+ * REST handler to adjust a [InteractiveSynchronousEvaluation.Task]'s duration.
  */
 class AdjustDurationRunAdminHandler :
     AbstractCompetitionRunAdminRestHandler(setOf(ApiRole.ADMIN)),
@@ -756,7 +756,7 @@ class OverwriteSubmissionStatusRunAdminHandler :
 }
 
 /**
- * REST handler to list all viewers for a [InteractiveSynchronousCompetition].
+ * REST handler to list all viewers for a [InteractiveSynchronousEvaluation].
  */
 class ListViewersRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(ApiRole.ADMIN)),
     GetRestHandler<Array<ViewerInfo>> {

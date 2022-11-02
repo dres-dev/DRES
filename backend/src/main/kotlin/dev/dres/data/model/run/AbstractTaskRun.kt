@@ -1,8 +1,6 @@
 package dev.dres.data.model.run
 
-
 import dev.dres.data.model.run.interfaces.Run
-import dev.dres.data.model.run.interfaces.Task
 import dev.dres.run.TaskRunStatus
 
 /**
@@ -11,17 +9,24 @@ import dev.dres.run.TaskRunStatus
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractTaskRun: Task {
+abstract class AbstractTaskRun(protected val task: Task): dev.dres.data.model.run.interfaces.Task {
+    /** The Id of this [AbstractTaskRun]. */
+    override val id: TaskId
+        get() = this.task.id
 
     /** Timestamp of when this [AbstractTaskRun] was started. */
-    @Volatile
-    override var started: Long? = null
-        protected set
+    override var started: Long
+        get() = this.task.started
+        protected set(value) {
+            this.task.started = value
+        }
 
     /** Timestamp of when this [AbstractTaskRun] was ended. */
-    @Volatile
-    override var ended: Long? = null
-        protected set
+    override var ended: Long?
+        get() = this.task.ended
+        protected set(value) {
+            this.task.ended = value
+        }
 
     @Volatile
     override var status: TaskRunStatus = TaskRunStatus.CREATED
@@ -65,6 +70,5 @@ abstract class AbstractTaskRun: Task {
         }
         this.ended = null
         this.status = TaskRunStatus.RUNNING
-
     }
 }

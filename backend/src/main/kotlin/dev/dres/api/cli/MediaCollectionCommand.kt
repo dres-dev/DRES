@@ -30,7 +30,7 @@ import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.relativeTo
 
 /**
- * A collection of [CliktCommand]s for [MediaItem], [MediaCollection] and [MediaItemSegment] management.
+ * A collection of [CliktCommand]s for [MediaItem], [MediaCollection] and [MediaSegment] management.
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
@@ -552,7 +552,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
 
 
     /**
-     * [CliktCommand] to import a [MediaItemSegment]s.
+     * [CliktCommand] to import a [MediaSegment]s.
      *
      * Uses the VBS format.
      */
@@ -592,7 +592,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
                         if (videoItem != null) {
                             inserted += 1
                             videoItem.segments.add(
-                                MediaItemSegment.new {
+                                MediaSegment.new {
                                     this.id = UUID.randomUUID().toString()
                                     this.name = videoName
                                     this.start = start

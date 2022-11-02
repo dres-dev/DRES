@@ -1,6 +1,6 @@
 package dev.dres.run.audit
 
-import dev.dres.api.rest.handler.SessionId
+import dev.dres.api.rest.handler.users.SessionId
 import dev.dres.data.model.UID
 import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.audit.AuditLogEntry
@@ -8,8 +8,8 @@ import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.data.model.audit.AuditLogType
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.task.TaskDescription
+import dev.dres.data.model.competition.task.TaskDescriptionId
 import dev.dres.data.model.run.interfaces.CompetitionId
-import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.eventstream.*
@@ -105,7 +105,7 @@ object AuditLogger {
      * @param api The [AuditLogSource]
      * @param session The identifier of the user session.
      */
-    fun taskModified(competitionId: CompetitionId, taskId: TaskId, modification: String, api: AuditLogSource, session: String?)  {
+    fun taskModified(competitionId: CompetitionId, taskId: TaskDescriptionId, modification: String, api: AuditLogSource, session: String?)  {
         this.store.transactional {
             AuditLogEntry.new {
                 this.type = AuditLogType.TASK_MODIFIED

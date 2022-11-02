@@ -1,13 +1,15 @@
 package dev.dres.data.model.competition.team
 
 /**
+ * Implementation of different [TeamAggregator]s.
  *
- * @author Ralph Gasser
- * @version 1.0
+ * @author Luca Rossetto
+ * @version 1.0.0
  */
 sealed class TeamAggregatorImpl constructor(teams: List<Team>) {
 
-    private val teamIds = teams.map { it }.toSet()
+    /** Internal set of [TeamId]s. */
+    private val teamIds = teams.map { it.teamId }.toSet()
 
     var lastValue: Double = 0.0
         private set

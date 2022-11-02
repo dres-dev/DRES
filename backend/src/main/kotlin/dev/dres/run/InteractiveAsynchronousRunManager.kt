@@ -23,7 +23,6 @@ import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.*
 import dev.dres.run.validation.interfaces.JudgementValidator
-import dev.dres.utilities.extensions.UID
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -540,7 +539,7 @@ class InteractiveAsynchronousRunManager(
         /* Register submission. */
         val task = this.currentTask(context)
             ?: throw IllegalStateException("Could not find ongoing task in run manager, despite being in status ${this.statusMap[context.teamId]}. This is a programmer's error!")
-        task.addSubmission(sub)
+        task.postSubmission(sub)
 
         /* Mark dao for update. */
         this.daoUpdatable.dirty = true

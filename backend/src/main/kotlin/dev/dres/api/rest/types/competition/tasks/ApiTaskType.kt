@@ -12,7 +12,7 @@ import dev.dres.data.model.competition.task.TaskType
 data class ApiTaskType(
     val name: String,
     val duration: Long,
-    val targetOptions: List<ApiTargetOption>,
+    val targetOption: ApiTargetOption,
     val hintOptions: List<ApiComponentOption>,
     val submissionOptions: List<ApiSubmissionOption>,
     val taskOptions: List<ApiTaskOption>,

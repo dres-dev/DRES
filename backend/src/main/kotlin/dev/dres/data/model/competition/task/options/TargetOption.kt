@@ -5,6 +5,7 @@ import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity
 import kotlinx.dnq.XdEnumEntityType
 import kotlinx.dnq.xdRequiredStringProp
+
 /**
  * An enumeration of potential options for [TaskDescription] targets.
  *
@@ -13,9 +14,8 @@ import kotlinx.dnq.xdRequiredStringProp
  */
 class TargetOption(entity: Entity) : XdEnumEntity(entity) {
     companion object : XdEnumEntityType<TargetOption>() {
-        val SINGLE_MEDIA_ITEM by enumField { description = "SINGLE_MEDIA_ITEM" }
-        val SINGLE_MEDIA_SEGMENT by enumField { description = "SINGLE_MEDIA_SEGMENT" }
-        val MULTIPLE_MEDIA_ITEMS by enumField { description = "MULTIPLE_MEDIA_ITEMS" }
+        val MEDIA_ITEM by enumField { description = "MEDIA_ITEM" }
+        val MEDIA_SEGMENT by enumField { description = "MEDIA_SEGMENT" }
         val JUDGEMENT by enumField { description = "JUDGEMENT" }
         val VOTE by enumField { description = "VOTE" }
         val TEXT by enumField { description = "TEXT" }

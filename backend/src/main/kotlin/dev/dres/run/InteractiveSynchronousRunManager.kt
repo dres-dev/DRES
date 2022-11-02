@@ -27,7 +27,6 @@ import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.*
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.ReadyLatch
-import dev.dres.utilities.extensions.UID
 import org.slf4j.LoggerFactory
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -493,7 +492,7 @@ class InteractiveSynchronousRunManager(
         /* Register submission. */
         val task = this.currentTask(context)
             ?: throw IllegalStateException("Could not find ongoing task in run manager, despite correct status. This is a programmer's error!")
-        task.addSubmission(sub)
+        task.postSubmission(sub)
 
         /** Checks for the presence of the [SimpleOption.PROLONG_ON_SUBMISSION] and applies it. */
         val option = task.description.taskType.options.find { it.option == SimpleOption.PROLONG_ON_SUBMISSION }

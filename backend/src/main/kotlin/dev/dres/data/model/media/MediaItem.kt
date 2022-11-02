@@ -1,7 +1,6 @@
 package dev.dres.data.model.media
 
 import dev.dres.api.rest.types.collection.ApiMediaItem
-import dev.dres.data.model.Config
 import dev.dres.data.model.PersistentEntity
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
@@ -43,8 +42,8 @@ class MediaItem(entity: Entity) : PersistentEntity(entity) {
     /** The [MediaCollection] this [MediaItem] belongs to. */
     var collection by xdParent<MediaItem, MediaCollection>(MediaCollection::items)
 
-    /** List of [MediaItemSegment] that this [MediaItem] contains.  */
-    val segments by xdChildren0_N<MediaItem, MediaItemSegment>(MediaItemSegment::item)
+    /** List of [MediaSegment] that this [MediaItem] contains.  */
+    val segments by xdChildren0_N<MediaItem, MediaSegment>(MediaSegment::item)
 
     /**
      * Generates a [ApiMediaItem] this [MediaItem] and returns it.

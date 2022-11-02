@@ -38,7 +38,7 @@ class TaskType(entity: Entity) : XdEntity(entity) {
     var duration by xdRequiredLongProp() { min(0L) }
 
     /** The [TargetOption] for this [TaskType]. Specifies the type of target. */
-    val targets by xdLink1_N(TargetOption)
+    val target by xdLink1(TargetOption)
 
     /** The [HintOption]s that make-up this [TaskType]. */
     val hints by xdLink0_N(HintOption)
@@ -63,7 +63,7 @@ class TaskType(entity: Entity) : XdEntity(entity) {
     fun toApi(): ApiTaskType = ApiTaskType(
         name = this.name,
         duration = this.duration,
-        targetOptions = this.targets.asSequence().map { it.toApi() }.toList(),
+        targetOption = this.target.toApi(),
         hintOptions = this.hints.asSequence().map { it.toApi() }.toList(),
         submissionOptions = this.submission.asSequence().map { it.toApi() }.toList(),
         taskOptions = this.options.asSequence().map { it.toApi() }.toList(),

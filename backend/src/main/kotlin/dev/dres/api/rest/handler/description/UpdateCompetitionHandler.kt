@@ -119,8 +119,8 @@ class UpdateCompetitionHandler(store: TransientEntityStore, val config: Config) 
                         t.targets.add(TaskDescriptionTarget.new {
                             this.item = item
                             this.type = target.type.type
-                            this.temporalRangeStart = target.range?.start?.toTemporalPoint(item.fps ?: 0.0f)?.toMilliseconds()
-                            this.temporalRangeEnd = target.range?.end?.toTemporalPoint(item.fps?: 0.0f)?.toMilliseconds()
+                            this.start = target.range?.start?.toTemporalPoint(item.fps ?: 0.0f)?.toMilliseconds()
+                            this.end = target.range?.end?.toTemporalPoint(item.fps?: 0.0f)?.toMilliseconds()
                         })
                     }
 

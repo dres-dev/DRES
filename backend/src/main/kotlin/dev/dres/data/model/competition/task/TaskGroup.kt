@@ -30,9 +30,6 @@ class TaskGroup(entity: Entity) : XdEntity(entity) {
     /** The [CompetitionDescription] this [TaskGroup] belongs to. */
     var competition by xdParent<TaskGroup, CompetitionDescription>(CompetitionDescription::taskGroups)
 
-    /** The [TaskDescription]s contained in this [TaskGroup]*/
-    val tasks by xdChildren0_N<TaskGroup, TaskDescription>(TaskDescription::taskGroup)
-
     /**
      * Converts this [TargetType] to a RESTful API representation [ApiTargetType].
      *
@@ -41,5 +38,5 @@ class TaskGroup(entity: Entity) : XdEntity(entity) {
      * @return [ApiTargetType]
      */
     fun toApi(): ApiTaskGroup
-        = ApiTaskGroup(this.name,this.type.name,this.tasks.asSequence().map { it.toApi() }.toList())
+        = ApiTaskGroup(this.name,this.type.name)
 }

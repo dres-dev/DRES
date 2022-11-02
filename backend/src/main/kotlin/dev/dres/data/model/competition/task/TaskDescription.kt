@@ -47,7 +47,10 @@ class TaskDescription(entity: Entity) : PersistentEntity(entity), TaskScorerFact
     var template by xdBooleanProp()
 
     /** The [TaskGroup] this [TaskDescription] belongs to. */
-    var taskGroup by xdParent<TaskDescription, TaskGroup>(TaskGroup::tasks)
+    var taskGroup by xdLink1(TaskGroup)
+
+    /** The [CompetitionDescription] this [TaskDescription] belongs to. */
+    var competition by xdParent<TaskDescription,CompetitionDescription>(CompetitionDescription::tasks)
 
     /** The [MediaCollection] this [TaskDescription] operates upon. */
     var collection by xdLink1(MediaCollection)

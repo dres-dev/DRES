@@ -41,15 +41,15 @@ class TaskDescriptionTarget(entity: Entity) : XdEntity(entity) {
     var text by xdStringProp() { requireIf { item == null }}
 
     /** The start of a (potential) range. */
-    var temporalRangeStart by xdNullableLongProp { requireIf { item?.type == MediaType.VIDEO } }
+    var start by xdNullableLongProp { requireIf { item?.type == MediaType.VIDEO } }
 
     /** The start of a (potential) range. */
-    var temporalRangeEnd by xdNullableLongProp { requireIf { item?.type == MediaType.VIDEO } }
+    var end by xdNullableLongProp { requireIf { item?.type == MediaType.VIDEO } }
 
     /** Returns the [TemporalRange] of this [TaskDescriptionTarget]. */
     val range: TemporalRange?
-        get() = if (this.temporalRangeStart != null && this.temporalRangeEnd != null) {
-            TemporalRange(TemporalPoint.Millisecond(this.temporalRangeStart!!), TemporalPoint.Millisecond(this.temporalRangeEnd!!))
+        get() = if (this.start != null && this.end != null) {
+            TemporalRange(TemporalPoint.Millisecond(this.start!!), TemporalPoint.Millisecond(this.end!!))
         } else {
             null
         }
@@ -64,7 +64,7 @@ class TaskDescriptionTarget(entity: Entity) : XdEntity(entity) {
         TargetType.JUDGEMENT -> "Judgement"
         TargetType.JUDGEMENT_WITH_VOTE -> "Judgement with vote"
         TargetType.MEDIA_ITEM -> "Media item ${this.item?.name}"
-        TargetType.MEDIA_ITEM_TEMPORAL_RANGE -> "Media item ${this.item?.name} @ ${this.temporalRangeStart} - ${this.temporalRangeEnd}"
+        TargetType.MEDIA_ITEM_TEMPORAL_RANGE -> "Media item ${this.item?.name} @ ${this.start} - ${this.end}"
         TargetType.TEXT -> "Text: ${this.text}"
         else -> throw IllegalStateException("The task description type ${this.type.description} is currently not supported.")
     }
@@ -100,7 +100,7 @@ class TaskDescriptionTarget(entity: Entity) : XdEntity(entity) {
                     MediaType.IMAGE -> ApiContentType.IMAGE
                     else -> throw IllegalStateException("Invalid target description; type indicates presence of media item but item seems unsupported or unspecified.")
                 }
-                val path = Paths.get(config.cachePath, this.item?.cachedItemName(this.temporalRangeStart, this.temporalRangeEnd))
+                val path = Paths.get(config.cachePath, this.item?.cachedItemName(this.start, this.end))
                     ?:  throw IllegalArgumentException("A target of type  ${this.type.description} must have a valid media item.")
                 val data = Files.newInputStream(path, StandardOpenOption.READ).use { stream ->
                     stream.readAllBytes()

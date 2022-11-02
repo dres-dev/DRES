@@ -5,6 +5,7 @@ import dev.dres.data.model.competition.task.TaskDescriptionId
 import dev.dres.data.model.run.InteractiveAsynchronousCompetition.Task
 import dev.dres.run.TaskRunStatus
 import dev.dres.run.score.interfaces.TaskScorer
+typealias TaskId = String
 
 /**
  * Represents a [Task] solved by a DRES user or client.
@@ -14,7 +15,7 @@ import dev.dres.run.score.interfaces.TaskScorer
  */
 interface Task: Run {
     /** The unique [TaskId] that identifies this [Task]. Used by the persistence layer. */
-    val uid: TaskDescriptionId
+    val id: TaskId
 
     /** Reference to the [Competition] this [Task] belongs to. */
     val competition: Competition

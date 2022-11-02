@@ -8,4 +8,4 @@ import dev.dres.data.model.competition.task.TaskGroup
  * @author Ralph Gasser
  * @version 1.0.0
  */
-data class ApiTaskGroup(val name: String, val type: String, val tasks: List<ApiTaskDescription>)
+data class ApiTaskGroup(val name: String, val type: String)

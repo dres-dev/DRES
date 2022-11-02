@@ -1,18 +1,21 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.competition.*
-import dev.dres.data.model.competition.options.TargetOption
-import dev.dres.data.model.competition.task.TaskDescriptionTarget
-import dev.dres.data.model.run.interfaces.Task
+import dev.dres.data.model.competition.task.TaskDescription
+import dev.dres.data.model.competition.task.options.TargetOption
+import dev.dres.data.model.competition.team.TeamAggregatorImpl
+import dev.dres.data.model.competition.team.TeamGroupId
+import dev.dres.data.model.competition.team.TeamId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.validation.MediaItemsSubmissionValidator
 import dev.dres.run.validation.TemporalOverlapSubmissionValidator
 import dev.dres.run.validation.TextValidator
+import dev.dres.run.validation.TransientMediaSegment
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import dev.dres.run.validation.judged.BasicJudgementValidator
 import dev.dres.run.validation.judged.BasicVoteValidator
 import dev.dres.run.validation.judged.ItemRange
+import kotlinx.dnq.query.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
@@ -21,7 +24,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractInteractiveTask: AbstractTaskRun(), Task {
+abstract class AbstractInteractiveTask(task: Task): AbstractTaskRun(task) {
     /** List of [Submission]s* registered for this [Task]. */
     val submissions: ConcurrentLinkedQueue<Submission> = ConcurrentLinkedQueue<Submission>()
 
@@ -34,6 +37,18 @@ abstract class AbstractInteractiveTask: AbstractTaskRun(), Task {
     /** The [SubmissionValidator] used to validate [Submission]s. */
     abstract val validator: SubmissionValidator
 
+    /** Map of [TeamGroupId] to [TeamAggregatorImpl]. */
+    val teamGroupAggregators: Map<TeamGroupId, TeamAggregatorImpl> by lazy {
+        // TODO: Check if transaction context is available when this is called.
+        this.competition.description.teamsGroups.asSequence().associate { it.id to it.newAggregator() }
+    }
+
+    /**
+     * Adds a new [Submission] to this [AbstractInteractiveTask].
+     *
+     * @param submission The [Submission] to append.
+     */
+    abstract fun postSubmission(submission: Submission)
 
     /**
      * Generates and returns a new [SubmissionValidator] for this [TaskDescription]. Depending
@@ -41,42 +56,35 @@ abstract class AbstractInteractiveTask: AbstractTaskRun(), Task {
      *
      * @return [SubmissionValidator].
      */
-    internal fun newValidator(): SubmissionValidator = when(description.taskType.targetType.option){
-        TargetOption.SINGLE_MEDIA_ITEM -> MediaItemsSubmissionValidator(setOf((description.target as TaskDescriptionTarget.MediaItemTarget).item))
-        TargetOption.SINGLE_MEDIA_SEGMENT -> TemporalOverlapSubmissionValidator(description.target as TaskDescriptionTarget.VideoSegmentTarget)
-        TargetOption.MULTIPLE_MEDIA_ITEMS -> MediaItemsSubmissionValidator((description.target as TaskDescriptionTarget.MultipleMediaItemTarget).items.toSet())
-        TargetOption.JUDGEMENT -> BasicJudgementValidator(knownCorrectRanges =
-        (description.target as TaskDescriptionTarget.JudgementTaskDescriptionTarget).targets.map {
-            if (it.second == null) {
-                ItemRange(it.first)
-            } else {
-                val item = it.first
-                val range = it.second!!.toMilliseconds()
-                ItemRange(item, range.first, range.second)
-            } })
-        TargetOption.VOTE -> BasicVoteValidator(
-            knownCorrectRanges =
-            (description.target as TaskDescriptionTarget.VoteTaskDescriptionTarget).targets.map {
-                if (it.second == null) {
-                    ItemRange(it.first)
-                } else {
-                    val item = it.first
-                    val range = it.second!!.toMilliseconds()
-                    ItemRange(item, range.first, range.second)
-                } },
-            parameters = description.taskType.targetType.parameters
-
-        )
-        TargetOption.TEXT -> TextValidator((description.target as TaskDescriptionTarget.TextTaskDescriptionTarget).targets)
+    internal fun newValidator(): SubmissionValidator = when (val targetOption = this.description.taskGroup.type.target) {
+        TargetOption.MEDIA_ITEM -> MediaItemsSubmissionValidator(this.description.targets.mapDistinct { it.item }.filter { it ne null }.toSet())
+        TargetOption.MEDIA_SEGMENT -> {
+            val target = this.description.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null)}.take(1) .first()
+            TemporalOverlapSubmissionValidator(TransientMediaSegment(target.item!!, target.range!!))
+        }
+        TargetOption.TEXT -> TextValidator(this.description.targets.filter { it.text ne null }.asSequence().map { it.text!! }.toList())
+        TargetOption.JUDGEMENT -> {
+            val knownRanges = this.description.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }.asSequence().map {
+                ItemRange(it.item?.name!!, it.start!!, it.end!!)
+            }.toSet()
+            BasicJudgementValidator(knownCorrectRanges = knownRanges)
+        }
+        TargetOption.VOTE -> {
+            val knownRanges = this.description.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }.asSequence().map {
+                ItemRange(it.item?.name!!, it.start!!, it.end!!)
+            }.toSet()
+            val parameters = this.description.taskGroup.type.configurations.filter { it.key eq targetOption.description }.asSequence().associate { it.key to it.value }
+            BasicVoteValidator(knownCorrectRanges = knownRanges, parameters = parameters)
+        }
+        else -> throw IllegalStateException("The provided target option ${targetOption.description} is not supported by interactive tasks.")
     }
 
-    abstract fun addSubmission(submission: Submission)
-
-    val teamGroupAggregators: Map<TeamGroupId, TeamAggregator> by lazy {
-        this.competition.description.teamGroups.associate { it.uid to it.newAggregator() }
-    }
-
-    fun updateTeamAggregation(teamScores: Map<TeamId, Double>) {
+    /**
+     * Updates the per-team aggregation for this [AbstractInteractiveTask].
+     *
+     * @param teamScores Map of team scores.
+     */
+    internal fun updateTeamAggregation(teamScores: Map<TeamId, Double>) {
         this.teamGroupAggregators.values.forEach { it.aggregate(teamScores) }
     }
 }

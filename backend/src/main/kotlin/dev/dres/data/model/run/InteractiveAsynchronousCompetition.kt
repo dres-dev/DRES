@@ -7,8 +7,6 @@ import dev.dres.data.model.competition.task.TaskDescription
 import dev.dres.data.model.competition.TaskDescriptionId
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.run.InteractiveAsynchronousCompetition.Task
-import dev.dres.data.model.run.interfaces.Competition
-import dev.dres.data.model.run.interfaces.CompetitionId
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.Submission
@@ -26,13 +24,7 @@ import java.util.concurrent.ConcurrentHashMap
  * [InteractiveAsynchronousCompetition]s can be started and ended, and they can be used to create new [Task]s and access the current [Task].
  *
  */
-class InteractiveAsynchronousCompetition(
-    override var id: CompetitionId,
-    override val name: String,
-    override val description: CompetitionDescription,
-    override var properties: RunProperties,
-    val permutation: Map<TeamId, List<Int>>
-) : AbstractRun(), Competition {
+class InteractiveAsynchronousCompetition(competition: Competition, val permutation: Map<TeamId, List<Int>>) : AbstractCompetitionRun(competition) {
 
     companion object {
         fun generatePermutation(
@@ -292,7 +284,7 @@ class InteractiveAsynchronousCompetition(
          * @throws IllegalArgumentException If [Submission] could not be added for any reason.
          */
         @Synchronized
-        override fun addSubmission(submission: Submission) {
+        override fun postSubmission(submission: Submission) {
             check(this.isRunning) { "Task run '${this@InteractiveAsynchronousCompetition.name}.${this.position}' is currently not running. This is a programmer's error!" }
             check(this.teamId == submission.teamId) { "Team ${submission.teamId} is not eligible to submit to this task. This is a programmer's error!" }
 

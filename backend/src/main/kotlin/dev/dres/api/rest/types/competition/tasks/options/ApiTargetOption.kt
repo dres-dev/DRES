@@ -9,8 +9,8 @@ import dev.dres.data.model.competition.task.options.TargetOption
  * @version 1.0.0
  */
 enum class ApiTargetOption(val option: TargetOption){
-    SINGLE_MEDIA_ITEM(TargetOption.SINGLE_MEDIA_ITEM),
-    SINGLE_MEDIA_SEGMENT(TargetOption.SINGLE_MEDIA_SEGMENT),
+    SINGLE_MEDIA_ITEM(TargetOption.MEDIA_ITEM),
+    SINGLE_MEDIA_SEGMENT(TargetOption.MEDIA_SEGMENT),
     MULTIPLE_MEDIA_ITEMS(TargetOption.MULTIPLE_MEDIA_ITEMS),
     JUDGEMENT(TargetOption.JUDGEMENT),
     VOTE(TargetOption.VOTE),

@@ -1,28 +1,17 @@
 package dev.dres.data.model.run
 
 import dev.dres.data.model.UID
-import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.competition.task.TaskDescription
-import dev.dres.data.model.competition.TaskDescriptionId
-import dev.dres.data.model.competition.TeamId
-import dev.dres.data.model.run.interfaces.Competition
-import dev.dres.data.model.run.interfaces.CompetitionId
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.aspects.OriginAspect
 import dev.dres.data.model.submissions.batch.ResultBatch
 import dev.dres.run.score.interfaces.ResultBatchTaskScorer
 
 
-class NonInteractiveCompetition(
-    override var id: CompetitionId,
-    override val name: String,
-    override val description: CompetitionDescription,
-    override var properties: RunProperties
-) : AbstractRun(), Competition {
+class NonInteractiveCompetition(competition: Competition) : AbstractCompetitionRun(competition) {
 
     /** */
     override val tasks: List<TaskContainer> = this.description.tasks.map { TaskContainer(taskDescriptionId = it.id) }
-
 
     inner class TaskContainer(override val uid: TaskId = UID(), val taskDescriptionId: TaskDescriptionId) :
         AbstractNonInteractiveTask() {

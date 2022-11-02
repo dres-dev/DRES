@@ -7,6 +7,7 @@ import dev.dres.data.model.competition.CompetitionDescription
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.toList
 
 typealias TeamGroupId = String
 
@@ -48,4 +49,13 @@ class TeamGroup(entity: Entity) : PersistentEntity(entity) {
      * @return [ApiTeamGroup]
      */
     fun toApi() = ApiTeamGroup(this.teamGroupId, this.name, this.teams.asSequence().map { it.toApi() }.toList(), this.defaultAggregator.name)
+
+    /**
+     * Returns a new [TeamAggregatorImpl] for this [TeamGroup].
+     *
+     * This is a convenience method and requires an active transaction context.
+     *
+     * @return [TeamAggregatorImpl]
+     */
+    fun newAggregator() : TeamAggregatorImpl = this.defaultAggregator.newInstance(this.teams.toList())
 }

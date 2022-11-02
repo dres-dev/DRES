@@ -13,27 +13,27 @@ import kotlinx.dnq.simple.min
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class MediaItemSegment(entity: Entity) : PersistentEntity(entity) {
-    companion object : XdNaturalEntityType<MediaItemSegment>() {
-        /** Combination of [MediaItemSegment] name / item must be unique. */
+class MediaSegment(entity: Entity) : PersistentEntity(entity) {
+    companion object : XdNaturalEntityType<MediaSegment>() {
+        /** Combination of [MediaSegment] name / item must be unique. */
         override val compositeIndices = listOf(
-            listOf(MediaItemSegment::name, MediaItemSegment::item)
+            listOf(MediaSegment::name, MediaSegment::item)
         )
     }
 
-    /** The name of this [MediaItemSegment]. */
+    /** The name of this [MediaSegment]. */
     var name by xdRequiredStringProp(unique = false, trimmed = false)
 
     /** The [MediaType] of this [MediaItem]. */
-    var item by xdParent<MediaItemSegment, MediaItem>(MediaItem::segments)
+    var item by xdParent<MediaSegment, MediaItem>(MediaItem::segments)
 
-    /** The start frame number of this [MediaItemSegment]. */
+    /** The start frame number of this [MediaSegment]. */
     var start by xdRequiredIntProp { min(0L) }
 
-    /** The end frame number of this [MediaItemSegment]. */
+    /** The end frame number of this [MediaSegment]. */
     var end by xdRequiredIntProp { min(0L) }
 
-    /** Returns the [range] of this [MediaItemSegment] as [TemporalRange]. */
+    /** Returns the [range] of this [MediaSegment] as [TemporalRange]. */
     val range: TemporalRange
         get() = TemporalRange(TemporalPoint.Frame(this.start, this.item.fps ?: 1.0f), TemporalPoint.Frame(this.end, this.item.fps ?: 1.0f))
 }

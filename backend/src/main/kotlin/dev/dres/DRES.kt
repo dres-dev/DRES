@@ -15,7 +15,7 @@ import dev.dres.data.model.competition.team.TeamAggregator
 import dev.dres.data.model.competition.team.TeamGroup
 import dev.dres.data.model.media.MediaCollection
 import dev.dres.data.model.media.MediaItem
-import dev.dres.data.model.media.MediaItemSegment
+import dev.dres.data.model.media.MediaSegment
 import dev.dres.data.model.media.MediaType
 import dev.dres.mgmt.admin.UserManager
 import dev.dres.run.RunExecutor
@@ -103,7 +103,7 @@ object DRES {
             MediaType,
             MediaCollection,
             MediaItem,
-            MediaItemSegment,
+            MediaSegment,
             ConfiguredOption,
             HintOption,
             TaskOption,

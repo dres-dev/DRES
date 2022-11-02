@@ -3,6 +3,7 @@ package dev.dres.data.model.competition
 import dev.dres.api.rest.types.competition.ApiCompetitionDescription
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.admin.User
+import dev.dres.data.model.competition.task.TaskDescription
 import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.MediaType
 import dev.dres.data.model.competition.task.TaskGroup
@@ -51,6 +52,9 @@ class CompetitionDescription(entity: Entity) : PersistentEntity(entity){
     /** The [TaskGroup]s that are part of this [CompetitionDescription]. */
     val taskGroups by xdChildren0_N<CompetitionDescription, TaskGroup>(TaskGroup::competition)
 
+    /** The [TaskDescription]s contained in this [CompetitionDescription]*/
+    val tasks by xdChildren0_N<CompetitionDescription, TaskDescription>(TaskDescription::competition)
+
     /** The [Team]s that are part of this [CompetitionDescription]. */
     val teams by xdChildren0_N<CompetitionDescription,Team>(Team::competition)
 
@@ -73,6 +77,7 @@ class CompetitionDescription(entity: Entity) : PersistentEntity(entity){
         description = this.description,
         taskTypes = this.taskTypes.asSequence().map { it.toApi() }.toList(),
         taskGroups = this.taskGroups.asSequence().map { it.toApi() }.toList(),
+        tasks = this.tasks.asSequence().map { it.toApi() }.toList(),
         teams = this.teams.asSequence().map { it.toApi() }.toList(),
         teamGroups = this.teamsGroups.asSequence().map { it.toApi() }.toList(),
         judges = this.judges.asSequence().map { it.id }.toList()
@@ -102,13 +107,13 @@ class CompetitionDescription(entity: Entity) : PersistentEntity(entity){
      * @return [List] of [MediaItem]s
      */
     fun getAllVideos(): List<Pair<MediaItem,TemporalRange>> {
-        val hints = this.taskGroups.flatMapDistinct { it.tasks }
+        val hints = this.tasks
             .flatMapDistinct { it.hints }
             .filter { (it.item ne null) and (it.item!!.type eq MediaType.VIDEO) }.asSequence().map {
                 it.item!!to it.range!!
             }
 
-        val targets = this.taskGroups.flatMapDistinct { it.tasks }
+        val targets = this.tasks
             .flatMapDistinct { it.targets }
             .filter { (it.item ne null) and (it.item!!.type eq MediaType.VIDEO) }.asSequence().map {
             it.item!! to it.range!!

@@ -71,8 +71,12 @@ abstract class AbstractPreviewHandler(protected val store: TransientEntityStore,
     }
 
     /**
-     *
-     */
+    * Handles a request for a preview based on an [MediaItem] and an optional timepoint.
+    *
+    * @param item The [MediaItem]
+    * @param time The exact timepoint of the [MediaItem] in ms. Only works for [MediaType.VIDEO].
+    * @param ctx The request [Context]
+    */
     protected fun handlePreviewRequest(item: MediaItem, time: Long?, ctx: Context) {
 
         val basePath = Paths.get(item.collection.path)

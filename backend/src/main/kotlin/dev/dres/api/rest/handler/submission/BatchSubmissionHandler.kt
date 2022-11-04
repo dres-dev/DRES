@@ -8,7 +8,6 @@ import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.api.rest.types.submission.RunResult
 import dev.dres.data.dbo.DAO
 import dev.dres.data.dbo.DaoIndexer
-import dev.dres.data.model.UID
 import dev.dres.data.model.media.MediaCollection
 import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.MediaItemSegmentList
@@ -25,25 +24,25 @@ import io.javalin.http.bodyAsClass
 import io.javalin.openapi.*
 import io.javalin.security.RouteRole
 
-abstract class BatchSubmissionHandler(internal val collections: DAO<MediaCollection>, internal val itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, internal val segmentIndex: DaoIndexer<MediaItemSegmentList, UID>) : PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
+abstract class BatchSubmissionHandler(internal val collections: DAO<MediaCollection>, internal val itemIndex: DaoIndexer<MediaItem, Pair<EvaluationId, String>>, internal val segmentIndex: DaoIndexer<MediaItemSegmentList, EvaluationId>) : PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
 
     override val apiVersion = "v1"
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.PARTICIPANT)
 
-    internal fun userId(ctx: Context): UID = AccessManager.userIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
+    internal fun userId(ctx: Context): EvaluationId = AccessManager.userIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
 
     fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
         throw ErrorStatusException(404, "Parameter 'runId' is missing!'", ctx)
     }.UID()
 
-    protected fun getInteractiveManager(userId: UID, runId: UID): InteractiveRunManager?
+    protected fun getInteractiveManager(userId: EvaluationId, runId: EvaluationId): InteractiveRunManager?
         = AccessManager.getRunManagerForUser(userId).filterIsInstance<InteractiveRunManager>().find { it.id == runId }
 
-    protected fun getNonInteractiveManager(userId: UID, runId: UID): NonInteractiveRunManager?
+    protected fun getNonInteractiveManager(userId: EvaluationId, runId: EvaluationId): NonInteractiveRunManager?
             = AccessManager.getRunManagerForUser(userId).filterIsInstance<NonInteractiveRunManager>().find { it.id == runId }
 }
 
-class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: DaoIndexer<MediaItem, Pair<UID, String>>, segmentIndex: DaoIndexer<MediaItemSegmentList, UID>) : BatchSubmissionHandler(collections, itemIndex, segmentIndex) {
+class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: DaoIndexer<MediaItem, Pair<EvaluationId, String>>, segmentIndex: DaoIndexer<MediaItemSegmentList, EvaluationId>) : BatchSubmissionHandler(collections, itemIndex, segmentIndex) {
 
     override val route: String = "submit/{runId}"
 
@@ -75,13 +74,13 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
             throw ErrorStatusException(400, "Error parsing json batch", ctx)
         }
 
-        val team = runManager.description.teams.find {
+        val team = runManager.template.teams.find {
             it.users.contains(userId)
         }?.uid ?: throw ErrorStatusException(404, "No team for user '$userId' could not be found.", ctx)
 
         val resultBatches = runResult.tasks.mapNotNull { taskResult ->
-            val task = runManager.tasks(rac).find { it.description.name == taskResult.task } ?: return@mapNotNull null
-            val mediaCollectionId = task.description.mediaCollectionId
+            val task = runManager.tasks(rac).find { it.template.name == taskResult.task } ?: return@mapNotNull null
+            val mediaCollectionId = task.template.mediaCollectionId
             val results = taskResult.results.map { result ->
                 if (result.item != null) {
                     val mediaItem =
@@ -124,9 +123,9 @@ class JsonBatchSubmissionHandler(collections: DAO<MediaCollection>, itemIndex: D
 
         val submissionBatch = if (resultBatches.all { it.results.first() is TemporalBatchElement }) {
             @Suppress("UNCHECKED_CAST")
-            (TemporalSubmissionBatch(team, userId, UID(), resultBatches as List<BaseResultBatch<TemporalBatchElement>>))
+            (TemporalSubmissionBatch(team, userId, EvaluationId(), resultBatches as List<BaseResultBatch<TemporalBatchElement>>))
         } else {
-            BaseSubmissionBatch(team, userId, UID(), resultBatches as List<BaseResultBatch<BaseResultBatchElement>>)
+            BaseSubmissionBatch(team, userId, EvaluationId(), resultBatches as List<BaseResultBatch<BaseResultBatchElement>>)
         }
 
         runManager.addSubmissionBatch(submissionBatch)

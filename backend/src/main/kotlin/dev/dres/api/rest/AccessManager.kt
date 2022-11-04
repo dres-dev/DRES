@@ -116,7 +116,7 @@ object AccessManager {
      * @param runManager The [RunManager] to register.
      */
     fun registerRunManager(runManager: RunManager) = this.locks.write {
-        runManager.description.teams.flatMapDistinct { it.users }.asSequence().forEach {
+        runManager.template.teams.flatMapDistinct { it.users }.asSequence().forEach {
             if (this.usersToRunMap.containsKey(it.id)) {
                 this.usersToRunMap[it.id]?.add(runManager)
             } else {

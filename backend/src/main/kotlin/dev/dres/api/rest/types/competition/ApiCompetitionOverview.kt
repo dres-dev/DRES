@@ -1,9 +1,9 @@
 package dev.dres.api.rest.types.competition
 
-import dev.dres.data.model.competition.CompetitionDescription
+import dev.dres.data.model.template.EvaluationTemplate
 
 /**
- * An overview over a [CompetitionDescription].
+ * An overview over a [EvaluationTemplate].
  *
  * @author Ralph Gasser
  * @version 1.0.0

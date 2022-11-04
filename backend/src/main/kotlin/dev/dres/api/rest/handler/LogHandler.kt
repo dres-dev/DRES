@@ -5,7 +5,6 @@ import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.UID
 import dev.dres.data.model.log.QueryEventLog
 import dev.dres.data.model.log.QueryResultLog
 import dev.dres.run.RunManager
@@ -25,16 +24,16 @@ abstract class LogHandler : PostRestHandler<SuccessStatus>, AccessManagedRestHan
 
     override val apiVersion = "v1"
 
-    private fun getRelevantManagers(userId: UID): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
+    private fun getRelevantManagers(userId: EvaluationId): Set<RunManager> = AccessManager.getRunManagerForUser(userId)
 
-    protected fun getActiveRun(userId: UID, ctx: Context): RunManager {
+    protected fun getActiveRun(userId: EvaluationId, ctx: Context): RunManager {
         val managers = getRelevantManagers(userId).filter { it.status != RunManagerStatus.CREATED && it.status != RunManagerStatus.TERMINATED }
         if (managers.isEmpty()) {
             throw ErrorStatusException(404, "There is currently no eligible competition with an active task.", ctx)
         }
 
         if (managers.size > 1) {
-            throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.description.name }}", ctx)
+            throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.template.name }}", ctx)
         }
 
         return managers.first()

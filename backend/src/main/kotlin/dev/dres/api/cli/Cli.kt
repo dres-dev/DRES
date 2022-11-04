@@ -41,10 +41,10 @@ object Cli {
     fun loop(store: TransientEntityStore, config: Config) {
 
         clikt = DRESBaseCommand().subcommands(
-            CompetitionCommand(store, config),
+            EvaluationCommand(store, config),
             UserCommand(),
             MediaCollectionCommand(store),
-            CompetitionRunCommand(store),
+            EvaluationRunCommand(store),
             OpenApiCommand(),
             ExecutionCommand()
         )

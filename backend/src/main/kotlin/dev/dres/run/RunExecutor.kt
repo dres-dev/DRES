@@ -3,11 +3,11 @@ package dev.dres.run
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.WebSocketConnection
-import dev.dres.api.rest.types.run.websocket.ClientMessage
-import dev.dres.api.rest.types.run.websocket.ClientMessageType
-import dev.dres.api.rest.types.run.websocket.ServerMessage
-import dev.dres.api.rest.types.run.websocket.ServerMessageType
-import dev.dres.data.model.competition.team.TeamId
+import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
+import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
+import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
+import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.EvaluationId
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
@@ -81,31 +81,37 @@ object RunExecutor : Consumer<WsConfig> {
     }
 
     /**
+     * Schedules a new [EvaluationRun] with this [RunExecutor].
      *
+     * @param evaluation [EvaluationRun] to execute.
      */
-    fun schedule(competition: EvaluationRun) {
-        val run = when(competition) {
-            is InteractiveSynchronousEvaluation -> {
-                competition.tasks.forEach { t ->
-                    t.submissions.forEach { s -> s.task = t }
-                }
-                InteractiveSynchronousRunManager(competition)
-            }
-            is NonInteractiveEvaluation -> {
-                NonInteractiveRunManager(competition)
-            }
-            is InteractiveAsynchronousEvaluation -> {
-                competition.tasks.forEach { t ->
-                    t.submissions.forEach { s -> s.task = t }
-                    if (!t.hasEnded) {
-                        t.end() //abort tasks that were active during last save
-                    }
-                }
-                InteractiveAsynchronousRunManager(competition)
-            }
-            else -> throw NotImplementedError("No matching run manager found for $competition")
+    fun schedule(evaluation: EvaluationRun) {
+        val run = when(evaluation) {
+            is InteractiveSynchronousEvaluation -> InteractiveSynchronousRunManager(evaluation)
+            is InteractiveAsynchronousEvaluation -> InteractiveAsynchronousRunManager(evaluation)
+            is NonInteractiveEvaluation -> NonInteractiveRunManager(evaluation)
+            else -> throw NotImplementedError("No matching run manager found for $evaluation")
         }
         this.schedule(run)
+    }
+
+    /**
+     * Schedules a new [RunManager] with this [RunExecutor].
+     *
+     * @param manager [RunManager] to execute.
+     */
+    fun schedule(manager: RunManager) = this.runManagerLock.write {
+        if (this.runManagers.containsKey(manager.id)) {
+            throw IllegalArgumentException("This RunExecutor already runs a RunManager with the given ID ${manager.id}. The same RunManager cannot be executed twice!")
+        }
+
+        /* Register [RunManager] with AccessManager. */
+        AccessManager.registerRunManager(manager)
+
+        /* Setup all the required data structures. */
+        this.runManagers[manager.id] = manager
+        this.observingClients[manager.id] = HashSet()
+        this.results[this.executor.submit(manager)] = manager.id /* Register future for cleanup thread. */
     }
 
     /** A thread that cleans after [RunManager] have finished. */
@@ -216,27 +222,6 @@ object RunExecutor : Consumer<WsConfig> {
     }
 
     /**
-     * Schedules a new [RunManager] with this [RunExecutor].
-     *
-     * @param manager [RunManager] to execute.
-     */
-    fun schedule(manager: RunManager) = this.runManagerLock.write {
-        if (this.runManagers.containsKey(manager.id)) {
-            throw IllegalArgumentException("This RunExecutor already runs a RunManager with the given ID ${manager.id}. The same RunManager cannot be executed twice!")
-        }
-
-        /* Register [RunManager] with AccessManager. */
-        this.store.transactional(true) {
-            AccessManager.registerRunManager(manager)
-        }
-
-        /* Setup all the required data structures. */
-        this.runManagers[manager.id] = manager
-        this.observingClients[manager.id] = HashSet()
-        this.results[this.executor.submit(manager)] = manager.id /* Register future for cleanup thread. */
-    }
-
-    /**
      * Broadcasts a [ServerMessage] to all clients currently connected.
      *
      * @param message The [ServerMessage] that should be broadcast.
@@ -274,7 +259,7 @@ object RunExecutor : Consumer<WsConfig> {
         val manager = managerForId(evaluationId)
         if (manager != null) {
             val teamMembers = this.store.transactional(true) {
-                manager.description.teams.filter { it.id eq teamId }.flatMapDistinct { it.users }.asSequence().map { it.userId }.toList()
+                manager.template.teams.filter { it.id eq teamId }.flatMapDistinct { it.users }.asSequence().map { it.userId }.toList()
             }
             this.runManagerLock.read {
                 this.connectedClients.filter {

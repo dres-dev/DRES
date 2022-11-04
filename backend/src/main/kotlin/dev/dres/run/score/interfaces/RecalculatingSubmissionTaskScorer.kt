@@ -1,6 +1,6 @@
 package dev.dres.run.score.interfaces
 
-import dev.dres.data.model.competition.TeamId
+import dev.dres.data.model.template.TeamId
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.score.TaskContext

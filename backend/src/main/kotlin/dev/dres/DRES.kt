@@ -7,12 +7,12 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.audit.AuditLogEntry
 import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.data.model.audit.AuditLogType
-import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.competition.task.*
-import dev.dres.data.model.competition.task.options.*
-import dev.dres.data.model.competition.team.Team
-import dev.dres.data.model.competition.team.TeamAggregator
-import dev.dres.data.model.competition.team.TeamGroup
+import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.task.*
+import dev.dres.data.model.template.task.options.*
+import dev.dres.data.model.template.team.Team
+import dev.dres.data.model.template.team.TeamAggregator
+import dev.dres.data.model.template.team.TeamGroup
 import dev.dres.data.model.media.MediaCollection
 import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.MediaSegment
@@ -110,8 +110,8 @@ object DRES {
             ScoreOption,
             SubmissionOption,
             TargetOption,
-            CompetitionDescription,
-            TaskDescription,
+            EvaluationTemplate,
+            TaskTemplate,
             Team,
             TeamGroup,
             TeamAggregator,

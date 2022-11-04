@@ -1,14 +1,15 @@
 package dev.dres.data.model.run
 
 import dev.dres.data.model.PersistentEntity
-import dev.dres.data.model.competition.CompetitionDescription
+import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.run.interfaces.EvaluationRun
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 
 typealias EvaluationId = String
 
 /**
- * Represents a [Evaluation], i.e., a concrete instance of a [CompetitionDescription], as executed by DRES.
+ * Represents a [Evaluation], i.e., a concrete instance of a [EvaluationTemplate], as executed by DRES.
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -27,8 +28,8 @@ class Evaluation(entity: Entity) : PersistentEntity(entity) {
     /** The [RunType] of this [Evaluation]. */
     var type by xdLink1(RunType)
 
-    /** The [CompetitionDescription] backing this [Evaluation]. */
-    var description by xdLink1(CompetitionDescription)
+    /** The [EvaluationTemplate] backing this [Evaluation]. */
+    var template by xdLink1(EvaluationTemplate)
 
     /** Timestamp of when this [Evaluation] started. */
     var started by xdRequiredLongProp()
@@ -50,4 +51,17 @@ class Evaluation(entity: Entity) : PersistentEntity(entity) {
 
     /** A fixed limit on submission previews. */
     var limitSubmissionPreviews by xdIntProp()
+
+
+    /**
+     * Generates and returns an [EvaluationRun] instance for this [Evaluation].
+     *
+     * @return [EvaluationRun]
+     */
+    fun toRun(): EvaluationRun = when(this.type) {
+        RunType.INTERACTIVE_SYNCHRONOUS -> InteractiveSynchronousEvaluation(this)
+        RunType.INTERACTIVE_ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(this, emptyMap()) /* TODO: Not sure about semantics here. */
+        RunType.NON_INTERACTIVE -> NonInteractiveEvaluation(this)
+        else -> throw IllegalArgumentException("Unsupported run type ${this.type.description}. This is a programmer's error!")
+    }
 }

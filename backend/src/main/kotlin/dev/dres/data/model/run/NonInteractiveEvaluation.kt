@@ -1,11 +1,11 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.competition.team.TeamId
+import dev.dres.data.model.admin.UserId
+import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
-import dev.dres.data.model.submissions.aspects.OriginAspect
 import dev.dres.data.model.submissions.batch.ResultBatch
 import dev.dres.run.score.interfaces.ResultBatchTaskScorer
 import kotlinx.dnq.query.asSequence
@@ -13,7 +13,7 @@ import kotlinx.dnq.query.size
 
 
 /**
- * Represents a concrete, interactive and synchronous [Run] of a [CompetitionDescription].
+ * Represents a concrete, interactive and synchronous [Run] of a [EvaluationTemplate].
  *
  * [InteractiveSynchronousEvaluation]s can be started, ended and they can be used to create new [TaskRun]s and access the current [TaskRun].
  *
@@ -38,8 +38,6 @@ class NonInteractiveEvaluation(evaluation: Evaluation) : AbstractEvaluation(eval
      */
     inner class NITaskRun(task: Task): AbstractNonInteractiveTask(task) {
 
-        internal val submissions: MutableMap<Pair<TeamId, String>, ResultBatch<*>> = mutableMapOf()
-
         /** Reference to the [EvaluationRun] hosting this [NITaskRun]. */
         override val competition: EvaluationRun
             get() = this@NonInteractiveEvaluation
@@ -48,14 +46,17 @@ class NonInteractiveEvaluation(evaluation: Evaluation) : AbstractEvaluation(eval
         override val position: Int
             get() = this@NonInteractiveEvaluation.tasks.indexOf(this)
 
+
+        internal val submissions: MutableMap<Pair<TeamId, String>, ResultBatch<*>> = mutableMapOf()
+
         @Transient
-        override val scorer: ResultBatchTaskScorer = description.newScorer() as? ResultBatchTaskScorer
+        override val scorer: ResultBatchTaskScorer = template.newScorer() as? ResultBatchTaskScorer
             ?: throw IllegalArgumentException("specified scorer is not of type ResultBatchTaskScorer")
 
         @Synchronized
-        override fun addSubmissionBatch(origin: OriginAspect, batches: List<ResultBatch<*>>) {
+        override fun addSubmissionBatch(teamId: TeamId, memberId: UserId, batches: List<ResultBatch<*>>) {
             batches.forEach { resultBatch ->
-                submissions[origin.teamId to resultBatch.name] = resultBatch
+                submissions[teamId to resultBatch.name] = resultBatch
             }
         }
     }

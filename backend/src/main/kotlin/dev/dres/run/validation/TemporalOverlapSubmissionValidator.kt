@@ -1,6 +1,6 @@
 package dev.dres.run.validation
 
-import dev.dres.data.model.competition.task.TaskDescription
+import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.time.TemporalRange
 import dev.dres.data.model.submissions.Submission
@@ -24,7 +24,7 @@ class TemporalOverlapSubmissionValidator(private val targetSegment: TransientMed
 
     /**
      * Validates a [Submission] based on the target segment and the temporal overlap of the
-     * [Submission] with the [TaskDescription].
+     * [Submission] with the [TaskTemplate].
      *
      * @param submission The [Submission] to validate.
      */

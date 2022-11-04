@@ -7,7 +7,10 @@ import kotlinx.dnq.XdEnumEntityType
 import kotlinx.dnq.xdRequiredStringProp
 
 /**
+ * The type of [Submission] with respect to its content
  *
+ * @author Ralph Gasser & Luca Rossetto
+ * @version 1.1.0
  */
 class SubmissionType(entity: Entity) : XdEnumEntity(entity) {
     companion object : XdEnumEntityType<SubmissionType>() {

@@ -1,6 +1,6 @@
 package dev.dres.api.rest.types.competition.tasks.options
 
-import dev.dres.data.model.competition.task.options.HintOption
+import dev.dres.data.model.template.task.options.HintOption
 
 /**
  * A RESTful API representation of [HintOption].

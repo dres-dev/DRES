@@ -1,10 +1,10 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.competition.task.TaskDescription
-import dev.dres.data.model.competition.task.options.TargetOption
-import dev.dres.data.model.competition.team.TeamAggregatorImpl
-import dev.dres.data.model.competition.team.TeamGroupId
-import dev.dres.data.model.competition.team.TeamId
+import dev.dres.data.model.template.task.TaskTemplate
+import dev.dres.data.model.template.task.options.TargetOption
+import dev.dres.data.model.template.team.TeamAggregatorImpl
+import dev.dres.data.model.template.team.TeamGroupId
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.validation.MediaItemsSubmissionValidator
@@ -28,7 +28,7 @@ abstract class AbstractInteractiveTask(task: Task): AbstractTaskRun(task) {
     /** List of [Submission]s* registered for this [Task]. */
     val submissions: ConcurrentLinkedQueue<Submission> = ConcurrentLinkedQueue<Submission>()
 
-    /** The total duration in milliseconds of this task. Usually determined by the [TaskDescription] but can be adjusted! */
+    /** The total duration in milliseconds of this task. Usually determined by the [TaskTemplate] but can be adjusted! */
     abstract var duration: Long
 
     /** The [SubmissionFilter] used to filter [Submission]s. */
@@ -51,29 +51,29 @@ abstract class AbstractInteractiveTask(task: Task): AbstractTaskRun(task) {
     abstract fun postSubmission(submission: Submission)
 
     /**
-     * Generates and returns a new [SubmissionValidator] for this [TaskDescription]. Depending
+     * Generates and returns a new [SubmissionValidator] for this [TaskTemplate]. Depending
      * on the implementation, the returned instance is a new instance or being re-use.
      *
      * @return [SubmissionValidator].
      */
-    internal fun newValidator(): SubmissionValidator = when (val targetOption = this.description.taskGroup.type.target) {
-        TargetOption.MEDIA_ITEM -> MediaItemsSubmissionValidator(this.description.targets.mapDistinct { it.item }.filter { it ne null }.toSet())
+    internal fun newValidator(): SubmissionValidator = when (val targetOption = this.template.taskGroup.type.target) {
+        TargetOption.MEDIA_ITEM -> MediaItemsSubmissionValidator(this.template.targets.mapDistinct { it.item }.filter { it ne null }.toSet())
         TargetOption.MEDIA_SEGMENT -> {
-            val target = this.description.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null)}.take(1) .first()
+            val target = this.template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null)}.take(1) .first()
             TemporalOverlapSubmissionValidator(TransientMediaSegment(target.item!!, target.range!!))
         }
-        TargetOption.TEXT -> TextValidator(this.description.targets.filter { it.text ne null }.asSequence().map { it.text!! }.toList())
+        TargetOption.TEXT -> TextValidator(this.template.targets.filter { it.text ne null }.asSequence().map { it.text!! }.toList())
         TargetOption.JUDGEMENT -> {
-            val knownRanges = this.description.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }.asSequence().map {
+            val knownRanges = this.template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }.asSequence().map {
                 ItemRange(it.item?.name!!, it.start!!, it.end!!)
             }.toSet()
             BasicJudgementValidator(knownCorrectRanges = knownRanges)
         }
         TargetOption.VOTE -> {
-            val knownRanges = this.description.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }.asSequence().map {
+            val knownRanges = this.template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }.asSequence().map {
                 ItemRange(it.item?.name!!, it.start!!, it.end!!)
             }.toSet()
-            val parameters = this.description.taskGroup.type.configurations.filter { it.key eq targetOption.description }.asSequence().associate { it.key to it.value }
+            val parameters = this.template.taskGroup.type.configurations.filter { it.key eq targetOption.description }.asSequence().associate { it.key to it.value }
             BasicVoteValidator(knownCorrectRanges = knownRanges, parameters = parameters)
         }
         else -> throw IllegalStateException("The provided target option ${targetOption.description} is not supported by interactive tasks.")

@@ -1,8 +1,7 @@
 package dev.dres.run.score.scoreboard
 
-import dev.dres.data.model.UID
-import dev.dres.data.model.competition.team.Team
-import dev.dres.data.model.competition.TeamId
+import dev.dres.data.model.template.team.Team
+import dev.dres.data.model.template.TeamId
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.run.score.interfaces.TaskScorer
@@ -33,9 +32,9 @@ interface Scoreboard {
     fun scores(): List<Score>
 
     /**
-     * Retrieves and returns the score of the given [Team] [UID]
+     * Retrieves and returns the score of the given [Team] [EvaluationId]
      *
-     * @param teamId The [Team]'s [UID].
+     * @param teamId The [Team]'s [EvaluationId].
      * @return The score for the given [Team].
      */
     fun score(teamId: TeamId): Double

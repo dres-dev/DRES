@@ -1,18 +1,14 @@
 package dev.dres.run
 
 import dev.dres.api.rest.types.WebSocketConnection
-import dev.dres.api.rest.types.run.websocket.ClientMessage
-import dev.dres.api.rest.types.run.websocket.ClientMessageType
-import dev.dres.api.rest.types.run.websocket.ServerMessage
-import dev.dres.api.rest.types.run.websocket.ServerMessageType
-import dev.dres.data.model.UID
+import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
+import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
+import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
+import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
 import dev.dres.data.model.audit.AuditLogSource
-import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.competition.task.TaskDescription
-import dev.dres.data.model.competition.options.ConfiguredOption
-import dev.dres.data.model.competition.options.Option
-import dev.dres.data.model.competition.options.SimpleOption
-import dev.dres.data.model.competition.options.SimpleOptionParameters
+import dev.dres.data.model.run.EvaluationId
+import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.RunProperties
@@ -37,12 +33,10 @@ import kotlin.math.max
  * An implementation of [RunManager] aimed at distributed execution having a single DRES Server instance and multiple
  * viewers connected via WebSocket. Before starting a [InteractiveSynchronousEvaluation.Task], all viewer instances are synchronized.
  *
- * @version 2.1.0
+ * @version 3.0.0
  * @author Ralph Gasser
  */
-class InteractiveSynchronousRunManager(
-    val run: InteractiveSynchronousEvaluation
-) : InteractiveRunManager {
+class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEvaluation) : InteractiveRunManager {
 
     private val VIEWER_TIME_OUT = 30L //TODO make configurable
 
@@ -53,28 +47,19 @@ class InteractiveSynchronousRunManager(
     /** Number of consecutive errors which have to occur within the main execution loop before it tries to gracefully terminate */
     private val maxErrorCount = 5
 
-    /**
-     * Alternative constructor from existing [InteractiveSynchronousEvaluation].
-     */
-    constructor(description: CompetitionDescription, name: String, runProperties: RunProperties) : this(
-        InteractiveSynchronousEvaluation(UID.EMPTY, name, description, runProperties).apply {
-            RunExecutor.runs.append(this)
-        }
-    )
-
     override val runProperties: RunProperties
     get() = run.properties
 
     /** Run ID of this [InteractiveSynchronousRunManager]. */
-    override val id: UID
+    override val id: EvaluationId
         get() = this.run.id
 
     /** Name of this [InteractiveSynchronousRunManager]. */
     override val name: String
         get() = this.run.name
 
-    /** The [CompetitionDescription] executed by this [InteractiveSynchronousRunManager]. */
-    override val description: CompetitionDescription
+    /** The [EvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
+    override val template: EvaluationTemplate
         get() = this.run.description
 
     /** The list of all [Submission]s tracked ever received by this [InteractiveSynchronousRunManager]. */
@@ -112,7 +97,7 @@ class InteractiveSynchronousRunManager(
 
     /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
     private val scoreboardsUpdatable =
-        ScoreboardsUpdatable(this.description.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
+        ScoreboardsUpdatable(this.template.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run)
 
     /** The internal [MessageQueueUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
     private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
@@ -207,17 +192,17 @@ class InteractiveSynchronousRunManager(
         LOGGER.info("SynchronousRunManager ${this.id} terminated")
     }
 
-    override fun currentTaskDescription(context: RunActionContext): TaskDescription = this.stateLock.write {
+    override fun currentTaskDescription(context: RunActionContext): TaskTemplate = this.stateLock.write {
         checkStatus(
             RunManagerStatus.CREATED,
             RunManagerStatus.ACTIVE/*, RunManagerStatus.PREPARING_TASK, RunManagerStatus.RUNNING_TASK, RunManagerStatus.TASK_ENDED*/
         )
-        this.run.currentTaskDescription
+        this.run.currentTaskTemplate
     }
 
     override fun previous(context: RunActionContext): Boolean = this.stateLock.write {
         checkContext(context)
-        val newIndex = this.description.tasks.indexOf(this.run.currentTaskDescription) - 1
+        val newIndex = this.template.tasks.indexOf(this.run.currentTaskTemplate) - 1
         return try {
             this.goTo(context, newIndex)
             true
@@ -228,7 +213,7 @@ class InteractiveSynchronousRunManager(
 
     override fun next(context: RunActionContext): Boolean = this.stateLock.write {
         checkContext(context)
-        val newIndex = this.description.tasks.indexOf(this.run.currentTaskDescription) + 1
+        val newIndex = this.template.tasks.indexOf(this.run.currentTaskTemplate) + 1
         return try {
             this.goTo(context, newIndex)
             true
@@ -240,7 +225,7 @@ class InteractiveSynchronousRunManager(
     override fun goTo(context: RunActionContext, index: Int) {
         checkStatus(RunManagerStatus.ACTIVE)
         assureNoRunningTask()
-        if (index >= 0 && index < this.description.tasks.size) {
+        if (index >= 0 && index < this.template.tasks.size) {
 
             /* Update active task. */
             this.run.goTo(index)
@@ -269,7 +254,7 @@ class InteractiveSynchronousRunManager(
         val currentTaskDescription = this.currentTaskDescription(context)
 
         /* Check for duplicate task runs */
-        if (!runProperties.allowRepeatedTasks && this.run.tasks.any { it.description.id == currentTaskDescription.id }) {
+        if (!runProperties.allowRepeatedTasks && this.run.tasks.any { it.template.id == currentTaskDescription.id }) {
             throw IllegalStateException("Task '${currentTaskDescription.name}' has already been used")
         }
 
@@ -290,7 +275,7 @@ class InteractiveSynchronousRunManager(
         /* Enqueue WS message for sending */
         this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_PREPARE))
 
-        LOGGER.info("SynchronousRunManager ${this.id} started task task ${this.run.currentTaskDescription}")
+        LOGGER.info("SynchronousRunManager ${this.id} started task task ${this.run.currentTaskTemplate}")
     }
 
     override fun abortTask(context: RunActionContext) = this.stateLock.write {
@@ -312,7 +297,7 @@ class InteractiveSynchronousRunManager(
         /* Enqueue WS message for sending */
         this.messageQueueUpdatable.enqueue(ServerMessage(this.id.string, ServerMessageType.TASK_END))
 
-        LOGGER.info("SynchronousRunManager ${this.id} aborted task task ${this.run.currentTaskDescription}")
+        LOGGER.info("SynchronousRunManager ${this.id} aborted task task ${this.run.currentTaskTemplate}")
     }
 
     /** List of [InteractiveSynchronousEvaluation.Task] for this [InteractiveSynchronousRunManager]. */
@@ -342,11 +327,11 @@ class InteractiveSynchronousRunManager(
     }
 
     /**
-     * Returns [InteractiveSynchronousEvaluation.Task]s for a specific task [UID]. May be empty.
+     * Returns [InteractiveSynchronousEvaluation.Task]s for a specific task [EvaluationId]. May be empty.
      *
-     * @param taskId The [UID] of the [InteractiveSynchronousEvaluation.Task].
+     * @param taskId The [EvaluationId] of the [InteractiveSynchronousEvaluation.Task].
      */
-    override fun taskForId(context: RunActionContext, taskId: UID): InteractiveSynchronousEvaluation.Task? =
+    override fun taskForId(context: RunActionContext, taskId: EvaluationId): InteractiveSynchronousEvaluation.Task? =
         this.run.tasks.find { it.uid == taskId }
 
     /**
@@ -495,7 +480,7 @@ class InteractiveSynchronousRunManager(
         task.postSubmission(sub)
 
         /** Checks for the presence of the [SimpleOption.PROLONG_ON_SUBMISSION] and applies it. */
-        val option = task.description.taskType.options.find { it.option == SimpleOption.PROLONG_ON_SUBMISSION }
+        val option = task.template.taskType.options.find { it.option == SimpleOption.PROLONG_ON_SUBMISSION }
         if (option != null) {
             this.prolongOnSubmit(context, option, sub)
         }
@@ -521,13 +506,13 @@ class InteractiveSynchronousRunManager(
      * this method again.
      *
      * @param context The [RunActionContext] used for the invocation
-     * @param submissionId The [UID] of the [Submission] to update.
+     * @param submissionId The [EvaluationId] of the [Submission] to update.
      * @param submissionStatus The new [SubmissionStatus]
      * @return True on success, false otherwise.
      */
     override fun updateSubmission(
         context: RunActionContext,
-        submissionId: UID,
+        submissionId: EvaluationId,
         submissionStatus: SubmissionStatus
     ): Boolean = this.stateLock.read {
         /* Sanity check. */
@@ -633,7 +618,7 @@ class InteractiveSynchronousRunManager(
             this.stateLock.write {
                 this.run.currentTask!!.start()
                 //this.status = RunManagerStatus.RUNNING_TASK
-                AuditLogger.taskStart(this.id, this.run.currentTask!!.uid, this.run.currentTaskDescription, AuditLogSource.INTERNAL, null)
+                AuditLogger.taskStart(this.id, this.run.currentTask!!.uid, this.run.currentTaskTemplate, AuditLogSource.INTERNAL, null)
             }
 
             /* Mark DAO for update. */

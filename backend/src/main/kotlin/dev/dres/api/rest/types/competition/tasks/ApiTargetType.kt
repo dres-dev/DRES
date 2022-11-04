@@ -1,6 +1,6 @@
 package dev.dres.api.rest.types.competition.tasks
 
-import dev.dres.data.model.competition.task.TargetType
+import dev.dres.data.model.template.task.TargetType
 
 /**
  * The RESTful API equivalent for [TargetType].

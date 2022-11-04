@@ -1,8 +1,7 @@
 package dev.dres.run.updatables
 
-import dev.dres.api.rest.types.run.websocket.ServerMessage
-import dev.dres.api.rest.types.run.websocket.ServerMessageType
-import dev.dres.data.model.UID
+import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
+import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.submissions.Submission
@@ -20,7 +19,7 @@ import java.util.*
  * @author Ralph Gasser
  * @version 1.2.0
  */
-class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdatable, val messageQueueUpdatable: MessageQueueUpdatable, val daoUpdatable: DAOUpdatable<*>): Updatable {
+class ScoresUpdatable(val runId: EvaluationId, val scoreboardsUpdatable: ScoreboardsUpdatable, val messageQueueUpdatable: MessageQueueUpdatable, val daoUpdatable: DAOUpdatable<*>): Updatable {
 
     companion object {
         val ELIGIBLE_STATUS = arrayOf(RunManagerStatus.ACTIVE/*, RunManagerStatus.RUNNING_TASK, RunManagerStatus.PREPARING_TASK, RunManagerStatus.TASK_ENDED*/)
@@ -56,7 +55,7 @@ class ScoresUpdatable(val runId: UID, val scoreboardsUpdatable: ScoreboardsUpdat
             scorersToUpdate.forEach {
                 val task = it.first
                 if (it.first.started != null) {
-                    val scores = it.second.computeScores(task.submissions, TaskContext(task.competition.description.teams.map { t -> t.uid }, task.started, task.description.duration, task.ended))
+                    val scores = it.second.computeScores(task.submissions, TaskContext(task.competition.description.teams.map { t -> t.uid }, task.started, task.template.duration, task.ended))
                     it.first.updateTeamAggregation(scores)
                 }
             }

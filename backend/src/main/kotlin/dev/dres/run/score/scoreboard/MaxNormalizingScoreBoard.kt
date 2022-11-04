@@ -1,15 +1,15 @@
 package dev.dres.run.score.scoreboard
 
-import dev.dres.data.model.competition.task.TaskDescription
-import dev.dres.data.model.competition.task.TaskDescriptionId
-import dev.dres.data.model.competition.team.Team
-import dev.dres.data.model.competition.team.TeamId
+import dev.dres.data.model.template.task.TaskTemplate
+import dev.dres.data.model.template.task.TaskDescriptionId
+import dev.dres.data.model.template.team.Team
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.run.score.interfaces.TaskScorer
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
-class MaxNormalizingScoreBoard(override val name: String, teams: List<Team>, private val taskFilter: (TaskDescription) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 100.0) : Scoreboard {
+class MaxNormalizingScoreBoard(override val name: String, teams: List<Team>, private val taskFilter: (TaskTemplate) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 100.0) : Scoreboard {
 
     private val scorePerTaskMap = ConcurrentHashMap<TaskDescriptionId, Map<TaskDescriptionId, Double>>()
 
@@ -48,7 +48,7 @@ class MaxNormalizingScoreBoard(override val name: String, teams: List<Team>, pri
     override fun update(runs: List<AbstractInteractiveTask>) {
         update(
             runs
-            .filter { taskFilter(it.description) && (it.started != null) }
+            .filter { taskFilter(it.template) && (it.started != null) }
             .map { it.uid to it.scorer }.toMap()
         )
     }

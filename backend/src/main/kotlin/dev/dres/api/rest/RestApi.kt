@@ -1,12 +1,14 @@
 package dev.dres.api.rest
 
 import GetAuditLogInfoHandler
-import dev.dres.api.cli.Cli
 import dev.dres.api.rest.handler.*
 import dev.dres.api.rest.handler.audit.ListAuditLogsHandler
 import dev.dres.api.rest.handler.audit.ListAuditLogsInRangeHandler
 import dev.dres.api.rest.handler.collection.*
-import dev.dres.api.rest.handler.description.*
+import dev.dres.api.rest.handler.evaluation.admin.*
+import dev.dres.api.rest.handler.evaluation.client.ClientListEvaluationsHandler
+import dev.dres.api.rest.handler.evaluation.client.ClientTaskInfoHandler
+import dev.dres.api.rest.handler.template.*
 import dev.dres.api.rest.handler.preview.GetMediaHandler
 import dev.dres.api.rest.handler.preview.MediaPreviewHandler
 import dev.dres.api.rest.handler.preview.SubmissionPreviewHandler
@@ -98,11 +100,11 @@ object RestApi {
             ListExternalItemHandler(config),
 
             // Competition
-            ListCompetitionHandler(store),
-            CreateCompetitionHandler(store),
+            ListEvaluationTemplatesHandler(store),
+            CreateEvaluationTemplateHandler(store),
             UpdateCompetitionHandler(store, config),
-            ShowCompetitionHandler(store),
-            DeleteCompetitionHandler(store),
+            ShowEvaluationTemplateHandler(store),
+            DeleteEvaluationTemplateHandler(store),
             ListTeamHandler(store),
             ListTasksHandler(store),
             GetTeamLogoHandler(store),
@@ -135,23 +137,23 @@ object RestApi {
             ListScoreboardsHandler(),
             TeamGroupScoreHandler(),
 
-            // Competition run admin
-            CreateCompetitionRunAdminHandler(store, config),
-            StartCompetitionRunAdminHandler(),
-            NextTaskCompetitionRunAdminHandler(),
-            PreviousTaskCompetitionRunAdminHandler(),
-            SwitchTaskCompetitionRunAdminHandler(),
-            StartTaskCompetitionRunAdminHandler(),
-            AbortTaskCompetitionRunAdminHandler(),
-            TerminateCompetitionRunAdminHandler(),
-            AdjustDurationRunAdminHandler(),
-            ListViewersRunAdminHandler(),
-            ForceViewerRunAdminHandler(),
-            ListSubmissionsPerTaskRunAdminHandler(),
-            OverwriteSubmissionStatusRunAdminHandler(),
-            ListPastTasksPerTaskRunAdminHandler(),
-            OverviewRunAdminHandler(),
-            UpdateRunPropertiesAdminHandler(),
+            // Evaluation administration
+            CreateEvaluationHandler(store, config),
+            StartEvaluationHandler(store),
+            StopEvaluationHandler(store),
+            NextTaskHandler(store),
+            PreviousTaskHandler(store),
+            SwitchTaskHandler(store),
+            StartTaskHandler(store),
+            StopTaskHandler(store),
+            AdjustDurationHandler(store),
+            AdjustPropertiesHandler(store),
+            OverrideSubmissionHandler(store),
+            ForceViewerHandler(store),
+            ListViewersHandler(store),
+            ListSubmissionsHandler(store),
+            ListPastTaskHandler(store),
+            EvaluationOverviewHandler(store),
 
             // Judgement
             NextOpenJudgementHandler(store),
@@ -170,8 +172,8 @@ object RestApi {
             InfoHandler(),
 
             //API Client
-            ListCompetitionRunClientInfoHandler(),
-            CompetitionRunClientCurrentTaskInfoHandler(),
+            ClientListEvaluationsHandler(store),
+            ClientTaskInfoHandler(store),
 
             // Downloads
             DownloadHandler.CompetitionRun(store),

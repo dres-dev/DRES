@@ -1,6 +1,6 @@
 package dev.dres.api.rest.types.competition.tasks.options
 
-import dev.dres.data.model.competition.task.options.SubmissionOption
+import dev.dres.data.model.template.task.options.SubmissionOption
 
 /**
  * A RESTful API representation of [SubmissionOption].

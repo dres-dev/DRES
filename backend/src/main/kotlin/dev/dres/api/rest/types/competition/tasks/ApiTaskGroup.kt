@@ -1,6 +1,6 @@
 package dev.dres.api.rest.types.competition.tasks
 
-import dev.dres.data.model.competition.task.TaskGroup
+import dev.dres.data.model.template.task.TaskGroup
 
 /**
  * The RESTful API equivalent of a [TaskGroup].

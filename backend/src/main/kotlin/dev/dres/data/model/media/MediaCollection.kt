@@ -14,9 +14,16 @@ typealias CollectionId = String
  */
 class MediaCollection(entity: Entity): PersistentEntity(entity) {
     companion object : XdNaturalEntityType<MediaCollection>()
+    /** The name of this [MediaItem]. */
     var name: String by xdRequiredStringProp(unique = true, trimmed = false)
+
+    /** The path to the folder containing [MediaItem]s in this [MediaCollection]. */
     var path: String by xdRequiredStringProp(unique = true, trimmed = false)
+
+    /** A textual description of this [MediaCollection]. */
     var description: String? by xdStringProp(trimmed = false)
+
+    /** A list of [MediaItem]s in this [MediaCollection]. */
     val items by xdChildren0_N<MediaCollection, MediaItem>(MediaItem::collection)
 }
 

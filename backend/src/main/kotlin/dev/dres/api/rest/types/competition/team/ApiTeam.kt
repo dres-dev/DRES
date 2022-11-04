@@ -1,8 +1,8 @@
 package dev.dres.api.rest.types.competition.team
 
 import dev.dres.api.rest.types.users.ApiUser
-import dev.dres.data.model.competition.team.Team
-import dev.dres.data.model.competition.team.TeamId
+import dev.dres.data.model.template.team.Team
+import dev.dres.data.model.template.team.TeamId
 
 /**
  * A RESTful API representation of a [Team]

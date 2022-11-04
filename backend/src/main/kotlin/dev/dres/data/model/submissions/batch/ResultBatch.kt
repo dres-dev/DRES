@@ -1,6 +1,6 @@
 package dev.dres.data.model.submissions.batch
 
-import dev.dres.data.model.competition.TeamId
+import dev.dres.data.model.template.TeamId
 import dev.dres.data.model.run.interfaces.TaskId
 
 /**

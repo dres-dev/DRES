@@ -1,7 +1,8 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.competition.task.options.TargetOption
-import dev.dres.data.model.submissions.aspects.OriginAspect
+import dev.dres.data.model.admin.UserId
+import dev.dres.data.model.template.task.options.TargetOption
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.submissions.batch.ResultBatch
 import dev.dres.run.validation.MediaItemsSubmissionBatchValidator
 import dev.dres.run.validation.TemporalOverlapSubmissionBatchValidator
@@ -27,20 +28,20 @@ abstract class AbstractNonInteractiveTask(task: Task): AbstractTaskRun(task) {
      *
      * @return [SubmissionBatchValidator]
      */
-    fun newValidator(): SubmissionBatchValidator = when(this.description.taskGroup.type.target){
-        TargetOption.MEDIA_ITEM -> MediaItemsSubmissionBatchValidator(this.description.targets.mapDistinct { it.item }.filter { it ne null }.toSet())
+    fun newValidator(): SubmissionBatchValidator = when(this.template.taskGroup.type.target){
+        TargetOption.MEDIA_ITEM -> MediaItemsSubmissionBatchValidator(this.template.targets.mapDistinct { it.item }.filter { it ne null }.toSet())
         TargetOption.MEDIA_SEGMENT -> {
-            val target = this.description.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null)}.take(1) .first()
+            val target = this.template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null)}.take(1) .first()
             TemporalOverlapSubmissionBatchValidator(TransientMediaSegment(target.item!!, target.range!!))
         }
         TargetOption.JUDGEMENT -> TODO()
         TargetOption.VOTE -> TODO()
         TargetOption.TEXT -> TODO()
-        else -> throw IllegalStateException("The provided target option ${this.description.taskGroup.type.target.description} is not supported by non-interactive tasks.")
+        else -> throw IllegalStateException("The provided target option ${this.template.taskGroup.type.target.description} is not supported by non-interactive tasks.")
     }
 
     /**
-     *
+     * Submits a batch of [Submissions].
      */
-    abstract fun addSubmissionBatch(origin: OriginAspect, batches: List<ResultBatch<*>>)
+    abstract fun addSubmissionBatch(teamId: TeamId, memberId: UserId, batches: List<ResultBatch<*>>)
 }

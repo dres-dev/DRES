@@ -1,8 +1,8 @@
 package dev.dres.run
 
 import dev.dres.api.rest.types.WebSocketConnection
-import dev.dres.api.rest.types.run.websocket.ClientMessage
-import dev.dres.data.model.competition.CompetitionDescription
+import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
+import dev.dres.data.model.template.EvaluationTemplate
 import dev.dres.data.model.run.EvaluationId
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunActionContext
@@ -12,7 +12,7 @@ import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
 
 /**
- * A managing class for concrete executions of [CompetitionDescription], i.e. [InteractiveSynchronousEvaluation]s.
+ * A managing class for concrete executions of [EvaluationTemplate], i.e. [InteractiveSynchronousEvaluation]s.
  *
  * @see InteractiveSynchronousEvaluation
  *
@@ -26,8 +26,8 @@ interface RunManager : Runnable {
     /** A name for identifying this [RunManager]. */
     val name: String
 
-    /** The [CompetitionDescription] that is executed / run by this [RunManager]. */
-    val description: CompetitionDescription
+    /** The [EvaluationTemplate] that is executed / run by this [RunManager]. */
+    val template: EvaluationTemplate
 
     /** List of [Scoreboard]s for this [RunManager]. */
     val scoreboards: List<Scoreboard>
@@ -38,6 +38,7 @@ interface RunManager : Runnable {
     /** [JudgementValidator]s for all tasks that use them */
     val judgementValidators: List<JudgementValidator>
 
+    /** [JudgementValidator]s for all tasks that use them */
     val runProperties: RunProperties
 
     /**
@@ -64,6 +65,12 @@ interface RunManager : Runnable {
      */
     fun end(context: RunActionContext)
 
+    /**
+     * Updates the [RunProperties] for this [RunManager].
+     *
+     * @param properties The new [RunProperties]
+     */
+    fun updateProperties(properties: RunProperties)
 
     /**
      * Returns the number of [InteractiveSynchronousEvaluation.Task]s held by this [RunManager].

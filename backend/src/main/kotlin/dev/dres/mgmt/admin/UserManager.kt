@@ -1,7 +1,6 @@
 package dev.dres.mgmt.admin
 
 import dev.dres.api.rest.types.users.UserRequest
-import dev.dres.data.model.UID
 import dev.dres.data.model.admin.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
@@ -132,9 +131,9 @@ object UserManager {
     }
 
     /**
-     * Checks for the existence of the [User] with the given [UID].
+     * Checks for the existence of the [User] with the given [EvaluationId].
      *
-     * @param id [UID] to check.
+     * @param id [EvaluationId] to check.
      * @return True if [User] exists, false otherwise.
      */
     fun exists(id: UserId? = null, username: String? = null): Boolean = this.store.transactional(readonly = true) {
@@ -148,9 +147,9 @@ object UserManager {
     }
 
     /**
-     * Returns the [User] for the given [UID] or null if [User] doesn't exist.
+     * Returns the [User] for the given [EvaluationId] or null if [User] doesn't exist.
      *
-     * @param id The [UID] of the [User] to fetch.
+     * @param id The [EvaluationId] of the [User] to fetch.
      * @return [User] or null
      */
     fun get(id: UserId? = null, username: String? = null): User? = this.store.transactional(readonly = true) {

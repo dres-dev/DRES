@@ -12,10 +12,11 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.admin.User
 import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.audit.AuditLogSource
-import dev.dres.data.model.competition.task.options.TaskOption
+import dev.dres.data.model.template.task.options.TaskOption
 import dev.dres.data.model.media.*
 import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.Task
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.SubmissionType
@@ -43,7 +44,7 @@ import java.util.*
  * @author Loris Sauter
  * @version 2.0.0
  */
-class SubmissionHandler (private val store: TransientEntityStore, private val config: Config): GetRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
+class SubmissionHandler(private val store: TransientEntityStore, private val config: Config): GetRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
 
     /** [SubmissionHandler] requires [ApiRole.PARTICIPANT]. */
     override val permittedRoles = setOf(ApiRole.PARTICIPANT)
@@ -136,7 +137,7 @@ class SubmissionHandler (private val store: TransientEntityStore, private val co
             it.currentTask(rac)?.isRunning == true
         }
         if (managers.isEmpty())  throw ErrorStatusException(404, "There is currently no eligible competition with an active task.", ctx)
-        if (managers.size > 1)  throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.description.name }}", ctx)
+        if (managers.size > 1)  throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.template.name }}", ctx)
         return managers.first()
     }
 
@@ -156,7 +157,7 @@ class SubmissionHandler (private val store: TransientEntityStore, private val co
         /* Find team that the user belongs to. */
         val user = User.query(User::id eq userId).firstOrNull()
             ?: throw ErrorStatusException(404, "No user with ID '$userId' could be found.", ctx)
-        val team = runManager.description.teams.filter { it.users.contains(user) }.firstOrNull()
+        val team = runManager.template.teams.filter { it.users.contains(user) }.firstOrNull()
             ?: throw ErrorStatusException(404, "No team for user '$userId' could be found.", ctx)
         val rac = RunActionContext.runActionContext(ctx, runManager)
 
@@ -172,12 +173,14 @@ class SubmissionHandler (private val store: TransientEntityStore, private val co
         /* If text is supplied, it supersedes other parameters */
         val textParam = map[PARAMETER_NAME_TEXT]?.first()
         val itemParam = map[PARAMETER_NAME_ITEM]?.first()
+        val currentTaskId = runManager.currentTask(rac)?.id
+        val task = Task.query(Task::id eq currentTaskId).firstOrNull() ?: throw ErrorStatusException(404, "No active task for ID '$currentTaskId' could be found.", ctx)
         val submission = Submission.new {
             this.id = submissionId
             this.status = SubmissionStatus.INDETERMINATE
             this.user = user
             this.team = team
-            this.task = runManager.currentTask(rac)
+            this.task = task
             this.timestamp = submissionTime
         }
 
@@ -256,6 +259,6 @@ class SubmissionHandler (private val store: TransientEntityStore, private val co
         if (Files.exists(destinationPath)){
             return
         }
-        FFmpegUtil.extractFrame(submission.item!!.pathToOriginal(), submission.start, destinationPath)
+        FFmpegUtil.extractFrame(submission.item!!.pathToOriginal(), submission.start!!, destinationPath)
     }
 }

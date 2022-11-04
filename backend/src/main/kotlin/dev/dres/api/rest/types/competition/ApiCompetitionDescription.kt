@@ -5,11 +5,11 @@ import dev.dres.api.rest.types.competition.tasks.ApiTaskGroup
 import dev.dres.api.rest.types.competition.tasks.ApiTaskType
 import dev.dres.api.rest.types.competition.team.ApiTeam
 import dev.dres.api.rest.types.competition.team.ApiTeamGroup
-import dev.dres.data.model.competition.CompetitionDescription
+import dev.dres.data.model.template.EvaluationTemplate
 /**
- * The RESTful API equivalent for [CompetitionDescription].
+ * The RESTful API equivalent for [EvaluationTemplate].
  *
- * @see CompetitionDescription
+ * @see EvaluationTemplate
  * @author Luca Rossetto & Ralph Gasser
  * @version 2.0.0
  */

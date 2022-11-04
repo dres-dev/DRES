@@ -1,6 +1,6 @@
 package dev.dres.data.model.run.interfaces
 
-import dev.dres.data.model.competition.CompetitionDescription
+import dev.dres.data.model.template.EvaluationTemplate
 import dev.dres.data.model.run.Evaluation
 import dev.dres.data.model.run.EvaluationId
 /**
@@ -16,8 +16,8 @@ interface EvaluationRun: Run {
     /** The name human readable of this [Evaluation]. */
     val name: String
 
-    /** Reference to the [CompetitionDescription] that describes the content of this [Evaluation]. */
-    val description: CompetitionDescription
+    /** Reference to the [EvaluationTemplate] that describes the content of this [Evaluation]. */
+    val description: EvaluationTemplate
 
     /** Collection of [TaskRun]s that make up this [Evaluation]. */
     val tasks: List<TaskRun>

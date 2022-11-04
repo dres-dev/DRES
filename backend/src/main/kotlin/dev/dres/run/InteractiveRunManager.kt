@@ -1,8 +1,7 @@
 package dev.dres.run
 
-import dev.dres.data.model.UID
-import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.competition.task.TaskDescription
+import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.Submission
@@ -23,8 +22,8 @@ interface InteractiveRunManager : RunManager {
     val allSubmissions: List<Submission>
 
     /**
-     * Prepares this [InteractiveRunManager] for the execution of previous [TaskDescription] as per order defined in
-     * [CompetitionDescription.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
+     * Prepares this [InteractiveRunManager] for the execution of previous [TaskTemplate] as per order defined in
+     * [EvaluationTemplate.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
      * This is part of the [InteractiveRunManager]'s navigational state.  As all state affecting methods, this method throws
      * an [IllegalStateException] if invocation does not match the current state.
@@ -36,8 +35,8 @@ interface InteractiveRunManager : RunManager {
     fun previous(context: RunActionContext): Boolean
 
     /**
-     * Prepares this [InteractiveRunManager] for the execution of next [TaskDescription] as per order defined in
-     * [CompetitionDescription.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
+     * Prepares this [InteractiveRunManager] for the execution of next [TaskTemplate] as per order defined in
+     * [EvaluationTemplate.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
      * This is part of the [InteractiveRunManager]'s navigational state. As all state affecting methods, this method throws
      * an [IllegalStateException] if invocation oes not match the current state.
@@ -49,8 +48,8 @@ interface InteractiveRunManager : RunManager {
     fun next(context: RunActionContext): Boolean
 
     /**
-     * Prepares this [InteractiveRunManager] for the execution of the [TaskDescription] given by the index as per order
-     * defined in [CompetitionDescription.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
+     * Prepares this [InteractiveRunManager] for the execution of the [TaskTemplate] given by the index as per order
+     * defined in [EvaluationTemplate.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
      * This is part of the [InteractiveRunManager]'s navigational state. As all state affecting methods, this method throws
      * an [IllegalStateException] if invocation does not match the current state.
@@ -62,13 +61,13 @@ interface InteractiveRunManager : RunManager {
     fun goTo(context: RunActionContext, index: Int)
 
     /**
-     * Reference to the currently active [TaskDescription]. This is part of the [InteractiveRunManager]'s
+     * Reference to the currently active [TaskTemplate]. This is part of the [InteractiveRunManager]'s
      * navigational state.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return [TaskDescription]
+     * @return [TaskTemplate]
      */
-    fun currentTaskDescription(context: RunActionContext): TaskDescription
+    fun currentTaskDescription(context: RunActionContext): TaskTemplate
 
     /**
      * Starts the [currentTask] and thus moves the [RunManager.status] from
@@ -146,9 +145,9 @@ interface InteractiveRunManager : RunManager {
      * first [AbstractInteractiveTask], index of 1 the second etc.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @param taskId The [UID] of the desired [AbstractInteractiveTask].
+     * @param taskId The [EvaluationId] of the desired [AbstractInteractiveTask].
      */
-    fun taskForId(context: RunActionContext, taskId: UID): AbstractInteractiveTask?
+    fun taskForId(context: RunActionContext, taskId: EvaluationId): AbstractInteractiveTask?
 
     /**
      * List of [Submission]s for the current [AbstractInteractiveTask].
@@ -194,11 +193,11 @@ interface InteractiveRunManager : RunManager {
      * this method again.
      *
      * @param context The [RunActionContext] used for the invocation
-     * @param submissionId The [UID] of the [Submission] to update.
+     * @param submissionId The [EvaluationId] of the [Submission] to update.
      * @param submissionStatus The new [SubmissionStatus]
      *
      * @return Whether the update was successful or not
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    fun updateSubmission(context: RunActionContext, submissionId: UID, submissionStatus: SubmissionStatus): Boolean
+    fun updateSubmission(context: RunActionContext, submissionId: EvaluationId, submissionStatus: SubmissionStatus): Boolean
 }

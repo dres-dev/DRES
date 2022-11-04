@@ -1,6 +1,6 @@
 package dev.dres.run.exceptions
 
-import dev.dres.data.model.competition.team.TeamId
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager
 
 /**

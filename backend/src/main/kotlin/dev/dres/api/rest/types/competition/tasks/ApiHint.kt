@@ -1,7 +1,7 @@
 package dev.dres.api.rest.types.competition.tasks
 
 import dev.dres.api.rest.types.collection.time.ApiTemporalRange
-import dev.dres.data.model.competition.*
+import dev.dres.data.model.template.*
 
 /**
  * The RESTful API equivalent for [TaskDescriptionHint].

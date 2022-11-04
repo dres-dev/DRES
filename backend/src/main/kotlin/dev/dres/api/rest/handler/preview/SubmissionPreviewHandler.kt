@@ -3,12 +3,8 @@ package dev.dres.api.rest.handler.preview
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.Config
 import dev.dres.data.model.media.MediaItem
-import dev.dres.data.model.submissions.aspects.ItemAspect
-import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
-import dev.dres.data.model.submissions.aspects.TextAspect
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
-import dev.dres.utilities.extensions.UID
 import dev.dres.utilities.extensions.errorResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -40,22 +36,21 @@ class SubmissionPreviewHandler(store: TransientEntityStore, config: Config) : Ab
         methods = [HttpMethod.GET]
     )
     override fun get(ctx: Context) {
-
         try {
             val params = ctx.pathParamMap()
             val runId = params["runId"] ?: throw ErrorStatusException(404, "Parameter 'runId' is invalid", ctx)
-            val submissionId = params["submissionId"]?.UID() ?: throw ErrorStatusException(404, "Parameter 'submissionId' is missing", ctx)
+            val submissionId = params["submissionId"] ?: throw ErrorStatusException(404, "Parameter 'submissionId' is missing", ctx)
             val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Competition Run $runId not found", ctx)
             if (run !is InteractiveRunManager) throw ErrorStatusException(404, "Competition Run $runId is not interactive", ctx)
 
-            val submission = run.allSubmissions.find { it.uid == submissionId }
+            val submission = run.allSubmissions.find { it.id == submissionId }
                 ?: throw ErrorStatusException(404, "Submission '$submissionId' not found", ctx)
 
-            when (submission) {
-                is ItemAspect -> {
-                    handlePreviewRequest(submission.item, if (submission is TemporalSubmissionAspect) submission.start else null, ctx)
+            when {
+                submission.item != null -> {
+                    handlePreviewRequest(submission.item!!, if (submission.start != null) submission.start else null, ctx)
                 }
-                is TextAspect -> {
+                submission.text != null -> {
                     ctx.header("Cache-Control", "max-age=31622400")
                     ctx.contentType("image/png")
                     ctx.result(this.javaClass.getResourceAsStream("/img/text.png")!!)
@@ -69,7 +64,6 @@ class SubmissionPreviewHandler(store: TransientEntityStore, config: Config) : Ab
         } catch (e: ErrorStatusException) {
             ctx.errorResponse(e)
         }
-
     }
 
 

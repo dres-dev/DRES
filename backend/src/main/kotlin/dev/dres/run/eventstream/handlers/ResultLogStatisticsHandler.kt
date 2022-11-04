@@ -1,13 +1,12 @@
 package dev.dres.run.eventstream.handlers
 
 import dev.dres.data.dbo.DaoIndexer
-import dev.dres.data.model.UID
 import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.MediaItemSegmentList
 import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.media.time.TemporalRange
-import dev.dres.data.model.competition.task.TaskDescription
-import dev.dres.data.model.competition.task.TaskDescriptionTarget
+import dev.dres.data.model.template.task.TaskTemplate
+import dev.dres.data.model.template.task.TaskDescriptionTarget
 import dev.dres.run.eventstream.QueryResultLogEvent
 import dev.dres.run.eventstream.StreamEvent
 import dev.dres.run.eventstream.StreamEventHandler
@@ -16,12 +15,12 @@ import dev.dres.utilities.TimeUtil
 import java.io.File
 import java.io.PrintWriter
 
-class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemSegmentList, UID>) : StreamEventHandler {
+class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemSegmentList, EvaluationId>) : StreamEventHandler {
 
     private val writer = PrintWriter(File("statistics/result_log_statistics_${System.currentTimeMillis()}.csv").also { it.parentFile.mkdirs() })
 
-    private val lastActiveTask = mutableMapOf<UID, TaskDescription>()
-    private val lastActiveTargets = mutableMapOf<UID, List<Pair<MediaItem, TemporalRange?>>>()
+    private val lastActiveTask = mutableMapOf<EvaluationId, TaskTemplate>()
+    private val lastActiveTargets = mutableMapOf<EvaluationId, List<Pair<MediaItem, TemporalRange?>>>()
 
 
     init {
@@ -32,12 +31,12 @@ class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemS
 
         when (event) {
             is TaskStartEvent -> {
-                lastActiveTask[event.runId] = event.taskDescription
-                lastActiveTargets[event.runId] = when(event.taskDescription.target) {
+                lastActiveTask[event.runId] = event.taskTemplate
+                lastActiveTargets[event.runId] = when(event.taskTemplate.target) {
                     is TaskDescriptionTarget.JudgementTaskDescriptionTarget, is TaskDescriptionTarget.VoteTaskDescriptionTarget, -> return //no analysis possible
-                    is TaskDescriptionTarget.MediaItemTarget -> listOf(event.taskDescription.target.item to null)
-                    is TaskDescriptionTarget.VideoSegmentTarget ->  listOf(event.taskDescription.target.item to event.taskDescription.target.temporalRange)
-                    is TaskDescriptionTarget.MultipleMediaItemTarget -> event.taskDescription.target.items.map { it to null }
+                    is TaskDescriptionTarget.MediaItemTarget -> listOf(event.taskTemplate.target.item to null)
+                    is TaskDescriptionTarget.VideoSegmentTarget ->  listOf(event.taskTemplate.target.item to event.taskTemplate.target.temporalRange)
+                    is TaskDescriptionTarget.MultipleMediaItemTarget -> event.taskTemplate.target.items.map { it to null }
                     is TaskDescriptionTarget.TextTaskDescriptionTarget -> return //TODO maybe some analysis would be possible, needs restructuring
                 }
             }

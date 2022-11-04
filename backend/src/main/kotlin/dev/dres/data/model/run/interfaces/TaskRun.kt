@@ -1,6 +1,6 @@
 package dev.dres.data.model.run.interfaces
 
-import dev.dres.data.model.competition.task.TaskDescription
+import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.Task
 import dev.dres.run.TaskRunStatus
 import dev.dres.run.score.interfaces.TaskScorer
@@ -22,8 +22,8 @@ interface TaskRun: Run {
     /** The position of this [Task] within the enclosing [EvaluationRun]. */
     val position: Int
 
-    /** Reference to the [TaskDescription] describing this [Task]. */
-    val description: TaskDescription
+    /** Reference to the [TaskTemplate] describing this [Task]. */
+    val template: TaskTemplate
 
     /** The [TaskScorer] used to update score for this [Task]. */
     val scorer: TaskScorer

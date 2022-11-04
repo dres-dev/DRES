@@ -1,8 +1,10 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.competition.task.TaskDescription
+import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.run.interfaces.Run
+import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.run.TaskRunStatus
+import kotlinx.dnq.util.findById
 
 /**
  * An abstract [Run] implementation that can be used by different subtypes.
@@ -10,10 +12,25 @@ import dev.dres.run.TaskRunStatus
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractTaskRun(protected val task: Task): dev.dres.data.model.run.interfaces.TaskRun {
-    /** The Id of this [AbstractTaskRun]. */
-    override val id: TaskId
-        get() = this.task.id
+abstract class AbstractTaskRun(task: Task): TaskRun {
+    /** The internal [xdId] of this [AbstractEvaluation].
+     *
+     * Since this cannot change during the lifetime of an evaluation, it is kept in memory.
+     */
+    private val xdId = task.xdId
+
+    /**
+     * Accessor for the [Task] underpinning this [AbstractTaskRun]
+     */
+    protected val task: Task
+        get() = Task.findById(this.xdId)
+
+    /**
+     * The [TaskId] of this [AbstractTaskRun].
+     *
+     * Since this cannot change during the lifetime of an evaluation, it is kept in memory.
+     */
+    override val id: TaskId = this.task.id
 
     /** Timestamp of when this [AbstractTaskRun] was started. */
     override var started: Long
@@ -29,8 +46,8 @@ abstract class AbstractTaskRun(protected val task: Task): dev.dres.data.model.ru
             this.task.ended = value
         }
 
-    /** Reference to the [TaskDescription] describing this [AbstractTaskRun]. */
-    override val description: TaskDescription
+    /** Reference to the [TaskTemplate] describing this [AbstractTaskRun]. */
+    override val template: TaskTemplate
         get() = this.task.description
 
     @Volatile
@@ -69,6 +86,10 @@ abstract class AbstractTaskRun(protected val task: Task): dev.dres.data.model.ru
         this.status = TaskRunStatus.ENDED
     }
 
+
+    /**
+     * Reactivates this [AbstractTaskRun].
+     */
     override fun reactivate() {
         if (this.ended == null){
             throw IllegalStateException("Run has not yet ended.")

@@ -1,8 +1,7 @@
 package dev.dres.run.score.interfaces
 
-import dev.dres.data.model.UID
-import dev.dres.data.model.competition.team.Team
-import dev.dres.data.model.competition.team.TeamId
+import dev.dres.data.model.template.team.Team
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.interfaces.TaskRun
 
 /** Type alias for a */
@@ -19,7 +18,7 @@ interface TaskScorer {
     /**
      * Generates and returns the current scores for all teams in the relevant Task.
      *
-     * @return Map of team [UID] to team score
+     * @return Map of team [EvaluationId] to team score
      */
     fun scores(): List<ScoreEntry>
 }

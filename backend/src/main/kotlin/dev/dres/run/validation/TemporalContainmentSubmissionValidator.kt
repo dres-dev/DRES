@@ -1,6 +1,6 @@
 package dev.dres.run.validation
 
-import dev.dres.data.model.competition.task.TaskDescription
+import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.media.MediaSegment
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
@@ -18,7 +18,7 @@ class TemporalContainmentSubmissionValidator(private val task: MediaSegment) : S
 
     /**
      * Validates a [Submission] based on the target segment and the temporal overlap of the
-     * [Submission] with the [TaskDescription].
+     * [Submission] with the [TaskTemplate].
      *
      * @param submission The [Submission] to validate.
      */

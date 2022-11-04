@@ -1,7 +1,6 @@
 package dev.dres.run.eventstream.handlers
 
-import dev.dres.data.model.UID
-import dev.dres.data.model.competition.task.TaskDescription
+import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.eventstream.*
 import dev.dres.run.score.TaskContext
@@ -15,9 +14,9 @@ class TeamCombinationScoreHandler : StreamEventHandler {
 
     private val writer = PrintWriter(File("statistics/combined_team_scores_${System.currentTimeMillis()}.csv").also { it.parentFile.mkdirs() })
 
-    private val tasks = mutableMapOf<UID, TaskDescription>()
-    private val taskStartMap = mutableMapOf<UID, Long>()
-    private val submissionTaskMap = mutableMapOf<UID, MutableList<Submission>>()
+    private val tasks = mutableMapOf<EvaluationId, TaskTemplate>()
+    private val taskStartMap = mutableMapOf<EvaluationId, Long>()
+    private val submissionTaskMap = mutableMapOf<EvaluationId, MutableList<Submission>>()
 
     init {
         writer.println("task,team1,team2,score")
@@ -27,7 +26,7 @@ class TeamCombinationScoreHandler : StreamEventHandler {
 
         when(event){
             is TaskStartEvent -> {
-                tasks[event.taskId] = event.taskDescription
+                tasks[event.taskId] = event.taskTemplate
                 taskStartMap[event.taskId] = event.timeStamp
                 submissionTaskMap[event.taskId] = mutableListOf()
             }
@@ -50,7 +49,7 @@ class TeamCombinationScoreHandler : StreamEventHandler {
 
                 val combinations = teams.mapIndexed { firstIndex, uidA ->
                     teams.mapIndexed {secondIndex, uidB -> if (firstIndex > secondIndex) (uidA to uidB) else null}
-                }.flatten().filterNotNull().map { UID() to it }.toMap()
+                }.flatten().filterNotNull().map { EvaluationId() to it }.toMap()
 
                 val combinedSubmissions = submissions.flatMap { submission ->
                     combinations.map {

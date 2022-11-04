@@ -1,6 +1,6 @@
 package dev.dres.run.updatables
 
-import dev.dres.api.rest.types.run.RunState
+import dev.dres.api.rest.types.evaluation.RunState
 import dev.dres.run.RunManagerStatus
 
 /**

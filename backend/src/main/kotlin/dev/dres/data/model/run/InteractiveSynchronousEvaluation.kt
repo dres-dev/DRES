@@ -1,7 +1,7 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.competition.task.TaskDescription
+import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.Submission
@@ -13,7 +13,7 @@ import kotlinx.dnq.query.*
 import java.util.*
 
 /**
- * Represents a concrete, interactive and synchronous [Run] of a [CompetitionDescription].
+ * Represents a concrete, interactive and synchronous [Run] of a [EvaluationTemplate].
  *
  * [InteractiveSynchronousEvaluation]s can be started, ended and they can be used to create new [TaskRun]s and access the current [TaskRun].
  *
@@ -31,15 +31,15 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
     /** List of [TaskRun]s registered for this [InteractiveSynchronousEvaluation]. */
     override val tasks: List<TaskRun> = this.evaluation.tasks.asSequence().map {
         ISTaskRun(it)
-    }.toList()
+    }.toMutableList()
 
-    /** Reference to the currently active [TaskDescription]. This is part of the task navigation. */
-    var currentTaskDescription = this.description.tasks.first()
+    /** Reference to the currently active [TaskTemplate]. This is part of the task navigation. */
+    var currentTaskTemplate = this.description.tasks.first()
         private set
 
     /** Returns the last [TaskRun]. */
     val currentTask: TaskRun?
-        get() = this.tasks.findLast { it.description.id == this.currentTaskDescription.id }
+        get() = this.tasks.firstOrNull { it.template.id == this.currentTaskTemplate.id }
 
     override fun toString(): String = "InteractiveSynchronousCompetition(id=$id, name=${name})"
 
@@ -49,11 +49,11 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
      * @param index The new task index to move to.
      */
     fun goTo(index: Int) {
-        this.currentTaskDescription = this.description.tasks.drop(index).first()
+        this.currentTaskTemplate = this.description.tasks.drop(index).first()
     }
 
     /**
-     * Represents a concrete [Run] of a [TaskDescription]. [Task]s always exist within a [InteractiveSynchronousEvaluation].
+     * Represents a concrete [Run] of a [TaskTemplate]. [Task]s always exist within a [InteractiveSynchronousEvaluation].
      * As a [InteractiveSynchronousEvaluation], [Task]s can be started and ended and they can be used to register [Submission]s.
      *
      * @version 1.2.0
@@ -62,11 +62,11 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
     inner class ISTaskRun(task: Task): AbstractInteractiveTask(task) {
 
         /**
-         * Constructor used to generate an [ISTaskRun] from a [TaskDescription].
+         * Constructor used to generate an [ISTaskRun] from a [TaskTemplate].
          *
-         * @param description [TaskDescription] to generate [ISTaskRun] from.
+         * @param description [TaskTemplate] to generate [ISTaskRun] from.
          */
-        constructor(description: TaskDescription) : this(Task.new {
+        constructor(description: TaskTemplate) : this(Task.new {
             this.id = UUID.randomUUID().toString()
             this.type = RunType.INTERACTIVE_SYNCHRONOUS
             this.evaluation = this@InteractiveSynchronousEvaluation.evaluation
@@ -82,22 +82,22 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
         override val position: Int
             get() = this@InteractiveSynchronousEvaluation.tasks.indexOf(this)
 
-        /** Reference to the [TaskDescription] describing this [Task]. */
-        override val description: TaskDescription
+        /** Reference to the [TaskTemplate] describing this [Task]. */
+        override val template: TaskTemplate
             get() = this.task.description
 
         /** The [SubmissionFilter] instance used by this [ISTaskRun]. */
-        override val filter: SubmissionFilter = this.description.newFilter()
+        override val filter: SubmissionFilter = this.template.newFilter()
 
         /** The [TeamTaskScorer] instance used by this [ISTaskRun]. */
-        override val scorer: TeamTaskScorer = this.description.newScorer() as? TeamTaskScorer
+        override val scorer: TeamTaskScorer = this.template.newScorer() as? TeamTaskScorer
             ?: throw IllegalArgumentException("Specified scorer is not of type TeamTaskScorer. This is a programmer's error!")
 
         /** The [SubmissionValidator] used by this [ISTaskRun]. */
         override val validator: SubmissionValidator = newValidator()
 
-        /** The total duration in milliseconds of this task. Usually determined by the [TaskDescription] but can be adjusted! */
-        override var duration: Long = this.description.duration
+        /** The total duration in milliseconds of this task. Usually determined by the [TaskTemplate] but can be adjusted! */
+        override var duration: Long = this.template.duration
 
         init {
             check(this@InteractiveSynchronousEvaluation.tasks.isEmpty() || this@InteractiveSynchronousEvaluation.tasks.last().hasEnded) {
@@ -118,7 +118,7 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
         override fun postSubmission(submission: Submission) {
             check(this.isRunning) { "Task run '${this@InteractiveSynchronousEvaluation.name}.${this.position}' is currently not running. This is a programmer's error!" }
             check(this@InteractiveSynchronousEvaluation.description.teams.filter { it eq submission.team }.any()) {
-                "Team ${submission.teamId} does not exists for competition run ${this@InteractiveSynchronousEvaluation.name}. This is a programmer's error!"
+                "Team ${submission.team.teamId} does not exists for competition run ${this@InteractiveSynchronousEvaluation.name}. This is a programmer's error!"
             }
 
             /* Execute submission filters. */

@@ -1,6 +1,6 @@
 package dev.dres.api.rest.types.competition.tasks
 
-import dev.dres.data.model.competition.task.HintType
+import dev.dres.data.model.template.task.HintType
 
 /**
  * The RESTful API equivalent for [HintType].

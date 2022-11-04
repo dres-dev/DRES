@@ -1,6 +1,5 @@
 package dev.dres.run.eventstream.handlers
 
-import dev.dres.data.model.UID
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.eventstream.*
@@ -12,9 +11,9 @@ class SubmissionStatisticsHandler : StreamEventHandler {
 
     private val writer = PrintWriter(File("statistics/submission_statistics_${System.currentTimeMillis()}.csv").also { it.parentFile.mkdirs() })
 
-    private val submissionTaskMap = mutableMapOf<UID, MutableList<Submission>>()
-    private val taskStartMap = mutableMapOf<UID, Long>()
-    private val taskNameMap = mutableMapOf<UID, String>()
+    private val submissionTaskMap = mutableMapOf<EvaluationId, MutableList<Submission>>()
+    private val taskStartMap = mutableMapOf<EvaluationId, Long>()
+    private val taskNameMap = mutableMapOf<EvaluationId, String>()
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -27,7 +26,7 @@ class SubmissionStatisticsHandler : StreamEventHandler {
             is TaskStartEvent -> {
                 submissionTaskMap[event.taskId] = mutableListOf()
                 taskStartMap[event.taskId] = event.timeStamp
-                taskNameMap[event.taskId] = event.taskDescription.name
+                taskNameMap[event.taskId] = event.taskTemplate.name
             }
             is SubmissionEvent -> if (event.taskId != null && taskStartMap.containsKey(event.taskId)){
                 submissionTaskMap[event.taskId]!!.add(event.submission)

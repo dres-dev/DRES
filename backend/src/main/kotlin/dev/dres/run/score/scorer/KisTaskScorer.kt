@@ -1,6 +1,6 @@
 package dev.dres.run.score.scorer
 
-import dev.dres.data.model.competition.team.TeamId
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.score.TaskContext

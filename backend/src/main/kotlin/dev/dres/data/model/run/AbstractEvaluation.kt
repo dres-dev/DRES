@@ -1,8 +1,10 @@
 package dev.dres.data.model.run
 
 
-import dev.dres.data.model.competition.CompetitionDescription
+import dev.dres.data.model.run.interfaces.EvaluationRun
+import dev.dres.data.model.template.EvaluationTemplate
 import dev.dres.data.model.run.interfaces.Run
+import kotlinx.dnq.util.findById
 
 /**
  * An abstract [Run] implementation that can be used by different subtypes.
@@ -10,19 +12,37 @@ import dev.dres.data.model.run.interfaces.Run
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractEvaluation(protected val evaluation: Evaluation): dev.dres.data.model.run.interfaces.EvaluationRun {
+abstract class AbstractEvaluation(evaluation: Evaluation): EvaluationRun {
 
-    /** The name of this [AbstractEvaluation]. */
-    override val id: EvaluationId
-        get() = this.evaluation.id
+    /** The internal [xdId] of this [AbstractEvaluation].
+     *
+     * Since this cannot change during the lifetime of an evaluation, it is kept in memory.
+     */
+    private val xdId = evaluation.xdId
 
-    /** The name of this [AbstractEvaluation]. */
-    override val name: String
-        get() = this.evaluation.name
+    /**
+     * Accessor for the [Evaluation] underpinning this [AbstractEvaluation]
+     */
+    protected val evaluation: Evaluation
+        get() = Evaluation.findById(this.xdId)
 
-    /** The [CompetitionDescription] of this [AbstractEvaluation]. */
-    override val description: CompetitionDescription
-        get() = this.evaluation.description
+    /** The [EvaluationId] of this [AbstractEvaluation].
+     *
+     * Since this cannot change during the lifetime of an evaluation, it is kept in memory.
+     */
+    override val id: EvaluationId = evaluation.id
+
+    /** The name of this [AbstractEvaluation].
+     *
+     * Since this cannot change during the lifetime of an evaluation, it is kept in memory. *
+     */
+    override val name: String = evaluation.name
+
+    /** The [EvaluationTemplate] used by this [AbstractEvaluation].
+     *
+     * Since this cannot change during the lifetime of an evaluation, it is stored in memory.
+     */
+    override val description: EvaluationTemplate = evaluation.template
 
     /** Timestamp of when this [AbstractEvaluation] was started. */
     override var started: Long
@@ -79,6 +99,9 @@ abstract class AbstractEvaluation(protected val evaluation: Evaluation): dev.dre
         this.ended = System.currentTimeMillis()
     }
 
+    /**
+     * Re-activates this [AbstractEvaluation]
+     */
     override fun reactivate() {
         if (this.ended == null){
             throw IllegalStateException("Run has not yet ended.")

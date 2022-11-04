@@ -5,7 +5,7 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.admin.Role
 import dev.dres.data.model.admin.User
 import dev.dres.data.model.admin.UserId
-import dev.dres.data.model.competition.team.TeamId
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.http.Context
@@ -40,7 +40,7 @@ data class RunActionContext(val userId: UserId?, val teamId: TeamId?, val roles:
         fun runActionContext(ctx: Context, runManager: RunManager) : RunActionContext {
             val userId = AccessManager.userIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(403, "Unauthorized user.", ctx)
             val roles = AccessManager.rolesOfSession(ctx.sessionId()).mapNotNull { it.role }.toSet()
-            val teamId = runManager.description.teams.filter { it.users.contains(User.query(User::id eq userId).first()) }.first().teamId
+            val teamId = runManager.template.teams.filter { it.users.contains(User.query(User::id eq userId).first()) }.first().teamId
             return RunActionContext(userId, teamId, roles)
         }
     }

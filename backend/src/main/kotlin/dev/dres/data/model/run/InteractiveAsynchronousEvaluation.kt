@@ -1,11 +1,10 @@
 package dev.dres.data.model.run
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import dev.dres.data.model.UID
-import dev.dres.data.model.competition.CompetitionDescription
-import dev.dres.data.model.competition.task.TaskDescription
-import dev.dres.data.model.competition.TaskDescriptionId
-import dev.dres.data.model.competition.team.TeamId
+import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.task.TaskTemplate
+import dev.dres.data.model.template.TaskDescriptionId
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.Task
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskId
@@ -19,7 +18,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Represents a concrete, interactive and asynchronous [Run] of a [CompetitionDescription].
+ * Represents a concrete, interactive and asynchronous [Run] of a [EvaluationTemplate].
  *
  * [InteractiveAsynchronousEvaluation]s can be started and ended, and they can be used to create new [Task]s and access the current [Task].
  *
@@ -28,7 +27,7 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, val permutation:
 
     companion object {
         fun generatePermutation(
-            description: CompetitionDescription,
+            description: EvaluationTemplate,
             shuffle: Boolean
         ): Map<TeamId, List<Int>> =
             if (shuffle) {
@@ -90,25 +89,25 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, val permutation:
     constructor(
         id: EvaluationId,
         name: String,
-        competitionDescription: CompetitionDescription,
+        evaluationTemplate: EvaluationTemplate,
         properties: RunProperties
     ) : this(
         id,
         name,
-        competitionDescription,
+        evaluationTemplate,
         properties,
-        generatePermutation(competitionDescription, properties.shuffleTasks)
+        generatePermutation(evaluationTemplate, properties.shuffleTasks)
     )
 
     internal constructor(
         id: EvaluationId,
         name: String,
-        competitionDescription: CompetitionDescription,
+        evaluationTemplate: EvaluationTemplate,
         runProperties: RunProperties,
         started: Long,
         ended: Long,
         permutation: Map<TeamId, List<Int>>
-    ) : this(id, name, competitionDescription, runProperties, permutation) {
+    ) : this(id, name, evaluationTemplate, runProperties, permutation) {
         this.started = if (started == -1L) {
             null
         } else {
@@ -128,8 +127,8 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, val permutation:
     override val tasks: List<Task>
         get() = this.tasksMap.values.flatten()
 
-    /** Tracks the current [TaskDescription] per [TeamId]. */
-    private val navigationMap: MutableMap<TeamId, TaskDescription> = HashMap()
+    /** Tracks the current [TaskTemplate] per [TeamId]. */
+    private val navigationMap: MutableMap<TeamId, TaskTemplate> = HashMap()
 
     fun goTo(teamId: TeamId, index: Int) {
         navigationMap[teamId] = this.description.tasks[
@@ -137,7 +136,7 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, val permutation:
         ]
     }
 
-    fun currentTaskDescription(teamId: TeamId): TaskDescription =
+    fun currentTaskDescription(teamId: TeamId): TaskTemplate =
         navigationMap[teamId] ?: throw IllegalTeamIdException(teamId)
 
     init {
@@ -156,7 +155,7 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, val permutation:
             val tasks = this.tasksMap[it.uid]
             if (tasks != null && tasks.isNotEmpty()) {
                 val lastTask = tasks.last()
-                val taskIndex = this.description.tasks.indexOf(lastTask.description)
+                val taskIndex = this.description.tasks.indexOf(lastTask.template)
 
                 if (lastTask.ended != null) {
                     this.navigationMap[it.uid] =
@@ -206,7 +205,7 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, val permutation:
      * @version 1.0.0
      */
     inner class Task internal constructor(
-        override val uid: TaskId = UID(),
+        override val uid: TaskId = EvaluationId(),
         val teamId: TeamId,
         val descriptionId: TaskDescriptionId
     ) : AbstractInteractiveTask() {
@@ -244,22 +243,22 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, val permutation:
                 ?: -1
 
         @Transient
-        override val description: TaskDescription =
+        override val template: TaskTemplate =
             this@InteractiveAsynchronousEvaluation.description.tasks.find { it.id == this.descriptionId }
                 ?: throw IllegalArgumentException("Task with taskId ${this.descriptionId} not found.")
 
         @Transient
-        override val filter: SubmissionFilter = this.description.newFilter()
+        override val filter: SubmissionFilter = this.template.newFilter()
 
         @Transient
-        override val scorer: TeamTaskScorer = this.description.newScorer() as? TeamTaskScorer
+        override val scorer: TeamTaskScorer = this.template.newScorer() as? TeamTaskScorer
             ?: throw IllegalArgumentException("specified scorer is not of type TeamTaskScorer")
 
         @Transient
         override val validator: SubmissionValidator = this.newValidator()
 
-        /** The total duration in milliseconds of this task. Usually determined by the [TaskDescription] but can be adjusted! */
-        override var duration: Long = this.description.duration
+        /** The total duration in milliseconds of this task. Usually determined by the [TaskTemplate] but can be adjusted! */
+        override var duration: Long = this.template.duration
 
 
         init {

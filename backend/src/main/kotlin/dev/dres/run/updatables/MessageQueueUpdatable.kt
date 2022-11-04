@@ -1,7 +1,7 @@
 package dev.dres.run.updatables
 
-import dev.dres.api.rest.types.run.websocket.ServerMessage
-import dev.dres.data.model.competition.TeamId
+import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
+import dev.dres.data.model.template.TeamId
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManagerStatus
 import dev.dres.utilities.extensions.UID

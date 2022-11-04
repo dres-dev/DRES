@@ -5,7 +5,7 @@ import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.dbo.DAO
-import dev.dres.data.model.competition.CompetitionDescription
+import dev.dres.data.model.template.EvaluationTemplate
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation
 import dev.dres.utilities.extensions.UID
 import io.javalin.security.RouteRole
@@ -115,7 +115,7 @@ sealed class DownloadHandler : AccessManagedRestHandler {
     /**
      * REST handler to download the competition description information.
      */
-    class CompetitionDesc(private val competitions: DAO<CompetitionDescription>) : DownloadHandler(), GetRestHandler<String> {
+    class CompetitionDesc(private val competitions: DAO<EvaluationTemplate>) : DownloadHandler(), GetRestHandler<String> {
 
         /** The route of this [DownloadHandler.CompetitionRun]. */
         override val route = "download/competition/{competitionId}"

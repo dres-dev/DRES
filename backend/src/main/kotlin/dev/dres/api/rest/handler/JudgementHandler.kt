@@ -44,7 +44,7 @@ abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler 
             if (AccessManager.rolesOfSession(ctx.sessionId()).contains(ApiRole.ADMIN)) {
                 return //Admins require no further check
             }
-            if (userId !in runManager.description.judges) {
+            if (userId !in runManager.template.judges) {
                 throw ErrorStatusException(403, "Access denied.", ctx)
             }
         }

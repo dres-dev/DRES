@@ -6,7 +6,6 @@ import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.users.ApiUser
-import dev.dres.data.model.UID
 import dev.dres.data.model.admin.User
 import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.Context
@@ -44,6 +43,6 @@ class ListActiveUsersHandler : GetRestHandler<List<ApiUser>>, AccessManagedRestH
             UserManager.get(id = it)
         }?.let {
             it.toApi()
-        } ?: return@map ApiUser(UID.EMPTY.string, "??", ApiRole.VIEWER, session)
+        } ?: return@map ApiUser("??", "??", ApiRole.VIEWER, session)
     }
 }

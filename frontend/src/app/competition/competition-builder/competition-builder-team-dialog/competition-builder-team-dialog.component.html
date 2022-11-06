@@ -17,10 +17,10 @@
           {{ (userForId(user) | async)?.username }}
           <mat-icon matChipRemove>cancel</mat-icon>
         </mat-chip>
-        <input placeholder="New user..." [matAutocomplete]="auto" [matChipInputFor]="chipList" />
+        <input placeholder="New user..." [matAutocomplete]="auto" [matChipInputFor]="chipList" [formControl]="userInput"  />
       </mat-chip-list>
       <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addUser($event)">
-        <mat-option *ngFor="let user of availableUsers | async" [value]="user">
+        <mat-option *ngFor="let user of filteredUsers | async" [value]="user">
           {{ user.username }}
         </mat-option>
       </mat-autocomplete>
@@ -35,16 +35,16 @@
           [style.height]="'20px'"
           [style.display]="'inline-block'"
           [colorPicker]="form.get('color').value"
-          [cpPresetColors]="colorPalette"
+          [cpPresetColors]="palette()"
           (colorPickerChange)="onColorChange($event)"
         >
         </span>
       </label>
       <label>
         <button type="button" mat-button (click)="logoInput.click()">Select logo</button>
-        <input hidden type="file" #logoInput formControlName="logo" (change)="processImage($event)" />
+        <input hidden type="file" #logoInput (change)="processImage($event)" />
         <span style="text-align: center">
-          <img [src]="teamLogo()" [alt]="form.get('logoId')" style="max-height: 75px; max-width: 150px" />
+          <img [src]="teamLogo()" [alt]="teamLogoAlt()" style="max-height: 75px; max-width: 150px" />
         </span>
       </label>
     </p>

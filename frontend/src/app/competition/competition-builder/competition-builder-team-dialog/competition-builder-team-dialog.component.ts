@@ -3,8 +3,8 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { RestTeam, UserDetails, UserService } from '../../../../../openapi';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { map, shareReplay } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import {map, shareReplay, startWith} from 'rxjs/operators';
+import {BehaviorSubject, combineLatest, Observable} from 'rxjs';
 import { AppConfig } from '../../../app.config';
 
 @Component({
@@ -15,7 +15,9 @@ export class CompetitionBuilderTeamDialogComponent {
   form: FormGroup;
   logoName = '';
   availableUsers: Observable<UserDetails[]>;
-  colorPalette = [
+  userInput: FormControl = new FormControl('');
+  filteredUsers: Observable<UserDetails[]>;
+  static colorPalette = [
     '#BF0000',
     '#BF3900',
     '#BF7200',
@@ -54,27 +56,33 @@ export class CompetitionBuilderTeamDialogComponent {
       logoId: new FormControl(team?.logoId),
       logoData: new FormControl(team?.logoData),
       users: new FormControl(team?.users != null ? team.users : []),
-      userInput: new FormControl(''),
+      userInput: this.userInput,
     });
     this.availableUsers = this.userService.getApiV1UserList().pipe(
-      map((value) => {
-        return value.filter((user) => user.role !== 'JUDGE' && user.role !== 'VIEWER');
-      }),
-      shareReplay(1)
+        map((value) => {
+          const filtered = value.filter((user) => user.role !== 'JUDGE' && user.role !== 'VIEWER');
+          return filtered.sort((a, b) => a.username.localeCompare(b.username));
+        }),
+        shareReplay(1)
     );
+    this.filteredUsers = combineLatest([this.userInput.valueChanges, this.availableUsers]).pipe(
+      map(pair => {
+            const filterValue = (typeof pair[0] === 'string') ? pair[0].toLowerCase() : '';
+            return pair[1].filter(x => x.username.toLowerCase().includes(filterValue));
+          }
+      )
+    );
+
   }
 
   /**
-   * Generates a random HTML color.
+   * Picks a random color from the palette.
    */
   private static randomColor(): string {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
+    return this.colorPalette[Math.floor(Math.random() * this.colorPalette.length)];
   }
+
+  palette = () => CompetitionBuilderTeamDialogComponent.colorPalette
 
   fileProvider = () => (this.fetchData()?.name ? this.fetchData().name : 'team-download.json');
 
@@ -87,7 +95,7 @@ export class CompetitionBuilderTeamDialogComponent {
    */
   public addUser(event: MatAutocompleteSelectedEvent): void {
     this.form.get('users').value.push(event.option.value.id);
-    this.form.get('userInput').setValue(null);
+    this.userInput.setValue('');
   }
 
   /**
@@ -127,7 +135,18 @@ export class CompetitionBuilderTeamDialogComponent {
     if (this.form.get('logoData').value != null) {
       return this.form.get('logoData').value;
     } else {
-      return this.config.resolveApiUrl(`/competition/logo/${this.form.get('logoId').value}`);
+      const tmp = this.config.resolveApiUrl(`/competition/logo/${this.form.get('logoId').value}`);
+      console.log('resolving url: ' + tmp);
+      return tmp;
+    }
+  }
+
+  public teamLogoAlt(): string {
+    const alt = this.form.get('logoId').value;
+    if (alt == null) {
+      return 'Logo not set';
+    } else {
+      return alt;
     }
   }
 

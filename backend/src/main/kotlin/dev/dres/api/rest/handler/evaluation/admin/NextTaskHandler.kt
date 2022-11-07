@@ -10,7 +10,7 @@ import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.run.InteractiveAsynchronousRunManager
-import dev.dres.run.TaskRunStatus
+import dev.dres.run.TaskStatus
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -55,13 +55,13 @@ class NextTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandl
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             if (evaluationManager is InteractiveAsynchronousRunManager
                 && !AccessManager.rolesOfSession(ctx.sessionId()).contains(ApiRole.ADMIN)
-                && evaluationManager.currentTask(rac)?.status != TaskRunStatus.ENDED) {
+                && evaluationManager.currentTask(rac)?.status != TaskStatus.ENDED) {
                 throw ErrorStatusException(400, "Cannot advance to next task before current task is completed.", ctx)
             }
 
             try {
                 if (evaluationManager.next(rac)) {
-                    SuccessStatus("Task for evaluation $evaluationId was successfully moved to '${evaluationManager.currentTaskDescription(rac).name}'.")
+                    SuccessStatus("Task for evaluation $evaluationId was successfully moved to '${evaluationManager.currentTaskTemplate(rac).name}'.")
                 } else {
                     throw ErrorStatusException(400, "Task for evaluation $evaluationId could not be changed because there are no tasks left.", ctx)
                 }

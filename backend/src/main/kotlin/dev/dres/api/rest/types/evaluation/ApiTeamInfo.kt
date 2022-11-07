@@ -2,6 +2,7 @@ package dev.dres.api.rest.types.evaluation
 
 import dev.dres.data.model.template.team.Team
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
+import dev.dres.data.model.template.team.TeamId
 
 /**
  * Basic and most importantly static information about the [Team] partaking in a [InteractiveSynchronousEvaluation].
@@ -9,8 +10,8 @@ import dev.dres.data.model.run.InteractiveSynchronousEvaluation
  * and other optimizations.
  *
  * @author Ralph Gasser
- * @version 1.0.2
+ * @version 1.1.0
  */
-data class TeamInfo(val uid: String, val name: String, val color: String, val logoId: String) {
-    constructor(team: Team) : this(team.uid.string, team.name, team.color, team.logoId.string)
+data class ApiTeamInfo(val id: TeamId, val name: String, val color: String) {
+    constructor(team: Team) : this(team.id, team.name, team.color)
 }

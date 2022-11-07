@@ -41,7 +41,7 @@ class PreviousTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminH
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             try {
                 if (evaluationManager.previous(rac)) {
-                    SuccessStatus("Task for evaluation $evaluationId was successfully moved to '${evaluationManager.currentTaskDescription(rac).name}'.")
+                    SuccessStatus("Task for evaluation $evaluationId was successfully moved to '${evaluationManager.currentTaskTemplate(rac).name}'.")
                 } else {
                     throw ErrorStatusException(400, "Task for evaluation $evaluationId could not be changed because there are no tasks left.", ctx)
                 }

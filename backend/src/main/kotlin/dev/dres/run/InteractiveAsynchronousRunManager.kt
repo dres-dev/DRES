@@ -221,7 +221,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @param context The [RunActionContext] used for the invocation.
      * @return The [TaskTemplate] for the given team.
      */
-    override fun currentTaskDescription(context: RunActionContext): TaskTemplate {
+    override fun currentTaskTemplate(context: RunActionContext): TaskTemplate {
         require(context.teamId != null) { "TeamId missing from RunActionContext, which is required for interaction with InteractiveAsynchronousRunManager." }
         return this.run.currentTaskDescription(context.teamId)
     }
@@ -239,7 +239,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     override fun previous(context: RunActionContext): Boolean = this.stateLock.write {
-        val newIndex = this.template.tasks.indexOf(this.currentTaskDescription(context)) - 1
+        val newIndex = this.template.tasks.indexOf(this.currentTaskTemplate(context)) - 1
         return try {
             this.goTo(context, newIndex)
             true
@@ -260,7 +260,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     override fun next(context: RunActionContext): Boolean = this.stateLock.write {
-        val newIndex = this.template.tasks.indexOf(this.currentTaskDescription(context)) + 1
+        val newIndex = this.template.tasks.indexOf(this.currentTaskTemplate(context)) + 1
         return try {
             this.goTo(context, newIndex)
             true
@@ -737,5 +737,5 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
     private fun teamHasRunningTask(teamId: TeamId) = this.run.currentTaskForTeam(teamId)?.isRunning == true
 
     private fun teamHasPreparingTask(teamId: TeamId) =
-        this.run.currentTaskForTeam(teamId)?.status == TaskRunStatus.PREPARING
+        this.run.currentTaskForTeam(teamId)?.status == TaskStatus.PREPARING
 }

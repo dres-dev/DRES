@@ -4,7 +4,6 @@ import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.handler.preview.AbstractPreviewHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessfulSubmissionsStatus
@@ -111,7 +110,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
             }
 
             AuditLogger.submission(submission, AuditLogSource.REST, ctx.sessionId(), ctx.req().remoteAddr)
-            if (run.currentTaskDescription(rac).taskGroup.type.options.contains(TaskOption.HIDDEN_RESULTS)) { //pre-generate preview
+            if (run.currentTaskTemplate(rac).taskGroup.type.options.contains(TaskOption.HIDDEN_RESULTS)) { //pre-generate preview
                 generatePreview(submission.verdicts.first())
             }
             submission to result
@@ -190,8 +189,8 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
             verdict.text = textParam
             return submission
         } else if (itemParam != null) {
-            val collection = runManager.currentTaskDescription(rac).collection /* TODO: Do we need the option to explicitly set the collection name? */
-            val mapToSegment = runManager.currentTaskDescription(rac).taskGroup.type.options.contains(TaskOption.MAP_TO_SEGMENT)
+            val collection = runManager.currentTaskTemplate(rac).collection /* TODO: Do we need the option to explicitly set the collection name? */
+            val mapToSegment = runManager.currentTaskTemplate(rac).taskGroup.type.options.contains(TaskOption.MAP_TO_SEGMENT)
             val item = MediaItem.query((MediaItem::name eq itemParam) and (MediaItem::collection eq collection)).firstOrNull()
                 ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_ITEM' is missing but required!'", ctx)
             val range: Pair<Long,Long>? = when {

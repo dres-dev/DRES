@@ -2,7 +2,7 @@ package dev.dres.api.rest.handler.evaluation.admin
 
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.handler.evaluationId
-import dev.dres.api.rest.types.evaluation.ApiTaskInfo
+import dev.dres.api.rest.types.evaluation.ApiTaskTemplateInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext
@@ -16,7 +16,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ListPastTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), GetRestHandler<List<ApiTaskInfo>> {
+class ListPastTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), GetRestHandler<List<ApiTaskTemplateInfo>> {
     override val route: String = "evaluation/admin/{evaluationId}/task/past/list"
 
     @OpenApi(
@@ -28,19 +28,19 @@ class ListPastTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminH
         ],
         tags = ["Evaluation Administrator"],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(Array<ApiTaskInfo>::class)]),
+            OpenApiResponse("200", [OpenApiContent(Array<ApiTaskTemplateInfo>::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
         ]
     )
-    override fun doGet(ctx: Context): List<ApiTaskInfo> {
+    override fun doGet(ctx: Context): List<ApiTaskTemplateInfo> {
         val evaluationId = ctx.evaluationId()
         val runManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
         return this.store.transactional (true) {
             val rac = RunActionContext.runActionContext(ctx, runManager)
             runManager.tasks(rac).filter { it.hasEnded }.map {
-                ApiTaskInfo(
+                ApiTaskTemplateInfo(
                     taskId = it.id,
                     templateId = it.template.id,
                     name = it.template.name,

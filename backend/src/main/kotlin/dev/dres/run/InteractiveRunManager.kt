@@ -67,7 +67,7 @@ interface InteractiveRunManager : RunManager {
      * @param context The [RunActionContext] used for the invocation.
      * @return [TaskTemplate]
      */
-    fun currentTaskDescription(context: RunActionContext): TaskTemplate
+    fun currentTaskTemplate(context: RunActionContext): TaskTemplate
 
     /**
      * Starts the [currentTask] and thus moves the [RunManager.status] from
@@ -141,13 +141,12 @@ interface InteractiveRunManager : RunManager {
     fun currentTask(context: RunActionContext): AbstractInteractiveTask?
 
     /**
-     * Returns [AbstractInteractiveTask]s for the specified index. The index is zero based, i.e., an index of 0 returns the
-     * first [AbstractInteractiveTask], index of 1 the second etc.
+     * Returns [AbstractInteractiveTask]s for the specified [TaskId].
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @param taskId The [EvaluationId] of the desired [AbstractInteractiveTask].
+     * @param taskId The [TaskId] of the desired [AbstractInteractiveTask].
      */
-    fun taskForId(context: RunActionContext, taskId: EvaluationId): AbstractInteractiveTask?
+    fun taskForId(context: RunActionContext, taskId: TaskId): AbstractInteractiveTask?
 
     /**
      * List of [Submission]s for the current [AbstractInteractiveTask].

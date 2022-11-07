@@ -73,7 +73,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
             }
             if (this.plain) {
                 RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java).forEach {
-                    println("${RunSummary(it.id, it.name, it.template.description, it.currentTaskDescription(RunActionContext.INTERNAL).name)} (${it.status})")
+                    println("${RunSummary(it.id, it.name, it.template.description, it.currentTaskTemplate(RunActionContext.INTERNAL).name)} (${it.status})")
                 }
             } else {
                 println(
@@ -94,7 +94,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                                         "Synchronous",
                                         it.name,
                                         it.template.description,
-                                        it.currentTaskDescription(RunActionContext.INTERNAL).name,
+                                        it.currentTaskTemplate(RunActionContext.INTERNAL).name,
                                         it.status
                                     )
                                     is InteractiveAsynchronousRunManager -> row(

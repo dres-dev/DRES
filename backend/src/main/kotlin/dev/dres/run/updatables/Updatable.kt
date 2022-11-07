@@ -1,6 +1,6 @@
 package dev.dres.run.updatables
 
-import dev.dres.api.rest.types.evaluation.RunState
+import dev.dres.api.rest.types.evaluation.ApiEvaluationState
 import dev.dres.run.RunManagerStatus
 
 /**
@@ -22,7 +22,7 @@ interface Updatable {
     fun update(status: RunManagerStatus)
 
     /**
-     * Returns true, if this [Updatable] should be updated given the [RunState] and false otherwise.
+     * Returns true, if this [Updatable] should be updated given the [ApiEvaluationState] and false otherwise.
      *
      * @param status The [RunManagerStatus] to check
      * @return True if update is required, false otherwise.

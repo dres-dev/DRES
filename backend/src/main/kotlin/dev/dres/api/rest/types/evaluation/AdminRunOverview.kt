@@ -37,7 +37,7 @@ data class TaskRunOverview(
     val group: String,
     val duration: Long,
     val taskId: String,
-    val status: TaskRunStatus,
+    val status: TaskStatus,
     val started: Long?,
     val ended: Long?) {
     constructor(task: TaskRun) : this(

@@ -54,8 +54,8 @@ class StartTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHand
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             try {
                 evaluationManager.startTask(rac)
-                AuditLogger.taskStart(evaluationManager.id, evaluationManager.currentTask(rac)!!.id, evaluationManager.currentTaskDescription(rac), AuditLogSource.REST, ctx.sessionId())
-                SuccessStatus("Task '${evaluationManager.currentTaskDescription(rac).name}' for evaluation $evaluationId was successfully started.")
+                AuditLogger.taskStart(evaluationManager.id, evaluationManager.currentTask(rac)!!.id, evaluationManager.currentTaskTemplate(rac), AuditLogSource.REST, ctx.sessionId())
+                SuccessStatus("Task '${evaluationManager.currentTaskTemplate(rac).name}' for evaluation $evaluationId was successfully started.")
             } catch (e: IllegalStateException) {
                 throw ErrorStatusException(400, e.message ?: "", ctx)
             } catch (e: IllegalAccessError) {

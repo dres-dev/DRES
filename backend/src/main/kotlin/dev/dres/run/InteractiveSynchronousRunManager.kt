@@ -190,7 +190,7 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
         LOGGER.info("SynchronousRunManager ${this.id} terminated")
     }
 
-    override fun currentTaskDescription(context: RunActionContext): TaskTemplate = this.stateLock.write {
+    override fun currentTaskTemplate(context: RunActionContext): TaskTemplate = this.stateLock.write {
         checkStatus(
             RunManagerStatus.CREATED,
             RunManagerStatus.ACTIVE/*, RunManagerStatus.PREPARING_TASK, RunManagerStatus.RUNNING_TASK, RunManagerStatus.TASK_ENDED*/
@@ -249,7 +249,7 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
         assureNoRunningTask()
         checkContext(context)
 
-        val currentTaskDescription = this.currentTaskDescription(context)
+        val currentTaskDescription = this.currentTaskTemplate(context)
 
         /* Check for duplicate task runs */
         if (!runProperties.allowRepeatedTasks && this.run.tasks.any { it.template.id == currentTaskDescription.id }) {
@@ -316,9 +316,9 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
 //        }
 
         when (this.run.currentTask?.status) {
-            TaskRunStatus.PREPARING,
-            TaskRunStatus.RUNNING,
-            TaskRunStatus.ENDED -> this.run.currentTask
+            TaskStatus.PREPARING,
+            TaskStatus.RUNNING,
+            TaskStatus.ENDED -> this.run.currentTask
             else -> null
         }
 
@@ -377,7 +377,7 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
      * @return Time remaining until the task will end or -1, if no task is running.
      */
     override fun timeLeft(context: RunActionContext): Long = this.stateLock.read {
-        return if (this.run.currentTask?.status == TaskRunStatus.RUNNING) {
+        return if (this.run.currentTask?.status == TaskStatus.RUNNING) {
             val currentTaskRun = this.currentTask(context)
                 ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
             max(
@@ -396,7 +396,7 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
      * @return Time remaining until the task will end or -1, if no task is running.
      */
     override fun timeElapsed(context: RunActionContext): Long = this.stateLock.read {
-        return if (this.run.currentTask?.status == TaskRunStatus.RUNNING) {
+        return if (this.run.currentTask?.status == TaskStatus.RUNNING) {
             val currentTaskRun = this.currentTask(context)
                 ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
             System.currentTimeMillis() - (currentTaskRun.started!! + InteractiveRunManager.COUNTDOWN_DURATION)
@@ -446,7 +446,7 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
         this.stateLock.read {
             when (message.type) {
                 ClientMessageType.ACK -> {
-                    if (this.run.currentTask?.status == TaskRunStatus.PREPARING) {
+                    if (this.run.currentTask?.status == TaskStatus.PREPARING) {
                         this.readyLatch.setReady(connection)
                     }
                 }
@@ -612,7 +612,7 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
      */
     private fun internalStateUpdate() {
         /** Case 1: Facilitates internal transition from RunManagerStatus.PREPARING_TASK to RunManagerStatus.RUNNING_TASK. */
-        if (this.run.currentTask?.status == TaskRunStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
+        if (this.run.currentTask?.status == TaskStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
             this.stateLock.write {
                 this.run.currentTask!!.start()
                 //this.status = RunManagerStatus.RUNNING_TASK
@@ -627,7 +627,7 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
         }
 
         /** Case 2: Facilitates internal transition from RunManagerStatus.RUNNING_TASK to RunManagerStatus.TASK_ENDED due to timeout. */
-        if (this.run.currentTask?.status == TaskRunStatus.RUNNING) {
+        if (this.run.currentTask?.status == TaskStatus.RUNNING) {
             val task = this.run.currentTask!!
             val timeLeft = max(
                 0L,
@@ -684,15 +684,15 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
     }
 
     private fun assureTaskRunning() {
-        if (this.run.currentTask?.status != TaskRunStatus.RUNNING) throw IllegalStateException("Task not running")
+        if (this.run.currentTask?.status != TaskStatus.RUNNING) throw IllegalStateException("Task not running")
     }
 
     private fun assureTaskPreparingOrRunning() {
         val status = this.run.currentTask?.status
-        if (status != TaskRunStatus.RUNNING && status != TaskRunStatus.PREPARING) throw IllegalStateException("Task not preparing or running")
+        if (status != TaskStatus.RUNNING && status != TaskStatus.PREPARING) throw IllegalStateException("Task not preparing or running")
     }
 
     private fun assureNoRunningTask() {
-        if (this.run.tasks.any { it.status == TaskRunStatus.RUNNING }) throw IllegalStateException("Task running!")
+        if (this.run.tasks.any { it.status == TaskStatus.RUNNING }) throw IllegalStateException("Task running!")
     }
 }

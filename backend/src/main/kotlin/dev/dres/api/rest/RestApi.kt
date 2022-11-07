@@ -10,6 +10,7 @@ import dev.dres.api.rest.handler.download.EvaluationTemplateDownloadHandler
 import dev.dres.api.rest.handler.evaluation.admin.*
 import dev.dres.api.rest.handler.evaluation.client.ClientListEvaluationsHandler
 import dev.dres.api.rest.handler.evaluation.client.ClientTaskInfoHandler
+import dev.dres.api.rest.handler.evaluation.scores.*
 import dev.dres.api.rest.handler.judgement.*
 import dev.dres.api.rest.handler.log.QueryLogHandler
 import dev.dres.api.rest.handler.log.ResultLogHandler
@@ -17,6 +18,7 @@ import dev.dres.api.rest.handler.template.*
 import dev.dres.api.rest.handler.preview.GetMediaHandler
 import dev.dres.api.rest.handler.preview.MediaPreviewHandler
 import dev.dres.api.rest.handler.preview.SubmissionPreviewHandler
+import dev.dres.api.rest.handler.scores.ListCompetitionScoreHandler
 import dev.dres.api.rest.handler.submission.BatchSubmissionHandler
 import dev.dres.api.rest.handler.submission.SubmissionHandler
 import dev.dres.api.rest.handler.system.CurrentTimeHandler
@@ -49,7 +51,7 @@ import java.io.File
 /**
  * This is a singleton instance of the RESTful API
  *
- * @version 1.0.1
+ * @version 1.1.0
  * @author Luca Rossetto
  */
 object RestApi {
@@ -62,7 +64,6 @@ object RestApi {
     fun init(config: Config, store: TransientEntityStore) {
 
         val runExecutor = RunExecutor
-
 
         /**
          * The list of API operations, each as a handler.
@@ -137,12 +138,12 @@ object RestApi {
             HistorySubmissionInfoHandler(),
 
             // Competition run scores
-            ListCompetitionScoreHandler(),
-            CurrentTaskScoreHandler(),
-            HistoryTaskScoreHandler(),
-            ListScoreSeriesHandler(),
-            ListScoreboardsHandler(),
-            TeamGroupScoreHandler(),
+            ListCompetitionScoreHandler(store),
+            CurrentTaskScoreHandler(store),
+            HistoryTaskScoreHandler(store),
+            ListScoreSeriesHandler(store),
+            ListScoreboardsHandler(store),
+            TeamGroupScoreHandler(store),
 
             // Evaluation administration
             CreateEvaluationHandler(store, config),

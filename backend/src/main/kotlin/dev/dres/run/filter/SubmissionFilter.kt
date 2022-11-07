@@ -1,6 +1,7 @@
 package dev.dres.run.filter
 
 import dev.dres.data.model.submissions.Submission
+import org.slf4j.LoggerFactory
 import java.util.function.Predicate
 
 /**
@@ -11,9 +12,9 @@ import java.util.function.Predicate
  * @version 1.1.0
  */
 interface SubmissionFilter : Predicate<Submission> {
-//    override infix fun and(other: Predicate<in Submission>): SubmissionFilter = SubmissionFilter { s -> this@SubmissionFilter.test(s) && other.test(s) }
-//    override infix fun or(other: Predicate<in Submission>): SubmissionFilter = SubmissionFilter { s -> this@SubmissionFilter.test(s) || other.test(s) }
-//    operator fun not(): SubmissionFilter = SubmissionFilter { s -> !this@SubmissionFilter.test(s) }
+    companion object {
+        private val LOGGER = LoggerFactory.getLogger(this::class.java)
+    }
 
     val reason: String
 
@@ -25,6 +26,7 @@ interface SubmissionFilter : Predicate<Submission> {
      */
     fun acceptOrThrow(submission: Submission) {
         if (!this.test(submission)) {
+            LOGGER.info("Submission $${submission.submissionId} was rejected by filter: $reason")
             throw SubmissionRejectedException(submission, reason)
         }
     }

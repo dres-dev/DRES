@@ -8,9 +8,3 @@ package dev.dres.api.rest.types.evaluation.websocket
  */
 data class ClientMessage(val runId: String, val type: ClientMessageType)
 
-enum class ClientMessageType {
-    ACK,     /** Acknowledgement of the last message received. */
-    REGISTER,
-    UNREGISTER,
-    PING
-}

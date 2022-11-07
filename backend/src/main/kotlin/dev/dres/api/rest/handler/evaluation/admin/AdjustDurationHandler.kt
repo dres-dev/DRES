@@ -49,7 +49,7 @@ class AdjustDurationHandler(store: TransientEntityStore): AbstractEvaluationAdmi
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             try {
                 evaluationManager.adjustDuration(rac, duration)
-                AuditLogger.taskModified(evaluationManager.id, evaluationManager.currentTaskDescription(rac).id, "Task duration adjusted by ${duration}s.", AuditLogSource.REST, ctx.sessionId())
+                AuditLogger.taskModified(evaluationManager.id, evaluationManager.currentTaskTemplate(rac).id, "Task duration adjusted by ${duration}s.", AuditLogSource.REST, ctx.sessionId())
                 SuccessStatus("Duration for run $evaluationId was successfully adjusted.")
             } catch (e: IllegalStateException) {
                 throw ErrorStatusException(400, "Duration for run $evaluationId could not be adjusted because it is in the wrong state (state = ${evaluationManager.status}).", ctx)

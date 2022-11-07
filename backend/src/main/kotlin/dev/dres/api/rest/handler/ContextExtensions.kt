@@ -66,7 +66,21 @@ fun Context.eligibleManagerForId(): RunManager {
             throw ErrorStatusException(401, "Current user is not allowed to access evaluation $evaluationId as participant.", this)
         }
     }
-    return manager
+
+    if (this.isAdmin()) {
+        return manager
+    }
+
+    throw ErrorStatusException(401, "Current user is not allowed to access evaluation $evaluationId as participant.", this)
+}
+/**
+ * Checks uf user associated with current [Context] has [ApiRole.PARTICIPANT].
+ *
+ * @return True if current user has [ApiRole.PARTICIPANT]
+ */
+fun Context.isAdmin(): Boolean {
+    val roles = AccessManager.rolesOfSession(this.sessionId())
+    return roles.contains(ApiRole.ADMIN)
 }
 
 /**

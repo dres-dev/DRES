@@ -2,7 +2,11 @@ package dev.dres.api.rest.types.evaluation
 
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunProperties
+import dev.dres.run.InteractiveAsynchronousRunManager
+import dev.dres.run.InteractiveSynchronousRunManager
+import dev.dres.run.NonInteractiveRunManager
 import dev.dres.run.RunManager
+import kotlinx.dnq.query.asSequence
 
 /**
  * Contains the basic and most importantly static information about a [InteractiveSynchronousEvaluation] and the
@@ -10,15 +14,31 @@ import dev.dres.run.RunManager
  * it allows for local caching and other optimizations.
  *
  * @author Ralph Gasser
- * @version 1.0.2
+ * @version 1.1.0
  */
 data class ApiEvaluationInfo(
-        val id: String,
-        val name: String,
-        val templateId: String,
-        val templateDescription: String?,
-        val type: ApiRunType,
-        val properties: RunProperties,
-        val teams: List<TeamInfo>,
-        val tasks: List<TaskInfo>,
-)
+    val id: String,
+    val name: String,
+    val templateId: String,
+    val templateDescription: String?,
+    val type: ApiRunType,
+    val properties: RunProperties,
+    val teams: List<ApiTeamInfo>,
+    val tasks: List<ApiTaskTemplateInfo>,
+) {
+    constructor(manager: RunManager): this(
+        manager.id,
+        manager.name,
+        manager.template.id,
+        manager.template.name,
+        when(manager) {
+            is InteractiveSynchronousRunManager -> ApiRunType.SYNCHRONOUS
+            is InteractiveAsynchronousRunManager -> ApiRunType.ASYNCHRONOUS
+            is NonInteractiveRunManager -> ApiRunType.NON_INTERACTIVE
+            else -> throw IllegalStateException("Incompatible type of run manager.")
+        },
+        manager.runProperties,
+        manager.template.teams.asSequence().map { team -> ApiTeamInfo(team) }.toList(),
+        manager.template.tasks.asSequence().map { task -> ApiTaskTemplateInfo(task) }.toList()
+    )
+}

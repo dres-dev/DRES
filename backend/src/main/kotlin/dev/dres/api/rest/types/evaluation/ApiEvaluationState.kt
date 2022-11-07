@@ -9,45 +9,32 @@ import dev.dres.run.*
  *
  * This is information that changes in the course of a run and therefore must be updated frequently.
  *
- * @version 1.1.1
+ * @version 1.2.0
  */
-data class RunState(
+data class ApiEvaluationState(
     val id: String,
     val runStatus: RunManagerStatus,
-    val taskRunStatus: RestTaskRunStatus,
-    val currentTask: TaskInfo?,
+    val taskRunStatus: ApiTaskStatus,
+    val currentTask: ApiTaskTemplateInfo?,
     val timeLeft: Long,
     val timeElapsed: Long
 ) {
     constructor(run: InteractiveRunManager, context: RunActionContext) : this(
         run.id,
-        //RestRunManagerStatus.getState(run, context),
         run.status,
-        RestTaskRunStatus.fromTaskRunStatus(run.currentTask(context)?.status),
+        when(run.currentTask(context)?.status) {
+            TaskStatus.CREATED -> ApiTaskStatus.CREATED
+            TaskStatus.PREPARING -> ApiTaskStatus.PREPARING
+            TaskStatus.RUNNING -> ApiTaskStatus.RUNNING
+            TaskStatus.ENDED -> ApiTaskStatus.ENDED
+            null -> ApiTaskStatus.NO_TASK
+        },
         try {
-            TaskInfo(run.currentTaskDescription(context))
+            ApiTaskTemplateInfo(run.currentTaskTemplate(context))
         } catch (e: IllegalArgumentException) {
-            TaskInfo.EMPTY_INFO
+            ApiTaskTemplateInfo.EMPTY_INFO
         },
         run.timeLeft(context) / 1000,
         run.timeElapsed(context) / 1000
     )
-}
-
-enum class RestTaskRunStatus {
-    NO_TASK,
-    CREATED,
-    PREPARING,
-    RUNNING,
-    ENDED;
-
-    companion object {
-        fun fromTaskRunStatus(taskRunStatus: TaskRunStatus?): RestTaskRunStatus = when(taskRunStatus) {
-            TaskRunStatus.CREATED -> CREATED
-            TaskRunStatus.PREPARING -> PREPARING
-            TaskRunStatus.RUNNING -> RUNNING
-            TaskRunStatus.ENDED -> ENDED
-            null -> NO_TASK
-        }
-    }
 }

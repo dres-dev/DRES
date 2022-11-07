@@ -44,7 +44,7 @@ class SwitchTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHan
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             try {
                 evaluationManager.goTo(rac, idx)
-                SuccessStatus("Task for evaluation $evaluationId was successfully moved to '${evaluationManager.currentTaskDescription(rac).name}'.")
+                SuccessStatus("Task for evaluation $evaluationId was successfully moved to '${evaluationManager.currentTaskTemplate(rac).name}'.")
             } catch (e: IllegalStateException) {
                 throw ErrorStatusException(400, "Task for evaluation $evaluationId could not be changed because run is in the wrong state (state = ${evaluationManager.status}).", ctx)
             } catch (e: IndexOutOfBoundsException) {

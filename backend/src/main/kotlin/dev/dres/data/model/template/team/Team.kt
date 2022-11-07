@@ -23,7 +23,7 @@ class Team(entity: Entity) : PersistentEntity(entity) {
     companion object: XdNaturalEntityType<Team>() {
         /** Combination of [Team] name / competition must be unique. */
         override val compositeIndices = listOf(
-            listOf(Team::name, Team::competition)
+            listOf(Team::name, Team::template)
         )
     }
 

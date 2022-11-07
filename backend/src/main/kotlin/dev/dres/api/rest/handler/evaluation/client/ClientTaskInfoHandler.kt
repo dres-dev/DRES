@@ -2,7 +2,7 @@ package dev.dres.api.rest.handler.evaluation.client
 
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.handler.eligibleManagerForId
-import dev.dres.api.rest.types.evaluation.ApiTaskInfo
+import dev.dres.api.rest.types.evaluation.ApiTaskTemplateInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext
@@ -19,7 +19,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ClientTaskInfoHandler(store: TransientEntityStore): AbstractEvaluationClientHandler(store), GetRestHandler<ApiTaskInfo> {
+class ClientTaskInfoHandler(store: TransientEntityStore): AbstractEvaluationClientHandler(store), GetRestHandler<ApiTaskTemplateInfo> {
     override val route = "client/evaluation/currentTask/{runId}"
 
     @OpenApi(
@@ -30,13 +30,13 @@ class ClientTaskInfoHandler(store: TransientEntityStore): AbstractEvaluationClie
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)
         ],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(ApiTaskInfo::class)]),
+            OpenApiResponse("200", [OpenApiContent(ApiTaskTemplateInfo::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): ApiTaskInfo = this.store.transactional(true) { tx ->
+    override fun doGet(ctx: Context): ApiTaskTemplateInfo = this.store.transactional(true) { tx ->
 
         val run = ctx.eligibleManagerForId()
         val rac = RunActionContext.runActionContext(ctx, run)
@@ -44,7 +44,7 @@ class ClientTaskInfoHandler(store: TransientEntityStore): AbstractEvaluationClie
         if (run !is InteractiveRunManager) throw ErrorStatusException(404, "Specified evaluation is not interactive.", ctx)
         val task = run.currentTask(rac) ?: throw ErrorStatusException(404, "Specified evaluation has no active task.", ctx)
 
-        ApiTaskInfo(
+        ApiTaskTemplateInfo(
             taskId = task.id,
             templateId = task.template.id,
             name = task.template.name,
@@ -55,10 +55,10 @@ class ClientTaskInfoHandler(store: TransientEntityStore): AbstractEvaluationClie
                 RunManagerStatus.CREATED -> 0
                 RunManagerStatus.ACTIVE -> {
                     when(task.status) {
-                        TaskRunStatus.CREATED,
-                        TaskRunStatus.PREPARING -> task.duration
-                        TaskRunStatus.RUNNING ->run.timeLeft(rac) / 1000
-                        TaskRunStatus.ENDED -> 0
+                        TaskStatus.CREATED,
+                        TaskStatus.PREPARING -> task.duration
+                        TaskStatus.RUNNING ->run.timeLeft(rac) / 1000
+                        TaskStatus.ENDED -> 0
                     }
                 }
                 RunManagerStatus.TERMINATED -> 0

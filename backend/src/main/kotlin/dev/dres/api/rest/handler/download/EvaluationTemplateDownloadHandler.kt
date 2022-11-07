@@ -29,7 +29,7 @@ class EvaluationTemplateDownloadHandler(store: TransientEntityStore) : AbstractD
         path = "/api/v1/download/template/{templateId}",
         tags = ["Download"],
         pathParams = [
-            OpenApiParam("templateId", String::class, "The evaluation template ID")
+            OpenApiParam("templateId", String::class, "The evaluation template ID", required = true)
         ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(String::class, type = "application/json")]),

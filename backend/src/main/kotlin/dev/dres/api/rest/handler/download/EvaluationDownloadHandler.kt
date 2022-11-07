@@ -28,7 +28,7 @@ class EvaluationDownloadHandler(store: TransientEntityStore) : AbstractDownloadH
         path = "/api/v1/download/evaluation/{evaluationId}",
         tags = ["Download"],
         pathParams = [
-            OpenApiParam("runId", String::class, "The evaluation ID.")
+            OpenApiParam("runId", String::class, "The evaluation ID.", required = true)
         ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(String::class, type = "application/json")]),

@@ -43,12 +43,12 @@ class StopTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandl
         return this.store.transactional {
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             try {
-                val task = evaluationManager.currentTaskDescription(rac)
+                val task = evaluationManager.currentTaskTemplate(rac)
                 evaluationManager.abortTask(rac)
                 AuditLogger.taskEnd(evaluationManager.id, task.id, AuditLogSource.REST, ctx.sessionId())
-                SuccessStatus("Task '${evaluationManager.currentTaskDescription(rac).name}' for evaluation $evaluationId was successfully aborted.")
+                SuccessStatus("Task '${evaluationManager.currentTaskTemplate(rac).name}' for evaluation $evaluationId was successfully aborted.")
             } catch (e: IllegalStateException) {
-                throw ErrorStatusException(400, "Task '${evaluationManager.currentTaskDescription(rac).name}' for evaluation $evaluationId could not be aborted because run is in the wrong state (state = ${evaluationManager.status}).", ctx)
+                throw ErrorStatusException(400, "Task '${evaluationManager.currentTaskTemplate(rac).name}' for evaluation $evaluationId could not be aborted because run is in the wrong state (state = ${evaluationManager.status}).", ctx)
             } catch (e: IllegalAccessError) {
                 throw ErrorStatusException(403, e.message!!, ctx)
             }

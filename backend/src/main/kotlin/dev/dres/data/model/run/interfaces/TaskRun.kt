@@ -2,7 +2,7 @@ package dev.dres.data.model.run.interfaces
 
 import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.Task
-import dev.dres.run.TaskRunStatus
+import dev.dres.run.TaskStatus
 import dev.dres.run.score.interfaces.TaskScorer
 typealias TaskId = String
 
@@ -29,5 +29,5 @@ interface TaskRun: Run {
     val scorer: TaskScorer
 
     /** The current status of this [Task]. */
-    val status: TaskRunStatus
+    val status: TaskStatus
 }

@@ -3,7 +3,7 @@ package dev.dres.data.model.run
 import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
-import dev.dres.run.TaskRunStatus
+import dev.dres.run.TaskStatus
 import kotlinx.dnq.util.findById
 
 /**
@@ -51,7 +51,7 @@ abstract class AbstractTaskRun(task: Task): TaskRun {
         get() = this.task.template
 
     @Volatile
-    override var status: TaskRunStatus = TaskRunStatus.CREATED
+    override var status: TaskStatus = TaskStatus.CREATED
         protected set
 
     fun prepare() {
@@ -61,7 +61,7 @@ abstract class AbstractTaskRun(task: Task): TaskRun {
         if (this.hasStarted) {
             throw IllegalStateException("Run has already been started.")
         }
-        this.status = TaskRunStatus.PREPARING
+        this.status = TaskStatus.PREPARING
     }
 
     /**
@@ -72,7 +72,7 @@ abstract class AbstractTaskRun(task: Task): TaskRun {
             throw IllegalStateException("Run has already been started.")
         }
         this.started = System.currentTimeMillis()
-        this.status = TaskRunStatus.RUNNING
+        this.status = TaskStatus.RUNNING
     }
 
     /**
@@ -83,7 +83,7 @@ abstract class AbstractTaskRun(task: Task): TaskRun {
             this.started = System.currentTimeMillis()
         }
         this.ended = System.currentTimeMillis()
-        this.status = TaskRunStatus.ENDED
+        this.status = TaskStatus.ENDED
     }
 
 
@@ -95,6 +95,6 @@ abstract class AbstractTaskRun(task: Task): TaskRun {
             throw IllegalStateException("Run has not yet ended.")
         }
         this.ended = null
-        this.status = TaskRunStatus.RUNNING
+        this.status = TaskStatus.RUNNING
     }
 }

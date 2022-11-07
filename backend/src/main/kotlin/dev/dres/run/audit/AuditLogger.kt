@@ -5,10 +5,10 @@ import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.audit.AuditLogEntry
 import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.data.model.audit.AuditLogType
+import dev.dres.data.model.run.EvaluationId
+import dev.dres.data.model.run.TaskId
 import dev.dres.data.model.template.EvaluationTemplate
 import dev.dres.data.model.template.task.TaskTemplate
-import dev.dres.data.model.template.task.TaskDescriptionId
-import dev.dres.data.model.run.interfaces.CompetitionId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.Verdict
 import dev.dres.data.model.submissions.VerdictStatus
@@ -16,6 +16,7 @@ import dev.dres.run.eventstream.*
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.first
 import org.joda.time.DateTime
 
 /**
@@ -40,105 +41,95 @@ object AuditLogger {
      * @param api The [AuditLogSource]
      * @param session The identifier of the user session.
      */
-    fun competitionStart(competitionId: CompetitionId, description: EvaluationTemplate, api: AuditLogSource, session: SessionId?) {
-        this.store.transactional {
-            AuditLogEntry.new {
-                this.type = AuditLogType.COMPETITION_START
-                this.source = api
-                this.timestamp = DateTime.now()
-                this.competitionId = competitionId.string
-                this.session = session
-            }
+    fun competitionStart(evaluationId: EvaluationId, description: EvaluationTemplate, api: AuditLogSource, session: SessionId?) {
+        AuditLogEntry.new {
+            this.type = AuditLogType.COMPETITION_START
+            this.source = api
+            this.timestamp = DateTime.now()
+            this.evaluationId = evaluationId
+            this.session = session
         }
-        EventStreamProcessor.event(RunStartEvent(competitionId, description))
+        EventStreamProcessor.event(RunStartEvent(evaluationId, description))
     }
 
     /**
      * Logs the end of a DRES competition.
      *
-     * @param competitionId [EvaluationId] that identifies the competition
+     * @param evaluationId [EvaluationId] that identifies the competition
      * @param api The [AuditLogSource]
      * @param session The identifier of the user session.
      */
-    fun competitionEnd(competitionId: CompetitionId, api: AuditLogSource, session: SessionId?) {
-        this.store.transactional {
-            AuditLogEntry.new {
-                this.type = AuditLogType.COMPETITION_END
-                this.source = api
-                this.timestamp = DateTime.now()
-                this.competitionId = competitionId.string
-                this.session = session
-            }
+    fun competitionEnd(evaluationId: EvaluationId, api: AuditLogSource, session: SessionId?) {
+        AuditLogEntry.new {
+            this.type = AuditLogType.COMPETITION_END
+            this.source = api
+            this.timestamp = DateTime.now()
+            this.evaluationId = evaluationId
+            this.session = session
         }
-        EventStreamProcessor.event(RunEndEvent(competitionId))
+        EventStreamProcessor.event(RunEndEvent(evaluationId))
     }
 
     /**
      * Logs the start of a DRES task.
      *
-     * @param competitionId [EvaluationId] that identifies the competition
+     * @param evaluationId [EvaluationId] that identifies the competition
      * @param taskId [EvaluationId] that identifies the task
      * @param description The [TaskTemplate].
      * @param api The [AuditLogSource]
      * @param session The identifier of the user session.
      */
-    fun taskStart(competitionId: CompetitionId, taskId: TaskId, description: TaskTemplate, api: AuditLogSource, session: SessionId?) {
-        this.store.transactional {
-            AuditLogEntry.new {
-                this.type = AuditLogType.TASK_START
-                this.source = api
-                this.timestamp = DateTime.now()
-                this.competitionId = competitionId.string
-                this.taskId = taskId.string
-                this.session = session
-            }
+    fun taskStart(evaluationId: EvaluationId, taskId: TaskId, description: TaskTemplate, api: AuditLogSource, session: SessionId?) {
+        AuditLogEntry.new {
+            this.type = AuditLogType.TASK_START
+            this.source = api
+            this.timestamp = DateTime.now()
+            this.evaluationId = evaluationId
+            this.taskId = taskId
+            this.session = session
         }
-        EventStreamProcessor.event(TaskStartEvent(competitionId, taskId, description))
+        EventStreamProcessor.event(TaskStartEvent(evaluationId, taskId, description))
     }
 
     /**
      * Logs the start of a DRES task.
      *
-     * @param competitionId [EvaluationId] that identifies the competition
+     * @param evaluationId [EvaluationId] that identifies the competition
      * @param taskId [EvaluationId] that identifies the task
      * @param modification Description of the modification.
      * @param api The [AuditLogSource]
      * @param session The identifier of the user session.
      */
-    fun taskModified(competitionId: CompetitionId, taskId: TaskDescriptionId, modification: String, api: AuditLogSource, session: String?)  {
-        this.store.transactional {
-            AuditLogEntry.new {
-                this.type = AuditLogType.TASK_MODIFIED
-                this.source = api
-                this.timestamp = DateTime.now()
-                this.competitionId = competitionId.string
-                this.taskId = taskId.string
-                this.description = modification
-                this.session = session
-            }
+    fun taskModified(evaluationId: EvaluationId, taskId: TaskId, modification: String, api: AuditLogSource, session: String?)  {
+        AuditLogEntry.new {
+            this.type = AuditLogType.TASK_MODIFIED
+            this.source = api
+            this.timestamp = DateTime.now()
+            this.evaluationId = evaluationId
+            this.taskId = taskId
+            this.description = modification
+            this.session = session
         }
     }
 
     /**
      * Logs the end of a DRES task.
      *
-     * @param competitionId [EvaluationId] that identifies the competition
+     * @param evaluationId [EvaluationId] that identifies the competition
      * @param taskId [EvaluationId] that identifies the task
      * @param api The [AuditLogSource]
      * @param session The identifier of the user session.
      */
-    fun taskEnd(competitionId: CompetitionId, taskId: TaskId, api: AuditLogSource, session: SessionId?) {
-        this.store.transactional {
-            AuditLogEntry.new {
-                this.type = AuditLogType.TASK_END
-                this.source = api
-                this.timestamp = DateTime.now()
-                this.competitionId = competitionId.string
-                this.taskId = taskId.string
-                this.session = session
-            }
+    fun taskEnd(evaluationId: EvaluationId, taskId: TaskId, api: AuditLogSource, session: SessionId?) {
+        AuditLogEntry.new {
+            this.type = AuditLogType.TASK_END
+            this.source = api
+            this.timestamp = DateTime.now()
+            this.evaluationId = evaluationId
+            this.taskId = taskId
+            this.session = session
         }
-        EventStreamProcessor.event(TaskEndEvent(competitionId, taskId))
+        EventStreamProcessor.event(TaskEndEvent(evaluationId, taskId))
     }
 
     /**
@@ -150,20 +141,17 @@ object AuditLogger {
      * @param address The IP address of the submitter.
      */
     fun submission(submission: Submission, api: AuditLogSource, sessionId: SessionId?, address: String) {
-        this.store.transactional {
-            AuditLogEntry.new {
-                this.type = AuditLogType.SUBMISSION
-                this.source = api
-                this.timestamp = DateTime.now()
-                this.submissionId = submission.uid.string
-                this.competitionId = submission.task?.competition?.id?.string
-                this.taskId = submission.task?.uid?.string
-                this.submissionId = submission.uid.string
-                this.session = sessionId
-                this.address = address
-            }
+        AuditLogEntry.new {
+            this.type = AuditLogType.SUBMISSION
+            this.source = api
+            this.timestamp = DateTime.now()
+            this.submissionId = submission.id
+            this.evaluationId = submission.verdicts.first().task.evaluation.evaluationId
+            this.taskId = submission.verdicts.first().task.id /* TODO: Multiple verdicts. */
+            this.session = sessionId
+            this.address = address
         }
-        EventStreamProcessor.event(SubmissionEvent(sessionId ?: "na", submission.task?.competition?.id!!, submission.task?.uid, submission))
+        EventStreamProcessor.event(SubmissionEvent(sessionId ?: "na", submission.verdicts.first().task.evaluation.evaluationId, submission.verdicts.first().task.id, submission))
     }
 
     /**
@@ -178,11 +166,10 @@ object AuditLogger {
                 this.type = AuditLogType.SUBMISSION_VALIDATION
                 this.source = AuditLogSource.INTERNAL
                 this.timestamp = DateTime.now()
-                this.submissionId = submission.uid.string
-                this.competitionId = submission.task?.competition?.id?.string
-                this.taskId = submission.task?.uid?.string
-                this.verdict = submission.status.toString()
-                this.validatorName = validator::class.simpleName
+                this.submissionId = submission.id
+                this.evaluationId = submission.verdicts.first().task.evaluation.evaluationId
+                this.taskId = submission.verdicts.first().task.id /* TODO: Multiple verdicts. */
+                this.description = "Validator: ${validator::class.simpleName}, Verdict: ${submission.verdicts.first().status.description}" /* TODO: Here name, there ID. Why? */
             }
         }
     }
@@ -200,10 +187,10 @@ object AuditLogger {
                 this.type = AuditLogType.SUBMISSION_STATUS_OVERWRITE
                 this.source = api
                 this.timestamp = DateTime.now()
-                this.submissionId = submission.uid.string
-                this.competitionId = submission.task?.competition?.id?.string
-                this.taskId = submission.task?.uid?.string
-                this.verdict = submission.status.toString()
+                this.submissionId = submission.id
+                this.evaluationId = submission.verdicts.first().task.evaluation.evaluationId
+                this.taskId = submission.verdicts.first().task.id /* TODO: Multiple verdicts. */
+                this.description = "Verdict: ${submission.verdicts.first().status.description}"
                 this.session = sessionId
             }
         }
@@ -222,7 +209,7 @@ object AuditLogger {
             this.source = AuditLogSource.INTERNAL
             this.timestamp = DateTime.now()
             this.submissionId = verdict.submission.id
-            this.competitionId = verdict.task.evaluation.evaluationId
+            this.evaluationId = verdict.task.evaluation.evaluationId
             this.taskId = verdict.task.taskId
             this.description = "Token: $token, Validator: ${validator.id}, Verdict: ${verdict.status.description}"
         }
@@ -231,22 +218,20 @@ object AuditLogger {
     /**
      * Logs a submission override to DRES.
      *
-     * @param competitionId [EvaluationId] that identifies the competition
+     * @param evaluationId [EvaluationId] that identifies the competition
      * @param validator The [JudgementValidator] instance.
      * @param token The token generated by the judgement sub-system
      * @param verdict The [VerdictStatus] submitted by the judge.
      * @param api The [AuditLogSource]
      * @param sessionId The identifier of the user session.
      */
-    fun judgement(competitionId: EvaluationId, validator: JudgementValidator, token: String, verdict: VerdictStatus, api: AuditLogSource, sessionId: SessionId?) {
+    fun judgement(evaluationId: EvaluationId, validator: JudgementValidator, token: String, verdict: VerdictStatus, api: AuditLogSource, sessionId: SessionId?) {
         AuditLogEntry.new {
             this.type = AuditLogType.JUDGEMENT
             this.source = api
             this.timestamp = DateTime.now()
-            this.competitionId = competitionId.string
-            this.verdict = verdict.toString()
-            this.validatorName = validator.id
-            this.description = "Token: $token"
+            this.evaluationId = evaluationId
+            this.description = "Token: $token, Validator: ${validator.id}, Verdict: ${verdict.description}"
             this.session = sessionId
         }
     }
@@ -259,14 +244,12 @@ object AuditLogger {
      * @param sessionId The [SessionId]
      */
     fun login(userId: UserId, api: AuditLogSource, sessionId: SessionId) {
-        this.store.transactional {
-            AuditLogEntry.new {
-                this.type = AuditLogType.LOGIN
-                this.source = api
-                this.timestamp = DateTime.now()
-                this.userId = userId
-                this.session = sessionId
-            }
+        AuditLogEntry.new {
+            this.type = AuditLogType.LOGIN
+            this.source = api
+            this.timestamp = DateTime.now()
+            this.userId = userId
+            this.session = sessionId
         }
     }
 
@@ -278,14 +261,12 @@ object AuditLogger {
      * @param sessionId The [SessionId]
      */
     fun logout(userId: UserId, api: AuditLogSource, sessionId: SessionId) {
-        this.store.transactional {
-            AuditLogEntry.new {
-                this.type = AuditLogType.LOGOUT
-                this.source = api
-                this.timestamp = DateTime.now()
-                this.userId = userId
-                this.session = sessionId
-            }
+        AuditLogEntry.new {
+            this.type = AuditLogType.LOGOUT
+            this.source = api
+            this.timestamp = DateTime.now()
+            this.userId = userId
+            this.session = sessionId
         }
     }
 }

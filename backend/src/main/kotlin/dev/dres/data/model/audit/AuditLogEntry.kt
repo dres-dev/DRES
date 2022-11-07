@@ -23,10 +23,10 @@ class AuditLogEntry(entity: Entity): PersistentEntity(entity) {
     /** The timestamp of this [AuditLogEntry]. */
     var timestamp by xdRequiredDateTimeProp()
 
-    /** The ID of the competition this [AuditLogEntry] belongs to. */
-    var competitionId by xdStringProp()
+    /** The ID of the evaluation this [AuditLogEntry] belongs to. */
+    var evaluationId by xdStringProp()
 
-    /** The ID of the competition this [AuditLogEntry] belongs to. */
+    /** The ID of the task this [AuditLogEntry] belongs to. */
     var taskId by xdStringProp()
 
     /** The ID of the submission this [AuditLogEntry] belongs to. Only valid if [type] is equal to [AuditLogType.SUBMISSION], [AuditLogType.SUBMISSION_VALIDATION] or [AuditLogType.SUBMISSION_STATUS_OVERWRITE]. */
@@ -51,5 +51,5 @@ class AuditLogEntry(entity: Entity): PersistentEntity(entity) {
      *
      * @return [ApiAuditLogEntry]
      */
-    fun toApi(): ApiAuditLogEntry = ApiAuditLogEntry(this.id, this.type.toApi(), this.source.toApi(), this.timestamp.millis, this.competitionId, this.userId, this.submissionId, this.session, this.address, this.description)
+    fun toApi(): ApiAuditLogEntry = ApiAuditLogEntry(this.id, this.type.toApi(), this.source.toApi(), this.timestamp.millis, this.evaluationId, this.userId, this.submissionId, this.session, this.address, this.description)
 }

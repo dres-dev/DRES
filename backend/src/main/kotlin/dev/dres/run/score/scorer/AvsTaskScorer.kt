@@ -3,7 +3,7 @@ package dev.dres.run.score.scorer
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.media.MediaType
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.score.TaskContext
 import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
 import dev.dres.run.score.interfaces.ScoreEntry
@@ -25,8 +25,8 @@ class AvsTaskScorer: RecalculatingSubmissionTaskScorer, TeamTaskScorer {
     private val lastScoresLock = ReentrantReadWriteLock()
 
     override fun computeScores(submissions: Collection<Submission>, context: TaskContext): Map<TeamId, Double> {
-        val correctSubmissions = submissions.filter { it.status == SubmissionStatus.CORRECT }
-        val wrongSubmissions = submissions.filter { it.status == SubmissionStatus.WRONG }
+        val correctSubmissions = submissions.filter { it.status == VerdictStatus.CORRECT }
+        val wrongSubmissions = submissions.filter { it.status == VerdictStatus.WRONG }
 
         val correctSubmissionsPerTeam = correctSubmissions.groupBy { it.teamId }
         val wrongSubmissionsPerTeam = wrongSubmissions.groupBy { it.teamId }

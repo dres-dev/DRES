@@ -2,7 +2,7 @@ package dev.dres.api.rest.handler.template
 
 import com.github.kittinunf.fuel.util.decodeBase64
 import dev.dres.api.rest.handler.PatchRestHandler
-import dev.dres.api.rest.types.competition.ApiCompetitionDescription
+import dev.dres.api.rest.types.competition.ApiEvaluationTemplate
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -40,7 +40,7 @@ class UpdateCompetitionHandler(store: TransientEntityStore, val config: Config) 
             path = "/api/v1/template/{templateId}",
             pathParams = [OpenApiParam("templateId", String::class, "The evaluation template ID.")],
             methods = [HttpMethod.PATCH],
-            requestBody = OpenApiRequestBody([OpenApiContent(ApiCompetitionDescription::class)]),
+            requestBody = OpenApiRequestBody([OpenApiContent(ApiEvaluationTemplate::class)]),
             tags = ["Template"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -51,7 +51,7 @@ class UpdateCompetitionHandler(store: TransientEntityStore, val config: Config) 
     )
     override fun doPatch(ctx: Context): SuccessStatus {
         val apiValue = try {
-            ctx.bodyAsClass(ApiCompetitionDescription::class.java)
+            ctx.bodyAsClass(ApiEvaluationTemplate::class.java)
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
@@ -119,7 +119,7 @@ class UpdateCompetitionHandler(store: TransientEntityStore, val config: Config) 
                 t.targets.clear()
                 for (target in task.targets) {
                     val item = MediaItem.query(MediaItem::id eq target.target).first()
-                    t.targets.add(TaskDescriptionTarget.new {
+                    t.targets.add(TaskTemplateTarget.new {
                         this.item = item
                         this.type = target.type.type
                         this.start = target.range?.start?.toTemporalPoint(item.fps ?: 0.0f)?.toMilliseconds()

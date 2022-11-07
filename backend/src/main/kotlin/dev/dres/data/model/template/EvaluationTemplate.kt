@@ -1,6 +1,6 @@
 package dev.dres.data.model.template
 
-import dev.dres.api.rest.types.competition.ApiCompetitionDescription
+import dev.dres.api.rest.types.competition.ApiEvaluationTemplate
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.admin.User
 import dev.dres.data.model.template.task.TaskTemplate
@@ -56,22 +56,22 @@ class EvaluationTemplate(entity: Entity) : PersistentEntity(entity){
     val tasks by xdChildren0_N<EvaluationTemplate, TaskTemplate>(TaskTemplate::competition)
 
     /** The [Team]s that are part of this [EvaluationTemplate]. */
-    val teams by xdChildren0_N<EvaluationTemplate,Team>(Team::competition)
+    val teams by xdChildren0_N<EvaluationTemplate,Team>(Team::template)
 
     /** The [Team]s that are part of this [EvaluationTemplate]. */
-    val teamsGroups by xdChildren0_N<EvaluationTemplate,TeamGroup>(TeamGroup::competition)
+    val teamsGroups by xdChildren0_N<EvaluationTemplate,TeamGroup>(TeamGroup::template)
 
     /** The [User]s that act as judge for this [EvaluationTemplate] */
     val judges by xdLink0_N(User, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)
 
     /**
-     * Converts this [EvaluationTemplate] to a RESTful API representation [ApiCompetitionDescription].
+     * Converts this [EvaluationTemplate] to a RESTful API representation [ApiEvaluationTemplate].
      *
      * This is a convenience method and it requires and active transaction context.
      *
-     * @return [ApiCompetitionDescription]
+     * @return [ApiEvaluationTemplate]
      */
-    fun toApi(): ApiCompetitionDescription = ApiCompetitionDescription(
+    fun toApi(): ApiEvaluationTemplate = ApiEvaluationTemplate(
         id = this.id,
         name = this.name,
         description = this.description,

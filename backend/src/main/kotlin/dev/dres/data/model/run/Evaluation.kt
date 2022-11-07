@@ -1,10 +1,14 @@
 package dev.dres.data.model.run
 
+import dev.dres.api.rest.types.evaluation.ApiEvaluation
+import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.template.EvaluationTemplate
 import dev.dres.data.model.run.interfaces.EvaluationRun
+import dev.dres.data.model.submissions.Submission
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
+import kotlinx.dnq.query.asSequence
 
 typealias EvaluationId = String
 
@@ -52,6 +56,22 @@ class Evaluation(entity: Entity) : PersistentEntity(entity) {
     /** A fixed limit on submission previews. */
     var limitSubmissionPreviews by xdIntProp()
 
+    /**
+     * Converts this [Evaluation] to a RESTful API representation [ApiEvaluation].
+     *
+     * This is a convenience method and requires an active transaction context.
+     *
+     * @return [ApiEvaluation]
+     */
+    fun toApi(): ApiEvaluation = ApiEvaluation(
+        evaluationId = this.evaluationId,
+        name = this.name,
+        type = this.type.toApi(),
+        template = this.template.toApi(),
+        started = this.started,
+        ended = this.ended,
+        tasks = this.tasks.asSequence().map { it.toApi() }.toList()
+    )
 
     /**
      * Generates and returns an [EvaluationRun] instance for this [Evaluation].

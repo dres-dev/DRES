@@ -3,11 +3,12 @@ package dev.dres.api.rest.handler.evaluation.admin
 import dev.dres.api.rest.handler.PatchRestHandler
 import dev.dres.api.rest.handler.evaluationId
 import dev.dres.api.rest.types.evaluation.ApiSubmission
+import dev.dres.api.rest.types.evaluation.ApiVerdictStatus
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.audit.AuditLogger
 import dev.dres.utilities.extensions.sessionId
 import io.javalin.http.BadRequestResponse
@@ -17,7 +18,7 @@ import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 
 /**
- * A [PatchRestHandler] used to overwrite [SubmissionStatus] information.
+ * A [PatchRestHandler] used to overwrite [VerdictStatus] information.
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
@@ -28,7 +29,7 @@ class OverrideSubmissionHandler(store: TransientEntityStore): AbstractEvaluation
     override val route: String = "evaluation/admin/{evaluationId}/submission/override"
 
     @OpenApi(
-        summary = "Lists all submissions for a given task and run",
+        summary = "Override the submission status for a given submission.",
         path = "/api/v1/evaluation/admin/{evaluationId}/submission/override",
         methods = [HttpMethod.PATCH],
         pathParams = [
@@ -47,6 +48,8 @@ class OverrideSubmissionHandler(store: TransientEntityStore): AbstractEvaluation
         val evaluationId = ctx.evaluationId()
         val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
 
+        /* TODO: Make this work for batched submissions! */
+
         /* Extract HTTP body. */
         val submissionInfo = try {
             ctx.bodyAsClass<ApiSubmission>()
@@ -54,7 +57,8 @@ class OverrideSubmissionHandler(store: TransientEntityStore): AbstractEvaluation
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
         /* Perform sanity check. */
-        if (submissionInfo.status == SubmissionStatus.INDETERMINATE) {
+
+        if (submissionInfo.verdicts.first().status == ApiVerdictStatus.INDETERMINATE ) {
             throw ErrorStatusException(400, "Submission status can not be set to INDETERMINATE.", ctx)
         }
 
@@ -65,7 +69,7 @@ class OverrideSubmissionHandler(store: TransientEntityStore): AbstractEvaluation
             if (evaluationManager.allSubmissions.none { it.id == submissionInfo.id }) {
                 throw ErrorStatusException(404, "The given submission $submissionInfo was not found.", ctx)
             }
-            if (evaluationManager.updateSubmission(rac, submissionInfo.id, submissionInfo.status)) {
+            if (evaluationManager.updateSubmission(rac, submissionInfo.id, submissionInfo.verdicts.first().status.status)) {
                 val submission = evaluationManager.allSubmissions.single { it.id == submissionInfo.id }
                 AuditLogger.overrideSubmission(submission, AuditLogSource.REST, ctx.sessionId())
                 submission.toApi()

@@ -20,7 +20,7 @@ data class RunState(
     val timeElapsed: Long
 ) {
     constructor(run: InteractiveRunManager, context: RunActionContext) : this(
-        run.id.string,
+        run.id,
         //RestRunManagerStatus.getState(run, context),
         run.status,
         RestTaskRunStatus.fromTaskRunStatus(run.currentTask(context)?.status),
@@ -32,16 +32,6 @@ data class RunState(
         run.timeLeft(context) / 1000,
         run.timeElapsed(context) / 1000
     )
-
-//    companion object {
-//        /**
-//         * Checks if the given run is asynchronous and the current user (from the context) is an admin.
-//         */
-//        fun checkAsyncAdmin(run: InteractiveRunManager, context: RunActionContext): Boolean {
-//            return run is InteractiveAsynchronousRunManager && context.isAdmin
-//        }
-//    }
-
 }
 
 enum class RestTaskRunStatus {

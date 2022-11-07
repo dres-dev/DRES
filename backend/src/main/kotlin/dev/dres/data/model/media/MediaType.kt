@@ -16,6 +16,7 @@ class MediaType(entity: Entity) : XdEnumEntity(entity) {
     companion object : XdEnumEntityType<MediaType>() {
         val IMAGE by enumField { description = "IMAGE"; suffix = "mp4"; }
         val VIDEO by enumField { description = "VIDEO"; suffix = "jpg"; }
+        val TEXT by enumField { description = "TEXT"; suffix = "txt"; }
     }
 
     var description by xdRequiredStringProp(unique = true)

@@ -1,7 +1,7 @@
 package dev.dres.run.filter
 
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.VerdictStatus
 
 /**
  *
@@ -13,5 +13,5 @@ class MaximumWrongPerTeamFilter(private val max: Int = Int.MAX_VALUE) : Submissi
 
     override val reason = "Maximum number of wrong submissions ($max) exceeded for the team"
 
-    override fun test(submission: Submission): Boolean = submission.task!!.submissions.filter { it.teamId == submission.teamId && it.status == SubmissionStatus.WRONG }.size < max
+    override fun test(submission: Submission): Boolean = submission.task!!.submissions.filter { it.teamId == submission.teamId && it.status == VerdictStatus.WRONG }.size < max
 }

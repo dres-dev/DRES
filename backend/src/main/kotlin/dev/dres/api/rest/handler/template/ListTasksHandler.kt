@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.template
 
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.types.competition.tasks.ApiTaskDescription
+import dev.dres.api.rest.types.competition.tasks.ApiTaskTemplate
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.model.template.task.TaskTemplate
 import io.javalin.http.Context
@@ -17,7 +17,7 @@ import kotlinx.dnq.query.asSequence
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ListTasksHandler(store: TransientEntityStore) : AbstractCompetitionDescriptionHandler(store), GetRestHandler<List<ApiTaskDescription>> {
+class ListTasksHandler(store: TransientEntityStore) : AbstractCompetitionDescriptionHandler(store), GetRestHandler<List<ApiTaskTemplate>> {
 
     override val route: String = "template/{templateId}/task/list"
 
@@ -27,7 +27,7 @@ class ListTasksHandler(store: TransientEntityStore) : AbstractCompetitionDescrip
         pathParams = [OpenApiParam("templateId", String::class, "The evaluation template ID.")],
         tags = ["Template"],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(Array<ApiTaskDescription>::class)]),
+            OpenApiResponse("200", [OpenApiContent(Array<ApiTaskTemplate>::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])

@@ -7,9 +7,7 @@ import dev.dres.data.model.run.*
 import dev.dres.data.model.template.EvaluationTemplate
 import dev.dres.data.model.template.TeamId
 import dev.dres.data.model.run.interfaces.TaskId
-import dev.dres.data.model.submissions.batch.SubmissionBatch
 import dev.dres.run.score.scoreboard.Scoreboard
-import dev.dres.run.updatables.DAOUpdatable
 import dev.dres.run.updatables.ScoreboardsUpdatable
 import dev.dres.run.validation.interfaces.JudgementValidator
 import org.slf4j.LoggerFactory
@@ -29,9 +27,6 @@ class NonInteractiveRunManager(val run: NonInteractiveEvaluation) : RunManager {
 
     /** A lock for state changes to this [InteractiveSynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
-
-    /** The internal [DAOUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
-    private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
 
     /** Run ID of this [InteractiveSynchronousRunManager]. */
     override val id: EvaluationId
@@ -179,23 +174,6 @@ class NonInteractiveRunManager(val run: NonInteractiveEvaluation) : RunManager {
     }
 
     private val updatedTasks = LinkedBlockingQueue<Pair<TaskId, List<Pair<TeamId, String>>>>()
-
-    /**
-     *
-     */
-    fun addSubmissionBatch(batch: SubmissionBatch<*>) = this.stateLock.read{
-
-        //check(this.status == RunManagerStatus.RUNNING_TASK) { "SynchronousNonInteractiveRunManager is in status ${this.status} and can currently not accept submissions." } //FIXME
-
-        this.run.tasks.forEach { task ->
-            val taskResultBatches = batch.results.filter { it.task == task.uid }
-            if (taskResultBatches.isNotEmpty()){
-                task.addSubmissionBatch(batch, taskResultBatches)
-                updatedTasks.add(task.uid to taskResultBatches.map { batch.teamId to it.name })
-            }
-        }
-
-    }
 
     /**
      *

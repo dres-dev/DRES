@@ -42,7 +42,7 @@ class Team(entity: Entity) : PersistentEntity(entity) {
     var logo by xdBlobProp()
 
     /** The [EvaluationTemplate] this [Team] belongs to. */
-    var competition by xdParent<Team,EvaluationTemplate>(EvaluationTemplate::teams)
+    var template by xdParent<Team,EvaluationTemplate>(EvaluationTemplate::teams)
 
     /** The [TeamGroup] this [Team] belongs to (or null if not assigned to a group). */
     var group by xdLink0_1(TeamGroup::teams)

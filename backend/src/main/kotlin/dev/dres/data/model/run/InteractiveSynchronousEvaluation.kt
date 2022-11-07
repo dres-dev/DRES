@@ -71,7 +71,7 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
             this.type = RunType.INTERACTIVE_SYNCHRONOUS
             this.evaluation = this@InteractiveSynchronousEvaluation.evaluation
             this.started = System.currentTimeMillis()
-            this.description = description
+            this.template = description
         })
 
         /** The [InteractiveSynchronousEvaluation] this [Task] belongs to.*/
@@ -84,7 +84,7 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
 
         /** Reference to the [TaskTemplate] describing this [Task]. */
         override val template: TaskTemplate
-            get() = this.task.description
+            get() = this.task.template
 
         /** The [SubmissionFilter] instance used by this [ISTaskRun]. */
         override val filter: SubmissionFilter = this.template.newFilter()

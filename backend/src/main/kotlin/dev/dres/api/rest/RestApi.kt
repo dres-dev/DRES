@@ -5,13 +5,19 @@ import dev.dres.api.rest.handler.*
 import dev.dres.api.rest.handler.audit.ListAuditLogsHandler
 import dev.dres.api.rest.handler.audit.ListAuditLogsInRangeHandler
 import dev.dres.api.rest.handler.collection.*
+import dev.dres.api.rest.handler.download.EvaluationDownloadHandler
+import dev.dres.api.rest.handler.download.EvaluationTemplateDownloadHandler
 import dev.dres.api.rest.handler.evaluation.admin.*
 import dev.dres.api.rest.handler.evaluation.client.ClientListEvaluationsHandler
 import dev.dres.api.rest.handler.evaluation.client.ClientTaskInfoHandler
+import dev.dres.api.rest.handler.judgement.*
+import dev.dres.api.rest.handler.log.QueryLogHandler
+import dev.dres.api.rest.handler.log.ResultLogHandler
 import dev.dres.api.rest.handler.template.*
 import dev.dres.api.rest.handler.preview.GetMediaHandler
 import dev.dres.api.rest.handler.preview.MediaPreviewHandler
 import dev.dres.api.rest.handler.preview.SubmissionPreviewHandler
+import dev.dres.api.rest.handler.submission.BatchSubmissionHandler
 import dev.dres.api.rest.handler.submission.SubmissionHandler
 import dev.dres.api.rest.handler.system.CurrentTimeHandler
 import dev.dres.api.rest.handler.system.InfoHandler
@@ -19,6 +25,7 @@ import dev.dres.api.rest.handler.system.LoginHandler
 import dev.dres.api.rest.handler.system.LogoutHandler
 import dev.dres.api.rest.handler.users.*
 import dev.dres.api.rest.types.status.ErrorStatus
+import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.Config
 import dev.dres.run.RunExecutor
 import dev.dres.utilities.NamedThreadFactory
@@ -111,7 +118,7 @@ object RestApi {
 
             // Submission
             SubmissionHandler(store, config),
-            JsonBatchSubmissionHandler(store),
+            BatchSubmissionHandler(store, config),
 
             // Log
             QueryLogHandler(),
@@ -156,11 +163,11 @@ object RestApi {
             EvaluationOverviewHandler(store),
 
             // Judgement
-            NextOpenJudgementHandler(store),
-            NextOpenVoteJudgementHandler(store),
-            PostJudgementHandler(),
-            JudgementStatusHandler(),
-            JudgementVoteHandler(),
+            DequeueJudgementHandler(store),
+            DequeueVoteHandler(store),
+            PostJudgementHandler(store),
+            PostVoteHandler(store),
+            JudgementStatusHandler(store),
 
             // Audit Log
             GetAuditLogInfoHandler(store),
@@ -176,9 +183,9 @@ object RestApi {
             ClientTaskInfoHandler(store),
 
             // Downloads
-            DownloadHandler.CompetitionRun(store),
-            DownloadHandler.CompetitionRunScoreHandler(store),
-            DownloadHandler.CompetitionDesc(store)
+            EvaluationDownloadHandler(store),
+            EvaluationTemplateDownloadHandler(store)
+            /* DownloadHandler.CompetitionRunScoreHandler(store), */
         )
 
         javalin = Javalin.create {

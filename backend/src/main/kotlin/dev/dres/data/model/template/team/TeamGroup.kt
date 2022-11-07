@@ -35,7 +35,7 @@ class TeamGroup(entity: Entity) : PersistentEntity(entity) {
     var defaultAggregator by xdLink1(TeamAggregator)
 
     /** The [EvaluationTemplate] this [Team] belongs to. */
-    var competition by xdParent<TeamGroup,EvaluationTemplate>(EvaluationTemplate::teamsGroups)
+    var template by xdParent<TeamGroup,EvaluationTemplate>(EvaluationTemplate::teamsGroups)
 
     /** The [Team]s that belong to this [TeamGroup]. */
     val teams by xdLink0_N<TeamGroup,Team>(Team::group)

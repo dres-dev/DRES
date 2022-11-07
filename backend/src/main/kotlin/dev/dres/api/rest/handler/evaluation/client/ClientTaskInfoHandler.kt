@@ -1,6 +1,7 @@
 package dev.dres.api.rest.handler.evaluation.client
 
 import dev.dres.api.rest.handler.GetRestHandler
+import dev.dres.api.rest.handler.eligibleManagerForId
 import dev.dres.api.rest.types.evaluation.ApiTaskInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
@@ -37,7 +38,7 @@ class ClientTaskInfoHandler(store: TransientEntityStore): AbstractEvaluationClie
     )
     override fun doGet(ctx: Context): ApiTaskInfo = this.store.transactional(true) { tx ->
 
-        val run = getEvaluationManager(ctx) ?: throw ErrorStatusException(404,  "Evaluation ${this.evaluationId(ctx)} not found", ctx)
+        val run = ctx.eligibleManagerForId()
         val rac = RunActionContext.runActionContext(ctx, run)
 
         if (run !is InteractiveRunManager) throw ErrorStatusException(404, "Specified evaluation is not interactive.", ctx)

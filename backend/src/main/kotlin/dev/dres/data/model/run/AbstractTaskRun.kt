@@ -48,7 +48,7 @@ abstract class AbstractTaskRun(task: Task): TaskRun {
 
     /** Reference to the [TaskTemplate] describing this [AbstractTaskRun]. */
     override val template: TaskTemplate
-        get() = this.task.description
+        get() = this.task.template
 
     @Volatile
     override var status: TaskRunStatus = TaskRunStatus.CREATED

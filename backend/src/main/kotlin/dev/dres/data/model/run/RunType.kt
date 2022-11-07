@@ -1,5 +1,8 @@
 package dev.dres.data.model.run
 
+import dev.dres.api.rest.types.evaluation.ApiRunType
+import dev.dres.api.rest.types.evaluation.ApiVerdictType
+import dev.dres.data.model.submissions.VerdictType
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity
 import kotlinx.dnq.XdEnumEntityType
@@ -20,4 +23,11 @@ class RunType(entity: Entity) : XdEnumEntity(entity) {
 
     var description by xdRequiredStringProp(unique = true)
         private set
+
+    /**
+     * Converts this [RunType] to a RESTful API representation [ApiRunType].
+     *
+     * @return [ApiRunType]
+     */
+    fun toApi() = ApiRunType.values().find { it.type == this } ?: throw IllegalStateException("Run type ${this.description} is not supported.")
 }

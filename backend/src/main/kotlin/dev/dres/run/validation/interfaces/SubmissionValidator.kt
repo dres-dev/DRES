@@ -1,7 +1,7 @@
 package dev.dres.run.validation.interfaces
 
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.VerdictStatus
 
 /**
  * A validator class that checks, if a [Submission] is correct.
@@ -11,7 +11,7 @@ import dev.dres.data.model.submissions.SubmissionStatus
  */
 interface SubmissionValidator {
     /**
-     * Validates the [Submission] and updates its [SubmissionStatus].
+     * Validates the [Submission] and updates its [VerdictStatus].
      *
      * @param submission The [Submission] to validate.
      */

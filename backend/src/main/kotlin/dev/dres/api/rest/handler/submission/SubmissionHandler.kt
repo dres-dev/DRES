@@ -18,8 +18,9 @@ import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.Task
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
-import dev.dres.data.model.submissions.SubmissionType
+import dev.dres.data.model.submissions.Verdict
+import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.VerdictType
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
@@ -38,7 +39,9 @@ import java.nio.file.Paths
 import java.util.*
 
 /**
- * An [GetRestHandler] used to process [Submission]s
+ * An [GetRestHandler] used to process [Submission]s.
+ *
+ * This endpoint strictly considers [Submission]s to contain single [Verdict]s.
  *
  * @author Luca Rossetto
  * @author Loris Sauter
@@ -49,7 +52,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
     /** [SubmissionHandler] requires [ApiRole.PARTICIPANT]. */
     override val permittedRoles = setOf(ApiRole.PARTICIPANT)
 
-    /** All [AbstractPreviewHandler]s are part of the v1 API. */
+    /** All [SubmissionHandler]s are part of the v1 API. */
     override val apiVersion = "v1"
 
     override val route = "submit"
@@ -109,7 +112,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
 
             AuditLogger.submission(submission, AuditLogSource.REST, ctx.sessionId(), ctx.req().remoteAddr)
             if (run.currentTaskDescription(rac).taskGroup.type.options.contains(TaskOption.HIDDEN_RESULTS)) { //pre-generate preview
-                generatePreview(submission)
+                generatePreview(submission.verdicts.first())
             }
             submission to result
         }
@@ -117,13 +120,13 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
         logger.info("Submission ${s.id} received status $r.")
 
         return when (r) {
-            SubmissionStatus.CORRECT -> SuccessfulSubmissionsStatus(SubmissionStatus.CORRECT, "Submission correct!")
-            SubmissionStatus.WRONG -> SuccessfulSubmissionsStatus(SubmissionStatus.WRONG, "Submission incorrect! Try again")
-            SubmissionStatus.INDETERMINATE -> {
+            VerdictStatus.CORRECT -> SuccessfulSubmissionsStatus(VerdictStatus.CORRECT, "Submission correct!")
+            VerdictStatus.WRONG -> SuccessfulSubmissionsStatus(VerdictStatus.WRONG, "Submission incorrect! Try again")
+            VerdictStatus.INDETERMINATE -> {
                 ctx.status(202) /* HTTP Accepted. */
-                SuccessfulSubmissionsStatus(SubmissionStatus.INDETERMINATE, "Submission received. Waiting for verdict!")
+                SuccessfulSubmissionsStatus(VerdictStatus.INDETERMINATE, "Submission received. Waiting for verdict!")
             }
-            SubmissionStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(SubmissionStatus.UNDECIDABLE,"Submission undecidable. Try again!")
+            VerdictStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(VerdictStatus.UNDECIDABLE,"Submission undecidable. Try again!")
             else -> throw ErrorStatusException(500, "Unsupported submission status. This is very unusual!", ctx)
         }
     }
@@ -136,7 +139,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
             val rac = RunActionContext.runActionContext(ctx, it)
             it.currentTask(rac)?.isRunning == true
         }
-        if (managers.isEmpty())  throw ErrorStatusException(404, "There is currently no eligible competition with an active task.", ctx)
+        if (managers.isEmpty()) throw ErrorStatusException(404, "There is currently no eligible competition with an active task.", ctx)
         if (managers.size > 1)  throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.template.name }}", ctx)
         return managers.first()
     }
@@ -162,12 +165,11 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
         val rac = RunActionContext.runActionContext(ctx, runManager)
 
         /* Create new submission. */
-        Submission.new {
+        val submission = Submission.new {
             this.id = UUID.randomUUID().toString()
             this.user = user
             this.team = team
             this.timestamp = submissionTime
-            this.text = map[PARAMETER_NAME_TEXT]?.first()
         }
 
         /* If text is supplied, it supersedes other parameters */
@@ -175,18 +177,17 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
         val itemParam = map[PARAMETER_NAME_ITEM]?.first()
         val currentTaskId = runManager.currentTask(rac)?.id
         val task = Task.query(Task::id eq currentTaskId).firstOrNull() ?: throw ErrorStatusException(404, "No active task for ID '$currentTaskId' could be found.", ctx)
-        val submission = Submission.new {
-            this.id = submissionId
-            this.status = SubmissionStatus.INDETERMINATE
-            this.user = user
-            this.team = team
+
+        /* Create Verdict. */
+        val verdict = Verdict.new {
+            this.status = VerdictStatus.INDETERMINATE
             this.task = task
-            this.timestamp = submissionTime
         }
+        submission.verdicts.add(verdict)
 
         if (textParam != null) {
-            submission.type = SubmissionType.TEXT
-            submission.text = textParam
+            verdict.type = VerdictType.TEXT
+            verdict.text = textParam
             return submission
         } else if (itemParam != null) {
             val collection = runManager.currentTaskDescription(rac).collection /* TODO: Do we need the option to explicitly set the collection name? */
@@ -232,13 +233,13 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
 
             /* Assign information to submission. */
             if (range != null) {
-                submission.item = item
-                submission.type = SubmissionType.TEMPORAL
-                submission.start = range.first
-                submission.end = range.second
+                verdict.item = item
+                verdict.type = VerdictType.TEMPORAL
+                verdict.start = range.first
+                verdict.end = range.second
             } else {
-                submission.item = item
-                submission.type = SubmissionType.ITEM
+                verdict.item = item
+                verdict.type = VerdictType.ITEM
             }
         } else {
             throw ErrorStatusException(404, "Required submission parameters are missing (content not set)!", ctx)
@@ -250,15 +251,15 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
     /**
      * Triggers generation of a preview image for the provided [Submission].
      *
-     * @param submission The [Submission] to generate preview for.
+     * @param verdict The [Verdict] to generate preview for.
      */
-    private fun generatePreview(submission: Submission) {
-        if (submission.type != SubmissionType.TEMPORAL) return
-        if (submission.item == null) return
-        val destinationPath = Paths.get(this.config.cachePath, "previews", submission.item!!.collection.name, submission.item!!.name, "${submission.start}.jpg")
+    private fun generatePreview(verdict: Verdict) {
+        if (verdict.type != VerdictType.TEMPORAL) return
+        if (verdict.item == null) return
+        val destinationPath = Paths.get(this.config.cachePath, "previews", verdict.item!!.collection.name, verdict.item!!.name, "${verdict.start}.jpg")
         if (Files.exists(destinationPath)){
             return
         }
-        FFmpegUtil.extractFrame(submission.item!!.pathToOriginal(), submission.start!!, destinationPath)
+        FFmpegUtil.extractFrame(verdict.item!!.pathToOriginal(), verdict.start!!, destinationPath)
     }
 }

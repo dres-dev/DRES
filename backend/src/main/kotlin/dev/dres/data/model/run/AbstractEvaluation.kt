@@ -1,6 +1,5 @@
 package dev.dres.data.model.run
 
-
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.template.EvaluationTemplate
 import dev.dres.data.model.run.interfaces.Run

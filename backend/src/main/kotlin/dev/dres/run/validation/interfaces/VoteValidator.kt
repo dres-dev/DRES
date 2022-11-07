@@ -1,8 +1,11 @@
 package dev.dres.run.validation.interfaces
 
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.Verdict
+import dev.dres.data.model.submissions.VerdictStatus
 
+/**
+ *
+ */
 interface VoteValidator : JudgementValidator {
 
     /**
@@ -18,8 +21,10 @@ interface VoteValidator : JudgementValidator {
     /**
      * Places a verdict for the currently active Submission
      */
-    fun vote(verdict: SubmissionStatus)
+    fun vote(verdict: VerdictStatus)
 
-    fun nextSubmissionToVoteOn() : Submission?
-
+    /**
+     *
+     */
+    fun nextSubmissionToVoteOn() : Verdict?
 }

@@ -5,7 +5,7 @@ import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
 
@@ -166,26 +166,9 @@ interface InteractiveRunManager : RunManager {
      */
     fun overrideReadyState(context: RunActionContext, viewerId: String): Boolean
 
-    /**
-     * Invoked by an external caller to post a new [Submission] for the [TaskRun] that is currently being
-     * executed by this [InteractiveRunManager]. [Submission]s usually cause updates to the internal state and/or
-     * the [Scoreboard] of this [InteractiveRunManager].
-     *
-     * This method will not throw an exception and instead returns false if a [Submission] was
-     * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
-     * this method again.
-     *
-     *
-     * @param context The [RunActionContext] used for the invocation
-     * @param sub The [Submission] to be posted.
-     *
-     * @return [SubmissionStatus] of the [Submission]
-     * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
-     */
-    fun postSubmission(context: RunActionContext, sub: Submission): SubmissionStatus
 
     /**
-     * Invoked by an external caller to update an existing [Submission] by its [Submission.uid] with a new [SubmissionStatus].
+     * Invoked by an external caller to update an existing [Submission] by its [Submission.uid] with a new [VerdictStatus].
      * [Submission]s usually cause updates to the internal state and/or the [Scoreboard] of this [InteractiveRunManager].
      *
      * This method will not throw an exception and instead returns false if a [Submission] was
@@ -194,10 +177,10 @@ interface InteractiveRunManager : RunManager {
      *
      * @param context The [RunActionContext] used for the invocation
      * @param submissionId The [EvaluationId] of the [Submission] to update.
-     * @param submissionStatus The new [SubmissionStatus]
+     * @param submissionStatus The new [VerdictStatus]
      *
      * @return Whether the update was successful or not
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    fun updateSubmission(context: RunActionContext, submissionId: EvaluationId, submissionStatus: SubmissionStatus): Boolean
+    fun updateSubmission(context: RunActionContext, submissionId: EvaluationId, submissionStatus: VerdictStatus): Boolean
 }

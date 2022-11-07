@@ -1,21 +1,16 @@
 package dev.dres.run.eventstream.handlers
 
-import dev.dres.data.dbo.DaoIndexer
 import dev.dres.data.model.media.MediaItem
-import dev.dres.data.model.media.MediaItemSegmentList
-import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.media.time.TemporalRange
+import dev.dres.data.model.run.EvaluationId
 import dev.dres.data.model.template.task.TaskTemplate
-import dev.dres.data.model.template.task.TaskDescriptionTarget
-import dev.dres.run.eventstream.QueryResultLogEvent
 import dev.dres.run.eventstream.StreamEvent
 import dev.dres.run.eventstream.StreamEventHandler
-import dev.dres.run.eventstream.TaskStartEvent
-import dev.dres.utilities.TimeUtil
+import jetbrains.exodus.database.TransientEntityStore
 import java.io.File
 import java.io.PrintWriter
 
-class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemSegmentList, EvaluationId>) : StreamEventHandler {
+class ResultLogStatisticsHandler(private val store: TransientEntityStore) : StreamEventHandler {
 
     private val writer = PrintWriter(File("statistics/result_log_statistics_${System.currentTimeMillis()}.csv").also { it.parentFile.mkdirs() })
 
@@ -28,6 +23,8 @@ class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemS
     }
 
     override fun handle(event: StreamEvent) {
+
+        /* TODO: Fix / and maybe design + document in a way such that one understands what is going on... :-)
 
         when (event) {
             is TaskStartEvent -> {
@@ -84,6 +81,6 @@ class ResultLogStatisticsHandler(private val segmentIndex: DaoIndexer<MediaItemS
 
             else -> { /* ignore */ }
 
-        }
+        } */
     }
 }

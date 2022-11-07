@@ -7,7 +7,6 @@ import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.batch.ResultBatch
-import dev.dres.run.score.interfaces.ResultBatchTaskScorer
 import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.size
 

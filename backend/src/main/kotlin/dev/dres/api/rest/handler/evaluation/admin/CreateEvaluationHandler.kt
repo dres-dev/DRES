@@ -115,6 +115,7 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
             RunExecutor.schedule(when (message.type) {
                 ApiRunType.ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(evaluation, emptyMap()) /* TODO: Team map */
                 ApiRunType.SYNCHRONOUS -> InteractiveSynchronousEvaluation(evaluation)
+                ApiRunType.NON_INTERACTIVE -> TODO()
             })
             evaluation
         }

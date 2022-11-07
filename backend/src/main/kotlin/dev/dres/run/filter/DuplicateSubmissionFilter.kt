@@ -1,25 +1,26 @@
 package dev.dres.run.filter
 
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.aspects.ItemAspect
-import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
-import dev.dres.data.model.submissions.aspects.TextAspect
+import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.filter
+import kotlinx.dnq.query.isEmpty
 
+
+/**
+ * A [SubmissionFilter] that filters duplicate [Submission]s in terms of content.
+ *
+ * @author Luca Rossetto
+ * @version 1.1.0
+ */
 class DuplicateSubmissionFilter : SubmissionFilter {
 
-    override val reason = "Duplicate submission"
+    override val reason = "Duplicate submission received."
 
-    override fun test(submission: Submission): Boolean = submission.task!!.submissions.none {
-    it.teamId == submission.teamId &&
-    if(it is ItemAspect && submission is ItemAspect) {
-        it.item == submission.item &&
-                if (submission is TemporalSubmissionAspect && it is TemporalSubmissionAspect) {
-                    /*(*/(submission.start <= it.start && submission.end >= it.end) /*|| */
-                } else {
-                    true
-                }
-    } else if (it is TextAspect && submission is TextAspect) {
-        it.text == submission.text
-    } else true
+    override fun test(submission: Submission): Boolean {
+        return submission.verdicts.asSequence().all { verdict ->
+            verdict.task.submissions.filter {
+                (it.text eq verdict.text) and (it.item eq verdict.item) and (it.start le (verdict.start ?: Long.MAX_VALUE)) and (it.end ge (verdict.end ?: Long.MIN_VALUE))
+            }.isEmpty
+        }
     }
 }

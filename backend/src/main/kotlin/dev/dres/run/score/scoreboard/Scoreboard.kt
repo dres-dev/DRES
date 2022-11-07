@@ -1,17 +1,10 @@
 package dev.dres.run.score.scoreboard
 
 import dev.dres.data.model.template.team.Team
-import dev.dres.data.model.template.TeamId
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.run.interfaces.TaskId
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.interfaces.TaskScorer
-
-/**
- * Container for [Scoreboard].
- */
-data class Score(val teamId: String, val score: Double)
-
-data class ScoreOverview(val name: String, val taskGroup: String?, val scores: List<Score>)
 
 /**
  * A [Scoreboard] tracks the [Score]s for different [Team]s
@@ -32,9 +25,9 @@ interface Scoreboard {
     fun scores(): List<Score>
 
     /**
-     * Retrieves and returns the score of the given [Team] [EvaluationId]
+     * Retrieves and returns the score of the given [Team]
      *
-     * @param teamId The [Team]'s [EvaluationId].
+     * @param teamId The [Team]'s [TeamId].
      * @return The score for the given [Team].
      */
     fun score(teamId: TeamId): Double
@@ -45,7 +38,7 @@ interface Scoreboard {
     fun update(runs: List<AbstractInteractiveTask>)
 
     /**
-     * Updates using a map of the [TaskRun] ids to the corresponding [TaskScorer]s
+     * Updates using a map of the [TaskId] ids to the corresponding [TaskScorer]s
      */
     fun update(scorers: Map<TaskId, TaskScorer>)
 
@@ -53,5 +46,4 @@ interface Scoreboard {
      * Returns a summary of all current scores in a [ScoreOverview]
      */
     fun overview(): ScoreOverview
-
 }

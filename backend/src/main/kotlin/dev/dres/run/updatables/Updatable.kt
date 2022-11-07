@@ -7,7 +7,7 @@ import dev.dres.run.RunManagerStatus
  * Interface implemented by classes that are updated during the lifecycle of a [RunManager].
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.0.0
  */
 interface Updatable {
 

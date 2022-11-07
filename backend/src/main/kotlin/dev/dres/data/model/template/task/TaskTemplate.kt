@@ -26,7 +26,7 @@ import java.lang.Long.max
 
 /**
  * Basic description of a [TaskRun] as executed in DRES. Defines basic attributes such as its name, its duration,
- * the [TaskDescriptionTarget] and the [Hint]s, that should be presented to the user.
+ * the [TaskTemplateTarget] and the [Hint]s, that should be presented to the user.
  *
  * @version 2.0.0
  * @author Luca Rossetto
@@ -58,8 +58,8 @@ class TaskTemplate(entity: Entity) : PersistentEntity(entity), TaskScorerFactory
     /** The duration of the [TaskTemplate] in seconds. */
     var duration by xdRequiredLongProp { min(0L)  }
 
-    /** The [TaskDescriptionTarget]s that identify the target. Multiple entries indicate the existence of multiple targets. */
-    val targets by xdChildren1_N<TaskTemplate, TaskDescriptionTarget>(TaskDescriptionTarget::task)
+    /** The [TaskTemplateTarget]s that identify the target. Multiple entries indicate the existence of multiple targets. */
+    val targets by xdChildren1_N<TaskTemplate, TaskTemplateTarget>(TaskTemplateTarget::task)
 
     /** The [Hint]s that act as clues to find the target media. */
     val hints by xdChildren0_N<TaskTemplate,Hint>(Hint::task)
@@ -143,13 +143,13 @@ class TaskTemplate(entity: Entity) : PersistentEntity(entity), TaskScorerFactory
     fun textualDescription(): String = this.hints.asSequence().filter { it.type == HintType.TEXT }.maxByOrNull { it.start ?: 0 }?.text ?: name
 
     /**
-     * Converts this [TaskTemplate] to a RESTful API representation [ApiTaskDescription].
+     * Converts this [TaskTemplate] to a RESTful API representation [ApiTaskTemplate].
      *
      * This is a convenience method and requires an active transaction context.
      *
      * @return [ApiTeam]
      */
-    fun toApi(): ApiTaskDescription = ApiTaskDescription(
+    fun toApi(): ApiTaskTemplate = ApiTaskTemplate(
         this.id,
         this.name,
         this.taskGroup.name,

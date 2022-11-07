@@ -46,7 +46,9 @@ class ListPastTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminH
                     name = it.template.name,
                     taskGroup = it.template.taskGroup.name,
                     taskType = it.template.taskGroup.type.name,
-                    numberOfSubmissions = it.submissions.size
+                    numberOfSubmissions = it.submissions.size,
+                    remainingTime = 0L,
+                    running = false
                 )
             }
         }

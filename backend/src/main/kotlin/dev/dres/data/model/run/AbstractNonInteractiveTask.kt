@@ -4,10 +4,7 @@ import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.template.task.options.TargetOption
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.submissions.batch.ResultBatch
-import dev.dres.run.validation.MediaItemsSubmissionBatchValidator
-import dev.dres.run.validation.TemporalOverlapSubmissionBatchValidator
 import dev.dres.run.validation.TransientMediaSegment
-import dev.dres.run.validation.interfaces.SubmissionBatchValidator
 import kotlinx.dnq.query.*
 
 /**

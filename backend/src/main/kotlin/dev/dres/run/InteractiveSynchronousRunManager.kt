@@ -13,7 +13,7 @@ import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.RunProperties
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
@@ -47,6 +47,7 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
     /** Number of consecutive errors which have to occur within the main execution loop before it tries to gracefully terminate */
     private val maxErrorCount = 5
 
+    /** */
     override val runProperties: RunProperties
     get() = run.properties
 
@@ -65,7 +66,7 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
     /** The list of all [Submission]s tracked ever received by this [InteractiveSynchronousRunManager]. */
     override val allSubmissions: List<Submission>
         get() = this.stateLock.read {
-            this.run.tasks.flatMap { it.submissions }
+            this.run.tasks.flatMap { it.ve }
         }
 
     /** The status of this [RunManager]. */
@@ -102,9 +103,6 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
     /** The internal [MessageQueueUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
     private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
 
-    /** The internal [DAOUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
-    private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
-
     /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
     private val scoresUpdatable =
         ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable, this.daoUpdatable)
@@ -140,7 +138,7 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
 
         /** Re-enqueue pending submissions (if any). */
         this.run.tasks.forEach { run ->
-            run.submissions.filter { it.status == SubmissionStatus.INDETERMINATE }.forEach {
+            run.submissions.filter { it.status == VerdictStatus.INDETERMINATE }.forEach {
                 run.validator.validate(it)
             }
         }
@@ -471,7 +469,7 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
      * @param context The [RunActionContext] used for the invocation
      * @param sub [Submission] that should be registered.
      */
-    override fun postSubmission(context: RunActionContext, sub: Submission): SubmissionStatus = this.stateLock.read {
+    override fun postSubmission(context: RunActionContext, sub: Submission): VerdictStatus = this.stateLock.read {
         assureTaskRunning()
 
         /* Register submission. */
@@ -507,13 +505,13 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
      *
      * @param context The [RunActionContext] used for the invocation
      * @param submissionId The [EvaluationId] of the [Submission] to update.
-     * @param submissionStatus The new [SubmissionStatus]
+     * @param submissionStatus The new [VerdictStatus]
      * @return True on success, false otherwise.
      */
     override fun updateSubmission(
         context: RunActionContext,
         submissionId: EvaluationId,
-        submissionStatus: SubmissionStatus
+        submissionStatus: VerdictStatus
     ): Boolean = this.stateLock.read {
         /* Sanity check. */
         val found = this.allSubmissions.find { it.uid == submissionId } ?: return false
@@ -667,7 +665,7 @@ class InteractiveSynchronousRunManager(private val run: InteractiveSynchronousEv
             ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_BY_DEFAULT
         val correctOnly = option.getAsBool(SimpleOptionParameters.PROLONG_ON_SUBMISSION_CORRECT_PARAM)
             ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_CORRECT_DEFAULT
-        if (correctOnly && sub.status != SubmissionStatus.CORRECT) {
+        if (correctOnly && sub.status != VerdictStatus.CORRECT) {
             return
         }
         val timeLeft = Math.floorDiv(this.timeLeft(context), 1000)

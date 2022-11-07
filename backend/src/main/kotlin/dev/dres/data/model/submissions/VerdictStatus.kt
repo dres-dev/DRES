@@ -1,6 +1,9 @@
 package dev.dres.data.model.submissions
 
+import dev.dres.api.rest.types.competition.tasks.options.ApiTargetOption
+import dev.dres.api.rest.types.evaluation.ApiVerdictStatus
 import dev.dres.data.model.admin.Role
+import dev.dres.data.model.template.task.options.HintOption
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity
 import kotlinx.dnq.XdEnumEntityType
@@ -12,8 +15,8 @@ import kotlinx.dnq.xdRequiredStringProp
  * @author Luca Rossetto
  * @version 2.0.0
  */
-class SubmissionStatus(entity: Entity) : XdEnumEntity(entity) {
-    companion object : XdEnumEntityType<SubmissionStatus>() {
+class VerdictStatus(entity: Entity) : XdEnumEntity(entity) {
+    companion object : XdEnumEntityType<VerdictStatus>() {
         val CORRECT by enumField { description = "CORRECT" }                 /** Submission has been deemed as correct. */
         val WRONG by enumField { description = "WRONG" }
         val INDETERMINATE by enumField { description = "INDETERMINATE" }     /** Submission has been deemed as wrong. */
@@ -38,7 +41,14 @@ class SubmissionStatus(entity: Entity) : XdEnumEntity(entity) {
         }
     }
 
-    /** Name / description of the [SubmissionType]. */
+    /** Name / description of the [VerdictType]. */
     var description by xdRequiredStringProp(unique = true)
         private set
+
+    /**
+     * Converts this [VerdictStatus] to a RESTful API representation [ApiVerdictStatus].
+     *
+     * @return [ApiVerdictStatus]
+     */
+    fun toApi() = ApiVerdictStatus.values().find { it.status == this } ?: throw IllegalStateException("Verdict status ${this.description} is not supported.")
 }

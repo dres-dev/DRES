@@ -2,11 +2,13 @@ package dev.dres.run.score.scorer
 
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.score.TaskContext
 import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
 import dev.dres.run.score.interfaces.ScoreEntry
 import dev.dres.run.score.interfaces.TeamTaskScorer
+import kotlinx.dnq.query.filter
+import kotlinx.dnq.query.toList
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -34,20 +36,19 @@ class KisTaskScorer(
     private val lastScoresLock = ReentrantReadWriteLock()
 
     override fun computeScores(submissions: Collection<Submission>, context: TaskContext): Map<TeamId, Double> = this.lastScoresLock.write {
-
-        val taskStartTime = context.taskStartTime ?: throw IllegalArgumentException("no task start time specified")
-        val taskDuration = context.taskDuration ?: throw IllegalArgumentException("no task duration specified")
-
+        val taskStartTime = context.taskStartTime ?: throw IllegalArgumentException("No task start time specified.")
+        val taskDuration = context.taskDuration ?: throw IllegalArgumentException("No task duration specified.")
         val tDur = max(taskDuration * 1000L, (context.taskEndTime ?: 0) - taskStartTime).toDouble() //actual duration of task, in case it was extended during competition
-
         this.lastScores = context.teamIds.associateWith { teamId ->
-            val sbs = submissions.filter { it.teamId == teamId && (it.status == SubmissionStatus.CORRECT || it.status == SubmissionStatus.WRONG) }.sortedBy { it.timestamp }
-            val firstCorrect = sbs.indexOfFirst { it.status == SubmissionStatus.CORRECT }
+            val verdicts = submissions.filter { it.team.id == teamId }.sortedBy { it.timestamp }.flatMap { sub ->
+                sub.verdicts.filter { (it.status eq VerdictStatus.CORRECT) or (it.status eq VerdictStatus.WRONG) }.toList()
+            }
+            val firstCorrect = verdicts.indexOfFirst { it.status == VerdictStatus.CORRECT }
             val score = if (firstCorrect > -1) {
-                val timeFraction = 1.0 - (sbs[firstCorrect].timestamp - taskStartTime) / tDur
+                val timeFraction = 1.0 - (verdicts[firstCorrect].submission.timestamp - taskStartTime) / tDur
                 max(
                     0.0,
-                    maxPointsAtTaskEnd +
+                    this.maxPointsAtTaskEnd +
                             ((maxPointsPerTask - maxPointsAtTaskEnd) * timeFraction) -
                             (firstCorrect * penaltyPerWrongSubmission) //index of first correct submission is the same as number of not correct submissions
                 )

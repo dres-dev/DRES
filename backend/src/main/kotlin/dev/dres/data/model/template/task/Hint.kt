@@ -55,7 +55,7 @@ class Hint(entity: Entity) : XdEntity(entity) {
     /** The start of a (potential) range. */
     var temporalRangeEnd by xdNullableLongProp { requireIf { type == HintType.VIDEO  } }
 
-    /** Returns the [TemporalRange] of this [TaskDescriptionTarget]. */
+    /** Returns the [TemporalRange] of this [TaskTemplateTarget]. */
     val range: TemporalRange?
         get() = if (this.temporalRangeStart != null && this.temporalRangeEnd != null) {
             TemporalRange(TemporalPoint.Millisecond(this.temporalRangeStart!!), TemporalPoint.Millisecond(this.temporalRangeEnd!!))

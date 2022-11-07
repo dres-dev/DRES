@@ -1,13 +1,21 @@
 package dev.dres.run.validation
 
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.validation.interfaces.SubmissionValidator
+import kotlinx.dnq.query.asSequence
 
-class ChainedSubmissionValidator(private val firstValidator: SubmissionValidator, private val continueStates: Set<SubmissionStatus>, private val secondValidator: SubmissionValidator) : SubmissionValidator {
+/**
+ * A [SubmissionValidator] class that allows for the combination of two [SubmissionValidator]s.
+ *
+ * @author Luca Rossetto
+ * @author Ralph Gasser
+ * @version 1.1.0
+ */
+class ChainedSubmissionValidator(private val firstValidator: SubmissionValidator, private val continueStates: Set<VerdictStatus>, private val secondValidator: SubmissionValidator) : SubmissionValidator {
 
     companion object{
-        fun of(continueStates: Set<SubmissionStatus>, vararg validator: SubmissionValidator) : ChainedSubmissionValidator {
+        fun of(continueStates: Set<VerdictStatus>, vararg validator: SubmissionValidator) : ChainedSubmissionValidator {
             return when {
                 validator.size < 2 -> throw IllegalArgumentException("Chain needs at least two validators")
                 validator.size == 2 -> ChainedSubmissionValidator(validator[0], continueStates, validator[1])
@@ -16,17 +24,22 @@ class ChainedSubmissionValidator(private val firstValidator: SubmissionValidator
         }
     }
 
+    override val deferring: Boolean
+        get() = this.secondValidator.deferring
+
     init {
-        require(!firstValidator.deferring) {"first validator cannot defer validation"}
+        require(!this.firstValidator.deferring) {"First validator cannot be a deferring validation."}
     }
 
+    /**
+     * Validates a [Submission] based on two [SubmissionValidator]s.
+     *
+     * @param submission The [Submission] to validate.
+     */
     override fun validate(submission: Submission) {
-        firstValidator.validate(submission)
-        if (continueStates.contains(submission.status)){
-            secondValidator.validate(submission)
+        this.firstValidator.validate(submission)
+        if (submission.verdicts.asSequence().any { this.continueStates.contains(it.status) }) {
+            this.secondValidator.validate(submission)
         }
     }
-
-    override val deferring: Boolean
-        get() = secondValidator.deferring
 }

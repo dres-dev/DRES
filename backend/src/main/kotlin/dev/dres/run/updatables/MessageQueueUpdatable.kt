@@ -1,21 +1,21 @@
 package dev.dres.run.updatables
 
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
-import dev.dres.data.model.template.TeamId
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunExecutor
+import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
-import dev.dres.utilities.extensions.UID
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
- * A internal queue of [ServerMessage]s that are due for sending by the [RunManager].
+ * An internal queue of [ServerMessage]s that are due for sending by the [RunManager].
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.1.0
  */
 class MessageQueueUpdatable(private val executor: RunExecutor) : Updatable {
 
-    /** The [Phase] this [MessageQueueUpdatable] belongs to. */
+    /** The [MessageQueueUpdatable] always belongs to the [Phase.FINALIZE]. */
     override val phase: Phase = Phase.FINALIZE
 
     /** Internal queue of all [ServerMessage] that are due for sending. */
@@ -26,9 +26,9 @@ class MessageQueueUpdatable(private val executor: RunExecutor) : Updatable {
         var message: Pair<TeamId?, ServerMessage>? = this.messageQueue.poll()
         while (message != null) {
             if (message.first == null) {
-                this.executor.broadcastWsMessage(message.second.runId.UID(), message.second)
+                this.executor.broadcastWsMessage(message.second.evaluationId, message.second)
             } else {
-                this.executor.broadcastWsMessage(message.second.runId.UID(), message.first!!, message.second)
+                this.executor.broadcastWsMessage(message.second.evaluationId, message.first!!, message.second)
             }
             message = this.messageQueue.poll()
         }

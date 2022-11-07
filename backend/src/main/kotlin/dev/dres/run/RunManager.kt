@@ -8,6 +8,8 @@ import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.RunProperties
 import dev.dres.data.model.run.interfaces.TaskRun
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
 
@@ -17,7 +19,7 @@ import dev.dres.run.validation.interfaces.JudgementValidator
  * @see InteractiveSynchronousEvaluation
  *
  * @author Ralph Gasser
- * @version 1.5.0
+ * @version 2.0.0
  */
 interface RunManager : Runnable {
     /** Unique, public [EvaluationId] for this [RunManager]. */
@@ -87,6 +89,24 @@ interface RunManager : Runnable {
      * @return List of [TaskRun] that took place (are taking place).
      */
     fun tasks(context: RunActionContext): List<TaskRun>
+
+    /**
+     * Invoked by an external caller to post a new [Submission] for the [TaskRun] that is currently being
+     * executed by this [InteractiveRunManager]. [Submission]s usually cause updates to the internal state and/or
+     * the [Scoreboard] of this [InteractiveRunManager].
+     *
+     * This method will not throw an exception and instead returns false if a [Submission] was
+     * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
+     * this method again.
+     *
+     *
+     * @param context The [RunActionContext] used for the invocation
+     * @param sub The [Submission] to be posted.
+     *
+     * @return [VerdictStatus] of the [Submission]
+     * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
+     */
+    fun postSubmission(context: RunActionContext, sub: Submission): VerdictStatus
 
     /**
      * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.

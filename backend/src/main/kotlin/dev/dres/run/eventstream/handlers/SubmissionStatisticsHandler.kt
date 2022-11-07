@@ -1,7 +1,7 @@
 package dev.dres.run.eventstream.handlers
 
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.eventstream.*
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -59,12 +59,12 @@ class SubmissionStatisticsHandler : StreamEventHandler {
             (teamId, count) -> writer.println("$task,${teamId.string},\"totalSubmissionsPerTeam\",$count")
         }
         submissionsByTeam.mapValues {
-            it.value.firstOrNull { s -> s.status == SubmissionStatus.CORRECT }?.timestamp?.minus(taskStart) }
+            it.value.firstOrNull { s -> s.status == VerdictStatus.CORRECT }?.timestamp?.minus(taskStart) }
                 .filter { it.value != null }.forEach{
                     (teamId, time) -> writer.println("$task,${teamId.string},\"timeUntilCorrectSubmission\",$time")
                 }
         submissionsByTeam.mapValues {
-            it.value.indexOfFirst { s -> s.status == SubmissionStatus.CORRECT } }.forEach{
+            it.value.indexOfFirst { s -> s.status == VerdictStatus.CORRECT } }.forEach{
             (teamId, count) -> writer.println("$task,${teamId.string},\"incorrectBeforeCorrectSubmissions\",$count")
         }
         writer.flush()

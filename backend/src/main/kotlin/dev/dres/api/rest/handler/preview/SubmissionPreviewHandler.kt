@@ -9,6 +9,7 @@ import dev.dres.utilities.extensions.errorResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.firstOrNull
 
 /**
  * An [AbstractPreviewHandler] used to access previews of [MediaItem]s based on a specific [Submission].
@@ -18,14 +19,14 @@ import jetbrains.exodus.database.TransientEntityStore
  * @version 2.0.0
  */
 class SubmissionPreviewHandler(store: TransientEntityStore, config: Config) : AbstractPreviewHandler(store, config) {
-    override val route: String = "preview/submission/{runId}/{submissionId}"
+    override val route: String = "preview/submission/{evaluationId}/{submissionId}"
 
     @OpenApi(
         summary = "Returns a preview image for a specific submission.",
-        path = "/api/v1/preview/submission/{runId}/{submissionId}",
+        path = "/api/v1/preview/submission/{evaluationId}/{submissionId}",
         pathParams = [
-            OpenApiParam("runId", String::class, "Competition ID"),
-            OpenApiParam("submissionId", String::class, "Subission ID")
+            OpenApiParam("evaluationId", String::class, "The evaluation ID."),
+            OpenApiParam("submissionId", String::class, "The submission ID")
         ],
         tags = ["Media"],
         responses = [OpenApiResponse(
@@ -43,14 +44,18 @@ class SubmissionPreviewHandler(store: TransientEntityStore, config: Config) : Ab
             val run = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Competition Run $runId not found", ctx)
             if (run !is InteractiveRunManager) throw ErrorStatusException(404, "Competition Run $runId is not interactive", ctx)
 
+            /* TODO: Make this work for batched submissions ? */
+
             val submission = run.allSubmissions.find { it.id == submissionId }
+                ?: throw ErrorStatusException(404, "Submission '$submissionId' not found", ctx)
+            val verdict = submission.verdicts.firstOrNull()
                 ?: throw ErrorStatusException(404, "Submission '$submissionId' not found", ctx)
 
             when {
-                submission.item != null -> {
-                    handlePreviewRequest(submission.item!!, if (submission.start != null) submission.start else null, ctx)
+                verdict.item != null -> {
+                    handlePreviewRequest(verdict.item!!, if (verdict.start != null) verdict.start else null, ctx)
                 }
-                submission.text != null -> {
+                verdict.text != null -> {
                     ctx.header("Cache-Control", "max-age=31622400")
                     ctx.contentType("image/png")
                     ctx.result(this.javaClass.getResourceAsStream("/img/text.png")!!)

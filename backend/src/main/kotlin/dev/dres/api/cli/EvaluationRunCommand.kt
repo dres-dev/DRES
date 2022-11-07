@@ -14,7 +14,7 @@ import dev.dres.data.model.run.EvaluationId
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionId
-import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.*
 import dev.dres.utilities.extensions.toDateString
 import jetbrains.exodus.database.TransientEntityStore
@@ -131,7 +131,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                                 it.name,
                                 it.template.description,
                                 if (it.type == RunType.INTERACTIVE_SYNCHRONOUS) {
-                                    it.tasks.firstOrNull()?.description?.name ?: "N/A"
+                                    it.tasks.firstOrNull()?.template?.name ?: "N/A"
                                 } else {
                                     "N/A"
                                 }
@@ -157,7 +157,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                                     it.name,
                                     it.template.description,
                                     if (it.type == RunType.INTERACTIVE_SYNCHRONOUS) {
-                                        it.tasks.firstOrNull()?.description?.name ?: "N/A"
+                                        it.tasks.firstOrNull()?.template?.name ?: "N/A"
                                     } else {
                                         "N/A"
                                     },
@@ -197,8 +197,8 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                 println()
                 println("Evaluated Tasks:")
                 it.tasks.asSequence().forEach { t ->
-                    println(t.description)
-                    if (t.type == RunType.INTERACTIVE_SYNCHRONOUS) {
+                    println(t.template)
+                    if (t.evaluation.type == RunType.INTERACTIVE_SYNCHRONOUS) {
                         println("Submissions")
                         t.submissions.asSequence().forEach { s -> println(s) }
                     }
@@ -329,7 +329,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                 var query = if (this.taskIds.isNotEmpty()) {
                     evaluation.tasks.filter { it.id.isIn(this@ResetSubmission.taskIds) }.flatMapDistinct { it.submissions }
                 } else if (this.taskGroups.isNotEmpty()) {
-                    evaluation.tasks.filter { it.description.taskGroup.name.isIn(this@ResetSubmission.taskGroups) }.flatMapDistinct { it.submissions }
+                    evaluation.tasks.filter { it.template.taskGroup.name.isIn(this@ResetSubmission.taskGroups) }.flatMapDistinct { it.submissions }
                 } else {
                     evaluation.tasks.flatMapDistinct { it.submissions }
                 }
@@ -341,7 +341,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                 var affected = 0
                 query.asSequence().forEach {
                     affected += 1
-                    it.status = SubmissionStatus.INDETERMINATE
+                    it.status = VerdictStatus.INDETERMINATE
                 }
 
                 println("Successfully reset $affected} submissions.")
@@ -372,7 +372,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
             }
 
             val tasks = evaluation.tasks.filter {
-                it.description.targets.filter { it.type.isIn(listOf(TargetType.JUDGEMENT,TargetType.JUDGEMENT_WITH_VOTE)) }.isNotEmpty()
+                it.template.targets.filter { it.type.isIn(listOf(TargetType.JUDGEMENT,TargetType.JUDGEMENT_WITH_VOTE)) }.isNotEmpty()
             }
 
             if (tasks.isEmpty) {
@@ -390,7 +390,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                         submittedItems.entries.forEach { items ->
                             val status = items.value.map { s -> s.status }.toSet() //should only contain one element
                             writeRow(
-                                listOf(task.id, task.description.name, items.key.first, items.key.second, items.key.third, status)
+                                listOf(task.id, task.template.name, items.key.first, items.key.second, items.key.third, status)
                             )
                         }
                     }

@@ -1,7 +1,7 @@
 package dev.dres.run.validation.judged
 
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.Verdict
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.validation.interfaces.VoteValidator
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -17,7 +17,7 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
     )
 
     init {
-        require(minimumVotes > 0) {"minimum vote count cannot be <= 0"}
+        require(this.minimumVotes > 0) { "Minimum vote count cannot be <= 0" }
     }
 
     companion object {
@@ -25,8 +25,8 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
         private val defaultVoteDifference = 1
     }
 
-    private val submissionQueue = ConcurrentLinkedQueue<Submission>()
-    private val voteCountMap = ConcurrentHashMap<SubmissionStatus, Int>()
+    private val submissionQueue = ConcurrentLinkedQueue<Verdict>()
+    private val voteCountMap = ConcurrentHashMap<VerdictStatus, Int>()
     private val updateLock = ReentrantReadWriteLock()
 
     override val isActive: Boolean
@@ -35,24 +35,19 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
     override val voteCount: Map<String, Int>
         get() = voteCountMap.mapKeys { it.toString() }
 
-    override fun vote(verdict: SubmissionStatus) = updateLock.write {
-
-        if (verdict == SubmissionStatus.INDETERMINATE || verdict == SubmissionStatus.UNDECIDABLE){ //should not happen anyway but will be ignored in case it does
+    override fun vote(status: VerdictStatus) = updateLock.write {
+        if (status == VerdictStatus.INDETERMINATE || status == VerdictStatus.UNDECIDABLE){ //should not happen anyway but will be ignored in case it does
             return@write
         }
 
-        val submission = submissionQueue.firstOrNull() ?: return@write
-
-        voteCountMap[verdict] = 1 + voteCountMap.getOrDefault(verdict, 0)
+        val verdict = this.submissionQueue.firstOrNull() ?: return@write
+        this.voteCountMap[status] = 1 + this.voteCountMap.getOrDefault(status, 0)
 
         if (enoughVotes()){
-
-            val finalVerdict = voteCountMap.entries.maxByOrNull { it.value }!!.key
-            submission.status = finalVerdict
-
-            submissionQueue.poll()
-            voteCountMap.clear()
-
+            val finalVerdict = this.voteCountMap.entries.maxByOrNull { it.value }!!.key
+            verdict.status = finalVerdict
+            this.submissionQueue.poll()
+            this.voteCountMap.clear()
         }
     }
 
@@ -64,19 +59,16 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
         return max - others >= voteDifference
     }
 
-    override fun nextSubmissionToVoteOn(): Submission? = submissionQueue.firstOrNull() //TODO maybe add timeout mechanism?
+    override fun nextSubmissionToVoteOn(): Verdict? = submissionQueue.firstOrNull() //TODO maybe add timeout mechanism?
 
     //siphon of undecidable submission from logic of super class
-    override fun judge(token: String, verdict: SubmissionStatus) {
-        val submission = super.processSubmission(token, verdict)
-        if (submission != null) {
-            when(verdict){
-                SubmissionStatus.CORRECT,
-                SubmissionStatus.WRONG -> submission.status = verdict
-                SubmissionStatus.INDETERMINATE -> {}
-                SubmissionStatus.UNDECIDABLE -> submissionQueue.add(submission)
-            }
-
+    override fun judge(token: String, status: VerdictStatus) {
+        val verdict = super.processSubmission(token, status)
+        when (status){
+            VerdictStatus.CORRECT,
+            VerdictStatus.WRONG -> verdict.status = status
+            VerdictStatus.INDETERMINATE -> {}
+            VerdictStatus.UNDECIDABLE -> this.submissionQueue.add(verdict)
         }
     }
 }

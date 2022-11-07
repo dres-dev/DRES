@@ -13,7 +13,7 @@ import dev.dres.data.model.template.TeamId
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
 import dev.dres.run.exceptions.IllegalRunStateException
@@ -67,9 +67,6 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
 
     /** The internal [MessageQueueUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
     private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
-
-    /** The internal [DAOUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
-    private val daoUpdatable = DAOUpdatable(RunExecutor.runs, this.run)
 
     /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
     private val scoresUpdatable =
@@ -144,7 +141,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
 
         /** Re-enqueue pending submissions for judgement (if any). */
         this.run.tasks.forEach { run ->
-            run.submissions.filter { it.status == SubmissionStatus.INDETERMINATE }.forEach {
+            run.submissions.filter { it.status == VerdictStatus.INDETERMINATE }.forEach {
                 run.validator.validate(it)
             }
         }
@@ -514,10 +511,10 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      * @param context The [RunActionContext] used for the invocation
      * @param sub The [Submission] to be posted.
      *
-     * @return [SubmissionStatus] of the [Submission]
+     * @return [VerdictStatus] of the [Submission]
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    override fun postSubmission(context: RunActionContext, sub: Submission): SubmissionStatus = this.stateLock.read {
+    override fun postSubmission(context: RunActionContext, sub: Submission): VerdictStatus = this.stateLock.read {
         require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         //checkTeamStatus(context.teamId, RunManagerStatus.RUNNING_TASK)
         require(teamHasRunningTask(context.teamId)) { "No running task for Team ${context.teamId}" }
@@ -544,7 +541,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
     }
 
     /**
-     * Invoked by an external caller to update an existing [Submission] by its [Submission.uid] with a new [SubmissionStatus].
+     * Invoked by an external caller to update an existing [Submission] by its [Submission.uid] with a new [VerdictStatus].
      * [Submission]s usually cause updates to the internal state and/or the [Scoreboard] of this [InteractiveAsynchronousRunManager].
      *
      * This method will not throw an exception and instead returns false if a [Submission] was
@@ -553,14 +550,14 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
      *
      * @param context The [RunActionContext] used for the invocation
      * @param submissionId The [EvaluationId] of the [Submission] to update.
-     * @param submissionStatus The new [SubmissionStatus]
+     * @param submissionStatus The new [VerdictStatus]
      *
      * @return Whether the update was successful or not
      */
     override fun updateSubmission(
         context: RunActionContext,
         submissionId: EvaluationId,
-        submissionStatus: SubmissionStatus
+        submissionStatus: VerdictStatus
     ): Boolean = this.stateLock.read {
         val found = this.allSubmissions.find { it.uid == submissionId } ?: return false
 

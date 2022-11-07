@@ -4,6 +4,8 @@ import dev.dres.api.cli.Cli
 import dev.dres.api.cli.OpenApiCommand
 import dev.dres.api.rest.RestApi
 import dev.dres.data.model.Config
+import dev.dres.data.model.admin.Role
+import dev.dres.data.model.admin.User
 import dev.dres.data.model.audit.AuditLogEntry
 import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.data.model.audit.AuditLogType
@@ -17,6 +19,12 @@ import dev.dres.data.model.media.MediaCollection
 import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.MediaSegment
 import dev.dres.data.model.media.MediaType
+import dev.dres.data.model.run.Evaluation
+import dev.dres.data.model.run.Task
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.Verdict
+import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.VerdictType
 import dev.dres.mgmt.admin.UserManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.audit.AuditLogger
@@ -97,28 +105,36 @@ object DRES {
      */
     private fun prepareDatabase(config: Config): TransientEntityStore  {
         XdModel.registerNodes(
+            AuditLogEntry,
             AuditLogSource,
             AuditLogType,
-            AuditLogEntry,
+            ConfiguredOption,
+            Evaluation,
+            EvaluationTemplate,
+            Hint,
+            HintOption,
+            HintType,
             MediaType,
             MediaCollection,
             MediaItem,
             MediaSegment,
-            ConfiguredOption,
-            HintOption,
-            TaskOption,
+            Role,
             ScoreOption,
+            Submission,
             SubmissionOption,
-            TargetOption,
-            EvaluationTemplate,
-            TaskTemplate,
-            Team,
-            TeamGroup,
-            TeamAggregator,
-            HintType,
-            Hint,
             TargetType,
-            TaskDescriptionTarget
+            TargetOption,
+            Task,
+            TaskTemplate,
+            TaskTemplateTarget,
+            TaskOption,
+            Team,
+            TeamAggregator,
+            TeamGroup,
+            User,
+            Verdict,
+            VerdictType,
+            VerdictStatus,
         )
         val store = StaticStoreContainer.init(dbFolder = File(config.dataPath), entityStoreName = "dres-db")
         initMetaData(XdModel.hierarchy, store)

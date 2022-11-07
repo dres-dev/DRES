@@ -36,7 +36,7 @@ abstract class AbstractEvaluationAdminHandler(protected val store: TransientEnti
     protected fun getManager(evaluationId: EvaluationId): InteractiveRunManager? {
         val run = RunExecutor.managerForId(evaluationId)
         if (run != null && run is InteractiveRunManager) {
-            run
+            return run
         }
         return null
     }

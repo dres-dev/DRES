@@ -1,25 +1,24 @@
 package dev.dres.run.score.scorer
 
 import dev.dres.data.model.template.team.TeamId
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
-import dev.dres.data.model.submissions.aspects.StatusAspect
-import dev.dres.data.model.submissions.batch.ResultBatch
-import dev.dres.run.score.interfaces.ResultBatchTaskScorer
 import dev.dres.run.score.interfaces.ScoreEntry
+import dev.dres.run.score.interfaces.TaskScorer
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
-import kotlin.concurrent.write
 
-class InferredAveragePrecisionScorer : ResultBatchTaskScorer {
+/**
+ * @author Luca Rossetto
+ * @version 1.0.0
+ */
+class InferredAveragePrecisionScorer : TaskScorer {
 
     companion object {
 
         private val epsilon = 0.01 //TODO check what TRECVID uses
 
-
+        // TODO: Fix and make purpose and functionality of class explicit through proper documentation.
         //see https://www-nlpir.nist.gov/projects/tv2006/infap/inferredAP.pdf
-        fun infAP(elements: List<StatusAspect>): Double {
+        /*fun infAP(elements: List<StatusAspect>): Double {
 
             if (elements.isEmpty()) {
                 return 0.0
@@ -34,7 +33,7 @@ class InferredAveragePrecisionScorer : ResultBatchTaskScorer {
 
                 val k = index + 1.0
                 when(statusAspect.status) {
-                    SubmissionStatus.CORRECT -> {
+                    VerdictStatus.CORRECT -> {
                         ++judgements // |d100|
                         ++correct // |rel|
 
@@ -49,7 +48,7 @@ class InferredAveragePrecisionScorer : ResultBatchTaskScorer {
                         infAPSum += ap
 
                     }
-                    SubmissionStatus.WRONG -> {
+                    VerdictStatus.WRONG -> {
                         ++judgements
                         ++wrong // |nonrel|
                     }
@@ -68,20 +67,22 @@ class InferredAveragePrecisionScorer : ResultBatchTaskScorer {
 
         fun score(submissions: List<Submission>): Double = infAP(submissions)
         fun score(batch: ResultBatch<*>): Double = infAP(batch.results)
-
+        */
     }
 
-    private var lastScores: MutableMap<Pair<TeamId, String>, Double> = mutableMapOf()
-    private val lastScoresLock = ReentrantReadWriteLock()
 
-    override fun computeScores(batch: ResultBatch<*>): Double = this.lastScoresLock.write {
+    /*override fun computeScores(batch: ResultBatch<*>): Double = this.lastScoresLock.write {
         val score = score(batch)
         this.lastScores[batch.teamId to batch.name] = score
         return@write score
-    }
+    }*/
+
+    private var lastScores: MutableMap<Pair<TeamId, String>, Double> = mutableMapOf()
+
+    private val lastScoresLock = ReentrantReadWriteLock()
+
 
     override fun scores(): List<ScoreEntry> = this.lastScoresLock.read {
         this.lastScores.map { ScoreEntry(it.key.first, it.key.second, it.value) }
     }
-
 }

@@ -1,5 +1,6 @@
 package dev.dres.run.eventstream.handlers
 
+import dev.dres.data.model.run.EvaluationId
 import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.eventstream.*
@@ -10,12 +11,27 @@ import dev.dres.run.score.interfaces.TeamTaskScorer
 import java.io.File
 import java.io.PrintWriter
 
+/**
+ *
+ */
 class TeamCombinationScoreHandler : StreamEventHandler {
 
     private val writer = PrintWriter(File("statistics/combined_team_scores_${System.currentTimeMillis()}.csv").also { it.parentFile.mkdirs() })
 
+    /**
+     *
+     */
     private val tasks = mutableMapOf<EvaluationId, TaskTemplate>()
+
+    /**
+     *
+     */
+
     private val taskStartMap = mutableMapOf<EvaluationId, Long>()
+
+    /**
+     *
+     */
     private val submissionTaskMap = mutableMapOf<EvaluationId, MutableList<Submission>>()
 
     init {
@@ -45,7 +61,7 @@ class TeamCombinationScoreHandler : StreamEventHandler {
 
                 val submissions = submissionTaskMap[event.taskId] ?: return
 
-                val teams = submissions.map { it.teamId }.toSet().toList().sortedBy { it.string }
+                val teams = submissions.map { it.team.teamId }.toSet().toList().sortedBy { it }
 
                 val combinations = teams.mapIndexed { firstIndex, uidA ->
                     teams.mapIndexed {secondIndex, uidB -> if (firstIndex > secondIndex) (uidA to uidB) else null}
@@ -53,7 +69,7 @@ class TeamCombinationScoreHandler : StreamEventHandler {
 
                 val combinedSubmissions = submissions.flatMap { submission ->
                     combinations.map {
-                        if (it.value.first == submission.teamId || it.value.second == submission.teamId) {
+                        if (it.value.first == submission.team.teamId || it.value.second == submission.team.teamId) {
                             when (submission) {
                                 is Submission.Item -> submission.copy(teamId = it.key).apply { this.status = submission.status }
                                 is Submission.Temporal -> submission.copy(teamId = it.key).apply { this.status = submission.status }
@@ -97,9 +113,6 @@ class TeamCombinationScoreHandler : StreamEventHandler {
 
             }
             else -> { /* ignore */ }
-
         }
-
     }
-
 }

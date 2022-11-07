@@ -1,12 +1,21 @@
 package dev.dres.run.validation
 
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
-import dev.dres.data.model.submissions.aspects.TextAspect
+import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.VerdictType
 import dev.dres.run.validation.interfaces.SubmissionValidator
+import kotlinx.dnq.query.asSequence
 
-
+/**
+ * A [SubmissionValidator] class that valiadates textual submissions based on [Regex].
+ *
+ * @author Luca Rossetto
+ * @author Ralph Gasser
+ * @version 1.1.0
+ */
 class TextValidator(targets: List<String>) : SubmissionValidator {
+
+    override val deferring = false
 
     /**
      * Transforms the targets to [Regex]s.
@@ -32,19 +41,31 @@ class TextValidator(targets: List<String>) : SubmissionValidator {
         }
     }
 
+    /**
+     * Validates a textual [Submission] based on the provided [Regex].
+     *
+     * @param submission The [Submission] to validate.
+     */
     override fun validate(submission: Submission) {
+        submission.verdicts.asSequence().forEach { verdict ->
+            /* Perform sanity checks. */
+            if (verdict.type != VerdictType.TEXT) {
+                verdict.status = VerdictStatus.WRONG
+                return@forEach
+            }
 
-        if (submission !is TextAspect) {
-            submission.status = SubmissionStatus.WRONG
-            return
-        }
+            /* Perform text validation. */
+            val text = verdict.text
+            if (text == null) {
+                verdict.status = VerdictStatus.WRONG
+                return@forEach
+            }
 
-        if (regex.any { it matches submission.text })  {
-            submission.status = SubmissionStatus.CORRECT
-        } else {
-            submission.status = SubmissionStatus.WRONG
+            if (regex.any { it matches text })  {
+                verdict.status = VerdictStatus.CORRECT
+            } else {
+                verdict.status = VerdictStatus.WRONG
+            }
         }
     }
-
-    override val deferring = false
 }

@@ -11,5 +11,6 @@ import dev.dres.data.model.media.MediaType
  */
 enum class ApiMediaType(val type: MediaType) {
     IMAGE(MediaType.IMAGE),
-    VIDEO(MediaType.VIDEO)
+    VIDEO(MediaType.VIDEO),
+    TEXT(MediaType.TEXT)
 }

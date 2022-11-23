@@ -21,7 +21,6 @@ import {
 import { BehaviorSubject, combineLatest, merge, Observable, of, Subscription } from 'rxjs';
 import {
   catchError,
-  delay,
   filter,
   flatMap,
   map,
@@ -271,29 +270,48 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
    * @param teamId The team's uid.
    */
   public submissionForTeam(teamId: string): Observable<SubmissionInfo[]> {
-    return this.submissionsPerTeam.pipe(
-      map((s) => {
-        if (s != null) {
-          return s.get(teamId);
-        } else {
-          return [];
-        }
-      })
-    );
+    return combineLatest([this.info, this.submissionsPerTeam]).pipe(
+        map(([i, s]) => {
+          if (s != null) {
+            if (i.properties.limitSubmissionPreviews > 0) {
+              return s.get(teamId).slice(0, i.properties.limitSubmissionPreviews)
+            } else {
+              return s.get(teamId)
+            }
+          } else {
+            return [];
+          }
+        })
+    )
   }
 
+ /**
+  * Returns the number of correct submissions for the provided team.
+  *
+  * @param teamId The teamId of the team.
+  */
   public correctSubmissions(teamId: string): Observable<number> {
     return this.submissionsPerTeam.pipe(
       map((submissions) => submissions.get(teamId).filter((s) => s.status === 'CORRECT').length)
     );
   }
 
+ /**
+  * Returns the number of correct submissions for the provided team.
+  *
+  * @param teamId The teamId of the team.
+  */
   public wrongSubmissions(teamId: string): Observable<number> {
     return this.submissionsPerTeam.pipe(
       map((submissions) => submissions.get(teamId).filter((s) => s.status === 'WRONG').length)
     );
   }
 
+ /**
+  * Returns the number of correct submissions for the provided team.
+  *
+  * @param teamId The teamId of the team.
+  */
   public indeterminate(teamId: string): Observable<number> {
     return this.submissionsPerTeam.pipe(
       map((submissions) => submissions.get(teamId).filter((s) => s.status === 'INDETERMINATE').length)

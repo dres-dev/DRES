@@ -12,6 +12,7 @@ import java.lang.Double.max
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import kotlin.math.abs
 
 /**
  * The new AVS Scorer.
@@ -25,7 +26,7 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
 
 
     constructor(parameters: Map<String, String>) : this(
-        parameters.getOrDefault("penalty", "$defaultPenalty").toDoubleOrNull() ?: defaultPenalty,
+        abs(parameters.getOrDefault("penalty", "$defaultPenalty").toDoubleOrNull() ?: defaultPenalty),
         parameters.getOrDefault("maxPointsPerTask", "$defaultMaxPointsPerTask").toDoubleOrNull()
             ?: defaultMaxPointsPerTask
     )
@@ -65,7 +66,7 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
                             val firstCorrectIdx = it.value.sortedBy { s -> s.timestamp }
                                 .indexOfFirst { s -> s.status == SubmissionStatus.CORRECT }
                             if (firstCorrectIdx < 0) { //no correct submissions, only penalty
-                                it.value.size * penaltyConstant
+                                it.value.size * -penaltyConstant
                             } else { //apply penalty for everything before correct submission
                                 1.0 - firstCorrectIdx * penaltyConstant
                             }

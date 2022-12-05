@@ -9,6 +9,7 @@ export interface CompetitionStartDialogResult {
   participantCanView: boolean;
   allowRepeatedTasks: boolean;
   shuffleTasks: boolean;
+  limit: Number;
 }
 
 @Component({
@@ -22,6 +23,7 @@ export class CompetitionStartDialogComponent {
     participantsCanView: new FormControl(true),
     shuffleTasks: new FormControl(false),
     allowRepeatedTasks: new FormControl(false),
+    limit: new FormControl(0)
   });
   runTypes: CompetitionStartMessage.TypeEnum[] = ['SYNCHRONOUS', 'ASYNCHRONOUS'];
 
@@ -37,6 +39,7 @@ export class CompetitionStartDialogComponent {
         participantCanView: this.form.get('participantsCanView').value,
         allowRepeatedTasks: this.form.get('allowRepeatedTasks').value,
         shuffleTasks: this.form.get('shuffleTasks').value,
+        limit: this.form.get('limit').value
       } as CompetitionStartDialogResult);
     }
   }

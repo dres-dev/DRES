@@ -1,6 +1,5 @@
 package dev.dres.api.rest.handler
 
-import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.RestApiRole
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.dbo.DAO
@@ -25,12 +24,9 @@ import io.javalin.plugin.openapi.annotations.OpenApiContent
 import io.javalin.plugin.openapi.annotations.OpenApiParam
 import io.javalin.plugin.openapi.annotations.OpenApiResponse
 import java.io.File
-import java.io.FileNotFoundException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 
 abstract class AbstractPreviewHandler(
     private val collections: DAO<MediaCollection>,
@@ -40,9 +36,6 @@ abstract class AbstractPreviewHandler(
     override val apiVersion = "v1"
     override val permittedRoles = setOf(RestApiRole.VIEWER)
     private val cacheLocation = Paths.get(config.cachePath + "/previews")
-
-//    private val waitingMap = ConcurrentHashMap<Path, Long>()
-//    private val timeOut = 10_000
 
     protected fun handlePreviewRequest(collectionId: UID, itemName: String, time: Long?, ctx: Context) {
 
@@ -56,8 +49,8 @@ abstract class AbstractPreviewHandler(
 
     }
 
-    private val missingImage = this.javaClass.getResourceAsStream("/img/missing.png")!!.readAllBytes()
-    private val waitingImage = this.javaClass.getResourceAsStream("/img/loading.png")!!.readAllBytes()
+    //private val missingImage = this.javaClass.getResourceAsStream("/img/missing.png")!!.readAllBytes()
+    //private val waitingImage = this.javaClass.getResourceAsStream("/img/loading.png")!!.readAllBytes()
 
     protected fun handlePreviewRequest(item: MediaItem, time: Long?, ctx: Context) {
 
@@ -91,30 +84,12 @@ abstract class AbstractPreviewHandler(
             if (Files.exists(imgPath)) { //if file is available, send contents immediately
                 ctx.header("Cache-Control", "max-age=31622400")
                 ctx.sendFile(imgPath.toFile())
-            } else { //if not, wait for it if necessary
+            } else { //if not, schedule and return error
 
-                val future = FFmpegUtil.executeFFmpegAsync(Path.of(collection.basePath, item.location), time, imgPath)
+                FFmpegUtil.extractFrame(Path.of(collection.basePath, item.location), time, imgPath)
+                ctx.status(408)
+                ctx.header("Cache-Control", "max-age=30")
 
-                val waitTime = if (RestApi.readyThreadCount > 500) {
-                    3L
-                } else {
-                    1L
-                }
-
-                try {
-                    val path = future.get(waitTime, TimeUnit.SECONDS) ?: throw FileNotFoundException()
-                    ctx.sendFile(path.toFile())
-                } catch (e: TimeoutException) {
-                    ctx.status(408)
-                    ctx.header("Cache-Control", "max-age=30")
-                    ctx.contentType("image/png")
-                    ctx.result(waitingImage)
-                } catch (t: Throwable) {
-                    ctx.status(429)
-                    ctx.header("Cache-Control", "max-age=600")
-                    ctx.contentType("image/png")
-                    ctx.result(missingImage)
-                }
             }
         }
     }
@@ -220,11 +195,13 @@ class SubmissionPreviewHandler(
                         if (submission is TemporalSubmissionAspect) submission.start else null, ctx
                     )
                 }
+
                 is TextAspect -> {
                     ctx.header("Cache-Control", "max-age=31622400")
                     ctx.contentType("image/png")
                     ctx.result(this.javaClass.getResourceAsStream("/img/text.png")!!)
                 }
+
                 else -> {
                     ctx.header("Cache-Control", "max-age=31622400")
                     ctx.contentType("image/png")

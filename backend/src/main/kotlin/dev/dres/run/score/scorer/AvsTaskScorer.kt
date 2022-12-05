@@ -1,6 +1,7 @@
 package dev.dres.run.score.scorer
 
 import dev.dres.data.model.UID
+import dev.dres.data.model.basics.media.MediaItem
 import dev.dres.data.model.competition.TeamId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
@@ -9,58 +10,57 @@ import dev.dres.run.score.ScoreEntry
 import dev.dres.run.score.TaskContext
 import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
 import dev.dres.run.score.interfaces.TeamTaskScorer
+import dev.dres.utilities.TimeUtil
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-/**
- * The new AVS Scorer.
- */
-class AvsTaskScorer(private val penaltyConstant: Double) : RecalculatingSubmissionTaskScorer,
-    TeamTaskScorer {
+class AvsTaskScorer: RecalculatingSubmissionTaskScorer, TeamTaskScorer {
 
     private var lastScores: Map<TeamId, Double> = emptyMap()
     private val lastScoresLock = ReentrantReadWriteLock()
 
+    override fun computeScores(submissions: Collection<Submission>, context: TaskContext): Map<UID, Double> {
 
-    constructor(parameters: Map<String, String>) : this(
-        parameters.getOrDefault("submissionWindow", "$defaultSubmissionWindow").toDoubleOrNull()
-            ?: defaultSubmissionWindow
-    )
+        val correctSubmissions = submissions.filter { it.status == SubmissionStatus.CORRECT }
+        val wrongSubmissions = submissions.filter { it.status == SubmissionStatus.WRONG }
 
-    companion object {
-        const val defaultSubmissionWindow: Double = 5.0
-    }
+        val correctSubmissionsPerTeam = correctSubmissions.groupBy { it.teamId }
+        val wrongSubmissionsPerTeam = wrongSubmissions.groupBy { it.teamId }
 
-    override fun computeScores(
-        submissions: Collection<Submission>,
-        context: TaskContext
-    ): Map<TeamId, Double> {
-        val distinctVideos = mutableSetOf<UID>()
+        val totalCorrectQuantized = countQuantized(correctSubmissions).toDouble()
+
         lastScores = this.lastScoresLock.write {
-            submissions.filter { it is ItemAspect }.groupBy { it.teamId }.map { subsPerTeam ->
-                subsPerTeam.key to
-                        subsPerTeam.value.groupBy { sub ->
-                            sub as ItemAspect
-                            sub.item
-                        }.map {
-                            val firstCorrectIdx = it.value.sortedBy { it.timestamp }
-                                .indexOfFirst { it.status == SubmissionStatus.CORRECT }
+            context.teamIds.map { teamid ->
 
-                            val c = if (firstCorrectIdx == -1
-                            ) {
-                                0.0
-                            } else {
-                                distinctVideos.add(it.key.id)
-                                1.0
-                            }
-                            c - firstCorrectIdx * penaltyConstant
-                        }.sum()
-            }.toMap().mapValues { it.value / distinctVideos.size }
+                val correctSubs = correctSubmissionsPerTeam[teamid] ?: return@map teamid to 0.0
 
+                val correct = correctSubs.size
+
+                val wrong = wrongSubmissionsPerTeam[teamid]?.size ?: 0
+
+                teamid to 100.0 *
+                        (correct / (correct + wrong / 2.0)) *
+                        (countQuantized(correctSubs).toDouble() / totalCorrectQuantized)
+            }.toMap()
         }
 
+
         return teamScoreMap()
+    }
+
+    private fun countQuantized(submissions: Collection<Submission>): Int {
+
+        return submissions.filterIsInstance<ItemAspect>().groupBy { it.item }.map {
+            when(it.key) {
+                is MediaItem.ImageItem -> 1
+                is MediaItem.VideoItem -> {
+                    val ranges = it.value.map { s -> (s as Submission.Temporal).temporalRange }
+                    TimeUtil.merge(ranges, overlap = 1).size
+                }
+            }
+        }.sum()
+
     }
 
     override fun teamScoreMap(): Map<TeamId, Double> = this.lastScoresLock.read { this.lastScores }
@@ -68,4 +68,6 @@ class AvsTaskScorer(private val penaltyConstant: Double) : RecalculatingSubmissi
     override fun scores(): List<ScoreEntry> = this.lastScoresLock.read {
         this.lastScores.map { ScoreEntry(it.key, null, it.value) }
     }
+
+
 }

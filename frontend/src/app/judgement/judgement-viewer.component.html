@@ -3,8 +3,8 @@
     <app-back-button></app-back-button>
     <h1>Judgment for Submission</h1>
     <div fxLayout="row" fxLayoutAlign="space-between start" class="header-container">
-      <div  fxFlex="75" class="header-main">
-        <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> <span>{{ judgementRequest?.taskDescription }}</span></p>
+      <div fxFlex="75" class="header-main">
+        <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> <span class="mat-h1">{{ judgementRequest?.taskDescription }}</span></p>
         <p *ngIf="debug && isJudgmentAvailable">{{ judgePlayer?.videoUrlDebug | async }}</p>
         <div class="message" *ngIf="!isJudgmentAvailable">{{ noJudgementMessage }}</div>
       </div>
@@ -30,9 +30,9 @@
       <div fxLayoutAlign="center" fxFlex="33" class="button-wrapper">
         <button
           mat-fab
-          color="primary"
+          style="background-color: limegreen; color: white;"
           aria-label="Approve Submission"
-          matTooltip="Approve Submission"
+          matTooltip="Approve Submission, shortcuts: a, c"
           (click)="judge('CORRECT')"
         >
           <mat-icon>thumb_up</mat-icon>
@@ -41,16 +41,21 @@
       <div fxLayoutAlign="center" fxFlex="33" class="button-wrapper">
         <button
           mat-fab
-          color="accent"
+          style="background-color: blue; color: white"
           aria-label="Submission Unclear"
-          matTooltip="Submission Unclear"
+          matTooltip="Submission Unclear, shortcut: u"
           (click)="judge('UNDECIDABLE')"
         >
           <mat-icon>live_help</mat-icon>
         </button>
       </div>
       <div fxLayoutAlign="center" fxFlex="33" class="button-wrapper">
-        <button mat-fab color="warn" aria-label="Reject Submission" matTooltip="Reject Submission" (click)="judge('WRONG')">
+        <button
+          mat-fab
+          style="background-color: red; color: white"
+          aria-label="Reject Submission"
+          matTooltip="Reject Submission, shortcut: r, w"
+          (click)="judge('WRONG')">
           <mat-icon>thumb_down</mat-icon>
         </button>
       </div>

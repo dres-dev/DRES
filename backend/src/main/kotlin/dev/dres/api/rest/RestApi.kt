@@ -53,7 +53,7 @@ object RestApi {
          * Did you follow our convention?
          *  - `GET  <entity>/{<entityId>}` with entity being an entity of the system in singular. Note the id is prefixed with the entity name
          *  - `GET <entity>/list` with entity being an entity of the system in singular, returning a list of all of these entities
-         *  - Above naming scheme applies also for nested / context sensitive entities
+         *  - Above naming scheme applies also for nested / context-sensitive entities
          *  - REST conventions for `POST`, `PATCH` and `DELETE` methods apply
          */
         val apiRestHandlers = listOf(
@@ -182,6 +182,8 @@ object RestApi {
 
             // Status
             CurrentTimeHandler(),
+            InfoHandler(),
+            AdminInfoHandler(),
 
             //API Client
             ListCompetitionRunClientInfoHandler(),

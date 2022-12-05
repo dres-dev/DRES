@@ -4185,6 +4185,54 @@
         }
       }
     },
+    "/api/v1/status/info" : {
+      "get" : {
+        "tags" : [ "Status" ],
+        "summary" : "Returns an overview of the server properties.",
+        "operationId" : "getApiV1StatusInfo",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DresInfo"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/status/info/admin" : {
+      "get" : {
+        "tags" : [ "Status" ],
+        "summary" : "Returns an extensive overview of the server properties.",
+        "operationId" : "getApiV1StatusInfoAdmin",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DresAdminInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/client/run/info/list" : {
       "get" : {
         "tags" : [ "Client Run Info" ],
@@ -4655,7 +4703,7 @@
         "properties" : {
           "option" : {
             "type" : "string",
-            "enum" : [ "KIS", "AVS" ]
+            "enum" : [ "KIS", "AVS", "AVS2" ]
           },
           "parameters" : {
             "type" : "object",
@@ -4671,7 +4719,7 @@
         "properties" : {
           "option" : {
             "type" : "string",
-            "enum" : [ "HIDDEN_RESULTS", "MAP_TO_SEGMENT", "PROLONG_ON_SUBMISSION" ]
+            "enum" : [ "HIDDEN_RESULTS", "MAP_TO_SEGMENT", "NO_FEEDBACK", "PROLONG_ON_SUBMISSION" ]
           },
           "parameters" : {
             "type" : "object",
@@ -6000,6 +6048,69 @@
           "timeStamp" : {
             "type" : "integer",
             "format" : "int64"
+          }
+        }
+      },
+      "DresInfo" : {
+        "required" : [ "startTime", "uptime", "version" ],
+        "type" : "object",
+        "properties" : {
+          "version" : {
+            "type" : "string"
+          },
+          "startTime" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "uptime" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "DresAdminInfo" : {
+        "required" : [ "args", "availableSeverThreads", "cores", "freeMemory", "jvm", "load", "os", "startTime", "totalMemory", "uptime", "version" ],
+        "type" : "object",
+        "properties" : {
+          "version" : {
+            "type" : "string"
+          },
+          "startTime" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "uptime" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "os" : {
+            "type" : "string"
+          },
+          "jvm" : {
+            "type" : "string"
+          },
+          "args" : {
+            "type" : "string"
+          },
+          "cores" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "freeMemory" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalMemory" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "load" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "availableSeverThreads" : {
+            "type" : "integer",
+            "format" : "int32"
           }
         }
       },

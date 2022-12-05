@@ -285,6 +285,17 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     )
   }
 
+    /**
+     * Primitive trackBy for SubmissionInfo by the id.
+     *
+     * Potentially this should include some form of time-information to handle the preview not being ready (yet)
+     * @param index
+     * @param sub
+     */
+  public trackSubmission(index: Number, sub: SubmissionInfo){
+      return sub?.id
+  }
+
  /**
   * Returns the number of correct submissions for the provided team.
   *

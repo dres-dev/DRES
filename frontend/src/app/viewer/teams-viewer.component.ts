@@ -1,38 +1,28 @@
 import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  Input,
-  OnDestroy,
-  ViewChild,
+    AfterViewInit,
+    ChangeDetectionStrategy,
+    ChangeDetectorRef,
+    Component,
+    ElementRef,
+    Input,
+    OnDestroy,
+    ViewChild,
 } from '@angular/core';
 import {
-  CompetitionRunScoresService,
-  CompetitionRunService,
-  RunInfo,
-  RunState,
-  ScoreOverview,
-  SubmissionInfo,
-  TaskInfo,
-  TeamInfo,
+    CompetitionRunScoresService,
+    CompetitionRunService,
+    RunInfo,
+    RunState,
+    ScoreOverview,
+    SubmissionInfo,
+    TaskInfo,
+    TeamInfo,
 } from '../../../openapi';
-import { BehaviorSubject, combineLatest, merge, Observable, of, Subscription } from 'rxjs';
-import {
-  catchError,
-  filter,
-  flatMap,
-  map,
-  pairwise,
-  retry,
-  shareReplay,
-  switchMap,
-  withLatestFrom,
-} from 'rxjs/operators';
-import { AppConfig } from '../app.config';
-import { AudioPlayerUtilities } from '../utilities/audio-player.utilities';
-import { animate, keyframes, style, transition, trigger } from '@angular/animations';
+import {BehaviorSubject, combineLatest, merge, Observable, of, Subscription} from 'rxjs';
+import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, withLatestFrom,} from 'rxjs/operators';
+import {AppConfig} from '../app.config';
+import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
+import {animate, keyframes, style, transition, trigger} from '@angular/animations';
 
 /**
  * Internal helper interface.
@@ -100,6 +90,9 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
 
   /** Internal subscription for playing sound effect of a task that has ended. */
   taskEndedSoundEffect: Subscription;
+
+  lastTrackMap: Map<string, number> = new Map<string, number>();
+  submissionTrackInterval: number = 60_000;
 
   constructor(
     private runService: CompetitionRunService,
@@ -293,7 +286,19 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
      * @param sub
      */
   public trackSubmission(index: Number, sub: SubmissionInfo){
-      return sub?.id
+
+      let timeout = 30000; //only re-render once every 30 seconds
+
+      if (this.lastTrackMap == null) { //for some reason, this is not necessarily already initialized
+          this.lastTrackMap = new Map<string, number>();
+      }
+
+      let time = Date.now();
+      let id = sub?.id;
+      if (!this.lastTrackMap.has(id) || this.lastTrackMap.get(id) < time ) {
+          this.lastTrackMap.set(id, time + timeout)
+      }
+      return id + '-' + this.lastTrackMap.get(id);
   }
 
  /**

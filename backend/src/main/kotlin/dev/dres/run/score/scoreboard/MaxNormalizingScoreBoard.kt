@@ -9,7 +9,7 @@ import dev.dres.run.score.interfaces.TaskScorer
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
-class MaxNormalizingScoreBoard(override val name: String, teams: List<Team>, private val taskFilter: (TaskDescription) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 100.0) : Scoreboard {
+class MaxNormalizingScoreBoard(override val name: String, teams: List<Team>, private val taskFilter: (TaskDescription) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 1000.0) : Scoreboard {
 
     private val scorePerTaskMap = ConcurrentHashMap<UID, Map<UID, Double>>()
 

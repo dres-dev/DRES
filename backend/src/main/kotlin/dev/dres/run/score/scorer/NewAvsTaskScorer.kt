@@ -8,7 +8,6 @@ import dev.dres.run.score.ScoreEntry
 import dev.dres.run.score.TaskContext
 import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
 import dev.dres.run.score.interfaces.TeamTaskScorer
-import okhttp3.internal.toImmutableMap
 import java.lang.Double.max
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -39,6 +38,21 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
     companion object {
         const val defaultPenalty: Double = 0.2
         private const val defaultMaxPointsPerTask: Double = 1000.0
+
+        /**
+         * Sanitised team scores: Either the team has score 0.0 (no submission) or the calculated score
+         */
+        fun teamScoreMapSanitised(scores: Map<TeamId, Double>, teamIds: Collection<TeamId>): Map<TeamId, Double> {
+
+            val cleanMap = teamIds.associateWith { 0.0 }.toMutableMap()
+
+            scores.forEach { (teamId, score) ->
+                cleanMap[teamId] = max(0.0, score)
+            }
+
+            return cleanMap
+        }
+
     }
 
     override fun computeScores(
@@ -57,7 +71,7 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
 
         //no correct submissions yet
         if (distinctCorrectVideos == 0) {
-            return teamScoreMapSanitised(context.teamIds)
+            return teamScoreMapSanitised(mapOf(), context.teamIds)
         }
 
         lastScores = this.lastScoresLock.write {
@@ -81,7 +95,9 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
                 }.toMap()
         }
 
-        return teamScoreMapSanitised(context.teamIds)
+        return this.lastScoresLock.read{
+            teamScoreMapSanitised(lastScores, context.teamIds)
+        }
     }
 
     override fun teamScoreMap(): Map<TeamId, Double> = this.lastScoresLock.read { this.lastScores }
@@ -90,24 +106,4 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
         this.lastScores.map { ScoreEntry(it.key, null, it.value) }
     }
 
-    /**
-     * Sanitised team scores: Either the team has score 0.0 (no submission) or the calculated score
-     */
-    private fun teamScoreMapSanitised(teamIds: Collection<TeamId>): Map<TeamId, Double> =
-        this.lastScoresLock.read {
-            if (this.lastScores.isEmpty()) {
-                /* if nothing has been submitted so far, all have score 0 */
-                return teamIds.associateWith { 0.0 }
-            }
-            val scores = this.lastScores.toMutableMap()
-
-            /* Sanitise teams that didn't do a submission (yet) */
-            teamIds.forEach {
-                if (!scores.containsKey(it)) {
-                    scores[it] = 0.0
-                }
-            }
-
-            return scores.toImmutableMap()
-        }
 }

@@ -201,8 +201,12 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             generatePreview(submission)
         }
 
-        logger.info("submission ${submission.uid} received status $result")
+        if( run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.NO_FEEDBACK }){
+            ctx.status(202)
+            return SuccessfulSubmissionsStatus( SubmissionStatus.INDETERMINATE,"Submission received.")
 
+        }
+        logger.info("submission ${submission.uid} received status $result")
         return when (result) {
             SubmissionStatus.CORRECT -> SuccessfulSubmissionsStatus(SubmissionStatus.CORRECT, "Submission correct!")
             SubmissionStatus.WRONG -> SuccessfulSubmissionsStatus(SubmissionStatus.WRONG, "Submission incorrect! Try again")

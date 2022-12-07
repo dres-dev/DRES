@@ -66,15 +66,19 @@ object FFmpegUtil {
                             continue
                         }
 
-                        FFmpeg.atPath(ffmpegBin)
-                            .addInput(UrlInput.fromPath(request.video))
-                            .addOutput(UrlOutput.toPath(request.outputImage))
-                            .setOverwriteOutput(true)
-                            .addArguments("-ss", toMillisecondTimeStamp(request.timestamp))
-                            .addArguments("-vframes", "1")
-                            .addArguments("-filter:v", "scale=120:-1")
-                            .setOutputListener { l -> logger.debug(logMarker, l); true }
-                            .execute()
+                        try {
+                            FFmpeg.atPath(ffmpegBin)
+                                .addInput(UrlInput.fromPath(request.video))
+                                .addOutput(UrlOutput.toPath(request.outputImage))
+                                .setOverwriteOutput(true)
+                                .addArguments("-ss", toMillisecondTimeStamp(request.timestamp))
+                                .addArguments("-vframes", "1")
+                                .addArguments("-filter:v", "scale=120:-1")
+                                .setOutputListener { l -> logger.debug(logMarker, l); true }
+                                .execute()
+                        } catch (e: Exception) {
+                            logger.error("Error in FFMpeg: ${e.message}")
+                        }
 
                     } else {
                         try {

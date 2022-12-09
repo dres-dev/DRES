@@ -75,7 +75,10 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
         }
 
         lastScores = this.lastScoresLock.write {
-            submissions.filter { it is ItemAspect }.groupBy { it.teamId }
+            submissions.filter {
+                it is ItemAspect &&
+                    (it.status == SubmissionStatus.CORRECT || it.status == SubmissionStatus.WRONG)
+            }.groupBy { it.teamId }
                 .map { submissionsPerTeam ->
                     submissionsPerTeam.key to
                             max(0.0, //prevent negative total scores
@@ -84,7 +87,6 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
                                     submission.item.id
                                 }.map {
                                     val firstCorrectIdx = it.value.sortedBy { s -> s.timestamp }
-                                        .filter { s -> s.status == SubmissionStatus.CORRECT || s.status == SubmissionStatus.WRONG }
                                         .indexOfFirst { s -> s.status == SubmissionStatus.CORRECT }
                                     if (firstCorrectIdx < 0) { //no correct submissions, only penalty
                                         it.value.size * -penaltyConstant

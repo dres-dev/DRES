@@ -71,35 +71,41 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
 
         //no correct submissions yet
         if (distinctCorrectVideos == 0) {
-            return teamScoreMapSanitised(mapOf(), context.teamIds)
+            lastScores = this.lastScoresLock.write {
+                teamScoreMapSanitised(mapOf(), context.teamIds)
+            }
+            this.lastScoresLock.read {
+                return lastScores
+            }
         }
 
         lastScores = this.lastScoresLock.write {
-            submissions.filter {
-                it is ItemAspect &&
-                    (it.status == SubmissionStatus.CORRECT || it.status == SubmissionStatus.WRONG)
-            }.groupBy { it.teamId }
-                .map { submissionsPerTeam ->
-                    submissionsPerTeam.key to
-                            max(0.0, //prevent negative total scores
-                                submissionsPerTeam.value.groupBy { submission ->
-                                    submission as ItemAspect
-                                    submission.item.id
-                                }.map {
-                                    val firstCorrectIdx = it.value.sortedBy { s -> s.timestamp }
-                                        .indexOfFirst { s -> s.status == SubmissionStatus.CORRECT }
-                                    if (firstCorrectIdx < 0) { //no correct submissions, only penalty
-                                        it.value.size * -penaltyConstant
-                                    } else { //apply penalty for everything before correct submission
-                                        1.0 - firstCorrectIdx * penaltyConstant
-                                    }
-                                }.sum() / distinctCorrectVideos * maxPointsPerTask //normalize
-                            )
-                }.toMap()
+            teamScoreMapSanitised(
+                submissions.filter {
+                    it is ItemAspect &&
+                            (it.status == SubmissionStatus.CORRECT || it.status == SubmissionStatus.WRONG)
+                }.groupBy { it.teamId }
+                    .map { submissionsPerTeam ->
+                        submissionsPerTeam.key to
+                                max(0.0, //prevent negative total scores
+                                    submissionsPerTeam.value.groupBy { submission ->
+                                        submission as ItemAspect
+                                        submission.item.id
+                                    }.map {
+                                        val firstCorrectIdx = it.value.sortedBy { s -> s.timestamp }
+                                            .indexOfFirst { s -> s.status == SubmissionStatus.CORRECT }
+                                        if (firstCorrectIdx < 0) { //no correct submissions, only penalty
+                                            it.value.size * -penaltyConstant
+                                        } else { //apply penalty for everything before correct submission
+                                            1.0 - firstCorrectIdx * penaltyConstant
+                                        }
+                                    }.sum() / distinctCorrectVideos * maxPointsPerTask //normalize
+                                )
+                    }.toMap(), context.teamIds
+            )
         }
-
-        return this.lastScoresLock.read{
-            teamScoreMapSanitised(lastScores, context.teamIds)
+        this.lastScoresLock.read {
+            return lastScores
         }
     }
 

@@ -14,6 +14,7 @@ enum class SubmissionFilterOption : Option {
     LIMIT_WRONG_PER_TEAM,
     LIMIT_TOTAL_PER_TEAM,
     LIMIT_CORRECT_PER_MEMBER,
+    LIMIT_CORRECT_PER_ITEM_AND_TEAM,
     TEMPORAL_SUBMISSION,
     TEXTUAL_SUBMISSION,
     ITEM_SUBMISSION,
@@ -30,6 +31,7 @@ enum class SubmissionFilterOption : Option {
         LIMIT_WRONG_PER_TEAM -> MaximumWrongPerTeamFilter(parameters)
         LIMIT_TOTAL_PER_TEAM -> MaximumTotalPerTeamFilter(parameters)
         LIMIT_CORRECT_PER_MEMBER -> CorrectPerTeamMemberFilter(parameters)
+        LIMIT_CORRECT_PER_ITEM_AND_TEAM -> CorrectPerTeamItemFilter(parameters)
         TEMPORAL_SUBMISSION -> TemporalSubmissionFilter()
         TEXTUAL_SUBMISSION -> TextualSubmissionFilter()
         ITEM_SUBMISSION -> ItemSubmissionFilter()

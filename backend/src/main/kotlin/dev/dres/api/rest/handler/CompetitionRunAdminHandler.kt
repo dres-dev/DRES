@@ -1,9 +1,11 @@
 package dev.dres.api.rest.handler
 
+import com.sun.net.httpserver.Authenticator
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.RestApiRole
 import dev.dres.api.rest.types.collection.RestMediaItem
 import dev.dres.api.rest.types.competition.CompetitionStartMessage
+import dev.dres.api.rest.types.competition.RestCompetitionDescription
 import dev.dres.api.rest.types.run.*
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
@@ -15,6 +17,7 @@ import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.competition.CompetitionDescription
 import dev.dres.data.model.run.InteractiveSynchronousCompetition
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
+import dev.dres.data.model.run.RunProperties
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.data.model.submissions.aspects.ItemAspect
 import dev.dres.data.model.submissions.aspects.TemporalSubmissionAspect
@@ -868,6 +871,53 @@ class OverviewRunAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(Res
         val run = getRun(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
 
         return AdminRunOverview.of(run)
+    }
+
+}
+
+class UpdateRunPropertiesAdminHandler : AbstractCompetitionRunAdminRestHandler(setOf(RestApiRole.ADMIN)), PatchRestHandler<SuccessStatus> {
+
+    override val route = "run/admin/{runId}/properties"
+
+    @OpenApi(
+        summary = "Changes the properties of a run",
+        path = "/api/v1/run/admin/{runId}/properties",
+        method = HttpMethod.PATCH,
+        pathParams = [
+            OpenApiParam("runId", String::class, "Competition Run ID"),
+        ],
+        requestBody = OpenApiRequestBody([OpenApiContent(RunProperties::class)]),
+        tags = ["Competition Run Admin"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
+    )
+    override fun doPatch(ctx: Context): SuccessStatus {
+
+        val properties = try {
+            ctx.bodyAsClass<RunProperties>()
+        } catch (e: BadRequestResponse) {
+            throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
+        }
+
+        val runId = runId(ctx)
+
+        val runManager = RunExecutor.managerForId(runId) ?: throw ErrorStatusException(404, "Run $runId not found", ctx)
+
+        when(runManager) {
+            is InteractiveAsynchronousRunManager -> runManager.run.properties = properties
+            is InteractiveSynchronousRunManager -> runManager.run.properties = properties
+            is NonInteractiveRunManager -> runManager.run.properties = properties
+            else -> throw ErrorStatusException(400, "Cannot change properties for ${runManager.javaClass.simpleName}", ctx)
+        }
+
+        //TODO trigger persistence of run
+
+        return SuccessStatus("Properties updated")
+
     }
 
 }

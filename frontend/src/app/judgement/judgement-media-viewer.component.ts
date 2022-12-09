@@ -90,7 +90,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     this.relativePlaytimeSeconds = 0;
     this.currentText = undefined;
     if (this.video) {
-      this.video.nativeElement.pause();
+      this.video?.nativeElement?.pause();
     }
     this.videoPlayerInitialized = false;
     this.removeTemporalContextClass();
@@ -143,37 +143,39 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     if (this.video) {
       this.videoPlayerInitialized = true;
       this.video.nativeElement.addEventListener('timeupdate', () => {
-        const playtime =
-          ((this.video.nativeElement.currentTime - this.startInSeconds) / (this.endInSeconds - this.startInSeconds)) * 100;
-        this.playtimeRelative = new Observable<number>((subscriber) => subscriber.next(playtime));
-        this.relativePlaytimeSeconds = Math.round(this.video.nativeElement.currentTime) - this.startInSeconds;
-        // JudgementMediaViewerComponent.log(`t=${this.relativePlaytimeSeconds}, ol=${this.originalLengthInSeconds}, ct=${this.video.nativeElement.currentTime}`);
-        if (
-          this.paddingEnabled &&
-          this.startPaddingApplied &&
-          this.video.nativeElement.currentTime < this.startInSeconds + this.padding
-        ) {
-          /* Start padding */
-          JudgementMediaViewerComponent.log('Start padding');
-          this.addTemporalContextClass();
-        } else if (
-          this.paddingEnabled &&
-          this.video.nativeElement.currentTime >
-            this.startInSeconds + (this.startPaddingApplied ? this.padding : 0) + this.originalLengthInSeconds
-        ) {
-          /* End padding */
-          JudgementMediaViewerComponent.log('End padding');
-          this.addTemporalContextClass();
-        } else {
-          /* no padding */
-          this.removeTemporalContextClass();
-        }
-        if (this.endInSeconds) {
-          if (this.video.nativeElement.currentTime >= this.endInSeconds) {
-            JudgementMediaViewerComponent.log('Rewind video');
-            this.relativePlaytimeSeconds = 0;
-            this.video.nativeElement.currentTime = this.startInSeconds;
-            this.video.nativeElement.play().then((r) => {});
+        if(this.video && this.video.nativeElement){
+          const playtime =
+            ((this.video.nativeElement.currentTime - this.startInSeconds) / (this.endInSeconds - this.startInSeconds)) * 100;
+          this.playtimeRelative = new Observable<number>((subscriber) => subscriber.next(playtime));
+          this.relativePlaytimeSeconds = Math.round(this.video.nativeElement.currentTime) - this.startInSeconds;
+          // JudgementMediaViewerComponent.log(`t=${this.relativePlaytimeSeconds}, ol=${this.originalLengthInSeconds}, ct=${this.video.nativeElement.currentTime}`);
+          if (
+            this.paddingEnabled &&
+            this.startPaddingApplied &&
+            this.video.nativeElement.currentTime < this.startInSeconds + this.padding
+          ) {
+            /* Start padding */
+            JudgementMediaViewerComponent.log('Start padding');
+            this.addTemporalContextClass();
+          } else if (
+            this.paddingEnabled &&
+            this.video.nativeElement.currentTime >
+              this.startInSeconds + (this.startPaddingApplied ? this.padding : 0) + this.originalLengthInSeconds
+          ) {
+            /* End padding */
+            JudgementMediaViewerComponent.log('End padding');
+            this.addTemporalContextClass();
+          } else {
+            /* no padding */
+            this.removeTemporalContextClass();
+          }
+          if (this.endInSeconds) {
+            if (this.video.nativeElement.currentTime >= this.endInSeconds) {
+              JudgementMediaViewerComponent.log('Rewind video');
+              this.relativePlaytimeSeconds = 0;
+              this.video.nativeElement.currentTime = this.startInSeconds;
+              this.video.nativeElement.play().then((r) => {});
+            }
           }
         }
       });

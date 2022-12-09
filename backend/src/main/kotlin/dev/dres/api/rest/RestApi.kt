@@ -53,7 +53,7 @@ object RestApi {
          * Did you follow our convention?
          *  - `GET  <entity>/{<entityId>}` with entity being an entity of the system in singular. Note the id is prefixed with the entity name
          *  - `GET <entity>/list` with entity being an entity of the system in singular, returning a list of all of these entities
-         *  - Above naming scheme applies also for nested / context sensitive entities
+         *  - Above naming scheme applies also for nested / context-sensitive entities
          *  - REST conventions for `POST`, `PATCH` and `DELETE` methods apply
          */
         val apiRestHandlers = listOf(
@@ -120,6 +120,11 @@ object RestApi {
                 dataAccessLayer.mediaSegmentItemIdIndex,
                 config
             ),
+            JsonBatchSubmissionHandler(
+                dataAccessLayer.collections,
+                dataAccessLayer.mediaItemCollectionNameIndex,
+                dataAccessLayer.mediaSegmentItemIdIndex
+            ),
 
             // Log
             QueryLogHandler(),
@@ -161,6 +166,7 @@ object RestApi {
             OverwriteSubmissionStatusRunAdminHandler(),
             ListPastTasksPerTaskRunAdminHandler(),
             OverviewRunAdminHandler(),
+            UpdateRunPropertiesAdminHandler(),
 
             // Judgement
             NextOpenJudgementHandler(dataAccessLayer.collections),
@@ -176,6 +182,8 @@ object RestApi {
 
             // Status
             CurrentTimeHandler(),
+            InfoHandler(),
+            AdminInfoHandler(),
 
             //API Client
             ListCompetitionRunClientInfoHandler(),
@@ -183,7 +191,7 @@ object RestApi {
 
             // Downloads
             DownloadHandler.CompetitionRun(dataAccessLayer.runs),
-            DownloadHandler.CompetitionRunScore(dataAccessLayer.runs),
+            DownloadHandler.CompetitionRunScoreHandler(dataAccessLayer.runs),
             DownloadHandler.CompetitionDesc(dataAccessLayer.competitions)
         )
 
@@ -249,7 +257,7 @@ object RestApi {
                 }) from ${it.req.remoteAddr}"
             )
             if (it.path().startsWith("/api/")) { //do not cache api requests
-                it.header("Cache-Control", "max-age=0")
+                it.header("Cache-Control", "no-store")
             }
         }.error(401) {
             it.json(ErrorStatus("Unauthorized request!"))
@@ -298,6 +306,13 @@ object RestApi {
 
     }
 
+    private val pool = QueuedThreadPool(
+        1000, 8, 60000, -1, null, null, NamedThreadFactory("JavalinPool")
+    )
+
+    val readyThreadCount: Int
+        get() = pool.readyThreads
+
     private fun setupHttpServer(config: Config): Server {
 
         val httpConfig = HttpConfiguration().apply {
@@ -309,9 +324,7 @@ object RestApi {
             }
         }
 
-        val pool = QueuedThreadPool(
-            1000, 8, 60000, -1, null, null, NamedThreadFactory("JavalinPool")
-        )
+
 
         if (config.enableSsl) {
             val httpsConfig = HttpConfiguration(httpConfig).apply {

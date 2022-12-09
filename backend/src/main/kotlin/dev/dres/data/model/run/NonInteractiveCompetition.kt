@@ -17,7 +17,7 @@ class NonInteractiveCompetition(
     override var id: CompetitionId,
     override val name: String,
     override val description: CompetitionDescription,
-    override val properties: RunProperties
+    override var properties: RunProperties
 ) : AbstractRun(), Competition {
 
     /** */

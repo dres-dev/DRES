@@ -85,6 +85,23 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     name: 'Ad-hoc Video Search',
     taskDuration: 300,
     targetType: { option: ConfiguredOptionTargetOption.OptionEnum.JUDGEMENT, parameters: {} },
+    score: { option: ConfiguredOptionScoringOption.OptionEnum.AVS2, parameters: {} },
+    components: [{ option: ConfiguredOptionQueryComponentOption.OptionEnum.TEXT, parameters: {} }],
+    filter: [
+      { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.NO_DUPLICATES, parameters: { limit: 1 } },
+      { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TEMPORAL_SUBMISSION, parameters: {} },
+      { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.LIMIT_CORRECT_PER_ITEM_AND_TEAM, parameters: {} },
+    ],
+    options: [{ option: ConfiguredOptionSimpleOption.OptionEnum.MAP_TO_SEGMENT, parameters: {} }],
+  } as TaskType;
+
+  /**
+   * The official legacy (pre 2023) VBS Ad-hoc Video Search task type template
+   */
+  public static LEGACY_AVS_TEMPLATE = {
+    name: 'Ad-hoc Video Search (Legacy)',
+    taskDuration: 300,
+    targetType: { option: ConfiguredOptionTargetOption.OptionEnum.JUDGEMENT, parameters: {} },
     score: { option: ConfiguredOptionScoringOption.OptionEnum.AVS, parameters: {} },
     components: [{ option: ConfiguredOptionQueryComponentOption.OptionEnum.TEXT, parameters: {} }],
     filter: [

@@ -31,7 +31,7 @@ openApiGenerate {
     outputDir = file("${project.projectDir}/frontend/openapi").toString()
     configOptions = [
         npmName: '@dres-openapi/api',
-        ngVersion: '11.2.14',
+        ngVersion: '13.2.3',
         snapshot: 'true', /// I suggest to remove this, as soon as we automate this,
         enumPropertyNaming: 'original'
     ]

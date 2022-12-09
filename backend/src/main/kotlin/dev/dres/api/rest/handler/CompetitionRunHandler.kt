@@ -14,9 +14,9 @@ import dev.dres.data.dbo.DAO
 import dev.dres.data.model.Config
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
-import dev.dres.data.model.competition.TaskDescriptionId
 import dev.dres.data.model.competition.options.SimpleOption
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
+import dev.dres.data.model.submissions.Submission
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.TaskRunStatus
@@ -227,7 +227,7 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
         pathParams = [
             OpenApiParam("runId", String::class, "Competition Run ID"),
             OpenApiParam("taskId", String::class, "Task Description ID")
-                     ],
+        ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(TaskHint::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -249,7 +249,7 @@ class CurrentTaskHintHandler(private val config: Config) : AbstractCompetitionRu
 
         val currentTaskDescription = run.currentTaskDescription(rac)
 
-        val task = if(currentTaskDescription.id == taskId) {
+        val task = if (currentTaskDescription.id == taskId) {
             currentTaskDescription
         } else {
             run.taskForId(rac, taskId)?.description
@@ -282,7 +282,7 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
         pathParams = [
             OpenApiParam("runId", String::class, "Competition Run ID"),
             OpenApiParam("taskId", String::class, "Task Description ID")
-                     ],
+        ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(TaskTarget::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
@@ -309,7 +309,7 @@ class CurrentTaskTargetHandler(private val config: Config, private val collectio
 
         val currentTaskDescription = run.currentTaskDescription(rac)
 
-        val task = if(currentTaskDescription.id == taskId) {
+        val task = if (currentTaskDescription.id == taskId) {
             currentTaskDescription
         } else {
             run.taskForId(rac, taskId)?.description
@@ -356,12 +356,9 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
         }
 
         /* Obtain current task run and check status. */
-        return if (run.currentTask(rac)?.isRunning == true) {
-            if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }) {
-                run.submissions(rac).map { SubmissionInfo.blind(it) }
-            } else {
-                run.submissions(rac).map { SubmissionInfo(it) }
-            }
+        val blind = run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }
+        return if (run.currentTask(rac)?.isRunning == true && blind) {
+            run.submissions(rac).map { SubmissionInfo.blind(it) }
         } else {
             run.submissions(rac).map { SubmissionInfo(it) }
         }
@@ -438,7 +435,8 @@ class HistorySubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRes
         }
 
 
-        val taskRunId = ctx.pathParamMap()["taskRunId"]?.UID() ?: throw ErrorStatusException(404, "Missing task id", ctx)
+        val taskRunId =
+            ctx.pathParamMap()["taskRunId"]?.UID() ?: throw ErrorStatusException(404, "Missing task id", ctx)
 
         val task = run.currentTask(rac)
 

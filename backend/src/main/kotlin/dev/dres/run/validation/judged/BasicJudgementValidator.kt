@@ -3,6 +3,7 @@ package dev.dres.run.validation.judged
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.audit.AuditLogger
+import dev.dres.run.exceptions.JudgementTimeoutException
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.run.validation.interfaces.SubmissionJudgementValidator
 import java.util.*
@@ -24,7 +25,7 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
 
     companion object {
         private val counter = AtomicInteger()
-        private const val judgementTimeout = 30_000 //ms until a request is re-scheduled
+        private const val judgementTimeout = 60_000 //ms until a request is re-scheduled
     }
 
     override val id = "bjv${counter.incrementAndGet()}"
@@ -142,8 +143,7 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
     }
 
     internal fun processSubmission(token: String, verdict: SubmissionStatus) : Submission? = updateLock.write {
-        require(this.waiting.containsKey(token)) { "This JudgementValidator does not contain a submission for the token '$token'." }
-        val submission = this.waiting[token] ?: return@write null //submission with token not found TODO: this should be logged
+        val submission = this.waiting[token] ?: throw JudgementTimeoutException("This JudgementValidator does not contain a submission for the token '$token'.") //submission with token not found TODO: this should be logged
 
         val itemRange = ItemRange(submission)
 

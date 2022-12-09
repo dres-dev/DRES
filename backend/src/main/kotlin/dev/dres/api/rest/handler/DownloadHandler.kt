@@ -69,7 +69,7 @@ sealed class DownloadHandler : AccessManagedRestHandler {
     /**
      * REST handler to download the competition run scores description information.
      */
-    class CompetitionRunScore(private val runs: DAO<Competition>) : AbstractScoreRestHandler(), GetRestHandler<String> {
+    class CompetitionRunScoreHandler(private val runs: DAO<Competition>) : AbstractScoreRestHandler(), GetRestHandler<String> {
 
         override val route = "download/run/{runId}/scores"
 

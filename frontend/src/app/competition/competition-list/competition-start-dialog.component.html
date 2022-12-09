@@ -27,6 +27,13 @@
       </mat-checkbox>
     </p>
 
+    <p matTooltip="Maximum number of Submissions to be displayed per Team. Set to 0 or leave empty for unlimited.">
+      <mat-form-field style="width: 100%">
+        <mat-label>Submission Display Limit</mat-label>
+        <input type="number" min="0" step="1" matInput placeholder="0" formControlName="limit" required />
+      </mat-form-field>
+    </p>
+
     <p>
       <mat-form-field style="width: 100%">
         <mat-label>Type</mat-label>

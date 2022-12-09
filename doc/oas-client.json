@@ -246,6 +246,73 @@
         }
       }
     },
+    "/api/v1/submit/{runId}" : {
+      "post" : {
+        "tags" : [ "Batch Submission" ],
+        "summary" : "Endpoint to accept batch submissions in JSON format",
+        "operationId" : "postApiV1SubmitWithRunid",
+        "parameters" : [ {
+          "name" : "runId",
+          "in" : "path",
+          "description" : "Competition Run ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RunResult"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/log/query" : {
       "post" : {
         "tags" : [ "Log" ],
@@ -372,6 +439,54 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/CurrentTime"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/status/info" : {
+      "get" : {
+        "tags" : [ "Status" ],
+        "summary" : "Returns an overview of the server properties.",
+        "operationId" : "getApiV1StatusInfo",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DresInfo"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/status/info/admin" : {
+      "get" : {
+        "tags" : [ "Status" ],
+        "summary" : "Returns an extensive overview of the server properties.",
+        "operationId" : "getApiV1StatusInfoAdmin",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DresAdminInfo"
                 }
               }
             }
@@ -720,6 +835,72 @@
           }
         }
       },
+      "ResultElement" : {
+        "type" : "object",
+        "properties" : {
+          "item" : {
+            "type" : "string"
+          },
+          "text" : {
+            "type" : "string"
+          },
+          "startTimeCode" : {
+            "type" : "string"
+          },
+          "endTimeCode" : {
+            "type" : "string"
+          },
+          "index" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "rank" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "weight" : {
+            "type" : "number",
+            "format" : "float"
+          }
+        }
+      },
+      "RunResult" : {
+        "required" : [ "tasks", "timeStamp" ],
+        "type" : "object",
+        "properties" : {
+          "tasks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TaskResult"
+            }
+          },
+          "timeStamp" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "TaskResult" : {
+        "required" : [ "resultName", "results", "task" ],
+        "type" : "object",
+        "properties" : {
+          "task" : {
+            "type" : "string"
+          },
+          "resultName" : {
+            "type" : "string"
+          },
+          "resultType" : {
+            "type" : "string"
+          },
+          "results" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ResultElement"
+            }
+          }
+        }
+      },
       "QueryEvent" : {
         "required" : [ "category", "timestamp", "type", "value" ],
         "type" : "object",
@@ -816,6 +997,69 @@
           "timeStamp" : {
             "type" : "integer",
             "format" : "int64"
+          }
+        }
+      },
+      "DresInfo" : {
+        "required" : [ "startTime", "uptime", "version" ],
+        "type" : "object",
+        "properties" : {
+          "version" : {
+            "type" : "string"
+          },
+          "startTime" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "uptime" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "DresAdminInfo" : {
+        "required" : [ "args", "availableSeverThreads", "cores", "freeMemory", "jvm", "load", "os", "startTime", "totalMemory", "uptime", "version" ],
+        "type" : "object",
+        "properties" : {
+          "version" : {
+            "type" : "string"
+          },
+          "startTime" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "uptime" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "os" : {
+            "type" : "string"
+          },
+          "jvm" : {
+            "type" : "string"
+          },
+          "args" : {
+            "type" : "string"
+          },
+          "cores" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "freeMemory" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalMemory" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "load" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "availableSeverThreads" : {
+            "type" : "integer",
+            "format" : "int32"
           }
         }
       },

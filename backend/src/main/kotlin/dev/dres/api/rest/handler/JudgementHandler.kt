@@ -20,7 +20,7 @@ import dev.dres.run.audit.LogEventSource
 import dev.dres.run.exceptions.JudgementTimeoutException
 import dev.dres.run.validation.interfaces.VoteValidator
 import dev.dres.utilities.extensions.UID
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.security.RouteRole
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -37,12 +37,12 @@ abstract class AbstractJudgementHandler : RestHandler, AccessManagedRestHandler 
 
     companion object {
         fun checkRunManagerAccess(ctx: Context, runManager: RunManager) {
-            val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(
+            val userId = AccessManager.getUserIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(
                 403,
                 "No valid user.",
                 ctx
             )
-            if (AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)) {
+            if (AccessManager.rolesOfSession(ctx.sessionToken()).contains(RestApiRole.ADMIN)) {
                 return //Admins require no further check
             }
             if (userId !in runManager.description.judges) {
@@ -89,7 +89,7 @@ class NextOpenJudgementHandler(val collections: DAO<MediaCollection>) : Abstract
         checkRunManagerAccess(ctx, run)
 
         val validator = run.judgementValidators.find { it.hasOpen } ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement", ctx, true)
-        val next = validator.next(ctx.sessionId()) ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement", ctx)
+        val next = validator.next(ctx.sessionToken() ?: throw ErrorStatusException(403, "No valid session", ctx)) ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement", ctx)
 
         val taskDescription = next.second.task?.description?.textualDescription() ?: next.second.task?.description?.name ?: "no task description available"
 
@@ -157,7 +157,7 @@ class PostJudgementHandler : AbstractJudgementHandler(), PostRestHandler<Success
         }catch(ex: JudgementTimeoutException){
             throw ErrorStatusException(408, ex.message!!, ctx)
         }
-        AuditLogger.judgement(run.id, judgement.validator, judgement.token, judgement.verdict, LogEventSource.REST, ctx.sessionId())
+        AuditLogger.judgement(run.id, judgement.validator, judgement.token, judgement.verdict, LogEventSource.REST, ctx.sessionToken())
 
         return SuccessStatus("Verdict ${judgement.verdict} received and accepted. Thanks!")
     }

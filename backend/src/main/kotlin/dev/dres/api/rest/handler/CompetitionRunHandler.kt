@@ -16,12 +16,11 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaCollection
 import dev.dres.data.model.competition.options.SimpleOption
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
-import dev.dres.data.model.submissions.Submission
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.TaskRunStatus
 import dev.dres.utilities.extensions.UID
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.security.RouteRole
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -34,15 +33,15 @@ abstract class AbstractCompetitionRunRestHandler : RestHandler, AccessManagedRes
     override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.VIEWER)
     override val apiVersion = "v1"
 
-    private fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionId())!!
+    private fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionToken())!!
 
     private fun isJudge(ctx: Context): Boolean {
-        val roles = AccessManager.rolesOfSession(ctx.sessionId())
+        val roles = AccessManager.rolesOfSession(ctx.sessionToken())
         return roles.contains(RestApiRole.JUDGE) && !roles.contains(RestApiRole.ADMIN)
     }
 
     fun isParticipant(ctx: Context): Boolean {
-        val roles = AccessManager.rolesOfSession(ctx.sessionId())
+        val roles = AccessManager.rolesOfSession(ctx.sessionToken())
         return roles.contains(RestApiRole.PARTICIPANT) && !roles.contains(RestApiRole.ADMIN)
     }
 

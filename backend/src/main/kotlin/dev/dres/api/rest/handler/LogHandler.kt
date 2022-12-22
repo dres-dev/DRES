@@ -14,7 +14,7 @@ import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.InvalidRequestEvent
 import dev.dres.run.eventstream.QueryEventLogEvent
 import dev.dres.run.eventstream.QueryResultLogEvent
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.security.RouteRole
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -61,18 +61,18 @@ class QueryLogHandler : LogHandler() {
     )
     override fun doPost(ctx: Context): SuccessStatus {
 
-        val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
+        val userId = AccessManager.getUserIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
         val run = getActiveRun(userId, ctx)
 
 
         val queryEventLog = try {
             ctx.bodyAsClass<QueryEventLog>()
         } catch (e: BadRequestResponse){
-            EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionId(), run.id, ctx.body()))
+            EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionToken(), run.id, ctx.body()))
             throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}", ctx)
         }.copy(serverTimeStamp = System.currentTimeMillis())
 
-        EventStreamProcessor.event(QueryEventLogEvent(ctx.sessionId(), run.id, queryEventLog))
+        EventStreamProcessor.event(QueryEventLogEvent(ctx.sessionToken(), run.id, queryEventLog))
 
         return SuccessStatus("Log received")
     }
@@ -98,17 +98,17 @@ class ResultLogHandler : LogHandler() {
     )
     override fun doPost(ctx: Context): SuccessStatus {
 
-        val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
+        val userId = AccessManager.getUserIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
         val run = getActiveRun(userId, ctx)
 
         val queryResultLog = try {
             ctx.bodyAsClass(QueryResultLog::class.java)
         } catch (e: BadRequestResponse){
-            EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionId(), run.id, ctx.body()))
+            EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionToken(), run.id, ctx.body()))
             throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}", ctx)
         }.copy(serverTimeStamp = System.currentTimeMillis())
 
-        EventStreamProcessor.event(QueryResultLogEvent(ctx.sessionId(), run.id, queryResultLog))
+        EventStreamProcessor.event(QueryResultLogEvent(ctx.sessionToken(), run.id, queryResultLog))
 
         return SuccessStatus("Log received")
     }

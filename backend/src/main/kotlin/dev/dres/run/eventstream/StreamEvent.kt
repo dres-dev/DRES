@@ -19,6 +19,6 @@ class RunEndEvent(val runId: UID) : StreamEvent()
 
 
 class SubmissionEvent(session: String, val runId: UID, val taskId: UID?, val submission : Submission) : StreamEvent(session = session)
-class QueryEventLogEvent(session: String, val runId: UID, val queryEventLog: QueryEventLog) : StreamEvent(session = session)
-class QueryResultLogEvent(session: String, val runId: UID, val queryResultLog: QueryResultLog) : StreamEvent(session = session)
-class InvalidRequestEvent(session: String, val runId: UID, val requestData: String) : StreamEvent(session = session)
+class QueryEventLogEvent(session: String?, val runId: UID, val queryEventLog: QueryEventLog) : StreamEvent(session = session)
+class QueryResultLogEvent(session: String?, val runId: UID, val queryResultLog: QueryResultLog) : StreamEvent(session = session)
+class InvalidRequestEvent(session: String?, val runId: UID, val requestData: String) : StreamEvent(session = session)

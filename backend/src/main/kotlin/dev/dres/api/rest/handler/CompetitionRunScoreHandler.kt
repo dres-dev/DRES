@@ -12,7 +12,7 @@ import dev.dres.run.score.interfaces.TeamTaskScorer
 import dev.dres.run.score.scoreboard.Score
 import dev.dres.run.score.scoreboard.ScoreOverview
 import dev.dres.utilities.extensions.UID
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.security.RouteRole
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -29,14 +29,14 @@ abstract class AbstractScoreRestHandler : RestHandler, AccessManagedRestHandler 
     override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.VIEWER)
     override val apiVersion = "v1"
 
-    private fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionId())!!
+    private fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionToken())!!
 
     /**
      * Checks if the current session has the [RestApiRole.PARTICIPANT].
      *
      * @param ctx The [Context] to check.
      */
-    fun isParticipant(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.PARTICIPANT) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
+    fun isParticipant(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionToken()).contains(RestApiRole.PARTICIPANT) && !AccessManager.rolesOfSession(ctx.sessionToken()).contains(RestApiRole.ADMIN)
 
 
     fun getRun(ctx: Context, runId: UID): InteractiveRunManager? {

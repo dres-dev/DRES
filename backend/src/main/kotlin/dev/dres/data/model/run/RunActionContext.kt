@@ -7,7 +7,7 @@ import dev.dres.data.model.admin.Role
 import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.competition.TeamId
 import dev.dres.run.RunManager
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 
 /**
@@ -34,8 +34,8 @@ data class RunActionContext(val userId: UserId, val teamId: TeamId?, val roles: 
          * @param runManager The [RunManager] to construct the [RunActionContext] for.
          */
         fun runActionContext(ctx: Context, runManager: RunManager) : RunActionContext {
-            val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(403, "Unauthorized user.", ctx)
-            val roles = AccessManager.rolesOfSession(ctx.sessionId()).map { Role.fromRestRole(it) }.toSet()
+            val userId = AccessManager.getUserIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(403, "Unauthorized user.", ctx)
+            val roles = AccessManager.rolesOfSession(ctx.sessionToken()).map { Role.fromRestRole(it) }.toSet()
             val teamId = runManager.description.teams.find { it.users.contains(userId) }?.uid
             return RunActionContext(userId, teamId, roles)
         }

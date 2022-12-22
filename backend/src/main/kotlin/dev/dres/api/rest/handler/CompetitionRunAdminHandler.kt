@@ -28,7 +28,7 @@ import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.extensions.UID
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
@@ -80,7 +80,7 @@ abstract class AbstractCompetitionRunAdminRestHandler(
             return
         }
 
-        if (!AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)) {
+        if (!AccessManager.rolesOfSession(ctx.sessionToken()).contains(RestApiRole.ADMIN)) {
             throw ErrorStatusException(403, "Access Denied.", ctx);
         }
 
@@ -224,7 +224,7 @@ class StartCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandler(s
 
         try {
             run.start(rac)
-            AuditLogger.competitionStart(run.id, run.description, LogEventSource.REST, ctx.sessionId())
+            AuditLogger.competitionStart(run.id, run.description, LogEventSource.REST, ctx.sessionToken())
             return SuccessStatus("Run $runId was successfully started.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(
@@ -266,7 +266,7 @@ class NextTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandle
         val rac = runActionContext(ctx, run)
 
         if (run is InteractiveAsynchronousRunManager
-            && !AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.ADMIN)
+            && !AccessManager.rolesOfSession(ctx.sessionToken()).contains(RestApiRole.ADMIN)
             && run.currentTask(rac)?.status != TaskRunStatus.ENDED) {
             throw ErrorStatusException(400, "Cannot advance to next task before current task is completed.", ctx)
         }
@@ -442,7 +442,7 @@ class StartTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
                 run.currentTask(rac)!!.uid,
                 run.currentTaskDescription(rac),
                 LogEventSource.REST,
-                ctx.sessionId()
+                ctx.sessionToken()
             )
             return SuccessStatus("Task '${run.currentTaskDescription(rac).name}' for run $runId was successfully started.")
         } catch (e: IllegalStateException) {
@@ -483,7 +483,7 @@ class AbortTaskCompetitionRunAdminHandler : AbstractCompetitionRunAdminRestHandl
         try {
             val task = run.currentTaskDescription(rac)
             run.abortTask(rac)
-            AuditLogger.taskEnd(run.id, task.id, task, LogEventSource.REST, ctx.sessionId())
+            AuditLogger.taskEnd(run.id, task.id, task, LogEventSource.REST, ctx.sessionToken())
             return SuccessStatus("Task '${run.currentTaskDescription(rac).name}' for run $runId was successfully aborted.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(
@@ -523,7 +523,7 @@ class TerminateCompetitionRunAdminHandler :
         val rac = runActionContext(ctx, run)
         try {
             run.end(rac)
-            AuditLogger.competitionEnd(run.id, LogEventSource.REST, ctx.sessionId())
+            AuditLogger.competitionEnd(run.id, LogEventSource.REST, ctx.sessionToken())
             return SuccessStatus("Run $runId was successfully terminated.")
         } catch (e: IllegalStateException) {
             throw ErrorStatusException(
@@ -575,7 +575,7 @@ class AdjustDurationRunAdminHandler :
                 run.currentTaskDescription(rac).name,
                 "Task duration adjusted by ${duration}s.",
                 LogEventSource.REST,
-                ctx.sessionId()
+                ctx.sessionToken()
             )
             return SuccessStatus("Duration for run $runId was successfully adjusted.")
         } catch (e: IllegalStateException) {
@@ -758,7 +758,7 @@ class OverwriteSubmissionStatusRunAdminHandler :
                 submissionId,
                 submission.status,
                 LogEventSource.REST,
-                ctx.sessionId()
+                ctx.sessionToken()
             )
             return SubmissionInfo(submission)
         } else {

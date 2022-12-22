@@ -7,7 +7,7 @@ import dev.dres.data.dbo.DAO
 import dev.dres.run.audit.AuditLogEntry
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.*
 
@@ -28,8 +28,8 @@ class LogoutHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, GetRes
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): SuccessStatus {
-        AccessManager.clearUserSession(ctx.sessionId())
-        AuditLogger.logout(ctx.sessionId(), LogEventSource.REST)
+        AccessManager.clearUserSession(ctx.sessionToken())
+        AuditLogger.logout(ctx.sessionToken() ?: "no session", LogEventSource.REST)
         return SuccessStatus("Logged out")
 
     }

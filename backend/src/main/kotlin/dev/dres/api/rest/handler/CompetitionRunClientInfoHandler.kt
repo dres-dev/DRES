@@ -8,7 +8,7 @@ import dev.dres.data.model.UID
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.*
 import dev.dres.utilities.extensions.UID
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.security.RouteRole
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -18,9 +18,9 @@ abstract class AbstractCompetitionRunClientInfoHandler : RestHandler, AccessMana
     override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.VIEWER)
     override val apiVersion = "v1"
 
-    private fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionId())!!
+    private fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionToken())!!
 
-    fun isParticipant(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionId()).contains(RestApiRole.PARTICIPANT) && !AccessManager.rolesOfSession(ctx.sessionId()).contains(
+    fun isParticipant(ctx: Context): Boolean = AccessManager.rolesOfSession(ctx.sessionToken()).contains(RestApiRole.PARTICIPANT) && !AccessManager.rolesOfSession(ctx.sessionToken()).contains(
         RestApiRole.ADMIN)
 
     fun getRelevantManagers(ctx: Context): List<RunManager> {

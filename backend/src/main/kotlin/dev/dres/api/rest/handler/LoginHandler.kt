@@ -11,7 +11,7 @@ import dev.dres.mgmt.admin.UserManager.getMatchingUser
 import dev.dres.run.audit.AuditLogEntry
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.audit.LogEventSource
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.getOrCreateSessionToken
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -47,8 +47,13 @@ class LoginHandler(private val audit: DAO<AuditLogEntry>) : RestHandler, PostRes
         val user = getMatchingUser(username, password)
                 ?: throw ErrorStatusException(401, "Invalid credentials. Please try again!", ctx)
 
-        AccessManager.setUserForSession(ctx.sessionId(), user)
-        AuditLogger.login(loginRequest.username, ctx.sessionId(), LogEventSource.REST)
+        val sessionToken = ctx.getOrCreateSessionToken()
+
+        AccessManager.setUserForSession(sessionToken, user)
+        AuditLogger.login(loginRequest.username, sessionToken, LogEventSource.REST)
+
+        //explicitly set cookie on login
+        ctx.cookie(AccessManager.SESSION_COOKIE_NAME, sessionToken, AccessManager.SESSION_COOKIE_LIFETIME)
 
         return UserDetails.create(UserManager.get(username)!!, ctx)
 

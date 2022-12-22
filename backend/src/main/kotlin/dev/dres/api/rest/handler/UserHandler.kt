@@ -11,7 +11,7 @@ import dev.dres.data.model.admin.User
 import dev.dres.data.model.admin.UserName
 import dev.dres.mgmt.admin.UserManager
 import dev.dres.utilities.extensions.UID
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import dev.dres.utilities.extensions.toSessionId
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
@@ -25,7 +25,7 @@ data class UserDetails(val id: String, val username: String, val role: Role, val
 
     companion object {
         fun of(user: User): UserDetails = UserDetails(user.id.string, user.username.name, user.role)
-        fun create(user: User, ctx: Context): UserDetails = UserDetails(user.id.string, user.username.name, user.role, ctx.sessionId())
+        fun create(user: User, ctx: Context): UserDetails = UserDetails(user.id.string, user.username.name, user.role, ctx.sessionToken())
     }
 }
 
@@ -34,7 +34,8 @@ abstract class UserHandler : RestHandler {
     override val apiVersion = "v1"
     
     protected fun getFromSessionOrDie(ctx: Context): User {
-        return UserManager.get(id = AccessManager.getUserIdForSession(ctx.sessionId())!!)
+        val sessionToken = ctx.sessionToken() ?: throw ErrorStatusException(404, "No valid session", ctx)
+        return UserManager.get(id = AccessManager.getUserIdForSession(sessionToken)!!)
                 ?: throw ErrorStatusException(404, "User could not be found!", ctx)
     }
 
@@ -240,7 +241,7 @@ class CurrentUsersSessionIdHandler : UserHandler(), GetRestHandler<SessionId>, A
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): SessionId {
-        return ctx.sessionId().toSessionId()
+        return ctx.sessionToken()!!.toSessionId()
     }
 
     override val permittedRoles = setOf(RestApiRole.VIEWER)

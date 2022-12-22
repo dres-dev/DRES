@@ -3,7 +3,7 @@ package dev.dres.api.rest
 import dev.dres.data.model.UID
 import dev.dres.data.model.admin.User
 import dev.dres.run.RunManager
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.security.RouteRole
 import io.javalin.http.Context
 import io.javalin.http.Handler
@@ -12,11 +12,17 @@ import java.util.concurrent.ConcurrentHashMap
 
 object AccessManager {
 
+    const val SESSION_COOKIE_NAME = "SESSIONID"
+    const val SESSION_COOKIE_LIFETIME = 60 * 60 * 24 //a day
+
+    val SESSION_TOKEN_CHAR_POOL : List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9') + '-' + '_'
+    const val SESSION_TOKEN_LENGTH = 32
+
     fun manage(handler: Handler, ctx: Context, permittedRoles: Set<RouteRole>) {
         when {
             permittedRoles.isEmpty() -> handler.handle(ctx) //fallback in case no roles are set, none are required
             permittedRoles.contains(RestApiRole.ANYONE) -> handler.handle(ctx)
-            rolesOfSession(ctx.sessionId()).any { it in permittedRoles } -> handler.handle(ctx)
+            rolesOfSession(ctx.sessionToken()).any { it in permittedRoles } -> handler.handle(ctx)
             else -> ctx.status(401)
         }
     }
@@ -49,14 +55,17 @@ object AccessManager {
 
     }
 
-    fun clearUserSession(sessionId: String){
+    fun clearUserSession(sessionId: String?){
+        if (sessionId == null) {
+            return
+        }
         sessionRoleMap.remove(sessionId)
         sessionUserMap.remove(sessionId)
     }
 
-    fun rolesOfSession(sessionId: String): Set<RestApiRole> = sessionRoleMap[sessionId] ?: emptySet()
+    fun rolesOfSession(sessionId: String?): Set<RestApiRole> = if(sessionId == null) emptySet() else sessionRoleMap[sessionId] ?: emptySet()
 
-    fun getUserIdForSession(sessionId: String): UID? = sessionUserMap[sessionId]
+    fun getUserIdForSession(sessionId: String?): UID? = if (sessionId == null) null else sessionUserMap[sessionId]
 
     /**
      * Registers a [RunManager] for quick lookup of user ID to eligible [RunManager].

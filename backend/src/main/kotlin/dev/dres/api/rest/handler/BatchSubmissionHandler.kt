@@ -19,7 +19,7 @@ import dev.dres.run.InteractiveRunManager
 import dev.dres.run.NonInteractiveRunManager
 import dev.dres.utilities.TimeUtil
 import dev.dres.utilities.extensions.UID
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
 import io.javalin.openapi.*
@@ -30,7 +30,7 @@ abstract class BatchSubmissionHandler(internal val collections: DAO<MediaCollect
     override val apiVersion = "v1"
     override val permittedRoles: Set<RouteRole> = setOf(RestApiRole.PARTICIPANT)
 
-    internal fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
+    internal fun userId(ctx: Context): UID = AccessManager.getUserIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
 
     fun runId(ctx: Context) = ctx.pathParamMap().getOrElse("runId") {
         throw ErrorStatusException(404, "Parameter 'runId' is missing!'", ctx)

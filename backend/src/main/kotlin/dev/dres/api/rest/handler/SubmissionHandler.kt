@@ -29,7 +29,7 @@ import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionRejectedException
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.TimeUtil
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import org.slf4j.LoggerFactory
@@ -175,7 +175,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): SuccessfulSubmissionsStatus {
-        val userId = AccessManager.getUserIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
+        val userId = AccessManager.getUserIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
         val run = getActiveRun(userId, ctx)
         val time = System.currentTimeMillis()
         val submission = toSubmission(ctx, userId, run, time)
@@ -193,7 +193,7 @@ class SubmissionHandler (val collections: DAO<MediaCollection>, private val item
             throw ErrorStatusException(400, "Run manager does not know the given teamId ${rac.teamId}.", ctx)
         }
 
-        AuditLogger.submission(run.id, run.currentTaskDescription(rac).name, run.currentTask(rac)?.uid, submission, LogEventSource.REST, ctx.sessionId(), ctx.req().remoteAddr)
+        AuditLogger.submission(run.id, run.currentTaskDescription(rac).name, run.currentTask(rac)?.uid, submission, LogEventSource.REST, ctx.sessionToken(), ctx.req().remoteAddr)
 
         if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }) { //pre-generate preview
             generatePreview(submission)

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 
-class AvsTaskScorerTest {
+class LegacyAvsTaskScorerTest {
 
     private lateinit var scorer: AvsTaskScorer
     private val teams = listOf(UID(), UID(), UID()) //3 random team ids

@@ -19,6 +19,9 @@ value class WebSocketConnection(val context: WsContext) {
 
     companion object {
         val jsonMapper = jacksonObjectMapper()
+
+        const val UNKNOWN_USER = "UNKNOWN"
+
     }
 
     /** ID of the WebSocket session. */
@@ -31,7 +34,7 @@ value class WebSocketConnection(val context: WsContext) {
 
     /** Name of the user that generated this [WebSocketConnection]. */
     val userName
-        get() = UserManager.get(AccessManager.getUserIdForSession(this.httpSessionId) ?: UID.EMPTY)?.username?.name ?: "UNKNOWN"
+        get() = UserManager.get(AccessManager.getUserIdForSession(this.httpSessionId) ?: UID.EMPTY)?.username?.name ?: UNKNOWN_USER
 
     /** IP address of the client. */
     val host: String

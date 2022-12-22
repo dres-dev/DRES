@@ -1,5 +1,6 @@
 package dev.dres.data.model.run.interfaces
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.competition.TaskDescription
 import dev.dres.data.model.run.InteractiveAsynchronousCompetition.Task
 import dev.dres.run.TaskRunStatus

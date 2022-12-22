@@ -360,41 +360,12 @@ class SubmissionInfoHandler : AbstractCompetitionRunRestHandler(), GetRestHandle
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        fun limitSubmissions(submissions: List<Submission>, limit: Int, blind: Boolean = false): List<SubmissionInfo> =
-            submissions.groupBy { it.teamId }.values
-                .map {
-                    it.sortedBy { s -> s.timestamp }.take(limit)
-                }.flatMap {
-                    it.map { s ->
-                        if (blind) {
-                            SubmissionInfo.blind(s)
-                        } else {
-                            SubmissionInfo(s)
-                        }
-                    }
-                }
-
-
-        val limit = run.runProperties.limitSubmissionPreviews
-        val blind = run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }
-
         /* Obtain current task run and check status. */
-        return if (run.currentTask(rac)?.isRunning == true) {
-            if (limit > 0) {
-                limitSubmissions(run.submissions(rac), limit, blind)
-            } else {
-                if (blind) {
-                    run.submissions(rac).map { SubmissionInfo.blind(it) }
-                } else {
-                    run.submissions(rac).map { SubmissionInfo(it) }
-                }
-            }
+        val blind = run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }
+        return if (run.currentTask(rac)?.isRunning == true && blind) {
+            run.submissions(rac).map { SubmissionInfo.blind(it) }
         } else {
-            if (limit > 0) {
-                limitSubmissions(run.submissions(rac), limit, blind)
-            } else {
-                run.submissions(rac).map { SubmissionInfo(it) }
-            }
+            run.submissions(rac).map { SubmissionInfo(it) }
         }
     }
 }

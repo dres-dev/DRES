@@ -36,7 +36,7 @@ class NewAvsTaskScorerTest {
 
     @Test
     @DisplayName("Three teams all without a submission. Expected score: 0.0")
-    fun noSubmissions(){
+    fun testNoSubmissions(){
         val scores = this.scorer.computeScores(emptyList(), TaskContext(teams, 100_000, defaultTaskDuration))
 
         Assertions.assertEquals(0.0, scores[teams[0]])
@@ -46,7 +46,7 @@ class NewAvsTaskScorerTest {
 
     @Test
     @DisplayName("Team One with a single correct submission. Expected score: 1000 (maxPointsPerTask)")
-    fun onlyTeamOneWithAllEqualsOneCorrect(){
+    fun testOnlyTeamOneWithAllEqualsOneCorrect(){
         val taskStart = 100_000L
         val subs = listOf(
             Submission.Temporal(teams[0], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT}
@@ -59,7 +59,7 @@ class NewAvsTaskScorerTest {
 
     @Test
     @DisplayName("All teams with exact same, correct submission. Expected score: 1000 each")
-    fun allTeamsWithAllEuqalsOneCorrect(){
+    fun testAllTeamsWithAllEuqalsOneCorrect(){
         val taskStart = 100_000L
         val subs = listOf(
             Submission.Temporal(teams[0], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
@@ -74,7 +74,7 @@ class NewAvsTaskScorerTest {
 
     @Test
     @DisplayName("Team One with 2 / 2 correct videos, Team Two with 1 / 2 correct videos, Team Three without submission")
-    fun teamsWithVariousSubmissionsTwoOfTwoAndOneOfTwoAndNoneOfTwo(){
+    fun testTeamsWithVariousSubmissionsTwoOfTwoAndOneOfTwoAndNoneOfTwo(){
         val taskStart = 100_000L
         val subs = listOf(
             Submission.Temporal(teams[0], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
@@ -89,7 +89,7 @@ class NewAvsTaskScorerTest {
 
     @Test
     @DisplayName("Team One with 3/3 correct videos. Team Two with 2/3 correct (and one on the second attempt), Team Three with Brute Force (0 wrong, 1 wrong and 2 wrong")
-    fun teamsWithVariousSubmissionsTeamOneAllTeamTwoOneWrongTeamThreeBruteForce(){
+    fun testTeamsWithVariousSubmissionsTeamOneAllTeamTwoOneWrongTeamThreeBruteForce(){
         val taskStart = 100_000L
         val subs = listOf(
             /* Team One: All correct */
@@ -132,5 +132,20 @@ class NewAvsTaskScorerTest {
         Team Three: Lucky Brute Force => 400 = 1000 * [1/3 * (1 + {1-0.2} + {1-0.4} + {-3*0.2} + {-3*0.2})] => 1000 * 1.2/3
          */
         Assertions.assertEquals(400.0, scores[teams[2]]!!, 0.001)
+    }
+
+    @Test()
+    @DisplayName("Only wrong and correct submissions are considered")
+    fun testOnlyCorrectAndWrongSubmissionsAreConsidered(){
+        val taskStart = 100_000L
+        val subs = listOf(
+            Submission.Temporal(teams[0], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
+            Submission.Temporal(teams[0], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.INDETERMINATE},
+            Submission.Temporal(teams[0], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.INDETERMINATE}
+        )
+        val scores = this.scorer.computeScores(subs, TaskContext(teams, taskStart, defaultTaskDuration))
+        Assertions.assertEquals(maxPointsPerTask, scores[teams[0]])
+        Assertions.assertEquals(0.0, scores[teams[1]])
+        Assertions.assertEquals(0.0, scores[teams[2]])
     }
 }

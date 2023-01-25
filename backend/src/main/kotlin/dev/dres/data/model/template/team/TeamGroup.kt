@@ -40,7 +40,6 @@ class TeamGroup(entity: Entity) : PersistentEntity(entity) {
     /** The [Team]s that belong to this [TeamGroup]. */
     val teams by xdLink0_N<TeamGroup,Team>(Team::group)
 
-
     /**
      * Converts this [TeamGroup] to a RESTful API representation [ApiTeamGroup].
      *

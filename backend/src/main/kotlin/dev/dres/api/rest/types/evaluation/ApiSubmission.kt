@@ -18,4 +18,7 @@ data class ApiSubmission(
     val memberName: String,
     val timestamp: Long,
     val verdicts: List<ApiVerdict>,
-)
+) {
+
+
+}

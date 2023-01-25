@@ -1,6 +1,5 @@
 package dev.dres.api.rest.handler.template
 
-import dev.dres.api.rest.handler.AbstractCompetitionRunRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.template.team.Team
@@ -15,7 +14,7 @@ import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
 
 /**
- * A [AbstractCompetitionRunRestHandler] that can be used to list all [Team] logos.
+ * A [AbstractCompetitionDescriptionHandler] that can be used to list all [Team] logos.
  *
  * @author Ralph Gasser
  * @author Luca Rossetto

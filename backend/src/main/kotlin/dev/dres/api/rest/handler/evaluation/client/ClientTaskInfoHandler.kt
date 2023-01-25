@@ -37,33 +37,10 @@ class ClientTaskInfoHandler(store: TransientEntityStore): AbstractEvaluationClie
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): ApiTaskTemplateInfo = this.store.transactional(true) { tx ->
-
         val run = ctx.eligibleManagerForId()
         val rac = RunActionContext.runActionContext(ctx, run)
-
         if (run !is InteractiveRunManager) throw ErrorStatusException(404, "Specified evaluation is not interactive.", ctx)
         val task = run.currentTask(rac) ?: throw ErrorStatusException(404, "Specified evaluation has no active task.", ctx)
-
-        ApiTaskTemplateInfo(
-            taskId = task.id,
-            templateId = task.template.id,
-            name = task.template.name,
-            taskGroup = task.template.taskGroup.name,
-            taskType =  task.template.taskGroup.type.name,
-            running = task.isRunning,
-            remainingTime = when(run.status){
-                RunManagerStatus.CREATED -> 0
-                RunManagerStatus.ACTIVE -> {
-                    when(task.status) {
-                        TaskStatus.CREATED,
-                        TaskStatus.PREPARING -> task.duration
-                        TaskStatus.RUNNING ->run.timeLeft(rac) / 1000
-                        TaskStatus.ENDED -> 0
-                    }
-                }
-                RunManagerStatus.TERMINATED -> 0
-            },
-            numberOfSubmissions = -1
-        )
+        ApiTaskTemplateInfo(task.template)
     }
 }

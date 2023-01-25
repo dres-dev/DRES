@@ -45,7 +45,7 @@ class Team(entity: Entity) : PersistentEntity(entity) {
     var template by xdParent<Team,EvaluationTemplate>(EvaluationTemplate::teams)
 
     /** The [TeamGroup] this [Team] belongs to (or null if not assigned to a group). */
-    var group by xdLink0_1(TeamGroup::teams)
+    var group by xdLink0_1<Team,TeamGroup>(TeamGroup::teams)
 
     /** The [User]s that belong to this [Team]. */
     val users by xdLink0_N(User, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)

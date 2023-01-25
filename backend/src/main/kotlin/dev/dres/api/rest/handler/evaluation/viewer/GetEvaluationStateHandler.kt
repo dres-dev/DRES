@@ -16,7 +16,7 @@ import jetbrains.exodus.database.TransientEntityStore
 /**
  *
  */
-class GetEvaluationState(store: TransientEntityStore): AbstractEvaluationViewerHandler(store), GetRestHandler<ApiEvaluationState> {
+class GetEvaluationStateHandler(store: TransientEntityStore): AbstractEvaluationViewerHandler(store), GetRestHandler<ApiEvaluationState> {
 
     override val route = "evaluation/{evaluationId}/state"
 

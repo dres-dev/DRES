@@ -1,8 +1,6 @@
 package dev.dres.data.model.admin
 
-import dev.dres.api.rest.types.collection.ApiMediaType
 import dev.dres.api.rest.types.users.ApiRole
-import dev.dres.api.rest.types.users.ApiUser
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity
 import kotlinx.dnq.XdEnumEntityType

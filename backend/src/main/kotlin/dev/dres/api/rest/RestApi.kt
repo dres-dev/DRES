@@ -1,6 +1,7 @@
 package dev.dres.api.rest
 
 import GetAuditLogInfoHandler
+import GetTaskHintHandler
 import dev.dres.api.rest.handler.*
 import dev.dres.api.rest.handler.audit.ListAuditLogsHandler
 import dev.dres.api.rest.handler.audit.ListAuditLogsInRangeHandler
@@ -11,6 +12,7 @@ import dev.dres.api.rest.handler.evaluation.admin.*
 import dev.dres.api.rest.handler.evaluation.client.ClientListEvaluationsHandler
 import dev.dres.api.rest.handler.evaluation.client.ClientTaskInfoHandler
 import dev.dres.api.rest.handler.evaluation.scores.*
+import dev.dres.api.rest.handler.evaluation.viewer.*
 import dev.dres.api.rest.handler.judgement.*
 import dev.dres.api.rest.handler.log.QueryLogHandler
 import dev.dres.api.rest.handler.log.ResultLogHandler
@@ -125,17 +127,17 @@ object RestApi {
             QueryLogHandler(),
             ResultLogHandler(),
 
-            // Competition run
-            ListCompetitionRunInfosHandler(),
-            ListCompetitionRunStatesHandler(),
-            GetCompetitionRunInfoHandler(),
-            GetCompetitionRunStateHandler(),
-            CurrentTaskHintHandler(config),
-            CurrentTaskTargetHandler(config, store),
-            CurrentTaskInfoHandler(),
-            SubmissionInfoHandler(),
-            RecentSubmissionInfoHandler(),
-            HistorySubmissionInfoHandler(),
+            // Evaluation
+            ListEvaluationInfoHandler(store),
+            ListEvaluationStatesHandler(store),
+            GetEvaluationInfoHandler(store),
+            GetEvaluationStateHandler(store),
+            GetTaskHintHandler(store, config),
+            GetTaskTargetHandler(store, config),
+            GetCurrentTaskHandler(store),
+            GetSubmissionInfoHandler(store),
+            GetSubmissionAfterInfoHandler(store),
+            GetSubmissionHistoryInfoHandler(store),
 
             // Competition run scores
             ListCompetitionScoreHandler(store),

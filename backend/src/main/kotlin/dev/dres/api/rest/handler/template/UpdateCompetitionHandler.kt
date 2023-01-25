@@ -146,10 +146,10 @@ class UpdateCompetitionHandler(store: TransientEntityStore, val config: Config) 
 
             /* Update team information. */
             val teamIds = apiValue.teams.map { it.teamId }.toTypedArray()
-            existing.teams.removeAll(Team.query(Team::competition eq existing and not(Team::id.containsIn(*teamIds))))
+            existing.teams.removeAll(Team.query(Team::template eq existing and not(Team::id.containsIn(*teamIds))))
             for (team in apiValue.teams) {
                 val t = Team.findOrNew {
-                    (Team::name eq team.name) and (Team::competition eq existing)
+                    (Team::name eq team.name) and (Team::template eq existing)
                 }
                 t.name = team.name
                 t.color = team.color
@@ -162,10 +162,10 @@ class UpdateCompetitionHandler(store: TransientEntityStore, val config: Config) 
 
             /* Update teamGroup information */
             val teamGroupIds = apiValue.teamGroups.map { it.id }.toTypedArray()
-            existing.teamsGroups.removeAll(TeamGroup.query(TeamGroup::competition eq existing and not(TeamGroup::id.containsIn(*teamGroupIds))))
+            existing.teamsGroups.removeAll(TeamGroup.query(TeamGroup::template eq existing and not(TeamGroup::id.containsIn(*teamGroupIds))))
             for (teamGroup in apiValue.teamGroups) {
                 val t = TeamGroup.findOrNew {
-                    (Team::name eq teamGroup.name) and (Team::competition eq existing)
+                    (Team::name eq teamGroup.name) and (Team::template eq existing)
                 }
                 t.name = teamGroup.name
                 t.teams.clear()

@@ -40,16 +40,7 @@ class ListPastTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminH
         return this.store.transactional (true) {
             val rac = RunActionContext.runActionContext(ctx, runManager)
             runManager.tasks(rac).filter { it.hasEnded }.map {
-                ApiTaskTemplateInfo(
-                    taskId = it.id,
-                    templateId = it.template.id,
-                    name = it.template.name,
-                    taskGroup = it.template.taskGroup.name,
-                    taskType = it.template.taskGroup.type.name,
-                    numberOfSubmissions = it.submissions.size,
-                    remainingTime = 0L,
-                    running = false
-                )
+                ApiTaskTemplateInfo(it.template)
             }
         }
     }

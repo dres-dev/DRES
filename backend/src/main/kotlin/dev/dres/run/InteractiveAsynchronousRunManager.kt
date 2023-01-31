@@ -332,7 +332,7 @@ class InteractiveAsynchronousRunManager(private val run: InteractiveAsynchronous
         }
 
         val currentTaskRun =
-            this.run.Task(teamId = context.teamId, descriptionId = currentTaskDescription.id)
+            this.run.IATaskRun(teamId = context.teamId, descriptionId = currentTaskDescription.id)
         currentTaskRun.prepare()
 
         /* Mark scoreboards and DAO for update. */

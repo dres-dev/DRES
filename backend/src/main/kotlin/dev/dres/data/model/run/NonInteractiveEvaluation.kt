@@ -1,14 +1,14 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.admin.UserId
+import dev.dres.data.model.run.InteractiveSynchronousEvaluation.ISTaskRun
 import dev.dres.data.model.template.EvaluationTemplate
-import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
-import dev.dres.data.model.submissions.batch.ResultBatch
-import kotlinx.dnq.query.asSequence
-import kotlinx.dnq.query.size
+import dev.dres.data.model.submissions.Submission
+import dev.dres.run.filter.SubmissionFilter
+import dev.dres.run.score.interfaces.TeamTaskScorer
+import kotlinx.dnq.query.*
 
 
 /**
@@ -45,18 +45,27 @@ class NonInteractiveEvaluation(evaluation: Evaluation) : AbstractEvaluation(eval
         override val position: Int
             get() = this@NonInteractiveEvaluation.tasks.indexOf(this)
 
+        /** The [TeamTaskScorer] instance used by this [ISTaskRun]. */
+        override val scorer: TeamTaskScorer = this.template.newScorer() as? TeamTaskScorer
+            ?: throw IllegalArgumentException("Specified scorer is not of type TeamTaskScorer. This is a programmer's error!")
 
-        internal val submissions: MutableMap<Pair<TeamId, String>, ResultBatch<*>> = mutableMapOf()
-
-        @Transient
-        override val scorer: ResultBatchTaskScorer = template.newScorer() as? ResultBatchTaskScorer
-            ?: throw IllegalArgumentException("specified scorer is not of type ResultBatchTaskScorer")
+        /** */
+        override val filter: SubmissionFilter
+            get() = TODO("Can there be submission filters for non-interactive tasks?")
 
         @Synchronized
-        override fun addSubmissionBatch(teamId: TeamId, memberId: UserId, batches: List<ResultBatch<*>>) {
-            batches.forEach { resultBatch ->
-                submissions[teamId to resultBatch.name] = resultBatch
+        override fun postSubmission(submission: Submission) {
+            check(this@NonInteractiveEvaluation.description.teams.filter { it eq submission.team }.any()) {
+                "Team ${submission.team.teamId} does not exists for evaluation run ${this@NonInteractiveEvaluation.name}. This is a programmer's error!"
             }
+
+            /* Execute submission filters. */
+            this.filter.acceptOrThrow(submission)
+
+            /* Process Submission. */
+            this.submissions.add(submission)
+
+            /* TODO: Validation? */
         }
     }
 }

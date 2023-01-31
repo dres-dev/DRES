@@ -32,7 +32,7 @@ class GetTeamLogoHandler(store: TransientEntityStore) : AbstractCompetitionDescr
     @OpenApi(
         summary = "Returns the logo for the given team ID.",
         path = "/api/v1/template/logo/{teamId}",
-        tags = ["Competition Run", "Media"],
+        tags = ["Evaluation", "Media"],
         pathParams = [OpenApiParam("teamId", String::class, "The ID of the team to list load the logo for.")],
         responses = [OpenApiResponse("200"), OpenApiResponse("401"), OpenApiResponse("400"), OpenApiResponse("404")],
         ignore = true,

@@ -8,7 +8,6 @@ import dev.dres.data.model.submissions.Submission
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.score.interfaces.TeamTaskScorer
-import dev.dres.run.validation.interfaces.SubmissionValidator
 import kotlinx.dnq.query.*
 import java.util.*
 
@@ -18,7 +17,7 @@ import java.util.*
  * [InteractiveSynchronousEvaluation]s can be started, ended and they can be used to create new [TaskRun]s and access the current [TaskRun].
  *
  * @author Ralph Gasser
- * @param 1.3.0
+ * @param 2.0.0
  */
 class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluation(evaluation) {
 
@@ -27,6 +26,21 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
         require(this.description.tasks.size() > 0) { "Cannot create a run from a competition that doesn't have any tasks." }
         require(this.description.teams.size() > 0) { "Cannot create a run from a competition that doesn't have any teams." }
     }
+
+    /**
+     * Internal constructor to create an [InteractiveSynchronousEvaluation] from an [EvaluationTemplate].
+     *
+     * Requires a transaction context!
+     *
+     * @param name The name of the new [InteractiveSynchronousEvaluation]
+     * @param template The [EvaluationTemplate]
+     */
+    constructor(name: String, template: EvaluationTemplate) : this(Evaluation.new {
+        this.id = UUID.randomUUID().toString()
+        this.type = RunType.INTERACTIVE_SYNCHRONOUS
+        this.template = template
+        this.name = name
+    })
 
     /** List of [TaskRun]s registered for this [InteractiveSynchronousEvaluation]. */
     override val tasks: List<TaskRun> = this.evaluation.tasks.asSequence().map {
@@ -55,23 +69,18 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
     /**
      * Represents a concrete [Run] of a [TaskTemplate]. [Task]s always exist within a [InteractiveSynchronousEvaluation].
      * As a [InteractiveSynchronousEvaluation], [Task]s can be started and ended and they can be used to register [Submission]s.
-     *
-     * @version 1.2.0
-     * @author Ralph Gasser
      */
     inner class ISTaskRun(task: Task): AbstractInteractiveTask(task) {
 
         /**
          * Constructor used to generate an [ISTaskRun] from a [TaskTemplate].
          *
-         * @param description [TaskTemplate] to generate [ISTaskRun] from.
+         * @param template [TaskTemplate] to generate [ISTaskRun] from.
          */
-        constructor(description: TaskTemplate) : this(Task.new {
+        constructor(template: TaskTemplate) : this(Task.new {
             this.id = UUID.randomUUID().toString()
-            this.type = RunType.INTERACTIVE_SYNCHRONOUS
             this.evaluation = this@InteractiveSynchronousEvaluation.evaluation
-            this.started = System.currentTimeMillis()
-            this.template = description
+            this.template = template
         })
 
         /** The [InteractiveSynchronousEvaluation] this [Task] belongs to.*/
@@ -82,10 +91,6 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
         override val position: Int
             get() = this@InteractiveSynchronousEvaluation.tasks.indexOf(this)
 
-        /** Reference to the [TaskTemplate] describing this [Task]. */
-        override val template: TaskTemplate
-            get() = this.task.template
-
         /** The [SubmissionFilter] instance used by this [ISTaskRun]. */
         override val filter: SubmissionFilter = this.template.newFilter()
 
@@ -93,19 +98,11 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
         override val scorer: TeamTaskScorer = this.template.newScorer() as? TeamTaskScorer
             ?: throw IllegalArgumentException("Specified scorer is not of type TeamTaskScorer. This is a programmer's error!")
 
-        /** The [SubmissionValidator] used by this [ISTaskRun]. */
-        override val validator: SubmissionValidator = newValidator()
-
         /** The total duration in milliseconds of this task. Usually determined by the [TaskTemplate] but can be adjusted! */
         override var duration: Long = this.template.duration
 
         init {
-            check(this@InteractiveSynchronousEvaluation.tasks.isEmpty() || this@InteractiveSynchronousEvaluation.tasks.last().hasEnded) {
-                "Cannot create a new task. Another task is currently running."
-            }
-            check(this.task.type == RunType.INTERACTIVE_SYNCHRONOUS) {
-                "Incompatible competition type ${this.task.type}. This is a programmer's error!"
-            }
+            check(this@InteractiveSynchronousEvaluation.tasks.isEmpty() || this@InteractiveSynchronousEvaluation.tasks.last().hasEnded) { "Cannot create a new task. Another task is currently running." }
             (this@InteractiveSynchronousEvaluation.tasks as MutableList<TaskRun>).add(this)
         }
 
@@ -118,7 +115,7 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
         override fun postSubmission(submission: Submission) {
             check(this.isRunning) { "Task run '${this@InteractiveSynchronousEvaluation.name}.${this.position}' is currently not running. This is a programmer's error!" }
             check(this@InteractiveSynchronousEvaluation.description.teams.filter { it eq submission.team }.any()) {
-                "Team ${submission.team.teamId} does not exists for competition run ${this@InteractiveSynchronousEvaluation.name}. This is a programmer's error!"
+                "Team ${submission.team.teamId} does not exists for evaluation run ${this@InteractiveSynchronousEvaluation.name}. This is a programmer's error!"
             }
 
             /* Execute submission filters. */

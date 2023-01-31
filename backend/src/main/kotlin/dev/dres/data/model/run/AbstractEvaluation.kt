@@ -3,7 +3,21 @@ package dev.dres.data.model.run
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.template.EvaluationTemplate
 import dev.dres.data.model.run.interfaces.Run
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.template.task.TaskTemplate
+import dev.dres.data.model.template.task.options.TargetOption
+import dev.dres.run.validation.MediaItemsSubmissionValidator
+import dev.dres.run.validation.TemporalOverlapSubmissionValidator
+import dev.dres.run.validation.TextValidator
+import dev.dres.run.validation.interfaces.SubmissionValidator
+import dev.dres.run.validation.judged.BasicJudgementValidator
+import dev.dres.run.validation.judged.BasicVoteValidator
+import dev.dres.run.validation.judged.ItemRange
+import kotlinx.dnq.query.*
+import kotlinx.dnq.query.FilteringContext.eq
+import kotlinx.dnq.query.FilteringContext.ne
 import kotlinx.dnq.util.findById
+import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * An abstract [Run] implementation that can be used by different subtypes.
@@ -12,6 +26,8 @@ import kotlinx.dnq.util.findById
  * @version 1.0.0
  */
 abstract class AbstractEvaluation(evaluation: Evaluation): EvaluationRun {
+
+
 
     /** The internal [xdId] of this [AbstractEvaluation].
      *

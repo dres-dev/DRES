@@ -37,7 +37,7 @@ class GetTaskHintHandler(store: TransientEntityStore, private val config: Config
     @OpenApi(
         summary = "Returns the task hint for the specified task.",
         path = "/api/v1/run/{evaluationId}/hint/{taskId}",
-        tags = ["Competition Run"],
+        tags = ["Evaluation"],
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true),
             OpenApiParam("taskId", String::class, "The task ID.", required = true)

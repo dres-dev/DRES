@@ -1,39 +1,33 @@
 package dev.dres.data.model.run
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.template.EvaluationTemplate
 import dev.dres.data.model.template.task.TaskTemplate
-import dev.dres.data.model.template.TaskDescriptionId
 import dev.dres.data.model.template.team.TeamId
-import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.Task
+import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
 import dev.dres.data.model.run.interfaces.Run
-import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.score.interfaces.TeamTaskScorer
-import dev.dres.run.validation.interfaces.SubmissionValidator
+import kotlinx.dnq.query.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Represents a concrete, interactive and asynchronous [Run] of a [EvaluationTemplate].
  *
- * [InteractiveAsynchronousEvaluation]s can be started and ended, and they can be used to create new [Task]s and access the current [Task].
+ * [InteractiveAsynchronousEvaluation]s can be started and ended, and they can be used to create new [IATaskRun]s and access the current [IATaskRun].
  *
  */
-class InteractiveAsynchronousEvaluation(evaluation: Evaluation, val permutation: Map<TeamId, List<Int>>) : AbstractEvaluation(evaluation) {
+class InteractiveAsynchronousEvaluation(evaluation: Evaluation, private val permutation: Map<TeamId, List<Int>>) : AbstractEvaluation(evaluation) {
 
     companion object {
-        fun generatePermutation(
-            description: EvaluationTemplate,
-            shuffle: Boolean
-        ): Map<TeamId, List<Int>> =
+        fun generatePermutation(description: EvaluationTemplate, shuffle: Boolean): Map<TeamId, List<Int>> =
             if (shuffle) {
-                description.teams.associate { it.uid to makeLoop(description.tasks.size) }
+                description.teams.asSequence().associate { it.id to makeLoop(description.tasks.size()) }
             } else {
-                description.teams.associate { it.uid to description.tasks.indices.toList() }
+                description.teams.asSequence().associate { it.id to description.tasks.asSequence().toList().indices.toList() }
             }
 
         /**
@@ -86,112 +80,73 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, val permutation:
         }
     }
 
-    constructor(
-        id: EvaluationId,
-        name: String,
-        evaluationTemplate: EvaluationTemplate,
-        properties: RunProperties
-    ) : this(
-        id,
-        name,
-        evaluationTemplate,
-        properties,
-        generatePermutation(evaluationTemplate, properties.shuffleTasks)
-    )
+    /**
+     * Internal constructor to create an [InteractiveAsynchronousEvaluation] from an [EvaluationTemplate].
+     * Requires a transaction context!
+     *
+     * @param name The name of the new [InteractiveSynchronousEvaluation]
+     * @param shuffle Flag indicating if [IATaskRun]s should be shuffled.
+     * @param template The [EvaluationTemplate]
+     */
+    constructor(name: String, shuffle: Boolean, template: EvaluationTemplate) : this(Evaluation.new {
+        this.id = UUID.randomUUID().toString()
+        this.type = RunType.INTERACTIVE_ASYNCHRONOUS
+        this.name = name
+        this.template = template
+        this.shuffleTasks = shuffle
+        this.started = System.currentTimeMillis()
+    }, generatePermutation(template, shuffle))
 
-    internal constructor(
-        id: EvaluationId,
-        name: String,
-        evaluationTemplate: EvaluationTemplate,
-        runProperties: RunProperties,
-        started: Long,
-        ended: Long,
-        permutation: Map<TeamId, List<Int>>
-    ) : this(id, name, evaluationTemplate, runProperties, permutation) {
-        this.started = if (started == -1L) {
-            null
-        } else {
-            started
-        }
-        this.ended = if (ended == -1L) {
-            null
-        } else {
-            ended
-        }
-    }
-
-    /** A [ConcurrentHashMap] that maps a list of [Task]s to the [TeamId]s they belong to.*/
-    private val tasksMap = ConcurrentHashMap<TeamId, MutableList<Task>>()
-
-    /** A [List] of all active [Task]s.*/
-    override val tasks: List<Task>
+    /** A [List] of all active [IATaskRun]s.*/
+    override val tasks: List<IATaskRun>
         get() = this.tasksMap.values.flatten()
+
+    /** A [ConcurrentHashMap] that maps a list of [IATaskRun]s to the [TeamId]s they belong to.*/
+    private val tasksMap = ConcurrentHashMap<TeamId, MutableList<IATaskRun>>()
 
     /** Tracks the current [TaskTemplate] per [TeamId]. */
     private val navigationMap: MutableMap<TeamId, TaskTemplate> = HashMap()
 
+    init {
+        /* TODO: Reconstruct TaskRuns from stored data. */
+    }
+
     fun goTo(teamId: TeamId, index: Int) {
-        navigationMap[teamId] = this.description.tasks[
-                permutation[teamId]!![index]
-        ]
+        this.navigationMap[teamId] = this.description.tasks.drop(this.permutation[teamId]!![index]).single()
     }
 
     fun currentTaskDescription(teamId: TeamId): TaskTemplate =
         navigationMap[teamId] ?: throw IllegalTeamIdException(teamId)
 
     init {
-        require(description.tasks.size > 0) { "Cannot create a run from a competition that doesn't have any tasks. " }
-        this.description.teams.forEach {
-            this.tasksMap[it.uid] = ArrayList(this.description.tasks.size)
-            goTo(it.uid, 0)
+        val numberOfTasks = this.description.tasks.size()
+        require(numberOfTasks > 0) { "Cannot create a run from a competition that doesn't have any tasks. " }
+        this.description.teams.asSequence().forEach {
+            this.tasksMap[it.id] = ArrayList(numberOfTasks)
+            goTo(it.id, 0)
         }
     }
 
     /**
-     * When a run is deserialized, the pointers for individual teams need to be recalculated in order to be able to resume where they left of
-     */
-    fun reconstructNavigationMap() {
-        this.description.teams.forEach {
-            val tasks = this.tasksMap[it.uid]
-            if (tasks != null && tasks.isNotEmpty()) {
-                val lastTask = tasks.last()
-                val taskIndex = this.description.tasks.indexOf(lastTask.template)
-
-                if (lastTask.ended != null) {
-                    this.navigationMap[it.uid] =
-                        this.description.tasks[if (lastTask.descriptionId == description.tasks.last().id) description.tasks.size - 1 else taskIndex + 1]
-                } else {
-                    this.navigationMap[it.uid] = this.description.tasks[taskIndex]
-                }
-
-            }
-        }
-    }
-
-    /**
-     * Returns the current [Task] for the given [TeamId].
+     * Returns the current [IATaskRun] for the given [TeamId].
      *
      * @param teamId The [TeamId] to lookup.
      */
-    fun currentTaskForTeam(teamId: TeamId): Task? {
-
-        val currentTaskDescriptionId = navigationMap[teamId]!!.id
-
+    fun currentTaskForTeam(teamId: TeamId): IATaskRun? {
+        val currentTaskTemplateId = this.navigationMap[teamId]!!.id
         return this.tasksForTeam(teamId).findLast {
-            it.descriptionId == currentTaskDescriptionId
+            it.template.id == currentTaskTemplateId
         }
-
     }
 
     /**
-     * Returns all [Task]s for the given [TeamId].
+     * Returns all [IATaskRun]s for the given [TeamId].
      *
      * @param teamId The [TeamId] to lookup.
      * @return List []
      */
-    fun tasksForTeam(teamId: TeamId) =
-        this.tasksMap[teamId]
-            ?: throw IllegalArgumentException("Given $teamId is unknown to this competition $id.")
+    fun tasksForTeam(teamId: TeamId)
+        = this.tasksMap[teamId] ?: throw IllegalArgumentException("Given $teamId is unknown to this competition $id.")
 
     /**
      * Generates and returns a [String] representation for this [InteractiveAsynchronousEvaluation].
@@ -200,73 +155,44 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, val permutation:
 
     /**
      * A [AbstractInteractiveTask] that takes place as part of the [InteractiveAsynchronousEvaluation].
-     *
-     * @author Ralph Gasser
-     * @version 1.0.0
      */
-    inner class Task internal constructor(
-        override val uid: TaskId = EvaluationId(),
-        val teamId: TeamId,
-        val descriptionId: TaskDescriptionId
-    ) : AbstractInteractiveTask() {
+    inner class IATaskRun internal constructor(task: Task, val teamId: TeamId) : AbstractInteractiveTask(task) {
 
-        internal constructor(
-            uid: TaskId,
-            teamId: TeamId,
-            taskId: TaskDescriptionId,
-            started: Long,
-            ended: Long
-        ) : this(
-            uid,
-            teamId,
-            taskId
-        ) {
-            this.started = if (started == -1L) {
-                null
-            } else {
-                started
-            }
-            this.ended = if (ended == -1L) {
-                null
-            } else {
-                ended
-            }
-        }
+        /**
+         * Constructor used to generate an [IATaskRun] from a [TaskTemplate].
+         *
+         * @param template [TaskTemplate] to generate [IATaskRun] from.
+         * @param teamId The [TeamId] this [IATaskRun] is created for.
+         */
+        internal constructor(template: TaskTemplate, teamId: TeamId) : this(Task.new {
+            this.id = UUID.randomUUID().toString()
+            this.evaluation = this@InteractiveAsynchronousEvaluation.evaluation
+            this.template = template
+            this.team = this@InteractiveAsynchronousEvaluation.evaluation.template.teams.filter { it.teamId eq teamId }.singleOrNull()
+                ?: throw IllegalArgumentException("Cannot start a new task run for team with ID ${teamId}. Team is not registered for competition.")
+        }, teamId)
 
-        /** The [InteractiveAsynchronousEvaluation] this [Task] belongs to.*/
+        /** The [InteractiveAsynchronousEvaluation] this [IATaskRun] belongs to.*/
         override val competition: InteractiveAsynchronousEvaluation
-            @JsonIgnore get() = this@InteractiveAsynchronousEvaluation
+            get() = this@InteractiveAsynchronousEvaluation
 
-        /** The position of this [Task] within the [InteractiveAsynchronousEvaluation]. */
+        /** The position of this [IATaskRun] within the [InteractiveAsynchronousEvaluation]. */
         override val position: Int
-            get() = this@InteractiveAsynchronousEvaluation.tasksMap[this.teamId]?.indexOf(this)
-                ?: -1
+            get() = this@InteractiveAsynchronousEvaluation.tasksMap[this.teamId]?.indexOf(this) ?: -1
 
-        @Transient
-        override val template: TaskTemplate =
-            this@InteractiveAsynchronousEvaluation.description.tasks.find { it.id == this.descriptionId }
-                ?: throw IllegalArgumentException("Task with taskId ${this.descriptionId} not found.")
-
-        @Transient
+        /** The [SubmissionFilter] instance used by this [IATaskRun]. */
         override val filter: SubmissionFilter = this.template.newFilter()
 
-        @Transient
+        /** The [TeamTaskScorer] instance used by this [InteractiveAsynchronousEvaluation].*/
         override val scorer: TeamTaskScorer = this.template.newScorer() as? TeamTaskScorer
             ?: throw IllegalArgumentException("specified scorer is not of type TeamTaskScorer")
-
-        @Transient
-        override val validator: SubmissionValidator = this.newValidator()
 
         /** The total duration in milliseconds of this task. Usually determined by the [TaskTemplate] but can be adjusted! */
         override var duration: Long = this.template.duration
 
-
         init {
-            check(this@InteractiveAsynchronousEvaluation.description.teams.any { it.uid == this.teamId }) {
-                "Cannot start a new task run for team with ID ${this.teamId}. Team is not registered for competition."
-            }
             this@InteractiveAsynchronousEvaluation.tasksMap.compute(this.teamId) { _, v ->
-                val list = v ?: LinkedList<Task>()
+                val list = v ?: LinkedList<IATaskRun>()
                 check(list.isEmpty() || list.last().hasEnded) { "Cannot create a new task. Another task is currently running." }
                 list.add(this)
                 list
@@ -274,7 +200,7 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, val permutation:
         }
 
         /**
-         * Adds a [Submission] to this [InteractiveAsynchronousEvaluation.Task].
+         * Adds a [Submission] to this [InteractiveAsynchronousEvaluation.IATaskRun].
          *
          * @param submission The [Submission] to add.
          * @throws IllegalArgumentException If [Submission] could not be added for any reason.
@@ -282,7 +208,7 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, val permutation:
         @Synchronized
         override fun postSubmission(submission: Submission) {
             check(this.isRunning) { "Task run '${this@InteractiveAsynchronousEvaluation.name}.${this.position}' is currently not running. This is a programmer's error!" }
-            check(this.teamId == submission.teamId) { "Team ${submission.teamId} is not eligible to submit to this task. This is a programmer's error!" }
+            check(this.teamId == submission.team.id) { "Team ${submission.team.id} is not eligible to submit to this task. This is a programmer's error!" }
 
             /* Execute submission filters. */
             this.filter.acceptOrThrow(submission)

@@ -103,7 +103,6 @@ object RestApi {
             AddMediaItemHandler(store),
             UpdateMediaItemHandler(store),
             DeleteMediaItemHandler(store),
-            ShowCollectionHandler(store),
             RandomMediaItemHandler(store), // Must be before ListMediaItem
             ResolveMediaItemListByNameHandler(store), // Must be before ListMediaItem
             ListMediaItemHandler(store),
@@ -229,15 +228,15 @@ object RestApi {
             it.jetty.server { setupHttpServer() }
             it.jetty.sessionHandler { fileSessionHandler(config) }
             it.accessManager(AccessManager::manage)
-            it.staticFiles.add("html", Location.CLASSPATH)
-            it.spaRoot.addFile("/vote", "vote/index.html")
-            it.spaRoot.addFile("/", "html/index.html")
+            //it.staticFiles.add("html", Location.CLASSPATH)
+            //it.spaRoot.addFile("/vote", "vote/index.html")
+            //it.spaRoot.addFile("/", "html/index.html")
 
             if (config.enableSsl) {
                 val ssl = SSLPlugin { conf ->
                     conf.keystoreFromPath(config.keystorePath, config.keystorePassword)
                     conf.http2 = true
-                    conf.secure = true
+                    conf.secure = false
                     conf.insecurePort = config.httpPort
                     conf.securePort = config.httpsPort
                     conf.sniHostCheck = false
@@ -294,8 +293,7 @@ object RestApi {
         }.exception(Exception::class.java) { e, ctx ->
             ctx.status(500).json(ErrorStatus("Internal server error: ${e.localizedMessage}"))
             logger.error("Exception during handling of request to ${ctx.path()}", e)
-        }
-            .start(config.httpPort)
+        }.start(config.httpPort)
     }
 
     fun stop() {

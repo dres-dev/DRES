@@ -1,15 +1,15 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import {
   AuditService,
-  RestAuditLogEntry,
-  RestCompetitionEndAuditLogEntry,
-  RestJudgementAuditLogEntry,
-  RestLoginAuditLogEntry,
-  RestLogoutAuditLogEntry,
-  RestSubmissionAuditLogEntry,
-  RestTaskEndAuditLogEntry,
-  RestTaskModifiedAuditLogEntry,
-  RestTaskStartAuditLogEntry,
+  ApiAuditLogEntry,
+  ApiCompetitionEndAuditLogEntry,
+  ApiJudgementAuditLogEntry,
+  ApiLoginAuditLogEntry,
+  ApiLogoutAuditLogEntry,
+  ApiSubmissionAuditLogEntry,
+  ApiTaskEndAuditLogEntry,
+  ApiTaskModifiedAuditLogEntry,
+  ApiTaskStartAuditLogEntry,
 } from '../../../../openapi';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subscription, timer } from 'rxjs';
@@ -86,11 +86,11 @@ export class AdminAuditlogOverviewComponent implements AfterViewInit, OnDestroy 
     this.paginationSub = null;
   }
 
-  resolveAuditLogEntryById(_: number, item: RestAuditLogEntry) {
+  resolveAuditLogEntryById(_: number, item: ApiAuditLogEntry) {
     return item.id;
   }
 
-  public detailsOf(log: RestAuditLogEntry): string {
+  public detailsOf(log: ApiAuditLogEntry): string {
     switch (log.type) {
       case 'COMPETITION_START':
         const cs = log as unknown as RestCompetitionEndAuditLogEntry;

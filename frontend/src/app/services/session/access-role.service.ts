@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { AuthenticationService } from './authentication.sevice';
-import { UserDetails } from '../../../../openapi';
+import { ApiUser } from '../../../../openapi';
 import { UserGroup } from '../../model/user-group.model';
 import { BehaviorSubject } from 'rxjs';
-import RoleEnum = UserDetails.RoleEnum;
+import RoleEnum = ApiUser.RoleEnum;
 
 @Injectable()
 export class AccessRoleService {

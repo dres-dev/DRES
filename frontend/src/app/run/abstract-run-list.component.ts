@@ -5,7 +5,7 @@ import {
   CompetitionRunService,
   DownloadService,
   RunProperties,
-  RunState,
+  ApiEvaluationState,
 } from '../../../openapi';
 import { flatMap, map, take } from 'rxjs/operators';
 import { Router } from '@angular/router';
@@ -16,8 +16,8 @@ export interface RunInfoWithState {
   name: string;
   description?: string;
   teams: number;
-  runStatus: RunState.RunStatusEnum;
-  taskRunStatus: RunState.TaskRunStatusEnum;
+  runStatus: ApiEvaluationState.RunStatusEnum;
+  taskRunStatus: ApiEvaluationState.TaskRunStatusEnum;
   currentTask?: string;
   timeLeft: string;
   asynchronous: boolean;
@@ -95,7 +95,7 @@ export class AbstractRunListComponent {
   }
 
   public downloadScores(runId: string) {
-    this.downloadService.getApiV1DownloadRunWithRunidScores(runId).subscribe((scoresCSV) => {
+    this.downloadService.apiV2DownloadEvaluationEvaluationIdScoresGet(runId).subscribe((scoresCSV) => {
       const csvBlob = new Blob([scoresCSV], { type: 'text/csv' });
       const fake = document.createElement('a');
       fake.href = URL.createObjectURL(csvBlob);
@@ -118,7 +118,7 @@ export class AbstractRunListComponent {
   }
 
   public startTask(runId: string) {
-    this.runAdminService.postApiV1RunAdminWithRunidTaskStart(runId).subscribe(
+    this.runAdminService.apiV2EvaluationAdminRunIdTerminatePost(runId).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -140,7 +140,7 @@ export class AbstractRunListComponent {
   };
 
   downloadProvider = (runId) => {
-    return this.downloadService.getApiV1DownloadRunWithRunid(runId).pipe(take(1));
+    return this.downloadService.apiV2DownloadEvaluationEvaluationIdGet(runId).pipe(take(1));
     // .toPromise();
   };
 

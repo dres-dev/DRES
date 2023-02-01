@@ -23,7 +23,7 @@ export class CollectionListComponent implements AfterViewInit {
   ) {}
 
   refresh() {
-    this.collectionService.getApiV1CollectionList().subscribe(
+    this.collectionService.apiV2CollectionListGet().subscribe(
       (results: RestMediaCollection[]) => {
         this.collections = results;
       },
@@ -52,9 +52,9 @@ export class CollectionListComponent implements AfterViewInit {
         filter((r) => r != null),
         flatMap((r: RestMediaCollection) => {
           if (id) {
-            return this.collectionService.patchApiV1Collection(r);
+            return this.collectionService.apiV2CollectionPatch(r);
           } else {
-            return this.collectionService.postApiV1Collection(r);
+            return this.collectionService.apiV2CollectionPost(r);
           }
         })
       )
@@ -75,7 +75,7 @@ export class CollectionListComponent implements AfterViewInit {
 
   delete(id: string) {
     if (confirm(`Do you really want to delete collection with ID ${id}?`)) {
-      this.collectionService.deleteApiV1CollectionWithCollectionid(id).subscribe(
+      this.collectionService.apiV2CollectionCollectionIdDelete(id).subscribe(
         (r) => {
           this.refresh();
           this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });

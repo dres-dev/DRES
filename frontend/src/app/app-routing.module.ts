@@ -4,7 +4,7 @@ import { CompetitionBuilderComponent } from './competition/competition-builder/c
 import { CompetitionListComponent } from './competition/competition-list/competition-list.component';
 import { LoginComponent } from './user/login/login.component';
 import { AuthenticationGuard } from './services/session/authentication.guard';
-import { UserDetails } from '../../openapi';
+import { ApiUser } from '../../openapi';
 import { RunViewerComponent } from './viewer/run-viewer.component';
 import { ProfileComponent } from './user/profile/profile.component';
 import { AdminUserListComponent } from './user/admin-user-list/admin-user-list.component';
@@ -18,7 +18,7 @@ import { CanDeactivateGuard } from './services/can-deactivate.guard';
 import { RunAdminSubmissionsListComponent } from './run/run-admin-submissions-list/run-admin-submissions-list.component';
 import { RunScoreHistoryComponent } from './run/score-history/run-score-history.component';
 import { JudgementVotingViewerComponent } from './judgement/judgement-voting-viewer.component';
-import RoleEnum = UserDetails.RoleEnum;
+import RoleEnum = ApiUser.RoleEnum;
 import { RunAsyncAdminViewComponent } from './run/run-async-admin-view/run-async-admin-view.component';
 import { NonescapingUrlserializerClass } from './nonescaping-urlserializer.class';
 

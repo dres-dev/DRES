@@ -1,14 +1,14 @@
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
-import { AuditService, RestAuditLogEntry } from '../../../../openapi';
+import { AuditService, ApiAuditLogEntry } from '../../../../openapi';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, finalize, first } from 'rxjs/operators';
 
 /**
- * {@link DataSource} implementation of {@link RestAuditLogEntry}.
+ * {@link DataSource} implementation of {@link ApiAuditLogEntry}.
  */
-export class AuditlogDatasource implements DataSource<RestAuditLogEntry> {
-  /** {@link BehaviorSubject} used to publish {@link RestAuditLogEntry} array. */
-  private logsSubject = new BehaviorSubject<RestAuditLogEntry[]>([]);
+export class AuditlogDatasource implements DataSource<ApiAuditLogEntry> {
+  /** {@link BehaviorSubject} used to publish {@link ApiAuditLogEntry} array. */
+  private logsSubject = new BehaviorSubject<ApiAuditLogEntry[]>([]);
   private loadingSubject = new BehaviorSubject<boolean>(false);
 
   constructor(private logService: AuditService) {}
@@ -18,7 +18,7 @@ export class AuditlogDatasource implements DataSource<RestAuditLogEntry> {
    *
    * @param collectionViewer The collection viewer
    */
-  connect(collectionViewer: CollectionViewer): Observable<RestAuditLogEntry[]> {
+  connect(collectionViewer: CollectionViewer): Observable<ApiAuditLogEntry[]> {
     return this.logsSubject.asObservable();
   }
 

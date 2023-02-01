@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@angular/core';
-import { LoginRequest, UserDetails, UserRequest, UserService } from '../../../../openapi';
+import { LoginRequest, ApiUser, UserRequest, UserService } from '../../../../openapi';
 import { catchError, filter, flatMap, map, tap } from 'rxjs/operators';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import RoleEnum = UserRequest.RoleEnum;
@@ -11,19 +11,18 @@ import RoleEnum = UserRequest.RoleEnum;
   providedIn: 'root',
 })
 export class AuthenticationService {
-  /** UserDetails created during login. */
-  private userDetails: BehaviorSubject<UserDetails> = new BehaviorSubject<UserDetails>(null);
+  /** ApiUser created during login. */
+  private userDetails: BehaviorSubject<ApiUser> = new BehaviorSubject<ApiUser>(null);
 
   /**
    * Constructor
    */
   constructor(@Inject(UserService) private userService: UserService) {
-    this.userService
-      .getApiV1UserSession()
+    this.userService.apiV2UserSessionGet()
       .pipe(
         catchError((e) => of(null)),
         filter((s) => s != null),
-        flatMap((s) => this.userService.getApiV1User()),
+        flatMap((s) => this.userService.apiV2UserGet()),
         filter((u) => u != null)
       )
       .subscribe((u) => {
@@ -39,8 +38,8 @@ export class AuthenticationService {
    * @param pass The password.
    */
   public login(user: string, pass: string) {
-    return this.userService.postApiV1Login({ username: user, password: pass } as LoginRequest).pipe(
-      flatMap(() => this.userService.getApiV1User()),
+    return this.userService.apiV2LoginPost({ username: user, password: pass } as LoginRequest).pipe(
+      flatMap(() => this.userService.apiV2UserGet()),
       tap((data) => {
         this.userDetails.next(data);
         console.log(`Successfully logged in as '${this.userDetails.value.username}'.`);
@@ -55,8 +54,8 @@ export class AuthenticationService {
    */
   public updateUser(user: UserRequest) {
     return this.user.pipe(
-      flatMap((u: UserDetails) => this.userService.patchApiV1UserWithUserid(u.id, user)),
-      tap((u: UserDetails) => this.userDetails.next(u))
+      flatMap((u: ApiUser) => this.userService.apiV2UserUserIdPatch(u.id, user)),
+      tap((u: ApiUser) => this.userDetails.next(u))
     );
   }
 
@@ -64,7 +63,7 @@ export class AuthenticationService {
    * Tries to logout the current user. Returns an Observable!
    */
   public logout() {
-    return this.userService.getApiV1Logout().pipe(
+    return this.userService.apiV2LogoutGet().pipe(
       catchError((e) => of(null)),
       tap(() => {
         this.userDetails.next(null);
@@ -86,7 +85,7 @@ export class AuthenticationService {
   /**
    * Returns the username of the current user as Observable.
    */
-  get user(): Observable<UserDetails> {
+  get user(): Observable<ApiUser> {
     return this.userDetails.asObservable();
   }
 

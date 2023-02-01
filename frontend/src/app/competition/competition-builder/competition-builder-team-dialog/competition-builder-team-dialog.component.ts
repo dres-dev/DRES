@@ -1,7 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { RestTeam, UserDetails, UserService } from '../../../../../openapi';
+import { RestTeam, ApiUser, UserService } from '../../../../../openapi';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { map, shareReplay } from 'rxjs/operators';
 import { Observable } from 'rxjs';
@@ -14,7 +14,7 @@ import { AppConfig } from '../../../app.config';
 export class CompetitionBuilderTeamDialogComponent {
   form: FormGroup;
   logoName = '';
-  availableUsers: Observable<UserDetails[]>;
+  availableUsers: Observable<ApiUser[]>;
   colorPalette = [
     '#BF0000',
     '#BF3900',
@@ -116,7 +116,7 @@ export class CompetitionBuilderTeamDialogComponent {
    *
    * @param id User ID of the desired user.
    */
-  public userForId(id: string): Observable<UserDetails> {
+  public userForId(id: string): Observable<ApiUser> {
     return this.availableUsers.pipe(map((users) => users.find((u) => u.id === id)));
   }
 

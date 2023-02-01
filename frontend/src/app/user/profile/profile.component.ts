@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { SessionId, UserDetails, UserRequest, UserService } from '../../../../openapi';
+import { ApiUser, UserRequest, UserService } from '../../../../openapi';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
@@ -13,8 +13,8 @@ import { AuthenticationService } from '../../services/session/authentication.sev
   styleUrls: ['./profile.component.scss'],
 })
 export class ProfileComponent implements OnInit, OnDestroy {
-  user: Observable<UserDetails>;
-  sessionId: Observable<SessionId>;
+  user: Observable<ApiUser>;
+  sessionId: Observable<string>;
   loggedIn: Observable<boolean>;
 
   editing = false;
@@ -35,7 +35,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ) {
     this.user = this.authenticationService.user;
     this.loggedIn = this.authenticationService.isLoggedIn;
-    this.sessionId = this.userService.getApiV1UserSession();
+    this.sessionId = this.userService.apiV2UserSessionGet();
   }
 
   ngOnInit(): void {
@@ -60,7 +60,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         .updateUser(usr)
         .pipe(first())
         .subscribe(
-          (r: UserDetails) => {
+          (r: ApiUser) => {
             this.snackBar.open(`Save successful!`, null, { duration: 5000 });
             this.toggleEdit();
           },

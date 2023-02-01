@@ -19,7 +19,7 @@ import {
 import { webSocket, WebSocketSubject, WebSocketSubjectConfig } from 'rxjs/webSocket';
 import { AppConfig } from '../app.config';
 import { IWsMessage } from '../model/ws/ws-message.interface';
-import { CompetitionRunService, RunInfo, RunState, TaskInfo } from '../../../openapi';
+import { EvaluationService, ApiEvaluationInfo, ApiEvaluationState, TaskInfo } from '../../../openapi';
 import { IWsServerMessage } from '../model/ws/ws-server-message.interface';
 import { IWsClientMessage } from '../model/ws/ws-client-message.interface';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -44,10 +44,10 @@ export class RunViewerComponent implements OnInit, OnDestroy {
   runId: Observable<string>;
 
   /** Observable for information about the current run. Usually queried once when the view is loaded. */
-  runInfo: Observable<RunInfo>;
+  runInfo: Observable<ApiEvaluationInfo>;
 
   /** Observable for information about the current run's state. Usually queried when a state change is signaled via WebSocket. */
-  runState: Observable<RunState>;
+  runState: Observable<ApiEvaluationState>;
 
   /** Observable that fires whenever a task starts. Emits the task description of the task that just started. */
   taskStarted: Observable<TaskInfo>;
@@ -77,7 +77,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     private router: Router,
     private activeRoute: ActivatedRoute,
     private config: AppConfig,
-    private runService: CompetitionRunService,
+    private runService: EvaluationService,
     private snackBar: MatSnackBar,
     private titleService: Title,
     @Inject(DOCUMENT) private document: Document
@@ -134,7 +134,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     /* Basic observable for general run info; this information is static and does not change over the course of a run. */
     this.runInfo = this.runId.pipe(
       switchMap((runId) =>
-        this.runService.getApiV1RunWithRunidInfo(runId).pipe(
+        this.runService.apiV2EvaluationEvaluationIdInfoGet(runId).pipe(
           catchError((err, o) => {
             console.log(
               `[RunViewerComponent] There was an error while loading information in the current run: ${err?.message}`
@@ -199,7 +199,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     this.runState = merge(this.runId, wsMessages).pipe(
       sampleTime(500) /* State updates are triggered only once every 500ms. */,
       switchMap((runId) =>
-        this.runService.getApiV1RunWithRunidState(runId).pipe(
+        this.runService.apiV2EvaluationEvaluationIdStateGet(runId).pipe(
           catchError((err, o) => {
             console.log(
               `[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`
@@ -227,7 +227,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     );
 
     /* Basic observable that fires when a task ends.  */
-    this.taskEnded = merge(of(null as RunState), this.runState).pipe(
+    this.taskEnded = merge(of(null as ApiEvaluationState), this.runState).pipe(
       pairwise(),
       filter(([s1, s2]) => (s1 === null || s1.taskRunStatus === 'RUNNING') && s2.taskRunStatus === 'ENDED'),
       map(([s1, s2]) => s2.currentTask),
@@ -235,14 +235,14 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     );
 
     /* Observable that tracks the currently active task. */
-    this.taskChanged = merge(of(null as RunState), this.runState).pipe(
+    this.taskChanged = merge(of(null as ApiEvaluationState), this.runState).pipe(
       pairwise(),
       filter(([s1, s2]) => s1 === null || s1.currentTask.name !== s2.currentTask.name),
       map(([s1, s2]) => s2.currentTask),
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    this.runInfo.subscribe((info: RunInfo) => {
+    this.runInfo.subscribe((info: ApiEvaluationInfo) => {
         this.titleService.setTitle(info.name + ' - DRES');
     })
   }

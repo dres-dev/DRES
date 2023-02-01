@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import {
     CompetitionRunScoresService,
-    CompetitionRunService,
+    EvaluationService,
     RunInfo,
     RunState,
     ScoreOverview,
@@ -95,7 +95,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
   submissionTrackInterval: number = 60_000;
 
   constructor(
-    private runService: CompetitionRunService,
+    private evaluationService: EvaluationService,
     private scoresService: CompetitionRunScoresService,
     private ref: ChangeDetectorRef,
     public config: AppConfig
@@ -110,7 +110,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     /* Create source observable; list of all submissions.  */
     this.submissions = this.state.pipe(
       switchMap((st) =>
-        this.runService.getApiV1RunWithRunidSubmissionList(st.id).pipe(
+        this.evaluationService.getApiV1RunWithRunidSubmissionList(st.id).pipe(
           retry(3),
           catchError((err, o) => {
             console.log(`[TeamsViewerComponent] Error while loading submissions: ${err?.message}.`);

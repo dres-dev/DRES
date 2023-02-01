@@ -9,12 +9,12 @@ import {
   ConfiguredOptionSimpleOption,
   ConfiguredOptionSubmissionFilterOption,
   ConfiguredOptionTargetOption,
-  RestCompetitionDescription,
-  RestTaskDescription,
-  RestTeam,
-  TaskGroup,
-  TaskType,
-  UserDetails,
+  ApiEvaluationTemplate,
+  ApiTaskTemplate,
+  ApiTeam,
+  ApiTaskGroup,
+  ApiTaskType,
+  ApiUser,
   UserService,
   UserRequest,
 } from '../../../../openapi';
@@ -59,7 +59,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
       { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TEMPORAL_SUBMISSION, parameters: {} },
     ],
     options: [{ option: ConfiguredOptionSimpleOption.OptionEnum.HIDDEN_RESULTS, parameters: {} }],
-  } as TaskType;
+  } as ApiTaskType;
 
   /**
    * The official VBS Visual Known Item Search task type template
@@ -76,7 +76,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
       { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TEMPORAL_SUBMISSION, parameters: {} },
     ],
     options: [],
-  } as TaskType;
+  } as ApiTaskType;
 
   /**
    * The official VBS Ad-hoc Video Search task type template
@@ -93,7 +93,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
       { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.LIMIT_CORRECT_PER_ITEM_AND_TEAM, parameters: {} },
     ],
     options: [{ option: ConfiguredOptionSimpleOption.OptionEnum.MAP_TO_SEGMENT, parameters: {} }],
-  } as TaskType;
+  } as ApiTaskType;
 
   /**
    * The official legacy (pre 2023) VBS Ad-hoc Video Search task type template
@@ -109,7 +109,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
       { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TEMPORAL_SUBMISSION, parameters: {} },
     ],
     options: [{ option: ConfiguredOptionSimpleOption.OptionEnum.MAP_TO_SEGMENT, parameters: {} }],
-  } as TaskType;
+  } as ApiTaskType;
 
   /**
    * The official LSC task type template
@@ -125,16 +125,16 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
       { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.LIMIT_CORRECT_PER_TEAM, parameters: {} },
     ],
     options: [{ option: ConfiguredOptionSimpleOption.OptionEnum.HIDDEN_RESULTS, parameters: {} }],
-  } as TaskType;
+  } as ApiTaskType;
 
   competitionId: string;
-  competition: RestCompetitionDescription;
+  competition: ApiEvaluationTemplate;
   @ViewChild('taskTable')
   taskTable: MatTable<any>;
   @ViewChild('teamTable')
   teamTable: MatTable<any>;
   @ViewChild('judgesTable')
-  judgesTable: MatTable<UserDetails>;
+  judgesTable: MatTable<ApiUser>;
   displayedColumnsTeams: string[] = ['logo', 'name', 'action'];
   displayedColumnsJudges: string[] = ['name', 'action'];
   displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'action'];
@@ -143,7 +143,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   routeSubscription: Subscription;
   changeSubscription: Subscription;
 
-  availableJudges: Observable<UserDetails[]>;
+  availableJudges: Observable<ApiUser[]>;
 
   /**
    * Ref to template for easy access in thml
@@ -172,7 +172,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     private dialog: MatDialog,
     private config: AppConfig
   ) {
-    this.availableJudges = this.userService.getApiV1UserList().pipe(
+    this.availableJudges = this.userService.apiV2UserListGet().pipe(
       map((users) => users.filter((user) => user.role === RoleEnum.JUDGE)),
       shareReplay(1)
     );
@@ -220,7 +220,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   };
 
   downloadProvider = () => {
-    return this.downloadService.getApiV1DownloadCompetitionWithCompetitionid(this.competitionId).pipe(take(1));
+    return this.downloadService.apiV2DownloadEvaluationEvaluationIdGet(this.competitionId).pipe(take(1));
     // .toPromise();
   };
 
@@ -247,7 +247,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     }
   }
 
-  public addTaskType(type?: TaskType) {
+  public addApiTaskType(type?: ApiTaskType) {
     const dialogRef = this.dialog.open(CompetitionBuilderTaskTypeDialogComponent, { data: type ? type : null, width: '750px' });
     dialogRef
       .afterClosed()
@@ -261,9 +261,9 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   /**
    * Removes a task type and all associated task groups.
    *
-   * @param taskType The {@link TaskType} to remove.
+   * @param ApiTaskType The {@link ApiTaskType} to remove.
    */
-  public removeTaskType(taskType: TaskType) {
+  public removeTaskType(taskType: ApiTaskType) {
     this.competition.taskTypes.splice(this.competition.taskTypes.indexOf(taskType), 1);
     this.competition.taskGroups
       .filter((t) => t.type === taskType.name)
@@ -276,7 +276,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   /**
    * Opens the dialog to add a new task group.
    */
-  public addTaskGroup(group?: TaskGroup) {
+  public addTaskGroup(group?: ApiTaskGroup) {
     const dialogRef = this.dialog.open(CompetitionBuilderTaskGroupDialogComponent, {
       data: { types: this.competition.taskTypes, group: group ? group : null } as CompetitionBuilderTaskGroupDialogData,
       width: '750px',
@@ -295,7 +295,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
    *
    * @param group The {@link TaskGroup} to remove
    */
-  public removeTaskGroup(group: TaskGroup) {
+  public removeTaskGroup(group: ApiTaskGroup) {
     this.competition.taskGroups.splice(this.competition.taskGroups.indexOf(group), 1);
     this.competition.tasks
       .filter((t) => t.taskGroup === group.name)
@@ -310,7 +310,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
    *
    * @param group The TaskGroup to add a description to.
    */
-  public addTask(group: TaskGroup) {
+  public addTask(group: ApiTaskGroup) {
     const type = this.competition.taskTypes.find((v) => v.name === group.type);
     const width = 750;
     const dialogRef = this.dialog.open(CompetitionBuilderTaskDialogComponent, {
@@ -332,7 +332,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
    *
    * @param task The {@link RestTaskDescription} to edit.
    */
-  public editTask(task: RestTaskDescription) {
+  public editTask(task: ApiTaskTemplate) {
     const index = this.competition.tasks.indexOf(task);
     const width = 750;
     if (index > -1) {
@@ -360,7 +360,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
    *
    * @param task The {@link RestTaskDescription} that should be moved.
    */
-  public moveTaskUp(task: RestTaskDescription) {
+  public moveTaskUp(task: ApiTaskTemplate) {
     const oldIndex = this.competition.tasks.indexOf(task);
     if (oldIndex > 0) {
       const buffer = this.competition.tasks[oldIndex - 1];
@@ -376,7 +376,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
    *
    * @param task The {@link RestTaskDescription} that should be moved.
    */
-  public moveTaskDown(task: RestTaskDescription) {
+  public moveTaskDown(task: ApiTaskTemplate) {
     const oldIndex = this.competition.tasks.indexOf(task);
     if (oldIndex < this.competition.tasks.length - 1) {
       const buffer = this.competition.tasks[oldIndex + 1];
@@ -392,7 +392,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
    *
    * @param task The {@link RestTaskDescription} to remove.
    */
-  public removeTask(task: RestTaskDescription) {
+  public removeTask(task: ApiTaskTemplate) {
     this.competition.tasks.splice(this.competition.tasks.indexOf(task), 1);
     this.dirty = true;
     this.taskTable.renderRows();
@@ -401,7 +401,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   /**
    * Generates a URL for the logo of the team.
    */
-  public teamLogo(team: RestTeam): string {
+  public teamLogo(team: ApiTeam): string {
     if (team.logoData != null) {
       return team.logoData;
     } else {
@@ -421,14 +421,14 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
       });
   }
 
-  public editTeam(team: RestTeam) {
+  public editTeam(team: ApiTeam) {
     const index = this.competition.teams.indexOf(team);
     if (index > -1) {
       const dialogRef = this.dialog.open(CompetitionBuilderTeamDialogComponent, { data: team, width: '500px' });
       dialogRef
         .afterClosed()
         .pipe(filter((t) => t != null))
-        .subscribe((t: RestTeam) => {
+        .subscribe((t: ApiTeam) => {
           this.competition.teams[index] = t;
           this.dirty = true;
           this.teamTable.renderRows();
@@ -436,13 +436,13 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     }
   }
 
-  public removeTeam(team: RestTeam) {
+  public removeTeam(team: ApiTeam) {
     this.competition.teams.splice(this.competition.teams.indexOf(team), 1);
     this.dirty = true;
     this.teamTable.renderRows();
   }
 
-  public judgeFor(id: string): Observable<UserDetails> {
+  public judgeFor(id: string): Observable<ApiUser> {
     return this.availableJudges.pipe(map((users) => users.find((u) => u.id === id)));
   }
 
@@ -461,16 +461,16 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     this.judgesTable.renderRows();
   }
 
-  public dispJudge(user: UserDetails) {
+  public dispJudge(user: ApiUser) {
     return user.username;
   }
 
   /**
    * Summarises a task type to present detailed info as tooltip.
    *
-   * @param taskType The {@link TaskType} to summarize.
+   * @param taskType The {@link ApiTaskType} to summarize.
    */
-  summariseTaskType(taskType: TaskType): string {
+  summariseTaskType(taskType: ApiTaskType): string {
     return `Consists of ${taskType.components.map((c) => c.option).join(', ')}, has filters: ${taskType.filter
       .map((f) => f.option)
       .join(', ')} and options: ${taskType.options.map((o) => o.option).join(', ')}`;

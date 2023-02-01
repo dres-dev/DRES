@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, HostListener, Input, OnDestroy, ViewChild} from '@angular/core';
 import {BehaviorSubject, interval, Observable, of, Subscription, timer} from 'rxjs';
-import {Judgement, JudgementRequest, JudgementService, SubmissionInfo} from '../../../openapi';
+import {ApiJudgement, ApiJudgementRequest, JudgementService} from '../../../openapi';
 import {ActivatedRoute, Router} from '@angular/router';
 import {catchError, filter, map, switchMap, withLatestFrom} from 'rxjs/operators';
 import {JudgementMediaViewerComponent} from './judgement-media-viewer.component';
@@ -44,8 +44,8 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
     @Input() pollingFrequency = 1000;
     @Input() timeout = 60;
     @ViewChild(JudgementMediaViewerComponent) judgePlayer: JudgementMediaViewerComponent;
-    observableJudgementRequest: BehaviorSubject<JudgementRequest> = new BehaviorSubject<JudgementRequest>(null);
-    judgementRequest: JudgementRequest;
+    observableJudgementRequest: BehaviorSubject<ApiJudgementRequest> = new BehaviorSubject<ApiJudgementRequest>(null);
+    judgementRequest: ApiJudgementRequest;
     prevDescHash: number;
     noJudgementMessage = '';
     isJudgmentAvailable = false;
@@ -122,7 +122,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
             .pipe(
                 withLatestFrom(this.runId),
                 switchMap(([i, runId]) => {
-                    return this.judgementService.getApiV1RunWithRunidJudgeStatus(runId).pipe(
+                    return this.judgementService.apiV2EvaluationEvaluationIdJudgeStatusGet(runId).pipe(
                         catchError((err) => {
                             console.log('Error in JudgeStatus');
                             console.log(err);
@@ -150,8 +150,8 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                 switchMap(([i, runId]) => {
                     /* Stop polling while judgment is ongooing */
                     if (this.runId && !this.isJudgmentAvailable) {
-                        return this.judgementService.getApiV1RunWithRunidJudgeNext(runId, 'response').pipe(
-                            map((req: HttpResponse<JudgementRequest>) => {
+                        return this.judgementService.apiV2EvaluationEvaluationIdJudgeNextGet(runId, 'response').pipe(
+                            map((req: HttpResponse<ApiJudgementRequest>) => {
                                 if (req.status === 202) {
                                     this.noJudgementMessage = 'There is currently no submission awaiting judgement.';
                                     /* Don't penalise if there's nothing to do*/
@@ -221,9 +221,9 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
             token: this.judgementRequest.token,
             validator: this.judgementRequest.validator,
             verdict: status,
-        } as Judgement;
+        } as ApiJudgement;
         this.runId
-            .pipe(switchMap((runId) => this.judgementService.postApiV1RunWithRunidJudge(runId, judgement)),
+            .pipe(switchMap((runId) => this.judgementService.apiV2RunRunIdJudgePost(runId, judgement)),
                 catchError((err) => {
                     const httperr = err as HttpErrorResponse;
                     if (httperr) {

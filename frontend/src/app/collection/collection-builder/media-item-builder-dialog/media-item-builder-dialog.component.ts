@@ -1,10 +1,10 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { RestMediaItem } from '../../../../../openapi';
+import { ApiMediaItem } from '../../../../../openapi';
 
 export interface MediaItemBuilderData {
-  item?: RestMediaItem;
+  item?: ApiMediaItem;
   collectionId: string;
 }
 
@@ -16,7 +16,7 @@ export interface MediaItemBuilderData {
 export class MediaItemBuilderDialogComponent implements OnInit {
   form: FormGroup;
 
-  types = Object.values(RestMediaItem.TypeEnum).sort((a, b) => a.localeCompare(b));
+  types = Object.values(ApiMediaItem.TypeEnum).sort((a, b) => a.localeCompare(b));
 
   constructor(
     public dialogRef: MatDialogRef<MediaItemBuilderDialogComponent>,
@@ -29,7 +29,7 @@ export class MediaItemBuilderDialogComponent implements OnInit {
       type: new FormControl({ value: data?.item?.type, disabled: this.isEditing() }, [Validators.required]),
       collectionId: new FormControl(data.collectionId),
     });
-    if (data?.item?.type === RestMediaItem.TypeEnum.VIDEO) {
+    if (data?.item?.type === ApiMediaItem.TypeEnum.VIDEO) {
       this.form.addControl('durationMs', new FormControl(data?.item?.durationMs, [Validators.required, Validators.min(1)]));
       this.form.addControl(
         'fps',
@@ -72,19 +72,19 @@ export class MediaItemBuilderDialogComponent implements OnInit {
     console.log(this.asJson());
   }
 
-  private fetchFormData(): RestMediaItem {
+  private fetchFormData(): ApiMediaItem {
     const item = {
       name: this.form.get('name').value,
       location: this.form.get('location').value,
       type: this.form.get('type').value,
       collectionId: this.form.get('collectionId').value,
-    } as RestMediaItem;
+    } as ApiMediaItem;
     /* Are we editing ? */
     if (this.isEditing()) {
       item.id = this.form.get('id').value;
     }
     /* only relevant for video */
-    if (item.type === RestMediaItem.TypeEnum.VIDEO) {
+    if (item.type === ApiMediaItem.TypeEnum.VIDEO) {
       item.durationMs = this.form.get('durationMs').value;
       item.fps = this.form.get('fps').value;
     }

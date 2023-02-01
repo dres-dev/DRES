@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
-import { CompetitionStartMessage } from '../../../../openapi';
+import { ApiCompetitionStartMessage } from '../../../../openapi';
 
 export interface CompetitionStartDialogResult {
   name: string;
-  type: CompetitionStartMessage.TypeEnum;
+  type: ApiCompetitionStartMessage.TypeEnum;
   participantCanView: boolean;
   allowRepeatedTasks: boolean;
   shuffleTasks: boolean;
@@ -25,7 +25,7 @@ export class CompetitionStartDialogComponent {
     allowRepeatedTasks: new FormControl(false),
     limit: new FormControl(0)
   });
-  runTypes: CompetitionStartMessage.TypeEnum[] = ['SYNCHRONOUS', 'ASYNCHRONOUS'];
+  runTypes: ApiCompetitionStartMessage.TypeEnum[] = ['SYNCHRONOUS', 'ASYNCHRONOUS'];
 
   typeObservable = this.form.get('type').valueChanges;
 

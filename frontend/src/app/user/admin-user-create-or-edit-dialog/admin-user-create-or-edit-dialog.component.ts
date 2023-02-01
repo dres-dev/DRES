@@ -1,8 +1,8 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { UserDetails, UserRequest } from '../../../../openapi';
+import { ApiUser, UserRequest } from '../../../../openapi';
 import { FormControl, FormGroup } from '@angular/forms';
-import RoleEnum = UserDetails.RoleEnum;
+import RoleEnum = ApiUser.RoleEnum;
 
 @Component({
   selector: 'app-admin-user-create-or-edit-dialog',
@@ -22,7 +22,7 @@ export class AdminUserCreateOrEditDialogComponent {
 
   constructor(
     public dialogRef: MatDialogRef<AdminUserCreateOrEditDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public usr?: UserDetails
+    @Inject(MAT_DIALOG_DATA) public usr?: ApiUser
   ) {
     this.init();
   }
@@ -46,7 +46,7 @@ export class AdminUserCreateOrEditDialogComponent {
   }
 
   uploaded = (userData: string) => {
-    this.usr = JSON.parse(userData) as UserDetails;
+    this.usr = JSON.parse(userData) as ApiUser;
     this.init();
   };
 
@@ -66,7 +66,7 @@ export class AdminUserCreateOrEditDialogComponent {
 
   asJson(): string {
     const user = this.fetchData();
-    return JSON.stringify({ id: this?.usr?.id, username: user.username, role: user.role } as UserDetails);
+    return JSON.stringify({ id: this?.usr?.id, username: user.username, role: user.role } as ApiUser);
   }
 
   public close(): void {

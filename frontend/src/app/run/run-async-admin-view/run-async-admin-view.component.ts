@@ -4,11 +4,11 @@ import {
   CompetitionRunAdminService,
   CompetitionRunScoresService,
   CompetitionRunService,
-  CompetitionService,
+  EvaluationService,
   DownloadService,
   PastTaskInfo,
   RestDetailedTeam,
-  RestTeam,
+  ApiTeam,
   TeamInfo,
   TeamTaskOverview,
 } from '../../../../openapi';
@@ -34,7 +34,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
 
   displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'past', 'action'];
   displayedColumnsTeamTasks: string[] = ['name', 'state', 'group', 'type', 'duration', 'past', 'action'];
-  teams: Observable<RestTeam[]>;
+  teams: Observable<ApiTeam[]>;
   pastTasks = new BehaviorSubject<PastTaskInfo[]>([]);
   pastTasksValue: PastTaskInfo[];
   nbOpenTeamOverviews = 0;
@@ -44,7 +44,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
     private activeRoute: ActivatedRoute,
     private config: AppConfig,
     private runService: CompetitionRunService,
-    private competitionService: CompetitionService,
+    private evaluationService: EvaluationService,
     private runAdminService: CompetitionRunAdminService,
     private scoreService: CompetitionRunScoresService,
     private downloadService: DownloadService,
@@ -81,7 +81,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
 
     this.teams = this.run.pipe(
       switchMap((runAndOverview) => {
-        return this.competitionService.getApiV1CompetitionWithCompetitionidTeamList(runAndOverview.runInfo.competitionId);
+        return this.evaluationService.getApiV1CompetitionWithCompetitionidTeamList(runAndOverview.runInfo.competitionId);
       }),
       shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading. */
     );
@@ -97,7 +97,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
     return item.teamId;
   }
 
-  public resolveTeamById(index: number, item: RestTeam) {
+  public resolveTeamById(index: number, item: ApiTeam) {
     return item.uid;
   }
 

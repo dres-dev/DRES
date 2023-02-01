@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthenticationService } from './services/session/authentication.sevice';
-import { UserDetails } from '../../openapi';
+import { ApiUser } from '../../openapi';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { AppConfig } from './app.config';
-import RoleEnum = UserDetails.RoleEnum;
+import RoleEnum = ApiUser.RoleEnum;
 
 @Component({
   selector: 'app-root',
@@ -16,7 +16,7 @@ import RoleEnum = UserDetails.RoleEnum;
 export class AppComponent {
   title = 'dres-frontend';
 
-  user: Observable<UserDetails>;
+  user: Observable<ApiUser>;
   isAdmin: Observable<boolean>;
   loggedIn: Observable<boolean>;
   canJudge: Observable<boolean>;

@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { UserDetails, UserRequest, UserService } from '../../../../openapi';
+import { ApiUser, UserRequest, UserService } from '../../../../openapi';
 import { MatDialog } from '@angular/material/dialog';
 import { AdminUserCreateOrEditDialogComponent } from '../admin-user-create-or-edit-dialog/admin-user-create-or-edit-dialog.component';
 import { filter, flatMap } from 'rxjs/operators';
@@ -19,7 +19,7 @@ export class AdminUserListComponent implements AfterViewInit {
   displayColumns = ['actions', 'id', 'name', 'role'];
 
   @ViewChild(MatSort) sort: MatSort;
-  dataSource = new MatTableDataSource<UserDetails>([]);
+  dataSource = new MatTableDataSource<ApiUser>([]);
 
   isFilterInputActive = false;
   filterValue = '';
@@ -38,7 +38,7 @@ export class AdminUserListComponent implements AfterViewInit {
       .pipe(
         filter((r) => r != null),
         flatMap((u: UserRequest) => {
-          return this.userService.postApiV1User(u);
+          return this.userService.apiV2UserPost(u);
         })
       )
       .subscribe(
@@ -52,15 +52,15 @@ export class AdminUserListComponent implements AfterViewInit {
       );
   }
 
-  public edit(user: UserDetails) {
-    const dialogRef = this.dialog.open(AdminUserCreateOrEditDialogComponent, { width: '500px', data: user as UserDetails });
+  public edit(user: ApiUser) {
+    const dialogRef = this.dialog.open(AdminUserCreateOrEditDialogComponent, { width: '500px', data: user as ApiUser });
     dialogRef
       .afterClosed()
       .pipe(
         filter((r) => r != null),
         flatMap((u: UserRequest) => {
           console.debug(`Edit Result: ${u}`);
-          return this.userService.patchApiV1UserWithUserid(user.id, u);
+          return this.userService.apiV2UserUserIdPatch(user.id, u);
         })
       )
       .subscribe(
@@ -76,8 +76,8 @@ export class AdminUserListComponent implements AfterViewInit {
 
   public delete(userId: number) {
     if (confirm(`Do you really want to delete user (${userId})?`)) {
-      this.userService.deleteApiV1UserWithUserid(userId).subscribe(
-        (u: UserDetails) => {
+      this.userService.apiV2UserUserIdDelete(userId).subscribe(
+        (u: ApiUser) => {
           this.refresh();
           this.snackBar.open(`Success: ${u.username} (${u.id}) deleted`, null, { duration: 5000 });
         },
@@ -89,8 +89,8 @@ export class AdminUserListComponent implements AfterViewInit {
   }
 
   public refresh() {
-    this.userService.getApiV1UserList().subscribe(
-      (users: UserDetails[]) => {
+    this.userService.apiV2UserListGet().subscribe(
+      (users: ApiUser[]) => {
         this.dataSource.data = users;
         this.dataSource.sort = this.sort;
       },
@@ -106,7 +106,7 @@ export class AdminUserListComponent implements AfterViewInit {
     this.refresh();
   }
 
-  resolveUserById(_: number, user: UserDetails) {
+  resolveUserById(_: number, user: ApiUser) {
     return user.id;
   }
 

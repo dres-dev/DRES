@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-import { CollectionService, RestFullMediaCollection, RestMediaItem } from '../../../../openapi';
+import { CollectionService, RestFullMediaCollection, ApiMediaItem } from '../../../../openapi';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
@@ -29,7 +29,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
 
   /** Data source for Material tabl.e */
-  dataSource = new MatTableDataSource<RestMediaItem>();
+  dataSource = new MatTableDataSource<ApiMediaItem>();
 
   /** Observable containing the collection ID of the collection displayed by this component. Derived from active route. */
   collectionId: Observable<string>;
@@ -72,7 +72,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
     this.collection = this.refreshSubject.pipe(
       flatMap((s) => this.collectionId),
       switchMap((id) =>
-        this.collectionService.getApiV1CollectionWithCollectionid(id).pipe(
+        this.collectionService.apiV2CollectionCollectionIdGet(id).pipe(
           retry(3),
           catchError((err, o) => {
             console.log(`[CollectionViewer.${id}] There was an error while loading the current collection ${err?.message}`);
@@ -101,7 +101,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
 
   delete(id: string) {
     if (confirm(`Do you really want to delete media item with ID ${id}?`)) {
-      this.collectionService.deleteApiV1MediaitemWithMediaid(id).subscribe(
+      this.collectionService.apiV2MediaItemMediaIdDelete(id).subscribe(
         (r) => {
           this.refreshSubject.next();
           this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -136,11 +136,11 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
         .afterClosed()
         .pipe(
           filter((r) => r != null),
-          flatMap((r: RestMediaItem) => {
+          flatMap((r: ApiMediaItem) => {
             if (id) {
-              return this.collectionService.patchApiV1Mediaitem(r);
+              return this.collectionService.apiV2MediaitemPatch(r);
             } else {
-              return this.collectionService.postApiV1Mediaitem(r);
+              return this.collectionService.apiV2MediaItemPost(r);
             }
           })
         )
@@ -156,7 +156,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  resolveMediaItemById(_: number, item: RestMediaItem) {
+  resolveMediaItemById(_: number, item: ApiMediaItem) {
     return item.id;
   }
 

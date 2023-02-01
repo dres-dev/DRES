@@ -301,7 +301,7 @@ export class CompetitionFormBuilder {
       mediaItemFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
         switchMap((s) =>
-          this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s)
+          this.collectionService.apiV2CollectionCollectionIdStartsWithGet(this.form.get('mediaCollection').value, s)
         )
       )
     );
@@ -309,7 +309,7 @@ export class CompetitionFormBuilder {
     /* Load media item from API. */
     if (initialize?.mediaItem && this.data?.mediaCollectionId) {
       this.collectionService
-        .getApiV1MediaitemWithMediaid(initialize.mediaItem)
+        .apiV2MediaItemMediaIdGet(initialize.mediaItem)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);
@@ -333,7 +333,7 @@ export class CompetitionFormBuilder {
       mediaItemFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
         switchMap((s) =>
-          this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s)
+          this.collectionService.apiV2CollectionCollectionIdStartsWithGet(this.form.get('mediaCollection').value, s)
         )
       )
     );
@@ -341,7 +341,7 @@ export class CompetitionFormBuilder {
     /* Load media item from API. */
     if (initialize?.mediaItem && this.data.mediaCollectionId) {
       this.collectionService
-        .getApiV1MediaitemWithMediaid(initialize.mediaItem)
+        .apiV2MediaItemMediaIdGet(initialize.mediaItem)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);
@@ -434,7 +434,7 @@ export class CompetitionFormBuilder {
       mediaItemFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
         switchMap((s) =>
-          this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s)
+          this.collectionService.apiV2CollectionCollectionIdStartsWithGet(this.form.get('mediaCollection').value, s)
         )
       )
     );
@@ -442,7 +442,7 @@ export class CompetitionFormBuilder {
     /* Load media item from API. */
     if (initialize?.mediaItem && this.data?.mediaCollectionId) {
       this.collectionService
-        .getApiV1MediaitemWithMediaid(initialize?.mediaItem)
+        .apiV2MediaItemMediaIdGet(initialize?.mediaItem)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);
@@ -484,7 +484,7 @@ export class CompetitionFormBuilder {
       mediaItemFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
         switchMap((s) =>
-          this.collectionService.getApiV1CollectionWithCollectionidWithStartswith(this.form.get('mediaCollection').value, s)
+          this.collectionService.apiV2CollectionCollectionIdStartsWithGet(this.form.get('mediaCollection').value, s)
         )
       )
     );
@@ -492,7 +492,7 @@ export class CompetitionFormBuilder {
     /* Load media item from API. */
     if (initialize?.mediaItem && this.data?.mediaCollectionId) {
       this.collectionService
-        .getApiV1MediaitemWithMediaid(initialize.mediaItem)
+        .apiV2MediaItemMediaIdGet(initialize.mediaItem)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);
@@ -586,7 +586,7 @@ export class CompetitionFormBuilder {
       `components.${index}.path`,
       pathFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
-        switchMap((s) => this.collectionService.getApiV1ExternalWithStartswith(s))
+        switchMap((s) => this.collectionService.apiV2ExternalStartsWithGet(s))
       )
     );
 
@@ -618,7 +618,7 @@ export class CompetitionFormBuilder {
       `components.${index}.path`,
       pathFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
-        switchMap((s) => this.collectionService.getApiV1ExternalWithStartswith(s))
+        switchMap((s) => this.collectionService.apiV2ExternalStartsWithGet(s))
       )
     );
 

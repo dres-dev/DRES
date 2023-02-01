@@ -24,7 +24,7 @@ class GetSubmissionInfoHandler(store: TransientEntityStore): AbstractEvaluationV
 
     @OpenApi(
         summary = "Returns all submissions for the current task run, if one is either running or has just ended.",
-        path = "/api/v1/evaluation/{evaluationId}/submission/list/{timestamp}",
+        path = "/api/v2/evaluation/{evaluationId}/submission/list/{timestamp}",
         tags = ["Evaluation"],
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)

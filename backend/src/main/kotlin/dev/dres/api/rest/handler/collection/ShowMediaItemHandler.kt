@@ -22,7 +22,7 @@ class ShowMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHand
 
     @OpenApi(
         summary = "Selects and returns a specific media item.",
-        path = "/api/v1/mediaItem/{mediaId}",
+        path = "/api/v2/mediaItem/{mediaId}",
         methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam("mediaId", String::class, "Media item ID")

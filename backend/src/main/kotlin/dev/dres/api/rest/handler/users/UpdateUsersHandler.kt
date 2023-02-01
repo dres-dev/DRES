@@ -29,7 +29,7 @@ class UpdateUsersHandler : AbstractUserHandler(), PatchRestHandler<ApiUser>, Acc
 
     @OpenApi(
         summary = "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone.",
-        path = "/api/v1/user/{userId}", methods = [HttpMethod.PATCH],
+        path = "/api/v2/user/{userId}", methods = [HttpMethod.PATCH],
         pathParams = [OpenApiParam("userId", String::class, "User ID")],
         requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
         tags = ["User"],

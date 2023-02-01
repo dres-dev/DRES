@@ -26,7 +26,7 @@ class RandomMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHa
 
     @OpenApi(
         summary = "Selects and returns a random media item from a given media collection.",
-        path = "/api/v1/collection/{collectionId}/random",
+        path = "/api/v2/collection/{collectionId}/random",
         methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam("collectionId", String::class, "Collection ID")

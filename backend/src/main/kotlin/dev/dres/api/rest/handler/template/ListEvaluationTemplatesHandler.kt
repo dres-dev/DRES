@@ -26,7 +26,7 @@ class ListEvaluationTemplatesHandler(store: TransientEntityStore) : AbstractComp
 
     @OpenApi(
         summary = "Lists an overview of all available competitions with basic information about their content.",
-        path = "/api/v1/template/list",
+        path = "/api/v2/template/list",
         tags = ["Template"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<ApiCompetitionOverview>::class)]),

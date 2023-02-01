@@ -23,7 +23,7 @@ class DeleteMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHa
 
     @OpenApi(
         summary = "Tries to delete a specific media item.",
-        path = "/api/v1/mediaItem/{mediaId}",
+        path = "/api/v2/mediaItem/{mediaId}",
         methods = [HttpMethod.DELETE],
         pathParams = [
             OpenApiParam("mediaId", String::class, "Media item ID")

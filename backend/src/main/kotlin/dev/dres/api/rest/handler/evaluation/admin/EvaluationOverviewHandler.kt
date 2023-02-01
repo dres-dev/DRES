@@ -18,7 +18,7 @@ class EvaluationOverviewHandler(store: TransientEntityStore): AbstractEvaluation
     override val route = "run/admin/{runId}/overview"
     @OpenApi(
         summary = "Provides a complete overview of a run.",
-        path = "/api/v1/run/admin/{runId}/overview",
+        path = "/api/v2/run/admin/{runId}/overview",
         methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam("runId", String::class, "The evaluation ID", required = true, allowEmptyValue = false),

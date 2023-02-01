@@ -26,7 +26,7 @@ class UpdateCollectionHandler(store: TransientEntityStore) : AbstractCollectionH
 
     @OpenApi(
         summary = "Updates a media collection",
-        path = "/api/v1/collection",
+        path = "/api/v2/collection",
         tags = ["Collection"],
         methods = [HttpMethod.PATCH],
         requestBody = OpenApiRequestBody([OpenApiContent(RestMediaCollection::class)]),

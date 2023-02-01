@@ -22,7 +22,7 @@ class TeamGroupScoreHandler(store: TransientEntityStore) : AbstractScoreHandler(
 
     @OpenApi(
         summary = "Returns team group aggregated values of the current task.",
-        path = "/api/v1/score/evaluation/{evaluationId}/teamGroup/list",
+        path = "/api/v2/score/evaluation/{evaluationId}/teamGroup/list",
         tags = ["Competition Run Scores"],
         pathParams = [
             OpenApiParam("runId", String::class, "ID of the competition run.", required = true),

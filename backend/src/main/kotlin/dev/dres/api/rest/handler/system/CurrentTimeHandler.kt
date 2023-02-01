@@ -17,10 +17,10 @@ import io.javalin.openapi.OpenApiResponse
 class CurrentTimeHandler : GetRestHandler<CurrentTime> {
 
     override val route = "status/time"
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     @OpenApi(summary = "Returns the current time on the server.",
-        path = "/api/v1/status/time",
+        path = "/api/v2/status/time",
         methods = [HttpMethod.GET],
         tags = ["Status"],
         responses = [

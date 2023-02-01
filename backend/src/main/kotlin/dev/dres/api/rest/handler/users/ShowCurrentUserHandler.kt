@@ -25,7 +25,7 @@ class ShowCurrentUserHandler : AbstractUserHandler(), GetRestHandler<ApiUser>, A
 
     @OpenApi(
         summary = "Get information about the current user.",
-        path = "/api/v1/user",
+        path = "/api/v2/user",
         tags = ["User"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(ApiUser::class)]),

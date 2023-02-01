@@ -26,7 +26,7 @@ class GetTaskTargetHandler(store: TransientEntityStore, private val config: Conf
 
     @OpenApi(
         summary = "Returns the task target for the current task run (i.e. the one that is currently selected).",
-        path = "/api/v1/evaluation/{evaluationId}/target/{taskId}",
+        path = "/api/v2/evaluation/{evaluationId}/target/{taskId}",
         tags = ["Evaluation"],
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true),

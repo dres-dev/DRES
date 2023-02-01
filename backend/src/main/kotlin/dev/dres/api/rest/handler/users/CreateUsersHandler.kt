@@ -28,7 +28,7 @@ class CreateUsersHandler : AbstractUserHandler(), PostRestHandler<ApiUser>, Acce
 
     @OpenApi(
         summary = "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
-        path = "/api/v1/user", methods = [HttpMethod.POST],
+        path = "/api/v2/user", methods = [HttpMethod.POST],
         requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
         tags = ["User"],
         responses = [

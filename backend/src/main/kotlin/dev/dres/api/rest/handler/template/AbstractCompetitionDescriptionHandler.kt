@@ -28,7 +28,7 @@ abstract class AbstractCompetitionDescriptionHandler(protected val store: Transi
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)
 
     /** All [AbstractCollectionHandler]s are part of the v1 API. */
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     /** Convenience method to extract [EvaluationTemplate]'s ID from [Context]. */
     private fun competitionId(ctx: Context): TemplateId =

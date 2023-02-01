@@ -24,14 +24,14 @@ import kotlinx.dnq.query.query
 class GetTeamLogoHandler(store: TransientEntityStore) : AbstractCompetitionDescriptionHandler(store), GetRestHandler<Any> {
 
     override val route = "template/logo/{logoId}"
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     //not used
     override fun doGet(ctx: Context): Any = ""
 
     @OpenApi(
         summary = "Returns the logo for the given team ID.",
-        path = "/api/v1/template/logo/{teamId}",
+        path = "/api/v2/template/logo/{teamId}",
         tags = ["Evaluation", "Media"],
         pathParams = [OpenApiParam("teamId", String::class, "The ID of the team to list load the logo for.")],
         responses = [OpenApiResponse("200"), OpenApiResponse("401"), OpenApiResponse("400"), OpenApiResponse("404")],

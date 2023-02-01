@@ -48,7 +48,7 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
 
     @OpenApi(
         summary = "Creates a new evaluation run from an existing evaluation template. This is a method for administrators.",
-        path = "/api/v1/evaluation/admin/create",
+        path = "/api/v2/evaluation/admin/create",
         methods = [HttpMethod.POST],
         requestBody = OpenApiRequestBody([OpenApiContent(ApiCompetitionStartMessage::class)]),
         tags = ["Evaluation Administrator"],

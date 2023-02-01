@@ -26,7 +26,7 @@ abstract class AbstractEvaluationViewerHandler(protected val store: TransientEnt
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.VIEWER)
 
     /** All [AbstractEvaluationClientHandler]s are part of the v1 API. */
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     /**
      * Returns the [RunManager] associated with the current [Context].

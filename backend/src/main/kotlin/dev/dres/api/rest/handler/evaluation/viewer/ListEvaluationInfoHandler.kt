@@ -19,7 +19,7 @@ class ListEvaluationInfoHandler(store: TransientEntityStore) : AbstractEvaluatio
 
     @OpenApi(
         summary = "Lists an overview of all evaluations visible to the current user.",
-        path = "/api/v1/evaluation/info/list",
+        path = "/api/v2/evaluation/info/list",
         tags = ["Evaluation"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<ApiEvaluationInfo>::class)]),

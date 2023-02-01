@@ -23,7 +23,7 @@ class ListTeamHandler(store: TransientEntityStore) : AbstractCompetitionDescript
 
     @OpenApi(
         summary = "Lists all the teams of a specific competition.",
-        path = "/api/v1/competition/{templateId}/team/list",
+        path = "/api/v2/competition/{templateId}/team/list",
         pathParams = [OpenApiParam("templateId", String::class, "The evaluation template ID.")],
         tags = ["Template"],
         responses = [

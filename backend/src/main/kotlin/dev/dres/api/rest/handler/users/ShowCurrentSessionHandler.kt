@@ -22,7 +22,7 @@ class ShowCurrentSessionHandler : AbstractUserHandler(), GetRestHandler<SessionI
 
     @OpenApi(
         summary = "Get current sessionId",
-        path = "/api/v1/user/session",
+        path = "/api/v2/user/session",
         tags = ["User"],
         queryParams = [
             OpenApiParam("session", String::class, "Session Token")

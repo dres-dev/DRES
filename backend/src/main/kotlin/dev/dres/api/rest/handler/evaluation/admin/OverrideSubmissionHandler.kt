@@ -30,7 +30,7 @@ class OverrideSubmissionHandler(store: TransientEntityStore): AbstractEvaluation
 
     @OpenApi(
         summary = "Override the submission status for a given submission.",
-        path = "/api/v1/evaluation/admin/{evaluationId}/submission/override",
+        path = "/api/v2/evaluation/admin/{evaluationId}/submission/override",
         methods = [HttpMethod.PATCH],
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)

@@ -20,7 +20,7 @@ class ListSubmissionsHandler(store: TransientEntityStore): AbstractEvaluationAdm
 
     @OpenApi(
         summary = "Lists all submissions for a given evaluation and task.",
-        path = "/api/v1/evaluation/admin/{evaluationId}/submission/list/{templateId}",
+        path = "/api/v2/evaluation/admin/{evaluationId}/submission/list/{templateId}",
         methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam("runId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false),

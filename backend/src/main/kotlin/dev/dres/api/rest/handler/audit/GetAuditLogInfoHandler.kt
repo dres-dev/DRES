@@ -16,7 +16,7 @@ class GetAuditLogInfoHandler(store: TransientEntityStore) : AbstractAuditLogHand
 
     @OpenApi(
             summary = "Gives information about the audit log. Namely size and latest timestamp of known entries.",
-            path = "/api/v1/audit/info",
+            path = "/api/v2/audit/info",
             tags = ["Audit"],
             responses = [
                 OpenApiResponse("200", [OpenApiContent(AuditLogInfo::class)], description = "The audit log info."),

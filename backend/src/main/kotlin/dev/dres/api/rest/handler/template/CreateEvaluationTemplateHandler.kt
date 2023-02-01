@@ -27,7 +27,7 @@ class CreateEvaluationTemplateHandler(store: TransientEntityStore) : AbstractCom
 
     @OpenApi(
         summary = "Creates a new evaluation template.",
-        path = "/api/v1/template",
+        path = "/api/v2/template",
         methods = [HttpMethod.POST],
         requestBody = OpenApiRequestBody([OpenApiContent(ApiCreateCompetition::class)]),
         tags = ["Template"],

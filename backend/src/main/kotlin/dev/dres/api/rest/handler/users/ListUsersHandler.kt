@@ -27,7 +27,7 @@ class ListUsersHandler: AbstractUserHandler(), GetRestHandler<List<ApiUser>>, Ac
 
     @OpenApi(
         summary = "Lists all available users.",
-        path = "/api/v1/user/list",
+        path = "/api/v2/user/list",
         tags = ["User"],
         responses = [OpenApiResponse("200", [OpenApiContent(Array<ApiUser>::class)])],
         methods = [HttpMethod.GET]

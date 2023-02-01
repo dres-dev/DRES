@@ -25,7 +25,7 @@ class QueryLogHandler : AbstractLogHandler() {
     override val route = "log/query"
 
     @OpenApi(summary = "Accepts query logs from participants",
-            path = "/api/v1/log/query",
+            path = "/api/v2/log/query",
             methods = [HttpMethod.POST],
             requestBody = OpenApiRequestBody([OpenApiContent(QueryEventLog::class)]),
             tags = ["Log"],

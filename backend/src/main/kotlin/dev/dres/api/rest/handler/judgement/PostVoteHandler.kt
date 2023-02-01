@@ -21,12 +21,12 @@ import jetbrains.exodus.database.TransientEntityStore
  */
 class PostVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(store), PostRestHandler<SuccessStatus> {
     override val route = "evaluation/{evaluationId}/judge/vote"
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
 
     @OpenApi(
         summary = "Returns a Vote.",
-        path = "/api/v1/evaluation/{evaluationId}/judge/vote", methods = [HttpMethod.POST],
+        path = "/api/v2/evaluation/{evaluationId}/judge/vote", methods = [HttpMethod.POST],
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.")],
         requestBody = OpenApiRequestBody([OpenApiContent(ApiVote::class)]),
         tags = ["Judgement"],

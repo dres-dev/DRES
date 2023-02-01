@@ -41,12 +41,12 @@ class BatchSubmissionHandler(private val store: TransientEntityStore, private va
     override val permittedRoles = setOf(ApiRole.PARTICIPANT)
 
     /** All [BatchSubmissionHandler]s are part of the v1 API. */
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     override val route: String = "submit/{evaluationId}"
 
     @OpenApi(summary = "Endpoint to accept batch submissions in JSON format",
-        path = "/api/v1/submit/{evaluationId}",
+        path = "/api/v2/submit/{evaluationId}",
         methods = [HttpMethod.POST],
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.")],
         requestBody = OpenApiRequestBody([OpenApiContent(RunResult::class)]),

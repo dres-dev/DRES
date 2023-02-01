@@ -15,7 +15,7 @@ class ListScoreboardsHandler(store: TransientEntityStore) : AbstractScoreHandler
 
     @OpenApi(
         summary = "Returns a list of available scoreboard names for the given evaluation.",
-        path = "/api/v1/evaluation/{evaluationId}/scoreboard/list",
+        path = "/api/v2/evaluation/{evaluationId}/scoreboard/list",
         tags = ["Evaluation Scores"],
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true)

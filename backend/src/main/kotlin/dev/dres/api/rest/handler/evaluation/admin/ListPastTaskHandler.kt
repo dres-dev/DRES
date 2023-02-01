@@ -21,7 +21,7 @@ class ListPastTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminH
 
     @OpenApi(
         summary = "Lists all past tasks for a given evaluation.",
-        path = "/api/v1/evaluation/admin/{evaluationId}/task/past/list",
+        path = "/api/v2/evaluation/admin/{evaluationId}/task/past/list",
         methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)

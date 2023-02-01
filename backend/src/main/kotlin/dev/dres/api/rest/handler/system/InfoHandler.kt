@@ -26,11 +26,11 @@ class InfoHandler : GetRestHandler<DresInfo> {
 
     override val route = "status/info"
 
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
 
     @OpenApi(summary = "Returns an overview of the server properties.",
-        path = "/api/v1/status/info",
+        path = "/api/v2/status/info",
         methods = [HttpMethod.GET],
         tags = ["Status"],
         responses = [

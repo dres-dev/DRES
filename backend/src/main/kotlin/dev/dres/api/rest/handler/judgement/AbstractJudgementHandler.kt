@@ -24,7 +24,7 @@ abstract class AbstractJudgementHandler(protected val store: TransientEntityStor
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.JUDGE)
 
     /** */
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     /**
      * Checks if [RunManager] can actually be judged by the user defined in the current [Context].

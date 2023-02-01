@@ -20,7 +20,7 @@ class ListScoreSeriesHandler(store: TransientEntityStore) : AbstractScoreHandler
 
     @OpenApi(
         summary = "Returns a time series for a given run and scoreboard.",
-        path = "/api/v1/score/evaluation/{evaluationId}/series/{scoreboard}",
+        path = "/api/v2/score/evaluation/{evaluationId}/series/{scoreboard}",
         tags = ["Evaluation Scores"],
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true),

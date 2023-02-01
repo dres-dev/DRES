@@ -23,7 +23,7 @@ class ForceViewerHandler(store: TransientEntityStore): AbstractEvaluationAdminHa
 
     @OpenApi(
         summary = "Forces a viewer with the given viewer ID into the READY state. This is a method for admins.",
-        path = "/api/v1/evaluation/admin/{evaluationId}/viewer/list/{viewerId}/force",
+        path = "/api/v2/evaluation/admin/{evaluationId}/viewer/list/{viewerId}/force",
         methods = [HttpMethod.POST],
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false),

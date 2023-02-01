@@ -19,10 +19,10 @@ import io.javalin.openapi.*
  * @author Luca Rossetto
  */
 class LogoutHandler : RestHandler, GetRestHandler<SuccessStatus> {
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
     
     @OpenApi(summary = "Clears all user roles of the current session.",
-        path = "/api/v1/logout",
+        path = "/api/v2/logout",
         tags = ["User"],
         queryParams = [
             OpenApiParam("session", String::class, "Session Token")

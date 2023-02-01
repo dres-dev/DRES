@@ -228,9 +228,9 @@ object RestApi {
             it.http.prefer405over404 = true
             it.jetty.server { setupHttpServer() }
             it.accessManager(AccessManager::manage)
-            //it.staticFiles.add("html", Location.CLASSPATH)
-            //it.spaRoot.addFile("/vote", "vote/index.html")
-            //it.spaRoot.addFile("/", "html/index.html")
+            it.staticFiles.add("html", Location.CLASSPATH)
+            it.spaRoot.addFile("/vote", "vote/index.html")
+            it.spaRoot.addFile("/", "html/index.html")
 
             if (config.enableSsl) {
                 val ssl = SSLPlugin { conf ->

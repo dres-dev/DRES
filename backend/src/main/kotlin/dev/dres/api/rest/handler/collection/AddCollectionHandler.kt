@@ -24,7 +24,7 @@ class AddCollectionHandler(store: TransientEntityStore) : AbstractCollectionHand
 
     @OpenApi(
         summary = "Adds a new media collection.",
-        path = "/api/v1/collection",
+        path = "/api/v2/collection",
         tags = ["Collection"],
         methods = [HttpMethod.POST],
         requestBody = OpenApiRequestBody([OpenApiContent(RestMediaCollection::class)]),

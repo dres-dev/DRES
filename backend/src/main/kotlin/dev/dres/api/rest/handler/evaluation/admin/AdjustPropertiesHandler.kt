@@ -26,7 +26,7 @@ class AdjustPropertiesHandler(store: TransientEntityStore): AbstractEvaluationAd
 
     @OpenApi(
         summary = "Changes the properties of an evaluation.",
-        path = "/api/v1/evaluation/admin/{evaluationId}/properties",
+        path = "/api/v2/evaluation/admin/{evaluationId}/properties",
         methods = [HttpMethod.PATCH],
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID", required = true, allowEmptyValue = false),

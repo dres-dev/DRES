@@ -23,7 +23,7 @@ class ListCollectionHandler(store: TransientEntityStore) : AbstractCollectionHan
 
     @OpenApi(
         summary = "Lists all available media collections with basic information about their content.",
-        path = "/api/v1/collection/list",
+        path = "/api/v2/collection/list",
         tags = ["Collection"],
         methods = [HttpMethod.GET],
         responses = [

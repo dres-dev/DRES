@@ -1,8 +1,8 @@
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.handler.eligibleManagerForId
+import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.api.rest.handler.evaluation.viewer.AbstractEvaluationViewerHandler
-import dev.dres.api.rest.handler.evaluationId
-import dev.dres.api.rest.handler.isParticipant
+import dev.dres.utilities.extensions.evaluationId
+import dev.dres.utilities.extensions.isParticipant
 import dev.dres.api.rest.types.competition.tasks.ApiHintContent
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException

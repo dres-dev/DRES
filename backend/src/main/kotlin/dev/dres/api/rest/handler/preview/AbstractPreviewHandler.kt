@@ -85,42 +85,31 @@ abstract class AbstractPreviewHandler(protected val store: TransientEntityStore,
             ctx.header("Cache-Control", "max-age=31622400")
             ctx.streamFile(basePath.resolve(item.location))
             return
-        } else if (item.type  == MediaType.VIDEO) {
+        } else if (item.type == MediaType.VIDEO) {
+
             /* Prepare cache directory for item. */
-            val cacheDir = this.cacheLocation.resolve("${item.collection}/${item.name}")
+            val cacheDir = cacheLocation.resolve("${item.collection}/${item.name}")
             if (!Files.exists(cacheDir)) {
                 Files.createDirectories(cacheDir)
             }
 
             /* check timestamp. */
-            if (time == null)  throw ErrorStatusException(400, "Timestamp unspecified or invalid.", ctx)
+            if (time == null) {
+                throw ErrorStatusException(400, "Timestamp unspecified or invalid.", ctx)
+            }
+
 
             val imgPath = cacheDir.resolve("${time}.jpg")
+
             if (Files.exists(imgPath)) { //if file is available, send contents immediately
                 ctx.header("Cache-Control", "max-age=31622400")
-                ctx.sendFile(imgPath)
-            } else {
-                val future = FFmpegUtil.executeFFmpegAsync(basePath.resolve(item.location), time, imgPath)
-                val waitTime = if (RestApi.readyThreadCount > 500) {
-                    3L
-                } else {
-                    1L
-                }
+                ctx.sendFile(imgPath.toFile())
+            } else { //if not, schedule and return error
 
-                try {
-                    val path = future.get(waitTime, TimeUnit.SECONDS) ?: throw FileNotFoundException()
-                    ctx.sendFile(path.toFile())
-                } catch (e: TimeoutException) {
-                    ctx.status(408)
-                    ctx.header("Cache-Control", "max-age=30")
-                    ctx.contentType("image/png")
-                    ctx.result(WAITING_IMAGE)
-                } catch (t: Throwable) {
-                    ctx.status(429)
-                    ctx.header("Cache-Control", "max-age=600")
-                    ctx.contentType("image/png")
-                    ctx.result(MISSING_IMAGE)
-                }
+                FFmpegUtil.extractFrame(basePath.resolve(item.location), time, imgPath)
+                ctx.status(408)
+                ctx.header("Cache-Control", "max-age=30")
+
             }
         }
     }

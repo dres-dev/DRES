@@ -2,7 +2,6 @@ package dev.dres.run.filter
 
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.VerdictStatus
-import kotlinx.dnq.query.FilteringContext.eq
 import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.size

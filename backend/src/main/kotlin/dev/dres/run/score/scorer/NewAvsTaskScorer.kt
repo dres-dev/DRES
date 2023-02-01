@@ -1,13 +1,14 @@
 package dev.dres.run.score.scorer
 
-import dev.dres.data.model.competition.TeamId
+
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionStatus
-import dev.dres.data.model.submissions.aspects.ItemAspect
-import dev.dres.run.score.ScoreEntry
+import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.TaskContext
 import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
+import dev.dres.run.score.interfaces.ScoreEntry
 import dev.dres.run.score.interfaces.TeamTaskScorer
+import kotlinx.dnq.query.asSequence
 import java.lang.Double.max
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -60,14 +61,11 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
         context: TaskContext
     ): Map<TeamId, Double> {
 
-        val distinctCorrectVideos =
-            submissions.mapNotNullTo(mutableSetOf()) {//map directly to set and filter in one step
-                if (it !is ItemAspect || it.status != SubmissionStatus.CORRECT) {
-                    null//filter all incorrect submissions
-                } else {
-                    it.item.id
-                }
-            }.size
+        val distinctCorrectVideos = submissions.flatMap { submission ->
+            submission.verdicts.asSequence().filter { it.status == VerdictStatus.CORRECT && it.item != null }
+        }.mapNotNullTo(mutableSetOf()) {it.item }
+            .size
+
 
         //no correct submissions yet
         if (distinctCorrectVideos == 0) {
@@ -80,30 +78,50 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
         }
 
         lastScores = this.lastScoresLock.write {
-            teamScoreMapSanitised(
-                submissions.filter {
-                    it is ItemAspect &&
-                            (it.status == SubmissionStatus.CORRECT || it.status == SubmissionStatus.WRONG)
-                }.groupBy { it.teamId }
-                    .map { submissionsPerTeam ->
-                        submissionsPerTeam.key to
-                                max(0.0, //prevent negative total scores
-                                    submissionsPerTeam.value.groupBy { submission ->
-                                        submission as ItemAspect
-                                        submission.item.id
-                                    }.map {
-                                        val firstCorrectIdx = it.value.sortedBy { s -> s.timestamp }
-                                            .indexOfFirst { s -> s.status == SubmissionStatus.CORRECT }
-                                        if (firstCorrectIdx < 0) { //no correct submissions, only penalty
-                                            it.value.size * -penaltyConstant
-                                        } else { //apply penalty for everything before correct submission
-                                            1.0 - firstCorrectIdx * penaltyConstant
-                                        }
-                                    }.sum() / distinctCorrectVideos * maxPointsPerTask //normalize
-                                )
-                    }.toMap(), context.teamIds
-            )
+            teamScoreMapSanitised(submissions.groupBy { it.team }.map {
+                    submissionsPerTeam ->
+                val verdicts = submissionsPerTeam.value.sortedBy { it.timestamp }.flatMap { it.verdicts.asSequence().filter { v -> v.item != null && (v.status == VerdictStatus.CORRECT || v.status == VerdictStatus.WRONG) } }
+                submissionsPerTeam.key.teamId to
+                        max(0.0, //prevent negative total scores
+                            verdicts.groupBy { it.item!! }.map {
+                                val firstCorrectIdx = it.value.indexOfFirst { v -> v.status == VerdictStatus.CORRECT }
+                                if (firstCorrectIdx < 0) { //no correct submissions, only penalty
+                                    it.value.size * -penaltyConstant
+                                } else {  //apply penalty for everything before correct submission
+                                    1.0 - firstCorrectIdx * penaltyConstant
+                                }
+                            }.sum() / distinctCorrectVideos * maxPointsPerTask //normalize
+                        )
+            }.toMap(), context.teamIds)
         }
+
+//        lastScores = this.lastScoresLock.write {
+//            teamScoreMapSanitised(
+//                submissions.filter {
+//                    it.verdicts.asSequence().any { it.type == VerdictType.TEMPORAL && (it.status == VerdictStatus.CORRECT || it.status == VerdictStatus.WRONG) }
+//                }
+//
+//                    .groupBy { it.teamId }
+//                    .map { submissionsPerTeam ->
+//                        submissionsPerTeam.key to
+//                                max(0.0, //prevent negative total scores
+//                                    submissionsPerTeam.value.groupBy { submission ->
+//                                        submission as ItemAspect
+//                                        submission.item.id
+//                                    }.map {
+//                                        val firstCorrectIdx = it.value.sortedBy { s -> s.timestamp }
+//                                            .indexOfFirst { s -> s.status == SubmissionStatus.CORRECT }
+//                                        if (firstCorrectIdx < 0) { //no correct submissions, only penalty
+//                                            it.value.size * -penaltyConstant
+//                                        } else { //apply penalty for everything before correct submission
+//                                            1.0 - firstCorrectIdx * penaltyConstant
+//                                        }
+//                                    }.sum() / distinctCorrectVideos * maxPointsPerTask //normalize
+//                                )
+//                    }.toMap(), context.teamIds
+//            )
+//        }
+
         this.lastScoresLock.read {
             return lastScores
         }

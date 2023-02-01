@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.judgement
 
 import dev.dres.api.rest.handler.PostRestHandler
-import dev.dres.api.rest.handler.eligibleManagerForId
+import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.api.rest.types.judgement.ApiJudgementRequest
 import dev.dres.api.rest.types.judgement.ApiVote
 import dev.dres.api.rest.types.status.ErrorStatus

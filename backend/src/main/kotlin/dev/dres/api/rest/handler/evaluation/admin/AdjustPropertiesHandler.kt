@@ -1,12 +1,12 @@
 package dev.dres.api.rest.handler.evaluation.admin
 
 import dev.dres.api.rest.handler.PatchRestHandler
-import dev.dres.api.rest.handler.evaluationId
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.run.Evaluation
 import dev.dres.data.model.run.RunProperties
+import dev.dres.utilities.extensions.evaluationId
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass

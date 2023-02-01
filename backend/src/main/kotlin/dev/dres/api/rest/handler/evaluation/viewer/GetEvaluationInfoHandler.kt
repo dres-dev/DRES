@@ -1,8 +1,8 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.handler.eligibleManagerForId
-import dev.dres.api.rest.handler.isParticipant
+import dev.dres.utilities.extensions.eligibleManagerForId
+import dev.dres.utilities.extensions.isParticipant
 import dev.dres.api.rest.types.evaluation.ApiEvaluationInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException

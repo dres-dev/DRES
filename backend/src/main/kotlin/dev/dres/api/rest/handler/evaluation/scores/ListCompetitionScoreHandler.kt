@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.scores
 
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.handler.eligibleManagerForId
+import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.api.rest.handler.evaluation.scores.AbstractScoreHandler
 import dev.dres.api.rest.types.evaluation.scores.ApiScoreOverview
 import dev.dres.api.rest.types.status.ErrorStatus

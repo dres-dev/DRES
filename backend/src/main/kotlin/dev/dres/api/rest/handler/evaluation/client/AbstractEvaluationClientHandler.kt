@@ -2,8 +2,7 @@ package dev.dres.api.rest.handler.evaluation.client
 
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.RestHandler
-import dev.dres.api.rest.handler.evaluationId
-import dev.dres.api.rest.handler.userId
+import dev.dres.utilities.extensions.userId
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager

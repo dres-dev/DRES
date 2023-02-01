@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.evaluation.admin
 
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.handler.evaluationId
+import dev.dres.utilities.extensions.evaluationId
 import dev.dres.api.rest.types.evaluation.ApiViewerInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException

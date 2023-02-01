@@ -1,6 +1,6 @@
 package dev.dres.api.rest
 
-import dev.dres.api.rest.handler.users.SessionId
+import dev.dres.api.rest.handler.users.SessionToken
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.admin.Role
 import dev.dres.data.model.admin.User
@@ -39,26 +39,26 @@ object AccessManager {
         }
     }
 
-    /** An internal [ConcurrentHashMap] that maps [SessionId]s to [ApiRole]s. */
-    private val sessionRoleMap = HashMap<SessionId, MutableSet<ApiRole>>()
+    /** An internal [ConcurrentHashMap] that maps [SessionToken]s to [ApiRole]s. */
+    private val sessionRoleMap = HashMap<SessionToken, MutableSet<ApiRole>>()
 
-    /** An internal [ConcurrentHashMap] that maps [SessionId]s to [UserId]s. */
-    private val sessionUserMap = HashMap<SessionId, UserId>()
+    /** An internal [ConcurrentHashMap] that maps [SessionToken]s to [UserId]s. */
+    private val sessionUserMap = HashMap<SessionToken, UserId>()
 
     /** Map keeping track of all [RunManager]s a specific user is eligible for. */
     private val usersToRunMap = HashMap<UserId,MutableSet<RunManager>>()
 
-    /** A [Set] of all [SessionId]s. */
-    val currentSessions: Set<SessionId>
+    /** A [Set] of all [SessionToken]s. */
+    val currentSessions: Set<SessionToken>
         get() = this.locks.read { Collections.unmodifiableSet(this.sessionUserMap.keys) }
 
     /** A [ReentrantReadWriteLock] that mediates access to maps. */
     private val locks = ReentrantReadWriteLock()
 
     /**
-     * Registers a [User] for a given [SessionId]. Usually happens upon login.
+     * Registers a [User] for a given [SessionToken]. Usually happens upon login.
      *
-     * @param sessionId The [SessionId] to register the [User] for.
+     * @param sessionId The [SessionToken] to register the [User] for.
      * @param user The [User] to register.
      */
     fun registerUserForSession(sessionId: String, user: User) = this.locks.write {
@@ -79,9 +79,9 @@ object AccessManager {
     }
 
     /**
-     * Deregisters a [User] for a given [SessionId]. Usually happens upon logout.
+     * Deregisters a [User] for a given [SessionToken]. Usually happens upon logout.
      *
-     * @param sessionId The [SessionId] to register the [User] for.
+     * @param sessionId The [SessionToken] to register the [User] for.
      */
     fun deregisterUserSession(sessionId: String) = this.locks.write {
         this.sessionRoleMap.remove(sessionId)
@@ -89,9 +89,9 @@ object AccessManager {
     }
 
     /**
-     * Queries and returns the [UserId] for the given [SessionId].
+     * Queries and returns the [UserId] for the given [SessionToken].
      *
-     * @param sessionId The [SessionId] to query.
+     * @param sessionId The [SessionToken] to query.
      * @return [UserId] or null if no [User] is logged in.
      */
     fun userIdForSession(sessionId: String?): UserId? = this.locks.read {
@@ -101,9 +101,9 @@ object AccessManager {
 
 
     /**
-     * Queries and returns the [ApiRole]s for the given [SessionId].
+     * Queries and returns the [ApiRole]s for the given [SessionToken].
      *
-     * @param sessionId The [SessionId] to query.
+     * @param sessionId The [SessionToken] to query.
      * @return Set of [ApiRole] or empty set if no user is logged in.
      */
     fun rolesOfSession(sessionId: String?): Set<ApiRole> = this.locks.read {

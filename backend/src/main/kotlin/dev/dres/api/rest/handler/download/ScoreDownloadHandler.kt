@@ -1,9 +1,9 @@
 package dev.dres.api.rest.handler.download
 
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.handler.eligibleManagerForId
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.utilities.extensions.eligibleManagerForId
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore

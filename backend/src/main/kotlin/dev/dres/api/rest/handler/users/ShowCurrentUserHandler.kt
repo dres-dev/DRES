@@ -5,7 +5,7 @@ import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.users.ApiUser
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
@@ -35,7 +35,7 @@ class ShowCurrentUserHandler : AbstractUserHandler(), GetRestHandler<ApiUser>, A
     )
     override fun doGet(ctx: Context): ApiUser {
         val user = userFromSession(ctx).toApi()
-        user.sessionId = ctx.sessionId()
+        user.sessionId = ctx.sessionToken()
         return user
     }
 }

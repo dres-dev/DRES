@@ -4,8 +4,6 @@ import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.handler.PostRestHandler
-import dev.dres.api.rest.handler.evaluationId
-import dev.dres.api.rest.handler.preview.AbstractPreviewHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -18,7 +16,8 @@ import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.NonInteractiveRunManager
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.evaluationId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
 import io.javalin.openapi.*
@@ -66,7 +65,7 @@ class BatchSubmissionHandler(private val store: TransientEntityStore, private va
         }
 
         /* Obtain basic information required for submission processing. */
-        val userId = AccessManager.userIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
+        val userId = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
         val runManager = this.getEligibleRunManager(userId, ctx)
         val time = System.currentTimeMillis()
         this.store.transactional {

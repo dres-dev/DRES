@@ -3,11 +3,11 @@ package dev.dres.api.rest.handler.judgement
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.RestHandler
-import dev.dres.api.rest.handler.userId
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.run.RunManager
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
+import dev.dres.utilities.extensions.userId
 import io.javalin.http.Context
 import io.javalin.security.RouteRole
 import jetbrains.exodus.database.TransientEntityStore
@@ -35,7 +35,7 @@ abstract class AbstractJudgementHandler(protected val store: TransientEntityStor
      */
     protected fun checkEligibility(ctx: Context, runManager: RunManager) {
         val userId = ctx.userId()
-        if (AccessManager.rolesOfSession(ctx.sessionId()).contains(ApiRole.ADMIN)) {
+        if (AccessManager.rolesOfSession(ctx.sessionToken()).contains(ApiRole.ADMIN)) {
             return //Admins require no further check
         }
         if (runManager.template.judges.filter { it.userId eq userId }.isEmpty) {

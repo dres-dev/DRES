@@ -9,7 +9,7 @@ import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.security.RouteRole
 import jetbrains.exodus.database.TransientEntityStore
@@ -46,7 +46,7 @@ abstract class AbstractEvaluationAdminHandler(protected val store: TransientEnti
      */
     fun synchronousAdminCheck(manager: RunManager, ctx: Context) {
         if (manager is InteractiveAsynchronousRunManager) return
-        if (!AccessManager.rolesOfSession(ctx.sessionId()).contains(ApiRole.ADMIN)) {
+        if (!AccessManager.rolesOfSession(ctx.sessionToken()).contains(ApiRole.ADMIN)) {
             throw ErrorStatusException(403, "Access Denied.", ctx);
         }
     }

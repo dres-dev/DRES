@@ -1,7 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.admin
 
 import dev.dres.api.rest.handler.PatchRestHandler
-import dev.dres.api.rest.handler.evaluationId
 import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.api.rest.types.evaluation.ApiVerdictStatus
 import dev.dres.api.rest.types.status.ErrorStatus
@@ -10,7 +9,8 @@ import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.audit.AuditLogger
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.evaluationId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
@@ -71,7 +71,7 @@ class OverrideSubmissionHandler(store: TransientEntityStore): AbstractEvaluation
             }
             if (evaluationManager.updateSubmission(rac, submissionInfo.id, submissionInfo.verdicts.first().status.status)) {
                 val submission = evaluationManager.allSubmissions(rac).single { it.id == submissionInfo.id }
-                AuditLogger.overrideSubmission(submission, AuditLogSource.REST, ctx.sessionId())
+                AuditLogger.overrideSubmission(submission, AuditLogSource.REST, ctx.sessionToken())
                 submission.toApi()
             } else {
                 throw ErrorStatusException(500, "Could not update the submission. Please see the backend's log.", ctx)

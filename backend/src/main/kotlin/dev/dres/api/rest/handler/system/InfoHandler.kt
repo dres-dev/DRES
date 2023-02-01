@@ -8,7 +8,7 @@ import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.system.DresInfo
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
@@ -38,7 +38,7 @@ class InfoHandler : GetRestHandler<DresInfo> {
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
         ])
     override fun doGet(ctx: Context): DresInfo {
-       return if (AccessManager.rolesOfSession(ctx.sessionId()).contains(ApiRole.ADMIN)) {
+       return if (AccessManager.rolesOfSession(ctx.sessionToken()).contains(ApiRole.ADMIN)) {
             DresInfo (
                 DRES.VERSION,
                 ManagementFactory.getRuntimeMXBean().startTime,

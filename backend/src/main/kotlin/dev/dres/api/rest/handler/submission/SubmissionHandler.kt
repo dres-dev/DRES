@@ -27,7 +27,7 @@ import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionRejectedException
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.TimeUtil
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -91,7 +91,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
     )
     override fun doGet(ctx: Context): SuccessfulSubmissionsStatus {
         val (s,r) = this.store.transactional {
-            val userId = AccessManager.userIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
+            val userId = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
             val run = getEligibleRunManager(userId, ctx)
             val time = System.currentTimeMillis()
             val submission = toSubmission(userId, run, time, ctx)
@@ -109,7 +109,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
                 throw ErrorStatusException(400, "Run manager does not know the given teamId ${rac.teamId}.", ctx)
             }
 
-            AuditLogger.submission(submission, AuditLogSource.REST, ctx.sessionId(), ctx.req().remoteAddr)
+            AuditLogger.submission(submission, AuditLogSource.REST, ctx.sessionToken(), ctx.req().remoteAddr)
             if (run.currentTaskTemplate(rac).taskGroup.type.options.contains(TaskOption.HIDDEN_RESULTS)) { //pre-generate preview
                 generatePreview(submission.verdicts.first())
             }

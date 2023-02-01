@@ -6,10 +6,10 @@ import dev.dres.api.rest.handler.RestHandler
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.admin.User
 import dev.dres.mgmt.admin.UserManager
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 
-typealias SessionId = String
+typealias SessionToken = String
 
 /**
  * An abstract [RestHandler] to manage [User]s
@@ -23,7 +23,7 @@ abstract class AbstractUserHandler: RestHandler, AccessManagedRestHandler {
 
     /** Convenience method to extract [User] from current session. */
     protected fun userFromSession(ctx: Context): User {
-        return UserManager.get(id = AccessManager.userIdForSession(ctx.sessionId())!!)
+        return UserManager.get(id = AccessManager.userIdForSession(ctx.sessionToken())!!)
             ?: throw ErrorStatusException(404, "User could not be found!", ctx)
     }
 

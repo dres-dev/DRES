@@ -2,7 +2,6 @@ package dev.dres.api.rest.handler.evaluation.admin
 
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.PostRestHandler
-import dev.dres.api.rest.handler.evaluationId
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -11,7 +10,8 @@ import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.TaskStatus
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.evaluationId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import io.javalin.security.RouteRole
@@ -54,7 +54,7 @@ class NextTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandl
         return this.store.transactional {
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             if (evaluationManager is InteractiveAsynchronousRunManager
-                && !AccessManager.rolesOfSession(ctx.sessionId()).contains(ApiRole.ADMIN)
+                && !AccessManager.rolesOfSession(ctx.sessionToken()).contains(ApiRole.ADMIN)
                 && evaluationManager.currentTask(rac)?.status != TaskStatus.ENDED) {
                 throw ErrorStatusException(400, "Cannot advance to next task before current task is completed.", ctx)
             }

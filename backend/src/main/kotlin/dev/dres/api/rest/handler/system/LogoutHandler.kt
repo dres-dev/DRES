@@ -8,7 +8,7 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.*
 
@@ -34,10 +34,10 @@ class LogoutHandler : RestHandler, GetRestHandler<SuccessStatus> {
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): SuccessStatus {
-        val username = AccessManager.userIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(400, "You are currently not logged in.", ctx)
-        val userId = AccessManager.userIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(400, "You are currently not logged in.", ctx)
-        AuditLogger.logout(userId, AuditLogSource.REST, ctx.sessionId())
-        AccessManager.deregisterUserSession(ctx.sessionId())
+        val username = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(400, "You are currently not logged in.", ctx)
+        val userId = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(400, "You are currently not logged in.", ctx)
+        AuditLogger.logout(userId, AuditLogSource.REST, ctx.sessionToken()!!)
+        AccessManager.deregisterUserSession(ctx.sessionToken()!!)
         return SuccessStatus("User '${username}' logged out successfully.")
     }
     override val route = "logout"

@@ -1,13 +1,13 @@
 package dev.dres.api.rest.handler.judgement
 
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.handler.eligibleManagerForId
 import dev.dres.api.rest.types.collection.ApiMediaType
 import dev.dres.api.rest.types.judgement.ApiJudgementRequest
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.submissions.VerdictType
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.eligibleManagerForId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -45,7 +45,7 @@ class DequeueJudgementHandler(store: TransientEntityStore) : AbstractJudgementHa
             checkEligibility(ctx, evaluationManager)
             do {
                 val validator = evaluationManager.judgementValidators.find { it.hasOpen } ?: break
-                val next = validator.next(ctx.sessionId()) ?: break
+                val next = validator.next(ctx.sessionToken()!!) ?: break
                 val taskDescription = next.second.task.template.textualDescription()
                 when (next.second.type) {
                     VerdictType.TEXT -> {

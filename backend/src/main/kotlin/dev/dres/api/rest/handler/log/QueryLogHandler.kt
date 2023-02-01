@@ -1,6 +1,5 @@
 package dev.dres.api.rest.handler.log
 
-import dev.dres.api.rest.handler.activeManagerForUser
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -8,7 +7,8 @@ import dev.dres.data.model.log.QueryEventLog
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.InvalidRequestEvent
 import dev.dres.run.eventstream.QueryEventLogEvent
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.activeManagerForUser
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
@@ -42,10 +42,10 @@ class QueryLogHandler : AbstractLogHandler() {
         val queryEventLog = try {
             ctx.bodyAsClass<QueryEventLog>()
         } catch (e: BadRequestResponse){
-            EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionId(), evaluationManager.id, ctx.body()))
+            EventStreamProcessor.event(InvalidRequestEvent(ctx.sessionToken(), evaluationManager.id, ctx.body()))
             throw ErrorStatusException(400, "Invalid parameters: ${e.localizedMessage}", ctx)
         }.copy(serverTimeStamp = System.currentTimeMillis())
-        EventStreamProcessor.event(QueryEventLogEvent(ctx.sessionId(), evaluationManager.id, queryEventLog))
+        EventStreamProcessor.event(QueryEventLogEvent(ctx.sessionToken(), evaluationManager.id, queryEventLog))
         return SuccessStatus("Log received")
     }
 }

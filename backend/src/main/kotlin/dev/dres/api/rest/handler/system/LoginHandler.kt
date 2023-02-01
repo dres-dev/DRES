@@ -55,13 +55,13 @@ class LoginHandler : RestHandler, PostRestHandler<ApiUser> {
         val sessionToken = ctx.getOrCreateSessionToken()
 
         AccessManager.registerUserForSession(sessionToken, user)
-        AuditLogger.login(loginRequest.username, sessionToken, LogEventSource.REST)
+        AuditLogger.login(loginRequest.username, AuditLogSource.REST, sessionToken)
 
         //explicitly set cookie on login
         ctx.cookie(AccessManager.SESSION_COOKIE_NAME, sessionToken, AccessManager.SESSION_COOKIE_LIFETIME)
 
         val ret = UserManager.get(username)!!.toApi()
-        ret.sessionId = ctx.sessionId()
+        ret.sessionId = sessionToken
         return ret
     }
 

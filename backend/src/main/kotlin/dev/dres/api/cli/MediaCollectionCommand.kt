@@ -509,7 +509,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
     inner class Import : AbstractCollectionCommand("import", help = "Imports a media collection from a CSV file.") {
 
         /** [Path] to the input file. */
-        private val input: Path by option("-i", "--input", help = "Path of the file the media collection should be imported from.")
+        private val input: Path by option("--input", help = "Path of the file the media collection should be imported from.")
             .convert { Paths.get(it) }.required()
 
         override fun run() {
@@ -559,7 +559,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
     inner class ImportSegments : AbstractCollectionCommand("importSegments", "Imports the Segment information for the Items in a Collection from a CSV file") {
 
         /** [Path] to the input file. */
-        private val input: Path by option("-i", "--input", help = "Path of the file the media segments should be imported from.")
+        private val input: Path by option("--input", help = "Path of the file the media segments should be imported from.")
             .convert { Paths.get(it) }.required()
 
         override fun run() {

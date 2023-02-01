@@ -109,7 +109,7 @@ object Cli {
                         is com.github.ajalt.clikt.core.PrintHelpMessage -> println(e.command.getFormattedHelp())
                         is com.github.ajalt.clikt.core.MissingParameter -> println(e.localizedMessage)
                         is com.github.ajalt.clikt.core.NoSuchOption -> println(e.localizedMessage)
-                        is com.github.ajalt.clikt.core.UsageError -> println("invalid command")
+                        is com.github.ajalt.clikt.core.UsageError -> println("invalid command: ${e.localizedMessage}")
                         else -> e.printStackTrace()
                     }
                 }

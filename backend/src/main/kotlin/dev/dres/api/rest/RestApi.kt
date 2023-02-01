@@ -2,6 +2,7 @@ package dev.dres.api.rest
 
 import GetAuditLogInfoHandler
 import GetTaskHintHandler
+import dev.dres.DRES
 import dev.dres.api.rest.handler.*
 import dev.dres.api.rest.handler.audit.ListAuditLogsHandler
 import dev.dres.api.rest.handler.audit.ListAuditLogsInRangeHandler
@@ -202,8 +203,8 @@ object RestApi {
                 OpenApiPlugin(
                     OpenApiConfiguration().apply {
                         this.info.title = "DRES API"
-                        this.info.version = "1.0"
-                        this.info.description = "API for DRES (Distributed Retrieval Evaluation Server), Version 1.0"
+                        this.info.version = DRES.VERSION
+                        this.info.description = "API for DRES (Distributed Retrieval Evaluation Server), Version ${DRES.VERSION}"
                         this.documentationPath = "/swagger-docs"
                     }
                 )

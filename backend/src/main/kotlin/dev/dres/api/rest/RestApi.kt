@@ -193,7 +193,8 @@ object RestApi {
         javalin = Javalin.create {
             it.plugins.enableCors { cors ->
                 cors.add { corsPluginConfig ->
-                    corsPluginConfig.anyHost()
+                    corsPluginConfig.reflectClientOrigin = true // anyHost() has similar implications and might be used in production? I'm not sure how to cope with production and dev here simultaneously
+                    corsPluginConfig.allowCredentials = true
                 }
             }
 
@@ -226,7 +227,6 @@ object RestApi {
             it.http.defaultContentType = "application/json"
             it.http.prefer405over404 = true
             it.jetty.server { setupHttpServer() }
-            it.jetty.sessionHandler { fileSessionHandler(config) }
             it.accessManager(AccessManager::manage)
             //it.staticFiles.add("html", Location.CLASSPATH)
             //it.spaRoot.addFile("/vote", "vote/index.html")
@@ -242,6 +242,26 @@ object RestApi {
                     conf.sniHostCheck = false
                 }
                 it.plugins.register(ssl)
+            }
+
+        }.before { ctx ->
+
+            //check for session cookie
+            val cookieId = ctx.cookie(AccessManager.SESSION_COOKIE_NAME)
+
+            if (cookieId != null) {
+                //update cookie lifetime
+                ctx.cookie(AccessManager.SESSION_COOKIE_NAME, cookieId, AccessManager.SESSION_COOKIE_LIFETIME)
+                //store id in attribute for later use
+                ctx.attribute("session", cookieId)
+            }
+
+            //check for query parameter
+            val paramId = ctx.queryParam("session")
+
+            if (paramId != null) {
+                //store id in attribute for later use
+                ctx.attribute("session", paramId)
             }
 
         }.routes {
@@ -301,21 +321,6 @@ object RestApi {
         javalin = null
     }
 
-    private fun fileSessionHandler(config: Config) = SessionHandler().apply {
-        sessionCache = DefaultSessionCache(this).apply {
-            sessionDataStore = FileSessionDataStore().apply {
-                val baseDir = File(".")
-                this.storeDir = File(baseDir, "session-store").apply { mkdir() }
-            }
-        }
-
-        if (config.enableSsl) {
-            sameSite = HttpCookie.SameSite.NONE
-            sessionCookieConfig.isSecure = true
-            isSecureRequestOnly = true
-        }
-
-    }
 
     private val pool = QueuedThreadPool(
         1000, 8, 60000, -1, null, null, NamedThreadFactory("JavalinPool")

@@ -44,6 +44,9 @@ compileTestKotlin {
 }
 
 dependencies {
+    def javalin = '5.1.2'
+    def log4jVersion = '2.17.1'
+
     ///// Frontend files (produced by sub-project).
     //implementation frontendClasspath(project(path: ":frontend", configuration: 'frontendFiles'))
 
@@ -58,11 +61,12 @@ dependencies {
     implementation group: 'org.jetbrains.xodus', name: 'dnq', version: version_xodus_dnq
 
     ////// Javalin
-    implementation group: 'io.javalin', name:  'javalin', version: "$version_javalin"
-    kapt("io.javalin.community.openapi:openapi-annotation-processor:$version_javalin")
-    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: version_javalin
-    implementation group: 'io.javalin.community.openapi', name:'javalin-swagger-plugin', version: version_javalin
-    implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: version_javalin
+    implementation group: 'io.javalin', name:  'javalin', version: javalin
+    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.1.2-SNAPSHOT")
+
+    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: "5.1.2-SNAPSHOT"
+    implementation group: 'io.javalin.community.openapi', name:'javalin-swagger-plugin', version: "5.1.2-SNAPSHOT"
+    implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: javalin
 
     ////// Bcrypt
     implementation group: 'org.mindrot', name: 'jbcrypt', version: version_bcrypt

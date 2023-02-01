@@ -15,7 +15,7 @@ import kotlin.math.max
  * @author Luca Rossett
  * @version 1.1.0
  */
-class MaxNormalizingScoreBoard(override val name: String, teams: List<Team>, private val taskFilter: (TaskTemplate) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 100.0) : Scoreboard {
+class MaxNormalizingScoreBoard(override val name: String, teams: List<Team>, private val taskFilter: (TaskTemplate) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 1000.0) : Scoreboard {
 
     /** Tracks the score per [TemplateId] (references a [TaskTemplate]). */
     private val scorePerTaskMap = ConcurrentHashMap<TemplateId, Map<TemplateId, Double>>()

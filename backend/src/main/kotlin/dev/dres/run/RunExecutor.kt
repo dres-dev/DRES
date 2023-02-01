@@ -162,7 +162,11 @@ object RunExecutor : Consumer<WsConfig> {
         t.onConnect {
             /* Add WSContext to set of connected clients. */
             this@RunExecutor.clientLock.write {
-                this.connectedClients.add(WebSocketConnection(it))
+                val connection = WebSocketConnection(it)
+                //only keep connections from known users
+                if (connection.userName != WebSocketConnection.UNKNOWN_USER) {
+                    this.connectedClients.add(connection)
+                }
             }
         }
         t.onClose {

@@ -7,7 +7,7 @@ import dev.dres.data.model.admin.User
 import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.filter
@@ -38,8 +38,8 @@ data class RunActionContext(val userId: UserId?, val teamId: TeamId?, val roles:
          * @param runManager The [RunManager] to construct the [RunActionContext] for.
          */
         fun runActionContext(ctx: Context, runManager: RunManager) : RunActionContext {
-            val userId = AccessManager.userIdForSession(ctx.sessionId()) ?: throw ErrorStatusException(403, "Unauthorized user.", ctx)
-            val roles = AccessManager.rolesOfSession(ctx.sessionId()).mapNotNull { it.toRole() }.toSet()
+            val userId = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(403, "Unauthorized user.", ctx)
+            val roles = AccessManager.rolesOfSession(ctx.sessionToken()).mapNotNull { it.toRole() }.toSet()
             val teamId = runManager.template.teams.filter { it.users.contains(User.query(User::id eq userId).first()) }.first().teamId
             return RunActionContext(userId, teamId, roles)
         }

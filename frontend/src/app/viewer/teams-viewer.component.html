@@ -26,7 +26,7 @@
           </p>
 
           <div class="submissions">
-            <div *ngFor="let submission of submissionForTeam(team.uid) | async" [className]="'submission ' + submission.status">
+            <div *ngFor="let submission of submissionForTeam(team.uid) | async; trackBy:trackSubmission" [className]="'submission ' + submission.status">
               <img
                 *ngIf="submission.id"
                 [src]="previewForSubmission(submission) | async"

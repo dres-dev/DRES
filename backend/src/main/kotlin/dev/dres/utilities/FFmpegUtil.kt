@@ -11,10 +11,13 @@ import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.time.TemporalRange
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.concurrent.*
+import java.util.concurrent.ConcurrentLinkedDeque
 
 object FFmpegUtil {
 
@@ -23,6 +26,7 @@ object FFmpegUtil {
         Files.isDirectory(DRES.rootPath.parent.parent.parent.resolve("ext/ffmpeg")) -> DRES.rootPath.parent.parent.parent.resolve(
             "ext/ffmpeg"
         )
+
         Files.isDirectory(DRES.rootPath.parent.resolve("ffmpeg")) -> DRES.rootPath.parent.resolve("ffmpeg") /* Distribution */
         Files.isDirectory(Paths.get("ext/ffmpeg")) -> Paths.get("ext/ffmpeg")
         Files.isDirectory(Paths.get("ffmpeg")) -> Paths.get("ffmpeg")
@@ -32,7 +36,7 @@ object FFmpegUtil {
     private val logger = LoggerFactory.getLogger(this.javaClass)
     private val logMarker = MarkerFactory.getMarker("FFMPEG")
 
-    private data class FrameRequest(val video: Path, val timecode: String, val outputImage: Path)
+    private data class FrameRequest(val video: Path, val timestamp: Long, val outputImage: Path)
 
     private val frameRequestStack = ConcurrentLinkedDeque<FrameRequest>()
 
@@ -45,102 +49,63 @@ object FFmpegUtil {
         return "$hours:$minutes:$seconds.${"%03d".format(milliseconds)}"
     }
 
-    private val numberOfProcessors = Runtime.getRuntime().availableProcessors()
+    private var threadsActive = true
 
-    private val ffmpegThreadPool = ThreadPoolExecutor(
-        1.coerceAtLeast(numberOfProcessors / 2),
-        1.coerceAtLeast(numberOfProcessors / 2),
-        1,
-        TimeUnit.MINUTES,
-        LinkedBlockingDeque(),
-        NamedThreadFactory("FFmpegThreadPool")
-    )
+    private val threads: List<Thread>
 
+    init {
 
-    private val pendingFutures = ConcurrentHashMap<Path, Future<Path?>>()
+        val numberOfWorkerThreads = 1.coerceAtLeast(Runtime.getRuntime().availableProcessors() / 8)
 
-    fun executeFFmpegAsync(
-        video: Path,
-        timestamp: Long,
-        outputImage: Path
-    ): Future<Path?> {
+        threads = (1..numberOfWorkerThreads).map {
+            val t = Thread {
+                while (threadsActive) {
 
-        //currently in progress, return existing
-        val pending = pendingFutures[outputImage]
-        if (pending != null) {
-            if (pending.isDone || pending.isCancelled) {
-                pendingFutures.remove(outputImage)
-            }
-            return pending
-        }
+                    val request = frameRequestStack.pollLast()
 
-        //already done, should not be requested, return dummy
-        if (Files.exists(outputImage)) {
-            val dummy = CompletableFuture<Path?>()
-            dummy.complete(outputImage)
-            return dummy
-        }
+                    if (request != null) {
 
-        //schedule generation
-        return ffmpegThreadPool.submit(Callable {
+                        if (Files.exists(request.outputImage)) {
+                            continue
+                        }
 
-            try {
-                if (Files.exists(outputImage)) {
-                    return@Callable outputImage
+                        try {
+                            FFmpeg.atPath(ffmpegBin)
+                                .addInput(UrlInput.fromPath(request.video))
+                                .addOutput(UrlOutput.toPath(request.outputImage))
+                                .setOverwriteOutput(true)
+                                .addArguments("-ss", toMillisecondTimeStamp(request.timestamp))
+                                .addArguments("-vframes", "1")
+                                .addArguments("-filter:v", "scale=120:-1")
+                                .setOutputListener { l -> logger.debug(logMarker, l); true }
+                                .execute()
+                        } catch (e: Exception) {
+                            logger.error("Error in FFMpeg: ${e.message}")
+                        }
+
+                    } else {
+                        try {
+                            Thread.sleep(1000)
+                        } catch (e: InterruptedException) {
+                            //ignore
+                        }
+                    }
                 }
-
-                FFmpeg.atPath(ffmpegBin)
-                    .addInput(UrlInput.fromPath(video))
-                    .addOutput(UrlOutput.toPath(outputImage))
-                    .setOverwriteOutput(true)
-                    .addArguments("-ss", toMillisecondTimeStamp(timestamp))
-                    .addArguments("-vframes", "1")
-                    .addArguments("-filter:v", "scale=120:-1")
-                    .setOutputListener { logger.debug(logMarker, it); true }
-                    .execute()
-
-                if (Files.exists(outputImage)) {
-                    outputImage
-                } else {
-                    logger.info("Failed generating preview at ${outputImage.toFile().absolutePath}")
-                    null
-                }
-            } catch (t: Throwable) {
-                logger.info(t.localizedMessage)
-                return@Callable null
             }
+            t.name = "FFMpegWorkerThread-$it"
+            t.start()
+            t
         }
-
-        )
 
     }
 
-    private fun extractFrameAsync(video: Path, timecode: String, outputImage: Path) =
-        FFmpeg.atPath(ffmpegBin)
-            .addInput(UrlInput.fromPath(video))
-            .addOutput(UrlOutput.toPath(outputImage))
-            .setOverwriteOutput(true)
-            .addArguments("-ss", timecode)
-            .addArguments("-vframes", "1")
-            .addArguments("-filter:v", "scale=120:-1")
-            .setOutputListener { logger.debug(logMarker, it); true }
-            .executeAsync()
-
-
-    fun extractFrame(video: Path, timecode: String, outputImage: Path) {
-        val request = FrameRequest(video, timecode, outputImage)
+    fun extractFrame(video: Path, ms: Long, outputImage: Path) {
+        val request = FrameRequest(video, ms, outputImage)
         if (!Files.exists(outputImage) && !frameRequestStack.contains(request)) {
             frameRequestStack.push(request)
             logger.info(logMarker, "Enqueued frame request $request")
         }
 
-    }
-
-    fun extractFrame(video: Path, ms: Long, outputImage: Path) =
-        extractFrame(video, toMillisecondTimeStamp(ms), outputImage)
-
-    private fun extractFrameAsync(video: Path, ms: Long, outputImage: Path) {
-        extractFrameAsync(video, toMillisecondTimeStamp(ms), outputImage)
     }
 
     fun extractSegment(video: Path, startTimecode: String, endTimecode: String, outputVideo: Path) {
@@ -193,7 +158,7 @@ object FFmpegUtil {
             .execute()
 
     fun stop() {
-        ffmpegThreadPool.shutdown()
+        threadsActive = false
     }
 
 }

@@ -11,7 +11,7 @@ import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.mgmt.admin.UserManager
 import dev.dres.mgmt.admin.UserManager.getMatchingUser
 import dev.dres.run.audit.AuditLogger
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.getOrCreateSessionToken
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -52,9 +52,13 @@ class LoginHandler : RestHandler, PostRestHandler<ApiUser> {
         val password = Password.Plain(loginRequest.password)
         val user = getMatchingUser(username, password) ?: throw ErrorStatusException(401, "Invalid credentials. Please try again!", ctx)
 
-        /* Begin user session. */
-        AccessManager.registerUserForSession(ctx.sessionId(), user)
-        AuditLogger.login(user.userId, AuditLogSource.REST, ctx.sessionId())
+        val sessionToken = ctx.getOrCreateSessionToken()
+
+        AccessManager.registerUserForSession(sessionToken, user)
+        AuditLogger.login(loginRequest.username, sessionToken, LogEventSource.REST)
+
+        //explicitly set cookie on login
+        ctx.cookie(AccessManager.SESSION_COOKIE_NAME, sessionToken, AccessManager.SESSION_COOKIE_LIFETIME)
 
         val ret = UserManager.get(username)!!.toApi()
         ret.sessionId = ctx.sessionId()

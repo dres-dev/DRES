@@ -6,7 +6,7 @@ import dev.dres.data.model.admin.Role
 import dev.dres.data.model.admin.User
 import dev.dres.data.model.admin.UserId
 import dev.dres.run.RunManager
-import dev.dres.utilities.extensions.sessionId
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.security.RouteRole
 import io.javalin.http.Context
 import io.javalin.http.Handler
@@ -24,6 +24,21 @@ import kotlin.concurrent.write
  */
 object AccessManager {
 
+    const val SESSION_COOKIE_NAME = "SESSIONID"
+    const val SESSION_COOKIE_LIFETIME = 60 * 60 * 24 //a day
+
+    val SESSION_TOKEN_CHAR_POOL : List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9') + '-' + '_'
+    const val SESSION_TOKEN_LENGTH = 32
+
+    fun manage(handler: Handler, ctx: Context, permittedRoles: Set<RouteRole>) {
+        when {
+            permittedRoles.isEmpty() -> handler.handle(ctx) //fallback in case no roles are set, none are required
+            permittedRoles.contains(RestApiRole.ANYONE) -> handler.handle(ctx)
+            rolesOfSession(ctx.sessionToken()).any { it in permittedRoles } -> handler.handle(ctx)
+            else -> ctx.status(401)
+        }
+    }
+
     /** An internal [ConcurrentHashMap] that maps [SessionId]s to [ApiRole]s. */
     private val sessionRoleMap = HashMap<SessionId, MutableSet<ApiRole>>()
 
@@ -39,22 +54,6 @@ object AccessManager {
 
     /** A [ReentrantReadWriteLock] that mediates access to maps. */
     private val locks = ReentrantReadWriteLock()
-
-    /**
-     * Helper function that manages access for requests through the Javalin RESTful API.
-     *
-     * @param handler
-     * @param ctx
-     * @param permittedRoles
-     */
-    fun manage(handler: Handler, ctx: Context, permittedRoles: Set<RouteRole>) = this.locks.read {
-        when {
-            permittedRoles.isEmpty() -> handler.handle(ctx) //fallback in case no roles are set, none are required
-            permittedRoles.contains(ApiRole.ANYONE) -> handler.handle(ctx)
-            rolesOfSession(ctx.sessionId()).any { it in permittedRoles } -> handler.handle(ctx)
-            else -> ctx.status(401)
-        }
-    }
 
     /**
      * Registers a [User] for a given [SessionId]. Usually happens upon login.
@@ -95,9 +94,11 @@ object AccessManager {
      * @param sessionId The [SessionId] to query.
      * @return [UserId] or null if no [User] is logged in.
      */
-    fun userIdForSession(sessionId: String): UserId? = this.locks.read {
+    fun userIdForSession(sessionId: String?): UserId? = this.locks.read {
         this.sessionUserMap[sessionId]
     }
+
+
 
     /**
      * Queries and returns the [ApiRole]s for the given [SessionId].
@@ -105,7 +106,7 @@ object AccessManager {
      * @param sessionId The [SessionId] to query.
      * @return Set of [ApiRole] or empty set if no user is logged in.
      */
-    fun rolesOfSession(sessionId: String): Set<ApiRole> = this.locks.read {
+    fun rolesOfSession(sessionId: String?): Set<ApiRole> = this.locks.read {
         this.sessionRoleMap[sessionId] ?: emptySet()
     }
 
@@ -155,3 +156,5 @@ object AccessManager {
         return this.usersToRunMap[userId] ?: emptySet()
     }
 }
+
+enum class RestApiRole : RouteRole { ANYONE, VIEWER, PARTICIPANT, JUDGE, ADMIN }

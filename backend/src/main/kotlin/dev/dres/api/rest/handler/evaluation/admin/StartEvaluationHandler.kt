@@ -26,7 +26,7 @@ class StartEvaluationHandler(store: TransientEntityStore) : AbstractEvaluationAd
 
     @OpenApi(
         summary = "Starts a evaluation. This is a method for administrators.",
-        path = "/api/v1/evaluation/admin/{evaluationId}/start",
+        path = "/api/v2/evaluation/admin/{evaluationId}/start",
         methods = [HttpMethod.POST],
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)],
         tags = ["Evaluation Administrator"],

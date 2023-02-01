@@ -23,7 +23,7 @@ class DequeueVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(
 
     @OpenApi(
         summary = "Gets the next open submission that is waiting to be voted on.",
-        path = "/api/v1/evaluation/{evaluationId}/vote/next",
+        path = "/api/v2/evaluation/{evaluationId}/vote/next",
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.")],
         tags = ["Judgement"],
         responses = [

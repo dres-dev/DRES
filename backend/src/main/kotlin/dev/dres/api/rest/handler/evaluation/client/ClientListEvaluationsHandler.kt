@@ -28,7 +28,7 @@ class ClientListEvaluationsHandler(store: TransientEntityStore): AbstractEvaluat
 
     @OpenApi(
         summary = "Lists an overview of all evaluation runs visible to the current client.",
-        path = "/api/v1/client/evaluation/list",
+        path = "/api/v2/client/evaluation/list",
         tags = ["Evaluation Client"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<ApiEvaluationInfo>::class)]),

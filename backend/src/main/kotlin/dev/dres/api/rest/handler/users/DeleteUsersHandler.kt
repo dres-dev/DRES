@@ -25,7 +25,7 @@ class DeleteUsersHandler : AbstractUserHandler(), DeleteRestHandler<ApiUser>, Ac
 
     @OpenApi(
         summary = "Deletes the specified user. Requires ADMIN privileges",
-        path = "/api/v1/user/{userId}", methods = [HttpMethod.DELETE],
+        path = "/api/v2/user/{userId}", methods = [HttpMethod.DELETE],
         pathParams = [OpenApiParam("userId", Long::class, "User ID")],
         tags = ["User"],
         responses = [

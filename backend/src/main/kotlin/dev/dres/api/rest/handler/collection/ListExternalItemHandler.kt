@@ -20,7 +20,7 @@ import kotlin.streams.toList
  */
 class ListExternalItemHandler(config: Config) : GetRestHandler<Array<String>> {
 
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     /** Path to the directory that contains the external items. */
     val path = Paths.get(config.externalPath)
@@ -34,7 +34,7 @@ class ListExternalItemHandler(config: Config) : GetRestHandler<Array<String>> {
 
     @OpenApi(
         summary = "Lists items from the external media collection whose name start with the given string.",
-        path = "/api/v1/external/<startsWith>",
+        path = "/api/v2/external/<startsWith>",
         methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam("startsWith", String::class, "Name starts with.", required = false)

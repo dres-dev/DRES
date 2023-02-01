@@ -30,13 +30,13 @@ class GetMediaHandler(private val store: TransientEntityStore) : GetRestHandler<
     override val permittedRoles = setOf(ApiRole.VIEWER, ApiRole.PARTICIPANT, ApiRole.ADMIN)
 
     /** [GetMediaHandler] is part of the v1 API. */
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     //not used
     override fun doGet(ctx: Context): Any = ""
 
     @OpenApi(summary = "Returns a collection item",
-            path = "/api/v1/media/{itemId}",
+            path = "/api/v2/media/{itemId}",
             pathParams = [
                 OpenApiParam("itemId", String::class, "The media item ID.")
             ],

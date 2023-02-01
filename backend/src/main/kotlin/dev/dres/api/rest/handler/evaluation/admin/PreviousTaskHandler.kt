@@ -24,7 +24,7 @@ class PreviousTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminH
 
     @OpenApi(
         summary = "Moves to and selects the previous task. This is a method for admins.",
-        path = "/api/v1/evaluation/admin/{evaluationId}/task/previous",
+        path = "/api/v2/evaluation/admin/{evaluationId}/task/previous",
         methods = [HttpMethod.POST],
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)],
         tags = ["Evaluation Administrator"],

@@ -25,7 +25,7 @@ class UpdateMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHa
 
     @OpenApi(
         summary = "Updates a Media Item to the specified Media Collection.",
-        path = "/api/v1/mediaitem",
+        path = "/api/v2/mediaitem",
         methods = [HttpMethod.PATCH],
         requestBody = OpenApiRequestBody([OpenApiContent(ApiMediaItem::class)]),
         tags = ["Collection"],

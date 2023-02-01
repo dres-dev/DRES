@@ -26,7 +26,7 @@ class EvaluationTemplateDownloadHandler(store: TransientEntityStore) : AbstractD
 
     @OpenApi(
         summary = "Provides a JSON download of the entire evaluation template structure.",
-        path = "/api/v1/download/template/{templateId}",
+        path = "/api/v2/download/template/{templateId}",
         tags = ["Download"],
         pathParams = [
             OpenApiParam("templateId", String::class, "The evaluation template ID", required = true)

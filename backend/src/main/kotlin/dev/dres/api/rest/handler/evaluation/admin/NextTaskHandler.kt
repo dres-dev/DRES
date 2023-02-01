@@ -33,7 +33,7 @@ class NextTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandl
 
     @OpenApi(
         summary = "Moves to and selects the next task within the evaluation. This is a method for admins.",
-        path = "/api/v1/evaluation/admin/{runId}/task/next",
+        path = "/api/v2/evaluation/admin/{runId}/task/next",
         methods = [HttpMethod.POST],
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)],
         tags = ["Evaluation Administrator"],

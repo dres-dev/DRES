@@ -23,7 +23,7 @@ class ListAuditLogsInRangeHandler(store: TransientEntityStore): AbstractAuditLog
 
     @OpenApi(
         summary = "Lists all audit logs matching the query",
-        path = "/api/v1/audit/log/list/since/{since}/{upto}",
+        path = "/api/v2/audit/log/list/since/{since}/{upto}",
         pathParams = [
             OpenApiParam("since", Long::class, "Timestamp of the earliest audit log to include"),
             OpenApiParam("upto", Long::class, "Timestamp of the latest audit log to include.")

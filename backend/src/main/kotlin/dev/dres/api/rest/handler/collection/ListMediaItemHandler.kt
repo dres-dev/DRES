@@ -22,7 +22,7 @@ class ListMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHand
 
     @OpenApi(
         summary = "Lists media items from a given media collection whose name start with the given string.",
-        path = "/api/v1/collection/{collectionId}/{startsWith}",
+        path = "/api/v2/collection/{collectionId}/{startsWith}",
         methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam("collectionId", String::class, "Collection ID"),

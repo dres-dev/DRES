@@ -24,12 +24,12 @@ import io.javalin.openapi.*
  */
 class LoginHandler : RestHandler, PostRestHandler<ApiUser> {
 
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     data class LoginRequest(var username: String, var password: String)
 
     @OpenApi(summary = "Sets roles for session based on user account and returns a session cookie.",
-        path = "/api/v1/login",
+        path = "/api/v2/login",
         methods = [HttpMethod.POST],
         tags = ["User"],
         requestBody = OpenApiRequestBody([OpenApiContent(LoginRequest::class)]),

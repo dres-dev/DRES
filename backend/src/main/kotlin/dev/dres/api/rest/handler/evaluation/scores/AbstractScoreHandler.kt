@@ -19,5 +19,5 @@ abstract class AbstractScoreHandler(protected val store: TransientEntityStore) :
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.VIEWER)
 
     /** All [AbstractScoreHandler]s are part of the v1 API. */
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 }

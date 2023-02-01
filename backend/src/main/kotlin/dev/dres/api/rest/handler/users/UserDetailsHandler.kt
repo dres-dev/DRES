@@ -23,7 +23,7 @@ class UserDetailsHandler : AbstractUserHandler(), GetRestHandler<ApiUser>, Acces
 
     @OpenApi(
         summary = "Gets details of the user with the given id.",
-        path = "/api/v1/user/{userId}",
+        path = "/api/v2/user/{userId}",
         pathParams = [
             OpenApiParam("userId", String::class, "User's UID")
         ],

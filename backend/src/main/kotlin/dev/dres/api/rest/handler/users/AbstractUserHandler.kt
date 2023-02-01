@@ -19,7 +19,7 @@ typealias SessionId = String
  */
 abstract class AbstractUserHandler: RestHandler, AccessManagedRestHandler {
     /** All [AbstractUserHandler]s are part of the v1 API. */
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     /** Convenience method to extract [User] from current session. */
     protected fun userFromSession(ctx: Context): User {

@@ -52,7 +52,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
     override val permittedRoles = setOf(ApiRole.PARTICIPANT)
 
     /** All [SubmissionHandler]s are part of the v1 API. */
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     override val route = "submit"
 
@@ -68,7 +68,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
     }
 
     @OpenApi(summary = "Endpoint to accept submissions",
-            path = "/api/v1/submit",
+            path = "/api/v2/submit",
             queryParams = [
                 OpenApiParam(PARAMETER_NAME_COLLECTION, String::class, "Collection identifier. Optional, in which case the default collection for the run will be considered.", allowEmptyValue = true),
                 OpenApiParam(PARAMETER_NAME_ITEM, String::class, "Identifier for the actual media object or media file."),

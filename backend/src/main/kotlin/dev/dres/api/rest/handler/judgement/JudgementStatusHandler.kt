@@ -19,11 +19,11 @@ import jetbrains.exodus.database.TransientEntityStore
 class JudgementStatusHandler(store: TransientEntityStore): AbstractJudgementHandler(store), GetRestHandler<List<ApiJudgementValidatorStatus>> {
     override val permittedRoles = setOf(ApiRole.VIEWER)
     override val route = "evaluation/{evaluationId}/judge/status"
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     @OpenApi(
             summary = "Retrieves the status of all judgement validators.",
-            path = "/api/v1/evaluation/{evaluationId}/judge/status",
+            path = "/api/v2/evaluation/{evaluationId}/judge/status",
             pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.")],
             tags = ["Judgement"],
             responses = [

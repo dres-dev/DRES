@@ -13,7 +13,7 @@ import io.javalin.security.RouteRole
  */
 abstract class AbstractLogHandler: PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
     /** All [AbstractLogHandler]s are part of the v1 API. */
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     /** All [AbstractLogHandler]s require [ApiRole.ADMIN] or [ApiRole.PARTICIPANT]. */
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN, ApiRole.PARTICIPANT)

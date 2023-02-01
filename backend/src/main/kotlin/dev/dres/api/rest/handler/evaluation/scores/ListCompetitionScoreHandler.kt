@@ -23,7 +23,7 @@ class ListCompetitionScoreHandler(store: TransientEntityStore) : AbstractScoreHa
 
     @OpenApi(
             summary = "Returns the score overviews of a specific evaluation run.",
-            path = "/api/v1/score/evaluation/{evaluationId}",
+            path = "/api/v2/score/evaluation/{evaluationId}",
             tags = ["Evaluation Scores"],
             pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true)],
             responses = [

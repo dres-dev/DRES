@@ -20,7 +20,7 @@ class MediaPreviewHandler(store: TransientEntityStore, config: Config) : Abstrac
     override val route: String = "preview/item/{collection}/{item}/{time}"
     @OpenApi(
         summary = "Returns a preview image from a collection item",
-        path = "/api/v1/preview/item/{collection}/{item}/{time}",
+        path = "/api/v2/preview/item/{collection}/{item}/{time}",
         pathParams = [
             OpenApiParam("collectionId", String::class, "Unique ID of the media collection."),
             OpenApiParam("item", String::class, "Name of the media item-"),

@@ -26,11 +26,11 @@ class ListActiveUsersHandler : GetRestHandler<List<ApiUser>>, AccessManagedRestH
     /** All [UserDetailsHandler] requires [ApiRole.ADMIN]. */
     override val route = "user/session/active/list"
 
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     @OpenApi(
         summary = "Get details of all current user sessions",
-        path = "/api/v1/user/session/active/list",
+        path = "/api/v2/user/session/active/list",
         tags = ["User"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<ApiUser>::class)]),

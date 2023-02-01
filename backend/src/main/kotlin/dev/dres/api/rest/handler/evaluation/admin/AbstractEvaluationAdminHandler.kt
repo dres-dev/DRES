@@ -25,7 +25,7 @@ abstract class AbstractEvaluationAdminHandler(protected val store: TransientEnti
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)
 
    /** All [AbstractEvaluationAdminHandler]s are part of the v1 API. */
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     /**
      * Obtains the [InteractiveRunManager] for the given [EvaluationId].

@@ -23,7 +23,7 @@ abstract class AbstractCollectionHandler(protected val store: TransientEntitySto
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)
 
     /** All [AbstractCollectionHandler]s are part of the v1 API. */
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     /** Convenience method to extract [MediaCollection] from [Context]. */
     protected fun collectionFromContext(ctx: Context): MediaCollection {

@@ -32,7 +32,7 @@ class CurrentTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandle
 
     @OpenApi(
         summary = "Returns the overviews of all score boards for the current task, if it is either running or has just ended.",
-        path = "/api/v1/score/evaluation/{evaluationId}/current",
+        path = "/api/v2/score/evaluation/{evaluationId}/current",
         tags = ["Evaluation Scores"],
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true)],
         responses = [

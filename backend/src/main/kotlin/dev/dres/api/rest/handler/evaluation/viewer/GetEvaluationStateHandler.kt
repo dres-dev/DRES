@@ -22,7 +22,7 @@ class GetEvaluationStateHandler(store: TransientEntityStore): AbstractEvaluation
 
     @OpenApi(
         summary = "Returns the state of a specific evaluation.",
-        path = "/api/v1/evaluation/{evaluationId}/state",
+        path = "/api/v2/evaluation/{evaluationId}/state",
         tags = ["Evaluation"],
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true)],
         responses = [

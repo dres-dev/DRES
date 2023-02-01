@@ -25,7 +25,7 @@ class ResultLogHandler: AbstractLogHandler() {
     override val route = "log/result"
 
     @OpenApi(summary = "Accepts result logs from participants.",
-        path = "/api/v1/log/result",
+        path = "/api/v2/log/result",
         methods = [HttpMethod.POST],
         requestBody = OpenApiRequestBody([OpenApiContent(QueryResultLog::class)]),
         tags = ["Log"],

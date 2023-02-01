@@ -44,7 +44,7 @@ abstract class AbstractPreviewHandler(protected val store: TransientEntityStore,
     override val permittedRoles = setOf(ApiRole.VIEWER)
 
     /** All [AbstractPreviewHandler]s are part of the v1 API. */
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     /** The [Path] to the pre-calculated previews.*/
     private val cacheLocation = Paths.get(config.cachePath + "/previews")

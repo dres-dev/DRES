@@ -21,7 +21,7 @@ class ShowEvaluationTemplateHandler(store: TransientEntityStore) : AbstractCompe
 
     @OpenApi(
         summary = "Loads the detailed definition of a specific evaluation template.",
-        path = "/api/v1/template/{templateId}",
+        path = "/api/v2/template/{templateId}",
         pathParams = [OpenApiParam("templateId", String::class, "The evaluation template ID.")],
         tags = ["Template"],
         responses = [

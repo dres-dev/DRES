@@ -14,7 +14,7 @@ import jetbrains.exodus.database.TransientEntityStore
 abstract class AbstractDownloadHandler(protected val store: TransientEntityStore) : AccessManagedRestHandler {
 
     /** The version of the API this [AbstractDownloadHandler] belongs to. */
-    override val apiVersion = "v1"
+    override val apiVersion = "v2"
 
     /** The roles permitted to access the [AbstractDownloadHandler]. */
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN, ApiRole.PARTICIPANT)

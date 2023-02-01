@@ -6,6 +6,7 @@ import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.*
 import com.jakewharton.picnic.table
+import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.admin.Password
 import dev.dres.data.model.admin.Role
 import dev.dres.data.model.admin.User
@@ -13,6 +14,7 @@ import dev.dres.data.model.admin.User.Companion.MIN_LENGTH_PASSWORD
 import dev.dres.data.model.admin.User.Companion.MIN_LENGTH_USERNAME
 import dev.dres.data.model.admin.UserId
 import dev.dres.mgmt.admin.UserManager
+import java.lang.IllegalArgumentException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
@@ -52,10 +54,10 @@ class UserCommand : NoOpCliktCommand(name = "user") {
                 .validate { require(it.length >= MIN_LENGTH_PASSWORD) { "Password for DRES password must consist of at least $MIN_LENGTH_PASSWORD characters." } }
 
         /** The desired [Role] of the newly created user. */
-        private val role: Role by option("-r", "--role", help = "Role of the new user.").convert { Role.parse(it) }.required()
+        private val apiRole: ApiRole by option("-r", "--role", help = "Role of the new user.").convert { ApiRole.valueOf(it) }.required()
 
         override fun run() {
-            val successful = UserManager.create(username = this.username, password = this.password, role = role)
+            val successful = UserManager.create(username = this.username, password = this.password.hash(), role = apiRole)
             if (successful) {
                 println("New user '${UserManager.get(username = this.username)}' created.")
             } else {

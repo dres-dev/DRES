@@ -1,5 +1,6 @@
 package dev.dres.mgmt.admin
 
+import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.users.UserRequest
 import dev.dres.data.model.admin.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -28,7 +29,7 @@ object UserManager {
      * @param role The [Role] of the new user.
      */
     fun create(username: String, password: Password.Hashed, role: Role): Boolean {
-        check(::store.isInitialized) { "PUserManager requires an initialized store which is unavailable. This is a programmer's error!"}
+        check(::store.isInitialized) { "UserManager requires an initialized store which is unavailable. This is a programmer's error!"}
         try {
             this.store.transactional {
                 User.new {
@@ -41,6 +42,18 @@ object UserManager {
             return false
         }
         return true
+    }
+
+    /**
+     * Creates a [User] with the given [username], [password] and [role].
+     *
+     * @param username The name of the [User]. Must be unique.
+     * @param password The [Password.Hashed] of the user.
+     * @param role The [ApiRole] of the new user.
+     */
+    fun create(username: String, password: Password.Hashed, role: ApiRole): Boolean {
+        check(::store.isInitialized) { "UserManager requires an initialized store which is unavailable. This is a programmer's error!"}
+        return create(username, password, role.toRole() ?: throw IllegalArgumentException("Invalid Role"))
     }
 
     /**

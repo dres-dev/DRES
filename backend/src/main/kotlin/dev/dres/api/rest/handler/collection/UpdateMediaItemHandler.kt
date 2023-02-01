@@ -48,7 +48,7 @@ class UpdateMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHa
             val item = MediaItem.query(MediaItem::id eq mediaItem.id).firstOrNull()
                 ?: throw ErrorStatusException(404, "Media item with ID ${mediaItem.id} not found.", ctx)
 
-            item.type = mediaItem.type.type
+            item.type = mediaItem.type.toMediaType()
             item.name = item.name
             item.location = item.location
             item.fps = item.fps

@@ -462,7 +462,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
             /* Add new media item. */
             collection.items.add(MediaItem.new {
                 this.id = UUID.randomUUID().toString()
-                this.type = this@AddItem.type.type
+                this.type = this@AddItem.type.toMediaType()
                 this.name = Paths.get(this@AddItem.path).nameWithoutExtension
                 this.location = this@AddItem.path
                 this.durationMs = this@AddItem.duration
@@ -536,7 +536,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
                         inserted += 1
                         collection.items.add(MediaItem.new {
                             this.id = UUID.randomUUID().toString()
-                            this.type = ApiMediaType.valueOf(row.getValue("type").uppercase()).type
+                            this.type = ApiMediaType.valueOf(row.getValue("type").uppercase()).toMediaType()
                             this.name = row.getValue("name")
                             this.location = row.getValue("location")
                             this.durationMs = row["duration"]?.toLongOrNull()

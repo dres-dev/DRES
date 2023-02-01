@@ -57,7 +57,7 @@ class AddMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHandl
 
             val item = MediaItem.new {
                 this.id = UUID.randomUUID().toString()
-                this.type = mediaItem.type.type
+                this.type = mediaItem.type.toMediaType()
                 this.name = mediaItem.name
                 this.location = mediaItem.location
                 this.fps = mediaItem.fps

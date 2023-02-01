@@ -31,5 +31,5 @@ class MediaType(entity: Entity) : XdEnumEntity(entity) {
      * This is a convenience method and requires an active transaction context.
      */
     fun toApi(): ApiMediaType
-        = ApiMediaType.values().find { it.type == this } ?: throw IllegalStateException("Media type ${this.description} is not supported.")
+        = ApiMediaType.values().find { it.toMediaType() == this } ?: throw IllegalStateException("Media type ${this.description} is not supported.")
 }

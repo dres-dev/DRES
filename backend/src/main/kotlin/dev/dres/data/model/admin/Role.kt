@@ -47,5 +47,5 @@ class Role(entity: Entity) : XdEnumEntity(entity) {
      *
      * @return [ApiRole]
      */
-    fun toApi(): ApiRole = ApiRole.values().find { it.getRole() == this } ?: throw IllegalStateException("Role ${this.description} is not supported.")
+    fun toApi(): ApiRole = ApiRole.values().find { it.toRole() == this } ?: throw IllegalStateException("Role ${this.description} is not supported.")
 }

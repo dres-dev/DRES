@@ -51,7 +51,7 @@ class CreateUsersHandler : AbstractUserHandler(), PostRestHandler<ApiUser>, Acce
         if (req.role == null)
             throw ErrorStatusException(400, "Invalid parameters. Role must be defined.", ctx)
 
-        val success = UserManager.create(req.username, Password.Plain(req.password), req.role.getRole() ?: throw ErrorStatusException(400, "Invalid parameters. Provided role is undefined or invalid!", ctx))
+        val success = UserManager.create(req.username, Password.Plain(req.password), req.role.toRole() ?: throw ErrorStatusException(400, "Invalid parameters. Provided role is undefined or invalid!", ctx))
         if (success) {
             return UserManager.get(username = req.username)!!.toApi()
         } else {

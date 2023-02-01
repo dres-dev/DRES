@@ -26,7 +26,7 @@ import jetbrains.exodus.database.TransientEntityStore
  */
 class StartTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), PostRestHandler<SuccessStatus> {
 
-    override val route: String = "evaluation/admin/{evaluationId}/task/next"
+    override val route: String = "evaluation/admin/{evaluationId}/task/start"
 
     /** The [StartTaskHandler] can be used by [ApiRole.ADMIN] and [ApiRole.PARTICIPANT] (in case of asynchronous evaluations). */
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN, ApiRole.PARTICIPANT)

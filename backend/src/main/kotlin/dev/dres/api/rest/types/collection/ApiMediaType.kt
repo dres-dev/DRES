@@ -9,8 +9,17 @@ import dev.dres.data.model.media.MediaType
  * @author Ralph Gasser
  * @version 1.0.0
  */
-enum class ApiMediaType(val type: MediaType) {
-    IMAGE(MediaType.IMAGE),
-    VIDEO(MediaType.VIDEO),
-    TEXT(MediaType.TEXT)
+enum class ApiMediaType {
+    IMAGE, VIDEO, TEXT;
+
+    /**
+     * Converts this [ApiMediaType] to a [MediaType] representation. Requires an ongoing transaction!
+     *
+     * @return [MediaType]
+     */
+    fun toMediaType(): MediaType = when(this) {
+        IMAGE -> MediaType.IMAGE
+        VIDEO -> MediaType.VIDEO
+        TEXT -> MediaType.TEXT
+    }
 }

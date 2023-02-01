@@ -97,7 +97,7 @@ object UserManager {
      * @return True on success, false otherwise.
      */
     fun update(id: UserId?, request: UserRequest): Boolean
-        = update(id = id, username = request.username, password = request.password?.let { Password.Plain(it) }, role = request.role?.getRole())
+        = update(id = id, username = request.username, password = request.password?.let { Password.Plain(it) }, role = request.role?.toRole())
 
     /**
      * Deletes the [User] for the given [UserId].

@@ -3,6 +3,7 @@ package dev.dres
 import dev.dres.api.cli.Cli
 import dev.dres.api.cli.OpenApiCommand
 import dev.dres.api.rest.RestApi
+import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.Config
 import dev.dres.data.model.admin.Role
 import dev.dres.data.model.admin.User
@@ -20,6 +21,7 @@ import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.MediaSegment
 import dev.dres.data.model.media.MediaType
 import dev.dres.data.model.run.Evaluation
+import dev.dres.data.model.run.EvaluationType
 import dev.dres.data.model.run.Task
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.Verdict
@@ -110,6 +112,7 @@ object DRES {
             AuditLogType,
             ConfiguredOption,
             Evaluation,
+            EvaluationType,
             EvaluationTemplate,
             Hint,
             HintOption,
@@ -122,12 +125,14 @@ object DRES {
             ScoreOption,
             Submission,
             SubmissionOption,
-            TargetType,
-            TargetOption,
             Task,
+            TaskGroup,
+            TaskType,
+            TaskOption,
             TaskTemplate,
             TaskTemplateTarget,
-            TaskOption,
+            TargetType,
+            TargetOption,
             Team,
             TeamAggregator,
             TeamGroup,
@@ -138,6 +143,7 @@ object DRES {
         )
         val store = StaticStoreContainer.init(dbFolder = File(config.dataPath), entityStoreName = "dres-db")
         initMetaData(XdModel.hierarchy, store)
+
         return store
     }
 }

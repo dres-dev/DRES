@@ -52,9 +52,9 @@ class GetSubmissionInfoHandler(store: TransientEntityStore): AbstractEvaluationV
 
             /* Obtain current task run and check status. */
             if (limit > 0) {
-                limitSubmissions(manager.submissions(rac), limit, blind)
+                limitSubmissions(manager.currentSubmissions(rac), limit, blind)
             } else {
-                manager.submissions(rac).map { it.toApi(blind) }
+                manager.currentSubmissions(rac).map { it.toApi(blind) }
             }
         }
     }

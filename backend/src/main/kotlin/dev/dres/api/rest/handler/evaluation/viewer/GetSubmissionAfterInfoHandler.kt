@@ -48,7 +48,7 @@ class GetSubmissionAfterInfoHandler(store: TransientEntityStore): AbstractEvalua
             val timestamp = ctx.pathParamMap().getOrDefault("timestamp", "0").toLong()
             val currentTask = manager.currentTask(rac) ?: throw ErrorStatusException(404, "No active task.", ctx)
             val blind = currentTask.template.taskGroup.type.options.contains(TaskOption.HIDDEN_RESULTS) && currentTask.isRunning
-            manager.submissions(rac).filter { it.timestamp >= timestamp }.map { it.toApi(blind) }
+            manager.currentSubmissions(rac).filter { it.timestamp >= timestamp }.map { it.toApi(blind) }
         }
     }
 }

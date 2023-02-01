@@ -32,14 +32,14 @@ class EndTaskUpdatable(private val run: InteractiveRunManager, private val conte
             if (taskRun.template.taskGroup.type.submission.contains(SubmissionOption.LIMIT_CORRECT_PER_TEAM)) {
                 val limit = taskRun.template.taskGroup.type.configurations.filter { it.key eq SubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.firstOrNull()?.key?.toIntOrNull() ?: 1
                 if (this.run.timeLeft(this.context) > 0) {
-                    if (this.submissions.getAndSet(taskRun.submissions.size) < taskRun.submissions.size) {
+                    if (this.submissions.getAndSet(taskRun.getSubmissions().size) < taskRun.getSubmissions().size) {
                         val allDone = if (this.isAsync) {
-                            val numberOfSubmissions = this.run.submissions(this.context).count { it.team.id == context.teamId && it.verdicts.first().status == VerdictStatus.CORRECT }
+                            val numberOfSubmissions = this.run.currentSubmissions(this.context).count { it.team.id == context.teamId && it.verdicts.first().status == VerdictStatus.CORRECT }
                             numberOfSubmissions >= limit
                         } else {
                             /* Determine of all teams have submitted . */
                             this.run.template.teams.asSequence().all { team ->
-                                val numberOfSubmissions = this.run.submissions(this.context).count { it.team.id == team.teamId && it.verdicts.first().status == VerdictStatus.CORRECT }
+                                val numberOfSubmissions = this.run.currentSubmissions(this.context).count { it.team.id == team.teamId && it.verdicts.first().status == VerdictStatus.CORRECT }
                                 numberOfSubmissions >= limit
                             }
                         }

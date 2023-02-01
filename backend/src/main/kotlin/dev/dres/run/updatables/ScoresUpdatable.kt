@@ -49,13 +49,11 @@ class ScoresUpdatable(private val evaluationId: EvaluationId, private val scoreb
             /* Update scorers. */
             scorersToUpdate.forEach {
                 val task = it.first
-                if (it.first.started != null) {
-                    val scores = it.second.computeScores(
-                        task.submissions,
-                        TaskContext(task.id, task.competition.description.teams.asSequence().map { t -> t.id }.toList(), task.started, task.template.duration, task.ended)
-                    )
-                    it.first.updateTeamAggregation(scores)
-                }
+                val scores = it.second.computeScores(
+                    task.getSubmissions(),
+                    TaskContext(task.id, task.competition.description.teams.asSequence().map { t -> t.id }.toList(), task.started, task.template.duration, task.ended)
+                )
+                it.first.updateTeamAggregation(scores)
             }
 
             /* If elements were removed, then update scoreboards and tasks. */

@@ -4,18 +4,14 @@ import dev.dres.api.rest.types.competition.tasks.ApiHintType
 import dev.dres.api.rest.types.task.ApiContentType
 import dev.dres.data.model.template.task.options.ScoreOption
 import jetbrains.exodus.entitystore.Entity
-import kotlinx.dnq.XdEnumEntity
-import kotlinx.dnq.XdEnumEntityType
-import kotlinx.dnq.xdBooleanProp
-import kotlinx.dnq.xdRequiredStringProp
+import kotlinx.dnq.*
 
 class HintType(entity: Entity) : XdEnumEntity(entity) {
     companion object : XdEnumEntityType<HintType>() {
-        val EMPTY by enumField { description = "EMPTY"; mimeType = ""; suffix = ""; base64 = true }
-        val TEXT by enumField { description = "TEXT"; mimeType = "text/plain"; base64 = false }
-        val VIDEO by enumField { description = "VIDEO"; mimeType = "video/mp4"; base64 = true }
-        val IMAGE by enumField {  description = "IMAGE"; mimeType = "image/jpg"; base64 = true  }
-
+        val EMPTY by enumField { description = "EMPTY"; base64 = false }
+        val TEXT by enumField { description = "TEXT"; mimeType = "text/plain"; suffix = "txt"; base64 = false }
+        val VIDEO by enumField { description = "VIDEO"; mimeType = "video/mp4"; suffix = "mp4"; base64 = true }
+        val IMAGE by enumField {  description = "IMAGE"; mimeType = "image/jpg"; suffix = "jpg"; base64 = true  }
     }
 
     /** Name / description of the [ScoreOption]. */
@@ -23,11 +19,11 @@ class HintType(entity: Entity) : XdEnumEntity(entity) {
         private set
 
     /** Name / description of the [ScoreOption]. */
-    var mimeType by xdRequiredStringProp(unique = true)
+    var mimeType by xdStringProp()
         private set
 
     /** Name / description of the [ScoreOption]. */
-    var suffix by xdRequiredStringProp(unique = true)
+    var suffix by xdStringProp()
 
     /** Name / description of the [ScoreOption]. */
     var base64 by xdBooleanProp()

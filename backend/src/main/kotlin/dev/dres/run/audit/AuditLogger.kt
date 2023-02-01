@@ -6,7 +6,6 @@ import dev.dres.data.model.audit.AuditLogEntry
 import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.data.model.audit.AuditLogType
 import dev.dres.data.model.run.EvaluationId
-import dev.dres.data.model.run.TaskId
 import dev.dres.data.model.template.EvaluationTemplate
 import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.submissions.Submission
@@ -79,7 +78,7 @@ object AuditLogger {
      * @param api The [AuditLogSource]
      * @param session The identifier of the user session.
      */
-    fun taskStart(evaluationId: EvaluationId, taskId: TaskId, description: TaskTemplate, api: AuditLogSource, session: SessionId?) {
+    fun taskStart(evaluationId: EvaluationId, taskId: EvaluationId, description: TaskTemplate, api: AuditLogSource, session: SessionId?) {
         AuditLogEntry.new {
             this.type = AuditLogType.TASK_START
             this.source = api
@@ -100,7 +99,7 @@ object AuditLogger {
      * @param api The [AuditLogSource]
      * @param session The identifier of the user session.
      */
-    fun taskModified(evaluationId: EvaluationId, taskId: TaskId, modification: String, api: AuditLogSource, session: String?)  {
+    fun taskModified(evaluationId: EvaluationId, taskId: EvaluationId, modification: String, api: AuditLogSource, session: String?)  {
         AuditLogEntry.new {
             this.type = AuditLogType.TASK_MODIFIED
             this.source = api
@@ -120,7 +119,7 @@ object AuditLogger {
      * @param api The [AuditLogSource]
      * @param session The identifier of the user session.
      */
-    fun taskEnd(evaluationId: EvaluationId, taskId: TaskId, api: AuditLogSource, session: SessionId?) {
+    fun taskEnd(evaluationId: EvaluationId, taskId: EvaluationId, api: AuditLogSource, session: SessionId?) {
         AuditLogEntry.new {
             this.type = AuditLogType.TASK_END
             this.source = api

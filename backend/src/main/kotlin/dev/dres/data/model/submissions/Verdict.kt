@@ -27,10 +27,10 @@ class Verdict(entity: Entity) : PersistentEntity(entity) {
     var type by xdLink1(VerdictType)
 
     /** The [Submission] this [Verdict] belongs to. */
-    var submission by xdParent<Verdict,Submission>(Submission::verdicts)
+    var submission: Submission by xdParent<Verdict,Submission>(Submission::verdicts)
 
     /** The [Task] this [Verdict] belongs to. */
-    var task by xdParent<Verdict, Task>(Task::submissions)
+    var task: Task by xdParent<Verdict, Task>(Task::submissions)
 
     /** The [MediaItem] submitted. Only for [VerdictType.ITEM] or [VerdictType.TEMPORAL]. */
     var item by xdLink0_1(MediaItem)

@@ -22,13 +22,13 @@ import kotlinx.dnq.query.*
 class NonInteractiveEvaluation(evaluation: Evaluation) : AbstractEvaluation(evaluation) {
 
     init {
-        require(this.evaluation.type == RunType.NON_INTERACTIVE) { "Incompatible competition type ${this.evaluation.type}. This is a programmer's error!" }
+        require(this.evaluation.type == EvaluationType.NON_INTERACTIVE) { "Incompatible competition type ${this.evaluation.type}. This is a programmer's error!" }
         require(this.description.tasks.size() > 0) { "Cannot create a run from a competition that doesn't have any tasks." }
         require(this.description.teams.size() > 0) { "Cannot create a run from a competition that doesn't have any teams." }
     }
 
     /** List of [TaskRun]s registered for this [NonInteractiveEvaluation]. */
-    override val tasks: List<TaskRun> = this.evaluation.tasks.asSequence().map {
+    override val tasks = this.evaluation.tasks.asSequence().map {
         NITaskRun(it)
     }.toList()
 

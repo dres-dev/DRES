@@ -22,7 +22,7 @@ import java.util.*
 class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluation(evaluation) {
 
     init {
-        require(this.evaluation.type == RunType.INTERACTIVE_SYNCHRONOUS) { "Incompatible competition type ${this.evaluation.type}. This is a programmer's error!" }
+        require(this.evaluation.type == EvaluationType.INTERACTIVE_SYNCHRONOUS) { "Incompatible competition type ${this.evaluation.type}. This is a programmer's error!" }
         require(this.description.tasks.size() > 0) { "Cannot create a run from a competition that doesn't have any tasks." }
         require(this.description.teams.size() > 0) { "Cannot create a run from a competition that doesn't have any teams." }
     }
@@ -37,13 +37,13 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
      */
     constructor(name: String, template: EvaluationTemplate) : this(Evaluation.new {
         this.id = UUID.randomUUID().toString()
-        this.type = RunType.INTERACTIVE_SYNCHRONOUS
+        this.type = EvaluationType.INTERACTIVE_SYNCHRONOUS
         this.template = template
         this.name = name
     })
 
     /** List of [TaskRun]s registered for this [InteractiveSynchronousEvaluation]. */
-    override val tasks: List<TaskRun> = this.evaluation.tasks.asSequence().map {
+    override val tasks = this.evaluation.tasks.asSequence().map {
         ISTaskRun(it)
     }.toMutableList()
 
@@ -52,7 +52,7 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
         private set
 
     /** Returns the last [TaskRun]. */
-    val currentTask: TaskRun?
+    val currentTask: AbstractInteractiveTask?
         get() = this.tasks.firstOrNull { it.template.id == this.currentTaskTemplate.id }
 
     override fun toString(): String = "InteractiveSynchronousCompetition(id=$id, name=${name})"

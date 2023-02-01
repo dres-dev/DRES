@@ -32,7 +32,7 @@ class TaskTemplateTarget(entity: Entity) : XdEntity(entity) {
     var type by xdLink1(TargetType)
 
     /** The parent [TaskTemplate] this [TaskTemplateTarget] belongs to. */
-    var task by xdParent<TaskTemplateTarget,TaskTemplate>(TaskTemplate::targets)
+    var task: TaskTemplate by xdParent<TaskTemplateTarget,TaskTemplate>(TaskTemplate::targets)
 
     /** The targeted  [MediaItem]. Can be null. */
     var item by xdLink0_1(MediaItem)

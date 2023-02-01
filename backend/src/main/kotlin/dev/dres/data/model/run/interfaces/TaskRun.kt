@@ -2,6 +2,7 @@ package dev.dres.data.model.run.interfaces
 
 import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
+import dev.dres.data.model.submissions.Submission
 import dev.dres.run.TaskStatus
 import dev.dres.run.score.interfaces.TaskScorer
 typealias TaskId = String
@@ -30,4 +31,16 @@ interface TaskRun: Run {
 
     /** The current status of this [IATaskRun]. */
     val status: TaskStatus
+
+    /**
+     * Prepares this [TaskRun] for later starting.
+     */
+    fun prepare()
+
+    /**
+     * Returns a [List] of all [Submission]s that belong to this [TaskRun].
+     *
+     * @return [List] of [Submission]s
+     */
+    fun getSubmissions(): List<Submission>
 }

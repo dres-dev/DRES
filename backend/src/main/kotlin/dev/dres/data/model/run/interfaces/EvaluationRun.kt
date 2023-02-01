@@ -10,16 +10,16 @@ import dev.dres.data.model.run.EvaluationId
  * @version 1.0.0
  */
 interface EvaluationRun: Run {
-    /** The unique [EvaluationId] that identifies this [Evaluation]. */
+    /** The unique [EvaluationId] that identifies this [EvaluationRun]. */
     val id: EvaluationId
 
-    /** The name human readable of this [Evaluation]. */
+    /** The name human readable of this [EvaluationRun]. */
     val name: String
 
-    /** Reference to the [EvaluationTemplate] that describes the content of this [Evaluation]. */
+    /** Reference to the [EvaluationTemplate] that describes the content of this [EvaluationRun]. */
     val description: EvaluationTemplate
 
-    /** Collection of [TaskRun]s that make up this [Evaluation]. */
+    /** Collection of [TaskRun]s that make up this [EvaluationRun]. */
     val tasks: List<TaskRun>
 
     /** Flag indicating that participants can also use the viewer for this [Evaluation]. */

@@ -50,7 +50,7 @@ class TaskTemplate(entity: Entity) : PersistentEntity(entity), TaskScorerFactory
     var taskGroup by xdLink1(TaskGroup)
 
     /** The [EvaluationTemplate] this [TaskTemplate] belongs to. */
-    var competition by xdParent<TaskTemplate,EvaluationTemplate>(EvaluationTemplate::tasks)
+    var evaluation: EvaluationTemplate by xdParent<TaskTemplate,EvaluationTemplate>(EvaluationTemplate::tasks)
 
     /** The [MediaCollection] this [TaskTemplate] operates upon. */
     var collection by xdLink1(MediaCollection)

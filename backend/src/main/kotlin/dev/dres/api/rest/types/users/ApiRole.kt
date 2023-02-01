@@ -9,10 +9,17 @@ import io.javalin.security.RouteRole
  * @author Ralph Gasser
  * @version 1.0.0
  */
-enum class ApiRole(val role: Role?) : RouteRole {
-    ANYONE(null),
-    VIEWER(Role.VIEWER),
-    PARTICIPANT(Role.PARTICIPANT),
-    JUDGE(Role.JUDGE),
-    ADMIN(Role.ADMIN)
+enum class ApiRole() : RouteRole {
+    ANYONE, VIEWER, PARTICIPANT, JUDGE, ADMIN;
+
+    /**
+     *
+     */
+    fun getRole(): Role? = when(this) {
+        ANYONE -> null
+        VIEWER -> Role.VIEWER
+        PARTICIPANT -> Role.PARTICIPANT
+        JUDGE -> Role.JUDGE
+        ADMIN -> Role.ADMIN
+    }
 }

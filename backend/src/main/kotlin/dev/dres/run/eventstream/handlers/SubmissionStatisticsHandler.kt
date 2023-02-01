@@ -1,8 +1,11 @@
 package dev.dres.run.eventstream.handlers
 
+import dev.dres.data.model.run.EvaluationId
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.eventstream.*
+import kotlinx.dnq.query.first
+import kotlinx.dnq.query.size
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.PrintWriter
@@ -51,26 +54,31 @@ class SubmissionStatisticsHandler : StreamEventHandler {
         }
     }
 
+    /**
+     * TODO: Check and maybe generalise.
+     *
+     * I assume here, that there this handler requires a single verdict per submission. Is this a valid assumption?
+     */
     private fun computeStatistics(submissions: List<Submission>, taskStart: Long, task: String) {
-
-        val submissionsByTeam = submissions.groupBy { it.teamId }
-
+        val submissionsByTeam = submissions.groupBy { it.team.teamId }
         submissionsByTeam.mapValues { it.value.size }.forEach{
-            (teamId, count) -> writer.println("$task,${teamId.string},\"totalSubmissionsPerTeam\",$count")
+            (teamId, count) -> writer.println("$task,${teamId},\"totalSubmissionsPerTeam\",$count")
         }
         submissionsByTeam.mapValues {
-            it.value.firstOrNull { s -> s.status == VerdictStatus.CORRECT }?.timestamp?.minus(taskStart) }
-                .filter { it.value != null }.forEach{
-                    (teamId, time) -> writer.println("$task,${teamId.string},\"timeUntilCorrectSubmission\",$time")
-                }
+            it.value.firstOrNull { s ->
+                require(s.verdicts.size() == 1) { "SubmissionStatisticsHandler can only process single-verdict submissions." }
+                s.verdicts.first().status == VerdictStatus.CORRECT
+            }?.timestamp?.minus(taskStart) }.filter { it.value != null }.forEach{
+                (teamId, time) -> writer.println("$task,${teamId},\"timeUntilCorrectSubmission\",$time")
+            }
         submissionsByTeam.mapValues {
-            it.value.indexOfFirst { s -> s.status == VerdictStatus.CORRECT } }.forEach{
-            (teamId, count) -> writer.println("$task,${teamId.string},\"incorrectBeforeCorrectSubmissions\",$count")
+            it.value.indexOfFirst { s ->
+                require(s.verdicts.size() == 1) { "SubmissionStatisticsHandler can only process single-verdict submissions." }
+                s.verdicts.first().status == VerdictStatus.CORRECT
+            }
+        }.forEach{
+            (teamId, count) -> writer.println("$task,${teamId},\"incorrectBeforeCorrectSubmissions\",$count")
         }
         writer.flush()
-
-
     }
-
-
 }

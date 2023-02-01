@@ -40,7 +40,7 @@ class MediaItem(entity: Entity) : PersistentEntity(entity) {
     var durationMs by xdNullableLongProp() { requireIf { this.type ==  MediaType.VIDEO } }
 
     /** The [MediaCollection] this [MediaItem] belongs to. */
-    var collection by xdParent<MediaItem, MediaCollection>(MediaCollection::items)
+    var collection: MediaCollection by xdParent<MediaItem, MediaCollection>(MediaCollection::items)
 
     /** List of [MediaSegment] that this [MediaItem] contains.  */
     val segments by xdChildren0_N<MediaItem, MediaSegment>(MediaSegment::item)

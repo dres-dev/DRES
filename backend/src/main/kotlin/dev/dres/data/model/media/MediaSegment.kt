@@ -25,7 +25,7 @@ class MediaSegment(entity: Entity) : PersistentEntity(entity) {
     var name by xdRequiredStringProp(unique = false, trimmed = false)
 
     /** The [MediaType] of this [MediaItem]. */
-    var item by xdParent<MediaSegment, MediaItem>(MediaItem::segments)
+    var item: MediaItem by xdParent<MediaSegment, MediaItem>(MediaItem::segments)
 
     /** The start frame number of this [MediaSegment]. */
     var start by xdRequiredIntProp { min(0L) }

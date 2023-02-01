@@ -4,9 +4,6 @@ import dev.dres.data.model.run.EvaluationId
 import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.submissions.Submission
 import dev.dres.run.eventstream.*
-import dev.dres.run.score.TaskContext
-import dev.dres.run.score.interfaces.IncrementalSubmissionTaskScorer
-import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
 import dev.dres.run.score.interfaces.TeamTaskScorer
 import java.io.File
 import java.io.PrintWriter
@@ -67,7 +64,8 @@ class TeamCombinationScoreHandler : StreamEventHandler {
                     teams.mapIndexed {secondIndex, uidB -> if (firstIndex > secondIndex) (uidA to uidB) else null}
                 }.flatten().filterNotNull().map { EvaluationId() to it }.toMap()
 
-                val combinedSubmissions = submissions.flatMap { submission ->
+                /* TODO: Fix. Not quite sure what is going on here. */
+                /*val combinedSubmissions = submissions.flatMap { submission ->
                     combinations.map {
                         if (it.value.first == submission.team.teamId || it.value.second == submission.team.teamId) {
                             when (submission) {
@@ -109,7 +107,7 @@ class TeamCombinationScoreHandler : StreamEventHandler {
 
                 tasks.remove(event.taskId)
                 submissionTaskMap.remove(event.taskId)
-                taskStartMap.remove(event.taskId)
+                taskStartMap.remove(event.taskId) */
 
             }
             else -> { /* ignore */ }

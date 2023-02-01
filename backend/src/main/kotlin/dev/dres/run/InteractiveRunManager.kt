@@ -18,9 +18,6 @@ interface InteractiveRunManager : RunManager {
     /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
     val scoreHistory: List<ScoreTimePoint>
 
-    /** List of all [Submission]s for this [InteractiveRunManager], irrespective of the [InteractiveSynchronousEvaluation.Task] it belongs to. */
-    val allSubmissions: List<Submission>
-
     /**
      * Prepares this [InteractiveRunManager] for the execution of previous [TaskTemplate] as per order defined in
      * [EvaluationTemplate.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
@@ -124,37 +121,45 @@ interface InteractiveRunManager : RunManager {
     fun timeElapsed(context: RunActionContext): Long
 
     /**
-     * Returns a list of all [AbstractInteractiveTask]s for this [InteractiveRunManager]. Depending on the
+     * Returns a list of all [TaskRun]s for this [InteractiveRunManager]. Depending on the
      * implementation, that list may be filtered depending on the [RunActionContext].
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return [List] of [AbstractInteractiveTask]s
+     * @return [List] of [TaskRun]s
      */
-    override fun tasks(context: RunActionContext): List<AbstractInteractiveTask>
+    override fun tasks(context: RunActionContext): List<TaskRun>
 
     /**
-     * Returns a reference to the currently active [AbstractInteractiveTask].
+     * Returns a reference to the currently active [TaskRun].
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return [AbstractInteractiveTask] that is currently active or null, if no such task is active.
+     * @return [TaskRun] that is currently active or null, if no such task is active.
      */
-    fun currentTask(context: RunActionContext): AbstractInteractiveTask?
+    fun currentTask(context: RunActionContext): TaskRun?
 
     /**
-     * Returns [AbstractInteractiveTask]s for the specified [TaskId].
+     * Returns [TaskRun]s for the specified [EvaluationId].
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @param taskId The [TaskId] of the desired [AbstractInteractiveTask].
+     * @param taskId The [EvaluationId] of the desired [TaskRun].
      */
-    fun taskForId(context: RunActionContext, taskId: TaskId): AbstractInteractiveTask?
+    fun taskForId(context: RunActionContext, taskId: EvaluationId): TaskRun?
 
     /**
-     * List of [Submission]s for the current [AbstractInteractiveTask].
+     * List of all [Submission]s for this [InteractiveRunManager], irrespective of the [Task] it belongs to.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return List of [Submission] for the current, [AbstractInteractiveTask]
+     * @return List of [Submission]s
      */
-    fun submissions(context: RunActionContext): List<Submission>
+    fun allSubmissions(context: RunActionContext): List<Submission>
+
+    /**
+     * List of [Submission]s for the current [Task].
+     *
+     * @param context The [RunActionContext] used for the invocation.
+     * @return List of [Submission]s
+     */
+    fun currentSubmissions(context: RunActionContext): List<Submission>
 
     /**
      * Override the ready state for a given viewer ID.
@@ -164,7 +169,6 @@ interface InteractiveRunManager : RunManager {
      * @return true on success, false otherwise
      */
     fun overrideReadyState(context: RunActionContext, viewerId: String): Boolean
-
 
     /**
      * Invoked by an external caller to update an existing [Submission] by its [Submission.uid] with a new [VerdictStatus].

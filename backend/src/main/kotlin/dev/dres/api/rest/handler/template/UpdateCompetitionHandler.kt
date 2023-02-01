@@ -66,10 +66,10 @@ class UpdateCompetitionHandler(store: TransientEntityStore, val config: Config) 
 
             /* Update task type information. */
             val taskTypes = apiValue.taskTypes.map { it.name }.toTypedArray()
-            existing.taskTypes.removeAll(TaskType.query(TaskType::competition eq existing and not(TaskType::name.containsIn(*taskTypes))))
+            existing.taskTypes.removeAll(TaskType.query(TaskType::evaluation eq existing and not(TaskType::name.containsIn(*taskTypes))))
             for (type in apiValue.taskTypes) {
                 val t = TaskType.findOrNew {
-                    (TaskType::name eq type.name) and (TaskType::competition eq existing)
+                    (TaskType::name eq type.name) and (TaskType::evaluation eq existing)
                 }
                 t.name = type.name
                 t.duration = type.duration
@@ -92,18 +92,18 @@ class UpdateCompetitionHandler(store: TransientEntityStore, val config: Config) 
 
             /* Update task group information. */
             val taskGroups = apiValue.taskGroups.map { it.name }.toTypedArray()
-            existing.taskGroups.removeAll(TaskGroup.query(TaskGroup::competition eq existing and not(TaskGroup::name.containsIn(*taskGroups))))
+            existing.taskGroups.removeAll(TaskGroup.query(TaskGroup::evaluation eq existing and not(TaskGroup::name.containsIn(*taskGroups))))
             for (group in apiValue.taskGroups) {
                 val g = TaskGroup.findOrNew {
-                    (TaskGroup::name eq type.name) and (TaskGroup::competition eq existing)
+                    (TaskGroup::name eq type.name) and (TaskGroup::evaluation eq existing)
                 }
                 g.name = group.name
-                g.type = TaskType.query((TaskType::name eq group.name) and (TaskGroup::competition eq existing)).first()
+                g.type = TaskType.query((TaskType::name eq group.name) and (TaskGroup::evaluation eq existing)).first()
             }
 
             /* Update task information. */
             val taskIds = apiValue.tasks.mapNotNull { it.id }.toTypedArray()
-            existing.tasks.removeAll(TaskTemplate.query(TaskTemplate::competition eq existing and not(TaskTemplate::id.containsIn(*taskIds))))
+            existing.tasks.removeAll(TaskTemplate.query(TaskTemplate::evaluation eq existing and not(TaskTemplate::id.containsIn(*taskIds))))
             for (task in apiValue.tasks) {
                 val t = if (task.id != null) {
                     existing.tasks.filter { it.id eq task.id }.first()
@@ -146,10 +146,10 @@ class UpdateCompetitionHandler(store: TransientEntityStore, val config: Config) 
 
             /* Update team information. */
             val teamIds = apiValue.teams.map { it.teamId }.toTypedArray()
-            existing.teams.removeAll(Team.query(Team::template eq existing and not(Team::id.containsIn(*teamIds))))
+            existing.teams.removeAll(Team.query(Team::evaluation eq existing and not(Team::id.containsIn(*teamIds))))
             for (team in apiValue.teams) {
                 val t = Team.findOrNew {
-                    (Team::name eq team.name) and (Team::template eq existing)
+                    (Team::name eq team.name) and (Team::evaluation eq existing)
                 }
                 t.name = team.name
                 t.color = team.color
@@ -162,10 +162,10 @@ class UpdateCompetitionHandler(store: TransientEntityStore, val config: Config) 
 
             /* Update teamGroup information */
             val teamGroupIds = apiValue.teamGroups.map { it.id }.toTypedArray()
-            existing.teamsGroups.removeAll(TeamGroup.query(TeamGroup::template eq existing and not(TeamGroup::id.containsIn(*teamGroupIds))))
+            existing.teamsGroups.removeAll(TeamGroup.query(TeamGroup::evaluation eq existing and not(TeamGroup::id.containsIn(*teamGroupIds))))
             for (teamGroup in apiValue.teamGroups) {
                 val t = TeamGroup.findOrNew {
-                    (Team::name eq teamGroup.name) and (Team::template eq existing)
+                    (Team::name eq teamGroup.name) and (Team::evaluation eq existing)
                 }
                 t.name = teamGroup.name
                 t.teams.clear()

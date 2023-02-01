@@ -22,7 +22,7 @@ class ConfiguredOption(entity: Entity) : XdEntity(entity) {
     var value by xdRequiredStringProp()
 
     /** The [TaskTemplate] this [ConfiguredOption] belongs to. */
-    val task by xdParent<ConfiguredOption,TaskType>(TaskType::configurations)
+    val task: TaskType by xdParent<ConfiguredOption,TaskType>(TaskType::configurations)
 
     /**
      * Tries to parse a named parameter as [Boolean]. Returns null, if the parameter is not set or cannot be converted.

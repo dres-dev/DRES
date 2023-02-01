@@ -16,7 +16,7 @@ class TaskGroup(entity: Entity) : XdEntity(entity) {
     companion object : XdNaturalEntityType<TaskGroup>() {
         /** Combination of [TaskGroup] name / competition must be unique. */
         override val compositeIndices = listOf(
-            listOf(TaskGroup::name, TaskGroup::competition)
+            listOf(TaskGroup::name, TaskGroup::evaluation)
         )
     }
 
@@ -27,7 +27,7 @@ class TaskGroup(entity: Entity) : XdEntity(entity) {
     var type by xdLink1(TaskType)
 
     /** The [EvaluationTemplate] this [TaskGroup] belongs to. */
-    var competition by xdParent<TaskGroup, EvaluationTemplate>(EvaluationTemplate::taskGroups)
+    var evaluation: EvaluationTemplate by xdParent<TaskGroup, EvaluationTemplate>(EvaluationTemplate::taskGroups)
 
     /**
      * Converts this [TargetType] to a RESTful API representation [ApiTargetType].

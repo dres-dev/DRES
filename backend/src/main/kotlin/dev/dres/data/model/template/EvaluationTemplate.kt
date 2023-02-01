@@ -33,7 +33,7 @@ class EvaluationTemplate(entity: Entity) : PersistentEntity(entity){
     companion object: XdNaturalEntityType<EvaluationTemplate>()
 
     /** The [TemplateId] of this [EvaluationTemplate]. */
-    var teamId: TemplateId
+    var templateId: TemplateId
         get() = this.id
         set(value) { this.id = value }
 
@@ -41,25 +41,25 @@ class EvaluationTemplate(entity: Entity) : PersistentEntity(entity){
     var name by xdRequiredStringProp(unique = true, trimmed = true)
 
     /** If set, this [EvaluationTemplate] is considered a template!*/
-    var template by xdBooleanProp()
+    var isTemplate by xdBooleanProp()
 
     /** An optional description of this [EvaluationTemplate]. */
     var description by xdStringProp(trimmed = false)
 
     /** The [TaskType]s defined within this [EvaluationTemplate]. */
-    val taskTypes by xdChildren0_N<EvaluationTemplate, TaskType>(TaskType::competition)
+    val taskTypes by xdChildren0_N<EvaluationTemplate, TaskType>(TaskType::evaluation)
 
     /** The [TaskGroup]s that are part of this [EvaluationTemplate]. */
-    val taskGroups by xdChildren0_N<EvaluationTemplate, TaskGroup>(TaskGroup::competition)
+    val taskGroups by xdChildren0_N<EvaluationTemplate, TaskGroup>(TaskGroup::evaluation)
 
     /** The [TaskTemplate]s contained in this [EvaluationTemplate]*/
-    val tasks by xdChildren0_N<EvaluationTemplate, TaskTemplate>(TaskTemplate::competition)
+    val tasks by xdChildren0_N<EvaluationTemplate, TaskTemplate>(TaskTemplate::evaluation)
 
     /** The [Team]s that are part of this [EvaluationTemplate]. */
-    val teams by xdChildren0_N<EvaluationTemplate,Team>(Team::template)
+    val teams by xdChildren0_N<EvaluationTemplate,Team>(Team::evaluation)
 
     /** The [Team]s that are part of this [EvaluationTemplate]. */
-    val teamsGroups by xdChildren0_N<EvaluationTemplate,TeamGroup>(TeamGroup::template)
+    val teamsGroups by xdChildren0_N<EvaluationTemplate,TeamGroup>(TeamGroup::evaluation)
 
     /** The [User]s that act as judge for this [EvaluationTemplate] */
     val judges by xdLink0_N(User, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)

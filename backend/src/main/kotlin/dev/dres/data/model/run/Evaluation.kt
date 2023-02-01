@@ -1,16 +1,14 @@
 package dev.dres.data.model.run
 
 import dev.dres.api.rest.types.evaluation.ApiEvaluation
-import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.template.EvaluationTemplate
 import dev.dres.data.model.run.interfaces.EvaluationRun
-import dev.dres.data.model.submissions.Submission
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
 
-typealias EvaluationId = String
+typealias TaskId = String
 
 /**
  * Represents a [Evaluation], i.e., a concrete instance of a [EvaluationTemplate], as executed by DRES.
@@ -29,8 +27,8 @@ class Evaluation(entity: Entity) : PersistentEntity(entity) {
     /** The name held by this [Evaluation]. Must be unique!*/
     var name by xdRequiredStringProp(unique = true, trimmed = true)
 
-    /** The [RunType] of this [Evaluation]. */
-    var type by xdLink1(RunType)
+    /** The [EvaluationType] of this [Evaluation]. */
+    var type by xdLink1(EvaluationType)
 
     /** The [EvaluationTemplate] backing this [Evaluation]. */
     var template by xdLink1(EvaluationTemplate)
@@ -79,9 +77,9 @@ class Evaluation(entity: Entity) : PersistentEntity(entity) {
      * @return [EvaluationRun]
      */
     fun toRun(): EvaluationRun = when(this.type) {
-        RunType.INTERACTIVE_SYNCHRONOUS -> InteractiveSynchronousEvaluation(this)
-        RunType.INTERACTIVE_ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(this, emptyMap()) /* TODO: Not sure about semantics here. */
-        RunType.NON_INTERACTIVE -> NonInteractiveEvaluation(this)
+        EvaluationType.INTERACTIVE_SYNCHRONOUS -> InteractiveSynchronousEvaluation(this)
+        EvaluationType.INTERACTIVE_ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(this, emptyMap()) /* TODO: Not sure about semantics here. */
+        EvaluationType.NON_INTERACTIVE -> NonInteractiveEvaluation(this)
         else -> throw IllegalArgumentException("Unsupported run type ${this.type.description}. This is a programmer's error!")
     }
 }

@@ -13,7 +13,6 @@ import dev.dres.data.model.run.*
 import dev.dres.data.model.run.EvaluationId
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.SubmissionId
 import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.*
 import dev.dres.utilities.extensions.toDateString
@@ -130,7 +129,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                                 it.id,
                                 it.name,
                                 it.template.description,
-                                if (it.type == RunType.INTERACTIVE_SYNCHRONOUS) {
+                                if (it.type == EvaluationType.INTERACTIVE_SYNCHRONOUS) {
                                     it.tasks.firstOrNull()?.template?.name ?: "N/A"
                                 } else {
                                     "N/A"
@@ -156,7 +155,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                                     it.id,
                                     it.name,
                                     it.template.description,
-                                    if (it.type == RunType.INTERACTIVE_SYNCHRONOUS) {
+                                    if (it.type == EvaluationType.INTERACTIVE_SYNCHRONOUS) {
                                         it.tasks.firstOrNull()?.template?.name ?: "N/A"
                                     } else {
                                         "N/A"
@@ -198,7 +197,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                 println("Evaluated Tasks:")
                 it.tasks.asSequence().forEach { t ->
                     println(t.template)
-                    if (t.evaluation.type == RunType.INTERACTIVE_SYNCHRONOUS) {
+                    if (t.evaluation.type == EvaluationType.INTERACTIVE_SYNCHRONOUS) {
                         println("Submissions")
                         t.submissions.asSequence().forEach { s -> println(s) }
                     }
@@ -294,7 +293,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
             /* Create run and reactivate. */
             val run = evaluation.toRun()
             run.reactivate()
-            RunExecutor.schedule(run)
+            RunExecutor.schedule(run, this@EvaluationRunCommand.store)
             println("Evaluation ${this.id} was reactivated.")
         }
     }
@@ -307,11 +306,11 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
         /** [EvaluationId] of the [Evaluation] that should be reactivated. .*/
         private val id: EvaluationId by option("-i", "--id").required()
 
-        /** The [SubmissionId]s to reset. */
-        private val submissionIds: kotlin.collections.List<SubmissionId> by option("-s", "--submissions", help = "IDs of the submissions to reset.").multiple()
+        /** The [EvaluationId]s to reset. */
+        private val submissionIds: kotlin.collections.List<EvaluationId> by option("-s", "--submissions", help = "IDs of the submissions to reset.").multiple()
 
-        /** The [TaskId]s to reset [Submission]s for. */
-        private val taskIds: kotlin.collections.List<TaskId> by option("-t", "--tasks", help = "IDs of the tasks to resetsubmissions for.").multiple()
+        /** The [EvaluationId]s to reset [Submission]s for. */
+        private val taskIds: kotlin.collections.List<EvaluationId> by option("-t", "--tasks", help = "IDs of the tasks to resetsubmissions for.").multiple()
 
         /** The names of the task groups to reset [Submission]s for. */
         private val taskGroups: kotlin.collections.List<String> by option("-g", "--groups", help = "Names of the task groups to reset submissions for.").multiple()
@@ -324,7 +323,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                 return@transactional
             }
 
-            if (evaluation.type == RunType.INTERACTIVE_SYNCHRONOUS) {
+            if (evaluation.type == EvaluationType.INTERACTIVE_SYNCHRONOUS) {
                 /* Prepare query. */
                 var query = if (this.taskIds.isNotEmpty()) {
                     evaluation.tasks.filter { it.id.isIn(this@ResetSubmission.taskIds) }.flatMapDistinct { it.submissions }

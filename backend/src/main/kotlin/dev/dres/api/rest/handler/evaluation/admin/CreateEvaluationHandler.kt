@@ -116,7 +116,7 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
                 ApiRunType.ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(evaluation, emptyMap()) /* TODO: Team map */
                 ApiRunType.SYNCHRONOUS -> InteractiveSynchronousEvaluation(evaluation)
                 ApiRunType.NON_INTERACTIVE -> TODO()
-            })
+            }, this.store)
             evaluation
         }
 

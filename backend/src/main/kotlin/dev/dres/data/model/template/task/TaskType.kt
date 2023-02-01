@@ -24,7 +24,7 @@ class TaskType(entity: Entity) : XdEntity(entity) {
     /** Combination of [TaskType] name / competition must be unique. */
     companion object: XdNaturalEntityType<TaskType>() {
         override val compositeIndices = listOf(
-            listOf(TaskType::name, TaskType::competition)
+            listOf(TaskType::name, TaskType::evaluation)
         )
     }
 
@@ -32,7 +32,7 @@ class TaskType(entity: Entity) : XdEntity(entity) {
     var name by xdRequiredStringProp(unique = false, trimmed = false)
 
     /** The [EvaluationTemplate] this [TaskType] belongs to. */
-    var competition by xdParent<TaskType,EvaluationTemplate>(EvaluationTemplate::taskTypes)
+    var evaluation: EvaluationTemplate by xdParent<TaskType,EvaluationTemplate>(EvaluationTemplate::taskTypes)
 
     /** The (default) duration of this [TaskType] in seconds. */
     var duration by xdRequiredLongProp() { min(0L) }

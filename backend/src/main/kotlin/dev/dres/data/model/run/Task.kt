@@ -10,7 +10,7 @@ import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
 
-typealias TaskId = String
+typealias EvaluationId = String
 
 /**
  * Represents a [Task], i.e., a concrete instance of a [TaskTemplate], as executed by DRES.
@@ -21,8 +21,8 @@ typealias TaskId = String
 class Task(entity: Entity) : PersistentEntity(entity) {
     companion object : XdNaturalEntityType<Task>()
 
-    /** The [TaskId] of this [Task]. */
-    var taskId: TaskId
+    /** The [EvaluationId] of this [Task]. */
+    var taskId: EvaluationId
         get() = this.id
         set(value) { this.id = value }
 
@@ -39,7 +39,7 @@ class Task(entity: Entity) : PersistentEntity(entity) {
     var team by xdLink0_1(Team)
 
     /** The [Evaluation] this [Task] belongs to. */
-    var evaluation by xdParent<Task,Evaluation>(Evaluation::tasks)
+    var evaluation: Evaluation by xdParent<Task,Evaluation>(Evaluation::tasks)
 
     /** List of [Submission]s received by this [Task]. */
     val submissions by xdChildren0_N<Task,Verdict>(Verdict::task)

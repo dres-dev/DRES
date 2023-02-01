@@ -3,21 +3,7 @@ package dev.dres.data.model.run
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.template.EvaluationTemplate
 import dev.dres.data.model.run.interfaces.Run
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.template.task.TaskTemplate
-import dev.dres.data.model.template.task.options.TargetOption
-import dev.dres.run.validation.MediaItemsSubmissionValidator
-import dev.dres.run.validation.TemporalOverlapSubmissionValidator
-import dev.dres.run.validation.TextValidator
-import dev.dres.run.validation.interfaces.SubmissionValidator
-import dev.dres.run.validation.judged.BasicJudgementValidator
-import dev.dres.run.validation.judged.BasicVoteValidator
-import dev.dres.run.validation.judged.ItemRange
-import kotlinx.dnq.query.*
-import kotlinx.dnq.query.FilteringContext.eq
-import kotlinx.dnq.query.FilteringContext.ne
 import kotlinx.dnq.util.findById
-import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * An abstract [Run] implementation that can be used by different subtypes.
@@ -27,19 +13,11 @@ import java.util.concurrent.ConcurrentLinkedQueue
  */
 abstract class AbstractEvaluation(evaluation: Evaluation): EvaluationRun {
 
-
-
     /** The internal [xdId] of this [AbstractEvaluation].
      *
      * Since this cannot change during the lifetime of an evaluation, it is kept in memory.
      */
     private val xdId = evaluation.xdId
-
-    /**
-     * Accessor for the [Evaluation] underpinning this [AbstractEvaluation]
-     */
-    protected val evaluation: Evaluation
-        get() = Evaluation.findById(this.xdId)
 
     /** The [EvaluationId] of this [AbstractEvaluation].
      *
@@ -58,6 +36,12 @@ abstract class AbstractEvaluation(evaluation: Evaluation): EvaluationRun {
      * Since this cannot change during the lifetime of an evaluation, it is stored in memory.
      */
     override val description: EvaluationTemplate = evaluation.template
+
+    /**
+     * Accessor for the [Evaluation] underpinning this [AbstractEvaluation]
+     */
+    protected val evaluation: Evaluation
+        get() = Evaluation.findById(this.xdId)
 
     /** Timestamp of when this [AbstractEvaluation] was started. */
     override var started: Long

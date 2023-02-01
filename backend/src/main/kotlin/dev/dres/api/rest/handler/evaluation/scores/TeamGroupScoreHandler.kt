@@ -43,9 +43,11 @@ class TeamGroupScoreHandler(store: TransientEntityStore) : AbstractScoreHandler(
 
         return this.store.transactional(true) {
             val rac = RunActionContext.runActionContext(ctx, manager)
-            val aggregators = manager.currentTask(rac)?.teamGroupAggregators ?: throw ErrorStatusException(404, "No active task in evaluation ${ctx.evaluationId()}.", ctx)
-            val teamGroups = manager.template.teamsGroups.toList()
-            teamGroups.map { ApiTeamGroupValue(it.name, aggregators[it.teamGroupId]?.lastValue ?: 0.0) }
+            /* TODO: Not suite sure where the teamGroupAggregator got lost.*/
+            //val aggregators = manager.currentTask(rac)?.teamGroupAggregators ?: throw ErrorStatusException(404, "No active task in evaluation ${ctx.evaluationId()}.", ctx)
+            //val teamGroups = manager.template.teamsGroups.toList()
+            //teamGroups.map { ApiTeamGroupValue(it.name, aggregators[it.teamGroupId]?.lastValue ?: 0.0) }
+            emptyList()
         }
     }
 }

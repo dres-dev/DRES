@@ -2,11 +2,9 @@ package dev.dres.run
 
 import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
+import dev.dres.data.model.run.*
+import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.template.EvaluationTemplate
-import dev.dres.data.model.run.EvaluationId
-import dev.dres.data.model.run.InteractiveSynchronousEvaluation
-import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.run.RunProperties
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.VerdictStatus
@@ -27,6 +25,9 @@ interface RunManager : Runnable {
 
     /** A name for identifying this [RunManager]. */
     val name: String
+
+    /** The [Evaluation] instance that backs this [RunManager]. */
+    val evaluation: EvaluationRun
 
     /** The [EvaluationTemplate] that is executed / run by this [RunManager]. */
     val template: EvaluationTemplate
@@ -75,10 +76,10 @@ interface RunManager : Runnable {
     fun updateProperties(properties: RunProperties)
 
     /**
-     * Returns the number of [InteractiveSynchronousEvaluation.Task]s held by this [RunManager].
+     * Returns the number of [Task]s held by this [RunManager].
      *
      * @param context The [RunActionContext] for this invocation.
-     * @return The number of [InteractiveSynchronousEvaluation.Task]s held by this [RunManager]
+     * @return The number of [Task]s held by this [RunManager]
      */
     fun taskCount(context: RunActionContext): Int
 
@@ -101,12 +102,12 @@ interface RunManager : Runnable {
      *
      *
      * @param context The [RunActionContext] used for the invocation
-     * @param sub The [Submission] to be posted.
+     * @param submission The [Submission] to be posted.
      *
      * @return [VerdictStatus] of the [Submission]
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    fun postSubmission(context: RunActionContext, sub: Submission): VerdictStatus
+    fun postSubmission(context: RunActionContext, submission: Submission): VerdictStatus
 
     /**
      * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.

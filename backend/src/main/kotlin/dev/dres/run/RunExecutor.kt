@@ -84,12 +84,13 @@ object RunExecutor : Consumer<WsConfig> {
      * Schedules a new [EvaluationRun] with this [RunExecutor].
      *
      * @param evaluation [EvaluationRun] to execute.
+     * @param store [TransientEntityStore] instanced used to interact with database.
      */
-    fun schedule(evaluation: EvaluationRun) {
+    fun schedule(evaluation: EvaluationRun, store: TransientEntityStore) {
         val run = when(evaluation) {
-            is InteractiveSynchronousEvaluation -> InteractiveSynchronousRunManager(evaluation)
-            is InteractiveAsynchronousEvaluation -> InteractiveAsynchronousRunManager(evaluation)
-            is NonInteractiveEvaluation -> NonInteractiveRunManager(evaluation)
+            is InteractiveSynchronousEvaluation -> InteractiveSynchronousRunManager(evaluation, store)
+            is InteractiveAsynchronousEvaluation -> InteractiveAsynchronousRunManager(evaluation, store)
+            is NonInteractiveEvaluation -> NonInteractiveRunManager(evaluation, store)
             else -> throw NotImplementedError("No matching run manager found for $evaluation")
         }
         this.schedule(run)

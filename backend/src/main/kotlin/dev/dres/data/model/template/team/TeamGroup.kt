@@ -35,10 +35,10 @@ class TeamGroup(entity: Entity) : PersistentEntity(entity) {
     var defaultAggregator by xdLink1(TeamAggregator)
 
     /** The [EvaluationTemplate] this [Team] belongs to. */
-    var template by xdParent<TeamGroup,EvaluationTemplate>(EvaluationTemplate::teamsGroups)
+    val evaluation: EvaluationTemplate by xdParent<TeamGroup,EvaluationTemplate>(EvaluationTemplate::teamsGroups)
 
     /** The [Team]s that belong to this [TeamGroup]. */
-    val teams by xdLink0_N<TeamGroup,Team>(Team::group)
+    val teams by xdLink1_N<TeamGroup,Team>(Team::group)
 
     /**
      * Converts this [TeamGroup] to a RESTful API representation [ApiTeamGroup].

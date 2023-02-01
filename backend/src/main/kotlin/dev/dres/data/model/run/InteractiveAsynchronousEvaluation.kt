@@ -90,7 +90,7 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, private val perm
      */
     constructor(name: String, shuffle: Boolean, template: EvaluationTemplate) : this(Evaluation.new {
         this.id = UUID.randomUUID().toString()
-        this.type = RunType.INTERACTIVE_ASYNCHRONOUS
+        this.type = EvaluationType.INTERACTIVE_ASYNCHRONOUS
         this.name = name
         this.template = template
         this.shuffleTasks = shuffle

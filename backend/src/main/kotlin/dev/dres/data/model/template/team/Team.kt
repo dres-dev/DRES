@@ -23,7 +23,7 @@ class Team(entity: Entity) : PersistentEntity(entity) {
     companion object: XdNaturalEntityType<Team>() {
         /** Combination of [Team] name / competition must be unique. */
         override val compositeIndices = listOf(
-            listOf(Team::name, Team::template)
+            listOf(Team::name, Team::evaluation)
         )
     }
 
@@ -42,10 +42,10 @@ class Team(entity: Entity) : PersistentEntity(entity) {
     var logo by xdBlobProp()
 
     /** The [EvaluationTemplate] this [Team] belongs to. */
-    var template by xdParent<Team,EvaluationTemplate>(EvaluationTemplate::teams)
+    val evaluation: EvaluationTemplate by xdParent(EvaluationTemplate::teams)
 
     /** The [TeamGroup] this [Team] belongs to (or null if not assigned to a group). */
-    var group by xdLink0_1<Team,TeamGroup>(TeamGroup::teams)
+    var group: TeamGroup? by xdLink0_1(TeamGroup::teams)
 
     /** The [User]s that belong to this [Team]. */
     val users by xdLink0_N(User, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)

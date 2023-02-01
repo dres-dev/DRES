@@ -5,61 +5,62 @@ import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.data.model.run.*
 import dev.dres.data.model.template.EvaluationTemplate
-import dev.dres.data.model.template.TeamId
 import dev.dres.data.model.run.interfaces.TaskId
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.ScoreboardsUpdatable
 import dev.dres.run.validation.interfaces.JudgementValidator
+import jetbrains.exodus.database.TransientEntityStore
 import org.slf4j.LoggerFactory
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 
-class NonInteractiveRunManager(val run: NonInteractiveEvaluation) : RunManager {
+class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation, private val store: TransientEntityStore) : RunManager {
 
     private val SCOREBOARD_UPDATE_INTERVAL_MS = 10_000L // TODO make configurable
 
     private val LOGGER = LoggerFactory.getLogger(this.javaClass)
 
+    /** Generates and returns [RunProperties] for this [InteractiveAsynchronousRunManager]. */
     override val runProperties: RunProperties
-    get() = run.properties
+        get() = RunProperties(this.evaluation.participantCanView, false, this.evaluation.allowRepeatedTasks, this.evaluation.limitSubmissionPreviews)
 
     /** A lock for state changes to this [InteractiveSynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
 
     /** Run ID of this [InteractiveSynchronousRunManager]. */
-    override val id: EvaluationId
-        get() = this.run.id
+    override val id: TaskId
+        get() = this.evaluation.id
 
     /** Name of this [InteractiveSynchronousRunManager]. */
     override val name: String
-        get() = this.run.name
+        get() = this.evaluation.name
 
     /** The [EvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
     override val template: EvaluationTemplate
-        get() = this.run.description
+        get() = this.evaluation.description
 
     /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable = ScoreboardsUpdatable(this.template.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.run) //TODO requires some changes
+    private val scoreboardsUpdatable = ScoreboardsUpdatable(this.template.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.evaluation) //TODO requires some changes
 
     override val scoreboards: List<Scoreboard>
         get() = this.scoreboardsUpdatable.scoreboards
 
     @Volatile
-    override var status: RunManagerStatus = if (this.run.hasStarted) {
+    override var status: RunManagerStatus = if (this.evaluation.hasStarted) {
         RunManagerStatus.ACTIVE
     } else {
         RunManagerStatus.CREATED
-    }
-    get() = this.stateLock.read {
-        return field
     }
     private set
 
     /** */
     override val judgementValidators: List<JudgementValidator>
-        get() = this.run.tasks.map { it.validator }.filterIsInstance(JudgementValidator::class.java)
+        get() = this.evaluation.tasks.map { it.validator }.filterIsInstance(JudgementValidator::class.java)
 
     override fun start(context: RunActionContext) {
         check(this.status == RunManagerStatus.CREATED) { "NonInteractiveRunManager is in status ${this.status} and cannot be started." }
@@ -67,14 +68,10 @@ class NonInteractiveRunManager(val run: NonInteractiveEvaluation) : RunManager {
             throw IllegalAccessError("functionality of NonInteractiveRunManager only available to administrators")
 
         /* Start the run. */
-        this.run.start()
+        this.evaluation.start()
 
         /* Update status. */
         this.status = RunManagerStatus.ACTIVE
-
-        /* Mark DAO for update. */
-        this.daoUpdatable.dirty = true
-
 
         LOGGER.info("NonInteractiveRunManager ${this.id} started")
     }
@@ -85,18 +82,19 @@ class NonInteractiveRunManager(val run: NonInteractiveEvaluation) : RunManager {
             throw IllegalAccessError("functionality of NonInteractiveRunManager only available to administrators")
 
         /* End the run. */
-        this.run.end()
+        this.evaluation.end()
 
         /* Update status. */
         this.status = RunManagerStatus.TERMINATED
 
-        /* Mark DAO for update. */
-        this.daoUpdatable.dirty = true
-
         LOGGER.info("SynchronousRunManager ${this.id} terminated")
     }
 
-    override fun taskCount(context: RunActionContext): Int = this.run.tasks.size
+    override fun updateProperties(properties: RunProperties) {
+        TODO("Not yet implemented")
+    }
+
+    override fun taskCount(context: RunActionContext): Int = this.evaluation.tasks.size
 
     private val viewerMap: MutableMap<WebSocketConnection, Boolean> = mutableMapOf()
 
@@ -118,8 +116,6 @@ class NonInteractiveRunManager(val run: NonInteractiveEvaluation) : RunManager {
 
             try {
                 this.stateLock.read {
-
-
                     while (updatedTasks.isNotEmpty()) {
                         val idNamePair = updatedTasks.poll(1, TimeUnit.SECONDS)
 
@@ -128,14 +124,16 @@ class NonInteractiveRunManager(val run: NonInteractiveEvaluation) : RunManager {
                             break
                         }
 
-                        val task = this.run.tasks.find { it.uid == idNamePair.first }
+                        val task = this.evaluation.tasks.find { it.id == idNamePair.first }
 
                         if (task == null) {
                             LOGGER.error("Unable to retrieve task with changed id ${idNamePair.first}")
                             break
                         }
 
-                        val batches = idNamePair.second.mapNotNull { task.submissions[it] }
+
+                        /* TODO: Redo. */
+                        /*val batches = idNamePair.second.mapNotNull { task.submissions[it] }
 
                         val validator = task.validator
                         val scorer = task.scorer
@@ -143,17 +141,9 @@ class NonInteractiveRunManager(val run: NonInteractiveEvaluation) : RunManager {
                         batches.forEach {
                             validator.validate(it)
                             scorer.computeScores(it)
-                        }
-
+                        }*/
                         scoreboardsUpdatable.update(this.status)
-
-                        this.daoUpdatable.dirty = true
-
                     }
-
-                    this.daoUpdatable.update(this.status)
-
-
                 }
             } catch (ie: InterruptedException) {
                 LOGGER.info("Interrupted NonInteractiveRunManager, exiting")
@@ -165,10 +155,6 @@ class NonInteractiveRunManager(val run: NonInteractiveEvaluation) : RunManager {
 
         }
 
-        this.stateLock.read {
-            this.daoUpdatable.update(this.status)
-        }
-
         LOGGER.info("NonInteractiveRunManager ${this.id} reached end of run logic.")
 
     }
@@ -178,5 +164,8 @@ class NonInteractiveRunManager(val run: NonInteractiveEvaluation) : RunManager {
     /**
      *
      */
-    override fun tasks(context: RunActionContext): List<AbstractNonInteractiveTask> = this.run.tasks
+    override fun tasks(context: RunActionContext): List<AbstractNonInteractiveTask> = this.evaluation.tasks
+    override fun postSubmission(context: RunActionContext, submission: Submission): VerdictStatus {
+        TODO("Not yet implemented")
+    }
 }

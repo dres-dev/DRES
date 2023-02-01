@@ -32,13 +32,13 @@ class Hint(entity: Entity) : XdEntity(entity) {
     var type by xdLink1(HintType)
 
     /** The start of a (potential) range. */
-    var start by xdNullableLongProp() { min(0L) }
+    var start by xdNullableLongProp()
 
     /** The start of a (potential) range. */
-    var end by xdNullableLongProp { min(this@Hint.start ?: 0L) }
+    var end by xdNullableLongProp()
 
     /** The parent [TaskTemplate] this [Hint] belongs to. */
-    var task by xdParent<Hint,TaskTemplate>(TaskTemplate::hints)
+    var task: TaskTemplate by xdParent<Hint,TaskTemplate>(TaskTemplate::hints)
 
     /** The[MediaItem] shown as part of the [Hint]. Can be null. */
     var item by xdLink0_1(MediaItem)

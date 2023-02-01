@@ -1,13 +1,20 @@
 package dev.dres.api.rest.handler.evaluation.viewer
 
 import dev.dres.api.rest.handler.GetRestHandler
+import dev.dres.api.rest.handler.eligibleManagerForId
+import dev.dres.api.rest.handler.evaluationId
+import dev.dres.api.rest.handler.isParticipant
 import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.template.task.options.TaskOption
+import dev.dres.run.InteractiveRunManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.any
+import kotlinx.dnq.query.filter
 
 class GetSubmissionHistoryInfoHandler(store: TransientEntityStore): AbstractEvaluationViewerHandler(store), GetRestHandler<List<ApiSubmission>> {
 
@@ -19,7 +26,7 @@ class GetSubmissionHistoryInfoHandler(store: TransientEntityStore): AbstractEval
         tags = ["Evaluation"],
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false),
-            OpenApiParam("taskRunId", String::class, "Task run ID")
+            OpenApiParam("taskId", String::class, "Task ID", required = true, allowEmptyValue = false)
         ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<ApiSubmission>::class)]),
@@ -30,28 +37,23 @@ class GetSubmissionHistoryInfoHandler(store: TransientEntityStore): AbstractEval
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): List<ApiSubmission> {
-        val runId = runId(ctx)
-        val run = getRun(ctx, runId) ?: throw ErrorStatusException(404, "Run $runId not found.", ctx)
-        val rac = RunActionContext.runActionContext(ctx, run)
-
-        if (!run.runProperties.participantCanView && isParticipant(ctx)) {
-            throw ErrorStatusException(403, "Access denied", ctx)
-        }
-
-
-        val taskRunId =
-            ctx.pathParamMap()["taskRunId"]?.UID() ?: throw ErrorStatusException(404, "Missing task id", ctx)
-
-        val task = run.currentTask(rac)
-
-        return if (task?.template?.id == taskRunId && task.isRunning) {
-            if (run.currentTaskDescription(rac).taskType.options.any { it.option == SimpleOption.HIDDEN_RESULTS }) {
-                run.submissions(rac).map { ApiSubmission.blind(it) }
-            } else {
-                run.submissions(rac).map { ApiSubmission(it) }
+        val manager = ctx.eligibleManagerForId() as? InteractiveRunManager ?: throw ErrorStatusException(400, "Specified evaluation ${ctx.evaluationId()} does not have an evaluation state.'", ctx)
+        return this.store.transactional (true) {
+            val rac = RunActionContext.runActionContext(ctx, manager)
+            if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
+                throw ErrorStatusException(403, "Access denied.", ctx)
             }
-        } else {
-            run.taskForId(rac, taskRunId)?.submissions?.map { ApiSubmission(it) } ?: emptyList()
+            val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(404, "Missing task id", ctx)
+            val task = manager.currentTask(rac)
+            if (task?.template?.id == taskId && task.isRunning) {
+                if (task.isRunning) {
+                    val hidden = manager.currentTaskTemplate(rac).taskGroup.type.options.filter { it eq  TaskOption.HIDDEN_RESULTS }.any()
+                    manager.currentSubmissions(rac).map { it.toApi(hidden) }
+                } else {
+                    manager.taskForId(rac, taskId)?.getSubmissions()?.map { it.toApi() } ?: emptyList()
+                }
+            }
+            emptyList()
         }
     }
 }

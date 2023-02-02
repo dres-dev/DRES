@@ -5,6 +5,7 @@ import dev.dres.api.rest.types.users.UserRequest
 import dev.dres.data.model.admin.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
+import java.util.*
 
 /**
  * User management class of DRES. Requires one-time initialisation
@@ -33,6 +34,7 @@ object UserManager {
         try {
             this.store.transactional {
                 User.new {
+                    this.id = UUID.randomUUID().toString()
                     this.username = username
                     this.password = password.password
                     this.role = role

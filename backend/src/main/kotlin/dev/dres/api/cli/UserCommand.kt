@@ -14,10 +14,12 @@ import dev.dres.data.model.admin.User.Companion.MIN_LENGTH_PASSWORD
 import dev.dres.data.model.admin.User.Companion.MIN_LENGTH_USERNAME
 import dev.dres.data.model.admin.UserId
 import dev.dres.mgmt.admin.UserManager
+import jetbrains.exodus.database.TransientEntityStore
 import java.lang.IllegalArgumentException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
+import java.util.*
 
 /**
  * A collection of [CliktCommand]s for [User] management
@@ -25,9 +27,9 @@ import java.nio.file.StandardOpenOption
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class UserCommand : NoOpCliktCommand(name = "user") {
+class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user") {
     init {
-        this.subcommands(Create(), Update(), Delete(), List(), Roles(), Export(), Import())
+        this.subcommands(Create(store), Update(store), Delete(store), List(store), Roles(store), Export(store), Import(store))
     }
 
     override fun aliases() = mapOf(
@@ -41,7 +43,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to create a new [User].
      */
-    inner class Create: CliktCommand(name = "create", help = "Creates a new User", printHelpOnEmptyArgs = true) {
+    inner class Create(private val store: TransientEntityStore): CliktCommand(name = "create", help = "Creates a new User", printHelpOnEmptyArgs = true) {
         /** The name of the newly created user. */
         private val username: String by option("-u", "--username", help = "Username of at least $MIN_LENGTH_USERNAME characters length. Must be unique!")
                 .required()
@@ -56,13 +58,12 @@ class UserCommand : NoOpCliktCommand(name = "user") {
         /** The desired [Role] of the newly created user. */
         private val apiRole: ApiRole by option("-r", "--role", help = "Role of the new user.").convert { ApiRole.valueOf(it) }.required()
 
-        override fun run() {
+        override fun run() = this.store.transactional {
             val successful = UserManager.create(username = this.username, password = this.password.hash(), role = apiRole)
             if (successful) {
                 println("New user '${UserManager.get(username = this.username)}' created.")
             } else {
                 println("Could not create user '${this.username}' because a user with that name already exists.")
-
             }
         }
     }
@@ -70,7 +71,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to update an existing [User].
      */
-    inner class Update: CliktCommand(name = "update", help = "Updates Password or Role of an existing User", printHelpOnEmptyArgs = true) {
+    inner class Update(private val store: TransientEntityStore): CliktCommand(name = "update", help = "Updates Password or Role of an existing User", printHelpOnEmptyArgs = true) {
         private val id: UserId? by option("-i", "--id")
 
         /** The new username. */
@@ -85,14 +86,14 @@ class UserCommand : NoOpCliktCommand(name = "user") {
         /** The new [Role] of the updated  user. Left unchanged if null! */
         private val role: Role? by option("-r", "--role", help = "New user Role").convert { Role.parse(it) }
 
-        override fun run() {
+        override fun run() = this.store.transactional {
             if (this.id == null && this.username == null) {
                 println("You must specify a valid username or user ID in order to update a user!")
-                return
+                return@transactional
             }
             if (UserManager.update(id = this.id, username = this.username, password = this.password, role = this.role)) {
                 println("User updated successfully!")
-                return
+                return@transactional
             } else {
                 println("User updated failed. It probably doesn't exist!")
             }
@@ -102,19 +103,19 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to delete a [User].
      */
-    inner class Delete : CliktCommand(name = "delete", help = "Deletes an existing user.", printHelpOnEmptyArgs = true) {
+    inner class Delete(private val store: TransientEntityStore): CliktCommand(name = "delete", help = "Deletes an existing user.", printHelpOnEmptyArgs = true) {
         private val id: UserId? by option("-i", "--id", help = "ID of the user to be deleted.")
         private val username: String? by option("-u", "--username", help = "Username of the user to be deleted.")
                 .validate { require(it.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
 
-        override fun run() {
+        override fun run() = this.store.transactional {
             if (this.id == null && this.username == null) {
                 println("You must specify a valid username or user ID in order to delete a user!")
             }
             val success = UserManager.delete(id = this.id, username = this.username)
             if (success) {
                 println("User deleted successfully!")
-                return
+                return@transactional
             } else {
                 println("User could not be deleted because it doesn't exist!")
             }
@@ -124,12 +125,12 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to export a [User].
      */
-    inner class Export : CliktCommand(name = "export", help =  "Exports one or multiple user(s) as JSON.", printHelpOnEmptyArgs = true) {
+    inner class Export(private val store: TransientEntityStore): CliktCommand(name = "export", help =  "Exports one or multiple user(s) as JSON.", printHelpOnEmptyArgs = true) {
         private val id: UserId? by option("-i", "--id", help = "ID of the user to be exported.")
         private val username: String? by option("-u", "--username", help = "Username of the user to be exported.")
                 .validate { require(it.length >= MIN_LENGTH_USERNAME) { "Username for DRES user must consist of at least $MIN_LENGTH_USERNAME characters." } }
         private val path: String by option("-o", "--output").required()
-        override fun run() {
+        override fun run() = this.store.transactional(true) {
             if (this.id == null && this.username == null) {
                 val users = UserManager.list()
                 val path = Paths.get(this.path)
@@ -138,7 +139,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
                     mapper.writeValue(writer, users)
                 }
                 println("Successfully wrote ${users.size} users to $path.")
-                return
+                return@transactional
             } else {
                 val user = UserManager.get(id = this.id, username = this.username)
                 if (user != null) {
@@ -158,7 +159,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * Imports a specific competition from JSON.
      */
-    inner class Import: CliktCommand(name = "import", help = "Imports a user description from JSON. Either a single user or an array of users", printHelpOnEmptyArgs = true) {
+    inner class Import(private val store: TransientEntityStore): CliktCommand(name = "import", help = "Imports a user description from JSON. Either a single user or an array of users", printHelpOnEmptyArgs = true) {
 
         private val new: Boolean by option("-n", "--new", help = "Flag indicating whether users should be created anew.").flag("-u", "--update", default = true)
 
@@ -166,7 +167,7 @@ class UserCommand : NoOpCliktCommand(name = "user") {
 
         private val destination: String by option("-i", "--in", help = "The input file for the users.").required()
 
-        override fun run() {
+        override fun run() = this.store.transactional {
             val path = Paths.get(this.destination)
             val mapper = ObjectMapper()
 
@@ -193,9 +194,9 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to list all [User]s.
      */
-    inner class List: CliktCommand(name = "list", help = "Lists all Users") {
+    inner class List(private val store: TransientEntityStore): CliktCommand(name = "list", help = "Lists all Users") {
         val plain by option("-p", "--plain", help = "Plain print: No fancy table. Might be easier if the output should be processed").flag(default = false)
-        override fun run() {
+        override fun run() = this.store.transactional(true) {
             val users = UserManager.list()
             println("Available users: ${users.size}")
             if (plain) {
@@ -204,21 +205,21 @@ class UserCommand : NoOpCliktCommand(name = "user") {
                 }
             } else {
                 println(
-                        table {
-                            cellStyle {
-                                border = true
-                                paddingLeft = 1
-                                paddingRight = 1
-                            }
-                            header {
-                                row("id", "username", "role")
-                            }
-                            body {
-                                users.forEach {
-                                    row(it.id, it.username, it.role)
-                                }
+                    table {
+                        cellStyle {
+                            border = true
+                            paddingLeft = 1
+                            paddingRight = 1
+                        }
+                        header {
+                            row("id", "username", "role")
+                        }
+                        body {
+                            users.forEach {
+                                row(it.id, it.username, it.role)
                             }
                         }
+                    }
                 )
             }
         }
@@ -227,8 +228,8 @@ class UserCommand : NoOpCliktCommand(name = "user") {
     /**
      * [CliktCommand] to list all [Role]s.
      */
-    inner class Roles : CliktCommand(name = "roles", help = "Lists all Roles") {
-        override fun run() {
+    inner class Roles(private val store: TransientEntityStore): CliktCommand(name = "roles", help = "Lists all Roles") {
+        override fun run() = this.store.transactional(true) {
             println("Available roles: ${Role.values().joinToString(", ")}")
         }
     }

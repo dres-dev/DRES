@@ -33,7 +33,7 @@ object AccessManager {
     fun manage(handler: Handler, ctx: Context, permittedRoles: Set<RouteRole>) {
         when {
             permittedRoles.isEmpty() -> handler.handle(ctx) //fallback in case no roles are set, none are required
-            permittedRoles.contains(RestApiRole.ANYONE) -> handler.handle(ctx)
+            permittedRoles.contains(ApiRole.ANYONE) -> handler.handle(ctx)
             rolesOfSession(ctx.sessionToken()).any { it in permittedRoles } -> handler.handle(ctx)
             else -> ctx.status(401)
         }
@@ -156,5 +156,3 @@ object AccessManager {
         return this.usersToRunMap[userId] ?: emptySet()
     }
 }
-
-enum class RestApiRole : RouteRole { ANYONE, VIEWER, PARTICIPANT, JUDGE, ADMIN }

@@ -36,9 +36,12 @@ import dev.dres.run.RunExecutor
 import dev.dres.utilities.NamedThreadFactory
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
+import io.javalin.http.staticfiles.Location
 import io.javalin.community.ssl.SSLPlugin
 import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiPlugin
+import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
+import io.javalin.openapi.plugin.swagger.SwaggerPlugin
 import jetbrains.exodus.database.TransientEntityStore
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.util.thread.QueuedThreadPool
@@ -208,16 +211,16 @@ object RestApi {
                 ClientOpenApiPlugin()
             )
 
-//            it.plugins.register(
-//                SwaggerPlugin(
-//                    SwaggerConfiguration().apply {
-//                        this.documentationPath = "/swagger-docs"
-//                        this.uiPath = "/swagger-ui"
-//                    }
-//                )
-//            )
+            it.plugins.register(
+                SwaggerPlugin(
+                    SwaggerConfiguration().apply {
+                        this.documentationPath = "/swagger-docs"
+                        this.uiPath = "/swagger-ui"
+                    }
+                )
+            )
 
-            it.plugins.register(ClientSwaggerPlugin())
+//            it.plugins.register(ClientSwaggerPlugin())
 
             it.http.defaultContentType = "application/json"
             it.http.prefer405over404 = true
@@ -231,7 +234,7 @@ object RestApi {
                 val ssl = SSLPlugin { conf ->
                     conf.keystoreFromPath(config.keystorePath, config.keystorePassword)
                     conf.http2 = true
-                    conf.secure = false
+                    conf.secure = true
                     conf.insecurePort = config.httpPort
                     conf.securePort = config.httpsPort
                     conf.sniHostCheck = false
@@ -257,6 +260,17 @@ object RestApi {
             if (paramId != null) {
                 //store id in attribute for later use
                 ctx.attribute("session", paramId)
+            }
+
+            //logging
+            logger.info(
+                logMarker,
+                "${ctx.req().method} request to ${ctx.path()} with params (${
+                    ctx.queryParamMap().map { e -> "${e.key}=${e.value}" }.joinToString()
+                }) from ${ctx.req().remoteAddr}"
+            )
+            if (ctx.path().startsWith("/api/")) { //do not cache api requests
+                ctx.header("Cache-Control", "no-store")
             }
 
         }.routes {
@@ -292,16 +306,6 @@ object RestApi {
                     }
                 }
                 ws("ws/run", runExecutor)
-            }
-        }.before {
-            logger.info(
-                logMarker,
-                "${it.req().method} request to ${it.path()} with params (${
-                    it.queryParamMap().map { e -> "${e.key}=${e.value}" }.joinToString()
-                }) from ${it.req().remoteAddr}"
-            )
-            if (it.path().startsWith("/api/")) { //do not cache api requests
-                it.header("Cache-Control", "no-store")
             }
         }.error(401) {
             it.json(ErrorStatus("Unauthorized request!"))

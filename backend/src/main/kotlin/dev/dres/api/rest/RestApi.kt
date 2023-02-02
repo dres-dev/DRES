@@ -21,7 +21,7 @@ import dev.dres.api.rest.handler.template.*
 import dev.dres.api.rest.handler.preview.GetMediaHandler
 import dev.dres.api.rest.handler.preview.MediaPreviewHandler
 import dev.dres.api.rest.handler.preview.SubmissionPreviewHandler
-import dev.dres.api.rest.handler.scores.ListCompetitionScoreHandler
+import dev.dres.api.rest.handler.scores.ListEvaluationScoreHandler
 import dev.dres.api.rest.handler.submission.BatchSubmissionHandler
 import dev.dres.api.rest.handler.submission.SubmissionHandler
 import dev.dres.api.rest.handler.system.CurrentTimeHandler
@@ -37,19 +37,13 @@ import dev.dres.utilities.NamedThreadFactory
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.community.ssl.SSLPlugin
-import io.javalin.http.staticfiles.Location
 import io.javalin.openapi.plugin.OpenApiConfiguration
 import io.javalin.openapi.plugin.OpenApiPlugin
 import jetbrains.exodus.database.TransientEntityStore
-import org.eclipse.jetty.http.HttpCookie
 import org.eclipse.jetty.server.*
-import org.eclipse.jetty.server.session.DefaultSessionCache
-import org.eclipse.jetty.server.session.FileSessionDataStore
-import org.eclipse.jetty.server.session.SessionHandler
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
-import java.io.File
 
 /**
  * This is a singleton instance of the RESTful API
@@ -112,7 +106,7 @@ object RestApi {
             // Competition
             ListEvaluationTemplatesHandler(store),
             CreateEvaluationTemplateHandler(store),
-            UpdateCompetitionHandler(store, config),
+            UpdateEvaluationHandler(store, config),
             ShowEvaluationTemplateHandler(store),
             DeleteEvaluationTemplateHandler(store),
             ListTeamHandler(store),
@@ -140,7 +134,7 @@ object RestApi {
             GetSubmissionHistoryInfoHandler(store),
 
             // Competition run scores
-            ListCompetitionScoreHandler(store),
+            ListEvaluationScoreHandler(store),
             CurrentTaskScoreHandler(store),
             HistoryTaskScoreHandler(store),
             ListScoreSeriesHandler(store),

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-import { CompetitionRunAdminService, SubmissionInfo, TaskRunSubmissionInfo } from '../../../../openapi';
+import {ApiSubmissionInfo, CompetitionRunAdminService} from '../../../../openapi';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTable, MatTableDataSource } from '@angular/material/table';
@@ -18,7 +18,7 @@ import { AppConfig } from '../../app.config';
 export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestroy {
   @ViewChild('group', { static: true }) group: MatButtonToggleGroup;
 
-  @ViewChild('table', { static: true }) table: MatTable<SubmissionInfo>;
+  @ViewChild('table', { static: true }) table: MatTable<ApiSubmissionInfo>;
 
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
 
@@ -55,10 +55,10 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
   public refreshSubject: Subject<null> = new Subject();
 
   /** The data source for the table. */
-  public dataSource: MatTableDataSource<SubmissionInfo> = new MatTableDataSource();
+  public dataSource: MatTableDataSource<ApiSubmissionInfo> = new MatTableDataSource();
 
   /** The data sources mapped by the taskRunId */
-  public dataSources: Map<string, MatTableDataSource<SubmissionInfo>> = new Map();
+  public dataSources: Map<string, MatTableDataSource<ApiSubmissionInfo>> = new Map();
 
   /** The list of taskRunIds there are submissions for, for convenience in the template */
   public taskRunIds: string[] = [];
@@ -101,7 +101,7 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
         this.taskRunIds = [];
         /* Repopulate */
         s.forEach((trsi) => {
-          const ds = new MatTableDataSource<SubmissionInfo>();
+          const ds = new MatTableDataSource<ApiSubmissionInfo>();
           ds.data = trsi.submissions;
           this.dataSources.set(trsi.taskRunId, ds);
           this.taskRunIds.push(trsi.taskRunId);
@@ -123,7 +123,7 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
    * @param submission The {@link SubmissionInfo} to update.
    * @param newStatus The new status.
    */
-  public update(submission: SubmissionInfo, newStatus: SubmissionInfo.StatusEnum) {
+  public update(submission: ApiSubmissionInfo, newStatus: SubmissionInfo.StatusEnum) {
     submission.status = newStatus;
     console.log(submission);
     this.runId
@@ -136,7 +136,7 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
   /**
    * Generates a URL for the preview image of a submission.
    */
-  public previewForSubmission(submission: SubmissionInfo): Observable<string> {
+  public previewForSubmission(submission: ApiSubmissionInfo): Observable<string> {
     return this.runId.pipe(map((runId) => this.config.resolveApiUrl(`/preview/submission/${runId}/${submission.id}`)));
   }
 
@@ -144,7 +144,7 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     return item;
   }
 
-  resolveSubmissionById(_: number, item: SubmissionInfo) {
+  resolveSubmissionById(_: number, item: ApiSubmissionInfo) {
     return item.id;
   }
 }

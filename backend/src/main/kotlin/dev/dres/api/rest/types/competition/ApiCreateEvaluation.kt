@@ -6,4 +6,4 @@ package dev.dres.api.rest.types.competition
  * @author Ralph Gasser
  * @version 1.0
  */
-data class ApiCreateCompetition(val name: String, val description: String)
+data class ApiCreateEvaluation(val name: String, val description: String)

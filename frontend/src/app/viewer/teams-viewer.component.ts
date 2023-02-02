@@ -15,7 +15,6 @@ import {
     ApiEvaluationState,
     ApiScoreOverview,
     ApiSubmissionInfo,
-    ApiTaskTemplateInfo,
     ApiTeamInfo,
 } from '../../../openapi';
 import {BehaviorSubject, combineLatest, merge, Observable, of, Subscription} from 'rxjs';

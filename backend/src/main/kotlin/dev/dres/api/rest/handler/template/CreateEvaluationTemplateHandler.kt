@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.template
 
 import dev.dres.api.rest.handler.PostRestHandler
-import dev.dres.api.rest.types.competition.ApiCreateCompetition
+import dev.dres.api.rest.types.competition.ApiCreateEvaluation
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -14,14 +14,14 @@ import jetbrains.exodus.database.TransientEntityStore
 import java.util.*
 
 /**
- * A [AbstractCompetitionDescriptionHandler] that can be used to create a new [EvaluationTemplate].
+ * A [AbstractEvaluationTemplateHandler] that can be used to create a new [EvaluationTemplate].
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
  * @author Loris Sauter
  * @version 2.0.0
  */
-class CreateEvaluationTemplateHandler(store: TransientEntityStore) : AbstractCompetitionDescriptionHandler(store), PostRestHandler<SuccessStatus> {
+class CreateEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), PostRestHandler<SuccessStatus> {
 
     override val route: String = "template"
 
@@ -29,7 +29,7 @@ class CreateEvaluationTemplateHandler(store: TransientEntityStore) : AbstractCom
         summary = "Creates a new evaluation template.",
         path = "/api/v2/template",
         methods = [HttpMethod.POST],
-        requestBody = OpenApiRequestBody([OpenApiContent(ApiCreateCompetition::class)]),
+        requestBody = OpenApiRequestBody([OpenApiContent(ApiCreateEvaluation::class)]),
         tags = ["Template"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -40,7 +40,7 @@ class CreateEvaluationTemplateHandler(store: TransientEntityStore) : AbstractCom
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val createRequest = try {
-            ctx.bodyAsClass<ApiCreateCompetition>()
+            ctx.bodyAsClass<ApiCreateEvaluation>()
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }

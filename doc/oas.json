@@ -3632,7 +3632,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/ApiCreateCompetition"
+                "$ref" : "#/components/schemas/ApiCreateEvaluation"
               }
             }
           },
@@ -3869,7 +3869,7 @@
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/ApiCompetitionOverview"
+                    "$ref" : "#/components/schemas/ApiEvaluationOverview"
                   }
                 }
               }
@@ -4603,18 +4603,25 @@
       "ApiEvaluationOverview" : {
         "type" : "object",
         "properties" : {
-          "state" : {
-            "type" : "string",
-            "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
+          "id" : {
+            "type" : "string"
           },
-          "teamOverviews" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiTeamTaskOverview"
-            }
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "taskCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "teamCount" : {
+            "type" : "integer",
+            "format" : "int32"
           }
         },
-        "required" : [ "state", "teamOverviews" ]
+        "required" : [ "id", "name", "taskCount", "teamCount" ]
       },
       "ApiTaskTemplateInfo" : {
         "type" : "object",
@@ -5080,7 +5087,7 @@
         },
         "required" : [ "id", "username", "role" ]
       },
-      "ApiCreateCompetition" : {
+      "ApiCreateEvaluation" : {
         "type" : "object",
         "properties" : {
           "name" : {
@@ -5091,29 +5098,6 @@
           }
         },
         "required" : [ "name", "description" ]
-      },
-      "ApiCompetitionOverview" : {
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string"
-          },
-          "name" : {
-            "type" : "string"
-          },
-          "description" : {
-            "type" : "string"
-          },
-          "taskCount" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "teamCount" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        },
-        "required" : [ "id", "name", "taskCount", "teamCount" ]
       },
       "ApiTaskTemplate" : {
         "type" : "object",

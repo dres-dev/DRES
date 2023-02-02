@@ -3,14 +3,9 @@ import { BehaviorSubject, combineLatest, merge, Observable, of, Subject, timer }
 import {
   CompetitionRunAdminService,
   CompetitionRunScoresService,
-  CompetitionRunService,
   EvaluationService,
   DownloadService,
-  PastTaskInfo,
-  RestDetailedTeam,
   ApiTeam,
-  TeamInfo,
-  TeamTaskOverview,
 } from '../../../../openapi';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../../app.config';

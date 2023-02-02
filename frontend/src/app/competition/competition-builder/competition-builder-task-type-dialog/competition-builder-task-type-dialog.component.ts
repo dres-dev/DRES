@@ -1,12 +1,8 @@
 import { AfterViewInit, Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {
-  ConfiguredOptionQueryComponentOption,
-  ConfiguredOptionScoringOption,
-  ConfiguredOptionSimpleOption,
-  ConfiguredOptionSubmissionFilterOption,
-  ConfiguredOptionTargetOption,
-  TaskType,
+  ApiTaskType
+
 } from '../../../../../openapi';
 import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
@@ -52,7 +48,7 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
 
   constructor(
     public dialogRef: MatDialogRef<CompetitionBuilderTaskTypeDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: TaskType
+    @Inject(MAT_DIALOG_DATA) public data: ApiTaskType
   ) {
     this.init();
   }
@@ -80,7 +76,7 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
   }
 
   uploaded = (data: string) => {
-    const parsed = JSON.parse(data) as TaskType;
+    const parsed = JSON.parse(data) as ApiTaskType;
     this.data = parsed;
     this.init();
     console.log('Loaded task group: ' + JSON.stringify(parsed));
@@ -232,7 +228,7 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
   /**
    * Creates the [TaskType] object from the form data and returns it.
    */
-  private fetchFromForm(): TaskType {
+  private fetchFromForm(): ApiTaskType {
     return {
       name: this.form.get('name').value,
       taskDuration: this.form.get('defaultTaskDuration').value,

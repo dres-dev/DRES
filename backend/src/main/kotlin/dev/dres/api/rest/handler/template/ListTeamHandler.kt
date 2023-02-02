@@ -10,14 +10,14 @@ import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.asSequence
 
 /**
- * A [AbstractCompetitionDescriptionHandler] that can be used to list all [Team]s.
+ * A [AbstractEvaluationTemplateHandler] that can be used to list all [Team]s.
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ListTeamHandler(store: TransientEntityStore) : AbstractCompetitionDescriptionHandler(store), GetRestHandler<List<ApiTeam>> {
+class ListTeamHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), GetRestHandler<List<ApiTeam>> {
 
     override val route: String = "competition/{competitionId}/team/list"
 

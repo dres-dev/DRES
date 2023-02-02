@@ -1,13 +1,10 @@
 import { Component } from '@angular/core';
 import { AbstractRunListComponent, RunInfoWithState } from './abstract-run-list.component';
 import {
-  AdminRunOverview,
+  ApiEvaluationInfo, ApiEvaluationState,
   CompetitionRunAdminService,
   CompetitionRunScoresService,
-  CompetitionRunService,
-  DownloadService,
-  RunInfo,
-  RunState,
+  DownloadService, EvaluationService,
 } from '../../../openapi';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
@@ -18,10 +15,10 @@ import {
 } from '../shared/confirmation-dialog/confirmation-dialog.component';
 import { forkJoin, merge, timer } from 'rxjs';
 import { flatMap, map, switchMap } from 'rxjs/operators';
-import RunStatusEnum = RunState.RunStatusEnum;
+import RunStatusEnum = ApiEvaluationState.RunStatusEnum;
 
 export interface RunInfoOverviewTuple {
-  runInfo: RunInfo;
+  runInfo: ApiEvaluationInfo;
   overview: AdminRunOverview;
 }
 
@@ -31,7 +28,7 @@ export interface RunInfoOverviewTuple {
 })
 export class AdminRunListComponent extends AbstractRunListComponent {
   constructor(
-    runService: CompetitionRunService,
+    runService: EvaluationService,
     runAdminService: CompetitionRunAdminService,
     scoreService: CompetitionRunScoresService,
     downloadService: DownloadService,

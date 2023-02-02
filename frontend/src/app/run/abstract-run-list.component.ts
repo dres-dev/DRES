@@ -1,11 +1,9 @@
 import { combineLatest, merge, Observable, Subject, timer } from 'rxjs';
 import {
-  CompetitionRunAdminService,
   CompetitionRunScoresService,
-  CompetitionRunService,
   DownloadService,
   RunProperties,
-  ApiEvaluationState,
+  ApiEvaluationState, EvaluationAdministratorService, EvaluationService,
 } from '../../../openapi';
 import { flatMap, map, take } from 'rxjs/operators';
 import { Router } from '@angular/router';
@@ -31,8 +29,8 @@ export class AbstractRunListComponent {
   update = new Subject();
 
   constructor(
-    protected runService: CompetitionRunService,
-    protected runAdminService: CompetitionRunAdminService,
+    protected runService: EvaluationService,
+    protected runAdminService: EvaluationAdministratorService,
     protected scoreService: CompetitionRunScoresService,
     protected downloadService: DownloadService,
     protected router: Router,
@@ -106,7 +104,7 @@ export class AbstractRunListComponent {
   }
 
   public nextTask(runId: string) {
-    this.runAdminService.postApiV1RunAdminWithRunidTaskNext(runId).subscribe(
+    this.runAdminService.apiV2EvaluationAdminRunIdTaskNextPost(runId).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -157,7 +155,7 @@ export class AbstractRunListComponent {
      * Creates a combined observable that updates the state in a regular interval and the info +
      * state whenever a manual update is triggered.
      */
-    const query = combineLatest([this.runService.getApiV1RunInfoList(), this.runService.getApiV1RunStateList()]);
+    const query = combineLatest([this.runService.apiV2EvaluationInfoListGet(), this.runService.apiV2EvaluationStateListGet()]);
     this.runs = merge(timer(0, this.updateInterval), this.update).pipe(
       flatMap((t) => query),
       map(([info, state]) => {

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
-import { EvaluationService, ApiContentElement, ApiEvaluationState, ApiTaskTemplateInfo, TaskTarget } from '../../../openapi';
+import {EvaluationService, ApiContentElement, ApiEvaluationState, ApiTaskTemplateInfo, ApiTarget} from '../../../openapi';
 import { BehaviorSubject, combineLatest, interval, merge, Observable, of, Subscription, timer } from 'rxjs';
 import {
   catchError,
@@ -170,7 +170,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
 
     /** Map task target to representation used by viewer. */
     this.currentTaskTarget = currentTaskTarget.pipe(
-      flatMap((h: TaskTarget) => {
+      flatMap((h: ApiTarget) => {
         if (!h) {
           return fromArray([]);
         }

@@ -3,12 +3,6 @@ import { ActivatedRoute, Router, RouterStateSnapshot } from '@angular/router';
 import { filter, map, shareReplay, take } from 'rxjs/operators';
 import {
   DownloadService,
-  CompetitionService,
-  ConfiguredOptionQueryComponentOption,
-  ConfiguredOptionScoringOption,
-  ConfiguredOptionSimpleOption,
-  ConfiguredOptionSubmissionFilterOption,
-  ConfiguredOptionTargetOption,
   ApiEvaluationTemplate,
   ApiTaskTemplate,
   ApiTeam,
@@ -16,7 +10,7 @@ import {
   ApiTaskType,
   ApiUser,
   UserService,
-  UserRequest,
+  UserRequest, EvaluationService,
 } from '../../../../openapi';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormControl, FormGroup } from '@angular/forms';
@@ -163,7 +157,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   lscTemplate = CompetitionBuilderComponent.LSC_TEMPLATE;
 
   constructor(
-    private competitionService: CompetitionService,
+    private competitionService: EvaluationService,
     private userService: UserService,
     private downloadService: DownloadService,
     private route: ActivatedRoute,

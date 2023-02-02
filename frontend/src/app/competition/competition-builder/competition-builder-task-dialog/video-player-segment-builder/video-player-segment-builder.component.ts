@@ -1,11 +1,11 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import { Observable, of, Subscription } from 'rxjs';
-import { RestMediaItem, RestTemporalPoint, RestTemporalRange } from '../../../../../../openapi';
+import { ApiMediaItem, ApiTemporalPoint, ApiTemporalRange } from '../../../../../../openapi';
 import { AppConfig } from '../../../../app.config';
 import { Options } from '@angular-slider/ngx-slider';
 
 export interface VideoPlayerSegmentBuilderData {
-  mediaItem: RestMediaItem;
+  mediaItem: ApiMediaItem;
   segmentStart: number;
   segmentEnd: number;
 }
@@ -17,7 +17,7 @@ export interface VideoPlayerSegmentBuilderData {
 })
 export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDestroy {
   @Input() data: VideoPlayerSegmentBuilderData;
-  @Output() rangeChange = new EventEmitter<RestTemporalRange>();
+  @Output() rangeChange = new EventEmitter<ApiTemporalRange>();
 
   @ViewChild('videoPlayer', { static: false }) video: ElementRef;
   videoUrl: Observable<string>;
@@ -162,9 +162,9 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
 
   public fetchData() {
     const out = {
-      start: { value: this.startInSeconds.toString(), unit: 'SECONDS' } as RestTemporalPoint,
-      end: { value: this.endInSeconds.toString(), unit: 'SECONDS' } as RestTemporalPoint,
-    } as RestTemporalRange;
+      start: { value: this.startInSeconds.toString(), unit: 'SECONDS' } as ApiTemporalPoint,
+      end: { value: this.endInSeconds.toString(), unit: 'SECONDS' } as ApiTemporalPoint,
+    } as ApiTemporalRange;
     console.log(`Fetched: ${out}`);
     return out;
   }

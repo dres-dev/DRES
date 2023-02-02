@@ -17,7 +17,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ListCompetitionScoreHandler(store: TransientEntityStore) : AbstractScoreHandler(store), GetRestHandler<List<ApiScoreOverview>> {
+class ListEvaluationScoreHandler(store: TransientEntityStore) : AbstractScoreHandler(store), GetRestHandler<List<ApiScoreOverview>> {
 
     override val route = "score/evaluation/{evaluationId}"
 

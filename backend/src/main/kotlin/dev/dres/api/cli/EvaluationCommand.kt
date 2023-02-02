@@ -33,17 +33,17 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
     init {
         this.subcommands(
             Create(),
-            ListCompetitionCommand(),
-            ShowCompetitionCommand(),
-            PrepareCompetitionCommand(),
-            DeleteCompetitionCommand(),
-            CopyCompetitionCommand(),
-            ExportCompetitionCommand(),
-            ImportCompetitionCommand()
+            List(),
+            Show(),
+            Prepare(),
+            Delete(),
+            Copy(),
+            Export(),
+            Import()
         )
     }
 
-    override fun aliases(): Map<String, List<String>> {
+    override fun aliases(): Map<String, kotlin.collections.List<String>> {
         return mapOf(
             "ls" to listOf("list"),
             "remove" to listOf("delete"),
@@ -55,7 +55,7 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
     /** The cache location [Paths]. */
     private val cacheLocation = Paths.get(config.cachePath, "tasks")
 
-    abstract inner class AbstractCompetitionCommand(name: String, help: String, printHelpOnEmptyArgs: Boolean = true) : CliktCommand(name = name, help = help, printHelpOnEmptyArgs = printHelpOnEmptyArgs) {
+    abstract inner class AbstractEvaluationCommand(name: String, help: String, printHelpOnEmptyArgs: Boolean = true) : CliktCommand(name = name, help = help, printHelpOnEmptyArgs = printHelpOnEmptyArgs) {
         protected val id: String? by option("-i", "--id")
         protected val name: String? by option("-c", "--competition")
     }
@@ -88,7 +88,7 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
     /**
      * [CliktCommand] to delete a [EvaluationTemplate].
      */
-    inner class DeleteCompetitionCommand : AbstractCompetitionCommand(name = "delete", help = "Deletes a competition") {
+    inner class Delete : AbstractEvaluationCommand(name = "delete", help = "Deletes a competition") {
         override fun run() {
             this@EvaluationCommand.store.transactional {
                 val competition = EvaluationTemplate.query((EvaluationTemplate::id eq this.id).or(EvaluationTemplate::name eq this.name)).firstOrNull()
@@ -105,7 +105,7 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
     /**
      * [CliktCommand] to copy a [EvaluationTemplate].
      */
-    inner class CopyCompetitionCommand : AbstractCompetitionCommand(name = "copy", help = "Copies a Competition") {
+    inner class Copy : AbstractEvaluationCommand(name = "copy", help = "Copies a Competition") {
         override fun run() {
             this@EvaluationCommand.store.transactional {
                 val competition = EvaluationTemplate.query((EvaluationTemplate::id eq this.id).or(EvaluationTemplate::name eq this.name)).firstOrNull()
@@ -123,7 +123,7 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
     /**
      * [CliktCommand] to list all [EvaluationTemplate]s.
      */
-    inner class ListCompetitionCommand : CliktCommand(name = "list", help = "Lists an overview of all Competitions") {
+    inner class List : CliktCommand(name = "list", help = "Lists an overview of all Competitions") {
         override fun run() = this@EvaluationCommand.store.transactional(true) {
             var no = 0
             println(table {
@@ -148,7 +148,7 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
     /**
      * [CliktCommand] to show a specific [EvaluationTemplate].
      */
-    inner class ShowCompetitionCommand : AbstractCompetitionCommand(name = "show", help = "Shows details of a Competition") {
+    inner class Show : AbstractEvaluationCommand(name = "show", help = "Shows details of a Competition") {
         override fun run() = this@EvaluationCommand.store.transactional(true) {
             val competition = EvaluationTemplate.query(
                 (EvaluationTemplate::id eq this.id).or(EvaluationTemplate::name eq this.name)
@@ -179,7 +179,7 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
     /**
      * [CliktCommand] to prepare a specific [EvaluationTemplate].
      */
-    inner class PrepareCompetitionCommand : AbstractCompetitionCommand(name = "prepare", help = "Checks the used Media Items and generates precomputed Queries") {
+    inner class Prepare : AbstractEvaluationCommand(name = "prepare", help = "Checks the used Media Items and generates precomputed Queries") {
 
         override fun run() = this@EvaluationCommand.store.transactional(true) {
             val competition = EvaluationTemplate.query(
@@ -210,7 +210,7 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
     /**
      * Exports a specific competition to a JSON file.
      */
-    inner class ExportCompetitionCommand : AbstractCompetitionCommand(name = "export", help = "Exports a competition description as JSON.") {
+    inner class Export : AbstractEvaluationCommand(name = "export", help = "Exports a competition description as JSON.") {
 
         /** Path to the file that should be created .*/
         private val path: Path by option("-o", "--out", help = "The destination file for the competition.").path().required()
@@ -245,7 +245,7 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
     /**
      * Imports a competition from a JSON file.
      */
-    inner class ImportCompetitionCommand : CliktCommand(name = "import", help = "Imports a competition description from JSON.") {
+    inner class Import : CliktCommand(name = "import", help = "Imports a competition description from JSON.") {
 
         /** Flag indicating whether a new competition should be created.*/
         private val new: Boolean by option("-n", "--new", help = "Flag indicating whether a new competition should be created.").flag("-u", "--update", default = true)

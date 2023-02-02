@@ -1,10 +1,8 @@
 import { Component } from '@angular/core';
 import { AbstractRunListComponent, RunInfoWithState } from './abstract-run-list.component';
 import {
-  CompetitionRunAdminService,
-  DownloadService,
   CompetitionRunScoresService,
-  CompetitionRunService,
+  DownloadService, EvaluationAdministratorService, EvaluationService,
 } from '../../../openapi';
 import { Router } from '@angular/router';
 import { AccessChecking } from '../model/access-checking.interface';
@@ -22,8 +20,8 @@ export class ViewerRunListComponent extends AbstractRunListComponent implements 
   participantGroup = AccessRoleService.PARTICIPANT_GROUP;
 
   constructor(
-    runService: CompetitionRunService,
-    runAdminService: CompetitionRunAdminService,
+    runService: EvaluationService,
+    runAdminService: EvaluationAdministratorService,
     scoreService: CompetitionRunScoresService,
     downloadService: DownloadService,
     router: Router,

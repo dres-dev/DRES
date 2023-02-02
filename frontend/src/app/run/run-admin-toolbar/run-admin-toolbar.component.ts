@@ -6,11 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../../app.config';
 import {
   CompetitionRunAdminService,
-  CompetitionRunScoresService,
-  CompetitionRunService,
-  CompetitionService,
-  DownloadService,
-  RunInfo,
+  CompetitionRunScoresService, DownloadService, EvaluationService,
 } from '../../../../openapi';
 import { MatDialog } from '@angular/material/dialog';
 import { take } from 'rxjs/operators';
@@ -34,7 +30,7 @@ export class RunAdminToolbarComponent implements OnInit {
     private router: Router,
     private activeRoute: ActivatedRoute,
     private config: AppConfig,
-    private runService: CompetitionRunService,
+    private runService: EvaluationService,
     private competitionService: CompetitionService,
     private runAdminService: CompetitionRunAdminService,
     private scoreService: CompetitionRunScoresService,

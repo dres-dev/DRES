@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.template
 
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.types.competition.ApiCompetitionOverview
+import dev.dres.api.rest.types.competition.ApiEvaluationOverview
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.model.template.EvaluationTemplate
 import io.javalin.http.Context
@@ -21,7 +21,7 @@ import kotlinx.dnq.query.size
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ListEvaluationTemplatesHandler(store: TransientEntityStore) : AbstractCompetitionDescriptionHandler(store), GetRestHandler<List<ApiCompetitionOverview>> {
+class ListEvaluationTemplatesHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), GetRestHandler<List<ApiEvaluationOverview>> {
     override val route: String = "template/list"
 
     @OpenApi(
@@ -29,14 +29,14 @@ class ListEvaluationTemplatesHandler(store: TransientEntityStore) : AbstractComp
         path = "/api/v2/template/list",
         tags = ["Template"],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(Array<ApiCompetitionOverview>::class)]),
+            OpenApiResponse("200", [OpenApiContent(Array<ApiEvaluationOverview>::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
         ],
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context) = this.store.transactional(true) {
         EvaluationTemplate.all().asSequence().map {
-            ApiCompetitionOverview(it.id, it.name, it.description, it.tasks.size(), it.teams.size())
+            ApiEvaluationOverview(it.id, it.name, it.description, it.tasks.size(), it.teams.size())
         }.toList()
     }
 }

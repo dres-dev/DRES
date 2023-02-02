@@ -9,14 +9,14 @@ import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 
 /**
- * A [AbstractCompetitionDescriptionHandler] that can be used to delete an existing [EvaluationTemplate].
+ * A [AbstractEvaluationTemplateHandler] that can be used to delete an existing [EvaluationTemplate].
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
  * @author Loris Sauter
  * @version 2.0.0
  */
-class DeleteEvaluationTemplateHandler(store: TransientEntityStore) : AbstractCompetitionDescriptionHandler(store), DeleteRestHandler<SuccessStatus> {
+class DeleteEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), DeleteRestHandler<SuccessStatus> {
     override val route: String = "template/{templateId}"
 
     @OpenApi(

@@ -9,14 +9,14 @@ import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 
 /**
- * A [AbstractCompetitionDescriptionHandler] that can be used to show an existing [EvaluationTemplate].
+ * A [AbstractEvaluationTemplateHandler] that can be used to show an existing [EvaluationTemplate].
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ShowEvaluationTemplateHandler(store: TransientEntityStore) : AbstractCompetitionDescriptionHandler(store), GetRestHandler<ApiEvaluationTemplate> {
+class ShowEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), GetRestHandler<ApiEvaluationTemplate> {
     override val route: String = "template/{templateId}"
 
     @OpenApi(

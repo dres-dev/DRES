@@ -14,14 +14,14 @@ import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
 
 /**
- * A [AbstractCompetitionDescriptionHandler] that can be used to list all [Team] logos.
+ * A [AbstractEvaluationTemplateHandler] that can be used to list all [Team] logos.
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
  * @author Loris Sauter
  * @version 1.0.0
  */
-class GetTeamLogoHandler(store: TransientEntityStore) : AbstractCompetitionDescriptionHandler(store), GetRestHandler<Any> {
+class GetTeamLogoHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), GetRestHandler<Any> {
 
     override val route = "template/logo/{logoId}"
     override val apiVersion = "v2"

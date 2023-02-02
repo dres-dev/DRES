@@ -1,10 +1,9 @@
 import { AfterViewInit, Component } from '@angular/core';
 import {
-  CompetitionCreate,
-  CompetitionOverview,
+  ApiCreateEvaluation,
+  ApiEvaluationOverview,
   CompetitionRunAdminService,
-  CompetitionService,
-  CompetitionStartMessage,
+  EvaluationService,
   DownloadService,
   RunProperties,
 } from '../../../../openapi';
@@ -27,11 +26,11 @@ import {
 export class CompetitionListComponent implements AfterViewInit {
   /** */
   displayedColumns = ['actions', 'id', 'name', 'description', 'taskCount', 'teamCount'];
-  competitions: CompetitionOverview[] = [];
+  competitions: ApiEvaluationOverview[] = [];
   waitingForRun = false;
 
   constructor(
-    private competitionService: CompetitionService,
+    private evaluationService: EvaluationService,
     private runAdminService: CompetitionRunAdminService,
     private downloadService: DownloadService,
     private routerService: Router,
@@ -45,8 +44,8 @@ export class CompetitionListComponent implements AfterViewInit {
       .afterClosed()
       .pipe(
         filter((r) => r != null),
-        flatMap((r: CompetitionCreate) => {
-          return this.competitionService.postApiV1Competition(r);
+        flatMap((r: ApiCreateEvaluation) => {
+          return this.evaluationService.postApiV1Competition(r);
         })
       )
       .subscribe(
@@ -79,7 +78,7 @@ export class CompetitionListComponent implements AfterViewInit {
             name: r.name,
             type: r.type,
             properties: properties,
-          } as CompetitionStartMessage);
+          } as ApiCreateEvaluation);
         })
       )
       .subscribe(
@@ -107,7 +106,7 @@ export class CompetitionListComponent implements AfterViewInit {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.competitionService.deleteApiV1CompetitionWithCompetitionid(competitionId).subscribe(
+        this.evaluationService.deleteApiV1CompetitionWithCompetitionid(competitionId).subscribe(
           (r) => {
             this.refresh();
             this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -121,8 +120,8 @@ export class CompetitionListComponent implements AfterViewInit {
   }
 
   public refresh() {
-    this.competitionService.getApiV1CompetitionList().subscribe(
-      (results: CompetitionOverview[]) => {
+    this.evaluationService.getApiV1CompetitionList().subscribe(
+      (results: ApiEvaluationOverview[]) => {
         this.competitions = results;
       },
       (r) => {
@@ -145,7 +144,7 @@ export class CompetitionListComponent implements AfterViewInit {
     return () => name;
   };
 
-  resolveCompetitionOverviewById(_: number, item: CompetitionOverview) {
+  resolveCompetitionOverviewById(_: number, item: ApiEvaluationOverview) {
     return item.id;
   }
 }

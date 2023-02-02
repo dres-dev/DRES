@@ -1,16 +1,7 @@
 import {
+  ApiMediaItem,
+  ApiTaskGroup, ApiTaskType,
   CollectionService,
-  ConfiguredOptionQueryComponentOption,
-  ConfiguredOptionTargetOption,
-  RestMediaItem,
-  RestTaskDescription,
-  RestTaskDescriptionComponent,
-  RestTaskDescriptionTarget,
-  RestTaskDescriptionTargetItem,
-  RestTemporalPoint,
-  RestTemporalRange,
-  TaskGroup,
-  TaskType,
 } from '../../../../../openapi';
 import { AbstractControl, FormArray, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { filter, first, switchMap } from 'rxjs/operators';
@@ -26,7 +17,7 @@ export class CompetitionFormBuilder {
   public form: FormGroup;
 
   /** List of data sources managed by this CompetitionFormBuilder. */
-  private dataSources = new Map<string, Observable<RestMediaItem[] | string[]>>();
+  private dataSources = new Map<string, Observable<ApiMediaItem[] | string[]>>();
 
   /**
    * Constructor for CompetitionFormBuilder.
@@ -37,8 +28,8 @@ export class CompetitionFormBuilder {
    * @param data The {@link RestTaskDescription} to initialize the form with.
    */
   constructor(
-    private taskGroup: TaskGroup,
-    private taskType: TaskType,
+    private taskGroup: ApiTaskGroup,
+    private taskType: ApiTaskType,
     private collectionService: CollectionService,
     private data?: RestTaskDescription
   ) {
@@ -63,7 +54,7 @@ export class CompetitionFormBuilder {
    *
    * @param key Key to fetch the data source for.
    */
-  public dataSource(key: string): Observable<RestMediaItem[] | string[]> {
+  public dataSource(key: string): Observable<ApiMediaItem[] | string[]> {
     return this.dataSources.get(key);
   }
 

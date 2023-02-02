@@ -2,16 +2,9 @@ import { AfterViewInit, Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../app.config';
 import {
-  CompetitionRunAdminService,
-  CompetitionRunService,
-  CompetitionService,
-  PastTaskInfo,
-  RestDetailedTeam,
-  RunInfo,
-  RunState,
-  TaskInfo,
-  TaskRunSubmissionInfo,
-  ViewerInfo,
+    ApiEvaluationInfo,
+    ApiEvaluationState, ApiViewerInfo,
+    CompetitionRunAdminService,
 } from '../../../openapi';
 import { BehaviorSubject, combineLatest, merge, Observable, of, Subject, timer } from 'rxjs';
 import { catchError, filter, flatMap, map, shareReplay, switchMap } from 'rxjs/operators';
@@ -24,8 +17,8 @@ import {
 import { RunInfoOverviewTuple } from './admin-run-list.component';
 
 export interface CombinedRun {
-  info: RunInfo;
-  state: RunState;
+  info: ApiEvaluationInfo;
+  state: ApiEvaluationState;
 }
 
 @Component({
@@ -38,7 +31,7 @@ export class RunAdminViewComponent {
   runIdAsSubject: BehaviorSubject<string> = new BehaviorSubject<string>('');
   run: Observable<CombinedRun>;
   runOverview: Observable<RunInfoOverviewTuple>;
-  viewers: Observable<ViewerInfo[]>;
+  viewers: Observable<ApiViewerInfo[]>;
   update = new Subject();
   displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'past', 'action'];
   teams: Observable<RestDetailedTeam[]>;

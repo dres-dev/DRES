@@ -10,14 +10,14 @@ import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.asSequence
 
 /**
- * A [AbstractCompetitionDescriptionHandler] that can be used to list all [TaskTemplate]s.
+ * A [AbstractEvaluationTemplateHandler] that can be used to list all [TaskTemplate]s.
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ListTasksHandler(store: TransientEntityStore) : AbstractCompetitionDescriptionHandler(store), GetRestHandler<List<ApiTaskTemplate>> {
+class ListTasksHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), GetRestHandler<List<ApiTaskTemplate>> {
 
     override val route: String = "template/{templateId}/task/list"
 

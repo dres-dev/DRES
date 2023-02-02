@@ -24,14 +24,14 @@ import java.io.ByteArrayInputStream
 import java.util.*
 
 /**
- * A [AbstractCompetitionDescriptionHandler] that can be used to create a new [EvaluationTemplate].
+ * A [AbstractEvaluationTemplateHandler] that can be used to create a new [EvaluationTemplate].
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
  * @author Loris Sauter
  * @version 2.0.0
  */
-class UpdateCompetitionHandler(store: TransientEntityStore, val config: Config) : AbstractCompetitionDescriptionHandler(store), PatchRestHandler<SuccessStatus> {
+class UpdateEvaluationHandler(store: TransientEntityStore, val config: Config) : AbstractEvaluationTemplateHandler(store), PatchRestHandler<SuccessStatus> {
 
     override val route: String = "template"
 

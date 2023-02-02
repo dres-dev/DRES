@@ -22,7 +22,7 @@ import kotlinx.dnq.query.query
  * @author Loris Sauter
  * @version 1.0.0
  */
-abstract class AbstractCompetitionDescriptionHandler(protected val store: TransientEntityStore) : RestHandler, AccessManagedRestHandler {
+abstract class AbstractEvaluationTemplateHandler(protected val store: TransientEntityStore) : RestHandler, AccessManagedRestHandler {
 
     /** All [AbstractCollectionHandler]s require [ApiRole.ADMIN]. */
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CompetitionRunScoresService, CompetitionRunService, RunInfo } from '../../../../openapi';
+import { CompetitionRunScoresService, EvaluationService, ApiEvaluationInfo } from '../../../../openapi';
 import { catchError, filter, flatMap, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { combineLatest, concat, interval, Observable, of } from 'rxjs';
 import {
@@ -26,7 +26,7 @@ export class RunScoreHistoryComponent {
   /** Title for the time series graph. */
   public title: Observable<ApexTitleSubtitle>;
   /** Run information for the current run ID. */
-  public runInfo: Observable<RunInfo>;
+  public runInfo: Observable<ApiEvaluationInfo>;
   /** Time series data. */
   public series: Observable<ApexAxisChartSeries>;
   /** The currently selected scoreboard. */
@@ -113,14 +113,14 @@ export class RunScoreHistoryComponent {
   constructor(
     private router: Router,
     private activeRoute: ActivatedRoute,
-    private runService: CompetitionRunService,
+    private runService: EvaluationService,
     private scoreService: CompetitionRunScoresService
   ) {
     /* Information about current run. */
     this.runId = this.activeRoute.params.pipe(map((a) => a.runId));
     this.runInfo = this.runId.pipe(
       switchMap((runId) =>
-        this.runService.getApiV1RunWithRunidInfo(runId).pipe(
+        this.runService.apiV2EvaluationEvaluationIdInfoGet(runId).pipe(
           catchError((err, o) => {
             console.log(
               `[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`
@@ -151,7 +151,7 @@ export class RunScoreHistoryComponent {
     /* List of scoreboard for the current run ID. */
     this.scoreboards = this.runId.pipe(
       switchMap((runId) =>
-        this.scoreService.getApiV1ScoreRunWithRunidScoreboardList(runId).pipe(
+        this.scoreService.apiV2ScoreEvaluationEvaluationIdTeamGroupListGet(runId).pipe(
           catchError((err, o) => {
             console.log(
               `[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`

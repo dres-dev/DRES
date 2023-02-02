@@ -34,7 +34,6 @@ object UserManager {
         try {
             this.store.transactional {
                 User.new {
-                    this.id = UUID.randomUUID().toString()
                     this.username = username
                     this.password = password.password
                     this.role = role

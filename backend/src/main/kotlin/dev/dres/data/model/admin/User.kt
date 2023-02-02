@@ -2,6 +2,7 @@ package dev.dres.data.model.admin
 
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.PersistentEntity
+import dev.dres.data.model.XdIdNaturalEntityType
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdNaturalEntityType
 import kotlinx.dnq.simple.length
@@ -17,7 +18,7 @@ typealias UserId = String
  * @version 2.0.0
  */
 class User(entity: Entity): PersistentEntity(entity) {
-    companion object : XdNaturalEntityType<User>() {
+    companion object : XdIdNaturalEntityType<User>() {
         /** The minimum length of a password. */
         const val MIN_LENGTH_PASSWORD = 6
 

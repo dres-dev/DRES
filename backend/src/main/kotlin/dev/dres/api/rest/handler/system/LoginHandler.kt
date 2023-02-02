@@ -9,7 +9,6 @@ import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.Password
 import dev.dres.data.model.audit.AuditLogSource
 import dev.dres.mgmt.admin.UserManager
-import dev.dres.mgmt.admin.UserManager.getMatchingUser
 import dev.dres.run.audit.AuditLogger
 import dev.dres.utilities.extensions.getOrCreateSessionToken
 import io.javalin.http.BadRequestResponse
@@ -50,7 +49,7 @@ class LoginHandler : RestHandler, PostRestHandler<ApiUser> {
         /* Validate login request. */
         val username = loginRequest.username
         val password = Password.Plain(loginRequest.password)
-        val user = getMatchingUser(username, password) ?: throw ErrorStatusException(401, "Invalid credentials. Please try again!", ctx)
+        val user = UserManager.getMatchingApiUser(username, password) ?: throw ErrorStatusException(401, "Invalid credentials. Please try again!", ctx)
 
         val sessionToken = ctx.getOrCreateSessionToken()
 
@@ -60,9 +59,8 @@ class LoginHandler : RestHandler, PostRestHandler<ApiUser> {
         //explicitly set cookie on login
         ctx.cookie(AccessManager.SESSION_COOKIE_NAME, sessionToken, AccessManager.SESSION_COOKIE_LIFETIME)
 
-        val ret = UserManager.get(username)!!.toApi()
-        ret.sessionId = sessionToken
-        return ret
+        user.sessionId = sessionToken
+        return user
     }
 
     override val route = "login"

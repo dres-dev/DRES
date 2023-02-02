@@ -1,6 +1,7 @@
 package dev.dres.mgmt.admin
 
 import dev.dres.api.rest.types.users.ApiRole
+import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.api.rest.types.users.UserRequest
 import dev.dres.data.model.admin.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -179,8 +180,8 @@ object UserManager {
     /**
      * Either returns a user for this username/password tuple or null
      */
-    fun getMatchingUser(username: String, password: Password.Plain) : User?  {
+    fun getMatchingApiUser(username: String, password: Password.Plain) : ApiUser? = this.store.transactional(readonly = true) {
         val user = get(null, username)
-        return if (user?.hashedPassword()?.check(password) == true) user else null
+        return@transactional if (user?.hashedPassword()?.check(password) == true) user.toApi() else null
     }
 }

@@ -2,6 +2,7 @@ package dev.dres.api.rest
 
 import dev.dres.api.rest.handler.users.SessionToken
 import dev.dres.api.rest.types.users.ApiRole
+import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.Role
 import dev.dres.data.model.admin.User
 import dev.dres.data.model.admin.UserId
@@ -61,7 +62,7 @@ object AccessManager {
      * @param sessionId The [SessionToken] to register the [User] for.
      * @param user The [User] to register.
      */
-    fun registerUserForSession(sessionId: String, user: User) = this.locks.write {
+    fun registerUserForSession(sessionId: String, user: ApiUser) = this.locks.write {
         if (!this.sessionRoleMap.containsKey(sessionId)){
             this.sessionRoleMap[sessionId] = mutableSetOf()
         }
@@ -69,10 +70,10 @@ object AccessManager {
         this.sessionUserMap[sessionId] = user.id
         this.sessionRoleMap[sessionId]!!.addAll(
             when(user.role) {
-                Role.ADMIN -> arrayOf(ApiRole.VIEWER, ApiRole.PARTICIPANT, ApiRole.JUDGE, ApiRole.ADMIN)
-                Role.JUDGE -> arrayOf(ApiRole.VIEWER, ApiRole.JUDGE)
-                Role.PARTICIPANT -> arrayOf(ApiRole.VIEWER, ApiRole.PARTICIPANT)
-                Role.VIEWER -> arrayOf(ApiRole.VIEWER)
+                ApiRole.ADMIN -> arrayOf(ApiRole.VIEWER, ApiRole.PARTICIPANT, ApiRole.JUDGE, ApiRole.ADMIN)
+                ApiRole.JUDGE -> arrayOf(ApiRole.VIEWER, ApiRole.JUDGE)
+                ApiRole.PARTICIPANT -> arrayOf(ApiRole.VIEWER, ApiRole.PARTICIPANT)
+                ApiRole.VIEWER -> arrayOf(ApiRole.VIEWER)
                 else -> throw IllegalStateException("Role held by user is unknown!")
             }
         )

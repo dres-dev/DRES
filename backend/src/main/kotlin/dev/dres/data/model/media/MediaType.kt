@@ -32,4 +32,6 @@ class MediaType(entity: Entity) : XdEnumEntity(entity) {
      */
     fun toApi(): ApiMediaType
         = ApiMediaType.values().find { it.toMediaType() == this } ?: throw IllegalStateException("Media type ${this.description} is not supported.")
+
+    override fun toString(): String = this.description
 }

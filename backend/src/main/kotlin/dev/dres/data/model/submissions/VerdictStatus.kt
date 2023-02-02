@@ -50,5 +50,7 @@ class VerdictStatus(entity: Entity) : XdEnumEntity(entity) {
      *
      * @return [ApiVerdictStatus]
      */
-    fun toApi() = ApiVerdictStatus.values().find { it.status == this } ?: throw IllegalStateException("Verdict status ${this.description} is not supported.")
+    fun toApi() = ApiVerdictStatus.values().find { it.toVerdictStatus() == this } ?: throw IllegalStateException("Verdict status ${this.description} is not supported.")
+
+    override fun toString(): String = this.description
 }

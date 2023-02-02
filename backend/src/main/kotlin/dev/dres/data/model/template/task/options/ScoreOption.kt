@@ -41,5 +41,7 @@ class ScoreOption(entity: Entity) : XdEnumEntity(entity) {
      *
      * @return [ApiScoreOption]
      */
-    fun toApi() = ApiScoreOption.values().find { it.option == this } ?: throw IllegalStateException("Option ${this.description} is not supported.")
+    fun toApi() = ApiScoreOption.values().find { it.toScoreOption() == this } ?: throw IllegalStateException("Option ${this.description} is not supported.")
+
+    override fun toString(): String = this.description
 }

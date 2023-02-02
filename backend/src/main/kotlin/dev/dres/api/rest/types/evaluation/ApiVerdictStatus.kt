@@ -9,9 +9,18 @@ import dev.dres.data.model.submissions.VerdictStatus
  * @author Ralph Gasser
  * @version 1.0.0
  */
-enum class ApiVerdictStatus(val status: VerdictStatus) {
-    CORRECT(VerdictStatus.CORRECT),
-    WRONG(VerdictStatus.WRONG),
-    INDETERMINATE(VerdictStatus.INDETERMINATE),
-    UNDECIDABLE(VerdictStatus.UNDECIDABLE)
+enum class ApiVerdictStatus {
+    CORRECT, WRONG, INDETERMINATE, UNDECIDABLE;
+
+    /**
+     * Converts this [ApiVerdictStatus] to a [VerdictStatus] representation. Requires an ongoing transaction.
+     *
+     * @return [VerdictStatus]
+     */
+    fun toVerdictStatus(): VerdictStatus = when(this) {
+        CORRECT -> VerdictStatus.CORRECT
+        WRONG -> VerdictStatus.WRONG
+        INDETERMINATE -> VerdictStatus.INDETERMINATE
+        UNDECIDABLE -> VerdictStatus.UNDECIDABLE
+    }
 }

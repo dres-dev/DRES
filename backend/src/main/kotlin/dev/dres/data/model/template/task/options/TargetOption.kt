@@ -30,5 +30,7 @@ class TargetOption(entity: Entity) : XdEnumEntity(entity) {
      *
      * @return [ApiTargetOption]
      */
-    fun toApi() = ApiTargetOption.values().find { it.option == this } ?: throw IllegalStateException("Option ${this.description} is not supported.")
+    fun toApi() = ApiTargetOption.values().find { it.toTargetOption() == this } ?: throw IllegalStateException("Option ${this.description} is not supported.")
+
+    override fun toString(): String = this.description
 }

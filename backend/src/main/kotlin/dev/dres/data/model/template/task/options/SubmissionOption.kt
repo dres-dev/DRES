@@ -53,5 +53,5 @@ class SubmissionOption(entity: Entity) : XdEnumEntity(entity) {
      *
      * @return [ApiSubmissionOption]
      */
-    fun toApi() = ApiSubmissionOption.values().find { it.option == this } ?: throw IllegalStateException("Option ${this.description} is not supported.")
+    fun toApi() = ApiSubmissionOption.values().find { it.toSubmissionOption() == this } ?: throw IllegalStateException("Option ${this.description} is not supported.")
 }

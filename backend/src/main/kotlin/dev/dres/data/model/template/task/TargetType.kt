@@ -29,5 +29,7 @@ class TargetType(entity: Entity): XdEnumEntity(entity) {
      * @return [ApiTargetType]
      */
     fun toApi(): ApiTargetType
-        = ApiTargetType.values().find { it.type == this } ?: throw IllegalStateException("Target type ${this.description} is not supported.")
+        = ApiTargetType.values().find { it.toTargetType() == this } ?: throw IllegalStateException("Target type ${this.description} is not supported.")
+
+    override fun toString(): String = this.description
 }

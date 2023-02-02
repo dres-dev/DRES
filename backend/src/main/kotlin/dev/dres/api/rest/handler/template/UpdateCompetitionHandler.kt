@@ -73,14 +73,14 @@ class UpdateCompetitionHandler(store: TransientEntityStore, val config: Config) 
                 }
                 t.name = type.name
                 t.duration = type.duration
-                t.score = type.scoreOption.option
-                t.target = type.targetOption.option
+                t.score = type.scoreOption.toScoreOption()
+                t.target = type.targetOption.toTargetOption()
                 t.hints.clear()
                 t.hints.addAll(type.hintOptions.map { it.option })
                 t.submission.clear()
-                t.submission.addAll(type.submissionOptions.map { it.option })
+                t.submission.addAll(type.submissionOptions.map { it.toSubmissionOption() })
                 t.options.clear()
-                t.options.addAll(type.taskOptions.map { it.option })
+                t.options.addAll(type.taskOptions.map { it.toTaskOption() })
                 t.configurations.clear()
                 t.configurations.addAll(type.configuration.entries.map {
                     ConfiguredOption.new {
@@ -121,7 +121,7 @@ class UpdateCompetitionHandler(store: TransientEntityStore, val config: Config) 
                     val item = MediaItem.query(MediaItem::id eq target.target).first()
                     t.targets.add(TaskTemplateTarget.new {
                         this.item = item
-                        this.type = target.type.type
+                        this.type = target.type.toTargetType()
                         this.start = target.range?.start?.toTemporalPoint(item.fps ?: 0.0f)?.toMilliseconds()
                         this.end = target.range?.end?.toTemporalPoint(item.fps ?: 0.0f)?.toMilliseconds()
                     })

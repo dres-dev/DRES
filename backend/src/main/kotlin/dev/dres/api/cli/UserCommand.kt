@@ -150,7 +150,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
                     }
                     println("Successfully wrote user ${user.id} to $path.")
                 } else {
-                    println("User with ID ${id} does not exist.")
+                    println("User with ID $id does not exist.")
                 }
             }
         }

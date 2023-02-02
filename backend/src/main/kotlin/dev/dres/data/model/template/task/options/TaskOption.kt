@@ -29,5 +29,5 @@ class TaskOption(entity: Entity) : XdEnumEntity(entity) {
      *
      * @return [ApiTaskOption]
      */
-    fun toApi() = ApiTaskOption.values().find { it.option == this } ?: throw IllegalStateException("Option ${this.description} is not supported.")
+    fun toApi() = ApiTaskOption.values().find { it.toTaskOption() == this } ?: throw IllegalStateException("Option ${this.description} is not supported.")
 }

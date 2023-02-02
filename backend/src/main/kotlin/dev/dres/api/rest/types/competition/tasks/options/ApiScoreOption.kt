@@ -8,7 +8,16 @@ import dev.dres.data.model.template.task.options.ScoreOption
  * @author Ralph Gasser
  * @version 1.0.0
  */
-enum class ApiScoreOption(val option: ScoreOption) {
-    KIS(ScoreOption.KIS),
-    AVS(ScoreOption.AVS)
+enum class ApiScoreOption {
+    KIS, AVS;
+
+    /**
+     * Converts this [ApiScoreOption] to a [ScoreOption] representation. Requires an ongoing transaction.
+     *
+     * @return [ScoreOption]
+     */
+    fun toScoreOption(): ScoreOption = when(this) {
+        KIS -> ScoreOption.KIS
+        AVS -> ScoreOption.AVS
+    }
 }

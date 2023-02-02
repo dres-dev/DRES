@@ -10,4 +10,4 @@ import dev.dres.data.model.template.TemplateId
  * @author Ralph Gasser
  * @version 1.1.0
  */
-data class ApiCompetitionStartMessage(val templateId: TemplateId, val name: String, val type: ApiRunType, val properties: RunProperties = RunProperties())
+data class ApiEvaluationStartMessage(val templateId: TemplateId, val name: String, val type: ApiRunType, val properties: RunProperties = RunProperties())

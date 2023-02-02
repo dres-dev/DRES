@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.evaluation.admin
 
 import dev.dres.api.rest.handler.PostRestHandler
-import dev.dres.api.rest.types.competition.ApiCompetitionStartMessage
+import dev.dres.api.rest.types.competition.ApiEvaluationStartMessage
 import dev.dres.api.rest.types.evaluation.ApiRunType
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
@@ -50,7 +50,7 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
         summary = "Creates a new evaluation run from an existing evaluation template. This is a method for administrators.",
         path = "/api/v2/evaluation/admin/create",
         methods = [HttpMethod.POST],
-        requestBody = OpenApiRequestBody([OpenApiContent(ApiCompetitionStartMessage::class)]),
+        requestBody = OpenApiRequestBody([OpenApiContent(ApiEvaluationStartMessage::class)]),
         tags = ["Evaluation Administrator"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -60,7 +60,7 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val message = try {
-            ctx.bodyAsClass<ApiCompetitionStartMessage>()
+            ctx.bodyAsClass<ApiEvaluationStartMessage>()
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }

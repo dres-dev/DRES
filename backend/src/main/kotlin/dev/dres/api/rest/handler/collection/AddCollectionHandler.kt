@@ -47,7 +47,6 @@ class AddCollectionHandler(store: TransientEntityStore) : AbstractCollectionHand
 
         val collection = this.store.transactional {
             MediaCollection.new {
-                this.id = UUID.randomUUID().toString()
                 this.name = restCollection.name
                 this.description = restCollection.description
                 this.path = restCollection.basePath.cleanPathString()

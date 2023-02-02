@@ -1,7 +1,6 @@
 package dev.dres.data.model.media
 
 import dev.dres.data.model.PersistentEntity
-import dev.dres.data.model.XdIdNaturalEntityType
 import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.media.time.TemporalRange
 import jetbrains.exodus.entitystore.Entity
@@ -15,7 +14,7 @@ import kotlinx.dnq.simple.min
  * @version 2.0.0
  */
 class MediaSegment(entity: Entity) : PersistentEntity(entity) {
-    companion object : XdIdNaturalEntityType<MediaSegment>() {
+    companion object : XdNaturalEntityType<MediaSegment>() {
         /** Combination of [MediaSegment] name / item must be unique. */
         override val compositeIndices = listOf(
             listOf(MediaSegment::name, MediaSegment::item)

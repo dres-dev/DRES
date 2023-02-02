@@ -76,7 +76,6 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
         override fun run()  {
             val newCompetition = this@EvaluationCommand.store.transactional {
                 EvaluationTemplate.new {
-                    this.id = UUID.randomUUID().toString()
                     this.name = this@Create.name
                     this.description = this@Create.description
                 }

@@ -1,7 +1,6 @@
 package dev.dres.data.model.media
 
 import dev.dres.data.model.PersistentEntity
-import dev.dres.data.model.XdIdNaturalEntityType
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 
@@ -14,7 +13,7 @@ typealias CollectionId = String
  * @version 2.0.0
  */
 class MediaCollection(entity: Entity): PersistentEntity(entity) {
-    companion object : XdIdNaturalEntityType<MediaCollection>()
+    companion object : XdNaturalEntityType<MediaCollection>()
     /** The name of this [MediaItem]. */
     var name: String by xdRequiredStringProp(unique = true, trimmed = false)
 

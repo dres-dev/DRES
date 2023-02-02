@@ -108,7 +108,7 @@ class UpdateEvaluationHandler(store: TransientEntityStore, val config: Config) :
                 val t = if (task.id != null) {
                     existing.tasks.filter { it.id eq task.id }.first()
                 } else {
-                    val desc = TaskTemplate.new { this.id = UUID.randomUUID().toString() }
+                    val desc = TaskTemplate.new { }
                     existing.tasks.add(desc)
                     desc
                 }

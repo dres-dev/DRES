@@ -165,7 +165,6 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
 
         /* Create new submission. */
         val submission = Submission.new {
-            this.id = UUID.randomUUID().toString()
             this.user = user
             this.team = team
             this.timestamp = submissionTime

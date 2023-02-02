@@ -98,7 +98,6 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
 
             /* Prepare evaluation. */
             val evaluation = Evaluation.new {
-                this.id = UUID.randomUUID().toString()
                 this.name = message.name
                 this.template = template /* TODO: Create copy. */
                 this.type = message.type.type

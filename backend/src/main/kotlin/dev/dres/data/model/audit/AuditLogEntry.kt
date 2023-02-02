@@ -2,8 +2,8 @@ package dev.dres.data.model.audit
 
 import dev.dres.api.rest.types.audit.*
 import dev.dres.data.model.PersistentEntity
-import dev.dres.data.model.XdIdNaturalEntityType
 import jetbrains.exodus.entitystore.Entity
+import kotlinx.dnq.XdNaturalEntityType
 import kotlinx.dnq.xdLink1
 import kotlinx.dnq.xdRequiredDateTimeProp
 import kotlinx.dnq.xdStringProp
@@ -12,7 +12,7 @@ import kotlinx.dnq.xdStringProp
  *
  */
 class AuditLogEntry(entity: Entity): PersistentEntity(entity) {
-    companion object : XdIdNaturalEntityType<AuditLogEntry>()
+    companion object : XdNaturalEntityType<AuditLogEntry>()
 
     /** The type of [AuditLogEntry]. */
     var type by xdLink1(AuditLogType)

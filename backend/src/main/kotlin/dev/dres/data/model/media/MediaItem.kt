@@ -2,7 +2,6 @@ package dev.dres.data.model.media
 
 import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.data.model.PersistentEntity
-import dev.dres.data.model.XdIdNaturalEntityType
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.simple.requireIf
@@ -18,7 +17,7 @@ typealias MediaId = String
  * @version 2.0.0
  */
 class MediaItem(entity: Entity) : PersistentEntity(entity) {
-    companion object : XdIdNaturalEntityType<MediaItem>() {
+    companion object : XdNaturalEntityType<MediaItem>() {
         /** Combination of [MediaItem] name / competition must be unique. */
         override val compositeIndices = listOf(
             listOf(MediaItem::name, MediaItem::collection)

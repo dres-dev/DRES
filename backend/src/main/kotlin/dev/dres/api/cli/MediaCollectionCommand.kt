@@ -99,7 +99,6 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
             }
             this@MediaCollectionCommand.store.transactional {
                 MediaCollection.new {
-                    this.id = UUID.randomUUID().toString()
                     this.name = this@Create.name
                     this.description = this@Create.description
                     this.path = this@Create.basePath
@@ -329,7 +328,6 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
                             in this.imageTypes -> {
                                 println("Found image $it; analyzing...")
                                 collection.items.add(MediaItem.new {
-                                    this.id = UUID.randomUUID().toString()
                                     this.type = MediaType.IMAGE
                                     this.name = it.fileName.nameWithoutExtension
                                     this.location = relativePath.toString()
@@ -353,7 +351,6 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
 
                                 println("Found frame rate to be $fps frames per seconds and duration $duration ms")
                                 collection.items.add(MediaItem.new {
-                                    this.id = UUID.randomUUID().toString()
                                     this.type = MediaType.VIDEO
                                     this.name = it.fileName.nameWithoutExtension
                                     this.location = relativePath.toString()
@@ -461,7 +458,6 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
 
             /* Add new media item. */
             collection.items.add(MediaItem.new {
-                this.id = UUID.randomUUID().toString()
                 this.type = this@AddItem.type.toMediaType()
                 this.name = Paths.get(this@AddItem.path).nameWithoutExtension
                 this.location = this@AddItem.path
@@ -535,7 +531,6 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
                     for (row in rows) {
                         inserted += 1
                         collection.items.add(MediaItem.new {
-                            this.id = UUID.randomUUID().toString()
                             this.type = ApiMediaType.valueOf(row.getValue("type").uppercase()).toMediaType()
                             this.name = row.getValue("name")
                             this.location = row.getValue("location")
@@ -593,7 +588,6 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
                             inserted += 1
                             videoItem.segments.add(
                                 MediaSegment.new {
-                                    this.id = UUID.randomUUID().toString()
                                     this.name = videoName
                                     this.start = start
                                     this.end = end

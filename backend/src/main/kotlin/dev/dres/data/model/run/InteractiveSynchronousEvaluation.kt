@@ -36,7 +36,6 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
      * @param template The [EvaluationTemplate]
      */
     constructor(name: String, template: EvaluationTemplate) : this(Evaluation.new {
-        this.id = UUID.randomUUID().toString()
         this.type = EvaluationType.INTERACTIVE_SYNCHRONOUS
         this.template = template
         this.name = name
@@ -78,7 +77,6 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
          * @param template [TaskTemplate] to generate [ISTaskRun] from.
          */
         constructor(template: TaskTemplate) : this(Task.new {
-            this.id = UUID.randomUUID().toString()
             this.evaluation = this@InteractiveSynchronousEvaluation.evaluation
             this.template = template
         })

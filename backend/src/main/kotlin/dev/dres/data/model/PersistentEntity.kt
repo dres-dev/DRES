@@ -5,6 +5,7 @@ import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEntity
 import kotlinx.dnq.XdNaturalEntityType
 import kotlinx.dnq.xdRequiredStringProp
+import java.util.*
 
 /**
  * The root class for all DRES entities that are persisted via Xodus DNQ.
@@ -15,4 +16,8 @@ import kotlinx.dnq.xdRequiredStringProp
 abstract class PersistentEntity(entity: Entity): XdEntity(entity) {
     companion object: XdNaturalEntityType<PersistentEntity>()
     var id: String by xdRequiredStringProp(unique = true, trimmed = false)
+
+    override fun constructor() {
+        this.id = UUID.randomUUID().toString()
+    }
 }

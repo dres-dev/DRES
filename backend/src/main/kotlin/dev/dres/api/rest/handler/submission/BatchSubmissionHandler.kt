@@ -96,7 +96,6 @@ class BatchSubmissionHandler(private val store: TransientEntityStore, private va
 
         /* Create new submission. */
         val new = Submission.new {
-            this.id = UUID.randomUUID().toString()
             this.user = user
             this.team = team
             this.timestamp = submissionTime

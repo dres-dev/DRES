@@ -89,7 +89,6 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, private val perm
      * @param template The [EvaluationTemplate]
      */
     constructor(name: String, shuffle: Boolean, template: EvaluationTemplate) : this(Evaluation.new {
-        this.id = UUID.randomUUID().toString()
         this.type = EvaluationType.INTERACTIVE_ASYNCHRONOUS
         this.name = name
         this.template = template
@@ -165,7 +164,6 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, private val perm
          * @param teamId The [TeamId] this [IATaskRun] is created for.
          */
         internal constructor(template: TaskTemplate, teamId: TeamId) : this(Task.new {
-            this.id = UUID.randomUUID().toString()
             this.evaluation = this@InteractiveAsynchronousEvaluation.evaluation
             this.template = template
             this.team = this@InteractiveAsynchronousEvaluation.evaluation.template.teams.filter { it.teamId eq teamId }.singleOrNull()

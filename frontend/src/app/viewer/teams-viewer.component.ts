@@ -11,12 +11,12 @@ import {
 import {
     CompetitionRunScoresService,
     EvaluationService,
-    RunInfo,
-    RunState,
-    ScoreOverview,
-    SubmissionInfo,
-    TaskInfo,
-    TeamInfo,
+    ApiEvaluationInfo,
+    ApiEvaluationState,
+    ApiScoreOverview,
+    ApiSubmissionInfo,
+    ApiTaskTemplateInfo,
+    ApiTeamInfo,
 } from '../../../openapi';
 import {BehaviorSubject, combineLatest, merge, Observable, of, Subscription} from 'rxjs';
 import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, withLatestFrom,} from 'rxjs/operators';
@@ -66,15 +66,15 @@ interface SubmissionDelta {
 })
 export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
   @Input() runId: Observable<string>;
-  @Input() info: Observable<RunInfo>;
-  @Input() state: Observable<RunState>;
+  @Input() info: Observable<ApiEvaluationInfo>;
+  @Input() state: Observable<ApiEvaluationState>;
   @Input() taskEnded: Observable<TaskInfo>;
 
   /** Observable that tracks all the submissions. */
-  submissions: Observable<SubmissionInfo[]>;
+  submissions: Observable<ApiSubmissionInfo[]>;
 
   /** Observable that tracks all the submissions per team. */
-  submissionsPerTeam: Observable<Map<string, SubmissionInfo[]>>;
+  submissionsPerTeam: Observable<Map<string, ApiSubmissionInfo[]>>;
 
   /** Observable that tracks the current score per team. */
   scores: Observable<Map<string, number>>;
@@ -110,7 +110,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     /* Create source observable; list of all submissions.  */
     this.submissions = this.state.pipe(
       switchMap((st) =>
-        this.evaluationService.getApiV1RunWithRunidSubmissionList(st.id).pipe(
+        this.evaluationService.apiV2EvaluationEvaluationIdSubmissionListTimestampGet(st.id).pipe(
           retry(3),
           catchError((err, o) => {
             console.log(`[TeamsViewerComponent] Error while loading submissions: ${err?.message}.`);
@@ -125,7 +125,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     /* Observable that tracks all the submissions per team. */
     this.submissionsPerTeam = combineLatest([this.submissions, this.info]).pipe(
       map(([submissions, info]) => {
-        const submissionsPerTeam = new Map<string, SubmissionInfo[]>();
+        const submissionsPerTeam = new Map<string, ApiSubmissionInfo[]>();
         info.teams.forEach((t) => {
           submissionsPerTeam.set(
             t.uid,
@@ -149,7 +149,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
           filter((sc) => sc != null) /* Filter null responses. */
         )
       ),
-      map((sc: ScoreOverview) => {
+      map((sc: ApiScoreOverview) => {
         const scores = new Map<string, number>();
         sc.scores.forEach((v) => scores.set(v.teamId, v.score));
         return scores;
@@ -239,21 +239,21 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
   /**
    * Generates a URL for the preview image of a submission.
    */
-  public previewForSubmission(submission: SubmissionInfo): Observable<string> {
+  public previewForSubmission(submission: ApiSubmissionInfo): Observable<string> {
     return this.runId.pipe(map((runId) => this.config.resolveApiUrl(`/preview/submission/${runId}/${submission.id}`)));
   }
 
   /**
    * Generates a URL for the preview image of a submission.
    */
-  public tooltipForSubmission(submission: SubmissionInfo): string {
+  public tooltipForSubmission(submission: ApiSubmissionInfo): string {
     return submission.text == null ? '' : submission.text;
   }
 
   /**
    * Generates a URL for the logo of the team.
    */
-  public teamLogo(team: TeamInfo): string {
+  public teamLogo(team: ApiTeamInfo): string {
     return this.config.resolveApiUrl(`/competition/logo/${team.logoId}`);
   }
 
@@ -262,7 +262,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
    *
    * @param teamId The team's uid.
    */
-  public submissionForTeam(teamId: string): Observable<SubmissionInfo[]> {
+  public submissionForTeam(teamId: string): Observable<ApiSubmissionInfo[]> {
     return combineLatest([this.info, this.submissionsPerTeam]).pipe(
         map(([i, s]) => {
           if (s != null) {
@@ -285,7 +285,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
      * @param index
      * @param sub
      */
-  public trackSubmission(index: Number, sub: SubmissionInfo){
+  public trackSubmission(index: Number, sub: ApiSubmissionInfo){
 
       let timeout = 30000; //only re-render once every 30 seconds
 

@@ -1,7 +1,7 @@
 /**
  * A class with time related utilities. Basically a port of dev.dres.utilities.TimeUtil.kt
  */
-import { RestTemporalPoint, RestTemporalRange } from '../../../openapi';
+import { ApiTemporalPoint, ApiTemporalRange } from '../../../openapi';
 
 export class TimeUtilities {
   /**
@@ -17,7 +17,7 @@ export class TimeUtilities {
    */
   private static timeCodeRegexParsing = /([0-9]+:)?([0-5]?\d:)?([0-5]?\d:)?([0-9]+)/;
 
-  static point2Milliseconds(point: RestTemporalPoint, fps: number): number {
+  static point2Milliseconds(point: ApiTemporalPoint, fps: number): number {
     switch (point.unit) {
       case 'FRAME_NUMBER':
         return (Number.parseInt(point.value, 10) / fps) * 1000;
@@ -28,15 +28,15 @@ export class TimeUtilities {
     }
   }
 
-  static point2Milliseconds24fps(point: RestTemporalPoint): number {
+  static point2Milliseconds24fps(point: ApiTemporalPoint): number {
     return this.point2Milliseconds(point, 24);
   }
 
-  static range2Milliseconds(range: RestTemporalRange, fps: number): [number, number] {
+  static range2Milliseconds(range: ApiTemporalRange, fps: number): [number, number] {
     return [this.point2Milliseconds(range.start, fps), this.point2Milliseconds(range.end, fps)];
   }
 
-  static range2Milliseconds24fps(range: RestTemporalRange): [number, number] {
+  static range2Milliseconds24fps(range: ApiTemporalRange): [number, number] {
     return this.range2Milliseconds(range, 24);
   }
 

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { CompetitionRunScoresService, RunInfo, RunState, Score, ScoreOverview, TeamInfo } from '../../../../openapi';
+import { CompetitionRunScoresService, ApiEvaluationInfo, ApiEvaluationState, ApiScore, ApiScoreOverview, ApiTeamInfo } from '../../../../openapi';
 import { combineLatest, concat, Observable, of } from 'rxjs';
 import {
   ApexAxisChartSeries,
@@ -29,12 +29,12 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
   /**
    * The run info of the current run
    */
-  @Input() info: Observable<RunInfo>;
+  @Input() info: Observable<ApiEvaluationInfo>;
 
   /**
    * The observable for the state, which is updated through a websocket
    */
-  @Input() state: Observable<RunState>;
+  @Input() state: Observable<ApiEvaluationState>;
 
   /**
    * Whether or not to show competition overview scores.
@@ -90,7 +90,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
 
   series: Observable<ApexAxisChartSeries>;
 
-  teams: Observable<TeamInfo[]>;
+  teams: Observable<ApiTeamInfo[]>;
   currentTaskGroup: Observable<string>;
 
   // TODO Make this somewhat more beautiful and configurable
@@ -185,7 +185,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
    */
   private competitionOverviewSeries(): Observable<ApexAxisChartSeries> {
     /* Fetch scores. */
-    const score: Observable<Array<ScoreOverview>> = this.state.pipe(
+    const score: Observable<Array<ApiScoreOverview>> = this.state.pipe(
       switchMap((s) => {
         return this.scoreService.getApiV1ScoreRunWithRunid(s.id).pipe(
           catchError((err) => {

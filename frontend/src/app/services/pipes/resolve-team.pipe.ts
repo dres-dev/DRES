@@ -1,11 +1,11 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { RestTeam } from '../../../../openapi';
+import { ApiTeam } from '../../../../openapi';
 
 @Pipe({
   name: 'resolveTeam',
 })
 export class ResolveTeamPipe implements PipeTransform {
-  transform(teamId: string, teams: RestTeam[]): RestTeam | null {
+  transform(teamId: string, teams: ApiTeam[]): ApiTeam | null {
     if (!teamId || !teams) {
       return null;
     }

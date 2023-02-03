@@ -1,11 +1,11 @@
 import { Component, Inject } from '@angular/core';
-import { TaskGroup, TaskType } from '../../../../../openapi';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import {ApiTaskGroup, ApiTaskType} from '../../../../../openapi';
 
 export interface CompetitionBuilderTaskGroupDialogData {
-  types: TaskType[];
-  group?: TaskGroup;
+  types: ApiTaskType[];
+  group?: ApiTaskGroup;
 }
 
 @Component({
@@ -14,7 +14,7 @@ export interface CompetitionBuilderTaskGroupDialogData {
 })
 export class CompetitionBuilderTaskGroupDialogComponent {
   /** List of task types currently supported by the UI. */
-  readonly supportedTaskTypes: TaskType[] = [];
+  readonly supportedTaskTypes: ApiTaskType[] = [];
 
   /** FromGroup for this dialog. */
   form: FormGroup;
@@ -36,8 +36,8 @@ export class CompetitionBuilderTaskGroupDialogComponent {
   fetchFormData() {
     return {
       name: this.form.get('name').value,
-      type: (this.form.get('type').value as TaskType).name,
-    } as TaskGroup;
+      type: (this.form.get('type').value as ApiTaskType).name,
+    } as ApiTaskGroup;
   }
 
   fileProvider = () => (this.fetchFormData()?.name ? this.fetchFormData().name : 'task-group-download.json');
@@ -45,7 +45,7 @@ export class CompetitionBuilderTaskGroupDialogComponent {
   downloadProvider = () => JSON.stringify(this.fetchFormData());
 
   uploaded = (data: string) => {
-    const parsed = JSON.parse(data) as TaskGroup;
+    const parsed = JSON.parse(data) as ApiTaskGroup;
     this.data.group = parsed;
     this.init();
     console.log('Loaded task group: ' + JSON.stringify(parsed));

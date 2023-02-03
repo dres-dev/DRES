@@ -1,12 +1,4 @@
 import { AfterViewInit, Component } from '@angular/core';
-import {
-  ApiCreateEvaluation,
-  ApiEvaluationOverview,
-  CompetitionRunAdminService,
-  EvaluationService,
-  DownloadService,
-  RunProperties,
-} from '../../../../openapi';
 import { MatDialog } from '@angular/material/dialog';
 import { CompetitionCreateDialogComponent } from './competition-create-dialog.component';
 import { filter, flatMap, take, tap } from 'rxjs/operators';
@@ -17,6 +9,13 @@ import {
   ConfirmationDialogComponent,
   ConfirmationDialogComponentData,
 } from '../../shared/confirmation-dialog/confirmation-dialog.component';
+import {
+  ApiCreateEvaluation,
+  ApiEvaluationOverview, ApiEvaluationStartMessage,
+  DownloadService,
+  EvaluationAdministratorService, RunProperties, SuccessStatus,
+  TemplateService
+} from '../../../../openapi';
 
 @Component({
   selector: 'app-competition-list',
@@ -30,8 +29,8 @@ export class CompetitionListComponent implements AfterViewInit {
   waitingForRun = false;
 
   constructor(
-    private evaluationService: EvaluationService,
-    private runAdminService: CompetitionRunAdminService,
+    private evaluationService: TemplateService,
+    private runAdminService: EvaluationAdministratorService,
     private downloadService: DownloadService,
     private routerService: Router,
     private dialog: MatDialog,
@@ -45,16 +44,16 @@ export class CompetitionListComponent implements AfterViewInit {
       .pipe(
         filter((r) => r != null),
         flatMap((r: ApiCreateEvaluation) => {
-          return this.evaluationService.postApiV1Competition(r);
+          return this.evaluationService.postApiV2Template(r);
         })
       )
       .subscribe(
-        (r) => {
+        (r: SuccessStatus) => {
           this.refresh();
-          this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
+          this.snackBar.open(`Success: ${r?.description}`, null, { duration: 5000 });
         },
         (r) => {
-          this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
+          this.snackBar.open(`Error: ${r?.error?.description}`, null, { duration: 5000 });
         }
       );
   }
@@ -72,17 +71,17 @@ export class CompetitionListComponent implements AfterViewInit {
             shuffleTasks: r.shuffleTasks,
             allowRepeatedTasks: r.allowRepeatedTasks,
             limitSubmissionPreviews: r.limit
-          } as RunProperties;
-          return this.runAdminService.postApiV1RunAdminCreate({
-            competitionId: id,
+          } as RunProperties; // ApiEvaluationProperties
+          return this.runAdminService.postApiV2EvaluationAdminCreate({
+            templateId: id,
             name: r.name,
             type: r.type,
             properties: properties,
-          } as ApiCreateEvaluation);
+          } as ApiEvaluationStartMessage);
         })
       )
       .subscribe(
-        (r) => {
+        (r: SuccessStatus) => {
           this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
           this.waitingForRun = false;
         },
@@ -106,7 +105,7 @@ export class CompetitionListComponent implements AfterViewInit {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.evaluationService.deleteApiV1CompetitionWithCompetitionid(competitionId).subscribe(
+        this.evaluationService.deleteApiV2TemplatetemplateId(competitionId).subscribe(
           (r) => {
             this.refresh();
             this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -120,7 +119,7 @@ export class CompetitionListComponent implements AfterViewInit {
   }
 
   public refresh() {
-    this.evaluationService.getApiV1CompetitionList().subscribe(
+    this.evaluationService.getApiV2TemplateList().subscribe(
       (results: ApiEvaluationOverview[]) => {
         this.competitions = results;
       },
@@ -136,7 +135,7 @@ export class CompetitionListComponent implements AfterViewInit {
   }
 
   downloadProvider = (competitionId) => {
-    return this.downloadService.getApiV1DownloadCompetitionWithCompetitionid(competitionId).pipe(take(1));
+    return this.downloadService.getApiV2DownloadTemplatetemplateId(competitionId).pipe(take(1));
     // .toPromise();
   };
 
@@ -145,6 +144,6 @@ export class CompetitionListComponent implements AfterViewInit {
   };
 
   resolveCompetitionOverviewById(_: number, item: ApiEvaluationOverview) {
-    return item.id;
+    return `${item}`; // FIXME re-add ID? or remove trackedBy
   }
 }

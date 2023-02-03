@@ -1,17 +1,6 @@
 import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterStateSnapshot } from '@angular/router';
 import { filter, map, shareReplay, take } from 'rxjs/operators';
-import {
-  DownloadService,
-  ApiEvaluationTemplate,
-  ApiTaskTemplate,
-  ApiTeam,
-  ApiTaskGroup,
-  ApiTaskType,
-  ApiUser,
-  UserService,
-  UserRequest, EvaluationService,
-} from '../../../../openapi';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
@@ -29,8 +18,17 @@ import {
 } from './competition-builder-task-dialog/competition-builder-task-dialog.component';
 import { AppConfig } from '../../app.config';
 import { DeactivationGuarded } from '../../services/can-deactivate.guard';
-import RoleEnum = UserRequest.RoleEnum;
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import {
+  ApiCreateEvaluation,
+  ApiEvaluationTemplate,
+  ApiRole, ApiTaskGroup, ApiTaskTemplate, ApiTaskType, ApiTeam,
+  ApiUser,
+  DownloadService,
+  EvaluationService, SuccessStatus,
+  TemplateService,
+  UserService
+} from '../../../../openapi';
 
 @Component({
   selector: 'app-competition-builer',
@@ -38,10 +36,13 @@ import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
   styleUrls: ['./competition-builder.component.scss'],
 })
 export class CompetitionBuilderComponent implements OnInit, OnDestroy, DeactivationGuarded {
+
+  // FIXME make compiler happy fast. care about templates later
+
   /**
    * The official VBS Textual Known Item Search task type template
    */
-  public static TKIS_TEMPLATE = {
+  /*public static TKIS_TEMPLATE = {
     name: 'Textual KIS',
     taskDuration: 420,
     targetType: { option: ConfiguredOptionTargetOption.OptionEnum.SINGLE_MEDIA_SEGMENT, parameters: {} },
@@ -53,12 +54,12 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
       { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TEMPORAL_SUBMISSION, parameters: {} },
     ],
     options: [{ option: ConfiguredOptionSimpleOption.OptionEnum.HIDDEN_RESULTS, parameters: {} }],
-  } as ApiTaskType;
+  } as ApiTaskType;*/
 
   /**
    * The official VBS Visual Known Item Search task type template
    */
-  public static VKIS_TEMPLATE = {
+ /* public static VKIS_TEMPLATE = {
     name: 'Visual KIS',
     taskDuration: 300,
     targetType: { option: ConfiguredOptionTargetOption.OptionEnum.SINGLE_MEDIA_SEGMENT, parameters: {} },
@@ -70,12 +71,12 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
       { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TEMPORAL_SUBMISSION, parameters: {} },
     ],
     options: [],
-  } as ApiTaskType;
+  } as ApiTaskType;*/
 
   /**
    * The official VBS Ad-hoc Video Search task type template
    */
-  public static AVS_TEMPLATE = {
+  /*public static AVS_TEMPLATE = {
     name: 'Ad-hoc Video Search',
     taskDuration: 300,
     targetType: { option: ConfiguredOptionTargetOption.OptionEnum.JUDGEMENT, parameters: {} },
@@ -87,12 +88,12 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
       { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.LIMIT_CORRECT_PER_ITEM_AND_TEAM, parameters: {} },
     ],
     options: [{ option: ConfiguredOptionSimpleOption.OptionEnum.MAP_TO_SEGMENT, parameters: {} }],
-  } as ApiTaskType;
+  } as ApiTaskType;*/
 
   /**
    * The official legacy (pre 2023) VBS Ad-hoc Video Search task type template
    */
-  public static LEGACY_AVS_TEMPLATE = {
+  /*public static LEGACY_AVS_TEMPLATE = {
     name: 'Ad-hoc Video Search (Legacy)',
     taskDuration: 300,
     targetType: { option: ConfiguredOptionTargetOption.OptionEnum.JUDGEMENT, parameters: {} },
@@ -103,12 +104,12 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
       { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.TEMPORAL_SUBMISSION, parameters: {} },
     ],
     options: [{ option: ConfiguredOptionSimpleOption.OptionEnum.MAP_TO_SEGMENT, parameters: {} }],
-  } as ApiTaskType;
+  } as ApiTaskType;*/
 
   /**
    * The official LSC task type template
    */
-  public static LSC_TEMPLATE = {
+  /*public static LSC_TEMPLATE = {
     name: 'LSC',
     taskDuration: 300,
     targetType: { option: ConfiguredOptionTargetOption.OptionEnum.MULTIPLE_MEDIA_ITEMS, parameters: {} },
@@ -119,7 +120,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
       { option: ConfiguredOptionSubmissionFilterOption.OptionEnum.LIMIT_CORRECT_PER_TEAM, parameters: {} },
     ],
     options: [{ option: ConfiguredOptionSimpleOption.OptionEnum.HIDDEN_RESULTS, parameters: {} }],
-  } as ApiTaskType;
+  } as ApiTaskType;*/
 
   competitionId: string;
   competition: ApiEvaluationTemplate;
@@ -139,25 +140,27 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
 
   availableJudges: Observable<ApiUser[]>;
 
+  // FIXME make compiler happy fast. care about templates later
+
   /**
    * Ref to template for easy access in thml
    */
-  tkisTemplate = CompetitionBuilderComponent.TKIS_TEMPLATE;
+  tkisTemplate = null // CompetitionBuilderComponent.TKIS_TEMPLATE;
   /**
    * Ref to template for easy access in thml
    */
-  vkisTemplate = CompetitionBuilderComponent.VKIS_TEMPLATE;
+  vkisTemplate = null // CompetitionBuilderComponent.VKIS_TEMPLATE;
   /**
    * Ref to template for easy access in thml
    */
-  avsTemplate = CompetitionBuilderComponent.AVS_TEMPLATE;
+  avsTemplate = null // CompetitionBuilderComponent.AVS_TEMPLATE;
   /**
    * Ref to template for easy access in thml
    */
-  lscTemplate = CompetitionBuilderComponent.LSC_TEMPLATE;
+  lscTemplate = null // CompetitionBuilderComponent.LSC_TEMPLATE;
 
   constructor(
-    private competitionService: EvaluationService,
+    private competitionService: TemplateService,
     private userService: UserService,
     private downloadService: DownloadService,
     private route: ActivatedRoute,
@@ -166,8 +169,8 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     private dialog: MatDialog,
     private config: AppConfig
   ) {
-    this.availableJudges = this.userService.apiV2UserListGet().pipe(
-      map((users) => users.filter((user) => user.role === RoleEnum.JUDGE)),
+    this.availableJudges = this.userService.getApiV2UserList().pipe(
+      map((users) => users.filter((user) => user.role === ApiRole.JUDGE)),
       shareReplay(1)
     );
   }
@@ -196,7 +199,15 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   public save() {
     if (this.form.valid) {
       this.fetchDataToCompetition();
-      this.competitionService.patchApiV1Competition(this.competition).subscribe(
+      let obs: Observable<SuccessStatus>;
+      if(this.competition.id){
+        /* saving existing */
+        obs = this.competitionService.patchApiV2TemplatetemplateId(this.competitionId, this.competition)
+      }else{
+        /* saving new */
+        obs = this.competitionService.postApiV2Template(this.competition as ApiCreateEvaluation)
+      }
+      obs.subscribe(
         (c) => {
           this.snackBar.open(c.description, null, { duration: 5000 });
           this.dirty = false;
@@ -214,7 +225,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   };
 
   downloadProvider = () => {
-    return this.downloadService.apiV2DownloadEvaluationEvaluationIdGet(this.competitionId).pipe(take(1));
+    return this.downloadService.getApiV2DownloadEvaluationevaluationId(this.competitionId).pipe(take(1));
     // .toPromise();
   };
 
@@ -226,7 +237,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
 
   public refresh() {
     if (this.checkDirty()) {
-      this.competitionService.getApiV1CompetitionWithCompetitionid(this.competitionId).subscribe(
+      this.competitionService.getApiV2TemplatetemplateId(this.competitionId).subscribe(
         (c) => {
           this.competition = c;
           this.form.get('name').setValue(c.name);
@@ -241,7 +252,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     }
   }
 
-  public addApiTaskType(type?: ApiTaskType) {
+  public addTaskType(type?: ApiTaskType) {
     const dialogRef = this.dialog.open(CompetitionBuilderTaskTypeDialogComponent, { data: type ? type : null, width: '750px' });
     dialogRef
       .afterClosed()
@@ -399,7 +410,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     if (team.logoData != null) {
       return team.logoData;
     } else {
-      return this.config.resolveApiUrl(`/competition/logo/${team.logoId}`);
+      return this.config.resolveApiUrl(`/competition/logo/${team.logoData}`); // FIXME check semantic
     }
   }
 
@@ -465,9 +476,9 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
    * @param taskType The {@link ApiTaskType} to summarize.
    */
   summariseTaskType(taskType: ApiTaskType): string {
-    return `Consists of ${taskType.components.map((c) => c.option).join(', ')}, has filters: ${taskType.filter
-      .map((f) => f.option)
-      .join(', ')} and options: ${taskType.options.map((o) => o.option).join(', ')}`;
+    return `Consists of ${taskType.hintOptions.map((c) => c).join(', ')}, has filters: ${taskType.submissionOptions
+      .map((f) => f)
+      .join(', ')} and options: ${taskType.taskOptions.map((o) => o).join(', ')}`;
   }
 
   /**

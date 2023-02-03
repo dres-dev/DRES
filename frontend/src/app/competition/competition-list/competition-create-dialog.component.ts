@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { FormControl, FormGroup } from '@angular/forms';
-import { ApiCreateEvaluation } from '../../../../openapi';
+import {ApiCreateEvaluation} from '../../../../openapi';
 
 @Component({
   selector: 'app-competition-create-dialog',

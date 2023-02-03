@@ -1,13 +1,19 @@
-import {
-  ApiMediaItem,
-  ApiTaskGroup, ApiTaskType,
-  CollectionService,
-} from '../../../../../openapi';
 import { AbstractControl, FormArray, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { filter, first, switchMap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { RequireMatch } from './require-match';
 import { TimeUtilities } from '../../../utilities/time.utilities';
+import {
+  ApiHint,
+  ApiHintOption,
+  ApiMediaItem, ApiTarget,
+  ApiTargetOption,
+  ApiTaskGroup,
+  ApiTaskTemplate,
+  ApiTaskType, ApiTemporalPoint, ApiTemporalRange,
+  CollectionService
+} from '../../../../../openapi';
+import {ApiComponentOption} from '../../../../../openapi/model/apiComponentOption';
 
 export class CompetitionFormBuilder {
   /** The default duration of a query hint. This is currently a hard-coded constant. */
@@ -25,13 +31,13 @@ export class CompetitionFormBuilder {
    * @param taskGroup The {@link TaskGroup} to create this {@link CompetitionFormBuilder} for.
    * @param taskType The {@link TaskType} to create this {@link CompetitionFormBuilder} for.
    * @param collectionService The {@link CollectionService} reference used to fetch data through the DRES API.
-   * @param data The {@link RestTaskDescription} to initialize the form with.
+   * @param data The {@link ApiTaskTemplate} to initialize the form with.
    */
   constructor(
     private taskGroup: ApiTaskGroup,
     private taskType: ApiTaskType,
     private collectionService: CollectionService,
-    private data?: RestTaskDescription
+    private data?: ApiTaskTemplate
   ) {
     this.initializeForm();
   }
@@ -45,7 +51,7 @@ export class CompetitionFormBuilder {
     if (this?.data?.duration) {
       return this.data.duration;
     } else {
-      return this.taskType.taskDuration;
+      return this.taskType.duration;
     }
   }
 
@@ -64,7 +70,7 @@ export class CompetitionFormBuilder {
    * @param type The {@link ConfiguredOptionQueryComponentType.OptionEnum} to add a {@link FormGroup} for.
    * @param afterIndex The {@link FormControl} to insert the new {@link FormControl} after.
    */
-  public addComponentForm(type: ConfiguredOptionQueryComponentOption.OptionEnum, afterIndex: number = null) {
+  public addComponentForm(type: ApiHintOption, afterIndex: number = null) {
     const array = this.form.get('components') as FormArray;
     const newIndex = afterIndex ? afterIndex + 1 : array.length;
     let component = null;
@@ -117,14 +123,15 @@ export class CompetitionFormBuilder {
    *
    * @param type The {@link TaskType.TargetTypeEnum} to add a {@link FormGroup} for.
    */
-  public addTargetForm(type: ConfiguredOptionTargetOption.OptionEnum) {
+  public addTargetForm(type: ApiTargetOption) {
     const array = this.form.get('target') as FormArray;
     const newIndex = array.length;
     switch (type) {
-      case 'MULTIPLE_MEDIA_ITEMS':
+      // FIXME to make compiler happy. obviously this is semantically not appropriate
+      /*case 'MULTIPLE_MEDIA_ITEMS':
         const targetForm = this.singleMediaItemTargetForm(newIndex);
         array.push(targetForm);
-        return targetForm;
+        return targetForm;*/
       case 'TEXT':
         const form = this.singleTextTargetForm();
         array.push(form);
@@ -159,16 +166,17 @@ export class CompetitionFormBuilder {
   }
 
   /**
-   * Assembles form data and returns a {@link RestTaskDescription}.
+   * Assembles form data and returns a {@link ApiTaskTemplate}.
    */
-  public fetchFormData(): RestTaskDescription {
+  public fetchFormData(): ApiTaskTemplate {
+    // FIXME semantic check for the entire fetching
     const data = {
       name: this.form.get('name').value,
       taskGroup: this.taskGroup.name /* Cannot be edited! */,
       taskType: this.taskGroup.type /* Cannot be edited! */,
       duration: this.form.get('duration').value,
-      mediaCollectionId: this.form.get('mediaCollection').value,
-      components: (this.form.get('components') as FormArray).controls.map((c) => {
+      collectionId: this.form.get('mediaCollection').value,
+      hints: (this.form.get('components') as FormArray).controls.map((c) => {
         return {
           type: c.get('type').value,
           start: c.get('start').value,
@@ -177,30 +185,28 @@ export class CompetitionFormBuilder {
           range:
             c.get('segment_start') && c.get('segment_end')
               ? ({
-                  start: { value: c.get('segment_start').value, unit: c.get('segment_time_unit').value } as RestTemporalPoint,
-                  end: { value: c.get('segment_end').value, unit: c.get('segment_time_unit').value } as RestTemporalPoint,
-                } as RestTemporalRange)
+                  start: { value: c.get('segment_start').value, unit: c.get('segment_time_unit').value } as ApiTemporalPoint,
+                  end: { value: c.get('segment_end').value, unit: c.get('segment_time_unit').value } as ApiTemporalPoint,
+                } as ApiTemporalRange)
               : null,
           description: c.get('description') ? c.get('description').value : null,
           path: c.get('path') ? c.get('path').value : null,
-        } as RestTaskDescriptionComponent;
+        } as ApiHint;
       }),
-      target: {
-        type: this.taskType.targetType.option,
-        mediaItems: (this.form.get('target') as FormArray).controls.map((t) => {
+      targets:  (this.form.get('target') as FormArray).controls.map((t) => {
           return {
-            mediaItem: t.get('mediaItem').value?.id || t.get('mediaItem').value,
-            temporalRange:
+            type: this.taskType.targetOption,
+            target: t.get('mediaItem').value?.id || t.get('mediaItem').value,
+            range:
               t.get('segment_start') && t.get('segment_start')
                 ? ({
-                    start: { value: t.get('segment_start').value, unit: t.get('segment_time_unit').value } as RestTemporalPoint,
-                    end: { value: t.get('segment_end').value, unit: t.get('segment_time_unit').value } as RestTemporalPoint,
-                  } as RestTemporalRange)
+                    start: { value: t.get('segment_start').value, unit: t.get('segment_time_unit').value } as ApiTemporalPoint,
+                    end: { value: t.get('segment_end').value, unit: t.get('segment_time_unit').value } as ApiTemporalPoint,
+                  } as ApiTemporalRange)
                 : null,
-          } as RestTaskDescriptionTargetItem;
-        }),
-      } as RestTaskDescriptionTarget,
-    } as RestTaskDescription;
+          } as ApiTarget;
+        })as Array<ApiTarget>,
+    } as ApiTaskTemplate;
 
     /* Set ID of set. */
     if (this.form.get('id').value) {
@@ -238,7 +244,7 @@ export class CompetitionFormBuilder {
       id: new FormControl(this.data?.id),
       name: new FormControl(this.data?.name, [Validators.required]),
       duration: new FormControl(this.durationInitValue, [Validators.required, Validators.min(1)]),
-      mediaCollection: new FormControl(this.data?.mediaCollectionId, [Validators.required]),
+      mediaCollection: new FormControl(this.data?.collectionId, [Validators.required]),
     });
     this.form.addControl('target', this.formForTarget());
     this.form.addControl('components', this.formForQueryComponents());
@@ -248,28 +254,28 @@ export class CompetitionFormBuilder {
    * Returns the target form for the given {TaskType}
    */
   private formForTarget() {
-    switch (this.taskType.targetType.option) {
+    switch (this.taskType.targetOption) {
       case 'SINGLE_MEDIA_ITEM':
-        return new FormArray([this.singleMediaItemTargetForm(0, this.data?.target?.mediaItems[0])]);
-      case 'MULTIPLE_MEDIA_ITEMS':
+        return new FormArray([this.singleMediaItemTargetForm(0, this.data?.targets[0])]); // FIXME semantic check
+        // FIXME only compiler happiness, no semantic check
+      /*case 'MULTIPLE_MEDIA_ITEMS':
         const content: FormGroup[] = [];
         if (this.data?.target) {
           this.data?.target?.mediaItems.forEach((d, i) => content.push(this.singleMediaItemTargetForm(i, d)));
         } else {
           content.push(this.singleMediaItemTargetForm(0));
         }
-        return new FormArray(content);
+        return new FormArray(content);*/
       case 'SINGLE_MEDIA_SEGMENT':
-        return new FormArray([this.singleMediaSegmentTargetForm(this.data?.target?.mediaItems[0])]);
+        return new FormArray([this.singleMediaSegmentTargetForm(this.data?.targets[0])]);  // FIXME semantic check
       case 'JUDGEMENT':
         return new FormArray([]);
       case 'VOTE':
         return new FormArray([]);
       case 'TEXT':
         const text: FormGroup[] = [];
-        if (this.data?.target) {
-          console.log(this.data?.target);
-          this.data?.target?.mediaItems.forEach((d, i) => text.push(this.singleTextTargetForm(d)));
+        if (this.data?.targets) {
+          this.data?.targets?.forEach((d, i) => text.push(this.singleTextTargetForm(d)));  // FIXME semantic check
         } else {
           console.log('no target');
           text.push(this.singleTextTargetForm());
@@ -284,7 +290,7 @@ export class CompetitionFormBuilder {
    * @param index Index of the FormControl
    * @param initialize The optional {RestTaskDescriptionTargetItem} containing the data to initialize the form with.
    */
-  private singleMediaItemTargetForm(index: number, initialize?: RestTaskDescriptionTargetItem): FormGroup {
+  private singleMediaItemTargetForm(index: number, initialize?: ApiTarget): FormGroup {
     /* Prepare auto complete field. */
     const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
     this.dataSources.set(
@@ -292,15 +298,15 @@ export class CompetitionFormBuilder {
       mediaItemFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
         switchMap((s) =>
-          this.collectionService.apiV2CollectionCollectionIdStartsWithGet(this.form.get('mediaCollection').value, s)
+          this.collectionService.getApiV2CollectioncollectionIdstartsWith(this.form.get('mediaCollection').value, s)
         )
       )
     );
 
     /* Load media item from API. */
-    if (initialize?.mediaItem && this.data?.mediaCollectionId) {
+    if (initialize?.target && this.data?.collectionId) {
       this.collectionService
-        .apiV2MediaItemMediaIdGet(initialize.mediaItem)
+        .getApiV2MediaItemmediaId(initialize?.target)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);
@@ -315,7 +321,7 @@ export class CompetitionFormBuilder {
    *
    * @param initialize The optional {RestTaskDescriptionTargetItem} to initialize the form with.
    */
-  private singleMediaSegmentTargetForm(initialize?: RestTaskDescriptionTargetItem) {
+  private singleMediaSegmentTargetForm(initialize?: ApiTarget) {
     /* Prepare auto complete field. */
     const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
 
@@ -324,15 +330,15 @@ export class CompetitionFormBuilder {
       mediaItemFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
         switchMap((s) =>
-          this.collectionService.apiV2CollectionCollectionIdStartsWithGet(this.form.get('mediaCollection').value, s)
+          this.collectionService.getApiV2CollectioncollectionIdstartsWith(this.form.get('mediaCollection').value, s)
         )
       )
     );
 
     /* Load media item from API. */
-    if (initialize?.mediaItem && this.data.mediaCollectionId) {
+    if (initialize?.target && this.data.collectionId) {
       this.collectionService
-        .apiV2MediaItemMediaIdGet(initialize.mediaItem)
+        .getApiV2MediaItemmediaId(initialize.target)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);
@@ -341,10 +347,10 @@ export class CompetitionFormBuilder {
 
     const formGroup = new FormGroup({
       mediaItem: mediaItemFormControl,
-      segment_start: new FormControl(initialize?.temporalRange.start.value, [Validators.required]),
-      segment_end: new FormControl(initialize?.temporalRange.end.value, [Validators.required]),
+      segment_start: new FormControl(initialize?.range.start.value, [Validators.required]),
+      segment_end: new FormControl(initialize?.range.end.value, [Validators.required]),
       segment_time_unit: new FormControl(
-        initialize?.temporalRange.start.unit ? initialize?.temporalRange.start.unit : 'SECONDS',
+        initialize?.range.start.unit ? initialize?.range.start.unit : 'SECONDS',
         [Validators.required]
       ),
     });
@@ -361,12 +367,12 @@ export class CompetitionFormBuilder {
     return formGroup;
   }
 
-  private singleTextTargetForm(initialize?: RestTaskDescriptionTargetItem) {
+  private singleTextTargetForm(initialize?: ApiTarget) {
     const textFormControl = new FormControl(null, [Validators.required]);
 
-    console.log(initialize?.mediaItem);
+    console.log(initialize?.target);
 
-    textFormControl.setValue(initialize?.mediaItem);
+    textFormControl.setValue(initialize?.target);
 
     return new FormGroup({
       mediaItem: textFormControl,
@@ -379,24 +385,25 @@ export class CompetitionFormBuilder {
   private formForQueryComponents() {
     const array = [];
     if (this.data) {
-      for (const component of this.data.components) {
-        const index = this.data.components.indexOf(component);
+      for (const component of this.data.hints) {
+        const index = this.data.hints.indexOf(component);
         switch (component.type) {
-          case 'IMAGE_ITEM':
+          // FIXME handle external video / external image
+          case 'VIDEO':
             array.push(this.imageItemComponentForm(index, component));
             break;
-          case 'VIDEO_ITEM_SEGMENT':
+          case 'IMAGE':
             array.push(this.videoItemComponentForm(index, component));
             break;
           case 'TEXT':
             array.push(this.textItemComponentForm(index, component));
             break;
-          case 'EXTERNAL_IMAGE':
+          /*case 'EXTERNAL_IMAGE':
             array.push(this.externalImageItemComponentForm(index, component));
             break;
           case 'EXTERNAL_VIDEO':
             array.push(this.externalVideoItemComponentForm(index, component));
-            break;
+            break;*/
         }
       }
     }
@@ -410,11 +417,11 @@ export class CompetitionFormBuilder {
    * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
    * @return The new {@link FormGroup}
    */
-  private imageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
+  private imageItemComponentForm(index: number, initialize?: ApiHint): FormGroup {
     const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
     if (
       !initialize?.mediaItem &&
-      (this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType.option === 'SINGLE_MEDIA_ITEM')
+      (this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetOption === 'SINGLE_MEDIA_ITEM')
     ) {
       mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
     }
@@ -425,15 +432,15 @@ export class CompetitionFormBuilder {
       mediaItemFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
         switchMap((s) =>
-          this.collectionService.apiV2CollectionCollectionIdStartsWithGet(this.form.get('mediaCollection').value, s)
+          this.collectionService.getApiV2CollectioncollectionIdstartsWith(this.form.get('mediaCollection').value, s)
         )
       )
     );
 
     /* Load media item from API. */
-    if (initialize?.mediaItem && this.data?.mediaCollectionId) {
+    if (initialize?.mediaItem && this.data?.collectionId) {
       this.collectionService
-        .apiV2MediaItemMediaIdGet(initialize?.mediaItem)
+        .getApiV2MediaItemmediaId(initialize?.mediaItem)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);
@@ -444,9 +451,9 @@ export class CompetitionFormBuilder {
       start: new FormControl(initialize?.start, [
         Validators.required,
         Validators.min(0),
-        Validators.max(this.taskType.taskDuration),
+        Validators.max(this.taskType.duration),
       ]),
-      end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+      end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
       type: new FormControl('IMAGE_ITEM', [Validators.required]),
       mediaItem: mediaItemFormControl,
     });
@@ -459,12 +466,12 @@ export class CompetitionFormBuilder {
    * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
    * @return The new {@link FormGroup}
    */
-  private videoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
+  private videoItemComponentForm(index: number, initialize?: ApiHint): FormGroup {
     /* Initialize media item based on target. */
     const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
     if (
       !initialize?.mediaItem &&
-      (this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetType.option === 'SINGLE_MEDIA_ITEM')
+      (this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetOption === 'SINGLE_MEDIA_ITEM')
     ) {
       mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
     }
@@ -475,15 +482,15 @@ export class CompetitionFormBuilder {
       mediaItemFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
         switchMap((s) =>
-          this.collectionService.apiV2CollectionCollectionIdStartsWithGet(this.form.get('mediaCollection').value, s)
+          this.collectionService.getApiV2CollectioncollectionIdstartsWith(this.form.get('mediaCollection').value, s)
         )
       )
     );
 
     /* Load media item from API. */
-    if (initialize?.mediaItem && this.data?.mediaCollectionId) {
+    if (initialize?.mediaItem && this.data?.collectionId) {
       this.collectionService
-        .apiV2MediaItemMediaIdGet(initialize.mediaItem)
+        .getApiV2MediaItemmediaId(initialize.mediaItem)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);
@@ -495,12 +502,12 @@ export class CompetitionFormBuilder {
       start: new FormControl(initialize?.start, [
         Validators.required,
         Validators.min(0),
-        Validators.max(this.taskType.taskDuration),
+        Validators.max(this.taskType.duration),
       ]),
       end: new FormControl(initialize?.end, [
         Validators.required,
         Validators.min(0),
-        Validators.max(this.taskType.taskDuration),
+        Validators.max(this.taskType.duration),
       ]),
       type: new FormControl('VIDEO_ITEM_SEGMENT', [Validators.required]),
       mediaItem: mediaItemFormControl,
@@ -515,20 +522,20 @@ export class CompetitionFormBuilder {
     /* Initialize start, end and time unit based on target. */
     // fetch target time unit
     const targetTimeUnit = (this.form.get('target') as FormArray).controls[0].get('segment_time_unit').value;
-    if (targetTimeUnit && this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT') {
+    if (targetTimeUnit && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
       group.get('segment_time_unit').setValue(targetTimeUnit);
     }
 
-    if (!group.get('segment_start').value && this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT') {
+    if (!group.get('segment_start').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
       group.get('segment_start').setValue((this.form.get('target') as FormArray).controls[0].get('segment_start').value);
     }
 
-    if (!group.get('segment_end').value && this.taskType.targetType.option === 'SINGLE_MEDIA_SEGMENT') {
+    if (!group.get('segment_end').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
       group.get('segment_end').setValue((this.form.get('target') as FormArray).controls[0].get('segment_end').value);
     }
 
     /* Manually setting the duration of the hint equal to the duration of the task, this way the validators are happy */
-    group.get('end').setValue(this.taskType.taskDuration);
+    group.get('end').setValue(this.taskType.duration);
 
     group
       .get('segment_start')
@@ -549,14 +556,14 @@ export class CompetitionFormBuilder {
    * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
    * @return The new {@link FormGroup}
    */
-  private textItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
+  private textItemComponentForm(index: number, initialize?: ApiHint): FormGroup {
     return new FormGroup({
       start: new FormControl(initialize?.start, [
         Validators.required,
         Validators.min(0),
-        Validators.max(this.taskType.taskDuration),
+        Validators.max(this.taskType.duration),
       ]),
-      end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+      end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
       type: new FormControl('TEXT', [Validators.required]),
       description: new FormControl(initialize?.description, [Validators.required]),
     });
@@ -568,7 +575,7 @@ export class CompetitionFormBuilder {
    * @param index The position of the new {@link FormGroup} (for data source).
    * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
    */
-  private externalImageItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
+  private externalImageItemComponentForm(index: number, initialize?: ApiHint): FormGroup {
     /* Prepare form control. */
     const pathFormControl = new FormControl(initialize?.path, [Validators.required]);
 
@@ -577,7 +584,7 @@ export class CompetitionFormBuilder {
       `components.${index}.path`,
       pathFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
-        switchMap((s) => this.collectionService.apiV2ExternalStartsWithGet(s))
+        switchMap((s) => this.collectionService.getApiV2ExternalstartsWith(s))
       )
     );
 
@@ -585,9 +592,9 @@ export class CompetitionFormBuilder {
       start: new FormControl(initialize?.start, [
         Validators.required,
         Validators.min(0),
-        Validators.max(this.taskType.taskDuration),
+        Validators.max(this.taskType.duration),
       ]),
-      end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+      end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
       type: new FormControl('EXTERNAL_IMAGE', [Validators.required]),
       path: pathFormControl,
     });
@@ -600,7 +607,7 @@ export class CompetitionFormBuilder {
    * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
    * @return The new {@link FormGroup}
    */
-  private externalVideoItemComponentForm(index: number, initialize?: RestTaskDescriptionComponent): FormGroup {
+  private externalVideoItemComponentForm(index: number, initialize?: ApiHint): FormGroup {
     /* Prepare form control. */
     const pathFormControl = new FormControl(initialize?.path, [Validators.required]);
 
@@ -609,7 +616,7 @@ export class CompetitionFormBuilder {
       `components.${index}.path`,
       pathFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
-        switchMap((s) => this.collectionService.apiV2ExternalStartsWithGet(s))
+        switchMap((s) => this.collectionService.getApiV2ExternalstartsWith(s))
       )
     );
 
@@ -617,9 +624,9 @@ export class CompetitionFormBuilder {
       start: new FormControl(initialize?.start, [
         Validators.required,
         Validators.min(0),
-        Validators.max(this.taskType.taskDuration),
+        Validators.max(this.taskType.duration),
       ]),
-      end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.taskDuration)]),
+      end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
       type: new FormControl('EXTERNAL_VIDEO', [Validators.required]),
       path: pathFormControl,
     });

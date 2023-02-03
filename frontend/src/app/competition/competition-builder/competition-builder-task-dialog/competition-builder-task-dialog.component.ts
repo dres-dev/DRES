@@ -1,17 +1,5 @@
 import { Component, ElementRef, Inject, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogConfig, MatDialogRef } from '@angular/material/dialog';
-import {
-  CollectionService,
-  ConfiguredOptionQueryComponentOption,
-  ConfiguredOptionTargetOption,
-  RestMediaCollection,
-  ApiMediaItem,
-  ApiTaskTemplate,
-  ApiTemporalPoint,
-  ApiTemporalRange,
-  ApiTaskGroup,
-  ApiTaskType,
-} from '../../../../../openapi';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { filter, first } from 'rxjs/operators';
@@ -23,6 +11,16 @@ import {
   AdvancedBuilderDialogData,
 } from './advanced-builder-dialog/advanced-builder-dialog.component';
 import { TimeUtilities } from '../../../utilities/time.utilities';
+import {
+  ApiMediaCollection,
+  ApiMediaItem,
+  ApiTargetOption,
+  ApiTaskGroup,
+  ApiTaskTemplate,
+  ApiTaskType, ApiTemporalPoint, ApiTemporalRange, ApiTemporalUnit,
+  CollectionService
+} from '../../../../../openapi';
+import {ApiComponentOption} from '../../../../../openapi/model/apiComponentOption';
 
 /**
  * Its expected that the taskGroup and taskType properties are correctly given
@@ -43,7 +41,7 @@ export class CompetitionBuilderTaskDialogComponent {
   form: FormGroup;
   units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
   /** Data source for list of {@link MediaCollection}. Loaded upon construction of the dialog. */
-  mediaCollectionSource: Observable<RestMediaCollection[]>;
+  mediaCollectionSource: Observable<ApiMediaCollection[]>;
   /** The {@link CompetitionFormBuilder} used by this dialogue. */
   builder: CompetitionFormBuilder;
   @ViewChild('videoPlayer', { static: false }) video: ElementRef;
@@ -61,7 +59,7 @@ export class CompetitionBuilderTaskDialogComponent {
   ) {
     this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.data.task);
     this.form = this.builder.form;
-    this.mediaCollectionSource = this.collectionService.apiV2CollectionListGet();
+    this.mediaCollectionSource = this.collectionService.getApiV2CollectionList();
   }
 
   private static randInt(min: number, max: number): number {
@@ -80,7 +78,7 @@ export class CompetitionBuilderTaskDialogComponent {
   /**
    * Handler for (+) button for query target form component.
    */
-  public addQueryTarget(targetType: ConfiguredOptionTargetOption.OptionEnum) {
+  public addQueryTarget(targetType: ApiTargetOption) {
     this.builder.addTargetForm(targetType);
   }
 
@@ -96,7 +94,7 @@ export class CompetitionBuilderTaskDialogComponent {
   /**
    * Handler for (+) button for query hint form component.
    */
-  public addQueryComponent(componentType: ConfiguredOptionQueryComponentOption.OptionEnum, previous: number = null) {
+  public addQueryComponent(componentType: ApiComponentOption, previous: number = null) {
     this.builder.addComponentForm(componentType, previous);
   }
 
@@ -150,7 +148,7 @@ export class CompetitionBuilderTaskDialogComponent {
    */
   public pickRandomMediaItem(collectionId: string, target: FormControl) {
     this.collectionService
-      .apiV2CollectionCollectionIdRandomGet(collectionId)
+      .getApiV2CollectioncollectionIdRandom(collectionId)
       .pipe(first())
       .subscribe((value) => {
         target.setValue(value);
@@ -186,7 +184,7 @@ export class CompetitionBuilderTaskDialogComponent {
          */
     let start = -1;
     let end = -1;
-    const unit = unitControl?.value ? (unitControl.value as ApiTemporalPoint.UnitEnum) : ApiTemporalPoint.UnitEnum.SECONDS;
+    const unit = unitControl?.value ? (unitControl.value as ApiTemporalUnit) : ApiTemporalUnit.SECONDS;
     if (startControl && startControl.value) {
       if (unitControl.value === 'TIMECODE') {
         start = TimeUtilities.timeCode2Milliseconds(startControl.value, mediaItem.fps) / 1000;
@@ -224,7 +222,7 @@ export class CompetitionBuilderTaskDialogComponent {
   onRangeChange(range: ApiTemporalRange, startControl?: FormControl, endControl?: FormControl, unitControl?: FormControl) {
     startControl?.setValue(range.start.value);
     endControl?.setValue(range.end.value);
-    unitControl?.setValue(ApiTemporalPoint.UnitEnum.SECONDS);
+    unitControl?.setValue(ApiTemporalUnit.SECONDS);
     console.log('Range updated');
   }
 
@@ -280,9 +278,10 @@ export class CompetitionBuilderTaskDialogComponent {
       .subscribe((r: Array<string>) => {
         this.builder.removeTargetForm(0);
         const mediaCollectionId = this.builder.form.get('mediaCollection').value;
-        this.collectionService.apiV2CollectionCollectionIdResolvePost(mediaCollectionId, r).subscribe((items) => {
+        this.collectionService.postApiV2CollectioncollectionIdResolve(mediaCollectionId, r).subscribe((items) => {
           items.forEach((item) => {
-            const form = this.builder.addTargetForm(ConfiguredOptionTargetOption.OptionEnum.MULTIPLE_MEDIA_ITEMS);
+            // const form = this.builder.addTargetForm(ConfiguredOptionTargetOption.OptionEnum.MULTIPLE_MEDIA_ITEMS);
+            const form = this.builder.addTargetForm(ApiTargetOption.SINGLE_MEDIA_ITEM); // FIXME only to make compiler happy. obviously this is semantically not appropriate
             console.log(`Adding new mediaItem as target ${mediaCollectionId}/${item.name}`);
             form.get('mediaItem').setValue(item);
           });

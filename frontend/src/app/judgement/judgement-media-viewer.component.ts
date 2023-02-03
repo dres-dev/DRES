@@ -1,7 +1,7 @@
 import { AfterViewChecked, AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { AppConfig } from '../app.config';
-import { JudgementRequest } from '../../../openapi';
+import {ApiJudgementRequest} from '../../../openapi';
 
 @Component({
   selector: 'app-judgement-media-viewer',
@@ -12,7 +12,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
   /**
    * The observable holding the currently judged request (i.e. the submission to judge)
    */
-  @Input() req: Observable<JudgementRequest>;
+  @Input() req: Observable<ApiJudgementRequest>;
   /**
    * Padding to add, if the submission is too short
    * Will be added to the start and end, i.e. the actual played length will be
@@ -51,7 +51,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     console.log(`[JudgeMedia] ${msg}`);
   }
 
-  private static detectType(req: JudgementRequest) {
+  private static detectType(req: ApiJudgementRequest) {
     if (req?.startTime) {
       return 'segment';
     } else {
@@ -117,7 +117,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     }
   }
 
-  private initSegment(req: JudgementRequest) {
+  private initSegment(req: ApiJudgementRequest) {
     this.calculateTime(req);
     const url = this.resolvePath(req);
     this.mediaUrl = new Observable<string>((sub) => sub.next(url));
@@ -128,13 +128,13 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     );
   }
 
-  private initItem(req: JudgementRequest) {
+  private initItem(req: ApiJudgementRequest) {
     const url = this.resolvePath(req, false);
     this.mediaUrl = new Observable<string>((sub) => sub.next(url));
     this.videoUrlDebug = new Observable<string>((sub) => sub.next(url)); // TODO Debug only
   }
 
-  private initText(req: JudgementRequest) {
+  private initText(req: ApiJudgementRequest) {
     this.currentText = new Observable<string>((sub) => sub.next(req.item));
   }
 
@@ -201,16 +201,16 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     }
   }
 
-  private calculateTime(req: JudgementRequest) {
+  private calculateTime(req: ApiJudgementRequest) {
     JudgementMediaViewerComponent.log('Calculating time');
     this.startInSeconds = 0;
     /* Parse start time, given in millis */
     if (req.startTime) {
-      this.startInSeconds = Math.floor(Number.parseInt(req.startTime, 10) / 1000);
+      this.startInSeconds = Math.floor(req.startTime/ 1000);
     }
     /* Parse end time, given in millis */
     if (req.endTime) {
-      this.endInSeconds = Math.ceil(Number.parseInt(req.endTime, 10) / 1000);
+      this.endInSeconds = Math.ceil(req.endTime / 1000);
     }
     this.originalLengthInSeconds = this.endInSeconds - this.startInSeconds;
     JudgementMediaViewerComponent.log(`Length: ${this.originalLengthInSeconds}, Threshold: ${this.tooShortThreshold}`);
@@ -232,7 +232,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     // JudgementMediaViewerComponent.log(`time=[${this.startInSeconds},${this.endInSeconds}] - original=${this.originalLengthInSeconds}`);
   }
 
-  private resolvePath(req: JudgementRequest, time = true): string {
+  private resolvePath(req: ApiJudgementRequest, time = true): string {
     const timeSuffix = time ? `#t=${this.startInSeconds},${this.endInSeconds}` : '';
     return this.config.resolveApiUrl(`/media/${req.collection}/${req.item}${timeSuffix}`);
   }

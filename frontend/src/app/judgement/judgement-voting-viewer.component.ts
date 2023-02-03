@@ -1,12 +1,12 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject, interval, Observable, of, Subscription } from 'rxjs';
-import { JudgementRequest, JudgementService } from '../../../openapi';
 import { catchError, filter, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../app.config';
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { JudgementMediaViewerComponent } from './judgement-media-viewer.component';
+import {ApiJudgementRequest, JudgementService} from '../../../openapi';
 
 @Component({
   selector: 'app-judgement-voting-viewer',
@@ -20,9 +20,9 @@ export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
   private requestSub: Subscription;
 
   isJudgmentAvailable = false;
-  judgementRequest: JudgementRequest = null;
+  judgementRequest: ApiJudgementRequest = null;
 
-  observableJudgementRequest: BehaviorSubject<JudgementRequest> = new BehaviorSubject<JudgementRequest>(null);
+  observableJudgementRequest: BehaviorSubject<ApiJudgementRequest> = new BehaviorSubject<ApiJudgementRequest>(null);
   voteClientPath: Observable<string>;
 
   @ViewChild(JudgementMediaViewerComponent) judgePlayer: JudgementMediaViewerComponent;
@@ -45,8 +45,8 @@ export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
         withLatestFrom(this.runId),
         switchMap(([i, runId]) => {
           if (this.runId) {
-            return this.judgementService.getApiV1RunWithRunidVoteNext(runId, 'response').pipe(
-              map((req: HttpResponse<JudgementRequest>) => {
+            return this.judgementService.getApiV2EvaluationevaluationIdVoteNext(runId, 'response').pipe(
+              map((req: HttpResponse<ApiJudgementRequest>) => {
                 if (req.status === 202) {
                   this.isJudgmentAvailable = false;
                   this.judgementRequest = null;

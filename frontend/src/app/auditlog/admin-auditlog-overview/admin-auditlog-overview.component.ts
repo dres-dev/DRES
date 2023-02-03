@@ -50,8 +50,7 @@ export class AdminAuditlogOverviewComponent implements AfterViewInit, OnDestroy 
     /* Initialize subscription for loading audit logs. */
     this.pollingSub = timer(0, this.pollingFrequency)
       .pipe(switchMap((s) => this.logService
-          .apiV2AuditInfoGet()))
-          //.getApiV1AuditInfo()))
+          .getApiV2AuditInfo()))
       .subscribe((i: AuditLogInfo) => {
         this.length = i.size;
         if (this.paginator.pageIndex === 0) {
@@ -82,6 +81,7 @@ export class AdminAuditlogOverviewComponent implements AfterViewInit, OnDestroy 
   }
 
   public detailsOf(log: ApiAuditLogEntry): string {
+    // TODO new design probably asks for the description to be printed -- alone?
     switch (log.type) {
       case 'PREPARE_JUDGEMENT':
         return `Judgement preparation in competition ${log?.competitionId} | ${log?.description}.`;
@@ -89,8 +89,6 @@ export class AdminAuditlogOverviewComponent implements AfterViewInit, OnDestroy 
         return `Submission validation in competition ${log?.competitionId} for submission ${log?.submissionId} | ${log?.description}.`;
       case 'SUBMISSION_STATUS_OVERWRITE':
         return `Submission status overwrite in competition ${log?.competitionId} for submission ${log.submissionId} | ${log?.description}.`;
-      case 'type':
-        return `Log with tyhpe 'type'. This is potentially an erroneous state and should not happen (logId ${log.id}). | ${log?.description}.`;
       case 'COMPETITION_START':
         return `Competition ${log.competitionId} has been started by user ${log.userId} | ${log?.description}.`;
       case 'COMPETITION_END':

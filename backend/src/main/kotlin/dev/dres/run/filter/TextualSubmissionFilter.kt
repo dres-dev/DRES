@@ -15,5 +15,5 @@ class TextualSubmissionFilter : SubmissionFilter {
     override val reason = "Submission does not include textual information (or is an empty submission)"
 
     override fun test(submission: DbSubmission): Boolean
-        = submission.verdicts.asSequence().all { it.text != null && it.type == DbAnswerType.TEXT } /* TODO: Probably needs adjustment if this is supposed work with batch submissions. */
+        = submission.answerSets.asSequence().all { it.answers.asSequence().all { it.text != null && it.type == DbAnswerType.TEXT } } /* TODO: Probably needs adjustment if this is supposed work with batch submissions. */
 }

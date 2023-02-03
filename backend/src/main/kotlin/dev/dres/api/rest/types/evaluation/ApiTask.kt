@@ -16,5 +16,5 @@ data class ApiTask(
     val templateId: TemplateId,
     val started: Long?,
     val ended: Long?,
-    val submissions: List<ApiVerdict>
+    val submissions: List<ApiAnswerSet>
 )

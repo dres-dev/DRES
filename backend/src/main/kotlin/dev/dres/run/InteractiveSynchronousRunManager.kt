@@ -130,7 +130,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         this.evaluation.tasks.forEach { task ->
             task.getSubmissions().forEach { sub ->
                 this.scoresUpdatable.enqueue(Pair(task, sub))
-                if (sub.verdicts.filter { v -> v.status eq DbVerdictStatus.INDETERMINATE }.any()) {
+                if (sub.answerSets.filter { v -> v.status eq DbVerdictStatus.INDETERMINATE }.any()) {
                     task.validator.validate(sub)
                 }
             }
@@ -463,7 +463,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
 
         /* Enqueue WS message for sending */
         this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.TASK_UPDATED))
-        return submission.verdicts.first().status
+        return submission.answerSets.first().status
     }
 
     /**

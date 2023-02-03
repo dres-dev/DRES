@@ -13,5 +13,5 @@ import kotlinx.dnq.query.asSequence
 class ItemSubmissionFilter : SubmissionFilter {
     override val reason = "Submission does include temporal information, but whole item was expected"
     override fun test(submission: DbSubmission): Boolean
-        = submission.verdicts.asSequence().any { it.type == DbAnswerType.TEMPORAL }
+        = submission.answerSets.asSequence().any { it.answers.asSequence().any { it.type == DbAnswerType.TEMPORAL } }
 }

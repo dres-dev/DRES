@@ -50,14 +50,14 @@ class SubmissionPreviewHandler(store: TransientEntityStore, config: Config) : Ab
                 val rac = RunActionContext.runActionContext(ctx, run)
                 val submission = run.allSubmissions(rac).find { it.id == submissionId }
                     ?: throw ErrorStatusException(404, "Submission '$submissionId' not found", ctx)
-                val verdict = submission.verdicts.firstOrNull()
+                val verdict = submission.answerSets.firstOrNull()
                     ?: throw ErrorStatusException(404, "Submission '$submissionId' not found", ctx)
 
                 when {
-                    verdict.item != null -> {
-                        handlePreviewRequest(verdict.item!!, if (verdict.start != null) verdict.start else null, ctx)
+                    verdict.answers.firstOrNull()?.item != null -> {
+                        handlePreviewRequest(verdict.answers.firstOrNull()?.item!!, if (verdict.answers.firstOrNull()?.start != null) verdict.answers.firstOrNull()?.start else null, ctx)
                     }
-                    verdict.text != null -> {
+                    verdict.answers.firstOrNull()?.text != null -> {
                         ctx.header("Cache-Control", "max-age=31622400")
                         ctx.contentType("image/png")
                         ctx.result(this.javaClass.getResourceAsStream("/img/text.png")!!)

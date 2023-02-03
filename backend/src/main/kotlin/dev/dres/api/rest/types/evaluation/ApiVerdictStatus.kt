@@ -5,7 +5,7 @@ import dev.dres.data.model.submissions.DbVerdictStatus
 /**
  * The RESTful API equivalent for the type of a [DbVerdictStatus]
  *
- * @see ApiVerdict
+ * @see ApiAnswerSet
  * @author Ralph Gasser
  * @version 1.0.0
  */

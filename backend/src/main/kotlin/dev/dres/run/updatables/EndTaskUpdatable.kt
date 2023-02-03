@@ -35,12 +35,12 @@ class EndTaskUpdatable(private val run: InteractiveRunManager, private val conte
                     val submissionCount = taskRun.getSubmissions().count()
                     if (this.submissions.getAndSet(submissionCount) < submissionCount) {
                         val allDone = if (this.isAsync) {
-                            val numberOfSubmissions = this.run.currentSubmissions(this.context).count { it.team.id == context.teamId && it.verdicts.first().status == DbVerdictStatus.CORRECT }
+                            val numberOfSubmissions = this.run.currentSubmissions(this.context).count { it.team.id == context.teamId && it.answerSets.first().status == DbVerdictStatus.CORRECT }
                             numberOfSubmissions >= limit
                         } else {
                             /* Determine of all teams have submitted . */
                             this.run.template.teams.asSequence().all { team ->
-                                val numberOfSubmissions = this.run.currentSubmissions(this.context).count { it.team.id == team.teamId && it.verdicts.first().status == DbVerdictStatus.CORRECT }
+                                val numberOfSubmissions = this.run.currentSubmissions(this.context).count { it.team.id == team.teamId && it.answerSets.first().status == DbVerdictStatus.CORRECT }
                                 numberOfSubmissions >= limit
                             }
                         }

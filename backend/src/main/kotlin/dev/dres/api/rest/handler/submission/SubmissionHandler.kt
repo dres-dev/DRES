@@ -16,10 +16,7 @@ import dev.dres.data.model.media.*
 import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.DbTask
-import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.DbAnswerSet
-import dev.dres.data.model.submissions.DbVerdictStatus
-import dev.dres.data.model.submissions.DbAnswerType
+import dev.dres.data.model.submissions.*
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
@@ -110,7 +107,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
 
             AuditLogger.submission(submission, DbAuditLogSource.REST, ctx.sessionToken(), ctx.req().remoteAddr)
             if (run.currentTaskTemplate(rac).taskGroup.type.options.contains(DbTaskOption.HIDDEN_RESULTS)) { //pre-generate preview
-                generatePreview(submission.verdicts.first())
+                generatePreview(submission.answerSets.first())
             }
             submission to result
         }
@@ -180,11 +177,11 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
             this.status = DbVerdictStatus.INDETERMINATE
             this.task = task
         }
-        submission.verdicts.add(answerSet)
+        submission.answerSets.add(answerSet)
 
         if (textParam != null) {
-            answerSet.type = DbAnswerType.TEXT
-            answerSet.text = textParam
+            answerSet.answers.firstOrNull()?.type = DbAnswerType.TEXT
+            answerSet.answers.firstOrNull()?.text = textParam
             return submission
         } else if (itemParam != null) {
             val collection = runManager.currentTaskTemplate(rac).collection /* TODO: Do we need the option to explicitly set the collection name? */
@@ -228,16 +225,21 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
                 else -> null
             }
 
+            val answer = DbAnswer.new()
+
             /* Assign information to submission. */
             if (range != null) {
-                answerSet.item = item
-                answerSet.type = DbAnswerType.TEMPORAL
-                answerSet.start = range.first
-                answerSet.end = range.second
+                answer.item = item
+                answer.type = DbAnswerType.TEMPORAL
+                answer.start = range.first
+                answer.end = range.second
             } else {
-                answerSet.item = item
-                answerSet.type = DbAnswerType.ITEM
+                answer.item = item
+                answer.type = DbAnswerType.ITEM
             }
+
+            answerSet.answers.add(answer)
+
         } else {
             throw ErrorStatusException(404, "Required submission parameters are missing (content not set)!", ctx)
         }
@@ -251,12 +253,12 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
      * @param answerSet The [DbAnswerSet] to generate preview for.
      */
     private fun generatePreview(answerSet: DbAnswerSet) {
-        if (answerSet.type != DbAnswerType.TEMPORAL) return
-        if (answerSet.item == null) return
-        val destinationPath = Paths.get(this.config.cachePath, "previews", answerSet.item!!.collection.name, answerSet.item!!.name, "${answerSet.start}.jpg")
+        if (answerSet.answers.firstOrNull()?.type != DbAnswerType.TEMPORAL) return
+        if (answerSet.answers.firstOrNull()?.item == null) return
+        val destinationPath = Paths.get(this.config.cachePath, "previews", answerSet.answers.firstOrNull()?.item!!.collection.name, answerSet.answers.firstOrNull()?.item!!.name, "${answerSet.answers.firstOrNull()?.start}.jpg")
         if (Files.exists(destinationPath)){
             return
         }
-        FFmpegUtil.extractFrame(answerSet.item!!.pathToOriginal(), answerSet.start!!, destinationPath)
+        FFmpegUtil.extractFrame(answerSet.answers.firstOrNull()?.item!!.pathToOriginal(), answerSet.answers.firstOrNull()?.start!!, destinationPath)
     }
 }

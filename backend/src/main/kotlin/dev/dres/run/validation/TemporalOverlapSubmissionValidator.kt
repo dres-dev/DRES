@@ -31,34 +31,40 @@ class TemporalOverlapSubmissionValidator(private val targetSegment: TransientMed
      * @param submission The [DbSubmission] to validate.
      */
     override fun validate(submission: DbSubmission) {
-        submission.verdicts.asSequence().forEach { verdict ->
-            /* Perform sanity checks. */
-            if (verdict.type != DbAnswerType.TEMPORAL) {
-                verdict.status = DbVerdictStatus.WRONG
-                return@forEach
+        submission.answerSets.asSequence().forEach { answerSet ->
+
+            answerSet.answers.asSequence().forEach { answer ->
+
+                /* Perform sanity checks. */
+                if (answer.type != DbAnswerType.TEMPORAL) {
+                    answerSet.status = DbVerdictStatus.WRONG
+                    return@forEach
+                }
+
+                val start = answer.start
+                val end = answer.end
+                val item = answer.item
+                if (item == null || start == null || end == null || start > end) {
+                    answerSet.status = DbVerdictStatus.WRONG
+                    return@forEach
+                }
+
+                /* Perform item validation. */
+                if (answer.item != this.targetSegment.first) {
+                    answerSet.status = DbVerdictStatus.WRONG
+                    return@forEach
+                }
+
+                /* Perform temporal validation. */
+                val outer = this.targetSegment.second.toMilliseconds()
+                if ((outer.first <= start && outer.second >= start)  || (outer.first <= end && outer.second >= end)) {
+                    answerSet.status = DbVerdictStatus.CORRECT
+                } else {
+                    answerSet.status = DbVerdictStatus.WRONG
+                }
             }
 
-            val start = verdict.start
-            val end = verdict.end
-            val item = verdict.item
-            if (item == null || start == null || end == null || start > end) {
-                verdict.status = DbVerdictStatus.WRONG
-                return@forEach
-            }
 
-            /* Perform item validation. */
-            if (verdict.item != this.targetSegment.first) {
-                verdict.status = DbVerdictStatus.WRONG
-                return@forEach
-            }
-
-            /* Perform temporal validation. */
-            val outer = this.targetSegment.second.toMilliseconds()
-            if ((outer.first <= start && outer.second >= start)  || (outer.first <= end && outer.second >= end)) {
-                verdict.status = DbVerdictStatus.CORRECT
-            } else {
-                verdict.status = DbVerdictStatus.WRONG
-            }
         }
     }
 }

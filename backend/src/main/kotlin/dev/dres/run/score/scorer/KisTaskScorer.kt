@@ -33,7 +33,7 @@ class KisTaskScorer(
         val tDur = max(taskDuration * 1000L, (context.taskEndTime ?: 0) - taskStartTime).toDouble() //actual duration of task, in case it was extended during competition
         return context.teamIds.associateWith { teamId ->
             val verdicts = submissions.filter { it.team.id == teamId }.sortedBy { it.timestamp }.flatMap { sub ->
-                sub.verdicts.filter { (it.status eq DbVerdictStatus.CORRECT) or (it.status eq DbVerdictStatus.WRONG) }.asSequence()
+                sub.answerSets.filter { (it.status eq DbVerdictStatus.CORRECT) or (it.status eq DbVerdictStatus.WRONG) }.asSequence()
             }.toList()
             val firstCorrect = verdicts.indexOfFirst { it.status == DbVerdictStatus.CORRECT }
             val score = if (firstCorrect > -1) {

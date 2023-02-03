@@ -14,7 +14,7 @@ class CorrectPerTeamItemFilter(private val limit: Int = 1) : SubmissionFilter {
     override val reason: String = "Maximum number of correct submissions ($limit) exceeded for this item."
 
     override fun test(submission: DbSubmission): Boolean {
-        return submission.verdicts.asSequence().all { verdict ->
+        return submission.answerSets.asSequence().all { verdict ->
             verdict.task.submissions.filter {
                 (it.status eq DbVerdictStatus.CORRECT).and(it.submission.team eq submission.team)
             }.size() < this.limit

@@ -11,6 +11,7 @@ import dev.dres.run.validation.interfaces.VoteValidator
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.firstOrNull
 
 /**
  * A [GetRestHandler] to dequeue the next [ApiJudgementRequest] that is ready for public voting.
@@ -40,24 +41,25 @@ class DequeueVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(
         val evaluationManager = ctx.eligibleManagerForId()
 
         /* Start transaction. */
-        this.store.transactional {
+        this.store.transactional {//TODO needs adjustment to deal with answerSets
             do {
                 val validator = evaluationManager.judgementValidators.filterIsInstance<VoteValidator>().find {  it.isActive } ?: break
                 val next = validator.nextSubmissionToVoteOn() ?: break
                 val taskDescription = next.task.template.textualDescription()
-                when (next.type) {
+                when (next.answers.firstOrNull()?.type) {
                     DbAnswerType.TEXT -> {
-                        val text = next.text ?: continue
+                        val text = next.answers.firstOrNull()?.text ?: continue
                         return@transactional ApiJudgementRequest(null, ApiMediaType.TEXT, validator.id, "text", text, taskDescription, null, null)
                     }
                     DbAnswerType.ITEM -> {
-                        val item = next.item ?: continue
+                        val item = next.answers.firstOrNull()?.item ?: continue
                         return@transactional ApiJudgementRequest(null, item.type.toApi(), validator.id, item.collection.id, item.id, taskDescription, null, null)
                     }
                     DbAnswerType.TEMPORAL -> {
-                        val item = next.item ?: continue
-                        val start = next.start ?: continue
-                        val end = next.end ?: continue
+                        val answer = next.answers.firstOrNull() ?: continue
+                        val item = answer.item ?: continue
+                        val start = answer.start ?: continue
+                        val end = answer.end ?: continue
                         return@transactional ApiJudgementRequest(null, item.type.toApi(), validator.id, item.collection.id, item.id, taskDescription, start, end)
                     }
                     else -> continue

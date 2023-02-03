@@ -23,11 +23,12 @@ class MediaItemsSubmissionValidator(private val items : Set<DbMediaItem>) : Subm
      * @param submission The [DbSubmission] to validate.
      */
     override fun validate(submission: DbSubmission) {
-        submission.verdicts.asSequence().forEach {verdict ->
-            if (verdict.item == null || verdict.item !in this.items) {
-                verdict.status = DbVerdictStatus.WRONG
+        submission.answerSets.asSequence().forEach { answerSet ->
+
+            if (answerSet.answers.asSequence().any {  it.item == null || it.item !in this.items} ) {
+                answerSet.status = DbVerdictStatus.WRONG
             } else {
-                verdict.status = DbVerdictStatus.CORRECT
+                answerSet.status = DbVerdictStatus.CORRECT
             }
         }
     }

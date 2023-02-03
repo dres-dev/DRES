@@ -6,6 +6,7 @@ import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.TaskContext
 import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.firstOrNull
 import java.lang.Double.max
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -57,8 +58,8 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
     ): Map<TeamId, Double> {
 
         val distinctCorrectVideos = submissions.flatMap { submission ->
-            submission.verdicts.asSequence().filter { it.status == DbVerdictStatus.CORRECT && it.item != null }
-        }.mapNotNullTo(mutableSetOf()) { it.item }
+            submission.answerSets.asSequence().filter { it.status == DbVerdictStatus.CORRECT && it.answers.firstOrNull()?.item != null }
+        }.mapNotNullTo(mutableSetOf()) { it.answers.firstOrNull()?.item }
             .size
 
 
@@ -74,12 +75,12 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
 
         return teamScoreMapSanitised(submissions.groupBy { it.team }.map { submissionsPerTeam ->
             val verdicts = submissionsPerTeam.value.sortedBy { it.timestamp }.flatMap {
-                it.verdicts.asSequence()
-                    .filter { v -> v.item != null && (v.status == DbVerdictStatus.CORRECT || v.status == DbVerdictStatus.WRONG) }
+                it.answerSets.asSequence()
+                    .filter { v -> v.answers.firstOrNull()?.item != null && (v.status == DbVerdictStatus.CORRECT || v.status == DbVerdictStatus.WRONG) }
             }
             submissionsPerTeam.key.teamId to
                     max(0.0, //prevent negative total scores
-                        verdicts.groupBy { it.item!! }.map {
+                        verdicts.groupBy { it.answers.firstOrNull()?.item!! }.map {
                             val firstCorrectIdx = it.value.indexOfFirst { v -> v.status == DbVerdictStatus.CORRECT }
                             if (firstCorrectIdx < 0) { //no correct submissions, only penalty
                                 it.value.size * -penaltyConstant

@@ -95,14 +95,14 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
      * @param submission The [DbSubmission] to validate.
      */
     override fun validate(submission: DbSubmission) = this.updateLock.read {
-        for (verdict in submission.verdicts.asSequence()) {
+        for (verdict in submission.answerSets.asSequence()) {
             //only validate submissions which are not already validated
             if (verdict.status != DbVerdictStatus.INDETERMINATE){
                 continue
             }
 
             //check cache first
-            val itemRange = ItemRange(submission.verdicts.first())
+            val itemRange = ItemRange(submission.answerSets.first().answers.first()) //TODO reason about semantics
             val cachedStatus = this.cache[itemRange]
             if (cachedStatus != null) {
                 verdict.status = cachedStatus
@@ -157,7 +157,7 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
     fun processSubmission(token: String, status: DbVerdictStatus) : DbAnswerSet = this.updateLock.write {
         val verdict = this.waiting[token]
             ?: throw JudgementTimeoutException("This JudgementValidator does not contain a submission for the token '$token'.") //submission with token not found TODO: this should be logged
-        val itemRange = ItemRange(verdict)
+        val itemRange = ItemRange(verdict.answers.first()) //TODO reason about semantics
 
         //add to cache
         this.cache[itemRange] = status

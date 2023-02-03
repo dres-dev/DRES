@@ -66,15 +66,15 @@ class SubmissionStatisticsHandler : StreamEventHandler {
         }
         submissionsByTeam.mapValues {
             it.value.firstOrNull { s ->
-                require(s.verdicts.size() == 1) { "SubmissionStatisticsHandler can only process single-verdict submissions." }
-                s.verdicts.first().status == DbVerdictStatus.CORRECT
+                require(s.answerSets.size() == 1) { "SubmissionStatisticsHandler can only process single-verdict submissions." }
+                s.answerSets.first().status == DbVerdictStatus.CORRECT
             }?.timestamp?.minus(taskStart) }.filter { it.value != null }.forEach{
                 (teamId, time) -> writer.println("$task,${teamId},\"timeUntilCorrectSubmission\",$time")
             }
         submissionsByTeam.mapValues {
             it.value.indexOfFirst { s ->
-                require(s.verdicts.size() == 1) { "SubmissionStatisticsHandler can only process single-verdict submissions." }
-                s.verdicts.first().status == DbVerdictStatus.CORRECT
+                require(s.answerSets.size() == 1) { "SubmissionStatisticsHandler can only process single-verdict submissions." }
+                s.answerSets.first().status == DbVerdictStatus.CORRECT
             }
         }.forEach{
             (teamId, count) -> writer.println("$task,${teamId},\"incorrectBeforeCorrectSubmissions\",$count")

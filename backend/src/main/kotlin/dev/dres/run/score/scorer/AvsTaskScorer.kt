@@ -9,7 +9,8 @@ import dev.dres.run.score.TaskContext
 import dev.dres.utilities.TimeUtil
 import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.filter
-import kotlinx.dnq.query.toList
+import kotlinx.dnq.query.first
+import kotlinx.dnq.query.firstOrNull
 
 
 /**
@@ -25,9 +26,9 @@ object AvsTaskScorer : TaskScorer {
      */
     override fun computeScores(submissions: Sequence<DbSubmission>, context: TaskContext): Map<TeamId, Double> {
         val correctSubmissions =
-            submissions.flatMap { s -> s.verdicts.filter { v -> v.status eq DbVerdictStatus.CORRECT }.asSequence() }
+            submissions.flatMap { s -> s.answerSets.filter { v -> v.status eq DbVerdictStatus.CORRECT }.asSequence() }
         val wrongSubmissions =
-            submissions.flatMap { s -> s.verdicts.filter { v -> v.status eq DbVerdictStatus.WRONG }.asSequence() }
+            submissions.flatMap { s -> s.answerSets.filter { v -> v.status eq DbVerdictStatus.WRONG }.asSequence() }
         val correctSubmissionsPerTeam = correctSubmissions.groupBy { it.submission.team.id }
         val wrongSubmissionsPerTeam = wrongSubmissions.groupBy { it.submission.team.id }
         val totalCorrectQuantized = countQuantized(correctSubmissions).toDouble()
@@ -42,13 +43,13 @@ object AvsTaskScorer : TaskScorer {
     }
 
     private fun countQuantized(submissions: Sequence<DbAnswerSet>): Int = submissions
-        .filter { it.item != null }
-        .groupBy { it.item }
+        .filter { it.answers.firstOrNull()?.item != null }
+        .groupBy { it.answers.first().item }
         .map {
             when (it.key!!.type) {
                 DbMediaType.IMAGE -> 1
                 DbMediaType.VIDEO -> {
-                    val ranges = it.value.map { s -> s.temporalRange!! }
+                    val ranges = it.value.asSequence().map { s -> s.answers.first().temporalRange!! }.toList()
                     TimeUtil.merge(ranges, overlap = 1).size
                 }
                 else -> throw IllegalStateException("Unsupported media type ${it.key!!.type} for AVS task scorer.")

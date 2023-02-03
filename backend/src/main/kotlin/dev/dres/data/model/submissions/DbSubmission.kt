@@ -38,14 +38,14 @@ class DbSubmission(entity: Entity) : PersistentEntity(entity) {
     var user by xdLink1(DbUser)
 
     /** The [DbAnswerSet]s that make-up this [DbSubmission]. For batched submissions, more than one verdict can be possible. */
-    val verdicts by xdChildren1_N<DbSubmission,DbAnswerSet>(DbAnswerSet::submission)
+    val answerSets by xdChildren1_N<DbSubmission,DbAnswerSet>(DbAnswerSet::submission)
 
     /**
      * Converts this [DbSubmission] to a RESTful API representation [ApiSubmission].
      *
      * This is a convenience method and requires an active transaction context.
      *
-     * @param blind True, if a "blind" Submission (without [verdicts]) should be generated.
+     * @param blind True, if a "blind" Submission (without [answerSets]) should be generated.
      * @return [ApiSubmission]
      */
     fun toApi(blind: Boolean = false): ApiSubmission = ApiSubmission(
@@ -55,6 +55,6 @@ class DbSubmission(entity: Entity) : PersistentEntity(entity) {
         memberId = this.user.id,
         memberName = this.user.username,
         timestamp = this.timestamp,
-        verdicts = if (blind) { emptyList() } else { this.verdicts.asSequence().map { it.toApi() }.toList()}
+        verdicts = if (blind) { emptyList() } else { this.answerSets.asSequence().map { it.toApi() }.toList()}
     )
 }

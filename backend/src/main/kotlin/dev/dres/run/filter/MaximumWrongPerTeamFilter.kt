@@ -19,7 +19,7 @@ class MaximumWrongPerTeamFilter(private val max: Int = Int.MAX_VALUE) : Submissi
      * TODO: This filter now takes all [Verdict]s into account. Is this desired behaviour?
      */
     override fun test(submission: DbSubmission): Boolean {
-        return submission.verdicts.asSequence().all { v ->
+        return submission.answerSets.asSequence().all { v ->
             v.task.submissions.filter { (it.submission.team.id eq submission.team.id) and (it.status eq DbVerdictStatus.WRONG) }.size() < max
         }
     }

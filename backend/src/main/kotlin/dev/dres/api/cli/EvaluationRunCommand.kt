@@ -384,7 +384,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                     writeRow(header)
                     tasks.asSequence().forEach { task ->
                         val submittedItems = task.submissions.asSequence().groupBy {s ->
-                            Triple(s.item?.name?: "unknown", s.start, s.end)
+                            Triple(s.answers.firstOrNull()?.item?.name?: "unknown", s.answers.firstOrNull()?.start, s.answers.firstOrNull()?.end) //TODO flatten?
                         }
                         submittedItems.entries.forEach { items ->
                             val status = items.value.map { s -> s.status }.toSet() //should only contain one element

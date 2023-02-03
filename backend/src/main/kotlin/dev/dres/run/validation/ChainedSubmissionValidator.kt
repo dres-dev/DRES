@@ -38,7 +38,7 @@ class ChainedSubmissionValidator(private val firstValidator: SubmissionValidator
      */
     override fun validate(submission: DbSubmission) {
         this.firstValidator.validate(submission)
-        if (submission.verdicts.asSequence().any { this.continueStates.contains(it.status) }) {
+        if (submission.answerSets.asSequence().any { this.continueStates.contains(it.status) }) {
             this.secondValidator.validate(submission)
         }
     }

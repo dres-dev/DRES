@@ -47,25 +47,33 @@ class TextValidator(targets: List<String>) : SubmissionValidator {
      * @param submission The [DbSubmission] to validate.
      */
     override fun validate(submission: DbSubmission) {
-        submission.verdicts.asSequence().forEach { verdict ->
-            /* Perform sanity checks. */
-            if (verdict.type != DbAnswerType.TEXT) {
-                verdict.status = DbVerdictStatus.WRONG
-                return@forEach
+        submission.answerSets.asSequence().forEach { answerSet ->
+
+            answerSet.answers.asSequence().forEach {
+                answer ->
+
+                /* Perform sanity checks. */
+                if (answer.type != DbAnswerType.TEXT) {
+                    answerSet.status = DbVerdictStatus.WRONG
+                    return@forEach
+                }
+
+                /* Perform text validation. */
+                val text = answer.text
+                if (text == null) {
+                    answerSet.status = DbVerdictStatus.WRONG
+                    return@forEach
+                }
+
+                if (regex.any { it matches text })  {
+                    answerSet.status = DbVerdictStatus.CORRECT
+                } else {
+                    answerSet.status = DbVerdictStatus.WRONG
+                }
+
             }
 
-            /* Perform text validation. */
-            val text = verdict.text
-            if (text == null) {
-                verdict.status = DbVerdictStatus.WRONG
-                return@forEach
-            }
 
-            if (regex.any { it matches text })  {
-                verdict.status = DbVerdictStatus.CORRECT
-            } else {
-                verdict.status = DbVerdictStatus.WRONG
-            }
         }
     }
 }

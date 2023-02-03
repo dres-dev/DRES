@@ -145,12 +145,12 @@ object AuditLogger {
             this.source = api
             this.timestamp = DateTime.now()
             this.submissionId = submission.id
-            this.evaluationId = submission.verdicts.first().task.evaluation.evaluationId
-            this.taskId = submission.verdicts.first().task.id /* TODO: Multiple verdicts. */
+            this.evaluationId = submission.answerSets.first().task.evaluation.evaluationId
+            this.taskId = submission.answerSets.first().task.id /* TODO: Multiple verdicts. */
             this.session = sessionToken
             this.address = address
         }
-        EventStreamProcessor.event(SubmissionEvent(sessionToken ?: "na", submission.verdicts.first().task.evaluation.evaluationId, submission.verdicts.first().task.id, submission))
+        EventStreamProcessor.event(SubmissionEvent(sessionToken ?: "na", submission.answerSets.first().task.evaluation.evaluationId, submission.answerSets.first().task.id, submission))
     }
 
     /**
@@ -166,9 +166,9 @@ object AuditLogger {
                 this.source = DbAuditLogSource.INTERNAL
                 this.timestamp = DateTime.now()
                 this.submissionId = submission.id
-                this.evaluationId = submission.verdicts.first().task.evaluation.evaluationId
-                this.taskId = submission.verdicts.first().task.id /* TODO: Multiple verdicts. */
-                this.description = "Validator: ${validator::class.simpleName}, Verdict: ${submission.verdicts.first().status.description}" /* TODO: Here name, there ID. Why? */
+                this.evaluationId = submission.answerSets.first().task.evaluation.evaluationId
+                this.taskId = submission.answerSets.first().task.id /* TODO: Multiple verdicts. */
+                this.description = "Validator: ${validator::class.simpleName}, Verdict: ${submission.answerSets.first().status.description}" /* TODO: Here name, there ID. Why? */
             }
         }
     }
@@ -187,9 +187,9 @@ object AuditLogger {
                 this.source = api
                 this.timestamp = DateTime.now()
                 this.submissionId = submission.id
-                this.evaluationId = submission.verdicts.first().task.evaluation.evaluationId
-                this.taskId = submission.verdicts.first().task.id /* TODO: Multiple verdicts. */
-                this.description = "Verdict: ${submission.verdicts.first().status.description}"
+                this.evaluationId = submission.answerSets.first().task.evaluation.evaluationId
+                this.taskId = submission.answerSets.first().task.id /* TODO: Multiple verdicts. */
+                this.description = "Verdict: ${submission.answerSets.first().status.description}"
                 this.session = sessionToken
             }
         }

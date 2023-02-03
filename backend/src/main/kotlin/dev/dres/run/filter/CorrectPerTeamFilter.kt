@@ -18,7 +18,7 @@ class CorrectPerTeamFilter(private val limit: Int = 1) : SubmissionFilter {
 
     constructor(parameters: Map<String, String>) : this(parameters.getOrDefault("limit", "1").toIntOrNull() ?: 1)
     override fun test(submission: DbSubmission): Boolean {
-        return submission.verdicts.asSequence().all { verdict ->
+        return submission.answerSets.asSequence().all { verdict ->
             verdict.task.submissions.filter { (it.status eq DbVerdictStatus.CORRECT).and(it.submission.team eq submission.team) }.size() < limit
         }
     }

@@ -15,5 +15,5 @@ class TemporalSubmissionFilter : SubmissionFilter {
     override val reason = "Submission does not include temporal information."
 
     override fun test(submission: DbSubmission): Boolean
-        = submission.verdicts.asSequence().all {  it.type == DbAnswerType.TEMPORAL && it.start != null && it.end != null } /* TODO: Probably needs adjustment if this is supposed work with batch submissions. */
+        = submission.answerSets.asSequence().all { it.answers.asSequence().all {  it.type == DbAnswerType.TEMPORAL && it.start != null && it.end != null } } /* TODO: Probably needs adjustment if this is supposed work with batch submissions. */
 }

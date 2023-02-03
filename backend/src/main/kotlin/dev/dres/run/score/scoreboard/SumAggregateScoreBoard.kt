@@ -3,7 +3,8 @@ package dev.dres.run.score.scoreboard
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.template.TemplateId
-import dev.dres.run.score.interfaces.TaskScorer
+import dev.dres.run.score.scorer.CachingTaskScorer
+import dev.dres.run.score.scorer.TaskScorer
 
 /**
  * A [Scoreboard] that keeps tracks the total score per team and task group.
@@ -23,7 +24,7 @@ class SumAggregateScoreBoard(override val name: String, private val boards: List
         //since calls are delegated, nothing needs to be done here
     }
 
-    override fun update(scorers: Map<TemplateId, TaskScorer>) {
+    override fun update(scorers: Map<TemplateId, CachingTaskScorer>) {
         //since calls are delegated, nothing needs to be done here
     }
 

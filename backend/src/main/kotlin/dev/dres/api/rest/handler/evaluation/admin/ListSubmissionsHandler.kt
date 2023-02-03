@@ -40,7 +40,7 @@ class ListSubmissionsHandler(store: TransientEntityStore): AbstractEvaluationAdm
         val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
         return this.store.transactional(true) {
             evaluationManager.tasks(RunActionContext.runActionContext(ctx, evaluationManager)).filter { it.template.templateId == templateId }.map {
-                ApiSubmissionInfo(evaluationId, it.id, it.getSubmissions().map { sub -> sub.toApi() })
+                ApiSubmissionInfo(evaluationId, it.id, it.getSubmissions().map { sub -> sub.toApi() }.toList())
             }
         }
     }

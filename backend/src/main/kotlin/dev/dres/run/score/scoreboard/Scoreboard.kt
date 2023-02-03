@@ -4,7 +4,8 @@ import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.template.team.TeamId
-import dev.dres.run.score.interfaces.TaskScorer
+import dev.dres.run.score.scorer.CachingTaskScorer
+import dev.dres.run.score.scorer.TaskScorer
 
 /**
  * A [Scoreboard] tracks the [Score]s for different [DbTeam]s
@@ -40,7 +41,7 @@ interface Scoreboard {
     /**
      * Updates using a map of the [TaskId] ids to the corresponding [TaskScorer]s
      */
-    fun update(scorers: Map<TaskId, TaskScorer>)
+    fun update(scorers: Map<TaskId, CachingTaskScorer>)
 
     /**
      * Returns a summary of all current scores in a [ScoreOverview]

@@ -7,7 +7,6 @@ import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.filter.SubmissionFilter
-import dev.dres.run.score.interfaces.TeamTaskScorer
 import kotlinx.dnq.query.*
 
 /**
@@ -92,8 +91,7 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
         override val filter: SubmissionFilter = this.template.newFilter()
 
         /** The [TeamTaskScorer] instance used by this [ISTaskRun]. */
-        override val scorer: TeamTaskScorer = this.template.newScorer() as? TeamTaskScorer
-            ?: throw IllegalArgumentException("Specified scorer is not of type TeamTaskScorer. This is a programmer's error!")
+        override val scorer = this.template.newScorer()
 
         /** The total duration in milliseconds of this task. Usually determined by the [DbTaskTemplate] but can be adjusted! */
         override var duration: Long = this.template.duration

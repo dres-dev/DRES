@@ -1,8 +1,9 @@
 package dev.dres.data.model.template.task.options
 
 import dev.dres.api.rest.types.competition.tasks.options.ApiScoreOption
-import dev.dres.run.score.interfaces.TaskScorer
+import dev.dres.run.score.scorer.TaskScorer
 import dev.dres.run.score.scorer.AvsTaskScorer
+import dev.dres.run.score.scorer.CachingTaskScorer
 import dev.dres.run.score.scorer.KisTaskScorer
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity
@@ -30,18 +31,21 @@ class DbScoreOption(entity: Entity) : XdEnumEntity(entity) {
      *
      * @param parameters The parameter [Map] used to configure the [TaskScorer]
      */
-    fun scorer(parameters: Map<String, String>): TaskScorer = when(this) {
-        KIS -> KisTaskScorer(parameters)
-        AVS -> AvsTaskScorer()
-        else -> throw IllegalStateException("The task score option ${this.description} is currently not supported.")
-    }
+    fun scorer(parameters: Map<String, String>): CachingTaskScorer = CachingTaskScorer(
+        when (this) {
+            KIS -> KisTaskScorer(parameters)
+            AVS -> AvsTaskScorer
+            else -> throw IllegalStateException("The task score option ${this.description} is currently not supported.")
+        }
+    )
 
     /**
      * Converts this [DbHintOption] to a RESTful API representation [ApiScoreOption].
      *
      * @return [ApiScoreOption]
      */
-    fun toApi() = ApiScoreOption.values().find { it.toDb() == this } ?: throw IllegalStateException("Option ${this.description} is not supported.")
+    fun toApi() = ApiScoreOption.values().find { it.toDb() == this }
+        ?: throw IllegalStateException("Option ${this.description} is not supported.")
 
     override fun toString(): String = this.description
 }

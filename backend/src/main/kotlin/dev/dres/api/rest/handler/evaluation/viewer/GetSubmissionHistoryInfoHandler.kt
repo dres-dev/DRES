@@ -50,7 +50,7 @@ class GetSubmissionHistoryInfoHandler(store: TransientEntityStore): AbstractEval
                     val hidden = manager.currentTaskTemplate(rac).taskGroup.type.options.filter { it eq  DbTaskOption.HIDDEN_RESULTS }.any()
                     manager.currentSubmissions(rac).map { it.toApi(hidden) }
                 } else {
-                    manager.taskForId(rac, taskId)?.getSubmissions()?.map { it.toApi() } ?: emptyList()
+                    manager.taskForId(rac, taskId)?.getSubmissions()?.map { it.toApi() }?.toList() ?: emptyList()
                 }
             }
             emptyList()

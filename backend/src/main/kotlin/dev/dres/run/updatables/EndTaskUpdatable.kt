@@ -32,7 +32,8 @@ class EndTaskUpdatable(private val run: InteractiveRunManager, private val conte
             if (taskRun.template.taskGroup.type.submission.contains(DbSubmissionOption.LIMIT_CORRECT_PER_TEAM)) {
                 val limit = taskRun.template.taskGroup.type.configurations.filter { it.key eq DbSubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.firstOrNull()?.key?.toIntOrNull() ?: 1
                 if (this.run.timeLeft(this.context) > 0) {
-                    if (this.submissions.getAndSet(taskRun.getSubmissions().size) < taskRun.getSubmissions().size) {
+                    val submissionCount = taskRun.getSubmissions().count()
+                    if (this.submissions.getAndSet(submissionCount) < submissionCount) {
                         val allDone = if (this.isAsync) {
                             val numberOfSubmissions = this.run.currentSubmissions(this.context).count { it.team.id == context.teamId && it.verdicts.first().status == DbVerdictStatus.CORRECT }
                             numberOfSubmissions >= limit

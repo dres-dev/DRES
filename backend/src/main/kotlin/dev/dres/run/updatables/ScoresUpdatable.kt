@@ -8,8 +8,6 @@ import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.run.RunManagerStatus
 import dev.dres.run.score.TaskContext
-import dev.dres.run.score.interfaces.IncrementalSubmissionTaskScorer
-import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
 import kotlinx.dnq.query.asSequence
 import java.util.*
 
@@ -36,24 +34,15 @@ class ScoresUpdatable(private val evaluationId: EvaluationId, private val scoreb
 
     override fun update(status: RunManagerStatus) {
         if (!this.list.isEmpty()) {
-            val scorersToUpdate = mutableSetOf<Pair<AbstractInteractiveTask,RecalculatingSubmissionTaskScorer>>()
             val removed = this.list.removeIf {
-                when(val scorer = it.first.scorer) {
-                    is RecalculatingSubmissionTaskScorer -> scorersToUpdate.add(Pair(it.first, scorer))
-                    is IncrementalSubmissionTaskScorer -> scorer.update(it.second)
-                    else -> { }
-                }
-                true
-            }
-
-            /* Update scorers. */
-            scorersToUpdate.forEach {
                 val task = it.first
-                val scores = it.second.computeScores(
+                val scores = it.first.scorer.computeScores(
                     task.getSubmissions(),
                     TaskContext(task.id, task.competition.description.teams.asSequence().map { t -> t.id }.toList(), task.started, task.template.duration, task.ended)
                 )
-                it.first.updateTeamAggregation(scores)
+                task.updateTeamAggregation(scores)
+
+                true
             }
 
             /* If elements were removed, then update scoreboards and tasks. */

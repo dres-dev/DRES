@@ -1,11 +1,11 @@
 import { Component, Inject } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { RestTeam, ApiUser, UserService } from '../../../../../openapi';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { map, shareReplay } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { AppConfig } from '../../../app.config';
+import {ApiTeam, ApiUser, UserService} from '../../../../../openapi';
 
 @Component({
   selector: 'app-competition-builder-add-team-dialog',
@@ -42,7 +42,7 @@ export class CompetitionBuilderTeamDialogComponent {
     private dialogRef: MatDialogRef<CompetitionBuilderTeamDialogComponent>,
     private userService: UserService,
     private config: AppConfig,
-    @Inject(MAT_DIALOG_DATA) private team?: RestTeam
+    @Inject(MAT_DIALOG_DATA) private team?: ApiTeam
   ) {
     this.form = new FormGroup({
       name: new FormControl(team?.name, [Validators.required, Validators.minLength(3)]),
@@ -51,12 +51,14 @@ export class CompetitionBuilderTeamDialogComponent {
         Validators.minLength(7),
         Validators.maxLength(7),
       ]),
-      logoId: new FormControl(team?.logoId),
+      logoId: new FormControl(/*team?.logoId*/''),
       logoData: new FormControl(team?.logoData),
       users: new FormControl(team?.users != null ? team.users : []),
       userInput: new FormControl(''),
     });
-    this.availableUsers = this.userService.getApiV1UserList().pipe(
+    this.availableUsers = this.userService.apiV2UserListGet()
+    //getApiV1UserList()
+        .pipe(
       map((value) => {
         return value.filter((user) => user.role !== 'JUDGE' && user.role !== 'VIEWER');
       }),
@@ -132,7 +134,7 @@ export class CompetitionBuilderTeamDialogComponent {
   }
 
   /**
-   * Saves all changs in the dialog and closes it.
+   * Saves all changes in the dialog and closes it.
    */
   public save(): void {
     if (this.form.valid) {
@@ -149,9 +151,9 @@ export class CompetitionBuilderTeamDialogComponent {
       name: this.form.get('name').value,
       color: this.form.get('color').value,
       logoData: this.form.get('logoData').value,
-      logoId: this.form.get('logoId').value,
+      // logoId: this.form.get('logoId').value,
       users: this.form.get('users').value,
-    } as RestTeam;
+    } as ApiTeam;
   }
 
   /**

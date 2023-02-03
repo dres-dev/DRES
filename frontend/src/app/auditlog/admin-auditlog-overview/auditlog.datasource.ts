@@ -1,7 +1,7 @@
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
-import { AuditService, ApiAuditLogEntry } from '../../../../openapi';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, finalize, first } from 'rxjs/operators';
+import {ApiAuditLogEntry, AuditService} from '../../../../openapi';
 
 /**
  * {@link DataSource} implementation of {@link ApiAuditLogEntry}.
@@ -40,7 +40,8 @@ export class AuditlogDatasource implements DataSource<ApiAuditLogEntry> {
   refresh(pageIndex = 0, pageSize = 100) {
     this.loadingSubject.next(true);
     this.logService
-      .getApiV1AuditLogListLimitWithLimitWithPage(pageSize, pageIndex)
+      //.getApiV1AuditLogListLimitWithLimitWithPage(pageSize, pageIndex)
+        .apiV2AuditLogListLimitLimitPageGet(pageSize, pageIndex)
       .pipe(
         first(),
         catchError(() => of([])),

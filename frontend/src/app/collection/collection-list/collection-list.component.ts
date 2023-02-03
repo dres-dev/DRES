@@ -1,10 +1,10 @@
 import { AfterViewInit, Component } from '@angular/core';
-import { CollectionService, RestMediaCollection } from '../../../../openapi';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { CollectionBuilderDialogComponent } from '../collection-builder/collection-builder-dialog/collection-builder-dialog.component';
 import { filter, flatMap } from 'rxjs/operators';
+import {ApiMediaCollection, CollectionService} from '../../../../openapi';
 
 @Component({
   selector: 'app-collection-list',
@@ -13,7 +13,7 @@ import { filter, flatMap } from 'rxjs/operators';
 })
 export class CollectionListComponent implements AfterViewInit {
   displayedColumns = ['actions', 'id', 'name', 'description', 'basePath'];
-  collections: RestMediaCollection[] = [];
+  collections: ApiMediaCollection[] = [];
 
   constructor(
     private collectionService: CollectionService,
@@ -24,7 +24,7 @@ export class CollectionListComponent implements AfterViewInit {
 
   refresh() {
     this.collectionService.apiV2CollectionListGet().subscribe(
-      (results: RestMediaCollection[]) => {
+      (results: ApiMediaCollection[]) => {
         this.collections = results;
       },
       (r) => {
@@ -39,7 +39,7 @@ export class CollectionListComponent implements AfterViewInit {
   }
 
   create(id?: string) {
-    const config = { width: '500px' } as MatDialogConfig<RestMediaCollection>;
+    const config = { width: '500px' } as MatDialogConfig<ApiMediaCollection>;
     if (id) {
       config.data = this.collections.find((c) => c.id === id);
     } else {
@@ -50,7 +50,7 @@ export class CollectionListComponent implements AfterViewInit {
       .afterClosed()
       .pipe(
         filter((r) => r != null),
-        flatMap((r: RestMediaCollection) => {
+        flatMap((r: ApiMediaCollection) => {
           if (id) {
             return this.collectionService.apiV2CollectionPatch(r);
           } else {
@@ -87,7 +87,7 @@ export class CollectionListComponent implements AfterViewInit {
     }
   }
 
-  resolveMediaCollectionById(_: number, item: RestMediaCollection) {
+  resolveMediaCollectionById(_: number, item: ApiMediaCollection) {
     return item.id;
   }
 }

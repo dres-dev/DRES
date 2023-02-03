@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.collection
 
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.types.collection.RestMediaCollection
+import dev.dres.api.rest.types.collection.ApiMediaCollection
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.model.media.DbMediaCollection
 import io.javalin.http.Context
@@ -17,7 +17,7 @@ import kotlinx.dnq.query.asSequence
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ListCollectionHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), GetRestHandler<List<RestMediaCollection>> {
+class ListCollectionHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), GetRestHandler<List<ApiMediaCollection>> {
 
     override val route: String = "collection/list"
 
@@ -27,13 +27,13 @@ class ListCollectionHandler(store: TransientEntityStore) : AbstractCollectionHan
         tags = ["Collection"],
         methods = [HttpMethod.GET],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(Array<RestMediaCollection>::class)]),
+            OpenApiResponse("200", [OpenApiContent(Array<ApiMediaCollection>::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
         ]
     )
-    override fun doGet(ctx: Context): List<RestMediaCollection> {
+    override fun doGet(ctx: Context): List<ApiMediaCollection> {
         return this.store.transactional(true) {
-            DbMediaCollection.all().asSequence().map { RestMediaCollection.fromMediaCollection(it) }.toList()
+            DbMediaCollection.all().asSequence().map { ApiMediaCollection.fromMediaCollection(it) }.toList()
         }
     }
 }

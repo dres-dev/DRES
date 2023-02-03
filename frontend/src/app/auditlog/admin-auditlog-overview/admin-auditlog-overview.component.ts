@@ -1,22 +1,11 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-import {
-  AuditService,
-  ApiAuditLogEntry,
-  ApiCompetitionEndAuditLogEntry,
-  ApiJudgementAuditLogEntry,
-  ApiLoginAuditLogEntry,
-  ApiLogoutAuditLogEntry,
-  ApiSubmissionAuditLogEntry,
-  ApiTaskEndAuditLogEntry,
-  ApiTaskModifiedAuditLogEntry,
-  ApiTaskStartAuditLogEntry,
-} from '../../../../openapi';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subscription, timer } from 'rxjs';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { switchMap } from 'rxjs/operators';
 import { AuditlogDatasource } from './auditlog.datasource';
+import {ApiAuditLogEntry, AuditLogInfo, AuditService} from '../../../../openapi';
 
 @Component({
   selector: 'app-admin-auditlog-overview',
@@ -60,8 +49,10 @@ export class AdminAuditlogOverviewComponent implements AfterViewInit, OnDestroy 
   public ngAfterViewInit(): void {
     /* Initialize subscription for loading audit logs. */
     this.pollingSub = timer(0, this.pollingFrequency)
-      .pipe(switchMap((s) => this.logService.getApiV1AuditInfo()))
-      .subscribe((i) => {
+      .pipe(switchMap((s) => this.logService
+          .apiV2AuditInfoGet()))
+          //.getApiV1AuditInfo()))
+      .subscribe((i: AuditLogInfo) => {
         this.length = i.size;
         if (this.paginator.pageIndex === 0) {
           /* Only the first page needs refreshing because logs are ordered chronologically. */
@@ -92,39 +83,37 @@ export class AdminAuditlogOverviewComponent implements AfterViewInit, OnDestroy 
 
   public detailsOf(log: ApiAuditLogEntry): string {
     switch (log.type) {
+      case 'PREPARE_JUDGEMENT':
+        return `Judgement preparation in competition ${log?.competitionId} | ${log?.description}.`;
+      case 'SUBMISSION_VALIDATION':
+        return `Submission validation in competition ${log?.competitionId} for submission ${log?.submissionId} | ${log?.description}.`;
+      case 'SUBMISSION_STATUS_OVERWRITE':
+        return `Submission status overwrite in competition ${log?.competitionId} for submission ${log.submissionId} | ${log?.description}.`;
+      case 'type':
+        return `Log with tyhpe 'type'. This is potentially an erroneous state and should not happen (logId ${log.id}). | ${log?.description}.`;
       case 'COMPETITION_START':
-        const cs = log as unknown as RestCompetitionEndAuditLogEntry;
-        return `Competition ${cs.competition} has been started by user ${cs.user}`;
+        return `Competition ${log.competitionId} has been started by user ${log.userId} | ${log?.description}.`;
       case 'COMPETITION_END':
-        const ce = log as unknown as RestCompetitionEndAuditLogEntry;
-        return `Competition ${ce.competition} has been ended by user ${ce.user}`;
+        return `Competition ${log.competitionId} has been ended by user ${log.userId} | ${log?.description}.`;
       case 'TASK_START':
-        const ts = log as unknown as RestTaskStartAuditLogEntry;
-        return `Task ${ts.taskName} in competition ${ts.competition} has been started by user ${ts.user}`;
+        // return `Task ${log.taskId} in competition ${log.competitionId} has been started by user ${log.userId}`;
+        return `Task *** in competition ${log.competitionId} has been started by user ${log.userId} | ${log?.description}.`;
       case 'TASK_MODIFIED':
-        const tm = log as unknown as RestTaskModifiedAuditLogEntry;
-        return `Task ${tm.taskName} in competition ${tm.competition} has been modified by user ${tm.user}: ${tm.modification}`;
+        // return `Task ${log.taskId} in competition ${log.competitionId} has been modified by user ${log.userId}: ${log.modification}`;
+        return `Task *** in competition ${log.competitionId} has been modified by user ${log.userId}: *** | ${log?.description}.`;
       case 'TASK_END':
-        const te = log as unknown as RestTaskEndAuditLogEntry;
-        return `Task ${te.taskName} in competition ${te.competition} has been ended by user ${te.user}`;
+        return `Task *** in competition ${log.competitionId} has been ended by user ${log.userId} | ${log?.description}.`;
       case 'SUBMISSION':
-        const subm = log as unknown as RestSubmissionAuditLogEntry;
-        return `For ${subm.taskName}, a submission ${JSON.stringify(subm.submission)} was made in competition ${
-          subm.competition
+        return `For task ***, a submission ${log.submissionId} was made in competition ${
+          log.competitionId
         }
-                 by user ${subm.user} from ${subm.address}`.replace('\n', '');
+                 by user ${log.userId} from ${log.address} | ${log?.description}.`.replace('\n', '');
       case 'JUDGEMENT':
-        const judgement = log as unknown as RestJudgementAuditLogEntry;
-        return `Judge ${judgement.user ? judgement.user : ''} published verdict ${judgement.verdict} for token ${
-          judgement.token
-        }
-                 based on validator ${judgement.validator} in competition ${judgement.competition}`.replace('\n', '');
+        return `Judge ${log.userId ? log.userId : ''} published a verdict  in competition ${log.competitionId}  | ${log?.description}.`.replace('\n', '');
       case 'LOGIN':
-        const login = log as unknown as RestLoginAuditLogEntry;
-        return `${login.user} has logged in using ${login.session}`;
+        return `${log.userId} has logged in using ${log.session}  | ${log?.description}.`;
       case 'LOGOUT':
-        const logout = log as unknown as RestLogoutAuditLogEntry;
-        return `${logout.session} was logged out`;
+        return `${log.session} was logged out | ${log?.description}.`;
       default:
         return JSON.stringify(log);
     }

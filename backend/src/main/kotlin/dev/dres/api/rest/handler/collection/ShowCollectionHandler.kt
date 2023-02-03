@@ -1,8 +1,8 @@
 package dev.dres.api.rest.handler.collection
 
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.types.collection.RestFullMediaCollection
-import dev.dres.api.rest.types.collection.RestMediaCollection
+import dev.dres.api.rest.types.collection.ApiPopulatedMediaCollection
+import dev.dres.api.rest.types.collection.ApiMediaCollection
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.model.media.DbMediaItem
 import io.javalin.http.Context
@@ -17,7 +17,7 @@ import kotlinx.dnq.query.query
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ShowCollectionHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), GetRestHandler<RestFullMediaCollection> {
+class ShowCollectionHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), GetRestHandler<ApiPopulatedMediaCollection> {
 
     override val route: String = "collection/{collectionId}"
 
@@ -27,15 +27,15 @@ class ShowCollectionHandler(store: TransientEntityStore) : AbstractCollectionHan
         pathParams = [OpenApiParam("collectionId", String::class, "Collection ID")],
         tags = ["Collection"],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(RestFullMediaCollection::class)]),
+            OpenApiResponse("200", [OpenApiContent(ApiPopulatedMediaCollection::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): RestFullMediaCollection = this.store.transactional(true) {
+    override fun doGet(ctx: Context): ApiPopulatedMediaCollection = this.store.transactional(true) {
         val collection = collectionFromContext(ctx) //also checks if collection exists
         val items = DbMediaItem.query(DbMediaItem::collection eq collection).asSequence().map { it.toApi() }.toList()
-        RestFullMediaCollection(RestMediaCollection.fromMediaCollection(collection), items)
+        ApiPopulatedMediaCollection(ApiMediaCollection.fromMediaCollection(collection), items)
     }
 }

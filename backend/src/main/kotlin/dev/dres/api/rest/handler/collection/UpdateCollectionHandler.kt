@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.collection
 
 import dev.dres.api.rest.handler.PatchRestHandler
-import dev.dres.api.rest.types.collection.RestMediaCollection
+import dev.dres.api.rest.types.collection.ApiMediaCollection
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -29,7 +29,7 @@ class UpdateCollectionHandler(store: TransientEntityStore) : AbstractCollectionH
         path = "/api/v2/collection",
         tags = ["Collection"],
         methods = [HttpMethod.PATCH],
-        requestBody = OpenApiRequestBody([OpenApiContent(RestMediaCollection::class)]),
+        requestBody = OpenApiRequestBody([OpenApiContent(ApiMediaCollection::class)]),
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
@@ -39,7 +39,7 @@ class UpdateCollectionHandler(store: TransientEntityStore) : AbstractCollectionH
     override fun doPatch(ctx: Context): SuccessStatus {
 
         val restCollection = try {
-            ctx.bodyAsClass(RestMediaCollection::class.java)
+            ctx.bodyAsClass(ApiMediaCollection::class.java)
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }

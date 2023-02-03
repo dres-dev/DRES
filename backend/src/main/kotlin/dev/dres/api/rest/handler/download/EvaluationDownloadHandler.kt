@@ -26,6 +26,7 @@ class EvaluationDownloadHandler(store: TransientEntityStore) : AbstractDownloadH
     @OpenApi(
         summary = "Provides a JSON download of the entire evaluation  structure.",
         path = "/api/v2/download/evaluation/{evaluationId}",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Download"],
         pathParams = [
             OpenApiParam("runId", String::class, "The evaluation ID.", required = true)

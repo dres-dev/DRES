@@ -24,6 +24,7 @@ class ShowCollectionHandler(store: TransientEntityStore) : AbstractCollectionHan
     @OpenApi(
         summary = "Shows the content of the specified media collection.",
         path = "/api/v2/collection/{collectionId}",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [OpenApiParam("collectionId", String::class, "Collection ID")],
         tags = ["Collection"],
         responses = [

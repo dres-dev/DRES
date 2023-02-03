@@ -22,6 +22,7 @@ class ResolveMediaItemListByNameHandler(store: TransientEntityStore) : AbstractC
     @OpenApi(
         summary = "Resolves a list of media item names to media items",
         path = "/api/v2/collection/{collectionId}/resolve",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.POST],
         pathParams = [
             OpenApiParam("collectionId", String::class, "Collection ID")

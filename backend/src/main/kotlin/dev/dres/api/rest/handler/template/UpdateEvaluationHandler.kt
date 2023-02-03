@@ -37,6 +37,7 @@ class UpdateEvaluationHandler(store: TransientEntityStore, val config: Config) :
     @OpenApi(
             summary = "Updates an existing evaluation template.",
             path = "/api/v2/template/{templateId}",
+            operationId = OpenApiOperation.AUTO_GENERATE,
             pathParams = [OpenApiParam("templateId", String::class, "The evaluation template ID.")],
             methods = [HttpMethod.PATCH],
             requestBody = OpenApiRequestBody([OpenApiContent(ApiEvaluationTemplate::class)]),

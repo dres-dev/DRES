@@ -34,6 +34,7 @@ class StartTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHand
     @OpenApi(
         summary = "Starts the currently active task as a new task run. This is a method for admins.",
         path = "/api/v2/evaluation/admin/{evaluationId}/task/start",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.POST],
         pathParams = [OpenApiParam("evaluationId", String::class, "The evalation ID.", required = true, allowEmptyValue = false)],
         tags = ["Evaluation Administrator"],

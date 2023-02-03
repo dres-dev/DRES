@@ -29,6 +29,7 @@ class StopTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandl
         summary = "Aborts the currently running task run. This is a method for admins.",
         path = "/api/v2/evaluation/admin/{evaluationId}/task/abort",
         methods = [HttpMethod.POST],
+        operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)],
         tags = ["Evaluation Administrator"],
         responses = [

@@ -25,6 +25,7 @@ class AddCollectionHandler(store: TransientEntityStore) : AbstractCollectionHand
         summary = "Adds a new media collection.",
         path = "/api/v2/collection",
         tags = ["Collection"],
+        operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.POST],
         requestBody = OpenApiRequestBody([OpenApiContent(ApiMediaCollection::class)]),
         responses = [

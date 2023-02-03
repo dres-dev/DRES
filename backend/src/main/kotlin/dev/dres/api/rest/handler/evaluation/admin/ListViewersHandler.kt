@@ -20,6 +20,7 @@ class ListViewersHandler(store: TransientEntityStore): AbstractEvaluationAdminHa
     @OpenApi(
         summary = "Lists all registered viewers for a evaluation. This is a method for admins.",
         path = "/api/v2/evaluation/admin/{evaluationId}/viewer/list",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.GET],
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)],
         tags = ["Evaluation Administrator"],

@@ -45,6 +45,7 @@ class BatchSubmissionHandler(private val store: TransientEntityStore, private va
 
     @OpenApi(summary = "Endpoint to accept batch submissions in JSON format",
         path = "/api/v2/submit/{evaluationId}",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.POST],
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.")],
         requestBody = OpenApiRequestBody([OpenApiContent(RunResult::class)]),

@@ -30,6 +30,7 @@ class CreateUsersHandler(private val store: TransientEntityStore) : AbstractUser
     @OpenApi(
         summary = "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
         path = "/api/v2/user", methods = [HttpMethod.POST],
+        operationId = OpenApiOperation.AUTO_GENERATE,
         requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
         tags = ["User"],
         responses = [

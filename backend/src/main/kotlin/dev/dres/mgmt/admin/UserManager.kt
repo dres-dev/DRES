@@ -171,6 +171,7 @@ object UserManager {
         if (id != null) {
             DbUser.query(DbUser::id eq id).firstOrNull()
         } else if (username != null) {
+            // Note: during after create, the query below is empty within a readonly transaction (unexpected), but non-empty out of the transaction
             DbUser.query(DbUser::username eq username).firstOrNull()
         } else {
             null

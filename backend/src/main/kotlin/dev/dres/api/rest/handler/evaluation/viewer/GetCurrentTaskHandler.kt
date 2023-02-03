@@ -35,6 +35,7 @@ class GetCurrentTaskHandler(store: TransientEntityStore): AbstractEvaluationView
     @OpenApi(
         summary = "Returns the information for the currently active task template (i.e., the one that is currently selected).",
         path = "/api/v2/evaluation/{evaluationId}/task",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Evaluation"],
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true)],
         responses = [

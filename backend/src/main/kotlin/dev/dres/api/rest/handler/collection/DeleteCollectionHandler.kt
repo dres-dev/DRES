@@ -19,6 +19,7 @@ class DeleteCollectionHandler(store: TransientEntityStore) : AbstractCollectionH
         path = "/api/v2/collection/{collectionId}",
         pathParams = [OpenApiParam("collectionId", String::class, "Collection ID")],
         tags = ["Collection"],
+        operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.DELETE],
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),

@@ -7,10 +7,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
-import io.javalin.openapi.HttpMethod
-import io.javalin.openapi.OpenApi
-import io.javalin.openapi.OpenApiContent
-import io.javalin.openapi.OpenApiResponse
+import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 
 /**
@@ -27,6 +24,7 @@ class ShowCurrentUserHandler(private val store: TransientEntityStore) : Abstract
     @OpenApi(
         summary = "Get information about the current user.",
         path = "/api/v2/user",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["User"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(ApiUser::class)]),

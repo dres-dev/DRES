@@ -20,6 +20,7 @@ class GetEvaluationInfoHandler(store: TransientEntityStore) : AbstractEvaluation
     @OpenApi(
         summary = "Returns basic information about a specific evaluation.",
         path = "/api/v2/evaluation/{evaluationId}/info",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Evaluation"],
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true)],
         responses = [

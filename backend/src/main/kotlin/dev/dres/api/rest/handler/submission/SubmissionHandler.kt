@@ -65,6 +65,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
 
     @OpenApi(summary = "Endpoint to accept submissions",
             path = "/api/v2/submit",
+        operationId = OpenApiOperation.AUTO_GENERATE,
             queryParams = [
                 OpenApiParam(PARAMETER_NAME_COLLECTION, String::class, "Collection identifier. Optional, in which case the default collection for the run will be considered.", allowEmptyValue = true),
                 OpenApiParam(PARAMETER_NAME_ITEM, String::class, "Identifier for the actual media object or media file."),

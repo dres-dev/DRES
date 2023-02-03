@@ -26,6 +26,7 @@ class AddMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHandl
         summary = "Adds a media item to the specified media collection.",
         path = "/api/v2/mediaItem",
         methods = [HttpMethod.POST],
+        operationId = OpenApiOperation.AUTO_GENERATE,
         requestBody = OpenApiRequestBody([OpenApiContent(ApiMediaItem::class)]),
         tags = ["Collection"],
         responses = [

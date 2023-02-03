@@ -31,6 +31,7 @@ class UpdateUsersHandler(private val store: TransientEntityStore) : AbstractUser
     @OpenApi(
         summary = "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone.",
         path = "/api/v2/user/{userId}", methods = [HttpMethod.PATCH],
+        operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [OpenApiParam("userId", String::class, "User ID")],
         requestBody = OpenApiRequestBody([OpenApiContent(UserRequest::class)]),
         tags = ["User"],

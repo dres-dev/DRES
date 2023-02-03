@@ -7,10 +7,7 @@ import dev.dres.data.model.media.DbMediaItem
 import dev.dres.utilities.extensions.errorResponse
 import dev.dres.utilities.extensions.streamFile
 import io.javalin.http.Context
-import io.javalin.openapi.HttpMethod
-import io.javalin.openapi.OpenApi
-import io.javalin.openapi.OpenApiParam
-import io.javalin.openapi.OpenApiResponse
+import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.firstOrNull
@@ -37,6 +34,7 @@ class GetMediaHandler(private val store: TransientEntityStore) : GetRestHandler<
 
     @OpenApi(summary = "Returns a collection item",
             path = "/api/v2/media/{itemId}",
+            operationId = OpenApiOperation.AUTO_GENERATE,
             pathParams = [
                 OpenApiParam("itemId", String::class, "The media item ID.")
             ],

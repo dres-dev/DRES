@@ -4,10 +4,7 @@ import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.template.team.DbTeam
 import io.javalin.http.Context
-import io.javalin.openapi.HttpMethod
-import io.javalin.openapi.OpenApi
-import io.javalin.openapi.OpenApiParam
-import io.javalin.openapi.OpenApiResponse
+import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.firstOrNull
@@ -32,6 +29,7 @@ class GetTeamLogoHandler(store: TransientEntityStore) : AbstractEvaluationTempla
     @OpenApi(
         summary = "Returns the logo for the given team ID.",
         path = "/api/v2/template/logo/{teamId}",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Evaluation", "Media"],
         pathParams = [OpenApiParam("teamId", String::class, "The ID of the team to list load the logo for.")],
         responses = [OpenApiResponse("200"), OpenApiResponse("401"), OpenApiResponse("400"), OpenApiResponse("404")],

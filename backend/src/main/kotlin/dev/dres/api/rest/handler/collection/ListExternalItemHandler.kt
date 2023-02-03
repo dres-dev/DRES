@@ -35,6 +35,7 @@ class ListExternalItemHandler(config: Config) : GetRestHandler<Array<String>> {
     @OpenApi(
         summary = "Lists items from the external media collection whose name start with the given string.",
         path = "/api/v2/external/<startsWith>",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam("startsWith", String::class, "Name starts with.", required = false)

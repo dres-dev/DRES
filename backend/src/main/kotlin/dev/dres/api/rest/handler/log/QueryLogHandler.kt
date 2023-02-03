@@ -26,6 +26,7 @@ class QueryLogHandler : AbstractLogHandler() {
 
     @OpenApi(summary = "Accepts query logs from participants",
             path = "/api/v2/log/query",
+        operationId = OpenApiOperation.AUTO_GENERATE,
             methods = [HttpMethod.POST],
             requestBody = OpenApiRequestBody([OpenApiContent(QueryEventLog::class)]),
             tags = ["Log"],

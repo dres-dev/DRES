@@ -30,7 +30,10 @@ configurations {
 
 repositories {
     mavenCentral()
-    maven { url 'https://maven.reposilite.com/snapshots' } //javalin openapi snapshot
+    maven {
+        url 'https://maven.reposilite.com/snapshots'
+        allowInsecureProtocol = true
+    } //javalin openapi snapshot
 }
 
 compileKotlin {
@@ -44,7 +47,8 @@ compileTestKotlin {
 }
 
 dependencies {
-    def javalin = '5.1.2'
+    def javalin = '5.3.2'
+    def javalinOpenapi = '5.3.3-SNAPSHOT'
     def log4jVersion = '2.17.1'
 
     ///// Frontend files (produced by sub-project).
@@ -62,10 +66,10 @@ dependencies {
 
     ////// Javalin
     implementation group: 'io.javalin', name:  'javalin', version: javalin
-    kapt("io.javalin.community.openapi:openapi-annotation-processor:5.1.2-SNAPSHOT")
+    kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenapi")
 
-    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: "5.1.2-SNAPSHOT"
-    implementation group: 'io.javalin.community.openapi', name:'javalin-swagger-plugin', version: "5.1.2-SNAPSHOT"
+    implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: javalinOpenapi
+    implementation group: 'io.javalin.community.openapi', name:'javalin-swagger-plugin', version: javalinOpenapi
     implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: javalin
 
     ////// Bcrypt

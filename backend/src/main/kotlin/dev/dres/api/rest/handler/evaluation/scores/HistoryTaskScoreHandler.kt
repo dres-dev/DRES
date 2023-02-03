@@ -33,6 +33,7 @@ class HistoryTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandle
     @OpenApi(
         summary = "Returns the overviews of all score boards for the specified task.",
         path = "/api/v2/score/evaluation/{evaluationId}/history/{taskId}",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Evaluation Scores"],
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true),

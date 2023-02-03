@@ -10,10 +10,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.system.DresInfo
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
-import io.javalin.openapi.HttpMethod
-import io.javalin.openapi.OpenApi
-import io.javalin.openapi.OpenApiContent
-import io.javalin.openapi.OpenApiResponse
+import io.javalin.openapi.*
 import java.lang.management.ManagementFactory
 
 /**
@@ -31,6 +28,7 @@ class InfoHandler : GetRestHandler<DresInfo> {
 
     @OpenApi(summary = "Returns an overview of the server properties.",
         path = "/api/v2/status/info",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.GET],
         tags = ["Status"],
         responses = [

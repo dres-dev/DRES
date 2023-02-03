@@ -28,6 +28,7 @@ class ListAuditLogsInRangeHandler(store: TransientEntityStore): AbstractAuditLog
             OpenApiParam("since", Long::class, "Timestamp of the earliest audit log to include"),
             OpenApiParam("upto", Long::class, "Timestamp of the latest audit log to include.")
         ],
+        operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Audit"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<ApiAuditLogEntry>::class)], description = "The audit logs"),

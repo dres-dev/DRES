@@ -8,10 +8,7 @@ import dev.dres.data.model.run.DbEvaluation
 import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.InteractiveSynchronousRunManager
 import io.javalin.http.Context
-import io.javalin.openapi.HttpMethod
-import io.javalin.openapi.OpenApi
-import io.javalin.openapi.OpenApiContent
-import io.javalin.openapi.OpenApiResponse
+import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 
 /**
@@ -29,6 +26,7 @@ class ClientListEvaluationsHandler(store: TransientEntityStore): AbstractEvaluat
     @OpenApi(
         summary = "Lists an overview of all evaluation runs visible to the current client.",
         path = "/api/v2/client/evaluation/list",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Evaluation Client"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<ApiEvaluationInfo>::class)]),

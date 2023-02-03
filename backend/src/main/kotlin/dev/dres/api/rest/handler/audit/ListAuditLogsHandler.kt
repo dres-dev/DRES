@@ -40,6 +40,7 @@ class ListAuditLogsHandler(store: TransientEntityStore) : AbstractAuditLogHandle
             OpenApiParam(PAGE_INDEX_PARAM, Int::class, "The page index offset, relative to the limit.")
         ],
         tags = ["Audit"],
+        operationId = OpenApiOperation.AUTO_GENERATE,
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<ApiAuditLogEntry>::class)], description = "The audit logs"),
             OpenApiResponse("403", [OpenApiContent(ErrorStatus::class)], description = "Whenever a non-admin user starts the call")

@@ -25,6 +25,7 @@ class DequeueJudgementHandler(store: TransientEntityStore) : AbstractJudgementHa
     @OpenApi(
         summary = "Gets the next open submission that is waiting to be judged.",
         path = "/api/v2/evaluation/{evaluationId}/judge/next",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.")],
         tags = ["Judgement"],
         responses = [

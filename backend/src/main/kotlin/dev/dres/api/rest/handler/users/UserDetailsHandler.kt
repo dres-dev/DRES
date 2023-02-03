@@ -25,6 +25,7 @@ class UserDetailsHandler(private val store: TransientEntityStore) : AbstractUser
     @OpenApi(
         summary = "Gets details of the user with the given id.",
         path = "/api/v2/user/{userId}",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [
             OpenApiParam("userId", String::class, "User's UID")
         ],

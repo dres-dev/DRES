@@ -25,6 +25,7 @@ class SubmissionPreviewHandler(store: TransientEntityStore, config: Config) : Ab
     @OpenApi(
         summary = "Returns a preview image for a specific submission.",
         path = "/api/v2/preview/submission/{evaluationId}/{submissionId}",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID."),
             OpenApiParam("submissionId", String::class, "The submission ID")

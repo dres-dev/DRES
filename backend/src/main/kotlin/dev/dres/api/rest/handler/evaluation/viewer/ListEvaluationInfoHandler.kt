@@ -4,10 +4,7 @@ import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.evaluation.ApiEvaluationInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import io.javalin.http.Context
-import io.javalin.openapi.HttpMethod
-import io.javalin.openapi.OpenApi
-import io.javalin.openapi.OpenApiContent
-import io.javalin.openapi.OpenApiResponse
+import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 
 /**
@@ -20,6 +17,7 @@ class ListEvaluationInfoHandler(store: TransientEntityStore) : AbstractEvaluatio
     @OpenApi(
         summary = "Lists an overview of all evaluations visible to the current user.",
         path = "/api/v2/evaluation/info/list",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Evaluation"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<ApiEvaluationInfo>::class)]),

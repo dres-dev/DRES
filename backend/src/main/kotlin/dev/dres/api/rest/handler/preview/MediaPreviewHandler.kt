@@ -21,6 +21,7 @@ class MediaPreviewHandler(store: TransientEntityStore, config: Config) : Abstrac
     @OpenApi(
         summary = "Returns a preview image from a collection item",
         path = "/api/v2/preview/item/{collection}/{item}/{time}",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [
             OpenApiParam("collectionId", String::class, "Unique ID of the media collection."),
             OpenApiParam("item", String::class, "Name of the media item-"),

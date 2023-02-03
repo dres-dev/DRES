@@ -28,6 +28,7 @@ class CreateEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEva
     @OpenApi(
         summary = "Creates a new evaluation template.",
         path = "/api/v2/template",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.POST],
         requestBody = OpenApiRequestBody([OpenApiContent(ApiCreateEvaluation::class)]),
         tags = ["Template"],

@@ -19,6 +19,7 @@ class EvaluationOverviewHandler(store: TransientEntityStore): AbstractEvaluation
     @OpenApi(
         summary = "Provides a complete overview of a run.",
         path = "/api/v2/run/admin/{runId}/overview",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.GET],
         pathParams = [
             OpenApiParam("runId", String::class, "The evaluation ID", required = true, allowEmptyValue = false),

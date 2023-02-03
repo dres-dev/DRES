@@ -28,6 +28,7 @@ class StopEvaluationHandler(store: TransientEntityStore): AbstractEvaluationAdmi
     @OpenApi(
         summary = "Terminates an evaluation. This is a method for administrators.",
         path = "/api/v2/evaluation/admin/{runId}/terminate",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.POST],
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)],
         tags = ["Competition Run Admin"],

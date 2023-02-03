@@ -22,6 +22,7 @@ class DeleteEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEva
     @OpenApi(
         summary = "Deletes the evaluation template with the given template ID.",
         path = "/api/v2/template/{templateId}",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.DELETE],
         pathParams = [OpenApiParam("templateId", String::class, "The evaluation template ID.")],
         tags = ["Template"],

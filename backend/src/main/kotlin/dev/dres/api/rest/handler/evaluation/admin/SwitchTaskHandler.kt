@@ -24,6 +24,7 @@ class SwitchTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHan
     @OpenApi(
         summary = "Moves to and selects the specified task. This is a method for admins.",
         path = "/api/v2/evaluation/admin/{evaluationId}/task/switch/{idx}",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.POST],
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false),

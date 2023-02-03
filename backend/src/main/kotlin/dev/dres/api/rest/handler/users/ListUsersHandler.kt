@@ -7,10 +7,7 @@ import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.DbUser
 import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.Context
-import io.javalin.openapi.HttpMethod
-import io.javalin.openapi.OpenApi
-import io.javalin.openapi.OpenApiContent
-import io.javalin.openapi.OpenApiResponse
+import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 
 /**
@@ -29,6 +26,7 @@ class ListUsersHandler(private val store: TransientEntityStore): AbstractUserHan
     @OpenApi(
         summary = "Lists all available users.",
         path = "/api/v2/user/list",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["User"],
         responses = [OpenApiResponse("200", [OpenApiContent(Array<ApiUser>::class)])],
         methods = [HttpMethod.GET]

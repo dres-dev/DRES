@@ -24,6 +24,7 @@ class DeleteMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHa
     @OpenApi(
         summary = "Tries to delete a specific media item.",
         path = "/api/v2/mediaItem/{mediaId}",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.DELETE],
         pathParams = [
             OpenApiParam("mediaId", String::class, "Media item ID")

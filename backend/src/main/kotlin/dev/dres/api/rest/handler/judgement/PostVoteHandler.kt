@@ -27,6 +27,7 @@ class PostVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(sto
     @OpenApi(
         summary = "Returns a Vote.",
         path = "/api/v2/evaluation/{evaluationId}/judge/vote", methods = [HttpMethod.POST],
+        operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.")],
         requestBody = OpenApiRequestBody([OpenApiContent(ApiVote::class)]),
         tags = ["Judgement"],

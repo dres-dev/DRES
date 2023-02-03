@@ -24,6 +24,7 @@ class GetSubmissionAfterInfoHandler(store: TransientEntityStore): AbstractEvalua
     @OpenApi(
         summary = "Returns all submissions for the current task that are more recent than the provided timestamp, if a task is either running or has just ended.",
         path = "/api/v2/evaluation/{evaluationId}/submission/list/after/{timestamp}",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Evaluation"],
         pathParams = [
             OpenApiParam("evaluationId", String::class,"The evaluation ID.", required = true),

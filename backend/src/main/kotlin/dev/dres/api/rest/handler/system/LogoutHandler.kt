@@ -24,6 +24,7 @@ class LogoutHandler(private val store: TransientEntityStore) : RestHandler, GetR
     
     @OpenApi(summary = "Clears all user roles of the current session.",
         path = "/api/v2/logout",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["User"],
         queryParams = [
             OpenApiParam("session", String::class, "Session Token")

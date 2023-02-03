@@ -23,6 +23,7 @@ class ScoreDownloadHandler(store: TransientEntityStore) : AbstractDownloadHandle
     @OpenApi(
         summary = "Provides a CSV download with the scores for a given evaluation.",
         path = "/api/v2/download/evaluation/{evaluationId}/scores",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Download"],
         pathParams = [
             OpenApiParam("runId", String::class, "The evaluation ID.", required = true)

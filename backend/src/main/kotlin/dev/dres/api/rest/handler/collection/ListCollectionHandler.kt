@@ -5,10 +5,7 @@ import dev.dres.api.rest.types.collection.ApiMediaCollection
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.model.media.DbMediaCollection
 import io.javalin.http.Context
-import io.javalin.openapi.HttpMethod
-import io.javalin.openapi.OpenApi
-import io.javalin.openapi.OpenApiContent
-import io.javalin.openapi.OpenApiResponse
+import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.asSequence
 
@@ -24,6 +21,7 @@ class ListCollectionHandler(store: TransientEntityStore) : AbstractCollectionHan
     @OpenApi(
         summary = "Lists all available media collections with basic information about their content.",
         path = "/api/v2/collection/list",
+        operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Collection"],
         methods = [HttpMethod.GET],
         responses = [

@@ -1,5 +1,4 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-import { CollectionService, RestFullMediaCollection, ApiMediaItem } from '../../../../openapi';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
@@ -13,6 +12,7 @@ import {
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
+import {ApiMediaItem, ApiPopulatedMediaCollection, CollectionService} from '../../../../openapi';
 
 @Component({
   selector: 'app-collection-viewer',
@@ -35,7 +35,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
   collectionId: Observable<string>;
 
   /** Observable containing the media collection information. */
-  collection: Observable<RestFullMediaCollection>;
+  collection: Observable<ApiPopulatedMediaCollection>;
 
   /** A subject used to trigger refrehs of the list. */
   refreshSubject: Subject<null> = new BehaviorSubject(null);
@@ -86,7 +86,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
       ),
       shareReplay({ bufferSize: 1, refCount: true })
     );
-    this.subscription = this.collection.subscribe((s: RestFullMediaCollection) => {
+    this.subscription = this.collection.subscribe((s: ApiPopulatedMediaCollection) => {
       this.dataSource.data = s.items;
     });
   }

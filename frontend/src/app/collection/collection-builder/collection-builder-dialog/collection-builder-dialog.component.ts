@@ -1,7 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { RestMediaCollection } from '../../../../../openapi';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import {ApiMediaCollection} from '../../../../../openapi';
 
 @Component({
   selector: 'app-collection-builder-dialog',
@@ -13,7 +13,7 @@ export class CollectionBuilderDialogComponent implements OnInit {
 
   constructor(
     public dialogRef: MatDialogRef<CollectionBuilderDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: RestMediaCollection
+    @Inject(MAT_DIALOG_DATA) public data: ApiMediaCollection
   ) {
     this.form = new FormGroup({
       id: new FormControl(data?.id),
@@ -59,12 +59,12 @@ export class CollectionBuilderDialogComponent implements OnInit {
   /**
    * Fetchs the data from the form and transforms it to wireformat
    */
-  private fetchFormData(): RestMediaCollection {
+  private fetchFormData(): ApiMediaCollection {
     const col = {
       name: this.form.get('name').value,
       description: this.form.get('description').value,
       basePath: this.form.get('basePath').value,
-    } as RestMediaCollection;
+    } as ApiMediaCollection;
     /* Only set id, if pre-existing, i.e. this is an edit dialog */
     if (this.form.get('id')?.value) {
       col.id = this.form.get('id').value;

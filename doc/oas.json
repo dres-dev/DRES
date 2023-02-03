@@ -131,7 +131,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/RestMediaCollection"
+                "$ref" : "#/components/schemas/ApiMediaCollection"
               }
             }
           },
@@ -177,7 +177,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/RestMediaCollection"
+                "$ref" : "#/components/schemas/ApiMediaCollection"
               }
             }
           },
@@ -321,7 +321,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/RestFullMediaCollection"
+                  "$ref" : "#/components/schemas/ApiPopulatedMediaCollection"
                 }
               }
             }
@@ -473,7 +473,7 @@
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/RestMediaCollection"
+                    "$ref" : "#/components/schemas/ApiMediaCollection"
                   }
                 }
               }
@@ -4450,11 +4450,11 @@
           },
           "type" : {
             "type" : "string",
-            "enum" : [ "COMPETITION_START", "COMPETITION_END", "TASK_START", "TASK_MODIFIED", "TASK_END", "SUBMISSION", "PREPARE_JUDGEMENT", "JUDGEMENT", "LOGIN", "LOGOUT", "SUBMISSION_VALIDATION", "SUBMISSION_STATUS_OVERWRITE", "type" ]
+            "enum" : [ "COMPETITION_START", "COMPETITION_END", "TASK_START", "TASK_MODIFIED", "TASK_END", "SUBMISSION", "PREPARE_JUDGEMENT", "JUDGEMENT", "LOGIN", "LOGOUT", "SUBMISSION_VALIDATION", "SUBMISSION_STATUS_OVERWRITE" ]
           },
           "source" : {
             "type" : "string",
-            "enum" : [ "REST", "CLI", "INTERNAL", "source" ]
+            "enum" : [ "REST", "CLI", "INTERNAL" ]
           },
           "timestamp" : {
             "type" : "number",
@@ -4490,7 +4490,7 @@
         },
         "required" : [ "description" ]
       },
-      "RestMediaCollection" : {
+      "ApiMediaCollection" : {
         "type" : "object",
         "properties" : {
           "id" : {
@@ -4547,11 +4547,11 @@
         },
         "required" : [ "id", "name", "type", "collectionId", "location" ]
       },
-      "RestFullMediaCollection" : {
+      "ApiPopulatedMediaCollection" : {
         "type" : "object",
         "properties" : {
           "collection" : {
-            "$ref" : "#/components/schemas/RestMediaCollection"
+            "$ref" : "#/components/schemas/ApiMediaCollection"
           },
           "items" : {
             "type" : "array",
@@ -4592,7 +4592,7 @@
           },
           "type" : {
             "type" : "string",
-            "enum" : [ "SYNCHRONOUS", "ASYNCHRONOUS", "NON_INTERACTIVE", "type" ]
+            "enum" : [ "SYNCHRONOUS", "ASYNCHRONOUS", "NON_INTERACTIVE" ]
           },
           "properties" : {
             "$ref" : "#/components/schemas/RunProperties"
@@ -4729,7 +4729,7 @@
           },
           "type" : {
             "type" : "string",
-            "enum" : [ "SYNCHRONOUS", "ASYNCHRONOUS", "NON_INTERACTIVE", "type" ]
+            "enum" : [ "SYNCHRONOUS", "ASYNCHRONOUS", "NON_INTERACTIVE" ]
           },
           "properties" : {
             "$ref" : "#/components/schemas/RunProperties"
@@ -4902,7 +4902,7 @@
           },
           "verdict" : {
             "type" : "string",
-            "enum" : [ "CORRECT", "WRONG", "INDETERMINATE", "UNDECIDABLE", "status" ]
+            "enum" : [ "CORRECT", "WRONG", "INDETERMINATE", "UNDECIDABLE" ]
           }
         },
         "required" : [ "token", "validator", "verdict" ]
@@ -4911,7 +4911,7 @@
         "type" : "object",
         "properties" : {
           "verdict" : {
-            "$ref" : "#/components/schemas/VerdictStatus"
+            "$ref" : "#/components/schemas/DbVerdictStatus"
           }
         },
         "required" : [ "verdict" ]
@@ -4992,7 +4992,7 @@
         "type" : "object",
         "properties" : {
           "submission" : {
-            "$ref" : "#/components/schemas/VerdictStatus"
+            "$ref" : "#/components/schemas/DbVerdictStatus"
           },
           "description" : {
             "type" : "string"
@@ -5283,11 +5283,11 @@
         "properties" : {
           "type" : {
             "type" : "string",
-            "enum" : [ "ITEM", "TEMPORAL", "TEXT", "type" ]
+            "enum" : [ "ITEM", "TEMPORAL", "TEXT" ]
           },
           "status" : {
             "type" : "string",
-            "enum" : [ "CORRECT", "WRONG", "INDETERMINATE", "UNDECIDABLE", "status" ]
+            "enum" : [ "CORRECT", "WRONG", "INDETERMINATE", "UNDECIDABLE" ]
           },
           "item" : {
             "$ref" : "#/components/schemas/ApiMediaItem"
@@ -5365,7 +5365,7 @@
         },
         "required" : [ "contentType", "offset" ]
       },
-      "VerdictStatus" : {
+      "DbVerdictStatus" : {
         "type" : "object",
         "properties" : {
           "description" : {
@@ -5445,7 +5445,7 @@
         "properties" : {
           "type" : {
             "type" : "string",
-            "enum" : [ "JUDGEMENT", "JUDGEMENT_WITH_VOTE", "MEDIA_ITEM", "MEDIA_ITEM_TEMPORAL_RANGE", "TEXT", "type" ]
+            "enum" : [ "JUDGEMENT", "JUDGEMENT_WITH_VOTE", "MEDIA_ITEM", "MEDIA_ITEM_TEMPORAL_RANGE", "TEXT" ]
           },
           "target" : {
             "type" : "string"
@@ -5461,7 +5461,7 @@
         "properties" : {
           "type" : {
             "type" : "string",
-            "enum" : [ "EMPTY", "TEXT", "VIDEO", "IMAGE", "type" ]
+            "enum" : [ "EMPTY", "TEXT", "VIDEO", "IMAGE" ]
           },
           "start" : {
             "type" : "number",
@@ -5501,12 +5501,12 @@
           },
           "targetOption" : {
             "type" : "string",
-            "enum" : [ "SINGLE_MEDIA_ITEM", "SINGLE_MEDIA_SEGMENT", "JUDGEMENT", "VOTE", "TEXT", "option" ]
+            "enum" : [ "SINGLE_MEDIA_ITEM", "SINGLE_MEDIA_SEGMENT", "JUDGEMENT", "VOTE", "TEXT" ]
           },
           "hintOptions" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/ApiComponentOption"
+              "$ref" : "#/components/schemas/ApiHintOption"
             }
           },
           "submissionOptions" : {
@@ -5523,7 +5523,7 @@
           },
           "scoreOption" : {
             "type" : "string",
-            "enum" : [ "KIS", "AVS", "option" ]
+            "enum" : [ "KIS", "AVS" ]
           },
           "configuration" : {
             "type" : "object",
@@ -5645,32 +5645,17 @@
         },
         "required" : [ "start", "end" ]
       },
-      "ApiComponentOption" : {
+      "ApiHintOption" : {
         "type" : "object",
-        "properties" : {
-          "option" : {
-            "$ref" : "#/components/schemas/HintOption"
-          }
-        },
-        "required" : [ "option" ]
+        "properties" : { }
       },
       "ApiSubmissionOption" : {
         "type" : "object",
-        "properties" : {
-          "option" : {
-            "$ref" : "#/components/schemas/SubmissionOption"
-          }
-        },
-        "required" : [ "option" ]
+        "properties" : { }
       },
       "ApiTaskOption" : {
         "type" : "object",
-        "properties" : {
-          "option" : {
-            "$ref" : "#/components/schemas/TaskOption"
-          }
-        },
-        "required" : [ "option" ]
+        "properties" : { }
       },
       "ApiTemporalPoint" : {
         "type" : "object",
@@ -5684,33 +5669,6 @@
           }
         },
         "required" : [ "value", "unit" ]
-      },
-      "HintOption" : {
-        "type" : "object",
-        "properties" : {
-          "description" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "description" ]
-      },
-      "SubmissionOption" : {
-        "type" : "object",
-        "properties" : {
-          "description" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "description" ]
-      },
-      "TaskOption" : {
-        "type" : "object",
-        "properties" : {
-          "description" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "description" ]
       }
     },
     "securitySchemes" : { }

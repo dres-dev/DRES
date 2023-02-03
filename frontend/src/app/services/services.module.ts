@@ -1,4 +1,3 @@
-import { ApiModule, Configuration } from '../../../openapi';
 import { NgModule } from '@angular/core';
 import { AppConfig } from '../app.config';
 import { AuthenticationService } from './session/authentication.sevice';
@@ -12,6 +11,7 @@ import { CanDeactivateGuard } from './can-deactivate.guard';
 import { EnhanceTaskPastInfoPipe } from './pipes/enhance-task-past-info.pipe';
 import { ResolveTeamPipe } from './pipes/resolve-team.pipe';
 import { EnhanceTaskSubmissionInfoPipe } from './pipes/enhance-task-submission-info.pipe';
+import {ApiModule, Configuration} from '../../../openapi';
 
 /**
  * Provides the {@link AppConfig} reference.

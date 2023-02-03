@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.collection
 
 import dev.dres.api.rest.handler.PostRestHandler
-import dev.dres.api.rest.types.collection.RestMediaCollection
+import dev.dres.api.rest.types.collection.ApiMediaCollection
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -26,7 +26,7 @@ class AddCollectionHandler(store: TransientEntityStore) : AbstractCollectionHand
         path = "/api/v2/collection",
         tags = ["Collection"],
         methods = [HttpMethod.POST],
-        requestBody = OpenApiRequestBody([OpenApiContent(RestMediaCollection::class)]),
+        requestBody = OpenApiRequestBody([OpenApiContent(ApiMediaCollection::class)]),
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
@@ -35,7 +35,7 @@ class AddCollectionHandler(store: TransientEntityStore) : AbstractCollectionHand
     )
     override fun doPost(ctx: Context): SuccessStatus {
         val restCollection = try {
-            ctx.bodyAsClass(RestMediaCollection::class.java)
+            ctx.bodyAsClass(ApiMediaCollection::class.java)
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }

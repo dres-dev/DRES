@@ -5,7 +5,8 @@ import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.template.TemplateId
-import dev.dres.run.score.interfaces.TaskScorer
+import dev.dres.run.score.scorer.CachingTaskScorer
+import dev.dres.run.score.scorer.TaskScorer
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
@@ -42,7 +43,7 @@ class MaxNormalizingScoreBoard(override val name: String, teams: List<DbTeam>, p
     override fun score(teamId: TeamId) = overallScoreMap()[teamId] ?: 0.0
 
 
-    override fun update(scorers: Map<TemplateId, TaskScorer>) {
+    override fun update(scorers: Map<TemplateId, CachingTaskScorer>) {
         this.scorePerTaskMap.clear()
         this.scorePerTaskMap.putAll(scorers.map {
             it.key to it.value.scores().groupBy { it.first }.mapValues {

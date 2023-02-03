@@ -9,7 +9,6 @@ import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionFilter
-import dev.dres.run.score.interfaces.TeamTaskScorer
 import kotlinx.dnq.query.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -182,7 +181,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
         override val filter: SubmissionFilter = this.template.newFilter()
 
         /** The [TeamTaskScorer] instance used by this [InteractiveAsynchronousEvaluation].*/
-        override val scorer: TeamTaskScorer = this.template.newScorer() as? TeamTaskScorer
+        override val scorer = this.template.newScorer()
             ?: throw IllegalArgumentException("specified scorer is not of type TeamTaskScorer")
 
         /** The total duration in milliseconds of this task. Usually determined by the [DbTaskTemplate] but can be adjusted! */

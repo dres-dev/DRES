@@ -7,7 +7,6 @@ import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.filter.SubmissionFilter
-import dev.dres.run.score.interfaces.TeamTaskScorer
 import kotlinx.dnq.query.*
 
 
@@ -46,9 +45,7 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
             get() = this@NonInteractiveEvaluation.tasks.indexOf(this)
 
         /** The [TeamTaskScorer] instance used by this [ISTaskRun]. */
-        override val scorer: TeamTaskScorer = this.template.newScorer() as? TeamTaskScorer
-            ?: throw IllegalArgumentException("Specified scorer is not of type TeamTaskScorer. This is a programmer's error!")
-
+        override val scorer = this.template.newScorer()
         /** */
         override val filter: SubmissionFilter
             get() = TODO("Can there be submission filters for non-interactive tasks?")

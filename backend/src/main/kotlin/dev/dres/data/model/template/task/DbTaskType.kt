@@ -7,7 +7,8 @@ import dev.dres.data.model.template.task.options.DbConfiguredOption
 import dev.dres.run.filter.AllSubmissionFilter
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.filter.SubmissionFilterAggregator
-import dev.dres.run.score.interfaces.TaskScorer
+import dev.dres.run.score.scorer.CachingTaskScorer
+import dev.dres.run.score.scorer.TaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
@@ -79,7 +80,7 @@ class DbTaskType(entity: Entity) : XdEntity(entity) {
      *
      * @return [TaskScorer].
      */
-    fun newScorer(): TaskScorer {
+    fun newScorer(): CachingTaskScorer {
         val parameters = this.configurations.query(DbConfiguredOption::key eq this.score.description)
             .asSequence().map { it.key to it.value }.toMap()
         return this.score.scorer(parameters)

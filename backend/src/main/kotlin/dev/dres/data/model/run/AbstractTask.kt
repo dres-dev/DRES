@@ -115,7 +115,7 @@ abstract class AbstractTask(task: DbTask): TaskRun {
     }
 
     /** Returns a [List] of all [DbSubmission]s held by this [AbstractTask]. */
-    override fun getSubmissions() = this.submissions.toList()
+    override fun getSubmissions() = this.submissions.asSequence()
 
     /**
      * Adds a new [DbSubmission] to this [AbstractInteractiveTask].

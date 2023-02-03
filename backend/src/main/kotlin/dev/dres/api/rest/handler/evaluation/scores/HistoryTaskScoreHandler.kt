@@ -11,7 +11,6 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.DbTask
 import dev.dres.run.InteractiveRunManager
-import dev.dres.run.score.interfaces.TeamTaskScorer
 import dev.dres.run.score.scoreboard.ScoreOverview
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -55,7 +54,7 @@ class HistoryTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandle
         return this.store.transactional(true) {
             val rac = RunActionContext.runActionContext(ctx, manager)
             val scorer = manager.currentTask(rac)?.scorer ?: throw ErrorStatusException(404, "No task run with ID $taskId in run ${manager.id}.", ctx)
-            val scores =  (scorer as? TeamTaskScorer)?.teamScoreMap() ?: throw ErrorStatusException(400, "Scorer has more than one score per team for evaluation ${ctx.evaluationId()}.", ctx)
+            val scores =  scorer.teamScoreMap()
             ApiScoreOverview("task",
                 manager.currentTaskTemplate(rac).taskGroup.name,
                 manager.template.teams.asSequence().map { ApiScore(it.teamId, scores[it.teamId] ?: 0.0) }.toList()

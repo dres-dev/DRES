@@ -4,7 +4,6 @@ import dev.dres.data.model.run.EvaluationId
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.eventstream.*
-import dev.dres.run.score.interfaces.TeamTaskScorer
 import java.io.File
 import java.io.PrintWriter
 
@@ -50,11 +49,7 @@ class TeamCombinationScoreHandler : StreamEventHandler {
 
                 val taskDescription = tasks[event.taskId] ?: return
 
-                val scorer = taskDescription.newScorer()
 
-                if (scorer !is TeamTaskScorer) {
-                    return
-                }
 
                 val submissions = submissionTaskMap[event.taskId] ?: return
 

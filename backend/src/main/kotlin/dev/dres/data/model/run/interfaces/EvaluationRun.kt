@@ -1,10 +1,10 @@
 package dev.dres.data.model.run.interfaces
 
-import dev.dres.data.model.template.EvaluationTemplate
-import dev.dres.data.model.run.Evaluation
+import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.data.model.run.DbEvaluation
 import dev.dres.data.model.run.EvaluationId
 /**
- * Represents a [Evaluation] that a DRES user or client takes place in and that groups several [TaskRun]s
+ * Represents a [DbEvaluation] that a DRES user or client takes place in and that groups several [TaskRun]s
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -16,13 +16,13 @@ interface EvaluationRun: Run {
     /** The name human readable of this [EvaluationRun]. */
     val name: String
 
-    /** Reference to the [EvaluationTemplate] that describes the content of this [EvaluationRun]. */
-    val description: EvaluationTemplate
+    /** Reference to the [DbEvaluationTemplate] that describes the content of this [EvaluationRun]. */
+    val description: DbEvaluationTemplate
 
     /** Collection of [TaskRun]s that make up this [EvaluationRun]. */
     val tasks: List<TaskRun>
 
-    /** Flag indicating that participants can also use the viewer for this [Evaluation]. */
+    /** Flag indicating that participants can also use the viewer for this [DbEvaluation]. */
     var participantCanView: Boolean
 
     /** Flag indicating that tasks can be repeated.*/

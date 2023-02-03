@@ -1,28 +1,28 @@
 package dev.dres.run
 
-import dev.dres.data.model.run.Evaluation
-import dev.dres.data.model.run.Task
+import dev.dres.data.model.run.DbEvaluation
+import dev.dres.data.model.run.DbTask
 
 /**
- * The status of a [Task] within an [Evaluation].
+ * The status of a [DbTask] within an [DbEvaluation].
  *
  * @author Luca Rossetto
  * @version 1.0.0.
  */
 enum class TaskStatus {
     /**
-     * A [Task] was freshly created and is ready for execution.
+     * A [DbTask] was freshly created and is ready for execution.
      */
     CREATED,
 
     /**
-     * A [Task] is currently being prepared for execution.
+     * A [DbTask] is currently being prepared for execution.
      */
     PREPARING,
 
-    /** A [Task] is currently being executed. */
+    /** A [DbTask] is currently being executed. */
     RUNNING,
 
-    /** A [Task] has been completed. */
+    /** A [DbTask] has been completed. */
     ENDED;
 }

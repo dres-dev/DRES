@@ -1,12 +1,12 @@
 package dev.dres.data.model.template.team
 
 /**
- * Implementation of different [TeamAggregator]s.
+ * Implementation of different [DbTeamAggregator]s.
  *
  * @author Luca Rossetto
  * @version 1.0.0
  */
-sealed class TeamAggregatorImpl constructor(teams: List<Team>) {
+sealed class TeamAggregatorImpl constructor(teams: List<DbTeam>) {
 
     /** Internal set of [TeamId]s. */
     private val teamIds = teams.map { it.teamId }.toSet()
@@ -22,22 +22,22 @@ sealed class TeamAggregatorImpl constructor(teams: List<Team>) {
         return lastValue
     }
 
-    class Max(teams: List<Team>) : TeamAggregatorImpl(teams) {
+    class Max(teams: List<DbTeam>) : TeamAggregatorImpl(teams) {
         override fun computeAggregation(teamScores: Map<TeamId, Double>): Double =
             teamScores.map { it.value }.maxOrNull() ?: 0.0
     }
 
-    class Min(teams: List<Team>) : TeamAggregatorImpl(teams) {
+    class Min(teams: List<DbTeam>) : TeamAggregatorImpl(teams) {
         override fun computeAggregation(teamScores: Map<TeamId, Double>): Double =
             teamScores.map { it.value }.minOrNull() ?: 0.0
     }
 
-    class Mean(teams: List<Team>) : TeamAggregatorImpl(teams) {
+    class Mean(teams: List<DbTeam>) : TeamAggregatorImpl(teams) {
         override fun computeAggregation(teamScores: Map<TeamId, Double>): Double =
             if (teamScores.isEmpty()) 0.0 else teamScores.map { it.value }.sum() / teamScores.size
     }
 
-    class Last(teams: List<Team>) : TeamAggregatorImpl(teams) {
+    class Last(teams: List<DbTeam>) : TeamAggregatorImpl(teams) {
         private val lastScores = mutableListOf<Pair<TeamId, Double>>()
         override fun computeAggregation(teamScores: Map<TeamId, Double>): Double {
             teamScores.forEach{

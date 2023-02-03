@@ -1,9 +1,9 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.template.task.TaskTemplate
+import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
-import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.TaskStatus
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.validation.interfaces.SubmissionValidator
@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractTask(task: Task): TaskRun {
+abstract class AbstractTask(task: DbTask): TaskRun {
 
     /** The internal [xdId] of this [AbstractEvaluation].
      *
@@ -25,10 +25,10 @@ abstract class AbstractTask(task: Task): TaskRun {
     protected val xdId = task.xdId
 
     /**
-     * Accessor for the [Task] underpinning this [AbstractTask]
+     * Accessor for the [DbTask] underpinning this [AbstractTask]
      */
-    protected val task: Task
-        get() = Task.findById(this.xdId)
+    protected val task: DbTask
+        get() = DbTask.findById(this.xdId)
 
     /**
      * The [EvaluationId] of this [AbstractTask].
@@ -37,8 +37,8 @@ abstract class AbstractTask(task: Task): TaskRun {
      */
     final override val id: EvaluationId = this.task.id
 
-    /** List of [Submission]s* registered for this [AbstractTask]. */
-    protected val submissions: ConcurrentLinkedQueue<Submission> = ConcurrentLinkedQueue<Submission>()
+    /** List of [DbSubmission]s* registered for this [AbstractTask]. */
+    protected val submissions: ConcurrentLinkedQueue<DbSubmission> = ConcurrentLinkedQueue<DbSubmission>()
 
     /** Timestamp of when this [AbstractTask] was started. */
     final override var started: Long
@@ -54,18 +54,18 @@ abstract class AbstractTask(task: Task): TaskRun {
             this.task.ended = value
         }
 
-    /** Reference to the [TaskTemplate] describing this [AbstractTask]. */
-    final override val template: TaskTemplate
+    /** Reference to the [DbTaskTemplate] describing this [AbstractTask]. */
+    final override val template: DbTaskTemplate
         get() = this.task.template
 
     @Volatile
     final override var status: TaskStatus = TaskStatus.CREATED
         protected set
 
-    /** The [SubmissionFilter] used to filter [Submission]s. */
+    /** The [SubmissionFilter] used to filter [DbSubmission]s. */
     abstract val filter: SubmissionFilter
 
-    /** The [SubmissionValidator] used to validate [Submission]s. */
+    /** The [SubmissionValidator] used to validate [DbSubmission]s. */
     abstract val validator: SubmissionValidator
 
     /**
@@ -114,13 +114,13 @@ abstract class AbstractTask(task: Task): TaskRun {
         this.status = TaskStatus.RUNNING
     }
 
-    /** Returns a [List] of all [Submission]s held by this [AbstractTask]. */
+    /** Returns a [List] of all [DbSubmission]s held by this [AbstractTask]. */
     override fun getSubmissions() = this.submissions.toList()
 
     /**
-     * Adds a new [Submission] to this [AbstractInteractiveTask].
+     * Adds a new [DbSubmission] to this [AbstractInteractiveTask].
      *
-     * @param submission The [Submission] to append.
+     * @param submission The [DbSubmission] to append.
      */
-    abstract fun postSubmission(submission: Submission)
+    abstract fun postSubmission(submission: DbSubmission)
 }

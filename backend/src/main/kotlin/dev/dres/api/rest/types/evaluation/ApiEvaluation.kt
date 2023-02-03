@@ -1,11 +1,11 @@
 package dev.dres.api.rest.types.evaluation
 
 import dev.dres.api.rest.types.competition.ApiEvaluationTemplate
-import dev.dres.data.model.run.Evaluation
+import dev.dres.data.model.run.DbEvaluation
 import dev.dres.data.model.run.EvaluationId
 
 /**
- * The RESTful API equivalent of a [Evaluation].
+ * The RESTful API equivalent of a [DbEvaluation].
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
@@ -14,7 +14,7 @@ import dev.dres.data.model.run.EvaluationId
 data class ApiEvaluation(
     val evaluationId: EvaluationId,
     val name: String,
-    val type: ApiRunType,
+    val type: ApiEvaluationType,
     val template: ApiEvaluationTemplate,
     val started: Long,
     val ended: Long?,

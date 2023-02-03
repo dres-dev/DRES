@@ -1,9 +1,9 @@
 package dev.dres.api.rest.types.competition
 
-import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.DbEvaluationTemplate
 
 /**
- * An overview over a [EvaluationTemplate].
+ * An overview over a [DbEvaluationTemplate].
  *
  * @author Ralph Gasser
  * @version 1.0.0

@@ -1,7 +1,7 @@
 package dev.dres.run.validation.judged
 
-import dev.dres.data.model.submissions.Verdict
-import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.DbAnswerSet
+import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.run.validation.interfaces.VoteValidator
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -25,8 +25,8 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
         private val defaultVoteDifference = 1
     }
 
-    private val submissionQueue = ConcurrentLinkedQueue<Verdict>()
-    private val voteCountMap = ConcurrentHashMap<VerdictStatus, Int>()
+    private val submissionQueue = ConcurrentLinkedQueue<DbAnswerSet>()
+    private val voteCountMap = ConcurrentHashMap<DbVerdictStatus, Int>()
     private val updateLock = ReentrantReadWriteLock()
 
     override val isActive: Boolean
@@ -35,8 +35,8 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
     override val voteCount: Map<String, Int>
         get() = voteCountMap.mapKeys { it.toString() }
 
-    override fun vote(status: VerdictStatus) = updateLock.write {
-        if (status == VerdictStatus.INDETERMINATE || status == VerdictStatus.UNDECIDABLE){ //should not happen anyway but will be ignored in case it does
+    override fun vote(status: DbVerdictStatus) = updateLock.write {
+        if (status == DbVerdictStatus.INDETERMINATE || status == DbVerdictStatus.UNDECIDABLE){ //should not happen anyway but will be ignored in case it does
             return@write
         }
 
@@ -59,16 +59,16 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
         return max - others >= voteDifference
     }
 
-    override fun nextSubmissionToVoteOn(): Verdict? = submissionQueue.firstOrNull() //TODO maybe add timeout mechanism?
+    override fun nextSubmissionToVoteOn(): DbAnswerSet? = submissionQueue.firstOrNull() //TODO maybe add timeout mechanism?
 
     //siphon of undecidable submission from logic of super class
-    override fun judge(token: String, status: VerdictStatus) {
+    override fun judge(token: String, status: DbVerdictStatus) {
         val verdict = super.processSubmission(token, status)
         when (status){
-            VerdictStatus.CORRECT,
-            VerdictStatus.WRONG -> verdict.status = status
-            VerdictStatus.INDETERMINATE -> {}
-            VerdictStatus.UNDECIDABLE -> this.submissionQueue.add(verdict)
+            DbVerdictStatus.CORRECT,
+            DbVerdictStatus.WRONG -> verdict.status = status
+            DbVerdictStatus.INDETERMINATE -> {}
+            DbVerdictStatus.UNDECIDABLE -> this.submissionQueue.add(verdict)
         }
     }
 }

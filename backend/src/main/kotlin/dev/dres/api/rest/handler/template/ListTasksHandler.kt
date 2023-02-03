@@ -3,14 +3,14 @@ package dev.dres.api.rest.handler.template
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.competition.tasks.ApiTaskTemplate
 import dev.dres.api.rest.types.status.ErrorStatus
-import dev.dres.data.model.template.task.TaskTemplate
+import dev.dres.data.model.template.task.DbTaskTemplate
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.asSequence
 
 /**
- * A [AbstractEvaluationTemplateHandler] that can be used to list all [TaskTemplate]s.
+ * A [AbstractEvaluationTemplateHandler] that can be used to list all [DbTaskTemplate]s.
  *
  * @author Ralph Gasser
  * @author Luca Rossetto

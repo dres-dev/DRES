@@ -1,8 +1,8 @@
 package dev.dres.data.model.run.interfaces
 
-import dev.dres.data.model.template.task.TaskTemplate
+import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
-import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.TaskStatus
 import dev.dres.run.score.interfaces.TaskScorer
 typealias TaskId = String
@@ -23,8 +23,8 @@ interface TaskRun: Run {
     /** The position of this [IATaskRun] within the enclosing [EvaluationRun]. */
     val position: Int
 
-    /** Reference to the [TaskTemplate] describing this [IATaskRun]. */
-    val template: TaskTemplate
+    /** Reference to the [DbTaskTemplate] describing this [IATaskRun]. */
+    val template: DbTaskTemplate
 
     /** The [TaskScorer] used to update score for this [IATaskRun]. */
     val scorer: TaskScorer
@@ -38,9 +38,9 @@ interface TaskRun: Run {
     fun prepare()
 
     /**
-     * Returns a [List] of all [Submission]s that belong to this [TaskRun].
+     * Returns a [List] of all [DbSubmission]s that belong to this [TaskRun].
      *
-     * @return [List] of [Submission]s
+     * @return [List] of [DbSubmission]s
      */
-    fun getSubmissions(): List<Submission>
+    fun getSubmissions(): List<DbSubmission>
 }

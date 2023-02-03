@@ -2,14 +2,14 @@ package dev.dres.api.rest.handler.evaluation.admin
 
 import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.competition.ApiEvaluationStartMessage
-import dev.dres.api.rest.types.evaluation.ApiRunType
+import dev.dres.api.rest.types.evaluation.ApiEvaluationType
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.Config
-import dev.dres.data.model.run.Evaluation
+import dev.dres.data.model.run.DbEvaluation
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation
-import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.run.InteractiveSynchronousRunManager
 import dev.dres.run.RunExecutor
@@ -27,10 +27,9 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
 
 /**
- * [PostRestHandler] to create an [Evaluation].
+ * [PostRestHandler] to create an [DbEvaluation].
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
@@ -67,11 +66,11 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
 
         /* Prepare run manager. */
         val evaluation = this.store.transactional { tx ->
-            val template = EvaluationTemplate.query(EvaluationTemplate::id eq message.templateId).firstOrNull()
+            val template = DbEvaluationTemplate.query(DbEvaluationTemplate::id eq message.templateId).firstOrNull()
                 ?: throw ErrorStatusException(404, "Competition with ID ${message.templateId} not found.'", ctx)
             /* ensure that only one synchronous run of a competition is happening at any given time */
 
-            if (message.type == ApiRunType.SYNCHRONOUS && RunExecutor.managers().any {
+            if (message.type == ApiEvaluationType.SYNCHRONOUS && RunExecutor.managers().any {
                     it is InteractiveSynchronousRunManager && it.template == template && it.status != RunManagerStatus.TERMINATED
                 }
             ) {
@@ -97,10 +96,10 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
             }
 
             /* Prepare evaluation. */
-            val evaluation = Evaluation.new {
+            val evaluation = DbEvaluation.new {
                 this.name = message.name
                 this.template = template /* TODO: Create copy. */
-                this.type = message.type.type
+                this.type = message.type.toDb()
                 this.allowRepeatedTasks = message.properties.allowRepeatedTasks
                 this.participantCanView = message.properties.participantCanView
                 this.shuffleTasks = message.properties.shuffleTasks
@@ -112,9 +111,9 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
                 throw ErrorStatusException(500, "Failed to store new evaluation.", ctx)
             }
             RunExecutor.schedule(when (message.type) {
-                ApiRunType.ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(evaluation, emptyMap()) /* TODO: Team map */
-                ApiRunType.SYNCHRONOUS -> InteractiveSynchronousEvaluation(evaluation)
-                ApiRunType.NON_INTERACTIVE -> TODO()
+                ApiEvaluationType.ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(evaluation, emptyMap()) /* TODO: Team map */
+                ApiEvaluationType.SYNCHRONOUS -> InteractiveSynchronousEvaluation(evaluation)
+                ApiEvaluationType.NON_INTERACTIVE -> TODO()
             }, this.store)
             evaluation
         }

@@ -2,14 +2,14 @@ package dev.dres.api.rest.handler.preview
 
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.Config
-import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.DbMediaItem
 import dev.dres.utilities.extensions.errorResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 
 /**
- * An [AbstractPreviewHandler] used to access previews of specific [MediaItem]s.
+ * An [AbstractPreviewHandler] used to access previews of specific [DbMediaItem]s.
  *
  * @author Luca Rossetto
  * @author Loris Sauter

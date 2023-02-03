@@ -9,7 +9,7 @@ import dev.dres.api.rest.types.evaluation.scores.ApiScoreOverview
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.run.Task
+import dev.dres.data.model.run.DbTask
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.score.interfaces.TeamTaskScorer
 import dev.dres.run.score.scoreboard.ScoreOverview
@@ -19,7 +19,7 @@ import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.asSequence
 
 /**
- * Generates and lists the [ScoreOverview] for the specified [Task].
+ * Generates and lists the [ScoreOverview] for the specified [DbTask].
  *
  *
  * Only valid for [InteractiveRunManager]s.Can only be invoked by admins.

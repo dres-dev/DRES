@@ -2,7 +2,7 @@ package dev.dres.api.rest.handler.preview
 
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.Config
-import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
@@ -13,7 +13,7 @@ import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.firstOrNull
 
 /**
- * An [AbstractPreviewHandler] used to access previews of [MediaItem]s based on a specific [Submission].
+ * An [AbstractPreviewHandler] used to access previews of [DbMediaItem]s based on a specific [Submission].
  *
  * @author Luca Rossetto
  * @author Loris Sauter

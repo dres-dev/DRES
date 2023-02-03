@@ -1,6 +1,5 @@
 package dev.dres.data.model
 
-import dev.dres.data.model.template.task.TaskTemplate
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEntity
 import kotlinx.dnq.XdNaturalEntityType

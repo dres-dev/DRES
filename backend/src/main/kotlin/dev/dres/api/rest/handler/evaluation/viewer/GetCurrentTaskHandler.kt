@@ -8,18 +8,18 @@ import dev.dres.api.rest.types.evaluation.ApiTaskTemplateInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.run.Task
-import dev.dres.data.model.template.task.TaskTemplate
+import dev.dres.data.model.run.DbTask
+import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.run.InteractiveRunManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 
 /**
- * A [AbstractEvaluationViewerHandler] that returns the currently active [TaskTemplate].
+ * A [AbstractEvaluationViewerHandler] that returns the currently active [DbTaskTemplate].
  *
- * If a [Task] is being executed, the method returns the [TaskTemplate] for that [Task].
- * Otherwise, the selected [TaskTemplate] is returned (active task vs. task template navigation).
+ * If a [DbTask] is being executed, the method returns the [DbTaskTemplate] for that [DbTask].
+ * Otherwise, the selected [DbTaskTemplate] is returned (active task vs. task template navigation).
  *
  * Only eligible for [InteractiveRunManager]s.
  *

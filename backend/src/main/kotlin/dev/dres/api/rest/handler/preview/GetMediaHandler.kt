@@ -3,7 +3,7 @@ package dev.dres.api.rest.handler.preview
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.DbMediaItem
 import dev.dres.utilities.extensions.errorResponse
 import dev.dres.utilities.extensions.streamFile
 import io.javalin.http.Context
@@ -18,7 +18,7 @@ import kotlinx.dnq.query.query
 import java.nio.file.Paths
 
 /**
- * An [GetRestHandler] used to access the files that belong to a specific [MediaItem].
+ * An [GetRestHandler] used to access the files that belong to a specific [DbMediaItem].
  *
  * @author Luca Rossetto
  * @version 2.0.0
@@ -55,7 +55,7 @@ class GetMediaHandler(private val store: TransientEntityStore) : GetRestHandler<
 
         /* Lookup item by ID. */
         val item = this.store.transactional(true) {
-            MediaItem.query(MediaItem::id eq itemId).firstOrNull()
+            DbMediaItem.query(DbMediaItem::id eq itemId).firstOrNull()
         }
         if (item == null) {
             ctx.errorResponse(404, "item with name $itemId found")

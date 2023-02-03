@@ -4,7 +4,7 @@ import dev.dres.api.rest.handler.DeleteRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.DbMediaItem
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -42,7 +42,7 @@ class DeleteMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHa
         }
 
         return this.store.transactional {
-            val item = MediaItem.query(MediaItem::id eq mediaId).firstOrNull()
+            val item = DbMediaItem.query(DbMediaItem::id eq mediaId).firstOrNull()
                 ?: throw ErrorStatusException(404, "Media item with ID $mediaId not found.", ctx)
             item.delete()
             SuccessStatus("Media item ${item.id} deleted successfully.")

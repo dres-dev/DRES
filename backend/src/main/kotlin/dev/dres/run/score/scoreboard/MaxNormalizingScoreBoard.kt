@@ -1,7 +1,7 @@
 package dev.dres.run.score.scoreboard
 
-import dev.dres.data.model.template.task.TaskTemplate
-import dev.dres.data.model.template.team.Team
+import dev.dres.data.model.template.task.DbTaskTemplate
+import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.template.TemplateId
@@ -10,14 +10,14 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
 /**
- * A [Scoreboard] that keeps track of the maximum score per [TaskTemplate] as identified by it [TemplateId].
+ * A [Scoreboard] that keeps track of the maximum score per [DbTaskTemplate] as identified by it [TemplateId].
  *
  * @author Luca Rossett
  * @version 1.1.0
  */
-class MaxNormalizingScoreBoard(override val name: String, teams: List<Team>, private val taskFilter: (TaskTemplate) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 1000.0) : Scoreboard {
+class MaxNormalizingScoreBoard(override val name: String, teams: List<DbTeam>, private val taskFilter: (DbTaskTemplate) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 1000.0) : Scoreboard {
 
-    /** Tracks the score per [TemplateId] (references a [TaskTemplate]). */
+    /** Tracks the score per [TemplateId] (references a [DbTaskTemplate]). */
     private val scorePerTaskMap = ConcurrentHashMap<TemplateId, Map<TemplateId, Double>>()
 
     private val teamIds = teams.map { it.teamId }

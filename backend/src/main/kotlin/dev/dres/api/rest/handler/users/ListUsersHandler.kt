@@ -4,7 +4,7 @@ import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.users.ApiUser
-import dev.dres.data.model.admin.User
+import dev.dres.data.model.admin.DbUser
 import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.Context
 import io.javalin.openapi.HttpMethod
@@ -13,7 +13,7 @@ import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiResponse
 
 /**
- * An [AbstractUserHandler] to list all [User]s.
+ * An [AbstractUserHandler] to list all [DbUser]s.
  *
  * @author Loris Sauter
  * @version 2.0.0

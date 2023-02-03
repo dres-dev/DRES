@@ -3,13 +3,13 @@ package dev.dres.api.rest.handler.template
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.competition.ApiEvaluationTemplate
 import dev.dres.api.rest.types.status.ErrorStatus
-import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.DbEvaluationTemplate
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 
 /**
- * A [AbstractEvaluationTemplateHandler] that can be used to show an existing [EvaluationTemplate].
+ * A [AbstractEvaluationTemplateHandler] that can be used to show an existing [DbEvaluationTemplate].
  *
  * @author Ralph Gasser
  * @author Luca Rossetto

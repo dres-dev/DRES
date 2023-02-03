@@ -8,8 +8,8 @@ import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.template.task.options.TaskOption
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.run.InteractiveRunManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -48,7 +48,7 @@ class GetSubmissionInfoHandler(store: TransientEntityStore): AbstractEvaluationV
 
             val limit = manager.runProperties.limitSubmissionPreviews
             val currentTask = manager.currentTask(rac) ?: throw ErrorStatusException(404, "No active task.", ctx)
-            val blind = currentTask.template.taskGroup.type.options.contains(TaskOption.HIDDEN_RESULTS) && currentTask.isRunning
+            val blind = currentTask.template.taskGroup.type.options.contains(DbTaskOption.HIDDEN_RESULTS) && currentTask.isRunning
 
             /* Obtain current task run and check status. */
             if (limit > 0) {
@@ -60,16 +60,16 @@ class GetSubmissionInfoHandler(store: TransientEntityStore): AbstractEvaluationV
     }
 
     /**
-     * Implements a manual limit on the provided list of [Submission]s.
+     * Implements a manual limit on the provided list of [DbSubmission]s.
      *
      * TODO: Delegate to database?
      *
-     * @param submissions The [List] of [Submission]s to limit.
+     * @param submissions The [List] of [DbSubmission]s to limit.
      * @param limit The number of items to limit to.
-     * @param blind If [Submission] should be anonymised.
-     * @return Limited [List] of [Submission]
+     * @param blind If [DbSubmission] should be anonymised.
+     * @return Limited [List] of [DbSubmission]
      */
-    private fun limitSubmissions(submissions: List<Submission>, limit: Int, blind: Boolean = false): List<ApiSubmission>
+    private fun limitSubmissions(submissions: List<DbSubmission>, limit: Int, blind: Boolean = false): List<ApiSubmission>
         = submissions.groupBy { it.team.id }.values.map {
             it.sortedBy { s -> s.timestamp }.take(limit)
         }.flatMap {

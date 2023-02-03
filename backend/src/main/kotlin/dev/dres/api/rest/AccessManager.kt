@@ -3,8 +3,7 @@ package dev.dres.api.rest
 import dev.dres.api.rest.handler.users.SessionToken
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.users.ApiUser
-import dev.dres.data.model.admin.Role
-import dev.dres.data.model.admin.User
+import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.admin.UserId
 import dev.dres.run.RunManager
 import dev.dres.utilities.extensions.sessionToken
@@ -57,10 +56,10 @@ object AccessManager {
     private val locks = ReentrantReadWriteLock()
 
     /**
-     * Registers a [User] for a given [SessionToken]. Usually happens upon login.
+     * Registers a [DbUser] for a given [SessionToken]. Usually happens upon login.
      *
-     * @param sessionId The [SessionToken] to register the [User] for.
-     * @param user The [User] to register.
+     * @param sessionId The [SessionToken] to register the [DbUser] for.
+     * @param user The [DbUser] to register.
      */
     fun registerUserForSession(sessionId: String, user: ApiUser) = this.locks.write {
         if (!this.sessionRoleMap.containsKey(sessionId)){
@@ -80,9 +79,9 @@ object AccessManager {
     }
 
     /**
-     * Deregisters a [User] for a given [SessionToken]. Usually happens upon logout.
+     * Deregisters a [DbUser] for a given [SessionToken]. Usually happens upon logout.
      *
-     * @param sessionId The [SessionToken] to register the [User] for.
+     * @param sessionId The [SessionToken] to register the [DbUser] for.
      */
     fun deregisterUserSession(sessionId: String) = this.locks.write {
         this.sessionRoleMap.remove(sessionId)
@@ -93,7 +92,7 @@ object AccessManager {
      * Queries and returns the [UserId] for the given [SessionToken].
      *
      * @param sessionId The [SessionToken] to query.
-     * @return [UserId] or null if no [User] is logged in.
+     * @return [UserId] or null if no [DbUser] is logged in.
      */
     fun userIdForSession(sessionId: String?): UserId? = this.locks.read {
         this.sessionUserMap[sessionId]
@@ -151,7 +150,7 @@ object AccessManager {
     /**
      * Returns all registered [RunManager]s for the given [userId].
      *
-     * @param userId The [UserId] of the [User] to return [RunManager]s for.
+     * @param userId The [UserId] of the [DbUser] to return [RunManager]s for.
      */
     fun getRunManagerForUser(userId: UserId): Set<RunManager> = this.locks.read {
         return this.usersToRunMap[userId] ?: emptySet()

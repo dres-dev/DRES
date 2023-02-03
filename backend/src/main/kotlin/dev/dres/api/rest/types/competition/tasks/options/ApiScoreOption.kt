@@ -1,9 +1,9 @@
 package dev.dres.api.rest.types.competition.tasks.options
 
-import dev.dres.data.model.template.task.options.ScoreOption
+import dev.dres.data.model.template.task.options.DbScoreOption
 
 /**
- * A RESTful API representation of [ScoreOption].
+ * A RESTful API representation of [DbScoreOption].
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -12,12 +12,12 @@ enum class ApiScoreOption {
     KIS, AVS;
 
     /**
-     * Converts this [ApiScoreOption] to a [ScoreOption] representation. Requires an ongoing transaction.
+     * Converts this [ApiScoreOption] to a [DbScoreOption] representation. Requires an ongoing transaction.
      *
-     * @return [ScoreOption]
+     * @return [DbScoreOption]
      */
-    fun toScoreOption(): ScoreOption = when(this) {
-        KIS -> ScoreOption.KIS
-        AVS -> ScoreOption.AVS
+    fun toDb(): DbScoreOption = when(this) {
+        KIS -> DbScoreOption.KIS
+        AVS -> DbScoreOption.AVS
     }
 }

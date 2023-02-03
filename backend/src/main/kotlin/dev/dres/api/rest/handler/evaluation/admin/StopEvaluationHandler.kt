@@ -4,7 +4,7 @@ import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.audit.AuditLogSource
+import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.run.audit.AuditLogger
 import dev.dres.utilities.extensions.evaluationId
@@ -45,7 +45,7 @@ class StopEvaluationHandler(store: TransientEntityStore): AbstractEvaluationAdmi
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             try {
                 evaluationManager.end(rac)
-                AuditLogger.competitionEnd(evaluationManager.id, AuditLogSource.REST, ctx.sessionToken())
+                AuditLogger.competitionEnd(evaluationManager.id, DbAuditLogSource.REST, ctx.sessionToken())
                 SuccessStatus("Evaluation $evaluationId was successfully stopped.")
             } catch (e: IllegalStateException) {
                 throw ErrorStatusException(400, "Evaluation $evaluationId could not be stopped because it is in the wrong state (state = ${evaluationManager.status}).", ctx)

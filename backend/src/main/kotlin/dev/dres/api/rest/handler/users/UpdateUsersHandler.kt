@@ -7,15 +7,15 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.api.rest.types.users.UserRequest
-import dev.dres.data.model.admin.Role
-import dev.dres.data.model.admin.User
+import dev.dres.data.model.admin.DbRole
+import dev.dres.data.model.admin.DbUser
 import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
 
 /**
- * An [AbstractUserHandler] to update an existing [User]s.
+ * An [AbstractUserHandler] to update an existing [DbUser]s.
  *
  * @author Loris Sauter
  * @version 2.0.0
@@ -51,7 +51,7 @@ class UpdateUsersHandler : AbstractUserHandler(), PatchRestHandler<ApiUser>, Acc
         val user = userFromContext(ctx)
         val caller = userFromSession(ctx)
 
-        if (caller.role == Role.ADMIN || user.id == caller.id) {
+        if (caller.role == DbRole.ADMIN || user.id == caller.id) {
             val success = UserManager.update(id = user.id, request = request)
             if (success) {
                 return UserManager.get(id = user.id)!!.toApi()

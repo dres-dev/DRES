@@ -1,13 +1,13 @@
 package dev.dres.run.score.scoreboard
 
-import dev.dres.data.model.template.team.Team
+import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.interfaces.TaskScorer
 
 /**
- * A [Scoreboard] tracks the [Score]s for different [Team]s
+ * A [Scoreboard] tracks the [Score]s for different [DbTeam]s
  *
  * @author Ralph Gasser
  * @version 1.0.1
@@ -25,10 +25,10 @@ interface Scoreboard {
     fun scores(): List<Score>
 
     /**
-     * Retrieves and returns the score of the given [Team]
+     * Retrieves and returns the score of the given [DbTeam]
      *
-     * @param teamId The [Team]'s [TeamId].
-     * @return The score for the given [Team].
+     * @param teamId The [DbTeam]'s [TeamId].
+     * @return The score for the given [DbTeam].
      */
     fun score(teamId: TeamId): Double
 

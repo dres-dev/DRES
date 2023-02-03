@@ -3,7 +3,7 @@ package dev.dres.api.rest.handler.audit
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.audit.ApiAuditLogEntry
 import dev.dres.api.rest.types.status.ErrorStatus
-import dev.dres.data.model.audit.AuditLogEntry
+import dev.dres.data.model.audit.DbAuditLogEntry
 import dev.dres.utilities.extensions.toPathParamKey
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -13,7 +13,7 @@ import kotlinx.dnq.query.drop
 import kotlinx.dnq.query.take
 
 /**
- * [AbstractAuditLogHandler] to list all [AuditLogEntry]. Allows for pagination.
+ * [AbstractAuditLogHandler] to list all [DbAuditLogEntry]. Allows for pagination.
  *
  * @author Loris Sauter
  * @version 1.0.0
@@ -49,6 +49,6 @@ class ListAuditLogsHandler(store: TransientEntityStore) : AbstractAuditLogHandle
     override fun doGet(ctx: Context): List<ApiAuditLogEntry> = this.store.transactional(true) {
         val limit = (ctx.pathParamMap()[LIMIT_PARAM]?.toIntOrNull() ?: DEFAULT_LIMIT).coerceAtLeast(0)
         val index = (ctx.pathParamMap()[PAGE_INDEX_PARAM]?.toIntOrNull() ?: 0).coerceAtLeast(0)
-        AuditLogEntry.all().drop(index * limit).take(limit).asSequence().map { it.toApi() }.toList()
+        DbAuditLogEntry.all().drop(index * limit).take(limit).asSequence().map { it.toApi() }.toList()
     }
 }

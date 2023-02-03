@@ -1,9 +1,9 @@
 package dev.dres.api.rest.types.audit
 
-import dev.dres.data.model.audit.AuditLogEntry
+import dev.dres.data.model.audit.DbAuditLogEntry
 
 /**
- * A RESTful API representation of a [AuditLogEntry]
+ * A RESTful API representation of a [DbAuditLogEntry]
  *
  * @author Loris Sauter
  * @version 1.0.0

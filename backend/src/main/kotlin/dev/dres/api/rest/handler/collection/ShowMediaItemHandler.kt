@@ -4,7 +4,7 @@ import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.DbMediaItem
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -41,7 +41,7 @@ class ShowMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHand
         }
 
         return this.store.transactional(true) {
-            val item = MediaItem.query(MediaItem::id eq mediaId).firstOrNull()
+            val item = DbMediaItem.query(DbMediaItem::id eq mediaId).firstOrNull()
                 ?: throw ErrorStatusException(404, "Media item with ID $mediaId not found.", ctx)
             item.toApi()
         }

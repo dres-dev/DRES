@@ -1,13 +1,13 @@
 package dev.dres.api.rest.types.competition.tasks
 
-import dev.dres.data.model.template.task.TaskTemplate
+import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.media.CollectionId
 import dev.dres.data.model.template.TemplateId
 
 /**
- * The RESTful API equivalent for [TaskTemplate].
+ * The RESTful API equivalent for [DbTaskTemplate].
  *
- * @see TaskTemplate
+ * @see DbTaskTemplate
  * @author Luca Rossetto & Ralph Gasser
  * @version 2.0.0
  */

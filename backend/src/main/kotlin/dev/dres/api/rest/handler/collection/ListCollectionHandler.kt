@@ -3,7 +3,7 @@ package dev.dres.api.rest.handler.collection
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.collection.RestMediaCollection
 import dev.dres.api.rest.types.status.ErrorStatus
-import dev.dres.data.model.media.MediaCollection
+import dev.dres.data.model.media.DbMediaCollection
 import io.javalin.http.Context
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
@@ -33,7 +33,7 @@ class ListCollectionHandler(store: TransientEntityStore) : AbstractCollectionHan
     )
     override fun doGet(ctx: Context): List<RestMediaCollection> {
         return this.store.transactional(true) {
-            MediaCollection.all().asSequence().map { RestMediaCollection.fromMediaCollection(it) }.toList()
+            DbMediaCollection.all().asSequence().map { RestMediaCollection.fromMediaCollection(it) }.toList()
         }
     }
 }

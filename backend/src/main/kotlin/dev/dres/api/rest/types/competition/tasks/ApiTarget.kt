@@ -1,10 +1,10 @@
 package dev.dres.api.rest.types.competition.tasks
 
 import dev.dres.api.rest.types.collection.time.ApiTemporalRange
-import dev.dres.data.model.template.task.TaskTemplateTarget
+import dev.dres.data.model.template.task.DbTaskTemplateTarget
 
 /**
- * The RESTful API equivalent for [TaskTemplateTarget].
+ * The RESTful API equivalent for [DbTaskTemplateTarget].
  *
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0.0

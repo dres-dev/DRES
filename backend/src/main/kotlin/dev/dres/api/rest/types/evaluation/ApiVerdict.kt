@@ -10,7 +10,7 @@ import dev.dres.api.rest.types.collection.ApiMediaItem
  * @version 1.0.0
  */
 data class ApiVerdict(
-    val type: ApiVerdictType,
+    val type: ApiAnswerType,
     val status: ApiVerdictStatus,
     val item: ApiMediaItem?,
     val text: String?,

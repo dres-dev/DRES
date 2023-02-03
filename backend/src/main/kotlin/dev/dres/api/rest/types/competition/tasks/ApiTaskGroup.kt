@@ -1,9 +1,9 @@
 package dev.dres.api.rest.types.competition.tasks
 
-import dev.dres.data.model.template.task.TaskGroup
+import dev.dres.data.model.template.task.DbTaskGroup
 
 /**
- * The RESTful API equivalent of a [TaskGroup].
+ * The RESTful API equivalent of a [DbTaskGroup].
  *
  * @author Ralph Gasser
  * @version 1.0.0

@@ -8,7 +8,7 @@ import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.template.task.options.TaskOption
+import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.run.InteractiveRunManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -47,7 +47,7 @@ class GetSubmissionHistoryInfoHandler(store: TransientEntityStore): AbstractEval
             val task = manager.currentTask(rac)
             if (task?.template?.id == taskId && task.isRunning) {
                 if (task.isRunning) {
-                    val hidden = manager.currentTaskTemplate(rac).taskGroup.type.options.filter { it eq  TaskOption.HIDDEN_RESULTS }.any()
+                    val hidden = manager.currentTaskTemplate(rac).taskGroup.type.options.filter { it eq  DbTaskOption.HIDDEN_RESULTS }.any()
                     manager.currentSubmissions(rac).map { it.toApi(hidden) }
                 } else {
                     manager.taskForId(rac, taskId)?.getSubmissions()?.map { it.toApi() } ?: emptyList()

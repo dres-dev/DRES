@@ -8,7 +8,7 @@ import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.template.task.options.TaskOption
+import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.run.InteractiveRunManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -47,7 +47,7 @@ class GetSubmissionAfterInfoHandler(store: TransientEntityStore): AbstractEvalua
 
             val timestamp = ctx.pathParamMap().getOrDefault("timestamp", "0").toLong()
             val currentTask = manager.currentTask(rac) ?: throw ErrorStatusException(404, "No active task.", ctx)
-            val blind = currentTask.template.taskGroup.type.options.contains(TaskOption.HIDDEN_RESULTS) && currentTask.isRunning
+            val blind = currentTask.template.taskGroup.type.options.contains(DbTaskOption.HIDDEN_RESULTS) && currentTask.isRunning
             manager.currentSubmissions(rac).filter { it.timestamp >= timestamp }.map { it.toApi(blind) }
         }
     }

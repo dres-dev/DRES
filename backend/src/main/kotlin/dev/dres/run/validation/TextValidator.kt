@@ -1,8 +1,8 @@
 package dev.dres.run.validation
 
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.VerdictStatus
-import dev.dres.data.model.submissions.VerdictType
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.DbAnswerType
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import kotlinx.dnq.query.asSequence
 
@@ -42,29 +42,29 @@ class TextValidator(targets: List<String>) : SubmissionValidator {
     }
 
     /**
-     * Validates a textual [Submission] based on the provided [Regex].
+     * Validates a textual [DbSubmission] based on the provided [Regex].
      *
-     * @param submission The [Submission] to validate.
+     * @param submission The [DbSubmission] to validate.
      */
-    override fun validate(submission: Submission) {
+    override fun validate(submission: DbSubmission) {
         submission.verdicts.asSequence().forEach { verdict ->
             /* Perform sanity checks. */
-            if (verdict.type != VerdictType.TEXT) {
-                verdict.status = VerdictStatus.WRONG
+            if (verdict.type != DbAnswerType.TEXT) {
+                verdict.status = DbVerdictStatus.WRONG
                 return@forEach
             }
 
             /* Perform text validation. */
             val text = verdict.text
             if (text == null) {
-                verdict.status = VerdictStatus.WRONG
+                verdict.status = DbVerdictStatus.WRONG
                 return@forEach
             }
 
             if (regex.any { it matches text })  {
-                verdict.status = VerdictStatus.CORRECT
+                verdict.status = DbVerdictStatus.CORRECT
             } else {
-                verdict.status = VerdictStatus.WRONG
+                verdict.status = DbVerdictStatus.WRONG
             }
         }
     }

@@ -1,42 +1,41 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.template.EvaluationTemplate
-import dev.dres.data.model.template.task.TaskTemplate
+import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
-import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.score.interfaces.TeamTaskScorer
 import kotlinx.dnq.query.*
-import java.util.*
 
 /**
- * Represents a concrete, interactive and synchronous [Run] of a [EvaluationTemplate].
+ * Represents a concrete, interactive and synchronous [Run] of a [DbEvaluationTemplate].
  *
  * [InteractiveSynchronousEvaluation]s can be started, ended and they can be used to create new [TaskRun]s and access the current [TaskRun].
  *
  * @author Ralph Gasser
  * @param 2.0.0
  */
-class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluation(evaluation) {
+class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(evaluation) {
 
     init {
-        require(this.evaluation.type == EvaluationType.INTERACTIVE_SYNCHRONOUS) { "Incompatible competition type ${this.evaluation.type}. This is a programmer's error!" }
+        require(this.evaluation.type == DbEvaluationType.INTERACTIVE_SYNCHRONOUS) { "Incompatible competition type ${this.evaluation.type}. This is a programmer's error!" }
         require(this.description.tasks.size() > 0) { "Cannot create a run from a competition that doesn't have any tasks." }
         require(this.description.teams.size() > 0) { "Cannot create a run from a competition that doesn't have any teams." }
     }
 
     /**
-     * Internal constructor to create an [InteractiveSynchronousEvaluation] from an [EvaluationTemplate].
+     * Internal constructor to create an [InteractiveSynchronousEvaluation] from an [DbEvaluationTemplate].
      *
      * Requires a transaction context!
      *
      * @param name The name of the new [InteractiveSynchronousEvaluation]
-     * @param template The [EvaluationTemplate]
+     * @param template The [DbEvaluationTemplate]
      */
-    constructor(name: String, template: EvaluationTemplate) : this(Evaluation.new {
-        this.type = EvaluationType.INTERACTIVE_SYNCHRONOUS
+    constructor(name: String, template: DbEvaluationTemplate) : this(DbEvaluation.new {
+        this.type = DbEvaluationType.INTERACTIVE_SYNCHRONOUS
         this.template = template
         this.name = name
     })
@@ -46,7 +45,7 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
         ISTaskRun(it)
     }.toMutableList()
 
-    /** Reference to the currently active [TaskTemplate]. This is part of the task navigation. */
+    /** Reference to the currently active [DbTaskTemplate]. This is part of the task navigation. */
     var currentTaskTemplate = this.description.tasks.first()
         private set
 
@@ -66,26 +65,26 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
     }
 
     /**
-     * Represents a concrete [Run] of a [TaskTemplate]. [Task]s always exist within a [InteractiveSynchronousEvaluation].
-     * As a [InteractiveSynchronousEvaluation], [Task]s can be started and ended and they can be used to register [Submission]s.
+     * Represents a concrete [Run] of a [DbTaskTemplate]. [DbTask]s always exist within a [InteractiveSynchronousEvaluation].
+     * As a [InteractiveSynchronousEvaluation], [DbTask]s can be started and ended and they can be used to register [DbSubmission]s.
      */
-    inner class ISTaskRun(task: Task): AbstractInteractiveTask(task) {
+    inner class ISTaskRun(task: DbTask): AbstractInteractiveTask(task) {
 
         /**
-         * Constructor used to generate an [ISTaskRun] from a [TaskTemplate].
+         * Constructor used to generate an [ISTaskRun] from a [DbTaskTemplate].
          *
-         * @param template [TaskTemplate] to generate [ISTaskRun] from.
+         * @param template [DbTaskTemplate] to generate [ISTaskRun] from.
          */
-        constructor(template: TaskTemplate) : this(Task.new {
+        constructor(template: DbTaskTemplate) : this(DbTask.new {
             this.evaluation = this@InteractiveSynchronousEvaluation.evaluation
             this.template = template
         })
 
-        /** The [InteractiveSynchronousEvaluation] this [Task] belongs to.*/
+        /** The [InteractiveSynchronousEvaluation] this [DbTask] belongs to.*/
         override val competition: InteractiveSynchronousEvaluation
             get() = this@InteractiveSynchronousEvaluation
 
-        /** The position of this [Task] within the [InteractiveSynchronousEvaluation]. */
+        /** The position of this [DbTask] within the [InteractiveSynchronousEvaluation]. */
         override val position: Int
             get() = this@InteractiveSynchronousEvaluation.tasks.indexOf(this)
 
@@ -96,7 +95,7 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
         override val scorer: TeamTaskScorer = this.template.newScorer() as? TeamTaskScorer
             ?: throw IllegalArgumentException("Specified scorer is not of type TeamTaskScorer. This is a programmer's error!")
 
-        /** The total duration in milliseconds of this task. Usually determined by the [TaskTemplate] but can be adjusted! */
+        /** The total duration in milliseconds of this task. Usually determined by the [DbTaskTemplate] but can be adjusted! */
         override var duration: Long = this.template.duration
 
         init {
@@ -105,12 +104,12 @@ class InteractiveSynchronousEvaluation(evaluation: Evaluation) : AbstractEvaluat
         }
 
         /**
-         * Adds a [Submission] to this [Task].
+         * Adds a [DbSubmission] to this [DbTask].
          *
-         * @param submission The [Submission] to add.
+         * @param submission The [DbSubmission] to add.
          */
         @Synchronized
-        override fun postSubmission(submission: Submission) {
+        override fun postSubmission(submission: DbSubmission) {
             check(this.isRunning) { "Task run '${this@InteractiveSynchronousEvaluation.name}.${this.position}' is currently not running. This is a programmer's error!" }
             check(this@InteractiveSynchronousEvaluation.description.teams.filter { it eq submission.team }.any()) {
                 "Team ${submission.team.teamId} does not exists for evaluation run ${this@InteractiveSynchronousEvaluation.name}. This is a programmer's error!"

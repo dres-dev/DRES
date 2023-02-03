@@ -1,11 +1,11 @@
 package dev.dres.run
 
-import dev.dres.data.model.template.EvaluationTemplate
-import dev.dres.data.model.template.task.TaskTemplate
+import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.TaskRun
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
 
@@ -19,8 +19,8 @@ interface InteractiveRunManager : RunManager {
     val scoreHistory: List<ScoreTimePoint>
 
     /**
-     * Prepares this [InteractiveRunManager] for the execution of previous [TaskTemplate] as per order defined in
-     * [EvaluationTemplate.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
+     * Prepares this [InteractiveRunManager] for the execution of previous [DbTaskTemplate] as per order defined in
+     * [DbEvaluationTemplate.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
      * This is part of the [InteractiveRunManager]'s navigational state.  As all state affecting methods, this method throws
      * an [IllegalStateException] if invocation does not match the current state.
@@ -32,8 +32,8 @@ interface InteractiveRunManager : RunManager {
     fun previous(context: RunActionContext): Boolean
 
     /**
-     * Prepares this [InteractiveRunManager] for the execution of next [TaskTemplate] as per order defined in
-     * [EvaluationTemplate.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
+     * Prepares this [InteractiveRunManager] for the execution of next [DbTaskTemplate] as per order defined in
+     * [DbEvaluationTemplate.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
      * This is part of the [InteractiveRunManager]'s navigational state. As all state affecting methods, this method throws
      * an [IllegalStateException] if invocation oes not match the current state.
@@ -45,8 +45,8 @@ interface InteractiveRunManager : RunManager {
     fun next(context: RunActionContext): Boolean
 
     /**
-     * Prepares this [InteractiveRunManager] for the execution of the [TaskTemplate] given by the index as per order
-     * defined in [EvaluationTemplate.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
+     * Prepares this [InteractiveRunManager] for the execution of the [DbTaskTemplate] given by the index as per order
+     * defined in [DbEvaluationTemplate.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
      *
      * This is part of the [InteractiveRunManager]'s navigational state. As all state affecting methods, this method throws
      * an [IllegalStateException] if invocation does not match the current state.
@@ -58,13 +58,13 @@ interface InteractiveRunManager : RunManager {
     fun goTo(context: RunActionContext, index: Int)
 
     /**
-     * Reference to the currently active [TaskTemplate]. This is part of the [InteractiveRunManager]'s
+     * Reference to the currently active [DbTaskTemplate]. This is part of the [InteractiveRunManager]'s
      * navigational state.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return [TaskTemplate]
+     * @return [DbTaskTemplate]
      */
-    fun currentTaskTemplate(context: RunActionContext): TaskTemplate
+    fun currentTaskTemplate(context: RunActionContext): DbTaskTemplate
 
     /**
      * Starts the [currentTask] and thus moves the [RunManager.status] from
@@ -146,20 +146,20 @@ interface InteractiveRunManager : RunManager {
     fun taskForId(context: RunActionContext, taskId: EvaluationId): TaskRun?
 
     /**
-     * List of all [Submission]s for this [InteractiveRunManager], irrespective of the [Task] it belongs to.
+     * List of all [DbSubmission]s for this [InteractiveRunManager], irrespective of the [DbTask] it belongs to.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return List of [Submission]s
+     * @return List of [DbSubmission]s
      */
-    fun allSubmissions(context: RunActionContext): List<Submission>
+    fun allSubmissions(context: RunActionContext): List<DbSubmission>
 
     /**
-     * List of [Submission]s for the current [Task].
+     * List of [DbSubmission]s for the current [DbTask].
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return List of [Submission]s
+     * @return List of [DbSubmission]s
      */
-    fun currentSubmissions(context: RunActionContext): List<Submission>
+    fun currentSubmissions(context: RunActionContext): List<DbSubmission>
 
     /**
      * Override the ready state for a given viewer ID.
@@ -171,19 +171,19 @@ interface InteractiveRunManager : RunManager {
     fun overrideReadyState(context: RunActionContext, viewerId: String): Boolean
 
     /**
-     * Invoked by an external caller to update an existing [Submission] by its [Submission.uid] with a new [VerdictStatus].
-     * [Submission]s usually cause updates to the internal state and/or the [Scoreboard] of this [InteractiveRunManager].
+     * Invoked by an external caller to update an existing [DbSubmission] by its [DbSubmission.uid] with a new [DbVerdictStatus].
+     * [DbSubmission]s usually cause updates to the internal state and/or the [Scoreboard] of this [InteractiveRunManager].
      *
-     * This method will not throw an exception and instead returns false if a [Submission] was
+     * This method will not throw an exception and instead returns false if a [DbSubmission] was
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
      * @param context The [RunActionContext] used for the invocation
-     * @param submissionId The [EvaluationId] of the [Submission] to update.
-     * @param submissionStatus The new [VerdictStatus]
+     * @param submissionId The [EvaluationId] of the [DbSubmission] to update.
+     * @param submissionStatus The new [DbVerdictStatus]
      *
      * @return Whether the update was successful or not
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    fun updateSubmission(context: RunActionContext, submissionId: EvaluationId, submissionStatus: VerdictStatus): Boolean
+    fun updateSubmission(context: RunActionContext, submissionId: EvaluationId, submissionStatus: DbVerdictStatus): Boolean
 }

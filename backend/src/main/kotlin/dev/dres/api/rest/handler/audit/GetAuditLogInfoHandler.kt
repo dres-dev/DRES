@@ -3,7 +3,7 @@ import dev.dres.api.rest.handler.audit.AbstractAuditLogHandler
 import jetbrains.exodus.database.TransientEntityStore
 import dev.dres.api.rest.types.audit.AuditLogInfo
 import dev.dres.api.rest.types.status.ErrorStatus
-import dev.dres.data.model.audit.AuditLogEntry
+import dev.dres.data.model.audit.DbAuditLogEntry
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import kotlinx.dnq.query.lastOrNull
@@ -25,6 +25,6 @@ class GetAuditLogInfoHandler(store: TransientEntityStore) : AbstractAuditLogHand
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): AuditLogInfo = this.store.transactional(true) {
-        AuditLogInfo(size = AuditLogEntry.all().size(), latest = AuditLogEntry.all().sortedBy(AuditLogEntry::timestamp, true).lastOrNull()?.timestamp?.millis)
+        AuditLogInfo(size = DbAuditLogEntry.all().size(), latest = DbAuditLogEntry.all().sortedBy(DbAuditLogEntry::timestamp, true).lastOrNull()?.timestamp?.millis)
     }
 }

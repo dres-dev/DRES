@@ -4,7 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.run.Evaluation
+import dev.dres.data.model.run.DbEvaluation
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -13,7 +13,7 @@ import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
 
 /**
- * A [GetRestHandler] that allows for downloading the entire [Evaluation] structure as JSON file.
+ * A [GetRestHandler] that allows for downloading the entire [DbEvaluation] structure as JSON file.
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -42,7 +42,7 @@ class EvaluationDownloadHandler(store: TransientEntityStore) : AbstractDownloadH
         /* Obtain run id and run. */
         val evaluationId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'evaluationId' is missing!'", ctx) }
         val evaluation = this.store.transactional(true) {
-            Evaluation.query(Evaluation::id eq evaluationId).firstOrNull()?.toApi()
+            DbEvaluation.query(DbEvaluation::id eq evaluationId).firstOrNull()?.toApi()
                 ?: throw ErrorStatusException(404, "Run $evaluationId not found", ctx)
         }
 

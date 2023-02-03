@@ -2,8 +2,8 @@ package dev.dres.data.model.run
 
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.admin.Role
-import dev.dres.data.model.admin.User
+import dev.dres.data.model.admin.DbRole
+import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager
@@ -21,15 +21,15 @@ import kotlinx.dnq.query.query
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.1.0
  */
-data class RunActionContext(val userId: UserId?, val teamId: TeamId?, val roles: Set<Role>) {
+data class RunActionContext(val userId: UserId?, val teamId: TeamId?, val roles: Set<DbRole>) {
 
-    /** True if the user associated with this [RunActionContext] acts as [Role.ADMIN]*/
+    /** True if the user associated with this [RunActionContext] acts as [DbRole.ADMIN]*/
     val isAdmin: Boolean
-        get() = this.roles.contains(Role.ADMIN)
+        get() = this.roles.contains(DbRole.ADMIN)
 
     companion object {
-        /** A static [RunActionContext] used for internal invocations by DRES. Always acts as an implicit [Role.ADMIN]. */
-        val INTERNAL = RunActionContext(null, null, setOf(Role.ADMIN))
+        /** A static [RunActionContext] used for internal invocations by DRES. Always acts as an implicit [DbRole.ADMIN]. */
+        val INTERNAL = RunActionContext(null, null, setOf(DbRole.ADMIN))
 
         /**
          * Constructs a [RunActionContext] from a [Context] and a [RunManager].
@@ -39,8 +39,8 @@ data class RunActionContext(val userId: UserId?, val teamId: TeamId?, val roles:
          */
         fun runActionContext(ctx: Context, runManager: RunManager) : RunActionContext {
             val userId = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(403, "Unauthorized user.", ctx)
-            val roles = AccessManager.rolesOfSession(ctx.sessionToken()).mapNotNull { it.toRole() }.toSet()
-            val teamId = runManager.template.teams.filter { it.users.contains(User.query(User::id eq userId).first()) }.first().teamId
+            val roles = AccessManager.rolesOfSession(ctx.sessionToken()).mapNotNull { it.toDb() }.toSet()
+            val teamId = runManager.template.teams.filter { it.users.contains(DbUser.query(DbUser::id eq userId).first()) }.first().teamId
             return RunActionContext(userId, teamId, roles)
         }
     }

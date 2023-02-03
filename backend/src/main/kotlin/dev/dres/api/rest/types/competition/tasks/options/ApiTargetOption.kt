@@ -1,9 +1,9 @@
 package dev.dres.api.rest.types.competition.tasks.options
 
-import dev.dres.data.model.template.task.options.TargetOption
+import dev.dres.data.model.template.task.options.DbTargetOption
 
 /**
- * A RESTful API representation of [TargetOption].
+ * A RESTful API representation of [DbTargetOption].
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -12,15 +12,15 @@ enum class ApiTargetOption{
     SINGLE_MEDIA_ITEM, SINGLE_MEDIA_SEGMENT, JUDGEMENT, VOTE, TEXT;
 
     /**
-     * Converts this [ApiTargetOption] to a [TargetOption] representation. Requires an ongoing transaction.
+     * Converts this [ApiTargetOption] to a [DbTargetOption] representation. Requires an ongoing transaction.
      *
-     * @return [TargetOption]
+     * @return [DbTargetOption]
      */
-    fun toTargetOption(): TargetOption = when(this) {
-        SINGLE_MEDIA_ITEM -> TargetOption.MEDIA_ITEM
-        SINGLE_MEDIA_SEGMENT -> TargetOption.MEDIA_SEGMENT
-        JUDGEMENT -> TargetOption.JUDGEMENT
-        VOTE -> TargetOption.VOTE
-        TEXT -> TargetOption.TEXT
+    fun toDb(): DbTargetOption = when(this) {
+        SINGLE_MEDIA_ITEM -> DbTargetOption.MEDIA_ITEM
+        SINGLE_MEDIA_SEGMENT -> DbTargetOption.MEDIA_SEGMENT
+        JUDGEMENT -> DbTargetOption.JUDGEMENT
+        VOTE -> DbTargetOption.VOTE
+        TEXT -> DbTargetOption.TEXT
     }
 }

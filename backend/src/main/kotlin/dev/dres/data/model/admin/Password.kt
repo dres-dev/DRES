@@ -14,7 +14,7 @@ import org.mindrot.jbcrypt.BCrypt
 sealed class Password(val password: String) {
     class Plain(password: String): Password(password) {
         init {
-            require (password.length >= User.MIN_LENGTH_PASSWORD) { "Password is too short. Must be at least ${User.MIN_LENGTH_PASSWORD} characters long" }
+            require (password.length >= DbUser.MIN_LENGTH_PASSWORD) { "Password is too short. Must be at least ${DbUser.MIN_LENGTH_PASSWORD} characters long" }
         }
         fun hash(): Hashed = Hashed(BCrypt.hashpw(this.password, BCrypt.gensalt()))
         val length: Int

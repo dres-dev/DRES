@@ -5,8 +5,8 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.api.rest.types.users.ApiRole
-import dev.dres.data.model.audit.AuditLogSource
-import dev.dres.data.model.run.Evaluation
+import dev.dres.data.model.audit.DbAuditLogSource
+import dev.dres.data.model.run.DbEvaluation
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.run.audit.AuditLogger
 import dev.dres.utilities.extensions.evaluationId
@@ -17,7 +17,7 @@ import io.javalin.security.RouteRole
 import jetbrains.exodus.database.TransientEntityStore
 
 /**
- * [PostRestHandler] to start the current task within an [Evaluation].
+ * [PostRestHandler] to start the current task within an [DbEvaluation].
 
  * @author Ralph Gasser
  * @author Luca Rossetto
@@ -54,7 +54,7 @@ class StartTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHand
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             try {
                 evaluationManager.startTask(rac)
-                AuditLogger.taskStart(evaluationManager.id, evaluationManager.currentTask(rac)!!.id, evaluationManager.currentTaskTemplate(rac), AuditLogSource.REST, ctx.sessionToken())
+                AuditLogger.taskStart(evaluationManager.id, evaluationManager.currentTask(rac)!!.id, evaluationManager.currentTaskTemplate(rac), DbAuditLogSource.REST, ctx.sessionToken())
                 SuccessStatus("Task '${evaluationManager.currentTaskTemplate(rac).name}' for evaluation $evaluationId was successfully started.")
             } catch (e: IllegalStateException) {
                 throw ErrorStatusException(400, e.message ?: "", ctx)

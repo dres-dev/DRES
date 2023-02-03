@@ -5,7 +5,7 @@ import dev.dres.api.rest.types.competition.ApiCreateEvaluation
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.DbEvaluationTemplate
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
@@ -14,7 +14,7 @@ import jetbrains.exodus.database.TransientEntityStore
 import java.util.*
 
 /**
- * A [AbstractEvaluationTemplateHandler] that can be used to create a new [EvaluationTemplate].
+ * A [AbstractEvaluationTemplateHandler] that can be used to create a new [DbEvaluationTemplate].
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
@@ -47,7 +47,7 @@ class CreateEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEva
 
         val newId = UUID.randomUUID().toString()
         this.store.transactional {
-            EvaluationTemplate.new {
+            DbEvaluationTemplate.new {
                 id = newId
                 name = createRequest.name
                 description = createRequest.description

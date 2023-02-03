@@ -8,14 +8,14 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.api.rest.types.users.UserRequest
 import dev.dres.data.model.admin.Password
-import dev.dres.data.model.admin.User
+import dev.dres.data.model.admin.DbUser
 import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
 
 /**
- * An [AbstractUserHandler] to create new [User]s.
+ * An [AbstractUserHandler] to create new [DbUser]s.
  *
  * @author Loris Sauter
  * @version 2.0.0
@@ -44,14 +44,14 @@ class CreateUsersHandler : AbstractUserHandler(), PostRestHandler<ApiUser>, Acce
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        if (req.password == null || req.password.length < User.MIN_LENGTH_PASSWORD)
-            throw ErrorStatusException(400, "Invalid parameters. Password must consist of at least ${User.MIN_LENGTH_PASSWORD} characters.", ctx)
-        if (req.username.length < User.MIN_LENGTH_USERNAME)
-            throw ErrorStatusException(400, "Invalid parameters. Username must consist of at least ${User.MIN_LENGTH_USERNAME} characters.", ctx)
+        if (req.password == null || req.password.length < DbUser.MIN_LENGTH_PASSWORD)
+            throw ErrorStatusException(400, "Invalid parameters. Password must consist of at least ${DbUser.MIN_LENGTH_PASSWORD} characters.", ctx)
+        if (req.username.length < DbUser.MIN_LENGTH_USERNAME)
+            throw ErrorStatusException(400, "Invalid parameters. Username must consist of at least ${DbUser.MIN_LENGTH_USERNAME} characters.", ctx)
         if (req.role == null)
             throw ErrorStatusException(400, "Invalid parameters. Role must be defined.", ctx)
 
-        val success = UserManager.create(req.username, Password.Plain(req.password), req.role.toRole() ?: throw ErrorStatusException(400, "Invalid parameters. Provided role is undefined or invalid!", ctx))
+        val success = UserManager.create(req.username, Password.Plain(req.password), req.role.toDb() ?: throw ErrorStatusException(400, "Invalid parameters. Provided role is undefined or invalid!", ctx))
         if (success) {
             return UserManager.get(username = req.username)!!.toApi()
         } else {

@@ -4,15 +4,15 @@ import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.EvaluationRun
-import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.TaskRun
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
 
 /**
- * A managing class for concrete executions of [EvaluationTemplate], i.e. [InteractiveSynchronousEvaluation]s.
+ * A managing class for concrete executions of [DbEvaluationTemplate], i.e. [InteractiveSynchronousEvaluation]s.
  *
  * @see InteractiveSynchronousEvaluation
  *
@@ -26,11 +26,11 @@ interface RunManager : Runnable {
     /** A name for identifying this [RunManager]. */
     val name: String
 
-    /** The [Evaluation] instance that backs this [RunManager]. */
+    /** The [DbEvaluation] instance that backs this [RunManager]. */
     val evaluation: EvaluationRun
 
-    /** The [EvaluationTemplate] that is executed / run by this [RunManager]. */
-    val template: EvaluationTemplate
+    /** The [DbEvaluationTemplate] that is executed / run by this [RunManager]. */
+    val template: DbEvaluationTemplate
 
     /** List of [Scoreboard]s for this [RunManager]. */
     val scoreboards: List<Scoreboard>
@@ -76,10 +76,10 @@ interface RunManager : Runnable {
     fun updateProperties(properties: RunProperties)
 
     /**
-     * Returns the number of [Task]s held by this [RunManager].
+     * Returns the number of [DbTask]s held by this [RunManager].
      *
      * @param context The [RunActionContext] for this invocation.
-     * @return The number of [Task]s held by this [RunManager]
+     * @return The number of [DbTask]s held by this [RunManager]
      */
     fun taskCount(context: RunActionContext): Int
 
@@ -92,22 +92,22 @@ interface RunManager : Runnable {
     fun tasks(context: RunActionContext): List<TaskRun>
 
     /**
-     * Invoked by an external caller to post a new [Submission] for the [TaskRun] that is currently being
-     * executed by this [InteractiveRunManager]. [Submission]s usually cause updates to the internal state and/or
+     * Invoked by an external caller to post a new [DbSubmission] for the [TaskRun] that is currently being
+     * executed by this [InteractiveRunManager]. [DbSubmission]s usually cause updates to the internal state and/or
      * the [Scoreboard] of this [InteractiveRunManager].
      *
-     * This method will not throw an exception and instead returns false if a [Submission] was
+     * This method will not throw an exception and instead returns false if a [DbSubmission] was
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
      *
      * @param context The [RunActionContext] used for the invocation
-     * @param submission The [Submission] to be posted.
+     * @param submission The [DbSubmission] to be posted.
      *
-     * @return [VerdictStatus] of the [Submission]
+     * @return [DbVerdictStatus] of the [DbSubmission]
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    fun postSubmission(context: RunActionContext, submission: Submission): VerdictStatus
+    fun postSubmission(context: RunActionContext, submission: DbSubmission): DbVerdictStatus
 
     /**
      * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.
@@ -119,7 +119,7 @@ interface RunManager : Runnable {
     /**
      * Invoked by an external caller such in order to inform the [RunManager] that it has received a [ClientMessage].
      *
-     * This method does not throw an exception and instead returns false if a [Submission] was
+     * This method does not throw an exception and instead returns false if a [DbSubmission] was
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *

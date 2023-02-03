@@ -5,7 +5,7 @@ import dev.dres.api.rest.types.collection.ApiMediaType
 import dev.dres.api.rest.types.judgement.ApiJudgementRequest
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.submissions.VerdictType
+import dev.dres.data.model.submissions.DbAnswerType
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
@@ -48,15 +48,15 @@ class DequeueJudgementHandler(store: TransientEntityStore) : AbstractJudgementHa
                 val next = validator.next(ctx.sessionToken()!!) ?: break
                 val taskDescription = next.second.task.template.textualDescription()
                 when (next.second.type) {
-                    VerdictType.TEXT -> {
+                    DbAnswerType.TEXT -> {
                         val text = next.second.text ?: continue
                         return@transactional ApiJudgementRequest(next.first, ApiMediaType.TEXT, validator.id, "text", text, taskDescription, null, null)
                     }
-                    VerdictType.ITEM -> {
+                    DbAnswerType.ITEM -> {
                         val item = next.second.item ?: continue
                         return@transactional ApiJudgementRequest(next.first, item.type.toApi(), validator.id, item.collection.id, item.id, taskDescription, null, null)
                     }
-                    VerdictType.TEMPORAL -> {
+                    DbAnswerType.TEMPORAL -> {
                         val item = next.second.item ?: continue
                         val start = next.second.start ?: continue
                         val end = next.second.end ?: continue

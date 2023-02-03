@@ -5,12 +5,12 @@ import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.users.ApiUser
-import dev.dres.data.model.admin.User
+import dev.dres.data.model.admin.DbUser
 import io.javalin.http.Context
 import io.javalin.openapi.*
 
 /**
- * An [AbstractUserHandler] to show [User] details.
+ * An [AbstractUserHandler] to show [DbUser] details.
  *
  * @author Loris Sauter
  * @version 2.0.0

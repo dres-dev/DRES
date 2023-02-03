@@ -1,11 +1,11 @@
 package dev.dres.api.rest.types.collection
 
-import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.DbMediaItem
 
 /**
- * The RESTful API equivalent for [MediaItem].
+ * The RESTful API equivalent for [DbMediaItem].
  *
- * @see MediaItem
+ * @see DbMediaItem
  * @author Ralph Gasser
  * @version 1.1.0
  */

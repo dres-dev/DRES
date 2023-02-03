@@ -1,8 +1,8 @@
 package dev.dres.run.updatables
 
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.submissions.VerdictStatus
-import dev.dres.data.model.template.task.options.SubmissionOption
+import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.template.task.options.DbSubmissionOption
 import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunManagerStatus
@@ -29,17 +29,17 @@ class EndTaskUpdatable(private val run: InteractiveRunManager, private val conte
     override fun update(status: RunManagerStatus) {
         val taskRun = this.run.currentTask(this.context)
         if (taskRun != null) {
-            if (taskRun.template.taskGroup.type.submission.contains(SubmissionOption.LIMIT_CORRECT_PER_TEAM)) {
-                val limit = taskRun.template.taskGroup.type.configurations.filter { it.key eq SubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.firstOrNull()?.key?.toIntOrNull() ?: 1
+            if (taskRun.template.taskGroup.type.submission.contains(DbSubmissionOption.LIMIT_CORRECT_PER_TEAM)) {
+                val limit = taskRun.template.taskGroup.type.configurations.filter { it.key eq DbSubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.firstOrNull()?.key?.toIntOrNull() ?: 1
                 if (this.run.timeLeft(this.context) > 0) {
                     if (this.submissions.getAndSet(taskRun.getSubmissions().size) < taskRun.getSubmissions().size) {
                         val allDone = if (this.isAsync) {
-                            val numberOfSubmissions = this.run.currentSubmissions(this.context).count { it.team.id == context.teamId && it.verdicts.first().status == VerdictStatus.CORRECT }
+                            val numberOfSubmissions = this.run.currentSubmissions(this.context).count { it.team.id == context.teamId && it.verdicts.first().status == DbVerdictStatus.CORRECT }
                             numberOfSubmissions >= limit
                         } else {
                             /* Determine of all teams have submitted . */
                             this.run.template.teams.asSequence().all { team ->
-                                val numberOfSubmissions = this.run.currentSubmissions(this.context).count { it.team.id == team.teamId && it.verdicts.first().status == VerdictStatus.CORRECT }
+                                val numberOfSubmissions = this.run.currentSubmissions(this.context).count { it.team.id == team.teamId && it.verdicts.first().status == DbVerdictStatus.CORRECT }
                                 numberOfSubmissions >= limit
                             }
                         }

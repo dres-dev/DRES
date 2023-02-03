@@ -5,15 +5,13 @@ import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.media.MediaCollection
-import dev.dres.data.model.media.MediaItem
-import dev.dres.data.model.media.MediaType
+import dev.dres.data.model.media.DbMediaCollection
+import dev.dres.data.model.media.DbMediaItem
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
-import java.util.*
 
 /**
  *
@@ -49,14 +47,14 @@ class AddMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHandl
         /* Try to persist media item. */
         val collectionId = mediaItem.collectionId
         return this.store.transactional {
-            val collection = MediaCollection.query(MediaCollection::id eq collectionId).firstOrNull()
+            val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull()
                 ?: throw ErrorStatusException(400, "Invalid parameters, collection with ID $collectionId does not exist.", ctx)
             if (collection.items.filter { it.name eq mediaItem.name }.isNotEmpty) {
                 throw ErrorStatusException(400, "Media item with name '${mediaItem.name}' already exists in collection ${collection.name}.", ctx)
             }
 
-            val item = MediaItem.new {
-                this.type = mediaItem.type.toMediaType()
+            val item = DbMediaItem.new {
+                this.type = mediaItem.type.toDb()
                 this.name = mediaItem.name
                 this.location = mediaItem.location
                 this.fps = mediaItem.fps

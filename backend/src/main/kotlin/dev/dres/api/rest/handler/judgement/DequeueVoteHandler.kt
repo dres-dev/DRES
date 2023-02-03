@@ -6,7 +6,7 @@ import dev.dres.api.rest.types.collection.ApiMediaType
 import dev.dres.api.rest.types.judgement.ApiJudgementRequest
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.submissions.VerdictType
+import dev.dres.data.model.submissions.DbAnswerType
 import dev.dres.run.validation.interfaces.VoteValidator
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -46,15 +46,15 @@ class DequeueVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(
                 val next = validator.nextSubmissionToVoteOn() ?: break
                 val taskDescription = next.task.template.textualDescription()
                 when (next.type) {
-                    VerdictType.TEXT -> {
+                    DbAnswerType.TEXT -> {
                         val text = next.text ?: continue
                         return@transactional ApiJudgementRequest(null, ApiMediaType.TEXT, validator.id, "text", text, taskDescription, null, null)
                     }
-                    VerdictType.ITEM -> {
+                    DbAnswerType.ITEM -> {
                         val item = next.item ?: continue
                         return@transactional ApiJudgementRequest(null, item.type.toApi(), validator.id, item.collection.id, item.id, taskDescription, null, null)
                     }
-                    VerdictType.TEMPORAL -> {
+                    DbAnswerType.TEMPORAL -> {
                         val item = next.item ?: continue
                         val start = next.start ?: continue
                         val end = next.end ?: continue

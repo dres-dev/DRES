@@ -7,13 +7,10 @@ import com.github.kokorin.jaffree.ffmpeg.UrlOutput
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import com.github.kokorin.jaffree.ffprobe.FFprobeResult
 import dev.dres.DRES
-import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.time.TemporalRange
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -134,13 +131,13 @@ object FFmpegUtil {
     }
 
     /**
-     * Extracts and renders the previews for a [MediaItem].
+     * Extracts and renders the previews for a [DbMediaItem].
      *
-     * @param item The [MediaItem] to handle.
-     * @param range The [TemporalRange] within the [MediaItem] to handle.
+     * @param item The [DbMediaItem] to handle.
+     * @param range The [TemporalRange] within the [DbMediaItem] to handle.
      * @param cacheLocation The cache location [Path]
      */
-    fun extractSegment(item: MediaItem, range: TemporalRange, cacheLocation: Path) {
+    fun extractSegment(item: DbMediaItem, range: TemporalRange, cacheLocation: Path) {
         Files.createDirectories(cacheLocation)
         val start = range.start.toMilliseconds()
         val end = range.end.toMilliseconds()

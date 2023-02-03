@@ -5,16 +5,16 @@ import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
-import dev.dres.data.model.admin.Role
-import dev.dres.data.model.audit.AuditLogSource
-import dev.dres.data.model.template.EvaluationTemplate
-import dev.dres.data.model.template.task.TaskTemplate
+import dev.dres.data.model.admin.DbRole
+import dev.dres.data.model.audit.DbAuditLogSource
+import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.TaskRun
-import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.SubmissionId
-import dev.dres.data.model.submissions.Verdict
-import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.DbAnswerSet
+import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
@@ -56,7 +56,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     override val runProperties: RunProperties
         get() = RunProperties(this.evaluation.participantCanView, false, this.evaluation.allowRepeatedTasks, this.evaluation.limitSubmissionPreviews)
 
-    /** Tracks the current [TaskTemplate] per [TeamId]. */
+    /** Tracks the current [DbTaskTemplate] per [TeamId]. */
     private val statusMap: MutableMap<TeamId, RunManagerStatus> = HashMap()
 
     /** A [Map] of all viewers, i.e., DRES clients currently registered with this [InteractiveAsynchronousRunManager]. */
@@ -85,8 +85,8 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     override val name: String
         get() = this.evaluation.name
 
-    /** The [EvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
-    override val template: EvaluationTemplate
+    /** The [DbEvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
+    override val template: DbEvaluationTemplate
         get() = this.evaluation.description
 
     /** The global [RunManagerStatus] of this [InteractiveAsynchronousRunManager]. */
@@ -117,7 +117,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
 
         this.store.transactional(true) {
             this.template.teams.asSequence().forEach {
-                val teamContext = RunActionContext("<EMPTY>", it.teamId, setOf(Role.ADMIN))
+                val teamContext = RunActionContext("<EMPTY>", it.teamId, setOf(DbRole.ADMIN))
                 this.updatables.add(EndTaskUpdatable(this, teamContext))
 
                 /* Initialize map and set all tasks pointers to the first task. */
@@ -137,7 +137,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
             this.evaluation.tasks.forEach { task ->
                 task.getSubmissions().forEach { sub ->
                     this.scoresUpdatable.enqueue(Pair(task, sub))
-                    if (sub.verdicts.filter { v -> v.status eq VerdictStatus.INDETERMINATE }.any()) {
+                    if (sub.verdicts.filter { v -> v.status eq DbVerdictStatus.INDETERMINATE }.any()) {
                         task.validator.validate(sub)
                     }
                 }
@@ -205,27 +205,27 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     }
 
     /**
-     * Returns the currently active [TaskTemplate] for the given team. Requires [RunManager.status] for the
+     * Returns the currently active [DbTaskTemplate] for the given team. Requires [RunManager.status] for the
      * requesting team to be [RunManagerStatus.ACTIVE].
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return The [TaskTemplate] for the given team.
+     * @return The [DbTaskTemplate] for the given team.
      */
-    override fun currentTaskTemplate(context: RunActionContext): TaskTemplate {
+    override fun currentTaskTemplate(context: RunActionContext): DbTaskTemplate {
         require(context.teamId != null) { "TeamId missing from RunActionContext, which is required for interaction with InteractiveAsynchronousRunManager." }
         return this.evaluation.currentTaskDescription(context.teamId)
     }
 
     /**
-     * Prepares this [InteractiveAsynchronousEvaluation] for the execution of previous [TaskTemplate]
-     * as per order defined in [EvaluationTemplate.tasks]. Requires [RunManager.status] for the requesting team
+     * Prepares this [InteractiveAsynchronousEvaluation] for the execution of previous [DbTaskTemplate]
+     * as per order defined in [DbEvaluationTemplate.tasks]. Requires [RunManager.status] for the requesting team
      * to be [RunManagerStatus.ACTIVE].
      *
      * As all state affecting methods, this method throws an [IllegalStateException] if invocation
      * does not match the current state.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return True if [TaskTemplate] was moved, false otherwise. Usually happens if last [TaskTemplate] has been reached.
+     * @return True if [DbTaskTemplate] was moved, false otherwise. Usually happens if last [DbTaskTemplate] has been reached.
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     override fun previous(context: RunActionContext): Boolean = this.stateLock.write {
@@ -239,14 +239,14 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     }
 
     /**
-     * Prepares this [InteractiveAsynchronousEvaluation] for the execution of next [TaskTemplate]
-     * as per order defined in [EvaluationTemplate.tasks]. Requires [RunManager.status] for the requesting
+     * Prepares this [InteractiveAsynchronousEvaluation] for the execution of next [DbTaskTemplate]
+     * as per order defined in [DbEvaluationTemplate.tasks]. Requires [RunManager.status] for the requesting
      * team to be [RunManagerStatus.ACTIVE].
      *
      * As all state affecting methods, this method throws an [IllegalStateException] if invocation does not match the current state.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return True if [TaskTemplate] was moved, false otherwise. Usually happens if last [TaskTemplate] has been reached.
+     * @return True if [DbTaskTemplate] was moved, false otherwise. Usually happens if last [DbTaskTemplate] has been reached.
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     override fun next(context: RunActionContext): Boolean = this.stateLock.write {
@@ -260,14 +260,14 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     }
 
     /**
-     * Prepares this [InteractiveAsynchronousEvaluation] for the execution of [TaskTemplate] with the given [index]
-     * as per order defined in [EvaluationTemplate.tasks]. Requires [RunManager.status] for the requesting
+     * Prepares this [InteractiveAsynchronousEvaluation] for the execution of [DbTaskTemplate] with the given [index]
+     * as per order defined in [DbEvaluationTemplate.tasks]. Requires [RunManager.status] for the requesting
      * team to be [RunManagerStatus.ACTIVE].
      *
      * As all state affecting methods, this method throws an [IllegalStateException] if invocation does not match the current state.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return True if [TaskTemplate] was moved, false otherwise. Usually happens if last [TaskTemplate] has been reached.
+     * @return True if [DbTaskTemplate] was moved, false otherwise. Usually happens if last [DbTaskTemplate] has been reached.
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     override fun goTo(context: RunActionContext, index: Int) = this.stateLock.write {
@@ -386,7 +386,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     }
 
     /**
-     * Returns the time in milliseconds that has elapsed since the start of the current [Task].
+     * Returns the time in milliseconds that has elapsed since the start of the current [DbTask].
      * Only works if the [RunManager] is in state [RunManagerStatus.ACTIVE]. If no task is running, this method returns -1L.
      *
      * @return Time remaining until the task will end or -1, if no task is running.
@@ -449,22 +449,22 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     }
 
     /**
-     * List of all [Submission]s for this [InteractiveAsynchronousRunManager], irrespective of the [Task] it belongs to.
+     * List of all [DbSubmission]s for this [InteractiveAsynchronousRunManager], irrespective of the [DbTask] it belongs to.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return List of [Submission]s.
+     * @return List of [DbSubmission]s.
      */
-    override fun allSubmissions(context: RunActionContext): List<Submission> = this.stateLock.read {
+    override fun allSubmissions(context: RunActionContext): List<DbSubmission> = this.stateLock.read {
         this.evaluation.tasks.flatMap { it.getSubmissions() }
     }
 
     /**
-     * Returns the [Submission]s for all currently active [AbstractInteractiveTask]s or an empty [List], if no such task is active.
+     * Returns the [DbSubmission]s for all currently active [AbstractInteractiveTask]s or an empty [List], if no such task is active.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return List of [Submission]s.
+     * @return List of [DbSubmission]s.
      */
-    override fun currentSubmissions(context: RunActionContext): List<Submission> = this.stateLock.read {
+    override fun currentSubmissions(context: RunActionContext): List<DbSubmission> = this.stateLock.read {
         this.currentTask(context)?.getSubmissions()?.toList() ?: emptyList()
     }
 
@@ -495,21 +495,21 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     }
 
     /**
-     * Invoked by an external caller to post a new [Submission] for the [TaskRun] that is currently being
-     * executed by this [InteractiveAsynchronousRunManager]. [Submission]s usually cause updates to the
+     * Invoked by an external caller to post a new [DbSubmission] for the [TaskRun] that is currently being
+     * executed by this [InteractiveAsynchronousRunManager]. [DbSubmission]s usually cause updates to the
      * internal state and/or the [Scoreboard] of this [InteractiveRunManager].
      *
-     * This method will not throw an exception and instead returns false if a [Submission] was
+     * This method will not throw an exception and instead returns false if a [DbSubmission] was
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
      * @param context The [RunActionContext] used for the invocation
-     * @param submission The [Submission] to be posted.
+     * @param submission The [DbSubmission] to be posted.
      *
-     * @return [VerdictStatus] of the [Submission]
+     * @return [DbVerdictStatus] of the [DbSubmission]
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.ACTIVE].
      */
-    override fun postSubmission(context: RunActionContext, submission: Submission): VerdictStatus = this.stateLock.read {
+    override fun postSubmission(context: RunActionContext, submission: DbSubmission): DbVerdictStatus = this.stateLock.read {
         require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         require(teamHasRunningTask(context.teamId)) { "No running task for Team ${context.teamId}" }
         require(submission.verdicts.size() == 1) { "Only single verdict per submission is allowed for InteractiveAsynchronousRunManager." } /* TODO: Do we want this restriction? */
@@ -528,29 +528,29 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     }
 
     /**
-     * Invoked by an external caller to update an existing [Submission] by its [Submission.submissionId] with a new [VerdictStatus].
-     * [Submission]s usually cause updates to the internal state and/or the [Scoreboard] of this [InteractiveAsynchronousRunManager].
+     * Invoked by an external caller to update an existing [DbSubmission] by its [DbSubmission.submissionId] with a new [DbVerdictStatus].
+     * [DbSubmission]s usually cause updates to the internal state and/or the [Scoreboard] of this [InteractiveAsynchronousRunManager].
      *
-     * This method will not throw an exception and instead returns false if a [Submission] was
+     * This method will not throw an exception and instead returns false if a [DbSubmission] was
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
      * @param context The [RunActionContext] used for the invocation
-     * @param submissionId The [SubmissionId] of the [Submission] to update.
-     * @param submissionStatus The new [VerdictStatus]
+     * @param submissionId The [SubmissionId] of the [DbSubmission] to update.
+     * @param submissionStatus The new [DbVerdictStatus]
      *
      * @return Whether the update was successful or not
      */
-    override fun updateSubmission(context: RunActionContext, submissionId: SubmissionId, submissionStatus: VerdictStatus): Boolean = this.stateLock.read {
-        val verdict = Verdict.filter { it.submission.submissionId eq submissionId }.singleOrNull() ?: return false
-        val task = this.taskForId(context, verdict.task.id) ?: return false
+    override fun updateSubmission(context: RunActionContext, submissionId: SubmissionId, submissionStatus: DbVerdictStatus): Boolean = this.stateLock.read {
+        val answerSet = DbAnswerSet.filter { it.submission.submissionId eq submissionId }.singleOrNull() ?: return false
+        val task = this.taskForId(context, answerSet.task.id) ?: return false
 
         /* Actual update - currently, only status update is allowed */
-        if (verdict.status != submissionStatus) {
-            verdict.status = submissionStatus
+        if (answerSet.status != submissionStatus) {
+            answerSet.status = submissionStatus
 
             /* Enqueue submission for post-processing. */
-            this.scoresUpdatable.enqueue(Pair(task, verdict.submission))
+            this.scoresUpdatable.enqueue(Pair(task, answerSet.submission))
 
             /* Enqueue WS message for sending */
             this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.TASK_UPDATED), context.teamId!!)
@@ -665,7 +665,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
                 if (timeLeft <= 0) {
                     this.stateLock.write {
                         task.end()
-                        AuditLogger.taskEnd(this.id, task.id, AuditLogSource.INTERNAL, null)
+                        AuditLogger.taskEnd(this.id, task.id, DbAuditLogSource.INTERNAL, null)
                     }
 
                     /* Enqueue WS message for sending */
@@ -675,7 +675,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
                 val task = this.evaluation.currentTaskForTeam(team.teamId)
                     ?: throw IllegalStateException("Could not find active task for team ${team.teamId} despite status of the team being ${this.statusMap[team.teamId]}. This is a programmer's error!")
                 task.start()
-                AuditLogger.taskStart(this.id, task.teamId, task.template, AuditLogSource.REST, null)
+                AuditLogger.taskStart(this.id, task.teamId, task.template, DbAuditLogSource.REST, null)
                 this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.TASK_START), team.teamId)
             }
         }

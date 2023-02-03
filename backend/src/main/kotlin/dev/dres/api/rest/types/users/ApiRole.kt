@@ -1,8 +1,8 @@
 package dev.dres.api.rest.types.users
 
 import dev.dres.api.rest.types.collection.ApiMediaType
-import dev.dres.data.model.admin.Role
-import dev.dres.data.model.media.MediaType
+import dev.dres.data.model.admin.DbRole
+import dev.dres.data.model.media.DbMediaType
 import io.javalin.security.RouteRole
 
 /**
@@ -15,15 +15,15 @@ enum class ApiRole : RouteRole {
     ANYONE, VIEWER, PARTICIPANT, JUDGE, ADMIN;
 
     /**
-     * Converts this [ApiMediaType] to a [MediaType] representation. Requires an ongoing transaction.
+     * Converts this [ApiMediaType] to a [DbMediaType] representation. Requires an ongoing transaction.
      *
-     * @return [MediaType]
+     * @return [DbMediaType]
      */
-    fun toRole(): Role? = when(this) {
+    fun toDb(): DbRole? = when(this) {
         ANYONE -> null
-        VIEWER -> Role.VIEWER
-        PARTICIPANT -> Role.PARTICIPANT
-        JUDGE -> Role.JUDGE
-        ADMIN -> Role.ADMIN
+        VIEWER -> DbRole.VIEWER
+        PARTICIPANT -> DbRole.PARTICIPANT
+        JUDGE -> DbRole.JUDGE
+        ADMIN -> DbRole.ADMIN
     }
 }

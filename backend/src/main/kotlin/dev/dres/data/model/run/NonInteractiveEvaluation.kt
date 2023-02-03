@@ -1,28 +1,28 @@
 package dev.dres.data.model.run
 
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation.ISTaskRun
-import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
-import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.score.interfaces.TeamTaskScorer
 import kotlinx.dnq.query.*
 
 
 /**
- * Represents a concrete, interactive and synchronous [Run] of a [EvaluationTemplate].
+ * Represents a concrete, interactive and synchronous [Run] of a [DbEvaluationTemplate].
  *
  * [InteractiveSynchronousEvaluation]s can be started, ended and they can be used to create new [TaskRun]s and access the current [TaskRun].
  *
  * @author Luca Rossetto
  * @param 1.0.0
  */
-class NonInteractiveEvaluation(evaluation: Evaluation) : AbstractEvaluation(evaluation) {
+class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(evaluation) {
 
     init {
-        require(this.evaluation.type == EvaluationType.NON_INTERACTIVE) { "Incompatible competition type ${this.evaluation.type}. This is a programmer's error!" }
+        require(this.evaluation.type == DbEvaluationType.NON_INTERACTIVE) { "Incompatible competition type ${this.evaluation.type}. This is a programmer's error!" }
         require(this.description.tasks.size() > 0) { "Cannot create a run from a competition that doesn't have any tasks." }
         require(this.description.teams.size() > 0) { "Cannot create a run from a competition that doesn't have any teams." }
     }
@@ -35,7 +35,7 @@ class NonInteractiveEvaluation(evaluation: Evaluation) : AbstractEvaluation(eval
     /**
      * The [TaskRun] used by a [NonInteractiveEvaluation].
      */
-    inner class NITaskRun(task: Task): AbstractNonInteractiveTask(task) {
+    inner class NITaskRun(task: DbTask): AbstractNonInteractiveTask(task) {
 
         /** Reference to the [EvaluationRun] hosting this [NITaskRun]. */
         override val competition: EvaluationRun
@@ -54,7 +54,7 @@ class NonInteractiveEvaluation(evaluation: Evaluation) : AbstractEvaluation(eval
             get() = TODO("Can there be submission filters for non-interactive tasks?")
 
         @Synchronized
-        override fun postSubmission(submission: Submission) {
+        override fun postSubmission(submission: DbSubmission) {
             check(this@NonInteractiveEvaluation.description.teams.filter { it eq submission.team }.any()) {
                 "Team ${submission.team.teamId} does not exists for evaluation run ${this@NonInteractiveEvaluation.name}. This is a programmer's error!"
             }

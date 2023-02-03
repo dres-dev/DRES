@@ -2,7 +2,7 @@ package dres.run.score.scorer
 
 import dev.dres.data.model.UID
 import dev.dres.data.model.basics.media.MediaItem
-import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.SubmissionStatus
 import dev.dres.run.score.TaskContext
 import dev.dres.run.score.scorer.NewAvsTaskScorer
@@ -49,7 +49,7 @@ class NewAvsTaskScorerTest {
     fun onlyTeamOneWithAllEqualsOneCorrect(){
         val taskStart = 100_000L
         val subs = listOf(
-            Submission.Temporal(teams[0], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT}
+            DbSubmission.Temporal(teams[0], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT}
         )
         val scores = this.scorer.computeScores(subs, TaskContext(teams, taskStart, defaultTaskDuration))
         Assertions.assertEquals(maxPointsPerTask, scores[teams[0]])
@@ -62,9 +62,9 @@ class NewAvsTaskScorerTest {
     fun allTeamsWithAllEuqalsOneCorrect(){
         val taskStart = 100_000L
         val subs = listOf(
-            Submission.Temporal(teams[0], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
-            Submission.Temporal(teams[1], UID(), taskStart+2000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
-            Submission.Temporal(teams[2], UID(), taskStart+3000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT}
+            DbSubmission.Temporal(teams[0], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
+            DbSubmission.Temporal(teams[1], UID(), taskStart+2000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
+            DbSubmission.Temporal(teams[2], UID(), taskStart+3000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT}
         )
         val scores = this.scorer.computeScores(subs, TaskContext(teams, taskStart, defaultTaskDuration))
         Assertions.assertEquals(maxPointsPerTask, scores[teams[0]])
@@ -77,9 +77,9 @@ class NewAvsTaskScorerTest {
     fun teamsWithVariousSubmissionsTwoOfTwoAndOneOfTwoAndNoneOfTwo(){
         val taskStart = 100_000L
         val subs = listOf(
-            Submission.Temporal(teams[0], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
-            Submission.Temporal(teams[0], UID(), taskStart+2000, dummyVideoItems[1], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
-            Submission.Temporal(teams[1], UID(), taskStart+3000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT}
+            DbSubmission.Temporal(teams[0], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
+            DbSubmission.Temporal(teams[0], UID(), taskStart+2000, dummyVideoItems[1], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
+            DbSubmission.Temporal(teams[1], UID(), taskStart+3000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT}
         )
         val scores = this.scorer.computeScores(subs, TaskContext(teams, taskStart, defaultTaskDuration))
         Assertions.assertEquals(maxPointsPerTask, scores[teams[0]])
@@ -93,31 +93,31 @@ class NewAvsTaskScorerTest {
         val taskStart = 100_000L
         val subs = listOf(
             /* Team One: All correct */
-            Submission.Temporal(teams[0], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
-            Submission.Temporal(teams[0], UID(), taskStart+2000, dummyVideoItems[1], 20_000, 30_000).also{it.status = SubmissionStatus.CORRECT},
-            Submission.Temporal(teams[0], UID(), taskStart+3000, dummyVideoItems[2], 30_000, 40_000).also{it.status = SubmissionStatus.CORRECT},
+            DbSubmission.Temporal(teams[0], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
+            DbSubmission.Temporal(teams[0], UID(), taskStart+2000, dummyVideoItems[1], 20_000, 30_000).also{it.status = SubmissionStatus.CORRECT},
+            DbSubmission.Temporal(teams[0], UID(), taskStart+3000, dummyVideoItems[2], 30_000, 40_000).also{it.status = SubmissionStatus.CORRECT},
             /* Team Two: One correct, One correct with one wrong */
-            Submission.Temporal(teams[1], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
-            Submission.Temporal(teams[1], UID(), taskStart+2000, dummyVideoItems[1], 10_000, 20_000).also{it.status = SubmissionStatus.WRONG},
-            Submission.Temporal(teams[1], UID(), taskStart+3000, dummyVideoItems[1], 30_000, 40_000).also{it.status = SubmissionStatus.CORRECT},
+            DbSubmission.Temporal(teams[1], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
+            DbSubmission.Temporal(teams[1], UID(), taskStart+2000, dummyVideoItems[1], 10_000, 20_000).also{it.status = SubmissionStatus.WRONG},
+            DbSubmission.Temporal(teams[1], UID(), taskStart+3000, dummyVideoItems[1], 30_000, 40_000).also{it.status = SubmissionStatus.CORRECT},
             /* Team Three: Brute Force: (correct/wrong): v1: (1/0), v2: (1/1), v3: (1/2), v4: (0/3), v5: (0/3)*/
             /* v1 */
-            Submission.Temporal(teams[2], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
+            DbSubmission.Temporal(teams[2], UID(), taskStart+1000, dummyVideoItems[0], 10_000, 20_000).also{it.status = SubmissionStatus.CORRECT},
             /* v2 */
-            Submission.Temporal(teams[2], UID(), taskStart+2000, dummyVideoItems[1], 10_000, 20_000).also{it.status = SubmissionStatus.WRONG},
-            Submission.Temporal(teams[2], UID(), taskStart+3000, dummyVideoItems[1], 30_000, 40_000).also{it.status = SubmissionStatus.CORRECT},
+            DbSubmission.Temporal(teams[2], UID(), taskStart+2000, dummyVideoItems[1], 10_000, 20_000).also{it.status = SubmissionStatus.WRONG},
+            DbSubmission.Temporal(teams[2], UID(), taskStart+3000, dummyVideoItems[1], 30_000, 40_000).also{it.status = SubmissionStatus.CORRECT},
             /* v3 */
-            Submission.Temporal(teams[2], UID(), taskStart+4000, dummyVideoItems[2], 10_000, 20_000).also{it.status = SubmissionStatus.WRONG},
-            Submission.Temporal(teams[2], UID(), taskStart+5000, dummyVideoItems[2], 20_000, 30_000).also{it.status = SubmissionStatus.WRONG},
-            Submission.Temporal(teams[2], UID(), taskStart+6000, dummyVideoItems[2], 30_000, 40_000).also{it.status = SubmissionStatus.CORRECT},
+            DbSubmission.Temporal(teams[2], UID(), taskStart+4000, dummyVideoItems[2], 10_000, 20_000).also{it.status = SubmissionStatus.WRONG},
+            DbSubmission.Temporal(teams[2], UID(), taskStart+5000, dummyVideoItems[2], 20_000, 30_000).also{it.status = SubmissionStatus.WRONG},
+            DbSubmission.Temporal(teams[2], UID(), taskStart+6000, dummyVideoItems[2], 30_000, 40_000).also{it.status = SubmissionStatus.CORRECT},
             /* v4 */
-            Submission.Temporal(teams[2], UID(), taskStart+7000, dummyVideoItems[3], 10_000, 20_000).also{it.status = SubmissionStatus.WRONG},
-            Submission.Temporal(teams[2], UID(), taskStart+8000, dummyVideoItems[3], 20_000, 30_000).also{it.status = SubmissionStatus.WRONG},
-            Submission.Temporal(teams[2], UID(), taskStart+9000, dummyVideoItems[3], 30_000, 40_000).also{it.status = SubmissionStatus.WRONG},
+            DbSubmission.Temporal(teams[2], UID(), taskStart+7000, dummyVideoItems[3], 10_000, 20_000).also{it.status = SubmissionStatus.WRONG},
+            DbSubmission.Temporal(teams[2], UID(), taskStart+8000, dummyVideoItems[3], 20_000, 30_000).also{it.status = SubmissionStatus.WRONG},
+            DbSubmission.Temporal(teams[2], UID(), taskStart+9000, dummyVideoItems[3], 30_000, 40_000).also{it.status = SubmissionStatus.WRONG},
             /* v5 */
-            Submission.Temporal(teams[2], UID(), taskStart+10_000, dummyVideoItems[4], 10_000, 20_000).also{it.status = SubmissionStatus.WRONG},
-            Submission.Temporal(teams[2], UID(), taskStart+11_000, dummyVideoItems[4], 20_000, 30_000).also{it.status = SubmissionStatus.WRONG},
-            Submission.Temporal(teams[2], UID(), taskStart+12_000, dummyVideoItems[4], 30_000, 40_000).also{it.status = SubmissionStatus.WRONG},
+            DbSubmission.Temporal(teams[2], UID(), taskStart+10_000, dummyVideoItems[4], 10_000, 20_000).also{it.status = SubmissionStatus.WRONG},
+            DbSubmission.Temporal(teams[2], UID(), taskStart+11_000, dummyVideoItems[4], 20_000, 30_000).also{it.status = SubmissionStatus.WRONG},
+            DbSubmission.Temporal(teams[2], UID(), taskStart+12_000, dummyVideoItems[4], 30_000, 40_000).also{it.status = SubmissionStatus.WRONG},
         )
         val scores = this.scorer.computeScores(subs, TaskContext(teams, taskStart, defaultTaskDuration))
         /*

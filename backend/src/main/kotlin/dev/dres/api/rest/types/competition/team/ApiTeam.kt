@@ -1,11 +1,11 @@
 package dev.dres.api.rest.types.competition.team
 
 import dev.dres.api.rest.types.users.ApiUser
-import dev.dres.data.model.template.team.Team
+import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.TeamId
 
 /**
- * A RESTful API representation of a [Team]
+ * A RESTful API representation of a [DbTeam]
  *
  * @author Loris Sauter
  * @version 1.0.0

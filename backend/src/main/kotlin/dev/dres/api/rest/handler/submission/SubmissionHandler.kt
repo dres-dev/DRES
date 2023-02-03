@@ -8,18 +8,18 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessfulSubmissionsStatus
 import dev.dres.data.model.Config
-import dev.dres.data.model.admin.User
+import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.admin.UserId
-import dev.dres.data.model.audit.AuditLogSource
-import dev.dres.data.model.template.task.options.TaskOption
+import dev.dres.data.model.audit.DbAuditLogSource
+import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.data.model.media.*
 import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.run.Task
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.Verdict
-import dev.dres.data.model.submissions.VerdictStatus
-import dev.dres.data.model.submissions.VerdictType
+import dev.dres.data.model.run.DbTask
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.DbAnswerSet
+import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.DbAnswerType
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
@@ -35,12 +35,11 @@ import kotlinx.dnq.query.*
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.*
 
 /**
- * An [GetRestHandler] used to process [Submission]s.
+ * An [GetRestHandler] used to process [DbSubmission]s.
  *
- * This endpoint strictly considers [Submission]s to contain single [Verdict]s.
+ * This endpoint strictly considers [DbSubmission]s to contain single [DbAnswerSet]s.
  *
  * @author Luca Rossetto
  * @author Loris Sauter
@@ -109,8 +108,8 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
                 throw ErrorStatusException(400, "Run manager does not know the given teamId ${rac.teamId}.", ctx)
             }
 
-            AuditLogger.submission(submission, AuditLogSource.REST, ctx.sessionToken(), ctx.req().remoteAddr)
-            if (run.currentTaskTemplate(rac).taskGroup.type.options.contains(TaskOption.HIDDEN_RESULTS)) { //pre-generate preview
+            AuditLogger.submission(submission, DbAuditLogSource.REST, ctx.sessionToken(), ctx.req().remoteAddr)
+            if (run.currentTaskTemplate(rac).taskGroup.type.options.contains(DbTaskOption.HIDDEN_RESULTS)) { //pre-generate preview
                 generatePreview(submission.verdicts.first())
             }
             submission to result
@@ -119,13 +118,13 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
         logger.info("Submission ${s.id} received status $r.")
 
         return when (r) {
-            VerdictStatus.CORRECT -> SuccessfulSubmissionsStatus(VerdictStatus.CORRECT, "Submission correct!")
-            VerdictStatus.WRONG -> SuccessfulSubmissionsStatus(VerdictStatus.WRONG, "Submission incorrect! Try again")
-            VerdictStatus.INDETERMINATE -> {
+            DbVerdictStatus.CORRECT -> SuccessfulSubmissionsStatus(DbVerdictStatus.CORRECT, "Submission correct!")
+            DbVerdictStatus.WRONG -> SuccessfulSubmissionsStatus(DbVerdictStatus.WRONG, "Submission incorrect! Try again")
+            DbVerdictStatus.INDETERMINATE -> {
                 ctx.status(202) /* HTTP Accepted. */
-                SuccessfulSubmissionsStatus(VerdictStatus.INDETERMINATE, "Submission received. Waiting for verdict!")
+                SuccessfulSubmissionsStatus(DbVerdictStatus.INDETERMINATE, "Submission received. Waiting for verdict!")
             }
-            VerdictStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(VerdictStatus.UNDECIDABLE,"Submission undecidable. Try again!")
+            DbVerdictStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(DbVerdictStatus.UNDECIDABLE,"Submission undecidable. Try again!")
             else -> throw ErrorStatusException(500, "Unsupported submission status. This is very unusual!", ctx)
         }
     }
@@ -144,27 +143,27 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
     }
 
     /**
-     * Converts the user request tu a [Submission].
+     * Converts the user request tu a [DbSubmission].
      *
      * Creates the associated database entry. Requires an ongoing transaction.
      *
-     * @param userId The [UserId] of the user who triggered the [Submission].
+     * @param userId The [UserId] of the user who triggered the [DbSubmission].
      * @param runManager The [InteractiveRunManager]
      * @param submissionTime Time of the submission.
      * @param ctx The HTTP [Context]
      */
-    private fun toSubmission(userId: UserId, runManager: InteractiveRunManager, submissionTime: Long, ctx: Context): Submission {
+    private fun toSubmission(userId: UserId, runManager: InteractiveRunManager, submissionTime: Long, ctx: Context): DbSubmission {
         val map = ctx.queryParamMap()
 
         /* Find team that the user belongs to. */
-        val user = User.query(User::id eq userId).firstOrNull()
+        val user = DbUser.query(DbUser::id eq userId).firstOrNull()
             ?: throw ErrorStatusException(404, "No user with ID '$userId' could be found.", ctx)
         val team = runManager.template.teams.filter { it.users.contains(user) }.firstOrNull()
             ?: throw ErrorStatusException(404, "No team for user '$userId' could be found.", ctx)
         val rac = RunActionContext.runActionContext(ctx, runManager)
 
         /* Create new submission. */
-        val submission = Submission.new {
+        val submission = DbSubmission.new {
             this.user = user
             this.team = team
             this.timestamp = submissionTime
@@ -174,31 +173,31 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
         val textParam = map[PARAMETER_NAME_TEXT]?.first()
         val itemParam = map[PARAMETER_NAME_ITEM]?.first()
         val currentTaskId = runManager.currentTask(rac)?.id
-        val task = Task.query(Task::id eq currentTaskId).firstOrNull() ?: throw ErrorStatusException(404, "No active task for ID '$currentTaskId' could be found.", ctx)
+        val task = DbTask.query(DbTask::id eq currentTaskId).firstOrNull() ?: throw ErrorStatusException(404, "No active task for ID '$currentTaskId' could be found.", ctx)
 
         /* Create Verdict. */
-        val verdict = Verdict.new {
-            this.status = VerdictStatus.INDETERMINATE
+        val answerSet = DbAnswerSet.new {
+            this.status = DbVerdictStatus.INDETERMINATE
             this.task = task
         }
-        submission.verdicts.add(verdict)
+        submission.verdicts.add(answerSet)
 
         if (textParam != null) {
-            verdict.type = VerdictType.TEXT
-            verdict.text = textParam
+            answerSet.type = DbAnswerType.TEXT
+            answerSet.text = textParam
             return submission
         } else if (itemParam != null) {
             val collection = runManager.currentTaskTemplate(rac).collection /* TODO: Do we need the option to explicitly set the collection name? */
-            val mapToSegment = runManager.currentTaskTemplate(rac).taskGroup.type.options.contains(TaskOption.MAP_TO_SEGMENT)
-            val item = MediaItem.query((MediaItem::name eq itemParam) and (MediaItem::collection eq collection)).firstOrNull()
+            val mapToSegment = runManager.currentTaskTemplate(rac).taskGroup.type.options.contains(DbTaskOption.MAP_TO_SEGMENT)
+            val item = DbMediaItem.query((DbMediaItem::name eq itemParam) and (DbMediaItem::collection eq collection)).firstOrNull()
                 ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_ITEM' is missing but required!'", ctx)
             val range: Pair<Long,Long>? = when {
-                map.containsKey(PARAMETER_NAME_SHOT) && item.type == MediaType.VIDEO -> {
+                map.containsKey(PARAMETER_NAME_SHOT) && item.type == DbMediaType.VIDEO -> {
                     val time = TimeUtil.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item.segments.toList())
                         ?: throw ErrorStatusException(400, "Shot '${item.name}.${map[PARAMETER_NAME_SHOT]?.first()!!}' not found.", ctx)
                     time.first to time.second
                 }
-                map.containsKey(PARAMETER_NAME_FRAME) && item.type == MediaType.VIDEO -> {
+                map.containsKey(PARAMETER_NAME_FRAME) && item.type == DbMediaType.VIDEO -> {
                     val fps = item.fps
                         ?: throw IllegalStateException("Missing media item fps information prevented mapping from frame number to milliseconds.")
                     val time = TemporalPoint.Frame.toMilliseconds(
@@ -231,13 +230,13 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
 
             /* Assign information to submission. */
             if (range != null) {
-                verdict.item = item
-                verdict.type = VerdictType.TEMPORAL
-                verdict.start = range.first
-                verdict.end = range.second
+                answerSet.item = item
+                answerSet.type = DbAnswerType.TEMPORAL
+                answerSet.start = range.first
+                answerSet.end = range.second
             } else {
-                verdict.item = item
-                verdict.type = VerdictType.ITEM
+                answerSet.item = item
+                answerSet.type = DbAnswerType.ITEM
             }
         } else {
             throw ErrorStatusException(404, "Required submission parameters are missing (content not set)!", ctx)
@@ -247,17 +246,17 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
     }
 
     /**
-     * Triggers generation of a preview image for the provided [Submission].
+     * Triggers generation of a preview image for the provided [DbSubmission].
      *
-     * @param verdict The [Verdict] to generate preview for.
+     * @param answerSet The [DbAnswerSet] to generate preview for.
      */
-    private fun generatePreview(verdict: Verdict) {
-        if (verdict.type != VerdictType.TEMPORAL) return
-        if (verdict.item == null) return
-        val destinationPath = Paths.get(this.config.cachePath, "previews", verdict.item!!.collection.name, verdict.item!!.name, "${verdict.start}.jpg")
+    private fun generatePreview(answerSet: DbAnswerSet) {
+        if (answerSet.type != DbAnswerType.TEMPORAL) return
+        if (answerSet.item == null) return
+        val destinationPath = Paths.get(this.config.cachePath, "previews", answerSet.item!!.collection.name, answerSet.item!!.name, "${answerSet.start}.jpg")
         if (Files.exists(destinationPath)){
             return
         }
-        FFmpegUtil.extractFrame(verdict.item!!.pathToOriginal(), verdict.start!!, destinationPath)
+        FFmpegUtil.extractFrame(answerSet.item!!.pathToOriginal(), answerSet.start!!, destinationPath)
     }
 }

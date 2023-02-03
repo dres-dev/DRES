@@ -1,11 +1,11 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.template.task.TaskTemplate
-import dev.dres.data.model.template.task.options.TargetOption
+import dev.dres.data.model.template.task.DbTaskTemplate
+import dev.dres.data.model.template.task.options.DbTargetOption
 import dev.dres.data.model.template.team.TeamAggregatorImpl
 import dev.dres.data.model.template.team.TeamGroupId
 import dev.dres.data.model.template.team.TeamId
-import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.validation.MediaItemsSubmissionValidator
 import dev.dres.run.validation.TemporalOverlapSubmissionValidator
 import dev.dres.run.validation.TextValidator
@@ -17,15 +17,15 @@ import dev.dres.run.validation.judged.ItemRange
 import kotlinx.dnq.query.*
 
 /**
- * An abstract [Task] implementation for interactive [Task], i.e. [Task]s that rely on human interaction, such as [Submission]s
+ * An abstract [DbTask] implementation for interactive [DbTask], i.e. [DbTask]s that rely on human interaction, such as [DbSubmission]s
  *
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractInteractiveTask(task: Task): AbstractTask(task) {
+abstract class AbstractInteractiveTask(task: DbTask): AbstractTask(task) {
 
 
-    /** The total duration in milliseconds of this task. Usually determined by the [TaskTemplate] but can be adjusted! */
+    /** The total duration in milliseconds of this task. Usually determined by the [DbTaskTemplate] but can be adjusted! */
     abstract var duration: Long
 
     /** Map of [TeamGroupId] to [TeamAggregatorImpl]. */
@@ -33,24 +33,24 @@ abstract class AbstractInteractiveTask(task: Task): AbstractTask(task) {
         this.competition.description.teamsGroups.asSequence().associate { it.id to it.newAggregator() }
     }
 
-    /** The [SubmissionValidator] used to validate [Submission]s. */
+    /** The [SubmissionValidator] used to validate [DbSubmission]s. */
     final override val validator: SubmissionValidator
 
     init {
         this.validator = when (val targetOption = this.template.taskGroup.type.target) {
-            TargetOption.MEDIA_ITEM -> MediaItemsSubmissionValidator(this.template.targets.mapDistinct { it.item }.filter { it ne null }.toSet())
-            TargetOption.MEDIA_SEGMENT -> {
+            DbTargetOption.MEDIA_ITEM -> MediaItemsSubmissionValidator(this.template.targets.mapDistinct { it.item }.filter { it ne null }.toSet())
+            DbTargetOption.MEDIA_SEGMENT -> {
                 val target = this.template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null)}.take(1) .first()
                 TemporalOverlapSubmissionValidator(TransientMediaSegment(target.item!!, target.range!!))
             }
-            TargetOption.TEXT -> TextValidator(this.template.targets.filter { it.text ne null }.asSequence().map { it.text!! }.toList())
-            TargetOption.JUDGEMENT -> {
+            DbTargetOption.TEXT -> TextValidator(this.template.targets.filter { it.text ne null }.asSequence().map { it.text!! }.toList())
+            DbTargetOption.JUDGEMENT -> {
                 val knownRanges = this.template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }.asSequence().map {
                     ItemRange(it.item?.name!!, it.start!!, it.end!!)
                 }.toSet()
                 BasicJudgementValidator(knownCorrectRanges = knownRanges)
             }
-            TargetOption.VOTE -> {
+            DbTargetOption.VOTE -> {
                 val knownRanges = this.template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }.asSequence().map {
                     ItemRange(it.item?.name!!, it.start!!, it.end!!)
                 }.toSet()

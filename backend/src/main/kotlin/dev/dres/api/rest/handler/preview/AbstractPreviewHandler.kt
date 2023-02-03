@@ -1,6 +1,5 @@
 package dev.dres.api.rest.handler.preview
 
-import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
@@ -8,21 +7,18 @@ import dev.dres.api.rest.handler.collection.AbstractCollectionHandler
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.Config
 import dev.dres.data.model.media.CollectionId
-import dev.dres.data.model.media.MediaCollection
-import dev.dres.data.model.media.MediaItem
-import dev.dres.data.model.media.MediaType
+import dev.dres.data.model.media.DbMediaCollection
+import dev.dres.data.model.media.DbMediaItem
+import dev.dres.data.model.media.DbMediaType
 import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.extensions.sendFile
 import dev.dres.utilities.extensions.streamFile
 import io.javalin.http.Context
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
-import java.io.FileNotFoundException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 
 /**
  * An abstract [GetRestHandler] used to access preview images.
@@ -54,38 +50,38 @@ abstract class AbstractPreviewHandler(protected val store: TransientEntityStore,
     }
 
     /**
-     * Handles a request for a preview based on an [CollectionId] and a [MediaItem]'s name. Fetching of the [MediaItem] takes
+     * Handles a request for a preview based on an [CollectionId] and a [DbMediaItem]'s name. Fetching of the [DbMediaItem] takes
      * place in a transaction context. However, the (potentially) long running media processing is executed outside.
      *
-     * @param collectionId [CollectionId] of the [MediaCollection].
-     * @param itemName Name of the [MediaItem]
-     * @param time The exact timepoint of the [MediaItem] in ms. Only works for [MediaType.VIDEO].
+     * @param collectionId [CollectionId] of the [DbMediaCollection].
+     * @param itemName Name of the [DbMediaItem]
+     * @param time The exact timepoint of the [DbMediaItem] in ms. Only works for [DbMediaType.VIDEO].
      * @param ctx The request [Context]
      */
     protected fun handlePreviewRequest(collectionId: CollectionId, itemName: String, time: Long?, ctx: Context) {
         val item = this.store.transactional(true) {
-            MediaItem.query((MediaItem::name eq itemName) and (MediaItem::collection.matches(MediaCollection::id eq collectionId))).firstOrNull()
+            DbMediaItem.query((DbMediaItem::name eq itemName) and (DbMediaItem::collection.matches(DbMediaCollection::id eq collectionId))).firstOrNull()
                 ?: throw ErrorStatusException(404, "Media item $itemName (collection = $collectionId) not found!", ctx)
         }
         handlePreviewRequest(item, time, ctx)
     }
 
     /**
-    * Handles a request for a preview based on an [MediaItem] and an optional timepoint.
+    * Handles a request for a preview based on an [DbMediaItem] and an optional timepoint.
     *
-    * @param item The [MediaItem]
-    * @param time The exact timepoint of the [MediaItem] in ms. Only works for [MediaType.VIDEO].
+    * @param item The [DbMediaItem]
+    * @param time The exact timepoint of the [DbMediaItem] in ms. Only works for [DbMediaType.VIDEO].
     * @param ctx The request [Context]
     */
-    protected fun handlePreviewRequest(item: MediaItem, time: Long?, ctx: Context) {
+    protected fun handlePreviewRequest(item: DbMediaItem, time: Long?, ctx: Context) {
 
         val basePath = Paths.get(item.collection.path)
-        if (item.type == MediaType.IMAGE) {
+        if (item.type == DbMediaType.IMAGE) {
             //TODO scale down image if too large
             ctx.header("Cache-Control", "max-age=31622400")
             ctx.streamFile(basePath.resolve(item.location))
             return
-        } else if (item.type == MediaType.VIDEO) {
+        } else if (item.type == DbMediaType.VIDEO) {
 
             /* Prepare cache directory for item. */
             val cacheDir = cacheLocation.resolve("${item.collection}/${item.name}")

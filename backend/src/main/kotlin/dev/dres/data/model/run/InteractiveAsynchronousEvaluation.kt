@@ -1,11 +1,11 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.template.EvaluationTemplate
-import dev.dres.data.model.template.task.TaskTemplate
+import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
 import dev.dres.data.model.run.interfaces.Run
-import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionFilter
@@ -15,15 +15,15 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Represents a concrete, interactive and asynchronous [Run] of a [EvaluationTemplate].
+ * Represents a concrete, interactive and asynchronous [Run] of a [DbEvaluationTemplate].
  *
  * [InteractiveAsynchronousEvaluation]s can be started and ended, and they can be used to create new [IATaskRun]s and access the current [IATaskRun].
  *
  */
-class InteractiveAsynchronousEvaluation(evaluation: Evaluation, private val permutation: Map<TeamId, List<Int>>) : AbstractEvaluation(evaluation) {
+class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val permutation: Map<TeamId, List<Int>>) : AbstractEvaluation(evaluation) {
 
     companion object {
-        fun generatePermutation(description: EvaluationTemplate, shuffle: Boolean): Map<TeamId, List<Int>> =
+        fun generatePermutation(description: DbEvaluationTemplate, shuffle: Boolean): Map<TeamId, List<Int>> =
             if (shuffle) {
                 description.teams.asSequence().associate { it.id to makeLoop(description.tasks.size()) }
             } else {
@@ -81,15 +81,15 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, private val perm
     }
 
     /**
-     * Internal constructor to create an [InteractiveAsynchronousEvaluation] from an [EvaluationTemplate].
+     * Internal constructor to create an [InteractiveAsynchronousEvaluation] from an [DbEvaluationTemplate].
      * Requires a transaction context!
      *
      * @param name The name of the new [InteractiveSynchronousEvaluation]
      * @param shuffle Flag indicating if [IATaskRun]s should be shuffled.
-     * @param template The [EvaluationTemplate]
+     * @param template The [DbEvaluationTemplate]
      */
-    constructor(name: String, shuffle: Boolean, template: EvaluationTemplate) : this(Evaluation.new {
-        this.type = EvaluationType.INTERACTIVE_ASYNCHRONOUS
+    constructor(name: String, shuffle: Boolean, template: DbEvaluationTemplate) : this(DbEvaluation.new {
+        this.type = DbEvaluationType.INTERACTIVE_ASYNCHRONOUS
         this.name = name
         this.template = template
         this.shuffleTasks = shuffle
@@ -103,8 +103,8 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, private val perm
     /** A [ConcurrentHashMap] that maps a list of [IATaskRun]s to the [TeamId]s they belong to.*/
     private val tasksMap = ConcurrentHashMap<TeamId, MutableList<IATaskRun>>()
 
-    /** Tracks the current [TaskTemplate] per [TeamId]. */
-    private val navigationMap: MutableMap<TeamId, TaskTemplate> = HashMap()
+    /** Tracks the current [DbTaskTemplate] per [TeamId]. */
+    private val navigationMap: MutableMap<TeamId, DbTaskTemplate> = HashMap()
 
     init {
         /* TODO: Reconstruct TaskRuns from stored data. */
@@ -114,7 +114,7 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, private val perm
         this.navigationMap[teamId] = this.description.tasks.drop(this.permutation[teamId]!![index]).single()
     }
 
-    fun currentTaskDescription(teamId: TeamId): TaskTemplate =
+    fun currentTaskDescription(teamId: TeamId): DbTaskTemplate =
         navigationMap[teamId] ?: throw IllegalTeamIdException(teamId)
 
     init {
@@ -155,15 +155,15 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, private val perm
     /**
      * A [AbstractInteractiveTask] that takes place as part of the [InteractiveAsynchronousEvaluation].
      */
-    inner class IATaskRun internal constructor(task: Task, val teamId: TeamId) : AbstractInteractiveTask(task) {
+    inner class IATaskRun internal constructor(task: DbTask, val teamId: TeamId) : AbstractInteractiveTask(task) {
 
         /**
-         * Constructor used to generate an [IATaskRun] from a [TaskTemplate].
+         * Constructor used to generate an [IATaskRun] from a [DbTaskTemplate].
          *
-         * @param template [TaskTemplate] to generate [IATaskRun] from.
+         * @param template [DbTaskTemplate] to generate [IATaskRun] from.
          * @param teamId The [TeamId] this [IATaskRun] is created for.
          */
-        internal constructor(template: TaskTemplate, teamId: TeamId) : this(Task.new {
+        internal constructor(template: DbTaskTemplate, teamId: TeamId) : this(DbTask.new {
             this.evaluation = this@InteractiveAsynchronousEvaluation.evaluation
             this.template = template
             this.team = this@InteractiveAsynchronousEvaluation.evaluation.template.teams.filter { it.teamId eq teamId }.singleOrNull()
@@ -185,7 +185,7 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, private val perm
         override val scorer: TeamTaskScorer = this.template.newScorer() as? TeamTaskScorer
             ?: throw IllegalArgumentException("specified scorer is not of type TeamTaskScorer")
 
-        /** The total duration in milliseconds of this task. Usually determined by the [TaskTemplate] but can be adjusted! */
+        /** The total duration in milliseconds of this task. Usually determined by the [DbTaskTemplate] but can be adjusted! */
         override var duration: Long = this.template.duration
 
         init {
@@ -198,13 +198,13 @@ class InteractiveAsynchronousEvaluation(evaluation: Evaluation, private val perm
         }
 
         /**
-         * Adds a [Submission] to this [InteractiveAsynchronousEvaluation.IATaskRun].
+         * Adds a [DbSubmission] to this [InteractiveAsynchronousEvaluation.IATaskRun].
          *
-         * @param submission The [Submission] to add.
-         * @throws IllegalArgumentException If [Submission] could not be added for any reason.
+         * @param submission The [DbSubmission] to add.
+         * @throws IllegalArgumentException If [DbSubmission] could not be added for any reason.
          */
         @Synchronized
-        override fun postSubmission(submission: Submission) {
+        override fun postSubmission(submission: DbSubmission) {
             check(this.isRunning) { "Task run '${this@InteractiveAsynchronousEvaluation.name}.${this.position}' is currently not running. This is a programmer's error!" }
             check(this.teamId == submission.team.id) { "Team ${submission.team.id} is not eligible to submit to this task. This is a programmer's error!" }
 

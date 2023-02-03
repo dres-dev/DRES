@@ -8,21 +8,20 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.jakewharton.picnic.table
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.admin.Password
-import dev.dres.data.model.admin.Role
-import dev.dres.data.model.admin.User
-import dev.dres.data.model.admin.User.Companion.MIN_LENGTH_PASSWORD
-import dev.dres.data.model.admin.User.Companion.MIN_LENGTH_USERNAME
+import dev.dres.data.model.admin.DbRole
+import dev.dres.data.model.admin.DbUser
+import dev.dres.data.model.admin.DbUser.Companion.MIN_LENGTH_PASSWORD
+import dev.dres.data.model.admin.DbUser.Companion.MIN_LENGTH_USERNAME
 import dev.dres.data.model.admin.UserId
 import dev.dres.mgmt.admin.UserManager
 import jetbrains.exodus.database.TransientEntityStore
-import java.lang.IllegalArgumentException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.util.*
 
 /**
- * A collection of [CliktCommand]s for [User] management
+ * A collection of [CliktCommand]s for [DbUser] management
  *
  * @author Ralph Gasser
  * @version 2.0.0
@@ -41,7 +40,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
     )
 
     /**
-     * [CliktCommand] to create a new [User].
+     * [CliktCommand] to create a new [DbUser].
      */
     inner class Create(private val store: TransientEntityStore): CliktCommand(name = "create", help = "Creates a new User", printHelpOnEmptyArgs = true) {
         /** The name of the newly created user. */
@@ -55,7 +54,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
                 .required()
                 .validate { require(it.length >= MIN_LENGTH_PASSWORD) { "Password for DRES password must consist of at least $MIN_LENGTH_PASSWORD characters." } }
 
-        /** The desired [Role] of the newly created user. */
+        /** The desired [DbRole] of the newly created user. */
         private val apiRole: ApiRole by option("-r", "--role", help = "Role of the new user.").convert { ApiRole.valueOf(it) }.required()
 
         override fun run() = this.store.transactional {
@@ -69,7 +68,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
     }
 
     /**
-     * [CliktCommand] to update an existing [User].
+     * [CliktCommand] to update an existing [DbUser].
      */
     inner class Update(private val store: TransientEntityStore): CliktCommand(name = "update", help = "Updates Password or Role of an existing User", printHelpOnEmptyArgs = true) {
         private val id: UserId? by option("-i", "--id")
@@ -83,8 +82,8 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
                 .convert { Password.Plain(it) }
                 .validate { require(it.password.length >= MIN_LENGTH_PASSWORD) { "Password for DRES password must consist of at least $MIN_LENGTH_PASSWORD characters." } }
 
-        /** The new [Role] of the updated  user. Left unchanged if null! */
-        private val role: Role? by option("-r", "--role", help = "New user Role").convert { Role.parse(it) }
+        /** The new [DbRole] of the updated  user. Left unchanged if null! */
+        private val role: DbRole? by option("-r", "--role", help = "New user Role").convert { DbRole.parse(it) }
 
         override fun run() = this.store.transactional {
             if (this.id == null && this.username == null) {
@@ -101,7 +100,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
     }
 
     /**
-     * [CliktCommand] to delete a [User].
+     * [CliktCommand] to delete a [DbUser].
      */
     inner class Delete(private val store: TransientEntityStore): CliktCommand(name = "delete", help = "Deletes an existing user.", printHelpOnEmptyArgs = true) {
         private val id: UserId? by option("-i", "--id", help = "ID of the user to be deleted.")
@@ -123,7 +122,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
     }
 
     /**
-     * [CliktCommand] to export a [User].
+     * [CliktCommand] to export a [DbUser].
      */
     inner class Export(private val store: TransientEntityStore): CliktCommand(name = "export", help =  "Exports one or multiple user(s) as JSON.", printHelpOnEmptyArgs = true) {
         private val id: UserId? by option("-i", "--id", help = "ID of the user to be exported.")
@@ -173,9 +172,9 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
 
             val import = Files.newBufferedReader(path).use {
                 if (this.multiple) {
-                    mapper.readValue(it, Array<User>::class.java)
+                    mapper.readValue(it, Array<DbUser>::class.java)
                 } else {
-                    arrayOf(mapper.readValue(it, User::class.java))
+                    arrayOf(mapper.readValue(it, DbUser::class.java))
                 }
             }
 
@@ -192,7 +191,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
 
 
     /**
-     * [CliktCommand] to list all [User]s.
+     * [CliktCommand] to list all [DbUser]s.
      */
     inner class List(private val store: TransientEntityStore): CliktCommand(name = "list", help = "Lists all Users") {
         val plain by option("-p", "--plain", help = "Plain print: No fancy table. Might be easier if the output should be processed").flag(default = false)
@@ -226,11 +225,11 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
     }
 
     /**
-     * [CliktCommand] to list all [Role]s.
+     * [CliktCommand] to list all [DbRole]s.
      */
     inner class Roles(private val store: TransientEntityStore): CliktCommand(name = "roles", help = "Lists all Roles") {
         override fun run() = this.store.transactional(true) {
-            println("Available roles: ${Role.values().joinToString(", ")}")
+            println("Available roles: ${DbRole.values().joinToString(", ")}")
         }
     }
 }

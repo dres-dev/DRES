@@ -1,21 +1,21 @@
 package dev.dres.run.validation.interfaces
 
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.DbVerdictStatus
 
 /**
- * A validator class that checks, if a [Submission] is correct.
+ * A validator class that checks, if a [DbSubmission] is correct.
  *
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.1
  */
 interface SubmissionValidator {
     /**
-     * Validates the [Submission] and updates its [VerdictStatus].
+     * Validates the [DbSubmission] and updates its [DbVerdictStatus].
      *
-     * @param submission The [Submission] to validate.
+     * @param submission The [DbSubmission] to validate.
      */
-    fun validate(submission: Submission)
+    fun validate(submission: DbSubmission)
 
     /**
      * Indicates whether this [SubmissionValidator] needs to defer the validation to some later point in time

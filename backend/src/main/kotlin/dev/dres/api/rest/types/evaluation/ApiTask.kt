@@ -1,11 +1,11 @@
 package dev.dres.api.rest.types.evaluation
 
-import dev.dres.data.model.run.Task
+import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.run.EvaluationId
 import dev.dres.data.model.template.TemplateId
 
 /**
- * The RESTful API equivalent of a [Task].
+ * The RESTful API equivalent of a [DbTask].
  *
  * @author Luca Rossetto
  * @author Ralph Gasser

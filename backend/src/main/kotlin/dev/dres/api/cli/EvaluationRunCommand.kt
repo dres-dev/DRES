@@ -8,12 +8,12 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.path
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.jakewharton.picnic.table
-import dev.dres.data.model.template.task.TargetType
+import dev.dres.data.model.template.task.DbTargetType
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.EvaluationId
 import dev.dres.data.model.run.interfaces.Run
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.run.*
 import dev.dres.utilities.extensions.toDateString
 import jetbrains.exodus.database.TransientEntityStore
@@ -120,7 +120,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
     inner class List : CliktCommand(name = "list", help = "Lists all (ongoing and past) competition runs.") {
         private val plain by option("-p", "--plain", help = "Plain print. No fancy tables").flag(default = false)
         override fun run() = this@EvaluationRunCommand.store.transactional(true) {
-            val query =  Evaluation.all().sortedBy(Evaluation::started)
+            val query =  DbEvaluation.all().sortedBy(DbEvaluation::started)
             if (this.plain) {
                 query.asSequence().forEach {
                     println(
@@ -129,7 +129,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                                 it.id,
                                 it.name,
                                 it.template.description,
-                                if (it.type == EvaluationType.INTERACTIVE_SYNCHRONOUS) {
+                                if (it.type == DbEvaluationType.INTERACTIVE_SYNCHRONOUS) {
                                     it.tasks.firstOrNull()?.template?.name ?: "N/A"
                                 } else {
                                     "N/A"
@@ -155,7 +155,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                                     it.id,
                                     it.name,
                                     it.template.description,
-                                    if (it.type == EvaluationType.INTERACTIVE_SYNCHRONOUS) {
+                                    if (it.type == DbEvaluationType.INTERACTIVE_SYNCHRONOUS) {
                                         it.tasks.firstOrNull()?.template?.name ?: "N/A"
                                     } else {
                                         "N/A"
@@ -178,7 +178,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
         // TODO fancification with table
 
         override fun run() = this@EvaluationRunCommand.store.transactional(true) {
-            val query =  Evaluation.query(Evaluation::ended ne null).sortedBy(Evaluation::started)
+            val query =  DbEvaluation.query(DbEvaluation::ended ne null).sortedBy(DbEvaluation::started)
             query.asSequence().forEach {
                 println(it.name)
 
@@ -197,7 +197,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                 println("Evaluated Tasks:")
                 it.tasks.asSequence().forEach { t ->
                     println(t.template)
-                    if (t.evaluation.type == EvaluationType.INTERACTIVE_SYNCHRONOUS) {
+                    if (t.evaluation.type == DbEvaluationType.INTERACTIVE_SYNCHRONOUS) {
                         println("Submissions")
                         t.submissions.asSequence().forEach { s -> println(s) }
                     }
@@ -208,7 +208,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
     }
 
     /**
-     * Deletes a selected [Evaluation] for the current DRES instance.
+     * Deletes a selected [DbEvaluation] for the current DRES instance.
      */
     inner class Delete : CliktCommand(name = "delete", help = "Deletes an existing competition run.", printHelpOnEmptyArgs = true) {
         private val id: EvaluationId by option("-r", "--run").required()
@@ -220,7 +220,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
             }
 
             this@EvaluationRunCommand.store.transactional {
-                val evaluation = Evaluation.query(Evaluation::id eq this.id).firstOrNull()
+                val evaluation = DbEvaluation.query(DbEvaluation::id eq this.id).firstOrNull()
                 if (evaluation == null) {
                     println("Evaluation with ID ${this.id} could not be deleted because it doesn't exist!")
                     return@transactional
@@ -235,7 +235,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
      */
     inner class Export : CliktCommand(name = "export", help = "Exports the selected competition run to a JSON file.", printHelpOnEmptyArgs = true) {
 
-        /** [EvaluationId] of the [Evaluation] that should be exported. .*/
+        /** [EvaluationId] of the [DbEvaluation] that should be exported. .*/
         private val id: EvaluationId by option("-i", "--id").required()
 
         /** Path to the file that should be created .*/
@@ -245,7 +245,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
         private val pretty: Boolean by option("-p", "--pretty", help = "Flag indicating whether exported JSON should be pretty printed.").flag("-u", "--ugly", default = true)
 
         override fun run() = this@EvaluationRunCommand.store.transactional(true) {
-            val evaluation = Evaluation.query(Evaluation::id eq this.id).firstOrNull()
+            val evaluation = DbEvaluation.query(DbEvaluation::id eq this.id).firstOrNull()
             if (evaluation == null) {
                 println("Evaluation ${this.id} does not seem to exist.")
                 return@transactional
@@ -266,15 +266,15 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
     }
 
     /**
-     * [CliktCommand] to reactivate an [Evaluation] that has previously ended.
+     * [CliktCommand] to reactivate an [DbEvaluation] that has previously ended.
      */
     inner class Reactivate : CliktCommand(name = "reactivate", help = "Reactivates a previously ended competition run", printHelpOnEmptyArgs = true) {
 
-        /** [EvaluationId] of the [Evaluation] that should be reactivated. .*/
+        /** [EvaluationId] of the [DbEvaluation] that should be reactivated. .*/
         private val id: EvaluationId by option("-i", "--id").required()
 
         override fun run() = this@EvaluationRunCommand.store.transactional(true) {
-            val evaluation = Evaluation.query(Evaluation::id eq this.id).firstOrNull()
+            val evaluation = DbEvaluation.query(DbEvaluation::id eq this.id).firstOrNull()
             if (evaluation == null) {
                 println("Evaluation ${this.id} does not seem to exist.")
                 return@transactional
@@ -299,31 +299,31 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
     }
 
     /**
-     * [CliktCommand] to reset the status of [Submission]s.
+     * [CliktCommand] to reset the status of [DbSubmission]s.
      */
     inner class ResetSubmission : CliktCommand(name = "resetSubmission", help = "Resets submission status to INDETERMINATE for selected submissions.", printHelpOnEmptyArgs = true) {
 
-        /** [EvaluationId] of the [Evaluation] that should be reactivated. .*/
+        /** [EvaluationId] of the [DbEvaluation] that should be reactivated. .*/
         private val id: EvaluationId by option("-i", "--id").required()
 
         /** The [EvaluationId]s to reset. */
         private val submissionIds: kotlin.collections.List<EvaluationId> by option("-s", "--submissions", help = "IDs of the submissions to reset.").multiple()
 
-        /** The [EvaluationId]s to reset [Submission]s for. */
+        /** The [EvaluationId]s to reset [DbSubmission]s for. */
         private val taskIds: kotlin.collections.List<EvaluationId> by option("-t", "--tasks", help = "IDs of the tasks to resetsubmissions for.").multiple()
 
-        /** The names of the task groups to reset [Submission]s for. */
+        /** The names of the task groups to reset [DbSubmission]s for. */
         private val taskGroups: kotlin.collections.List<String> by option("-g", "--groups", help = "Names of the task groups to reset submissions for.").multiple()
 
         override fun run() = this@EvaluationRunCommand.store.transactional {
             /* Fetch competition run. */
-            val evaluation = Evaluation.query(Evaluation::id eq this.id).firstOrNull()
+            val evaluation = DbEvaluation.query(DbEvaluation::id eq this.id).firstOrNull()
             if (evaluation == null) {
                 println("Evaluation ${this.id} does not seem to exist.")
                 return@transactional
             }
 
-            if (evaluation.type == EvaluationType.INTERACTIVE_SYNCHRONOUS) {
+            if (evaluation.type == DbEvaluationType.INTERACTIVE_SYNCHRONOUS) {
                 /* Prepare query. */
                 var query = if (this.taskIds.isNotEmpty()) {
                     evaluation.tasks.filter { it.id.isIn(this@ResetSubmission.taskIds) }.flatMapDistinct { it.submissions }
@@ -340,7 +340,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                 var affected = 0
                 query.asSequence().forEach {
                     affected += 1
-                    it.status = VerdictStatus.INDETERMINATE
+                    it.status = DbVerdictStatus.INDETERMINATE
                 }
 
                 println("Successfully reset $affected} submissions.")
@@ -354,7 +354,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
      * [CliktCommand] to export judgements made for relevant tasks as CSVs.
      */
     inner class ExportJudgements : CliktCommand(name = "exportJudgements", help = "Exports all judgements made for all relevant tasks of an evaluation run as CSV", printHelpOnEmptyArgs = true) {
-        /** [EvaluationId] of the [Evaluation] for which judgements should be exported.*/
+        /** [EvaluationId] of the [DbEvaluation] for which judgements should be exported.*/
         private val id: EvaluationId by option("-r", "--run", help = "Id of the run").required()
 
         /** The [Path] to the output file. */
@@ -364,14 +364,14 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
 
         override fun run() = this@EvaluationRunCommand.store.transactional(true) {
             /* Fetch competition run. */
-            val evaluation = Evaluation.query(Evaluation::id eq this.id).firstOrNull()
+            val evaluation = DbEvaluation.query(DbEvaluation::id eq this.id).firstOrNull()
             if (evaluation == null) {
                 println("Evaluation ${this.id} does not seem to exist.")
                 return@transactional
             }
 
             val tasks = evaluation.tasks.filter {
-                it.template.targets.filter { it.type.isIn(listOf(TargetType.JUDGEMENT,TargetType.JUDGEMENT_WITH_VOTE)) }.isNotEmpty()
+                it.template.targets.filter { it.type.isIn(listOf(DbTargetType.JUDGEMENT,DbTargetType.JUDGEMENT_WITH_VOTE)) }.isNotEmpty()
             }
 
             if (tasks.isEmpty) {

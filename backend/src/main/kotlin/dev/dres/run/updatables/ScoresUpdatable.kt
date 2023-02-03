@@ -4,8 +4,8 @@ import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.run.EvaluationId
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.Verdict
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.run.RunManagerStatus
 import dev.dres.run.score.TaskContext
 import dev.dres.run.score.interfaces.IncrementalSubmissionTaskScorer
@@ -14,7 +14,7 @@ import kotlinx.dnq.query.asSequence
 import java.util.*
 
 /**
- * This is a [Updatable] that runs necessary post-processing after a [Submission] has been validated and updates the scores for the respective [TaskContext].
+ * This is a [Updatable] that runs necessary post-processing after a [DbSubmission] has been validated and updates the scores for the respective [TaskContext].
  *
  * @author Ralph Gasser
  * @version 1.2.0
@@ -25,14 +25,14 @@ class ScoresUpdatable(private val evaluationId: EvaluationId, private val scoreb
         private val ELIGIBLE_STATUS = arrayOf(RunManagerStatus.ACTIVE)
     }
 
-    /** Internal list of [Verdict] that pend processing. */
-    private val list = LinkedList<Pair<AbstractInteractiveTask, Submission>>()
+    /** Internal list of [DbAnswerSet] that pend processing. */
+    private val list = LinkedList<Pair<AbstractInteractiveTask, DbSubmission>>()
 
     /** The [Phase] this [ScoresUpdatable] belongs to. */
     override val phase: Phase = Phase.MAIN
 
-    /** Enqueues a new [Verdict] for post-processing. */
-    fun enqueue(submission: Pair<AbstractInteractiveTask,Submission>) = this.list.add(submission)
+    /** Enqueues a new [DbAnswerSet] for post-processing. */
+    fun enqueue(submission: Pair<AbstractInteractiveTask,DbSubmission>) = this.list.add(submission)
 
     override fun update(status: RunManagerStatus) {
         if (!this.list.isEmpty()) {

@@ -5,9 +5,9 @@ import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.api.rest.types.evaluation.ApiVerdictStatus
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.audit.AuditLogSource
+import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.run.audit.AuditLogger
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.sessionToken
@@ -18,7 +18,7 @@ import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 
 /**
- * A [PatchRestHandler] used to overwrite [VerdictStatus] information.
+ * A [PatchRestHandler] used to overwrite [DbVerdictStatus] information.
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
@@ -69,9 +69,9 @@ class OverrideSubmissionHandler(store: TransientEntityStore): AbstractEvaluation
             if (evaluationManager.allSubmissions(rac).none { it.id == submissionInfo.id }) {
                 throw ErrorStatusException(404, "The given submission $submissionInfo was not found.", ctx)
             }
-            if (evaluationManager.updateSubmission(rac, submissionInfo.id, submissionInfo.verdicts.first().status.toVerdictStatus())) {
+            if (evaluationManager.updateSubmission(rac, submissionInfo.id, submissionInfo.verdicts.first().status.toDb())) {
                 val submission = evaluationManager.allSubmissions(rac).single { it.id == submissionInfo.id }
-                AuditLogger.overrideSubmission(submission, AuditLogSource.REST, ctx.sessionToken())
+                AuditLogger.overrideSubmission(submission, DbAuditLogSource.REST, ctx.sessionToken())
                 submission.toApi()
             } else {
                 throw ErrorStatusException(500, "Could not update the submission. Please see the backend's log.", ctx)

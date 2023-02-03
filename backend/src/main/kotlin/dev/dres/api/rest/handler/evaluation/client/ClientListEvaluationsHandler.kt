@@ -1,10 +1,10 @@
 package dev.dres.api.rest.handler.evaluation.client
 
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.types.evaluation.ApiRunType
+import dev.dres.api.rest.types.evaluation.ApiEvaluationType
 import dev.dres.api.rest.types.evaluation.ApiEvaluationInfo
 import dev.dres.api.rest.types.status.ErrorStatus
-import dev.dres.data.model.run.Evaluation
+import dev.dres.data.model.run.DbEvaluation
 import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.InteractiveSynchronousRunManager
 import io.javalin.http.Context
@@ -15,7 +15,7 @@ import io.javalin.openapi.OpenApiResponse
 import jetbrains.exodus.database.TransientEntityStore
 
 /**
- * A [GetRestHandler] used to list all ongoing [Evaluation]s available to the current user.
+ * A [GetRestHandler] used to list all ongoing [DbEvaluation]s available to the current user.
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
@@ -43,8 +43,8 @@ class ClientListEvaluationsHandler(store: TransientEntityStore): AbstractEvaluat
             templateId = it.template.id,
             templateDescription = it.template.description,
             when (it) {
-                is InteractiveAsynchronousRunManager -> ApiRunType.ASYNCHRONOUS
-                is InteractiveSynchronousRunManager -> ApiRunType.SYNCHRONOUS
+                is InteractiveAsynchronousRunManager -> ApiEvaluationType.ASYNCHRONOUS
+                is InteractiveSynchronousRunManager -> ApiEvaluationType.SYNCHRONOUS
                 else -> TODO()
             },
             properties = it.runProperties,

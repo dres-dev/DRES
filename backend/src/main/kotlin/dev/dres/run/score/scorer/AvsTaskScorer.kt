@@ -1,10 +1,10 @@
 package dev.dres.run.score.scorer
 
 import dev.dres.data.model.template.team.TeamId
-import dev.dres.data.model.media.MediaType
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.Verdict
-import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.media.DbMediaType
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.DbAnswerSet
+import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.run.score.TaskContext
 import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
 import dev.dres.run.score.interfaces.ScoreEntry
@@ -30,9 +30,9 @@ class AvsTaskScorer: RecalculatingSubmissionTaskScorer, TeamTaskScorer {
     /**
      * TODO: Check for correctness especially if a submission has more than one verdict. Maybe add sanity checks.
      */
-    override fun computeScores(submissions: Collection<Submission>, context: TaskContext): Map<TeamId, Double> {
-        val correctSubmissions = submissions.flatMap {s -> s.verdicts.filter { v -> v.status eq VerdictStatus.CORRECT }.toList() }
-        val wrongSubmissions = submissions.flatMap { s -> s.verdicts.filter { v -> v.status eq VerdictStatus.WRONG }.toList() }
+    override fun computeScores(submissions: Collection<DbSubmission>, context: TaskContext): Map<TeamId, Double> {
+        val correctSubmissions = submissions.flatMap {s -> s.verdicts.filter { v -> v.status eq DbVerdictStatus.CORRECT }.toList() }
+        val wrongSubmissions = submissions.flatMap { s -> s.verdicts.filter { v -> v.status eq DbVerdictStatus.WRONG }.toList() }
         val correctSubmissionsPerTeam = correctSubmissions.groupBy { it.submission.team.id }
         val wrongSubmissionsPerTeam = wrongSubmissions.groupBy { it.submission.team.id }
         val totalCorrectQuantized = countQuantized(correctSubmissions).toDouble()
@@ -47,12 +47,12 @@ class AvsTaskScorer: RecalculatingSubmissionTaskScorer, TeamTaskScorer {
         return teamScoreMap()
     }
 
-    private fun countQuantized(submissions: Collection<Verdict>): Int = submissions
+    private fun countQuantized(submissions: Collection<DbAnswerSet>): Int = submissions
         .filter { it.item != null }
         .groupBy { it.item }.map {
             when(it.key!!.type) {
-                MediaType.IMAGE -> 1
-                MediaType.VIDEO -> {
+                DbMediaType.IMAGE -> 1
+                DbMediaType.VIDEO -> {
                     val ranges = it.value.map { s -> s.temporalRange!! }
                     TimeUtil.merge(ranges, overlap = 1).size
                 }

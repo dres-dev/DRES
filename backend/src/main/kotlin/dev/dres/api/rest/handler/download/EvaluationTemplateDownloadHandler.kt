@@ -4,8 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.run.InteractiveAsynchronousEvaluation
-import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.DbEvaluationTemplate
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -14,7 +13,7 @@ import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
 
 /**
- * A [GetRestHandler] that allow for downloading the entire [EvaluationTemplate] structure as JSON file.
+ * A [GetRestHandler] that allow for downloading the entire [DbEvaluationTemplate] structure as JSON file.
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -43,7 +42,7 @@ class EvaluationTemplateDownloadHandler(store: TransientEntityStore) : AbstractD
         /* Obtain run id and run. */
         val templateId = ctx.pathParamMap()["competitionId"] ?: throw ErrorStatusException(400, "Parameter 'templateId' is missing!'", ctx)
         val template = this.store.transactional(true) {
-           EvaluationTemplate.query(EvaluationTemplate::id eq templateId).firstOrNull()?.toApi()
+           DbEvaluationTemplate.query(DbEvaluationTemplate::id eq templateId).firstOrNull()?.toApi()
                ?: throw ErrorStatusException(404, "Competition $templateId not found", ctx)
         }
 

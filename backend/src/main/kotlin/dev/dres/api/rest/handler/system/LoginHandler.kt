@@ -7,7 +7,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.Password
-import dev.dres.data.model.audit.AuditLogSource
+import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.mgmt.admin.UserManager
 import dev.dres.run.audit.AuditLogger
 import dev.dres.utilities.extensions.getOrCreateSessionToken
@@ -54,7 +54,7 @@ class LoginHandler : RestHandler, PostRestHandler<ApiUser> {
         val sessionToken = ctx.getOrCreateSessionToken()
 
         AccessManager.registerUserForSession(sessionToken, user)
-        AuditLogger.login(loginRequest.username, AuditLogSource.REST, sessionToken)
+        AuditLogger.login(loginRequest.username, DbAuditLogSource.REST, sessionToken)
 
         //explicitly set cookie on login
         ctx.cookie(AccessManager.SESSION_COOKIE_NAME, sessionToken, AccessManager.SESSION_COOKIE_LIFETIME)

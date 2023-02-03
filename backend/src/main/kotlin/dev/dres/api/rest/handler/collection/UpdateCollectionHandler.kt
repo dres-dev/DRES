@@ -5,7 +5,7 @@ import dev.dres.api.rest.types.collection.RestMediaCollection
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.media.MediaCollection
+import dev.dres.data.model.media.DbMediaCollection
 import dev.dres.utilities.extensions.cleanPathString
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -45,7 +45,7 @@ class UpdateCollectionHandler(store: TransientEntityStore) : AbstractCollectionH
         }
 
         val status = this.store.transactional {
-            val collection = MediaCollection.query(MediaCollection::id eq restCollection.id).firstOrNull()
+            val collection = DbMediaCollection.query(DbMediaCollection::id eq restCollection.id).firstOrNull()
                 ?: throw ErrorStatusException(400, "Invalid parameters, collection with ID ${restCollection.id} does not exist.", ctx)
             collection.name = restCollection.name.trim()
             collection.description = restCollection.description?.trim() ?: collection.description

@@ -1,6 +1,6 @@
 package dev.dres.run.score.interfaces
 
-import dev.dres.data.model.template.team.Team
+import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.interfaces.TaskRun
 
@@ -8,7 +8,7 @@ import dev.dres.data.model.run.interfaces.TaskRun
 typealias ScoreEntry = Triple<TeamId, String?, Double>
 
 /**
- * A scorer for a [TaskRun]. A score is a [Double] value that captures a [Team] performance.
+ * A scorer for a [TaskRun]. A score is a [Double] value that captures a [DbTeam] performance.
  * The [TaskScorer] calculates and tracks these scores per [TeamId].
  *
  * @version 1.1.0

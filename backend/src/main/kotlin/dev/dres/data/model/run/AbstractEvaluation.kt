@@ -1,7 +1,7 @@
 package dev.dres.data.model.run
 
 import dev.dres.data.model.run.interfaces.EvaluationRun
-import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.Run
 import kotlinx.dnq.util.findById
 
@@ -11,7 +11,7 @@ import kotlinx.dnq.util.findById
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractEvaluation(evaluation: Evaluation): EvaluationRun {
+abstract class AbstractEvaluation(evaluation: DbEvaluation): EvaluationRun {
 
     /** The internal [xdId] of this [AbstractEvaluation].
      *
@@ -31,17 +31,17 @@ abstract class AbstractEvaluation(evaluation: Evaluation): EvaluationRun {
      */
     override val name: String = evaluation.name
 
-    /** The [EvaluationTemplate] used by this [AbstractEvaluation].
+    /** The [DbEvaluationTemplate] used by this [AbstractEvaluation].
      *
      * Since this cannot change during the lifetime of an evaluation, it is stored in memory.
      */
-    override val description: EvaluationTemplate = evaluation.template
+    override val description: DbEvaluationTemplate = evaluation.template
 
     /**
-     * Accessor for the [Evaluation] underpinning this [AbstractEvaluation]
+     * Accessor for the [DbEvaluation] underpinning this [AbstractEvaluation]
      */
-    protected val evaluation: Evaluation
-        get() = Evaluation.findById(this.xdId)
+    protected val evaluation: DbEvaluation
+        get() = DbEvaluation.findById(this.xdId)
 
     /** Timestamp of when this [AbstractEvaluation] was started. */
     override var started: Long
@@ -57,7 +57,7 @@ abstract class AbstractEvaluation(evaluation: Evaluation): EvaluationRun {
             this.evaluation.ended = value
         }
 
-    /** Flag indicating that participants can also use the viewer for this [Evaluation]. */
+    /** Flag indicating that participants can also use the viewer for this [DbEvaluation]. */
     override var participantCanView: Boolean
         get() = this.evaluation.participantCanView
         set(value) {

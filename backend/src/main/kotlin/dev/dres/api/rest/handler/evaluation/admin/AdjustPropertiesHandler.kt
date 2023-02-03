@@ -4,7 +4,7 @@ import dev.dres.api.rest.handler.PatchRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.run.Evaluation
+import dev.dres.data.model.run.DbEvaluation
 import dev.dres.data.model.run.RunProperties
 import dev.dres.utilities.extensions.evaluationId
 import io.javalin.http.BadRequestResponse
@@ -14,7 +14,7 @@ import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 
 /**
- * A [PatchRestHandler] handler to adjust an ongoing [Evaluation]'s [RunProperties].
+ * A [PatchRestHandler] handler to adjust an ongoing [DbEvaluation]'s [RunProperties].
  *
  * @author Ralph Gasser
  * @author Luca Rossetto

@@ -5,13 +5,12 @@ import dev.dres.api.rest.types.collection.RestMediaCollection
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.media.MediaCollection
+import dev.dres.data.model.media.DbMediaCollection
 import dev.dres.utilities.extensions.cleanPathString
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
-import java.util.UUID
 
 /**
  *
@@ -46,7 +45,7 @@ class AddCollectionHandler(store: TransientEntityStore) : AbstractCollectionHand
         }
 
         val collection = this.store.transactional {
-            MediaCollection.new {
+            DbMediaCollection.new {
                 this.name = restCollection.name
                 this.description = restCollection.description
                 this.path = restCollection.basePath.cleanPathString()

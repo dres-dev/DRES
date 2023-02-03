@@ -3,7 +3,7 @@ package dev.dres.api.rest.handler.collection
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.status.ErrorStatus
-import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.DbMediaItem
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -40,7 +40,7 @@ class ListMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHand
         val collection = collectionFromContext(ctx)
         val start = ctx.pathParamMap()["startsWith"]
         val query = if (!start.isNullOrBlank()) {
-            collection.items.query(MediaItem::name startsWith start)
+            collection.items.query(DbMediaItem::name startsWith start)
         } else {
             collection.items
         }

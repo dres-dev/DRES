@@ -11,7 +11,7 @@ import com.github.ajalt.clikt.parameters.options.validate
 import com.github.ajalt.clikt.parameters.types.path
 import com.jakewharton.picnic.table
 import dev.dres.data.model.Config
-import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.utilities.FFmpegUtil
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
@@ -19,10 +19,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
-import java.util.*
 
 /**
- * A collection of [CliktCommand]s for [EvaluationTemplate] management.
+ * A collection of [CliktCommand]s for [DbEvaluationTemplate] management.
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
@@ -61,7 +60,7 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
     }
 
     /**
-     * [CliktCommand] to create a new [EvaluationTemplate].
+     * [CliktCommand] to create a new [DbEvaluationTemplate].
      */
     inner class Create : CliktCommand(name = "create", help = "Creates a new Competition") {
 
@@ -75,7 +74,7 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
 
         override fun run()  {
             val newCompetition = this@EvaluationCommand.store.transactional {
-                EvaluationTemplate.new {
+                DbEvaluationTemplate.new {
                     this.name = this@Create.name
                     this.description = this@Create.description
                 }
@@ -85,12 +84,12 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
     }
 
     /**
-     * [CliktCommand] to delete a [EvaluationTemplate].
+     * [CliktCommand] to delete a [DbEvaluationTemplate].
      */
     inner class Delete : AbstractEvaluationCommand(name = "delete", help = "Deletes a competition") {
         override fun run() {
             this@EvaluationCommand.store.transactional {
-                val competition = EvaluationTemplate.query((EvaluationTemplate::id eq this.id).or(EvaluationTemplate::name eq this.name)).firstOrNull()
+                val competition = DbEvaluationTemplate.query((DbEvaluationTemplate::id eq this.id).or(DbEvaluationTemplate::name eq this.name)).firstOrNull()
                 if (competition == null) {
                     println("Could not find competition to delete.")
                     return@transactional
@@ -102,12 +101,12 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
     }
 
     /**
-     * [CliktCommand] to copy a [EvaluationTemplate].
+     * [CliktCommand] to copy a [DbEvaluationTemplate].
      */
     inner class Copy : AbstractEvaluationCommand(name = "copy", help = "Copies a Competition") {
         override fun run() {
             this@EvaluationCommand.store.transactional {
-                val competition = EvaluationTemplate.query((EvaluationTemplate::id eq this.id).or(EvaluationTemplate::name eq this.name)).firstOrNull()
+                val competition = DbEvaluationTemplate.query((DbEvaluationTemplate::id eq this.id).or(DbEvaluationTemplate::name eq this.name)).firstOrNull()
                 if (competition == null) {
                     println("Could not find competition to copy.")
                     return@transactional
@@ -120,7 +119,7 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
     }
 
     /**
-     * [CliktCommand] to list all [EvaluationTemplate]s.
+     * [CliktCommand] to list all [DbEvaluationTemplate]s.
      */
     inner class List : CliktCommand(name = "list", help = "Lists an overview of all Competitions") {
         override fun run() = this@EvaluationCommand.store.transactional(true) {
@@ -135,7 +134,7 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
                     row("name", "id", "# teams", "# tasks", "description", )
                 }
                 body {
-                    EvaluationTemplate.all().asSequence().forEach { c ->
+                    DbEvaluationTemplate.all().asSequence().forEach { c ->
                         row(c.name, c.id, c.teams.size(), c.tasks.size(), c.description).also { no++ }
                     }
                 }
@@ -145,12 +144,12 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
     }
 
     /**
-     * [CliktCommand] to show a specific [EvaluationTemplate].
+     * [CliktCommand] to show a specific [DbEvaluationTemplate].
      */
     inner class Show : AbstractEvaluationCommand(name = "show", help = "Shows details of a Competition") {
         override fun run() = this@EvaluationCommand.store.transactional(true) {
-            val competition = EvaluationTemplate.query(
-                (EvaluationTemplate::id eq this.id).or(EvaluationTemplate::name eq this.name)
+            val competition = DbEvaluationTemplate.query(
+                (DbEvaluationTemplate::id eq this.id).or(DbEvaluationTemplate::name eq this.name)
             ).firstOrNull()
 
             if (competition == null) {
@@ -176,13 +175,13 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
     }
 
     /**
-     * [CliktCommand] to prepare a specific [EvaluationTemplate].
+     * [CliktCommand] to prepare a specific [DbEvaluationTemplate].
      */
     inner class Prepare : AbstractEvaluationCommand(name = "prepare", help = "Checks the used Media Items and generates precomputed Queries") {
 
         override fun run() = this@EvaluationCommand.store.transactional(true) {
-            val competition = EvaluationTemplate.query(
-                (EvaluationTemplate::id eq this.id).or(EvaluationTemplate::name eq this.name)
+            val competition = DbEvaluationTemplate.query(
+                (DbEvaluationTemplate::id eq this.id).or(DbEvaluationTemplate::name eq this.name)
             ).firstOrNull()
 
             if (competition == null) {
@@ -218,8 +217,8 @@ class EvaluationCommand(private val store: TransientEntityStore, config: Config)
         private val pretty: Boolean by option("-p", "--pretty", help = "Flag indicating whether exported JSON should be pretty printed.").flag("-u", "--ugly", default = true)
 
         override fun run() = this@EvaluationCommand.store.transactional(true) {
-            val competition = EvaluationTemplate.query(
-                (EvaluationTemplate::id eq this.id).or(EvaluationTemplate::name eq this.name)
+            val competition = DbEvaluationTemplate.query(
+                (DbEvaluationTemplate::id eq this.id).or(DbEvaluationTemplate::name eq this.name)
             ).firstOrNull()
 
             if (competition == null) {

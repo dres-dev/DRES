@@ -1,9 +1,9 @@
 package dev.dres.run.eventstream.handlers
 
-import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.time.TemporalRange
 import dev.dres.data.model.run.EvaluationId
-import dev.dres.data.model.template.task.TaskTemplate
+import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.run.eventstream.StreamEvent
 import dev.dres.run.eventstream.StreamEventHandler
 import jetbrains.exodus.database.TransientEntityStore
@@ -14,8 +14,8 @@ class ResultLogStatisticsHandler(private val store: TransientEntityStore) : Stre
 
     private val writer = PrintWriter(File("statistics/result_log_statistics_${System.currentTimeMillis()}.csv").also { it.parentFile.mkdirs() })
 
-    private val lastActiveTask = mutableMapOf<EvaluationId, TaskTemplate>()
-    private val lastActiveTargets = mutableMapOf<EvaluationId, List<Pair<MediaItem, TemporalRange?>>>()
+    private val lastActiveTask = mutableMapOf<EvaluationId, DbTaskTemplate>()
+    private val lastActiveTargets = mutableMapOf<EvaluationId, List<Pair<DbMediaItem, TemporalRange?>>>()
 
 
     init {

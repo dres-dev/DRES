@@ -1,8 +1,8 @@
 package dev.dres.run.score.scorer
 
 
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.TaskContext
 import dev.dres.run.score.interfaces.RecalculatingSubmissionTaskScorer
@@ -57,12 +57,12 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
     }
 
     override fun computeScores(
-        submissions: Collection<Submission>,
+        submissions: Collection<DbSubmission>,
         context: TaskContext
     ): Map<TeamId, Double> {
 
         val distinctCorrectVideos = submissions.flatMap { submission ->
-            submission.verdicts.asSequence().filter { it.status == VerdictStatus.CORRECT && it.item != null }
+            submission.verdicts.asSequence().filter { it.status == DbVerdictStatus.CORRECT && it.item != null }
         }.mapNotNullTo(mutableSetOf()) {it.item }
             .size
 
@@ -80,11 +80,11 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
         lastScores = this.lastScoresLock.write {
             teamScoreMapSanitised(submissions.groupBy { it.team }.map {
                     submissionsPerTeam ->
-                val verdicts = submissionsPerTeam.value.sortedBy { it.timestamp }.flatMap { it.verdicts.asSequence().filter { v -> v.item != null && (v.status == VerdictStatus.CORRECT || v.status == VerdictStatus.WRONG) } }
+                val verdicts = submissionsPerTeam.value.sortedBy { it.timestamp }.flatMap { it.verdicts.asSequence().filter { v -> v.item != null && (v.status == DbVerdictStatus.CORRECT || v.status == DbVerdictStatus.WRONG) } }
                 submissionsPerTeam.key.teamId to
                         max(0.0, //prevent negative total scores
                             verdicts.groupBy { it.item!! }.map {
-                                val firstCorrectIdx = it.value.indexOfFirst { v -> v.status == VerdictStatus.CORRECT }
+                                val firstCorrectIdx = it.value.indexOfFirst { v -> v.status == DbVerdictStatus.CORRECT }
                                 if (firstCorrectIdx < 0) { //no correct submissions, only penalty
                                     it.value.size * -penaltyConstant
                                 } else {  //apply penalty for everything before correct submission

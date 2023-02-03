@@ -21,7 +21,7 @@ data class ApiEvaluationInfo(
     val name: String,
     val templateId: String,
     val templateDescription: String?,
-    val type: ApiRunType,
+    val type: ApiEvaluationType,
     val properties: RunProperties,
     val teams: List<ApiTeamInfo>,
     val tasks: List<ApiTaskTemplateInfo>,
@@ -32,9 +32,9 @@ data class ApiEvaluationInfo(
         manager.template.id,
         manager.template.name,
         when(manager) {
-            is InteractiveSynchronousRunManager -> ApiRunType.SYNCHRONOUS
-            is InteractiveAsynchronousRunManager -> ApiRunType.ASYNCHRONOUS
-            is NonInteractiveRunManager -> ApiRunType.NON_INTERACTIVE
+            is InteractiveSynchronousRunManager -> ApiEvaluationType.SYNCHRONOUS
+            is InteractiveAsynchronousRunManager -> ApiEvaluationType.ASYNCHRONOUS
+            is NonInteractiveRunManager -> ApiEvaluationType.NON_INTERACTIVE
             else -> throw IllegalStateException("Incompatible type of run manager.")
         },
         manager.runProperties,

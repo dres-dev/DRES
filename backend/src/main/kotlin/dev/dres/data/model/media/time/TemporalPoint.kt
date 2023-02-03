@@ -1,11 +1,11 @@
 package dev.dres.data.model.media.time
 
-import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.PlayableMediaItem
 import java.lang.IllegalArgumentException
 
 /**
- * Notion of a [TemporalPoint] within a [MediaItem] that exhibits temporal development (e.g. [VideoItem]).
+ * Notion of a [TemporalPoint] within a [DbMediaItem] that exhibits temporal development (e.g. [VideoItem]).
  *
  * @version 2.2.0
  * @author Luca Rossetto & Ralph Gasser

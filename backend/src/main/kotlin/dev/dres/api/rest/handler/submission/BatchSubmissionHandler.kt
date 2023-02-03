@@ -10,10 +10,10 @@ import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.api.rest.types.submission.RunResult
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.Config
-import dev.dres.data.model.admin.User
+import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.NonInteractiveRunManager
 import dev.dres.utilities.extensions.evaluationId
@@ -26,10 +26,9 @@ import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
-import java.util.*
 
 /**
- * An [GetRestHandler] used to process batched [Submission]s.
+ * An [GetRestHandler] used to process batched [DbSubmission]s.
  *
  * @author Luca Rossetto
  * @author Loris Sauter
@@ -77,25 +76,25 @@ class BatchSubmissionHandler(private val store: TransientEntityStore, private va
     }
 
     /**
-     * Converts the user request tu a [Submission].
+     * Converts the user request tu a [DbSubmission].
      *
      * Creates the associated database entry. Requires an ongoing transaction.
      *
-     * @param userId The [UserId] of the user who triggered the [Submission].
+     * @param userId The [UserId] of the user who triggered the [DbSubmission].
      * @param runManager The [InteractiveRunManager]
      * @param submission The submitted [RunResult]s.
      * @param submissionTime Time of the submission.
      * @param ctx The HTTP [Context]
      */
-    private fun toSubmission(userId: UserId, runManager: NonInteractiveRunManager, submission: RunResult, submissionTime: Long, ctx: Context): Submission {
+    private fun toSubmission(userId: UserId, runManager: NonInteractiveRunManager, submission: RunResult, submissionTime: Long, ctx: Context): DbSubmission {
         /* Find team that the user belongs to. */
-        val user = User.query(User::id eq userId).firstOrNull()
+        val user = DbUser.query(DbUser::id eq userId).firstOrNull()
             ?: throw ErrorStatusException(404, "No user with ID '$userId' could be found.", ctx)
         val team = runManager.template.teams.filter { it.users.contains(user) }.firstOrNull()
             ?: throw ErrorStatusException(404, "No team for user '$userId' could not be found.", ctx)
 
         /* Create new submission. */
-        val new = Submission.new {
+        val new = DbSubmission.new {
             this.user = user
             this.team = team
             this.timestamp = submissionTime

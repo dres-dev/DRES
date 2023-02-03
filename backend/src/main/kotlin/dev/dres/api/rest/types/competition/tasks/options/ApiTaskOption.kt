@@ -1,9 +1,9 @@
 package dev.dres.api.rest.types.competition.tasks.options
 
-import dev.dres.data.model.template.task.options.TaskOption
+import dev.dres.data.model.template.task.options.DbTaskOption
 
 /**
- * A RESTful API representation of [TaskOption].
+ * A RESTful API representation of [DbTaskOption].
  *
  * @author Ralph Gasser
  * @version 1.0.0
@@ -12,13 +12,13 @@ enum class ApiTaskOption {
     HIDDEN_RESULTS, MAP_TO_SEGMENT, PROLONG_ON_SUBMISSION;
 
     /**
-     * Converts this [ApiTaskOption] to a [TaskOption] representation. Requires an ongoing transaction.
+     * Converts this [ApiTaskOption] to a [DbTaskOption] representation. Requires an ongoing transaction.
      *
-     * @return [TaskOption]
+     * @return [DbTaskOption]
      */
-    fun toTaskOption(): TaskOption = when(this) {
-        HIDDEN_RESULTS -> TaskOption.HIDDEN_RESULTS
-        MAP_TO_SEGMENT -> TaskOption.MAP_TO_SEGMENT
-        PROLONG_ON_SUBMISSION -> TaskOption.PROLONG_ON_SUBMISSION
+    fun toDb(): DbTaskOption = when(this) {
+        HIDDEN_RESULTS -> DbTaskOption.HIDDEN_RESULTS
+        MAP_TO_SEGMENT -> DbTaskOption.MAP_TO_SEGMENT
+        PROLONG_ON_SUBMISSION -> DbTaskOption.PROLONG_ON_SUBMISSION
     }
 }

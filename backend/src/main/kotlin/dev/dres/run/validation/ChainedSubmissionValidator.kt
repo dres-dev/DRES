@@ -1,7 +1,7 @@
 package dev.dres.run.validation
 
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import kotlinx.dnq.query.asSequence
 
@@ -12,10 +12,10 @@ import kotlinx.dnq.query.asSequence
  * @author Ralph Gasser
  * @version 1.1.0
  */
-class ChainedSubmissionValidator(private val firstValidator: SubmissionValidator, private val continueStates: Set<VerdictStatus>, private val secondValidator: SubmissionValidator) : SubmissionValidator {
+class ChainedSubmissionValidator(private val firstValidator: SubmissionValidator, private val continueStates: Set<DbVerdictStatus>, private val secondValidator: SubmissionValidator) : SubmissionValidator {
 
     companion object{
-        fun of(continueStates: Set<VerdictStatus>, vararg validator: SubmissionValidator) : ChainedSubmissionValidator {
+        fun of(continueStates: Set<DbVerdictStatus>, vararg validator: SubmissionValidator) : ChainedSubmissionValidator {
             return when {
                 validator.size < 2 -> throw IllegalArgumentException("Chain needs at least two validators")
                 validator.size == 2 -> ChainedSubmissionValidator(validator[0], continueStates, validator[1])
@@ -32,11 +32,11 @@ class ChainedSubmissionValidator(private val firstValidator: SubmissionValidator
     }
 
     /**
-     * Validates a [Submission] based on two [SubmissionValidator]s.
+     * Validates a [DbSubmission] based on two [SubmissionValidator]s.
      *
-     * @param submission The [Submission] to validate.
+     * @param submission The [DbSubmission] to validate.
      */
-    override fun validate(submission: Submission) {
+    override fun validate(submission: DbSubmission) {
         this.firstValidator.validate(submission)
         if (submission.verdicts.asSequence().any { this.continueStates.contains(it.status) }) {
             this.secondValidator.validate(submission)

@@ -5,15 +5,15 @@ import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
-import dev.dres.data.model.audit.AuditLogSource
+import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.TaskRun
-import dev.dres.data.model.template.EvaluationTemplate
-import dev.dres.data.model.template.task.TaskTemplate
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.Verdict
-import dev.dres.data.model.submissions.VerdictStatus
-import dev.dres.data.model.template.task.options.TaskOption
+import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.data.model.template.task.DbTaskTemplate
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.DbAnswerSet
+import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
@@ -33,7 +33,7 @@ import kotlin.math.max
 
 /**
  * An implementation of [RunManager] aimed at distributed execution having a single DRES Server instance and multiple
- * viewers connected via WebSocket. Before starting a [Task], all viewer instances are synchronized.
+ * viewers connected via WebSocket. Before starting a [DbTask], all viewer instances are synchronized.
  *
  * @version 3.0.0
  * @author Ralph Gasser
@@ -61,8 +61,8 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     override val name: String
         get() = this.evaluation.name
 
-    /** The [EvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
-    override val template: EvaluationTemplate
+    /** The [DbEvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
+    override val template: DbEvaluationTemplate
         get() = this.evaluation.description
 
     /** The status of this [RunManager]. */
@@ -130,7 +130,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         this.evaluation.tasks.forEach { task ->
             task.getSubmissions().forEach { sub ->
                 this.scoresUpdatable.enqueue(Pair(task, sub))
-                if (sub.verdicts.filter { v -> v.status eq VerdictStatus.INDETERMINATE }.any()) {
+                if (sub.verdicts.filter { v -> v.status eq DbVerdictStatus.INDETERMINATE }.any()) {
                     task.validator.validate(sub)
                 }
             }
@@ -174,7 +174,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         TODO("Not yet implemented")
     }
 
-    override fun currentTaskTemplate(context: RunActionContext): TaskTemplate = this.stateLock.write {
+    override fun currentTaskTemplate(context: RunActionContext): DbTaskTemplate = this.stateLock.write {
         checkStatus(
             RunManagerStatus.CREATED,
             RunManagerStatus.ACTIVE/*, RunManagerStatus.PREPARING_TASK, RunManagerStatus.RUNNING_TASK, RunManagerStatus.TASK_ENDED*/
@@ -272,14 +272,14 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         LOGGER.info("SynchronousRunManager ${this.id} aborted task task ${this.evaluation.currentTaskTemplate}")
     }
 
-    /** List of [Task] for this [InteractiveSynchronousRunManager]. */
+    /** List of [DbTask] for this [InteractiveSynchronousRunManager]. */
     override fun tasks(context: RunActionContext): List<AbstractInteractiveTask> = this.evaluation.tasks
 
     /**
-     * Returns the currently active [Task]s or null, if no such task is active.
+     * Returns the currently active [DbTask]s or null, if no such task is active.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return [Task] or null
+     * @return [DbTask] or null
      */
     override fun currentTask(context: RunActionContext) = this.stateLock.read {
         when (this.evaluation.currentTask?.status) {
@@ -291,7 +291,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     }
 
     /**
-     * Returns [Task]s for a specific task [EvaluationId]. May be empty.
+     * Returns [DbTask]s for a specific task [EvaluationId]. May be empty.
      *
      * @param taskId The [EvaluationId] of the [TaskRun].
      */
@@ -299,34 +299,34 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         this.evaluation.tasks.find { it.id == taskId }
 
     /**
-     * List of all [Submission]s for this [InteractiveAsynchronousRunManager], irrespective of the [Task] it belongs to.
+     * List of all [DbSubmission]s for this [InteractiveAsynchronousRunManager], irrespective of the [DbTask] it belongs to.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return List of [Submission]s.
+     * @return List of [DbSubmission]s.
      */
-    override fun allSubmissions(context: RunActionContext): List<Submission> = this.stateLock.read {
+    override fun allSubmissions(context: RunActionContext): List<DbSubmission> = this.stateLock.read {
         this.evaluation.tasks.flatMap { it.getSubmissions() }
     }
 
     /**
-     * Returns the [Submission]s for all currently active [Task]s or an empty [List], if no such task is active.
+     * Returns the [DbSubmission]s for all currently active [DbTask]s or an empty [List], if no such task is active.
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return List of [Submission]s for the currently active [Task]
+     * @return List of [DbSubmission]s for the currently active [DbTask]
      */
-    override fun currentSubmissions(context: RunActionContext): List<Submission> = this.stateLock.read {
+    override fun currentSubmissions(context: RunActionContext): List<DbSubmission> = this.stateLock.read {
         this.currentTask(context)?.getSubmissions()?.toList() ?: emptyList()
     }
 
     /**
-     * Returns the number of [Task]s held by this [RunManager].
+     * Returns the number of [DbTask]s held by this [RunManager].
      *
-     * @return The number of [Task]s held by this [RunManager]
+     * @return The number of [DbTask]s held by this [RunManager]
      */
     override fun taskCount(context: RunActionContext): Int = this.evaluation.tasks.size
 
     /**
-     * Adjusts the duration of the current [Task] by the specified amount. Amount can be either positive or negative.
+     * Adjusts the duration of the current [DbTask] by the specified amount. Amount can be either positive or negative.
      *
      * @param s The number of seconds to adjust the duration by.
      * @return Time remaining until the task will end in milliseconds
@@ -347,7 +347,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     }
 
     /**
-     * Returns the time in milliseconds that is left until the end of the current [Task].
+     * Returns the time in milliseconds that is left until the end of the current [DbTask].
      * Only works if the [RunManager] is in wrong [RunManagerStatus]. If no task is running,
      * this method returns -1L.
      *
@@ -367,7 +367,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     }
 
     /**
-     * Returns the time in milliseconds that has elapsed since the start of the current [Task].
+     * Returns the time in milliseconds that has elapsed since the start of the current [DbTask].
      * Only works if the [RunManager] is in wrong [RunManagerStatus]. If no task is running, this method returns -1L.
      *
      * @return Time remaining until the task will end or -1, if no task is running.
@@ -435,17 +435,17 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         }
 
     /**
-     * Processes incoming [Submission]s. If a [Task] is running then that [Submission] will usually
-     * be associated with that [Task].
+     * Processes incoming [DbSubmission]s. If a [DbTask] is running then that [DbSubmission] will usually
+     * be associated with that [DbTask].
      *
-     * This method will not throw an exception and instead return false if a [Submission] was
+     * This method will not throw an exception and instead return false if a [DbSubmission] was
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
      * @param context The [RunActionContext] used for the invocation
-     * @param submission [Submission] that should be registered.
+     * @param submission [DbSubmission] that should be registered.
      */
-    override fun postSubmission(context: RunActionContext, submission: Submission): VerdictStatus = this.stateLock.read {
+    override fun postSubmission(context: RunActionContext, submission: DbSubmission): DbVerdictStatus = this.stateLock.read {
         assureTaskRunning()
 
         /* Register submission. */
@@ -453,8 +453,8 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             ?: throw IllegalStateException("Could not find ongoing task in run manager, despite correct status. This is a programmer's error!")
         task.postSubmission(submission)
 
-        /** Checks for the presence of the [TaskOption.PROLONG_ON_SUBMISSION] and applies it. */
-        if (task.template.taskGroup.type.options.filter { it eq TaskOption.PROLONG_ON_SUBMISSION }.any()) {
+        /** Checks for the presence of the [DbTaskOption.PROLONG_ON_SUBMISSION] and applies it. */
+        if (task.template.taskGroup.type.options.filter { it eq DbTaskOption.PROLONG_ON_SUBMISSION }.any()) {
             this.prolongOnSubmit(context, submission)
         }
 
@@ -467,28 +467,28 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     }
 
     /**
-     * Processes incoming [Submission]s. If a [Task] is running then that [Submission] will usually
-     * be associated with that [Task].
+     * Processes incoming [DbSubmission]s. If a [DbTask] is running then that [DbSubmission] will usually
+     * be associated with that [DbTask].
      *
-     * This method will not throw an exception and instead return false if a [Submission] was
+     * This method will not throw an exception and instead return false if a [DbSubmission] was
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
      * @param context The [RunActionContext] used for the invocation
-     * @param submissionId The [EvaluationId] of the [Submission] to update.
-     * @param submissionStatus The new [VerdictStatus]
+     * @param submissionId The [EvaluationId] of the [DbSubmission] to update.
+     * @param submissionStatus The new [DbVerdictStatus]
      * @return True on success, false otherwise.
      */
-    override fun updateSubmission(context: RunActionContext, submissionId: EvaluationId, submissionStatus: VerdictStatus): Boolean = this.stateLock.read {
-        val verdict = Verdict.filter { it.submission.submissionId eq submissionId }.singleOrNull() ?: return false
-        val task = this.taskForId(context, verdict.task.id) ?: return false
+    override fun updateSubmission(context: RunActionContext, submissionId: EvaluationId, submissionStatus: DbVerdictStatus): Boolean = this.stateLock.read {
+        val answerSet = DbAnswerSet.filter { it.submission.submissionId eq submissionId }.singleOrNull() ?: return false
+        val task = this.taskForId(context, answerSet.task.id) ?: return false
 
         /* Actual update - currently, only status update is allowed */
-        if (verdict.status != submissionStatus) {
-            verdict.status = submissionStatus
+        if (answerSet.status != submissionStatus) {
+            answerSet.status = submissionStatus
 
             /* Enqueue submission for post-processing. */
-            this.scoresUpdatable.enqueue(Pair(task, verdict.submission))
+            this.scoresUpdatable.enqueue(Pair(task, answerSet.submission))
 
             /* Enqueue WS message for sending */
             this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.TASK_UPDATED), context.teamId!!)
@@ -580,7 +580,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             this.stateLock.write {
                 this.evaluation.currentTask!!.start()
                 //this.status = RunManagerStatus.RUNNING_TASK
-                AuditLogger.taskStart(this.id, this.evaluation.currentTask!!.id, this.evaluation.currentTaskTemplate, AuditLogSource.INTERNAL, null)
+                AuditLogger.taskStart(this.id, this.evaluation.currentTask!!.id, this.evaluation.currentTaskTemplate, DbAuditLogSource.INTERNAL, null)
             }
 
             /* Enqueue WS message for sending */
@@ -598,7 +598,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 this.stateLock.write {
                     task.end()
                     //this.status = RunManagerStatus.TASK_ENDED
-                    AuditLogger.taskEnd(this.id, this.evaluation.currentTask!!.id, AuditLogSource.INTERNAL, null)
+                    AuditLogger.taskEnd(this.id, this.evaluation.currentTask!!.id, DbAuditLogSource.INTERNAL, null)
                     EventStreamProcessor.event(TaskEndEvent(this.id, task.id))
                 }
 
@@ -612,9 +612,9 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      * Applies the [SimpleOption.PROLONG_ON_SUBMISSION] [Option].
      *
      * @param context [RunActionContext] used for invocation.
-     * @param sub The [Submission] to apply the [Option] for.
+     * @param sub The [DbSubmission] to apply the [Option] for.
      */
-    private fun prolongOnSubmit(context: RunActionContext, sub: Submission) {
+    private fun prolongOnSubmit(context: RunActionContext, sub: DbSubmission) {
         /* require(option.option == SimpleOption.PROLONG_ON_SUBMISSION) { "Cannot process ${option.option} in prolongOnSubmit()." }
         val limit = option.getAsInt(SimpleOptionParameters.PROLONG_ON_SUBMISSION_LIMIT_PARAM)
             ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_LIMIT_DEFAULT

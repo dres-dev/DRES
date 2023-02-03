@@ -5,13 +5,13 @@ import dev.dres.api.rest.types.competition.tasks.ApiTaskGroup
 import dev.dres.api.rest.types.competition.tasks.ApiTaskType
 import dev.dres.api.rest.types.competition.team.ApiTeam
 import dev.dres.api.rest.types.competition.team.ApiTeamGroup
-import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.TemplateId
 
 /**
- * The RESTful API equivalent for [EvaluationTemplate].
+ * The RESTful API equivalent for [DbEvaluationTemplate].
  *
- * @see EvaluationTemplate
+ * @see DbEvaluationTemplate
  * @author Luca Rossetto & Ralph Gasser
  * @version 2.0.0
  */

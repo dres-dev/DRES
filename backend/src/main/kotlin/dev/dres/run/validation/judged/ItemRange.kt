@@ -1,9 +1,8 @@
 package dev.dres.run.validation.judged
 
-import dev.dres.data.model.media.MediaItem
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.Verdict
-import dev.dres.data.model.submissions.VerdictType
+import dev.dres.data.model.media.DbMediaItem
+import dev.dres.data.model.submissions.DbAnswerSet
+import dev.dres.data.model.submissions.DbAnswerType
 
 /**
  * Helper class to store submission information independent of source.
@@ -12,14 +11,14 @@ import dev.dres.data.model.submissions.VerdictType
  * @version 2.0.0
  */
 data class ItemRange(val element: String, val start: Long, val end: Long){
-    constructor(item: MediaItem): this(item.id, 0, 0)
-    constructor(item: MediaItem, start: Long, end: Long): this(item.id, start, end)
-    constructor(verdict: Verdict): this(when (verdict.type){
-            VerdictType.ITEM,
-            VerdictType.TEMPORAL -> verdict.item!!.id
-            VerdictType.TEXT  -> verdict.text!!
+    constructor(item: DbMediaItem): this(item.id, 0, 0)
+    constructor(item: DbMediaItem, start: Long, end: Long): this(item.id, start, end)
+    constructor(answerSet: DbAnswerSet): this(when (answerSet.type){
+            DbAnswerType.ITEM,
+            DbAnswerType.TEMPORAL -> answerSet.item!!.id
+            DbAnswerType.TEXT  -> answerSet.text!!
             else -> throw IllegalStateException("Submission contains neither item nor text.")
-        }, verdict.start ?: 0, verdict.end ?: 0)
+        }, answerSet.start ?: 0, answerSet.end ?: 0)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

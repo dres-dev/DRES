@@ -2,7 +2,7 @@ package dev.dres.api.rest.handler.template
 
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.template.team.Team
+import dev.dres.data.model.template.team.DbTeam
 import io.javalin.http.Context
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
@@ -14,7 +14,7 @@ import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
 
 /**
- * A [AbstractEvaluationTemplateHandler] that can be used to list all [Team] logos.
+ * A [AbstractEvaluationTemplateHandler] that can be used to list all [DbTeam] logos.
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
@@ -43,7 +43,7 @@ class GetTeamLogoHandler(store: TransientEntityStore) : AbstractEvaluationTempla
         val teamId = ctx.pathParamMap()["teamId"]  ?: throw ErrorStatusException(400, "Parameter 'teamId' is missing!'", ctx)
 
         this.store.transactional(true) {
-            val logo = Team.query(Team::id eq teamId).firstOrNull()?.logo
+            val logo = DbTeam.query(DbTeam::id eq teamId).firstOrNull()?.logo
             if (logo != null) {
                 ctx.contentType("image/png")
                 ctx.result(logo)

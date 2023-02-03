@@ -3,7 +3,7 @@ package dev.dres.api.rest.handler.template
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.competition.ApiEvaluationOverview
 import dev.dres.api.rest.types.status.ErrorStatus
-import dev.dres.data.model.template.EvaluationTemplate
+import dev.dres.data.model.template.DbEvaluationTemplate
 import io.javalin.http.Context
 import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
@@ -14,7 +14,7 @@ import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.size
 
 /**
- * A [GetRestHandler] that can be used to list all [EvaluationTemplate]s.
+ * A [GetRestHandler] that can be used to list all [DbEvaluationTemplate]s.
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
@@ -35,7 +35,7 @@ class ListEvaluationTemplatesHandler(store: TransientEntityStore) : AbstractEval
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context) = this.store.transactional(true) {
-        EvaluationTemplate.all().asSequence().map {
+        DbEvaluationTemplate.all().asSequence().map {
             ApiEvaluationOverview(it.id, it.name, it.description, it.tasks.size(), it.teams.size())
         }.toList()
     }

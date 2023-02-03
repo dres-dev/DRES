@@ -5,7 +5,7 @@ import java.time.Duration
 
 
 /**
- * Interface for [MediaItem]s that allow for playback and thus have a notion of duration and frames.
+ * Interface for [DbMediaItem]s that allow for playback and thus have a notion of duration and frames.
  *
  * @author Ralph Gasser
  * @version 1.0

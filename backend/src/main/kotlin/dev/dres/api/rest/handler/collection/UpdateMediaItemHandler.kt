@@ -5,7 +5,7 @@ import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.DbMediaItem
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -45,10 +45,10 @@ class UpdateMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHa
         }
 
         return this.store.transactional {
-            val item = MediaItem.query(MediaItem::id eq mediaItem.id).firstOrNull()
+            val item = DbMediaItem.query(DbMediaItem::id eq mediaItem.id).firstOrNull()
                 ?: throw ErrorStatusException(404, "Media item with ID ${mediaItem.id} not found.", ctx)
 
-            item.type = mediaItem.type.toMediaType()
+            item.type = mediaItem.type.toDb()
             item.name = item.name
             item.location = item.location
             item.fps = item.fps

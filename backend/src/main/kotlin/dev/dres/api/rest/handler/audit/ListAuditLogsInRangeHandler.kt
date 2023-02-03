@@ -4,7 +4,7 @@ import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.audit.ApiAuditLogEntry
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.audit.AuditLogEntry
+import dev.dres.data.model.audit.DbAuditLogEntry
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -12,7 +12,7 @@ import kotlinx.dnq.query.*
 import org.joda.time.DateTime
 
 /**
- * [AbstractAuditLogHandler] to list all [AuditLogEntry] between two points in time.
+ * [AbstractAuditLogHandler] to list all [DbAuditLogEntry] between two points in time.
  *
  * @author Loris Sauter
  * @version 1.0.0
@@ -42,7 +42,7 @@ class ListAuditLogsInRangeHandler(store: TransientEntityStore): AbstractAuditLog
         if (since < upto) throw ErrorStatusException(400, "Since must be smaller or equal to upto.", ctx)
 
         return this.store.transactional(true) {
-            AuditLogEntry.query((AuditLogEntry::timestamp gt since) and (AuditLogEntry::timestamp lt upto)).asSequence().map {
+            DbAuditLogEntry.query((DbAuditLogEntry::timestamp gt since) and (DbAuditLogEntry::timestamp lt upto)).asSequence().map {
                 it.toApi()
             }.toList()
         }

@@ -3,14 +3,14 @@ package dev.dres.api.rest.handler.template
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.competition.team.ApiTeam
 import dev.dres.api.rest.types.status.ErrorStatus
-import dev.dres.data.model.template.team.Team
+import dev.dres.data.model.template.team.DbTeam
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.asSequence
 
 /**
- * A [AbstractEvaluationTemplateHandler] that can be used to list all [Team]s.
+ * A [AbstractEvaluationTemplateHandler] that can be used to list all [DbTeam]s.
  *
  * @author Ralph Gasser
  * @author Luca Rossetto

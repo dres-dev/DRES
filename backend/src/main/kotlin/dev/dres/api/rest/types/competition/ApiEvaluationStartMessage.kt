@@ -1,6 +1,6 @@
 package dev.dres.api.rest.types.competition
 
-import dev.dres.api.rest.types.evaluation.ApiRunType
+import dev.dres.api.rest.types.evaluation.ApiEvaluationType
 import dev.dres.data.model.run.RunProperties
 import dev.dres.data.model.template.TemplateId
 
@@ -10,4 +10,4 @@ import dev.dres.data.model.template.TemplateId
  * @author Ralph Gasser
  * @version 1.1.0
  */
-data class ApiEvaluationStartMessage(val templateId: TemplateId, val name: String, val type: ApiRunType, val properties: RunProperties = RunProperties())
+data class ApiEvaluationStartMessage(val templateId: TemplateId, val name: String, val type: ApiEvaluationType, val properties: RunProperties = RunProperties())

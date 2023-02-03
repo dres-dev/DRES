@@ -13,6 +13,7 @@ import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
+import jetbrains.exodus.database.TransientEntityStore
 
 /**
  * An [AbstractUserHandler] to create new [DbUser]s.
@@ -20,7 +21,7 @@ import io.javalin.openapi.*
  * @author Loris Sauter
  * @version 2.0.0
  */
-class CreateUsersHandler : AbstractUserHandler(), PostRestHandler<ApiUser>, AccessManagedRestHandler {
+class CreateUsersHandler(private val store: TransientEntityStore) : AbstractUserHandler(), PostRestHandler<ApiUser>, AccessManagedRestHandler {
     override val route = "user"
 
     /** [CreateUsersHandler] requires [ApiRole.ADMIN]. */
@@ -51,11 +52,25 @@ class CreateUsersHandler : AbstractUserHandler(), PostRestHandler<ApiUser>, Acce
         if (req.role == null)
             throw ErrorStatusException(400, "Invalid parameters. Role must be defined.", ctx)
 
-        val success = UserManager.create(req.username, Password.Plain(req.password), req.role.toDb() ?: throw ErrorStatusException(400, "Invalid parameters. Provided role is undefined or invalid!", ctx))
-        if (success) {
-            return UserManager.get(username = req.username)!!.toApi()
-        } else {
-            throw ErrorStatusException(400, "The request could not be fulfilled.", ctx)
+        val success = this.store.transactional {
+            UserManager.create(
+                req.username,
+                Password.Plain(req.password),
+                req.role.toDb() ?: throw ErrorStatusException(
+                    400,
+                    "Invalid parameters. Provided role is undefined or invalid!",
+                    ctx
+                )
+            )
+        }
+        //needs to be in a new transaction
+        //TODO is there a nicer way of doing this?
+        return this.store.transactional {
+            if (success) {
+                return@transactional UserManager.get(username = req.username)!!.toApi()
+            } else {
+                throw ErrorStatusException(400, "The request could not be fulfilled.", ctx)
+            }
         }
     }
 }

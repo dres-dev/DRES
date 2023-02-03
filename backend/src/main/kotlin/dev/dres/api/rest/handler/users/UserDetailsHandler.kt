@@ -8,6 +8,7 @@ import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.DbUser
 import io.javalin.http.Context
 import io.javalin.openapi.*
+import jetbrains.exodus.database.TransientEntityStore
 
 /**
  * An [AbstractUserHandler] to show [DbUser] details.
@@ -15,7 +16,7 @@ import io.javalin.openapi.*
  * @author Loris Sauter
  * @version 2.0.0
  */
-class UserDetailsHandler : AbstractUserHandler(), GetRestHandler<ApiUser>, AccessManagedRestHandler {
+class UserDetailsHandler(private val store: TransientEntityStore) : AbstractUserHandler(), GetRestHandler<ApiUser>, AccessManagedRestHandler {
     override val route = "user/{userId}"
 
     /** [UserDetailsHandler] requires [ApiRole.ADMIN]. */
@@ -35,7 +36,7 @@ class UserDetailsHandler : AbstractUserHandler(), GetRestHandler<ApiUser>, Acces
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context) = userFromContext(ctx).toApi()
+    override fun doGet(ctx: Context) = this.store.transactional { userFromContext(ctx).toApi() }
 
 
 }

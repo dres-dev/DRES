@@ -11,13 +11,14 @@ import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiResponse
+import jetbrains.exodus.database.TransientEntityStore
 
 /**
  *
  * @author Ralph Gasser
  * @version 1.0
  */
-class ShowCurrentUserHandler : AbstractUserHandler(), GetRestHandler<ApiUser>, AccessManagedRestHandler {
+class ShowCurrentUserHandler(private val store: TransientEntityStore) : AbstractUserHandler(), GetRestHandler<ApiUser>, AccessManagedRestHandler {
     override val route = "user"
 
     /** [ShowCurrentUserHandler] can be used by [ApiRole.ADMIN], [[ApiRole.VIEWER], [ApiRole.PARTICIPANT]*/
@@ -33,9 +34,9 @@ class ShowCurrentUserHandler : AbstractUserHandler(), GetRestHandler<ApiUser>, A
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): ApiUser {
+    override fun doGet(ctx: Context): ApiUser = this.store.transactional(readonly = true){
         val user = userFromSession(ctx).toApi()
         user.sessionId = ctx.sessionToken()
-        return user
+        user
     }
 }

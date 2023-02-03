@@ -11,6 +11,7 @@ import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiResponse
+import jetbrains.exodus.database.TransientEntityStore
 
 /**
  * An [AbstractUserHandler] to list all [DbUser]s.
@@ -18,7 +19,7 @@ import io.javalin.openapi.OpenApiResponse
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ListUsersHandler: AbstractUserHandler(), GetRestHandler<List<ApiUser>>, AccessManagedRestHandler {
+class ListUsersHandler(private val store: TransientEntityStore): AbstractUserHandler(), GetRestHandler<List<ApiUser>>, AccessManagedRestHandler {
 
     override val route = "user/list"
 
@@ -32,5 +33,7 @@ class ListUsersHandler: AbstractUserHandler(), GetRestHandler<List<ApiUser>>, Ac
         responses = [OpenApiResponse("200", [OpenApiContent(Array<ApiUser>::class)])],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context) = UserManager.list().map { it.toApi() }
+    override fun doGet(ctx: Context) = this.store.transactional {
+        UserManager.list().map { it.toApi() }
+    }
 }

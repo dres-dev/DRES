@@ -14,6 +14,7 @@ import dev.dres.utilities.extensions.getOrCreateSessionToken
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
+import jetbrains.exodus.database.TransientEntityStore
 
 /**
  * A [PostRestHandler] that handles user-requests to login.
@@ -21,7 +22,7 @@ import io.javalin.openapi.*
  * @version 1.0.0
  * @author Luca Rossetto
  */
-class LoginHandler : RestHandler, PostRestHandler<ApiUser> {
+class LoginHandler(private val store: TransientEntityStore) : RestHandler, PostRestHandler<ApiUser> {
 
     override val apiVersion = "v2"
 
@@ -46,21 +47,28 @@ class LoginHandler : RestHandler, PostRestHandler<ApiUser> {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error.", ctx)
         }
 
-        /* Validate login request. */
-        val username = loginRequest.username
-        val password = Password.Plain(loginRequest.password)
-        val user = UserManager.getMatchingApiUser(username, password) ?: throw ErrorStatusException(401, "Invalid credentials. Please try again!", ctx)
+        return this.store.transactional {
 
-        val sessionToken = ctx.getOrCreateSessionToken()
+            /* Validate login request. */
+            val username = loginRequest.username
+            val password = Password.Plain(loginRequest.password)
+            val user = UserManager.getMatchingApiUser(username, password) ?: throw ErrorStatusException(
+                401,
+                "Invalid credentials. Please try again!",
+                ctx
+            )
 
-        AccessManager.registerUserForSession(sessionToken, user)
-        AuditLogger.login(loginRequest.username, DbAuditLogSource.REST, sessionToken)
+            val sessionToken = ctx.getOrCreateSessionToken()
 
-        //explicitly set cookie on login
-        ctx.cookie(AccessManager.SESSION_COOKIE_NAME, sessionToken, AccessManager.SESSION_COOKIE_LIFETIME)
+            AccessManager.registerUserForSession(sessionToken, user)
+            AuditLogger.login(loginRequest.username, DbAuditLogSource.REST, sessionToken)
 
-        user.sessionId = sessionToken
-        return user
+            //explicitly set cookie on login
+            ctx.cookie(AccessManager.SESSION_COOKIE_NAME, sessionToken, AccessManager.SESSION_COOKIE_LIFETIME)
+
+            user.sessionId = sessionToken
+            return@transactional user
+        }
     }
 
     override val route = "login"

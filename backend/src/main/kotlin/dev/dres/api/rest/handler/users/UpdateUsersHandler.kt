@@ -13,6 +13,7 @@ import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
+import jetbrains.exodus.database.TransientEntityStore
 
 /**
  * An [AbstractUserHandler] to update an existing [DbUser]s.
@@ -20,7 +21,7 @@ import io.javalin.openapi.*
  * @author Loris Sauter
  * @version 2.0.0
  */
-class UpdateUsersHandler : AbstractUserHandler(), PatchRestHandler<ApiUser>, AccessManagedRestHandler {
+class UpdateUsersHandler(private val store: TransientEntityStore) : AbstractUserHandler(), PatchRestHandler<ApiUser>, AccessManagedRestHandler {
 
     /** [UpdateUsersHandler] can be used by [ApiRole.ADMIN], [[ApiRole.VIEWER], [ApiRole.PARTICIPANT]*/
     override val permittedRoles = setOf(ApiRole.VIEWER, ApiRole.ADMIN, ApiRole.PARTICIPANT)
@@ -47,19 +48,26 @@ class UpdateUsersHandler : AbstractUserHandler(), PatchRestHandler<ApiUser>, Acc
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        /* Fetch existing objects. */
-        val user = userFromContext(ctx)
-        val caller = userFromSession(ctx)
+        return this.store.transactional {
 
-        if (caller.role == DbRole.ADMIN || user.id == caller.id) {
-            val success = UserManager.update(id = user.id, request = request)
-            if (success) {
-                return UserManager.get(id = user.id)!!.toApi()
+            /* Fetch existing objects. */
+            val user = userFromContext(ctx)
+            val caller = userFromSession(ctx)
+
+            if (caller.role == DbRole.ADMIN || user.id == caller.id) {
+                val success = UserManager.update(id = user.id, request = request)
+                if (success) {
+                    return@transactional UserManager.get(id = user.id)!!.toApi()
+                } else {
+                    throw ErrorStatusException(500, "Could not update user!", ctx)
+                }
             } else {
-                throw ErrorStatusException(500, "Could not update user!", ctx)
+                throw ErrorStatusException(
+                    403,
+                    "You do not have permissions to edit user (${user.id}) as $caller!",
+                    ctx
+                )
             }
-        } else {
-            throw ErrorStatusException(403, "You do not have permissions to edit user (${user.id}) as $caller!", ctx)
         }
     }
 }

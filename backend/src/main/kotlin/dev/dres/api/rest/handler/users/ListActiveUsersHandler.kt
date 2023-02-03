@@ -13,6 +13,7 @@ import io.javalin.openapi.HttpMethod
 import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiContent
 import io.javalin.openapi.OpenApiResponse
+import jetbrains.exodus.database.TransientEntityStore
 
 /**
  * An [AbstractUserHandler] to list all [DbUser]s that are currently logged in.
@@ -20,7 +21,7 @@ import io.javalin.openapi.OpenApiResponse
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ListActiveUsersHandler : GetRestHandler<List<ApiUser>>, AccessManagedRestHandler {
+class ListActiveUsersHandler(private val store: TransientEntityStore) : GetRestHandler<List<ApiUser>>, AccessManagedRestHandler {
     override val permittedRoles = setOf(ApiRole.ADMIN)
 
     /** All [UserDetailsHandler] requires [ApiRole.ADMIN]. */
@@ -38,11 +39,11 @@ class ListActiveUsersHandler : GetRestHandler<List<ApiUser>>, AccessManagedRestH
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): List<ApiUser> = AccessManager.currentSessions.map { session ->
-        AccessManager.userIdForSession(session)?.let {
-            UserManager.get(id = it)
-        }?.let {
-            it.toApi()
-        } ?: return@map ApiUser("??", "??", ApiRole.VIEWER, session)
+    override fun doGet(ctx: Context): List<ApiUser> = this.store.transactional {
+        AccessManager.currentSessions.map { session ->
+            AccessManager.userIdForSession(session)?.let {
+                UserManager.get(id = it)
+            }?.toApi() ?: return@map ApiUser("??", "??", ApiRole.VIEWER, session)
+        }
     }
 }

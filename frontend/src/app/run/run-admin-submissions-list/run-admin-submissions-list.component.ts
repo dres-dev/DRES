@@ -1,5 +1,4 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-import {ApiSubmissionInfo, CompetitionRunAdminService} from '../../../../openapi';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTable, MatTableDataSource } from '@angular/material/table';
@@ -9,6 +8,7 @@ import { MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { catchError, filter, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import { MatPaginator } from '@angular/material/paginator';
 import { AppConfig } from '../../app.config';
+import {ApiAnswerSet, ApiSubmission, ApiSubmissionInfo, ApiVerdictStatus, EvaluationAdministratorService} from 'openapi';
 
 @Component({
   selector: 'app-run-admin-submissions-list',
@@ -16,6 +16,8 @@ import { AppConfig } from '../../app.config';
   styleUrls: ['./run-admin-submissions-list.component.scss'],
 })
 export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestroy {
+  // FIXME heavily changed data model, rewrite!
+
   @ViewChild('group', { static: true }) group: MatButtonToggleGroup;
 
   @ViewChild('table', { static: true }) table: MatTable<ApiSubmissionInfo>;
@@ -58,7 +60,7 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
   public dataSource: MatTableDataSource<ApiSubmissionInfo> = new MatTableDataSource();
 
   /** The data sources mapped by the taskRunId */
-  public dataSources: Map<string, MatTableDataSource<ApiSubmissionInfo>> = new Map();
+  public dataSources: Map<string, MatTableDataSource<ApiSubmission>> = new Map();
 
   /** The list of taskRunIds there are submissions for, for convenience in the template */
   public taskRunIds: string[] = [];
@@ -70,7 +72,7 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private activeRoute: ActivatedRoute,
-    private runService: CompetitionRunAdminService,
+    private runService: EvaluationAdministratorService,
     public config: AppConfig
   ) {
     this.runId = this.activeRoute.paramMap.pipe(map((params) => params.get('runId')));
@@ -87,24 +89,24 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     this.subscription = merge(timer(0, this.pollingFrequencyFactor).pipe(filter((i) => this.polling)), this.refreshSubject)
       .pipe(
         withLatestFrom(this.runId, this.taskId),
-        switchMap(([i, r, t]) => this.runService.getApiV1RunAdminWithRunidSubmissionListWithTaskid(r, t)),
+        switchMap(([i, r, t]) => this.runService.getApiV2EvaluationAdminevaluationIdSubmissionListtemplateId(r, t)),
         catchError((err, o) => {
           console.log(`[RunAdminSubmissionListComponent] Error occurred while loading submissions: ${err?.message}`);
           this.snackBar.open(`Error: ${err?.message}`, null, { duration: 5000 });
           return of([]);
         })
       )
-      .subscribe((s: TaskRunSubmissionInfo[]) => {
+      .subscribe((s: ApiSubmissionInfo[]) => {
         // this.dataSource.data = s;
         /* Clear lists first */
         this.dataSources.clear();
         this.taskRunIds = [];
         /* Repopulate */
         s.forEach((trsi) => {
-          const ds = new MatTableDataSource<ApiSubmissionInfo>();
+          const ds = new MatTableDataSource<ApiSubmission>();
           ds.data = trsi.submissions;
-          this.dataSources.set(trsi.taskRunId, ds);
-          this.taskRunIds.push(trsi.taskRunId);
+          this.dataSources.set(trsi.taskId, ds); // FIXME
+          this.taskRunIds.push(trsi.taskId);
         });
       });
   }
@@ -123,20 +125,21 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
    * @param submission The {@link SubmissionInfo} to update.
    * @param newStatus The new status.
    */
-  public update(submission: ApiSubmissionInfo, newStatus: SubmissionInfo.StatusEnum) {
-    submission.status = newStatus;
+  public update(submission: ApiSubmission, newStatus:ApiVerdictStatus) {
+    // FIXME heavily changed model. rewrite
+    /*submission.status = newStatus;
     console.log(submission);
     this.runId
       .pipe(switchMap((runId) => this.runService.patchApiV1RunAdminWithRunidSubmissionOverride(runId, submission)))
       .subscribe((res) => {
         this.snackBar.open(`Submission ${res.id} successfully updated to ${res.status}.`, null, { duration: 5000 });
-      });
+      });*/
   }
 
   /**
    * Generates a URL for the preview image of a submission.
    */
-  public previewForSubmission(submission: ApiSubmissionInfo): Observable<string> {
+  public previewForSubmission(submission: ApiSubmission): Observable<string> {
     return this.runId.pipe(map((runId) => this.config.resolveApiUrl(`/preview/submission/${runId}/${submission.id}`)));
   }
 
@@ -144,7 +147,7 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     return item;
   }
 
-  resolveSubmissionById(_: number, item: ApiSubmissionInfo) {
+  resolveSubmissionById(_: number, item: ApiSubmission) {
     return item.id;
   }
 }

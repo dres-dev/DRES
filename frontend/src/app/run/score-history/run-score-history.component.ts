@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CompetitionRunScoresService, EvaluationService, ApiEvaluationInfo } from '../../../../openapi';
 import { catchError, filter, flatMap, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { combineLatest, concat, interval, Observable, of } from 'rxjs';
 import {
@@ -14,6 +13,7 @@ import {
   ApexXAxis,
   ApexYAxis,
 } from 'ng-apexcharts';
+import {ApiEvaluationInfo, EvaluationScoresService, EvaluationService} from '../../../../openapi';
 
 @Component({
   selector: 'app-score-history',
@@ -114,13 +114,13 @@ export class RunScoreHistoryComponent {
     private router: Router,
     private activeRoute: ActivatedRoute,
     private runService: EvaluationService,
-    private scoreService: CompetitionRunScoresService
+    private scoreService: EvaluationScoresService
   ) {
     /* Information about current run. */
     this.runId = this.activeRoute.params.pipe(map((a) => a.runId));
     this.runInfo = this.runId.pipe(
       switchMap((runId) =>
-        this.runService.apiV2EvaluationEvaluationIdInfoGet(runId).pipe(
+        this.runService.getApiV2EvaluationevaluationIdInfo(runId).pipe(
           catchError((err, o) => {
             console.log(
               `[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`
@@ -151,7 +151,7 @@ export class RunScoreHistoryComponent {
     /* List of scoreboard for the current run ID. */
     this.scoreboards = this.runId.pipe(
       switchMap((runId) =>
-        this.scoreService.apiV2ScoreEvaluationEvaluationIdTeamGroupListGet(runId).pipe(
+        this.scoreService.getApiV2ScoreEvaluationevaluationIdTeamGroupList(runId).pipe(
           catchError((err, o) => {
             console.log(
               `[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`
@@ -171,8 +171,10 @@ export class RunScoreHistoryComponent {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
+    // FIXME got that handler missing?
+
     /* Load time series data should be visualized. */
-    const scores = this.runId.pipe(
+    /*const scores = this.runId.pipe(
       flatMap((r) =>
         interval(2000).pipe(
           switchMap((i) => {
@@ -190,12 +192,14 @@ export class RunScoreHistoryComponent {
         )
       ),
       shareReplay({ bufferSize: 1, refCount: true })
-    );
+    );*/
 
     /* Prepare time series data. */
+    /*
     const series = combineLatest([scores, this.runInfo]).pipe(
       map(([data, run]) => {
         /* Prepare data structure for ApexCharts. */
+        /*
         const array: ApexAxisChartSeries = [];
         for (const s of data) {
           const team = run.teams.find((t) => t.uid === s.team);
@@ -210,5 +214,6 @@ export class RunScoreHistoryComponent {
       })
     );
     this.series = concat(of([{ name: 'Empty', data: [] }]), series);
+    */
   }
 }

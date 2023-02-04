@@ -4,10 +4,6 @@ import { RunInfoOverviewTuple } from '../admin-run-list.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../../app.config';
-import {
-  CompetitionRunAdminService,
-  CompetitionRunScoresService, DownloadService, EvaluationService,
-} from '../../../../openapi';
 import { MatDialog } from '@angular/material/dialog';
 import { take } from 'rxjs/operators';
 import {
@@ -15,6 +11,13 @@ import {
   ConfirmationDialogComponentData,
 } from '../../shared/confirmation-dialog/confirmation-dialog.component';
 import { NavigationService } from '../../services/navigation/navigation.service';
+import {
+  DownloadService,
+  EvaluationAdministratorService,
+  EvaluationScoresService,
+  EvaluationService,
+  TemplateService
+} from '../../../../openapi';
 
 @Component({
   selector: 'app-run-admin-toolbar',
@@ -31,9 +34,9 @@ export class RunAdminToolbarComponent implements OnInit {
     private activeRoute: ActivatedRoute,
     private config: AppConfig,
     private runService: EvaluationService,
-    private competitionService: CompetitionService,
-    private runAdminService: CompetitionRunAdminService,
-    private scoreService: CompetitionRunScoresService,
+    private competitionService: TemplateService,
+    private runAdminService: EvaluationAdministratorService,
+    private scoreService: EvaluationScoresService,
     private downloadService: DownloadService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
@@ -42,7 +45,7 @@ export class RunAdminToolbarComponent implements OnInit {
 
   public start() {
     const runId = this.runId.value;
-    this.runAdminService.postApiV1RunAdminWithRunidStart(runId).subscribe(
+    this.runAdminService.postApiV2EvaluationAdminevaluationIdStart(runId).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -65,7 +68,7 @@ export class RunAdminToolbarComponent implements OnInit {
       .subscribe((result) => {
         if (result) {
           const runId = this.runId.value;
-          this.runAdminService.postApiV1RunAdminWithRunidTerminate(runId).subscribe(
+          this.runAdminService.postApiV2EvaluationAdminrunIdTerminate(runId).subscribe(
             (r) => {
               this.update.next();
               this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -130,7 +133,7 @@ export class RunAdminToolbarComponent implements OnInit {
   }
 
   public downloadScores(runId: string) {
-    this.downloadService.getApiV1DownloadRunWithRunidScores(runId).subscribe((scoresCSV) => {
+    this.downloadService.getApiV2DownloadEvaluationevaluationIdScores(runId).subscribe((scoresCSV) => {
       const csvBlob = new Blob([scoresCSV], { type: 'text/csv' });
       const fake = document.createElement('a');
       fake.href = URL.createObjectURL(csvBlob);
@@ -142,7 +145,8 @@ export class RunAdminToolbarComponent implements OnInit {
 
   scoreDownloadProvider = (runId: string) => {
     return this.downloadService
-      .getApiV1DownloadRunWithRunidScores(runId, 'body', false, { httpHeaderAccept: 'text/csv' })
+        // FIXME httpHeaderAccept was text/csv -- might have to adjust openapi info
+      .getApiV2DownloadEvaluationevaluationIdScores(runId, 'body', false, { httpHeaderAccept: 'text/plain' })
       .pipe(take(1));
   };
 
@@ -151,7 +155,7 @@ export class RunAdminToolbarComponent implements OnInit {
   };
 
   downloadProvider = (runId) => {
-    return this.downloadService.getApiV1DownloadRunWithRunid(runId).pipe(take(1));
+    return this.downloadService.getApiV2DownloadEvaluationevaluationId(runId).pipe(take(1));
     // .toPromise();
   };
 

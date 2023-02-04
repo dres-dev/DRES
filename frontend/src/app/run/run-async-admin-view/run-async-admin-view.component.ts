@@ -1,12 +1,5 @@
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { BehaviorSubject, combineLatest, merge, Observable, of, Subject, timer } from 'rxjs';
-import {
-  CompetitionRunAdminService,
-  CompetitionRunScoresService,
-  EvaluationService,
-  DownloadService,
-  ApiTeam,
-} from '../../../../openapi';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../../app.config';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -14,6 +7,14 @@ import { MatDialog } from '@angular/material/dialog';
 import { catchError, filter, map, shareReplay, switchMap } from 'rxjs/operators';
 import { RunInfoOverviewTuple } from '../admin-run-list.component';
 import { MatAccordion } from '@angular/material/expansion';
+import {
+  ApiTaskTemplateInfo,
+  ApiTeam, ApiTeamInfo, ApiTeamTaskOverview, DownloadService,
+  EvaluationAdministratorService,
+  EvaluationClientService,
+  EvaluationScoresService,
+  EvaluationService, TemplateService
+} from '../../../../openapi';
 
 @Component({
   selector: 'app-run-async-admin-view',
@@ -29,19 +30,19 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
 
   displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'past', 'action'];
   displayedColumnsTeamTasks: string[] = ['name', 'state', 'group', 'type', 'duration', 'past', 'action'];
-  teams: Observable<ApiTeam[]>;
-  pastTasks = new BehaviorSubject<PastTaskInfo[]>([]);
-  pastTasksValue: PastTaskInfo[];
+  teams: Observable<ApiTeamInfo[]>;
+  pastTasks = new BehaviorSubject<ApiTaskTemplateInfo[]>([]);
+  pastTasksValue: ApiTaskTemplateInfo[];
   nbOpenTeamOverviews = 0;
 
   constructor(
     private router: Router,
     private activeRoute: ActivatedRoute,
     private config: AppConfig,
-    private runService: CompetitionRunService,
+    private runService: EvaluationClientService,
     private evaluationService: EvaluationService,
-    private runAdminService: CompetitionRunAdminService,
-    private scoreService: CompetitionRunScoresService,
+    private runAdminService: EvaluationAdministratorService,
+    private scoreService: EvaluationScoresService,
     private downloadService: DownloadService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
@@ -50,7 +51,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
     this.run = this.runId.pipe(
       switchMap((runId) =>
         combineLatest([
-          this.runService.getApiV1RunWithRunidInfo(runId).pipe(
+          this.evaluationService.getApiV2EvaluationevaluationIdInfo(runId).pipe(
             catchError((err, o) => {
               console.log(
                 `[RunAdminViewComponent] There was an error while loading information in the current run state: ${err?.message}`
@@ -64,7 +65,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
             filter((q) => q != null)
           ),
           merge(timer(0, 1000), this.update).pipe(
-            switchMap((index) => this.runAdminService.getApiV1RunAdminWithRunidOverview(runId))
+            switchMap((index) => this.runAdminService.getApiV2RunAdminrunIdOverview(runId))
           ),
         ])
       ),
@@ -75,8 +76,8 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
     );
 
     this.teams = this.run.pipe(
-      switchMap((runAndOverview) => {
-        return this.evaluationService.getApiV1CompetitionWithCompetitionidTeamList(runAndOverview.runInfo.competitionId);
+      map((runAndOverview) => {
+        return runAndOverview.runInfo.teams;
       }),
       shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading. */
     );
@@ -88,29 +89,29 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
     });
   }
 
-  public resolveTeamOverviewByTeamId(index: number, item: TeamTaskOverview) {
+  public resolveTeamOverviewByTeamId(index: number, item: ApiTeamTaskOverview) {
     return item.teamId;
   }
 
-  public resolveTeamById(index: number, item: ApiTeam) {
-    return item.uid;
+  public resolveTeamById(index: number, item: ApiTeamInfo) {
+    return item.id;
   }
 
   ngAfterViewInit(): void {
     /* Cache past tasks initially */
     this.runId.subscribe((runId) => {
-      this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe((arr) => (this.pastTasksValue = arr));
+      this.runAdminService.getApiV2EvaluationAdminevaluationIdTaskPastList(runId).subscribe((arr) => (this.pastTasksValue = arr));
     });
 
     /* On each update, update past tasks */
     this.update.subscribe((_) => {
       this.runId.subscribe((runId) => {
-        this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(runId).subscribe((arr) => (this.pastTasksValue = arr));
+        this.runAdminService.getApiV2EvaluationAdminevaluationIdTaskPastList(runId).subscribe((arr) => (this.pastTasksValue = arr));
       });
     });
 
     this.run.subscribe((r) => {
-      this.runAdminService.getApiV1RunAdminWithRunidTaskPastList(r.runInfo.id).subscribe((arr) => (this.pastTasksValue = arr));
+      this.runAdminService.getApiV2EvaluationAdminevaluationIdTaskPastList(r.runInfo.id).subscribe((arr) => (this.pastTasksValue = arr));
     });
   }
 

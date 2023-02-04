@@ -1067,7 +1067,7 @@
     },
     "/api/v2/evaluation/admin/{evaluationId}/properties" : {
       "patch" : {
-        "tags" : [ "Competition Run Admin" ],
+        "tags" : [ "Evaluation Administrator" ],
         "summary" : "Changes the properties of an evaluation.",
         "operationId" : "patchApiV2EvaluationAdmin{evaluationId}Properties",
         "parameters" : [ {
@@ -1811,7 +1811,7 @@
     },
     "/api/v2/evaluation/admin/{runId}/terminate" : {
       "post" : {
-        "tags" : [ "Competition Run Admin" ],
+        "tags" : [ "Evaluation Administrator" ],
         "summary" : "Terminates an evaluation. This is a method for administrators.",
         "operationId" : "postApiV2EvaluationAdmin{runId}Terminate",
         "parameters" : [ {
@@ -3315,7 +3315,7 @@
     },
     "/api/v2/run/admin/{runId}/overview" : {
       "get" : {
-        "tags" : [ "Competition Run Admin" ],
+        "tags" : [ "Evaluation Administrator" ],
         "summary" : "Provides a complete overview of a run.",
         "operationId" : "getApiV2RunAdmin{runId}Overview",
         "parameters" : [ {
@@ -3805,7 +3805,7 @@
     },
     "/api/v2/score/evaluation/{evaluationId}/teamGroup/list" : {
       "get" : {
-        "tags" : [ "Competition Run Scores" ],
+        "tags" : [ "Evaluation Scores" ],
         "summary" : "Returns team group aggregated values of the current task.",
         "operationId" : "getApiV2ScoreEvaluation{evaluationId}TeamGroupList",
         "parameters" : [ {
@@ -5317,6 +5317,30 @@
         },
         "required" : [ "id", "name", "teams", "aggregation" ]
       },
+      "ApiAnswer" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/ApiAnswerType"
+          },
+          "item" : {
+            "$ref" : "#/components/schemas/ApiMediaItem"
+          },
+          "text" : {
+            "type" : "string"
+          },
+          "start" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "end" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "type" ]
+      },
       "ApiAnswerSet" : {
         "type" : "object",
         "additionalProperties" : false,
@@ -5325,10 +5349,17 @@
             "$ref" : "#/components/schemas/ApiVerdictStatus"
           },
           "answers" : {
-            "$ref" : "#/components/schemas/Sequence"
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiAnswer"
+            }
           }
         },
         "required" : [ "status", "answers" ]
+      },
+      "ApiAnswerType" : {
+        "type" : "string",
+        "enum" : [ "ITEM", "TEMPORAL", "TEXT" ]
       },
       "ApiEvaluationInfo" : {
         "type" : "object",
@@ -5421,14 +5452,14 @@
             "type" : "integer",
             "format" : "int64"
           },
-          "verdicts" : {
+          "answers" : {
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/ApiAnswerSet"
             }
           }
         },
-        "required" : [ "id", "teamId", "teamName", "memberId", "memberName", "timestamp", "verdicts" ]
+        "required" : [ "id", "teamId", "teamName", "memberId", "memberName", "timestamp", "answers" ]
       },
       "ApiSubmissionInfo" : {
         "type" : "object",
@@ -6268,7 +6299,13 @@
       "Sequence" : {
         "type" : "object",
         "additionalProperties" : false,
-        "properties" : { }
+        "properties" : {
+          "" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "" ]
       },
       "StoreTransaction" : {
         "type" : "object",

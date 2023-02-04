@@ -55,6 +55,6 @@ class DbSubmission(entity: Entity) : PersistentEntity(entity) {
         memberId = this.user.id,
         memberName = this.user.username,
         timestamp = this.timestamp,
-        verdicts = if (blind) { emptyList() } else { this.answerSets.asSequence().map { it.toApi() }.toList()}
+        answers = if (blind) { emptyList() } else { this.answerSets.asSequence().map { it.toApi() }.toList()}
     )
 }

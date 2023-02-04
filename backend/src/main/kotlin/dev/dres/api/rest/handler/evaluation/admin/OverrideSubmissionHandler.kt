@@ -59,7 +59,7 @@ class OverrideSubmissionHandler(store: TransientEntityStore): AbstractEvaluation
         }
         /* Perform sanity check. */
 
-        if (submissionInfo.verdicts.first().status == ApiVerdictStatus.INDETERMINATE ) {
+        if (submissionInfo.answers.first().status == ApiVerdictStatus.INDETERMINATE ) {
             throw ErrorStatusException(400, "Submission status can not be set to INDETERMINATE.", ctx)
         }
 
@@ -70,7 +70,7 @@ class OverrideSubmissionHandler(store: TransientEntityStore): AbstractEvaluation
             if (evaluationManager.allSubmissions(rac).none { it.id == submissionInfo.id }) {
                 throw ErrorStatusException(404, "The given submission $submissionInfo was not found.", ctx)
             }
-            if (evaluationManager.updateSubmission(rac, submissionInfo.id, submissionInfo.verdicts.first().status.toDb())) {
+            if (evaluationManager.updateSubmission(rac, submissionInfo.id, submissionInfo.answers.first().status.toDb())) {
                 val submission = evaluationManager.allSubmissions(rac).single { it.id == submissionInfo.id }
                 AuditLogger.overrideSubmission(submission, DbAuditLogSource.REST, ctx.sessionToken())
                 submission.toApi()

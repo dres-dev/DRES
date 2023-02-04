@@ -24,7 +24,7 @@ class EvaluationOverviewHandler(store: TransientEntityStore): AbstractEvaluation
         pathParams = [
             OpenApiParam("runId", String::class, "The evaluation ID", required = true, allowEmptyValue = false),
         ],
-        tags = ["Competition Run Admin"],
+        tags = ["Evaluation Administrator"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(ApiEvaluationOverview::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),

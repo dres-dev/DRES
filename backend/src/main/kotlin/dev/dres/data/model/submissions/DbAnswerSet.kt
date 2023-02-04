@@ -37,6 +37,6 @@ class DbAnswerSet(entity: Entity) : PersistentEntity(entity) {
      */
     fun toApi(): ApiAnswerSet = ApiAnswerSet(
         status = this.status.toApi(),
-        answers = this.answers.asSequence().map { it.toApi() }
+        answers = this.answers.asSequence().map { it.toApi() }.toList()
     )
 }

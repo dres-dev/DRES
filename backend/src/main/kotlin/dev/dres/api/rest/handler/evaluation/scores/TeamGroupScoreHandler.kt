@@ -24,7 +24,7 @@ class TeamGroupScoreHandler(store: TransientEntityStore) : AbstractScoreHandler(
         summary = "Returns team group aggregated values of the current task.",
         path = "/api/v2/score/evaluation/{evaluationId}/teamGroup/list",
         operationId = OpenApiOperation.AUTO_GENERATE,
-        tags = ["Competition Run Scores"],
+        tags = ["Evaluation Scores"],
         pathParams = [
             OpenApiParam("runId", String::class, "ID of the competition run.", required = true),
         ],

@@ -11,5 +11,5 @@ import dev.dres.api.rest.types.collection.ApiMediaItem
  */
 data class ApiAnswerSet(
     val status: ApiVerdictStatus,
-    val answers: Sequence<ApiAnswer>
+    val answers: List<ApiAnswer>
 )

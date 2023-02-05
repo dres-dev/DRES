@@ -1,8 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { ApiUser, UserRequest } from '../../../../openapi';
 import { FormControl, FormGroup } from '@angular/forms';
-import RoleEnum = ApiUser.RoleEnum;
+import {ApiRole, ApiUser, UserRequest} from '../../../../openapi';
 
 @Component({
   selector: 'app-admin-user-create-or-edit-dialog',
@@ -16,9 +15,9 @@ export class AdminUserCreateOrEditDialogComponent {
     role: new FormControl(''),
   });
 
-  roles = [RoleEnum.ADMIN, RoleEnum.JUDGE, RoleEnum.PARTICIPANT, RoleEnum.VIEWER];
+  roles = [ApiRole.ADMIN, ApiRole.JUDGE, ApiRole.PARTICIPANT, ApiRole.VIEWER];
 
-  defaultRole: RoleEnum = RoleEnum.VIEWER;
+  defaultRole: ApiRole = ApiRole.VIEWER;
 
   constructor(
     public dialogRef: MatDialogRef<AdminUserCreateOrEditDialogComponent>,

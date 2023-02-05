@@ -1,12 +1,12 @@
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ApiUser, UserRequest, UserService } from '../../../../openapi';
 import { MatDialog } from '@angular/material/dialog';
 import { AdminUserCreateOrEditDialogComponent } from '../admin-user-create-or-edit-dialog/admin-user-create-or-edit-dialog.component';
 import { filter, flatMap } from 'rxjs/operators';
 import { MatSort, Sort } from '@angular/material/sort';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { MatTableDataSource } from '@angular/material/table';
+import {ApiUser, UserRequest, UserService} from '../../../../openapi';
 
 @Component({
   selector: 'app-admin-user-list',
@@ -38,7 +38,7 @@ export class AdminUserListComponent implements AfterViewInit {
       .pipe(
         filter((r) => r != null),
         flatMap((u: UserRequest) => {
-          return this.userService.apiV2UserPost(u);
+          return this.userService.postApiV2User(u);
         })
       )
       .subscribe(
@@ -60,7 +60,7 @@ export class AdminUserListComponent implements AfterViewInit {
         filter((r) => r != null),
         flatMap((u: UserRequest) => {
           console.debug(`Edit Result: ${u}`);
-          return this.userService.apiV2UserUserIdPatch(user.id, u);
+          return this.userService.patchApiV2UseruserId(user.id, u);
         })
       )
       .subscribe(
@@ -74,9 +74,9 @@ export class AdminUserListComponent implements AfterViewInit {
       );
   }
 
-  public delete(userId: number) {
+  public delete(userId: string) {
     if (confirm(`Do you really want to delete user (${userId})?`)) {
-      this.userService.apiV2UserUserIdDelete(userId).subscribe(
+      this.userService.deleteApiV2UseruserId(userId).subscribe(
         (u: ApiUser) => {
           this.refresh();
           this.snackBar.open(`Success: ${u.username} (${u.id}) deleted`, null, { duration: 5000 });
@@ -89,7 +89,7 @@ export class AdminUserListComponent implements AfterViewInit {
   }
 
   public refresh() {
-    this.userService.apiV2UserListGet().subscribe(
+    this.userService.getApiV2UserList().subscribe(
       (users: ApiUser[]) => {
         this.dataSource.data = users;
         this.dataSource.sort = this.sort;

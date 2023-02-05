@@ -119,7 +119,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
 
   show(id: string) {
     this.collectionId.subscribe((collectionId) => {
-      window.open(this.mediaUrlForItem(collectionId, id), '_blank');
+      window.open(this.mediaUrlForItem(id), '_blank');
     });
   }
 
@@ -163,8 +163,8 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
   /**
    * Builds the routerLink array for the given id
    */
-  private mediaUrlForItem(collectionId: string, id: string) {
-    const url = this.config.resolveApiUrl(`media/${collectionId}/${id}`);
+  private mediaUrlForItem(id: string) {
+    const url = this.config.resolveApiUrl(`media/${id}`);
     console.log(url);
     return url;
   }

@@ -1,5 +1,6 @@
 package dev.dres.api.rest.types.evaluation
 
+import dev.dres.data.model.submissions.AnswerType
 import dev.dres.data.model.submissions.DbAnswerType
 
 /**
@@ -9,9 +10,12 @@ import dev.dres.data.model.submissions.DbAnswerType
  * @author Ralph Gasser
  * @version 1.0.0
  */
-enum class ApiAnswerType {
+enum class ApiAnswerType: AnswerType {
     ITEM, TEMPORAL, TEXT;
 
+    override fun eq(status: AnswerType.Type): Boolean {
+        return this.name == status.name
+    }
     /**
      * Converts this [ApiAnswerType] to a [DbAnswerType] representation. Requires an ongoing transaction.
      *

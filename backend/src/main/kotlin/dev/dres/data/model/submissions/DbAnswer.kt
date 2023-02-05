@@ -15,7 +15,7 @@ class DbAnswer(entity: Entity) : PersistentEntity(entity), Answer {
     var answerSet: DbAnswerSet by xdParent<DbAnswer,DbAnswerSet>(DbAnswerSet::answers)
 
     /** The [DbAnswerType] of this [DbAnswerSet]. */
-    var type by xdLink1(DbAnswerType)
+    override var type by xdLink1(DbAnswerType)
 
     /** The [DbMediaItem] submitted. Only for [DbAnswerType.ITEM] or [DbAnswerType.TEMPORAL]. */
     override var item by xdLink0_1(DbMediaItem)
@@ -32,7 +32,7 @@ class DbAnswer(entity: Entity) : PersistentEntity(entity), Answer {
 
 
     fun toApi() = ApiAnswer(
-        type = this.type.toApi(),
+        type = this.type,
         item = this.item?.toApi(),
         start = this.start,
         end = this.end,

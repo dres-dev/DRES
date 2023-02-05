@@ -3536,7 +3536,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "id", "name" ]
+        "required" : [ "name" ]
       },
       "ApiMediaItem" : {
         "type" : "object",
@@ -3977,7 +3977,7 @@
         "additionalProperties" : false,
         "properties" : {
           "type" : {
-            "$ref" : "#/components/schemas/ApiAnswerType"
+            "$ref" : "#/components/schemas/AnswerType"
           },
           "item" : {
             "$ref" : "#/components/schemas/ApiMediaItem"
@@ -3992,6 +3992,9 @@
           "end" : {
             "type" : "integer",
             "format" : "int64"
+          },
+          "temporalRange" : {
+            "$ref" : "#/components/schemas/TemporalRange"
           }
         },
         "required" : [ "type" ]
@@ -4011,10 +4014,6 @@
           }
         },
         "required" : [ "status", "answers" ]
-      },
-      "ApiAnswerType" : {
-        "type" : "string",
-        "enum" : [ "ITEM", "TEMPORAL", "TEXT" ]
       },
       "ApiEvaluationInfo" : {
         "type" : "object",
@@ -4749,6 +4748,28 @@
         },
         "required" : [ "timestamp", "sortType", "resultSetAvailability", "results", "events", "serverTimeStamp$backend" ]
       },
+      "TemporalPoint" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : { }
+      },
+      "TemporalRange" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "start" : {
+            "$ref" : "#/components/schemas/TemporalPoint"
+          },
+          "end" : {
+            "$ref" : "#/components/schemas/TemporalPoint"
+          },
+          "center" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "start", "end", "center" ]
+      },
       "RunProperties" : {
         "type" : "object",
         "additionalProperties" : false,
@@ -4768,6 +4789,11 @@
           }
         },
         "required" : [ "participantCanView", "shuffleTasks", "allowRepeatedTasks", "limitSubmissionPreviews" ]
+      },
+      "AnswerType" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : { }
       },
       "RunManagerStatus" : {
         "type" : "string",

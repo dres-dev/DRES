@@ -10,7 +10,12 @@ import dev.dres.data.model.media.DbMediaCollection
  * @author Ralph Gasser
  * @version 1.0
  */
-data class ApiMediaCollection(val id: CollectionId, val name: String, val description: String? = null, val basePath: String? = null) {
+data class ApiMediaCollection(
+
+    val id: CollectionId? = null, // or we create a ApiCreateMediaCollection dto ?
+    val name: String,
+    val description: String? = null,
+    val basePath: String? = null) {
     companion object {
         /**
          * Generates a [ApiMediaCollection] from a [DbMediaCollection] and returns it.

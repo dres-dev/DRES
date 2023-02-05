@@ -4,9 +4,7 @@
     <div mat-card-avatar>
       <mat-icon>person</mat-icon>
     </div>
-    <mat-card-title>
-      {{ (user | async)?.username }}
-    </mat-card-title>
+    <mat-card-title>{{(user | async)?.username}}</mat-card-title>
     <mat-card-subtitle> User Profile </mat-card-subtitle>
     <div *ngIf="isEditing()" class="spacer-flex"></div>
     <button *ngIf="!isEditing()" mat-icon-button class="flush-right" aria-label="Edit your profile" (click)="toggleEdit()">
@@ -37,7 +35,7 @@
       <p>
         <mat-form-field>
           <mat-label>SessionId:</mat-label>
-          <input matInput [value]="(sessionId | async)?.sessionId" disabled="true" />
+          <input matInput [value]="(user | async)?.sessionId" disabled="true" />
         </mat-form-field>
       </p>
     </form>

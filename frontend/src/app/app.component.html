@@ -12,11 +12,11 @@
     matTooltip="Competition builder and overview"
     routerLink="/competition/list"
   >
-    <mat-icon>build</mat-icon> Competition Builder
+    <mat-icon>build</mat-icon> Evaluation Template Builder
   </button>
 
   <button *ngIf="loggedIn | async" mat-button aria-label="Ongoing runs" matTooltip="Ongoing runs" routerLink="/run/list">
-    <mat-icon>directions_run</mat-icon> Competition Runs
+    <mat-icon>directions_run</mat-icon> Evaluations
   </button>
 
   <button *ngIf="isAdmin | async" mat-button aria-label="User Management" matTooltip="User Management" routerLink="/user/list">

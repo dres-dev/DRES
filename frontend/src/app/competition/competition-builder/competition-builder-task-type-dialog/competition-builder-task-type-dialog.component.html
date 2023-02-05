@@ -77,13 +77,6 @@
       <mat-list>
         <mat-list-item *ngFor="let parameter of form.get('parameters')['controls']">
           <mat-form-field style="width: 33%">
-            <mat-select placeholder="Domain" [formControl]="parameter.controls[0]">
-              <mat-option *ngFor="let domain of availableDomains()" [value]="domain">
-                {{ domain }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-          <mat-form-field style="width: 33%">
             <input type="text" matInput placeholder="Key" [formControl]="parameter.controls[1]" />
           </mat-form-field>
           <mat-form-field style="width: 33%">

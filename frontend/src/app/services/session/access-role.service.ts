@@ -1,23 +1,22 @@
 import { Injectable } from '@angular/core';
 import { AuthenticationService } from './authentication.sevice';
-import { ApiUser } from '../../../../openapi';
 import { UserGroup } from '../../model/user-group.model';
 import { BehaviorSubject } from 'rxjs';
-import RoleEnum = ApiUser.RoleEnum;
+import {ApiRole} from '../../../../openapi';
 
 @Injectable()
 export class AccessRoleService {
   static readonly VIEWER_GROUP = new UserGroup('viewer', [
-    RoleEnum.JUDGE,
-    RoleEnum.VIEWER,
-    RoleEnum.PARTICIPANT,
-    RoleEnum.ADMIN,
+    ApiRole.JUDGE,
+    ApiRole.VIEWER,
+    ApiRole.PARTICIPANT,
+    ApiRole.ADMIN,
   ]);
-  static readonly PARTICIPANT_GROUP = new UserGroup('participant', [RoleEnum.PARTICIPANT, RoleEnum.ADMIN]);
-  static readonly JUDGE_GROUP = new UserGroup('judge', [RoleEnum.JUDGE, RoleEnum.ADMIN]);
-  static readonly ADMIN_GROUP = new UserGroup('admin', [RoleEnum.ADMIN]);
+  static readonly PARTICIPANT_GROUP = new UserGroup('participant', [ApiRole.PARTICIPANT, ApiRole.ADMIN]);
+  static readonly JUDGE_GROUP = new UserGroup('judge', [ApiRole.JUDGE, ApiRole.ADMIN]);
+  static readonly ADMIN_GROUP = new UserGroup('admin', [ApiRole.ADMIN]);
 
-  private currentRole: BehaviorSubject<RoleEnum> = new BehaviorSubject<RoleEnum>(RoleEnum.VIEWER);
+  private currentRole: BehaviorSubject<ApiRole> = new BehaviorSubject<ApiRole>(ApiRole.VIEWER);
 
   constructor(private authenticationService: AuthenticationService) {
     this.authenticationService.role.subscribe(this.currentRole);

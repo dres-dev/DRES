@@ -20,7 +20,7 @@ import kotlinx.dnq.query.*
  */
 class AddMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), PostRestHandler<SuccessStatus> {
 
-    override val route: String = "mediaitem"
+    override val route: String = "mediaItem"
 
     @OpenApi(
         summary = "Adds a media item to the specified media collection.",

@@ -50,10 +50,10 @@ class UpdateMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHa
                 ?: throw ErrorStatusException(404, "Media item with ID ${mediaItem.id} not found.", ctx)
 
             item.type = mediaItem.type.toDb()
-            item.name = item.name
-            item.location = item.location
-            item.fps = item.fps
-            item.durationMs = item.durationMs
+            item.name = mediaItem.name
+            item.location = mediaItem.location
+            item.fps = mediaItem.fps
+            item.durationMs = mediaItem.durationMs
 
             SuccessStatus("Media item ${item.id} updated successfully.")
         }

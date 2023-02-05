@@ -45,8 +45,9 @@ class DeleteMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHa
         return this.store.transactional {
             val item = DbMediaItem.query(DbMediaItem::id eq mediaId).firstOrNull()
                 ?: throw ErrorStatusException(404, "Media item with ID $mediaId not found.", ctx)
+            val itemId = item.id
             item.delete()
-            SuccessStatus("Media item ${item.id} deleted successfully.")
+            SuccessStatus("Media item $itemId deleted successfully.")
         }
     }
 }

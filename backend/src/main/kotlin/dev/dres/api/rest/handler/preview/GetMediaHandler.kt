@@ -3,6 +3,7 @@ package dev.dres.api.rest.handler.preview
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
+import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.utilities.extensions.errorResponse
 import dev.dres.utilities.extensions.streamFile
@@ -12,6 +13,7 @@ import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
+import java.nio.file.Files
 import java.nio.file.Paths
 
 /**
@@ -52,16 +54,20 @@ class GetMediaHandler(private val store: TransientEntityStore) : GetRestHandler<
         }
 
         /* Lookup item by ID. */
-        val item = this.store.transactional(true) {
-            DbMediaItem.query(DbMediaItem::id eq itemId).firstOrNull()
+        val path = this.store.transactional(readonly = true) {
+            val item = this.store.transactional(true) {
+                DbMediaItem.query(DbMediaItem::id eq itemId).firstOrNull()
+            } ?: return@transactional null
+            Paths.get(item.collection.path).resolve(item.location)
         }
-        if (item == null) {
+
+        if (path == null || !Files.exists(path)) {
             ctx.errorResponse(404, "item with name $itemId found")
             return
         }
 
         try{
-            ctx.streamFile( Paths.get(item.collection.path).resolve(item.location))
+            ctx.streamFile( path )
         } catch (e: org.eclipse.jetty.io.EofException) {
             //is triggered by a client abruptly stopping playback, can be safely ignored
         }

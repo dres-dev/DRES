@@ -30,8 +30,9 @@ class DeleteCollectionHandler(store: TransientEntityStore) : AbstractCollectionH
     override fun doDelete(ctx: Context): SuccessStatus {
         val status = this.store.transactional {
             val collection = collectionFromContext(ctx)
+            val collectionId = collection.id
             collection.delete()
-            SuccessStatus("Collection ${collection.id} deleted successfully.")
+            SuccessStatus("Collection $collectionId deleted successfully.")
         }
         return status
     }

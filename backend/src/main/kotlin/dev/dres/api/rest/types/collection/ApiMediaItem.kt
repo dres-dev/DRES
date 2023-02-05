@@ -11,7 +11,7 @@ import dev.dres.data.model.media.MediaItem
  * @version 1.1.0
  */
 data class ApiMediaItem(
-    val id: String,
+    val id: String?,
     override val name: String,
     val type: ApiMediaType,
     val collectionId: String,

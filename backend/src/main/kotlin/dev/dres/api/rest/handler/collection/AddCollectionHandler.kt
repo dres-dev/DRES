@@ -45,13 +45,14 @@ class AddCollectionHandler(store: TransientEntityStore) : AbstractCollectionHand
             throw ErrorStatusException(400, "Invalid parameters, collection base path not set.", ctx)
         }
 
-        val collection = this.store.transactional {
+        val collectionId = this.store.transactional {
             DbMediaCollection.new {
                 this.name = restCollection.name
                 this.description = restCollection.description
                 this.path = restCollection.basePath.cleanPathString()
-            }
+            }.id
         }
-        return SuccessStatus("Collection ${collection.id} added successfully.")
+
+        return SuccessStatus("Collection $collectionId added successfully.")
     }
 }

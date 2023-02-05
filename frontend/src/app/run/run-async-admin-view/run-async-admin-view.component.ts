@@ -65,7 +65,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
             filter((q) => q != null)
           ),
           merge(timer(0, 1000), this.update).pipe(
-            switchMap((index) => this.runAdminService.getApiV2RunAdminrunIdOverview(runId))
+            switchMap((index) => this.runAdminService.getApiV2EvaluationAdminevaluationIdOverview(runId))
           ),
         ])
       ),

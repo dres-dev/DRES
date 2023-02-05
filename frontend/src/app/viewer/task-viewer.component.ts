@@ -90,7 +90,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     const currentTaskHint = this.taskChanged.pipe(
       withLatestFrom(this.runId),
       switchMap(([task, runId]) =>
-        this.runService.getApiV2RunevaluationIdHinttaskId(runId, task.id).pipe(
+        this.runService.getApiV2EvaluationevaluationIdHinttaskId(runId, task.id).pipe(
           catchError((e) => {
             console.error('[TaskViewerComponent] Could not load current query hint due to an error.', e);
             return of(null);
@@ -104,7 +104,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     const currentTaskTarget = this.state.pipe(
       filter(s => s.taskRunStatus == ApiTaskStatus.ENDED),
       switchMap((s) =>
-        this.runService.getApiV2RunevaluationIdHinttaskId(s.id, s.currentTask?.templateId).pipe(
+        this.runService.getApiV2EvaluationevaluationIdHinttaskId(s.id, s.currentTask?.templateId).pipe(
           catchError((e) => {
             console.error('[TaskViewerComponent] Could not load current task target due to an error.', e);
             return of(null);

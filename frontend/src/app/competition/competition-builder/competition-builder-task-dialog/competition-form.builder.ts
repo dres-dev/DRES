@@ -13,7 +13,6 @@ import {
   ApiTaskType, ApiTemporalPoint, ApiTemporalRange,
   CollectionService
 } from '../../../../../openapi';
-import {ApiComponentOption} from '../../../../../openapi/model/apiComponentOption';
 
 export class CompetitionFormBuilder {
   /** The default duration of a query hint. This is currently a hard-coded constant. */
@@ -123,15 +122,15 @@ export class CompetitionFormBuilder {
    *
    * @param type The {@link TaskType.TargetTypeEnum} to add a {@link FormGroup} for.
    */
-  public addTargetForm(type: ApiTargetOption) {
+  public addTargetForm(type: ApiTargetOption | 'MULTI') {
     const array = this.form.get('target') as FormArray;
     const newIndex = array.length;
     switch (type) {
       // FIXME to make compiler happy. obviously this is semantically not appropriate
-      /*case 'MULTIPLE_MEDIA_ITEMS':
+      case 'MULTI':
         const targetForm = this.singleMediaItemTargetForm(newIndex);
         array.push(targetForm);
-        return targetForm;*/
+        return targetForm;
       case 'TEXT':
         const form = this.singleTextTargetForm();
         array.push(form);

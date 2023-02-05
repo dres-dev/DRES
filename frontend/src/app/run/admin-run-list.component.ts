@@ -60,7 +60,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.runAdminService.postApiV2EvaluationAdminrunIdTerminate(runId).subscribe(
+        this.runAdminService.postApiV2EvaluationAdminevaluationIdTerminate(runId).subscribe(
           (r) => {
             this.update.next();
             this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -112,7 +112,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
       flatMap((t) => this.runService.getApiV2EvaluationInfoList()),
       map((runInfo) =>
         runInfo.map((run) =>
-          this.runAdminService.getApiV2RunAdminrunIdOverview(run.id).pipe(
+          this.runAdminService.getApiV2EvaluationAdminevaluationIdOverview(run.id).pipe(
             map((overview) => {
               return {
                 id: run.id,

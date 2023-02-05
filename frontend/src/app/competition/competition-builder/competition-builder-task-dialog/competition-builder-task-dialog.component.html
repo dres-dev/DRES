@@ -11,7 +11,7 @@
 
       <mat-form-field style="width: 40%" *ngIf="form.get('mediaCollection')">
         <mat-select
-          [placeholder]="(data.taskType.targetType.option === 'JUDGEMENT' ? 'Default ' : '') + 'Media Collection'"
+          [placeholder]="(data.taskType.targetOption === 'JUDGEMENT' ? 'Default ' : '') + 'Media Collection'"
           [formControl]="form.get('mediaCollection')"
         >
           <mat-option *ngFor="let mediaCollection of mediaCollectionSource | async" [value]="mediaCollection.id">
@@ -29,17 +29,18 @@
     <div *ngIf="form.get('mediaCollection').value">
       <h2>
         Target
+        <!-- <button FIXME multiple default
+          *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'" -->
         <button
-          *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'"
           mat-button
           aria-label="Add query target."
           matTooltip="Add query target."
-          (click)="addQueryTarget('MULTIPLE_MEDIA_ITEMS')"
+          (click)="addQueryTarget()"
         >
           <mat-icon>add</mat-icon>
         </button>
         <button
-          *ngIf="data.taskType.targetType.option === 'TEXT'"
+          *ngIf="data.taskType.targetOption === 'TEXT'"
           mat-button
           aria-label="Add target text."
           matTooltip="Add target text."
@@ -47,8 +48,11 @@
         >
           <mat-icon>add</mat-icon>
         </button>
+        <!-- <mat-button-toggle-group
+         FIXME multiple is currently default? -->
+          <!-- *ngIf="data.taskType.targetType.option == 'MULTIPLE_MEDIA_ITEMS'" -->
         <mat-button-toggle-group
-          *ngIf="data.taskType.targetType.option == 'MULTIPLE_MEDIA_ITEMS'"
+
           #group="matButtonToggleGroup"
           [(value)]="viewLayout"
         >
@@ -59,8 +63,10 @@
             <mat-icon>grid_on</mat-icon>
           </mat-button-toggle>
         </mat-button-toggle-group>
+        <!-- <button FIXME multiple is default?
+          *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'" -->
         <button
-          *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'"
+
           mat-button
           aria-label="Batch Target Add"
           matTooltip="Batch Target Add"
@@ -88,7 +94,7 @@
             <mat-grid-tile-footer>
               <p>
                 <mat-form-field
-                  *ngIf="target.get('mediaItem') && data.taskType.targetType.option !== 'TEXT'"
+                  *ngIf="target.get('mediaItem') && data.taskType.targetOption !== 'TEXT'"
                   [style]="isImageMediaItem(target.get('mediaItem').value) ? 'width: 95%;' : 'width: 100%;'"
                 >
                   <input
@@ -121,7 +127,7 @@
                   </mat-error>
                 </mat-form-field>
                 <mat-form-field
-                  *ngIf="target.get('mediaItem') && data.taskType.targetType.option === 'TEXT'"
+                  *ngIf="target.get('mediaItem') && data.taskType.targetOption === 'TEXT'"
                   [style]="'width: 100%;'"
                 >
                   <input type="text" matInput placeholder="Target Text" [formControl]="target.get('mediaItem')" />
@@ -192,8 +198,9 @@
             </mat-grid-tile-footer>
             <mat-grid-tile-header style="text-align: right">
               <!-- remove button -->
+              <!-- FIXME multiple is default now? -->
               <div
-                *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS' || data.taskType.targetType.option === 'TEXT'"
+                *ngIf="data.taskType.targetOption === 'TEXT'"
               >
                 <button
                   mat-icon-button
@@ -213,7 +220,7 @@
           <div style="flex-basis: 100%; flex-grow: 1">
             <p>
               <mat-form-field
-                *ngIf="target.get('mediaItem') && data.taskType.targetType.option !== 'TEXT'"
+                *ngIf="target.get('mediaItem') && data.taskType.targetOption !== 'TEXT'"
                 [style]="isImageMediaItem(target.get('mediaItem').value) ? 'width: 95%;' : 'width: 100%;'"
               >
                 <input
@@ -246,7 +253,7 @@
                 </mat-error>
               </mat-form-field>
               <mat-form-field
-                *ngIf="target.get('mediaItem') && data.taskType.targetType.option === 'TEXT'"
+                *ngIf="target.get('mediaItem') && data.taskType.targetOption === 'TEXT'"
                 [style]="'width: 100%;'"
               >
                 <input
@@ -347,8 +354,10 @@
               ></app-video-player-segment-builder>
             </div>
           </div>
-          <div class="spacer-flex" *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'"></div>
-          <div *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS' || data.taskType.targetType.option === 'TEXT'">
+          <!--<div class="spacer-flex" *ngIf="data.taskType.targetType.option === 'MULTIPLE_MEDIA_ITEMS'"></div> FIXME multiple is default now? -->
+          <div class="spacer-flex" *ngIf="true"></div>
+          <!--<div *ngIf="data.taskType.targetOption === 'MULTIPLE_MEDIA_ITEMS' || data.taskType.targetOption === 'TEXT'"> FIXME multiple is default now? -->
+          <div *ngIf="data.taskType.targetOption === 'TEXT'">
             <button
               mat-icon-button
               (click)="removeQueryTarget(i)"
@@ -374,8 +383,8 @@
           <mat-icon>add</mat-icon>
         </button>
         <mat-menu #componentsMenu="matMenu">
-          <button *ngFor="let compType of data.taskType.components" mat-menu-item (click)="addQueryComponent(compType.option)">
-            Add {{ compType.option.replace('_', ' ') | titlecase }}
+          <button *ngFor="let compType of data.taskType.hintOptions" mat-menu-item (click)="addQueryComponent(compType)">
+            Add {{ compType.replace('_', ' ') | titlecase }}
           </button>
         </mat-menu>
       </h2>

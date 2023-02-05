@@ -10,7 +10,6 @@ import {MatDialog} from '@angular/material/dialog';
 import {JudgementDialogComponent} from './judgement-dialog/judgement-dialog.component';
 import {JudgementDialogContent} from './judgement-dialog/judgement-dialog-content.model';
 import {ApiJudgement, ApiJudgementRequest, ApiVerdictStatus, JudgementService} from '../../../openapi';
-import {ApiVerdict} from '../../../openapi/model/apiVerdict';
 
 /**
  * This component subscribes to the websocket for submissions.
@@ -224,7 +223,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
             verdict: status,
         } as ApiJudgement;
         this.runId
-            .pipe(switchMap((runId) => this.judgementService.postApiV2RunrunIdJudge(runId, judgement)),
+            .pipe(switchMap((runId) => this.judgementService.postApiV2EvaluationevaluationIdJudge(runId, judgement)),
                 catchError((err) => {
                     const httperr = err as HttpErrorResponse;
                     if (httperr) {

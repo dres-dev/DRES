@@ -106,7 +106,7 @@ export class AbstractRunListComponent {
   }
 
   public nextTask(runId: string) {
-    this.runAdminService.postApiV2EvaluationAdminrunIdTaskNext(runId).subscribe(
+    this.runAdminService.postApiV2EvaluationAdminevaluationIdTaskNext(runId).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });

@@ -68,7 +68,7 @@ export class RunAdminToolbarComponent implements OnInit {
       .subscribe((result) => {
         if (result) {
           const runId = this.runId.value;
-          this.runAdminService.postApiV2EvaluationAdminrunIdTerminate(runId).subscribe(
+          this.runAdminService.postApiV2EvaluationAdminevaluationIdTerminate(runId).subscribe(
             (r) => {
               this.update.next();
               this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });

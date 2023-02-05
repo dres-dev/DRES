@@ -108,7 +108,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     /* Create source observable; list of all submissions.  */
     this.submissions = this.state.pipe(
       switchMap((st) =>
-        this.evaluationService.getApiV2EvaluationevaluationIdSubmissionListtimestamp(st.id).pipe(
+        this.evaluationService.getApiV2EvaluationevaluationIdSubmissionList(st.id).pipe(
           retry(3),
           catchError((err, o) => {
             console.log(`[TeamsViewerComponent] Error while loading submissions: ${err?.message}.`);

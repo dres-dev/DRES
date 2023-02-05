@@ -12,6 +12,7 @@ import {
 } from './advanced-builder-dialog/advanced-builder-dialog.component';
 import { TimeUtilities } from '../../../utilities/time.utilities';
 import {
+  ApiHintOption,
   ApiMediaCollection,
   ApiMediaItem,
   ApiTargetOption,
@@ -20,7 +21,6 @@ import {
   ApiTaskType, ApiTemporalPoint, ApiTemporalRange, ApiTemporalUnit,
   CollectionService
 } from '../../../../../openapi';
-import {ApiComponentOption} from '../../../../../openapi/model/apiComponentOption';
 
 /**
  * Its expected that the taskGroup and taskType properties are correctly given
@@ -78,7 +78,7 @@ export class CompetitionBuilderTaskDialogComponent {
   /**
    * Handler for (+) button for query target form component.
    */
-  public addQueryTarget(targetType: ApiTargetOption) {
+  public addQueryTarget(targetType: ApiTargetOption | 'MULTI' = 'MULTI') {
     this.builder.addTargetForm(targetType);
   }
 
@@ -94,7 +94,7 @@ export class CompetitionBuilderTaskDialogComponent {
   /**
    * Handler for (+) button for query hint form component.
    */
-  public addQueryComponent(componentType: ApiComponentOption, previous: number = null) {
+  public addQueryComponent(componentType: ApiHintOption, previous: number = null) {
     this.builder.addComponentForm(componentType, previous);
   }
 

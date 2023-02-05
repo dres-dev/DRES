@@ -138,7 +138,7 @@ export class RunAdminViewComponent {
             filter((q) => q != null)
           ),
           merge(timer(0, 1000), this.update).pipe(
-            switchMap((index) => this.runAdminService.getApiV2RunAdminrunIdOverview(runId))
+            switchMap((index) => this.runAdminService.getApiV2EvaluationAdminevaluationIdOverview(runId))
           ),
         ])
       ),
@@ -154,14 +154,14 @@ export class RunAdminViewComponent {
 
     this.teams = this.run.pipe(
       switchMap((runAndInfo) => {
-        return this.competitionService.getApiV2CompetitiontemplateIdTeamList(runAndInfo.info.templateId);
+        return this.competitionService.getApiV2TemplatetemplateIdTeamList(runAndInfo.info.templateId);
       }),
       shareReplay({ bufferSize: 1, refCount: true })
     );
   }
 
   public nextTask() {
-    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminrunIdTaskNext(id))).subscribe(
+    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminevaluationIdTaskNext(id))).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -238,7 +238,7 @@ export class RunAdminViewComponent {
 
   public adjustDuration(duration: number) {
     this.runId
-      .pipe(switchMap((id) => this.runAdminService.postApiV2RunAdminrunIdAdjustduration(id, duration)))
+      .pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminevaluationIdAdjustduration(id, duration)))
       .subscribe(
         (r) => {
           this.update.next();

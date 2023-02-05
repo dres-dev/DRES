@@ -116,13 +116,13 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
         logger.info("Submission ${s.id} received status $r.")
 
         return when (r) {
-            DbVerdictStatus.CORRECT -> SuccessfulSubmissionsStatus(DbVerdictStatus.CORRECT, "Submission correct!")
-            DbVerdictStatus.WRONG -> SuccessfulSubmissionsStatus(DbVerdictStatus.WRONG, "Submission incorrect! Try again")
+            DbVerdictStatus.CORRECT -> SuccessfulSubmissionsStatus(DbVerdictStatus.CORRECT.toApi(), "Submission correct!")
+            DbVerdictStatus.WRONG -> SuccessfulSubmissionsStatus(DbVerdictStatus.WRONG.toApi(), "Submission incorrect! Try again")
             DbVerdictStatus.INDETERMINATE -> {
                 ctx.status(202) /* HTTP Accepted. */
-                SuccessfulSubmissionsStatus(DbVerdictStatus.INDETERMINATE, "Submission received. Waiting for verdict!")
+                SuccessfulSubmissionsStatus(DbVerdictStatus.INDETERMINATE.toApi(), "Submission received. Waiting for verdict!")
             }
-            DbVerdictStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(DbVerdictStatus.UNDECIDABLE,"Submission undecidable. Try again!")
+            DbVerdictStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(DbVerdictStatus.UNDECIDABLE.toApi(),"Submission undecidable. Try again!")
             else -> throw ErrorStatusException(500, "Unsupported submission status. This is very unusual!", ctx)
         }
     }

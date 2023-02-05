@@ -5752,7 +5752,7 @@
         "additionalProperties" : false,
         "properties" : {
           "verdict" : {
-            "$ref" : "#/components/schemas/DbVerdictStatus"
+            "$ref" : "#/components/schemas/ApiVerdictStatus"
           }
         },
         "required" : [ "verdict" ]
@@ -5791,7 +5791,7 @@
             "type" : "boolean"
           },
           "submission" : {
-            "$ref" : "#/components/schemas/DbVerdictStatus"
+            "$ref" : "#/components/schemas/ApiVerdictStatus"
           },
           "description" : {
             "type" : "string"
@@ -6114,37 +6114,6 @@
         },
         "required" : [ "participantCanView", "shuffleTasks", "allowRepeatedTasks", "limitSubmissionPreviews" ]
       },
-      "DbVerdictStatus" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "entityId" : {
-            "$ref" : "#/components/schemas/EntityId"
-          },
-          "xdId" : {
-            "type" : "string"
-          },
-          "new" : {
-            "type" : "boolean"
-          },
-          "removed" : {
-            "type" : "boolean"
-          },
-          "entity" : {
-            "$ref" : "#/components/schemas/Entity"
-          },
-          "name" : {
-            "type" : "string"
-          },
-          "displayName" : {
-            "type" : "string"
-          },
-          "description" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "entityId", "xdId", "new", "removed", "entity", "name", "displayName", "description" ]
-      },
       "RunManagerStatus" : {
         "type" : "string",
         "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
@@ -6152,203 +6121,6 @@
       "TaskStatus" : {
         "type" : "string",
         "enum" : [ "CREATED", "PREPARING", "RUNNING", "ENDED" ]
-      },
-      "Comparable" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : { }
-      },
-      "ByteIterable" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "bytesUnsafe" : {
-            "type" : "string",
-            "format" : "binary"
-          },
-          "length" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        },
-        "required" : [ "length" ]
-      },
-      "Entity" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "store" : {
-            "$ref" : "#/components/schemas/EntityStore"
-          },
-          "id" : {
-            "$ref" : "#/components/schemas/EntityId"
-          },
-          "type" : {
-            "type" : "string"
-          },
-          "rawProperty" : {
-            "$ref" : "#/components/schemas/ByteIterable"
-          },
-          "property" : {
-            "$ref" : "#/components/schemas/Comparable"
-          },
-          "propertyNames" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          },
-          "blob" : {
-            "type" : "string",
-            "format" : "binary"
-          },
-          "blobSize" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "blobString" : {
-            "type" : "string"
-          },
-          "blobNames" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          },
-          "link" : {
-            "$ref" : "#/components/schemas/Entity"
-          },
-          "links" : {
-            "$ref" : "#/components/schemas/EntityIterable"
-          },
-          "linkNames" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          }
-        },
-        "required" : [ "store", "id", "type", "propertyNames", "blobSize", "blobNames", "links", "links", "linkNames" ]
-      },
-      "EntityId" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "typeId" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "localId" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        },
-        "required" : [ "typeId", "localId" ]
-      },
-      "EntityIterable" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "transaction" : {
-            "$ref" : "#/components/schemas/StoreTransaction"
-          },
-          "empty" : {
-            "type" : "boolean"
-          },
-          "roughCount" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "roughSize" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "first" : {
-            "$ref" : "#/components/schemas/Entity"
-          },
-          "last" : {
-            "$ref" : "#/components/schemas/Entity"
-          },
-          "sortResult" : {
-            "type" : "boolean"
-          }
-        },
-        "required" : [ "transaction", "empty", "roughCount", "roughSize", "sortResult" ]
-      },
-      "EntityStore" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "name" : {
-            "type" : "string"
-          },
-          "location" : {
-            "type" : "string"
-          },
-          "currentTransaction" : {
-            "$ref" : "#/components/schemas/StoreTransaction"
-          }
-        },
-        "required" : [ "name", "location" ]
-      },
-      "QueryCancellingPolicy" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : { }
-      },
-      "Sequence" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        },
-        "required" : [ "" ]
-      },
-      "StoreTransaction" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "store" : {
-            "$ref" : "#/components/schemas/EntityStore"
-          },
-          "idempotent" : {
-            "type" : "boolean"
-          },
-          "readonly" : {
-            "type" : "boolean"
-          },
-          "finished" : {
-            "type" : "boolean"
-          },
-          "snapshot" : {
-            "$ref" : "#/components/schemas/StoreTransaction"
-          },
-          "entity" : {
-            "$ref" : "#/components/schemas/Entity"
-          },
-          "entityTypes" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          },
-          "all" : {
-            "$ref" : "#/components/schemas/EntityIterable"
-          },
-          "singletonIterable" : {
-            "$ref" : "#/components/schemas/EntityIterable"
-          },
-          "sequence" : {
-            "$ref" : "#/components/schemas/Sequence"
-          },
-          "queryCancellingPolicy" : {
-            "$ref" : "#/components/schemas/QueryCancellingPolicy"
-          }
-        },
-        "required" : [ "store", "idempotent", "readonly", "finished", "entity", "entityTypes", "all", "singletonIterable", "sequence", "sequence" ]
       }
     },
     "securitySchemes" : { }

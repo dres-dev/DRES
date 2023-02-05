@@ -50,7 +50,7 @@ class PostVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(sto
             val validator = evaluationManager.judgementValidators.find { it is VoteValidator && it.isActive } // Get first active vote validator
                 ?: throw ErrorStatusException(404, "There is currently no voting going on in evaluation ${evaluationManager.id}.", ctx)
             validator as VoteValidator
-            validator.vote(vote.verdict)
+            validator.vote(vote.verdict.toDb())
         }
         return SuccessStatus("vote received")
     }

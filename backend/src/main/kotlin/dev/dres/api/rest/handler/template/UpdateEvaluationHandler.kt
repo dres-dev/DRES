@@ -32,7 +32,7 @@ import java.io.ByteArrayInputStream
  */
 class UpdateEvaluationHandler(store: TransientEntityStore, val config: Config) : AbstractEvaluationTemplateHandler(store), PatchRestHandler<SuccessStatus> {
 
-    override val route: String = "template"
+    override val route: String = "template/{templateId}"
 
     @OpenApi(
             summary = "Updates an existing evaluation template.",

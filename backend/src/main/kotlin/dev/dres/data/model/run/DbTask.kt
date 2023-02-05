@@ -2,6 +2,7 @@ package dev.dres.data.model.run
 
 import dev.dres.api.rest.types.evaluation.ApiTask
 import dev.dres.data.model.PersistentEntity
+import dev.dres.data.model.submissions.AnswerSet
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbAnswerSet
@@ -9,8 +10,8 @@ import dev.dres.data.model.template.team.DbTeam
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.sortedBy
 
-typealias EvaluationId = String
 
 /**
  * Represents a [DbTask], i.e., a concrete instance of a [DbTaskTemplate], as executed by DRES.
@@ -18,19 +19,19 @@ typealias EvaluationId = String
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class DbTask(entity: Entity) : PersistentEntity(entity) {
+class DbTask(entity: Entity) : PersistentEntity(entity), Task {
     companion object : XdNaturalEntityType<DbTask>()
 
     /** The [EvaluationId] of this [DbTask]. */
-    var taskId: EvaluationId
+    override var taskId: TaskId
         get() = this.id
         set(value) { this.id = value }
 
     /** Timestamp of when this [DbEvaluation] started. */
-    var started by xdRequiredLongProp()
+    override var started by xdRequiredLongProp()
 
     /** Timestamp of when this [DbEvaluation] ended. */
-    var ended by xdNullableLongProp()
+    override var ended by xdNullableLongProp()
 
     /** The [DbTaskTemplate] this [DbTask] is an instance of. */
     var template by xdLink1(DbTaskTemplate)
@@ -42,7 +43,9 @@ class DbTask(entity: Entity) : PersistentEntity(entity) {
     var evaluation: DbEvaluation by xdParent<DbTask,DbEvaluation>(DbEvaluation::tasks)
 
     /** List of [DbSubmission]s received by this [DbTask]. */
-    val submissions by xdChildren0_N<DbTask,DbAnswerSet>(DbAnswerSet::task)
+    val answerSets by xdChildren0_N<DbTask,DbAnswerSet>(DbAnswerSet::task)
+
+    override fun answerSets(): Sequence<AnswerSet> = answerSets.asSequence() //TODO can this be sorted by submission timestamp?
 
     /**
      * Converts this [DbTask] to a RESTful API representation [ApiTask].
@@ -56,6 +59,6 @@ class DbTask(entity: Entity) : PersistentEntity(entity) {
         templateId = this.template.id,
         started = this.started,
         ended = this.ended,
-        submissions = this.submissions.asSequence().map { it.toApi() }.toList()
+        submissions = this.answerSets.asSequence().map { it.toApi() }.toList()
     )
 }

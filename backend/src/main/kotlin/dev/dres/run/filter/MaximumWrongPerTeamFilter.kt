@@ -2,6 +2,8 @@ package dev.dres.run.filter
 
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.VerdictStatus
 import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.size
@@ -18,9 +20,9 @@ class MaximumWrongPerTeamFilter(private val max: Int = Int.MAX_VALUE) : Submissi
     /**
      * TODO: This filter now takes all [Verdict]s into account. Is this desired behaviour?
      */
-    override fun test(submission: DbSubmission): Boolean {
-        return submission.answerSets.asSequence().all { v ->
-            v.task.submissions.filter { (it.submission.team.id eq submission.team.id) and (it.status eq DbVerdictStatus.WRONG) }.size() < max
+    override fun test(submission: Submission): Boolean {
+        return submission.answerSets().all { answerSet ->
+            answerSet.task.answerSets().filter { (it.submission.team == submission.team) and (it.status eq VerdictStatus.Status.WRONG) }.count() < max
         }
     }
 }

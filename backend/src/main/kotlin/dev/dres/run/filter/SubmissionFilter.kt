@@ -1,17 +1,18 @@
 package dev.dres.run.filter
 
 import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.Submission
 import org.slf4j.LoggerFactory
 import java.util.function.Predicate
 
 /**
- * A [Predicate] that can be used to filter [DbSubmission]'s prior to them being processed
- * by the [DbSubmission] evaluation pipeline.
+ * A [Predicate] that can be used to filter [Submission]'s prior to them being processed
+ * by the [Submission] evaluation pipeline.
  *
  * @author Ralph Gasser
  * @version 1.1.0
  */
-interface SubmissionFilter : Predicate<DbSubmission> {
+interface SubmissionFilter : Predicate<Submission> {
     companion object {
         private val LOGGER = LoggerFactory.getLogger(this::class.java)
     }
@@ -24,7 +25,7 @@ interface SubmissionFilter : Predicate<DbSubmission> {
      * @param submission The [DbSubmission] to check.
      * @throws SubmissionRejectedException on failure
      */
-    fun acceptOrThrow(submission: DbSubmission) {
+    fun acceptOrThrow(submission: Submission) {
         if (!this.test(submission)) {
             LOGGER.info("Submission $${submission.submissionId} was rejected by filter: $reason")
             throw SubmissionRejectedException(submission, reason)

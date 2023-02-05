@@ -19,7 +19,6 @@ import {
 import { webSocket, WebSocketSubject, WebSocketSubjectConfig } from 'rxjs/webSocket';
 import { AppConfig } from '../app.config';
 import { IWsMessage } from '../model/ws/ws-message.interface';
-import { EvaluationService, ApiEvaluationInfo, ApiEvaluationState, TaskInfo } from '../../../openapi';
 import { IWsServerMessage } from '../model/ws/ws-server-message.interface';
 import { IWsClientMessage } from '../model/ws/ws-client-message.interface';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -27,6 +26,7 @@ import { Position } from './model/run-viewer-position';
 import { Widget } from './model/run-viewer-widgets';
 import { DOCUMENT } from '@angular/common';
 import {Title} from '@angular/platform-browser';
+import {ApiEvaluationInfo, ApiEvaluationState, ApiTaskTemplateInfo, EvaluationService} from '../../../openapi';
 
 @Component({
   selector: 'app-run-viewer',
@@ -50,13 +50,13 @@ export class RunViewerComponent implements OnInit, OnDestroy {
   runState: Observable<ApiEvaluationState>;
 
   /** Observable that fires whenever a task starts. Emits the task description of the task that just started. */
-  taskStarted: Observable<TaskInfo>;
+  taskStarted: Observable<ApiTaskTemplateInfo>;
 
   /** Observable that fires whenever a task changes. Emits the task description of the new task. */
-  taskChanged: Observable<TaskInfo>;
+  taskChanged: Observable<ApiTaskTemplateInfo>;
 
   /** Observable that fires whenever a task ends. Emits the task description of the task that just ended. */
-  taskEnded: Observable<TaskInfo>;
+  taskEnded: Observable<ApiTaskTemplateInfo>;
   /** Observable of the {@link Widget} that should be displayed on the left-hand side. */
   leftWidget: Observable<Widget>;
   /** Observable of the {@link Widget} that should be displayed on the right-hand side. */
@@ -134,7 +134,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     /* Basic observable for general run info; this information is static and does not change over the course of a run. */
     this.runInfo = this.runId.pipe(
       switchMap((runId) =>
-        this.runService.apiV2EvaluationEvaluationIdInfoGet(runId).pipe(
+        this.runService.getApiV2EvaluationevaluationIdInfo(runId).pipe(
           catchError((err, o) => {
             console.log(
               `[RunViewerComponent] There was an error while loading information in the current run: ${err?.message}`
@@ -199,7 +199,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     this.runState = merge(this.runId, wsMessages).pipe(
       sampleTime(500) /* State updates are triggered only once every 500ms. */,
       switchMap((runId) =>
-        this.runService.apiV2EvaluationEvaluationIdStateGet(runId).pipe(
+        this.runService.getApiV2EvaluationevaluationIdState(runId).pipe(
           catchError((err, o) => {
             console.log(
               `[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`

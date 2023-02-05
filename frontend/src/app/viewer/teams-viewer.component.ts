@@ -8,20 +8,19 @@ import {
     OnDestroy,
     ViewChild,
 } from '@angular/core';
-import {
-    CompetitionRunScoresService,
-    EvaluationService,
-    ApiEvaluationInfo,
-    ApiEvaluationState,
-    ApiScoreOverview,
-    ApiSubmissionInfo,
-    ApiTeamInfo,
-} from '../../../openapi';
 import {BehaviorSubject, combineLatest, merge, Observable, of, Subscription} from 'rxjs';
 import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, withLatestFrom,} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
 import {animate, keyframes, style, transition, trigger} from '@angular/animations';
+import {
+    ApiEvaluationInfo,
+    ApiEvaluationState, ApiScoreOverview,
+    ApiSubmissionInfo,
+    ApiTaskTemplateInfo, ApiTeam,
+    EvaluationScoresService,
+    EvaluationService
+} from 'openapi';
 
 /**
  * Internal helper interface.
@@ -67,7 +66,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
   @Input() runId: Observable<string>;
   @Input() info: Observable<ApiEvaluationInfo>;
   @Input() state: Observable<ApiEvaluationState>;
-  @Input() taskEnded: Observable<TaskInfo>;
+  @Input() taskEnded: Observable<ApiTaskTemplateInfo>;
 
   /** Observable that tracks all the submissions. */
   submissions: Observable<ApiSubmissionInfo[]>;
@@ -95,7 +94,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private evaluationService: EvaluationService,
-    private scoresService: CompetitionRunScoresService,
+    private scoresService: EvaluationScoresService,
     private ref: ChangeDetectorRef,
     public config: AppConfig
   ) {
@@ -109,7 +108,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     /* Create source observable; list of all submissions.  */
     this.submissions = this.state.pipe(
       switchMap((st) =>
-        this.evaluationService.apiV2EvaluationEvaluationIdSubmissionListTimestampGet(st.id).pipe(
+        this.evaluationService.getApiV2EvaluationevaluationIdSubmissionListtimestamp(st.id).pipe(
           retry(3),
           catchError((err, o) => {
             console.log(`[TeamsViewerComponent] Error while loading submissions: ${err?.message}.`);
@@ -127,8 +126,9 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
         const submissionsPerTeam = new Map<string, ApiSubmissionInfo[]>();
         info.teams.forEach((t) => {
           submissionsPerTeam.set(
-            t.uid,
-            submissions.filter((s) => s.teamId === t.uid)
+            t.id,
+              // FIXME compiler happiness: here a lot has changed and requires rework / rewriting.
+            submissions.filter((s) => 'submissionsTeamId' === t.id)
           );
         });
         return submissionsPerTeam;
@@ -139,7 +139,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     /* Observable that tracks the current score per team. */
     this.scores = this.state.pipe(
       switchMap((st) =>
-        this.scoresService.getApiV1ScoreRunWithRunidCurrent(st.id).pipe(
+        this.scoresService.getApiV2ScoreEvaluationevaluationIdCurrent(st.id).pipe(
           retry(3),
           catchError((err, o) => {
             console.log(`[TeamsViewerComponent] Error while loading scores: ${err?.message}.`);
@@ -157,6 +157,8 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     );
 
     /* Observable that calculates changes to the submission every 250ms (for sound effects playback). */
+      // FIXME compiler happiness: here a lot has changed and requires rework / rewriting.
+      /*
     const submissionDelta: Observable<Map<string, SubmissionDelta>> = this.submissionsPerTeam.pipe(
       pairwise(),
       map(([s1, s2]) => {
@@ -176,8 +178,10 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
         return delta;
       })
     );
-
+*/
     /* Observable that indicates whether a certain team has new submissions. */
+      // FIXME compiler happiness: here a lot has changed and requires rework / rewriting.
+      /*
     this.highlight = merge(
       submissionDelta.pipe(
         map((delta) => {
@@ -204,9 +208,11 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
           return hightlight;
         })
       )
-    ).pipe(shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading of score. */);
+    ).pipe(shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading of score. *///);
 
     /* Subscription for end of task (used to play sound effects). */
+      // FIXME compiler happiness: here a lot has changed and requires rework / rewriting.
+      /*
     this.taskEndedSoundEffect = this.taskEnded
       .pipe(
         withLatestFrom(this.submissions),
@@ -228,6 +234,8 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
           }
         }
       });
+
+       */
   }
 
   public ngOnDestroy(): void {
@@ -239,21 +247,24 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
    * Generates a URL for the preview image of a submission.
    */
   public previewForSubmission(submission: ApiSubmissionInfo): Observable<string> {
-    return this.runId.pipe(map((runId) => this.config.resolveApiUrl(`/preview/submission/${runId}/${submission.id}`)));
+      // FIXME compiler happiness: here a lot has changed and requires rework / rewriting.
+    return this.runId.pipe(map((runId) => this.config.resolveApiUrl(`/preview/submission/${runId}/${submission.taskId}`)));
   }
 
   /**
    * Generates a URL for the preview image of a submission.
    */
   public tooltipForSubmission(submission: ApiSubmissionInfo): string {
-    return submission.text == null ? '' : submission.text;
+      // FIXME compiler happiness: here a lot has changed and requires rework / rewriting.
+      // return submission.text == null ? '' : submission.text;
+      return 'TODO IMPLEMENT'
   }
 
   /**
    * Generates a URL for the logo of the team.
    */
-  public teamLogo(team: ApiTeamInfo): string {
-    return this.config.resolveApiUrl(`/competition/logo/${team.logoId}`);
+  public teamLogo(team: ApiTeam): string {
+    return this.config.resolveApiUrl(`/competition/logo/${team.logoData}`);
   }
 
   /**
@@ -293,7 +304,8 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
       }
 
       let time = Date.now();
-      let id = sub?.id;
+        // FIXME compiler happiness: here a lot has changed and requires rework / rewriting.
+      let id = sub?.taskId;
       if (!this.lastTrackMap.has(id) || this.lastTrackMap.get(id) < time ) {
           this.lastTrackMap.set(id, time + timeout)
       }
@@ -306,9 +318,12 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
   * @param teamId The teamId of the team.
   */
   public correctSubmissions(teamId: string): Observable<number> {
-    return this.submissionsPerTeam.pipe(
+      return of(-1);
+     // FIXME compiler happiness: here a lot has changed and requires rework / rewriting.
+    /*
+     return this.submissionsPerTeam.pipe(
       map((submissions) => submissions.get(teamId).filter((s) => s.status === 'CORRECT').length)
-    );
+    );*/
   }
 
  /**
@@ -317,9 +332,12 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
   * @param teamId The teamId of the team.
   */
   public wrongSubmissions(teamId: string): Observable<number> {
+      return of(-1);
+     // FIXME compiler happiness: here a lot has changed and requires rework / rewriting.
+     /*
     return this.submissionsPerTeam.pipe(
       map((submissions) => submissions.get(teamId).filter((s) => s.status === 'WRONG').length)
-    );
+    );*/
   }
 
  /**
@@ -328,8 +346,11 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
   * @param teamId The teamId of the team.
   */
   public indeterminate(teamId: string): Observable<number> {
+     // FIXME compiler happiness: here a lot has changed and requires rework / rewriting.
+     return of(-1);
+     /*
     return this.submissionsPerTeam.pipe(
       map((submissions) => submissions.get(teamId).filter((s) => s.status === 'INDETERMINATE').length)
-    );
+    );*/
   }
 }

@@ -1,5 +1,4 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { CompetitionRunScoresService, ApiEvaluationInfo, ApiEvaluationState, ApiScore, ApiScoreOverview, ApiTeamInfo } from '../../../../openapi';
 import { combineLatest, concat, Observable, of } from 'rxjs';
 import {
   ApexAxisChartSeries,
@@ -13,6 +12,7 @@ import {
   ChartComponent
 } from 'ng-apexcharts';
 import { catchError, map, switchMap } from 'rxjs/operators';
+import {ApiEvaluationInfo, ApiEvaluationState, ApiScore, ApiScoreOverview, ApiTeamInfo, EvaluationScoresService} from '../../../../openapi';
 
 /**
  * Component displaying a lovely scoreboard.
@@ -96,7 +96,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
   // TODO Make this somewhat more beautiful and configurable
   private ignoreScores = ['average'];
 
-  constructor(public scoreService: CompetitionRunScoresService) {}
+  constructor(public scoreService: EvaluationScoresService) {}
 
   ngOnInit(): void {
     /* Create observable from teams. */
@@ -121,7 +121,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
     /* Download scores. */
     const score = this.state.pipe(
       switchMap((s) => {
-        return this.scoreService.getApiV1ScoreRunWithRunidCurrent(s.id).pipe(
+        return this.scoreService.getApiV2ScoreEvaluationevaluationIdCurrent(s.id).pipe(
           catchError((err) => {
             console.log('Error when retrieving scores.', err);
             return of(null);
@@ -187,7 +187,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
     /* Fetch scores. */
     const score: Observable<Array<ApiScoreOverview>> = this.state.pipe(
       switchMap((s) => {
-        return this.scoreService.getApiV1ScoreRunWithRunid(s.id).pipe(
+        return this.scoreService.getApiV2ScoreEvaluationevaluationId(s.id).pipe(
           catchError((err) => {
             console.log('Error when retrieving scores.', err);
             return of(null);
@@ -208,9 +208,9 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
         const teamsOrdered = team
           .map((t) => {
             const sum = scores
-              .map((so) => so.scores.find((s) => s.teamId === t.uid))
+              .map((so) => so.scores.find((s) => s.teamId === t.id))
               .reduce((a, b) => {
-                return { teamId: a.teamId, score: a.score + b.score } as Score;
+                return { teamId: a.teamId, score: a.score + b.score } as ApiScore;
               });
             return { team: t, score: sum };
           })
@@ -234,7 +234,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
               return {
                 name: s.name,
                 data: teamsOrdered.map((t) => {
-                  return { x: t.team.name, y: Math.round(s.scores.find((ss) => ss.teamId === t.team.uid).score) };
+                  return { x: t.team.name, y: Math.round(s.scores.find((ss) => ss.teamId === t.team.id).score) };
                 }),
               };
             }

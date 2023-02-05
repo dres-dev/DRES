@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { DataUtilities } from '../../utilities/data.utilities';
-import { ContentElement } from '../../../../openapi';
+import {ApiHint} from '../../../../openapi';
 
 @Component({
   selector: 'app-image-object-preview',
@@ -15,7 +15,7 @@ import { ContentElement } from '../../../../openapi';
 })
 export class ImageObjectPreviewComponent implements OnInit, OnDestroy {
   /** Observable of current {@link QueryContentElement} that should be displayed. */
-  @Input() queryContent: Observable<ContentElement>;
+  @Input() queryContent: Observable<ApiHint>;
 
   /** Current image to display (as data URL). */
   imageUrl: Observable<SafeUrl>;
@@ -24,10 +24,11 @@ export class ImageObjectPreviewComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.imageUrl = this.queryContent.pipe(
-      filter((q) => q.contentType === 'IMAGE'),
+      filter((q) => q.type === 'IMAGE'),
       map((q) => {
-        if (q.content) {
-          return this.sanitizer.bypassSecurityTrustUrl(DataUtilities.base64ToUrl(q.content, 'image/jpg'));
+        if (q.mediaItem) {
+          // FIXME differ between external image and internal (i.e. media item). the following code is very likely broken
+          return this.sanitizer.bypassSecurityTrustUrl(DataUtilities.base64ToUrl(q.mediaItem, 'image/jpg')); // FIXME should the content type be used from api q.dataType ?
         } else {
           return null;
         }

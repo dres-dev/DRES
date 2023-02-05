@@ -1,12 +1,11 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthenticationService } from './services/session/authentication.sevice';
-import { ApiUser } from '../../openapi';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { AppConfig } from './app.config';
-import RoleEnum = ApiUser.RoleEnum;
+import {ApiRole, ApiUser} from '../../openapi';
 
 @Component({
   selector: 'app-root',
@@ -29,8 +28,8 @@ export class AppComponent {
   ) {
     this.user = this.authenticationService.user;
     this.loggedIn = this.authenticationService.isLoggedIn;
-    this.isAdmin = this.authenticationService.user.pipe(map((u) => u?.role === RoleEnum.ADMIN));
-    this.canJudge = this.authenticationService.user.pipe(map((u) => u?.role === RoleEnum.ADMIN || u?.role === RoleEnum.JUDGE));
+    this.isAdmin = this.authenticationService.user.pipe(map((u) => u?.role === ApiRole.ADMIN));
+    this.canJudge = this.authenticationService.user.pipe(map((u) => u?.role === ApiRole.ADMIN || u?.role === ApiRole.JUDGE));
   }
 
   /**

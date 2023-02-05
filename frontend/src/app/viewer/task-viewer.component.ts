@@ -1,5 +1,4 @@
 import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
-import {EvaluationService, ApiContentElement, ApiEvaluationState, ApiTaskTemplateInfo, ApiTarget} from '../../../openapi';
 import { BehaviorSubject, combineLatest, interval, merge, Observable, of, Subscription, timer } from 'rxjs';
 import {
   catchError,
@@ -22,7 +21,15 @@ import { WebSocketSubject } from 'rxjs/webSocket';
 import { AppConfig } from '../app.config';
 import { AudioPlayerUtilities } from '../utilities/audio-player.utilities';
 import { fromArray } from 'rxjs/internal/observable/fromArray';
-import TaskRunStatusEnum = ApiEvaluationState.TaskRunStatusEnum;
+import {
+  ApiContentElement, ApiContentType,
+  ApiEvaluationState, ApiHint,
+  ApiHintContent,
+  ApiTarget,
+  ApiTargetContent,
+  ApiTaskStatus,
+  EvaluationService
+} from '../../../openapi';
 
 /**
  * Internal enumeration used for TaskViewerComponent.
@@ -62,10 +69,10 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   viewerState: BehaviorSubject<ViewerState> = new BehaviorSubject(ViewerState.VIEWER_UNKNOWN);
 
   /** Reference to the current {@link TaskHint} {@link ContentElement}s. */
-  currentTaskHint: Observable<ApiContentElement>;
+  currentTaskHint: Observable<ApiHintContent>;
 
   /** Reference to the current {@link TaskTarget} {@link ContentElement}. */
-  currentTaskTarget: Observable<ApiContentElement>;
+  currentTaskTarget: Observable<ApiTargetContent>;
 
   /** The subscription associated with the current viewer state. */
   viewerStateSubscription: Subscription;
@@ -83,7 +90,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     const currentTaskHint = this.taskChanged.pipe(
       withLatestFrom(this.runId),
       switchMap(([task, runId]) =>
-        this.runService.apiV2RunEvaluationIdHintTaskIdGet(runId, task.id).pipe(
+        this.runService.getApiV2RunevaluationIdHinttaskId(runId, task.id).pipe(
           catchError((e) => {
             console.error('[TaskViewerComponent] Could not load current query hint due to an error.', e);
             return of(null);
@@ -95,9 +102,9 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
 
     /*  Observable for the current query target. */
     const currentTaskTarget = this.state.pipe(
-      filter(s => s.taskRunStatus == TaskRunStatusEnum.ENDED),
+      filter(s => s.taskRunStatus == ApiTaskStatus.ENDED),
       switchMap((s) =>
-        this.runService.apiV2RunEvaluationIdHintTaskIdGet(s.id, s.currentTask?.id).pipe(
+        this.runService.getApiV2RunevaluationIdHinttaskId(s.id, s.currentTask?.templateId).pipe(
           catchError((e) => {
             console.error('[TaskViewerComponent] Could not load current task target due to an error.', e);
             return of(null);
@@ -119,7 +126,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
       sampleTime(1000) /* This is again sampled to only ever emit once every second. */,
       switchMap((s) => {
         if (typeof s === 'string') {
-          return this.runService.apiV2EvaluationEvaluationIdStateGet(s); /* Timer! Load run state! */
+          return this.runService.getApiV2EvaluationevaluationIdState(s); /* Timer! Load run state! */
         } else {
           return of(s as ApiEvaluationState); /* This is a freshly loaded run state. */
         }
@@ -170,7 +177,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
 
     /** Map task target to representation used by viewer. */
     this.currentTaskTarget = currentTaskTarget.pipe(
-      flatMap((h: ApiTarget) => {
+      flatMap((h: ApiHintContent) => {
         if (!h) {
           return fromArray([]);
         }
@@ -191,7 +198,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             const actualTimeElapsed = Math.max(timeElapsed, 0);
             const sequence = [];
             if (hint) {
-              const largest = new Map<ApiContentElement.ContentTypeEnum, ApiContentElement>();
+              const largest = new Map<ApiContentType, ApiContentElement>();
               hint.sequence.forEach((c) => {
                 if (c.offset >= actualTimeElapsed) {
                   sequence.push(c);

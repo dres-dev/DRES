@@ -1,11 +1,5 @@
 import { Component } from '@angular/core';
 import { AbstractRunListComponent, RunInfoWithState } from './abstract-run-list.component';
-import {
-  ApiEvaluationInfo, ApiEvaluationState,
-  CompetitionRunAdminService,
-  CompetitionRunScoresService,
-  DownloadService, EvaluationService,
-} from '../../../openapi';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
@@ -15,11 +9,17 @@ import {
 } from '../shared/confirmation-dialog/confirmation-dialog.component';
 import { forkJoin, merge, timer } from 'rxjs';
 import { flatMap, map, switchMap } from 'rxjs/operators';
-import RunStatusEnum = ApiEvaluationState.RunStatusEnum;
+import {
+  ApiEvaluationInfo, ApiEvaluationOverview, ApiTaskStatus,
+  DownloadService,
+  EvaluationAdministratorService,
+  EvaluationScoresService,
+  EvaluationService
+} from '../../../openapi';
 
 export interface RunInfoOverviewTuple {
   runInfo: ApiEvaluationInfo;
-  overview: AdminRunOverview;
+  overview: ApiEvaluationOverview;
 }
 
 @Component({
@@ -29,8 +29,8 @@ export interface RunInfoOverviewTuple {
 export class AdminRunListComponent extends AbstractRunListComponent {
   constructor(
     runService: EvaluationService,
-    runAdminService: CompetitionRunAdminService,
-    scoreService: CompetitionRunScoresService,
+    runAdminService: EvaluationAdministratorService,
+    scoreService: EvaluationScoresService,
     downloadService: DownloadService,
     router: Router,
     snackBar: MatSnackBar,
@@ -40,7 +40,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
   }
 
   public start(runId: string) {
-    this.runAdminService.postApiV1RunAdminWithRunidStart(runId).subscribe(
+    this.runAdminService.postApiV2EvaluationAdminevaluationIdStart(runId).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -60,7 +60,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.runAdminService.postApiV1RunAdminWithRunidTerminate(runId).subscribe(
+        this.runAdminService.postApiV2EvaluationAdminrunIdTerminate(runId).subscribe(
           (r) => {
             this.update.next();
             this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -74,7 +74,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
   }
 
   public previousTask(runId: string) {
-    this.runAdminService.postApiV1RunAdminWithRunidTaskPrevious(runId).subscribe(
+    this.runAdminService.postApiV2EvaluationAdminevaluationIdTaskPrevious(runId).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -94,7 +94,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.runAdminService.postApiV1RunAdminWithRunidTaskAbort(runId).subscribe(
+        this.runAdminService.postApiV2EvaluationAdminevaluationIdTaskAbort(runId).subscribe(
           (r) => {
             this.update.next();
             this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -109,18 +109,18 @@ export class AdminRunListComponent extends AbstractRunListComponent {
 
   protected initStateUpdates() {
     this.runs = merge(timer(0, this.updateInterval), this.update).pipe(
-      flatMap((t) => this.runService.getApiV1RunInfoList()),
+      flatMap((t) => this.runService.getApiV2EvaluationInfoList()),
       map((runInfo) =>
         runInfo.map((run) =>
-          this.runAdminService.getApiV1RunAdminWithRunidOverview(run.id).pipe(
+          this.runAdminService.getApiV2RunAdminrunIdOverview(run.id).pipe(
             map((overview) => {
               return {
                 id: run.id,
                 name: run.name,
-                description: run.description,
+                description: run.templateDescription,
                 teams: run.teams.length,
                 runStatus: overview.state,
-                taskRunStatus: RunStatusEnum.ACTIVE, // FIXME how to handle async and sync?,
+                taskRunStatus: ApiTaskStatus.NO_TASK, // FIXME how to handle async and sync?,
                 currentTask: 'n/a',
                 timeLeft: 'n/a',
                 asynchronous: run.type === 'ASYNCHRONOUS',

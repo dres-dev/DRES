@@ -1,21 +1,23 @@
 import { combineLatest, merge, Observable, Subject, timer } from 'rxjs';
-import {
-  CompetitionRunScoresService,
-  DownloadService,
-  RunProperties,
-  ApiEvaluationState, EvaluationAdministratorService, EvaluationService,
-} from '../../../openapi';
 import { flatMap, map, take } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import {
+  ApiEvaluationState,
+  ApiTaskStatus, DownloadService,
+  EvaluationAdministratorService,
+  EvaluationScoresService,
+  EvaluationService, RunManagerStatus,
+  RunProperties
+} from '../../../openapi';
 
 export interface RunInfoWithState {
   id: string;
   name: string;
   description?: string;
   teams: number;
-  runStatus: ApiEvaluationState.RunStatusEnum;
-  taskRunStatus: ApiEvaluationState.TaskRunStatusEnum;
+  runStatus: RunManagerStatus;
+  taskRunStatus: ApiTaskStatus;
   currentTask?: string;
   timeLeft: string;
   asynchronous: boolean;
@@ -31,7 +33,7 @@ export class AbstractRunListComponent {
   constructor(
     protected runService: EvaluationService,
     protected runAdminService: EvaluationAdministratorService,
-    protected scoreService: CompetitionRunScoresService,
+    protected scoreService: EvaluationScoresService,
     protected downloadService: DownloadService,
     protected router: Router,
     protected snackBar: MatSnackBar
@@ -93,7 +95,7 @@ export class AbstractRunListComponent {
   }
 
   public downloadScores(runId: string) {
-    this.downloadService.apiV2DownloadEvaluationEvaluationIdScoresGet(runId).subscribe((scoresCSV) => {
+    this.downloadService.getApiV2DownloadEvaluationevaluationIdScores(runId).subscribe((scoresCSV) => {
       const csvBlob = new Blob([scoresCSV], { type: 'text/csv' });
       const fake = document.createElement('a');
       fake.href = URL.createObjectURL(csvBlob);
@@ -104,7 +106,7 @@ export class AbstractRunListComponent {
   }
 
   public nextTask(runId: string) {
-    this.runAdminService.apiV2EvaluationAdminRunIdTaskNextPost(runId).subscribe(
+    this.runAdminService.postApiV2EvaluationAdminrunIdTaskNext(runId).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -116,7 +118,7 @@ export class AbstractRunListComponent {
   }
 
   public startTask(runId: string) {
-    this.runAdminService.apiV2EvaluationAdminRunIdTerminatePost(runId).subscribe(
+    this.runAdminService.postApiV2EvaluationAdminevaluationIdTaskStart(runId).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -129,7 +131,7 @@ export class AbstractRunListComponent {
 
   scoreDownloadProvider = (runId: string) => {
     return this.downloadService
-      .getApiV1DownloadRunWithRunidScores(runId, 'body', false, { httpHeaderAccept: 'text/csv' })
+      .getApiV2DownloadEvaluationevaluationIdScores(runId, 'body', false, { httpHeaderAccept: 'text/plain' }) // FIXME was text/css, might require openapi specs adjustement
       .pipe(take(1));
   };
 
@@ -138,7 +140,7 @@ export class AbstractRunListComponent {
   };
 
   downloadProvider = (runId) => {
-    return this.downloadService.apiV2DownloadEvaluationEvaluationIdGet(runId).pipe(take(1));
+    return this.downloadService.getApiV2DownloadEvaluationevaluationId(runId).pipe(take(1));
     // .toPromise();
   };
 
@@ -155,7 +157,7 @@ export class AbstractRunListComponent {
      * Creates a combined observable that updates the state in a regular interval and the info +
      * state whenever a manual update is triggered.
      */
-    const query = combineLatest([this.runService.apiV2EvaluationInfoListGet(), this.runService.apiV2EvaluationStateListGet()]);
+    const query = combineLatest([this.runService.getApiV2EvaluationInfoList(), this.runService.getApiV2EvaluationStateList()]);
     this.runs = merge(timer(0, this.updateInterval), this.update).pipe(
       flatMap((t) => query),
       map(([info, state]) => {
@@ -164,7 +166,7 @@ export class AbstractRunListComponent {
           return {
             id: v.id,
             name: v.name,
-            description: v.description,
+            description: v.templateDescription,
             teams: v.teams.length,
             runStatus: s.runStatus,
             taskRunStatus: s.taskRunStatus,

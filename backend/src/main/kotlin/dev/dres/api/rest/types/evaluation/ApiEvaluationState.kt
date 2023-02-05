@@ -13,7 +13,7 @@ import dev.dres.run.*
  */
 data class ApiEvaluationState(
     val id: String,
-    val runStatus: RunManagerStatus,
+    val runStatus: RunManagerStatus, // FIXME non-api type exposed via api
     val taskRunStatus: ApiTaskStatus,
     val currentTask: ApiTaskTemplateInfo?,
     val timeLeft: Long,

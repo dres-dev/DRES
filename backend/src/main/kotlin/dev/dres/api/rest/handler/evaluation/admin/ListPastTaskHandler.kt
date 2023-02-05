@@ -29,7 +29,7 @@ class ListPastTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminH
         ],
         tags = ["Evaluation Administrator"],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(Array<ApiTaskTemplateInfo>::class)]),
+            OpenApiResponse("200", [OpenApiContent(Array<ApiTaskTemplateInfo>::class)]), // FIXME this handler provided information about submissions in past tasks
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])

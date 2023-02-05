@@ -1,14 +1,11 @@
 import { Component } from '@angular/core';
 import { AbstractRunListComponent, RunInfoWithState } from './abstract-run-list.component';
-import {
-  CompetitionRunScoresService,
-  DownloadService, EvaluationAdministratorService, EvaluationService,
-} from '../../../openapi';
 import { Router } from '@angular/router';
 import { AccessChecking } from '../model/access-checking.interface';
 import { UserGroup } from '../model/user-group.model';
 import { AccessRoleService } from '../services/session/access-role.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import {DownloadService, EvaluationAdministratorService, EvaluationScoresService, EvaluationService} from '../../../openapi';
 
 @Component({
   selector: 'app-viewer-run-list',
@@ -22,7 +19,7 @@ export class ViewerRunListComponent extends AbstractRunListComponent implements 
   constructor(
     runService: EvaluationService,
     runAdminService: EvaluationAdministratorService,
-    scoreService: CompetitionRunScoresService,
+    scoreService: EvaluationScoresService,
     downloadService: DownloadService,
     router: Router,
     snackBar: MatSnackBar,

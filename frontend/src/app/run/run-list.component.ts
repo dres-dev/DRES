@@ -1,19 +1,18 @@
 import { Component } from '@angular/core';
-import { ApiUser } from '../../../openapi';
 import { Observable } from 'rxjs';
 import { AuthenticationService } from '../services/session/authentication.sevice';
 import { map } from 'rxjs/operators';
 import { AccessChecking } from '../model/access-checking.interface';
 import { UserGroup } from '../model/user-group.model';
 import { AccessRoleService } from '../services/session/access-role.service';
-import RoleEnum = ApiUser.RoleEnum;
+import {ApiRole} from '../../../openapi';
 
 @Component({
   selector: 'app-run-list',
   templateUrl: './run-list.component.html',
 })
 export class RunListComponent implements AccessChecking {
-  currentRole: Observable<RoleEnum>;
+  currentRole: Observable<ApiRole>;
 
   adminGroup = AccessRoleService.ADMIN_GROUP;
 

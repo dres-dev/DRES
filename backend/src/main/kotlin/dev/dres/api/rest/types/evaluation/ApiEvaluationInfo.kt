@@ -22,7 +22,7 @@ data class ApiEvaluationInfo(
     val templateId: String,
     val templateDescription: String?,
     val type: ApiEvaluationType,
-    val properties: RunProperties,
+    val properties: RunProperties, // FIXME non-api type exposed via api
     val teams: List<ApiTeamInfo>,
     val tasks: List<ApiTaskTemplateInfo>,
 ) {

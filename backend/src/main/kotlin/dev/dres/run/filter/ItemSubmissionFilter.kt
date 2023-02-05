@@ -1,7 +1,9 @@
 package dev.dres.run.filter
 
+import dev.dres.data.model.submissions.AnswerType
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbAnswerType
+import dev.dres.data.model.submissions.Submission
 import kotlinx.dnq.query.asSequence
 
 /**
@@ -12,6 +14,6 @@ import kotlinx.dnq.query.asSequence
  */
 class ItemSubmissionFilter : SubmissionFilter {
     override val reason = "Submission does include temporal information, but whole item was expected"
-    override fun test(submission: DbSubmission): Boolean
-        = submission.answerSets.asSequence().any { it.answers.asSequence().any { it.type == DbAnswerType.TEMPORAL } }
+    override fun test(submission: Submission): Boolean
+        = submission.answerSets().any { it.answers().any { it.type eq AnswerType.Type.ITEM } }
 }

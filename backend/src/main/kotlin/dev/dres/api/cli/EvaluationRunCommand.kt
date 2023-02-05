@@ -199,7 +199,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                     println(t.template)
                     if (t.evaluation.type == DbEvaluationType.INTERACTIVE_SYNCHRONOUS) {
                         println("Submissions")
-                        t.submissions.asSequence().forEach { s -> println(s) }
+                        t.answerSets.asSequence().forEach { s -> println(s) }
                     }
                 }
                 println()
@@ -326,11 +326,11 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
             if (evaluation.type == DbEvaluationType.INTERACTIVE_SYNCHRONOUS) {
                 /* Prepare query. */
                 var query = if (this.taskIds.isNotEmpty()) {
-                    evaluation.tasks.filter { it.id.isIn(this@ResetSubmission.taskIds) }.flatMapDistinct { it.submissions }
+                    evaluation.tasks.filter { it.id.isIn(this@ResetSubmission.taskIds) }.flatMapDistinct { it.answerSets }
                 } else if (this.taskGroups.isNotEmpty()) {
-                    evaluation.tasks.filter { it.template.taskGroup.name.isIn(this@ResetSubmission.taskGroups) }.flatMapDistinct { it.submissions }
+                    evaluation.tasks.filter { it.template.taskGroup.name.isIn(this@ResetSubmission.taskGroups) }.flatMapDistinct { it.answerSets }
                 } else {
-                    evaluation.tasks.flatMapDistinct { it.submissions }
+                    evaluation.tasks.flatMapDistinct { it.answerSets }
                 }
 
                 if (this.submissionIds.isNotEmpty()) {
@@ -383,7 +383,7 @@ class EvaluationRunCommand(internal val store: TransientEntityStore) : NoOpClikt
                 csvWriter().open(os) {
                     writeRow(header)
                     tasks.asSequence().forEach { task ->
-                        val submittedItems = task.submissions.asSequence().groupBy {s ->
+                        val submittedItems = task.answerSets.asSequence().groupBy { s ->
                             Triple(s.answers.firstOrNull()?.item?.name?: "unknown", s.answers.firstOrNull()?.start, s.answers.firstOrNull()?.end) //TODO flatten?
                         }
                         submittedItems.entries.forEach { items ->

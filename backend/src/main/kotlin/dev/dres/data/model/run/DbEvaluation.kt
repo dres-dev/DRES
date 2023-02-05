@@ -8,7 +8,7 @@ import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
 
-typealias TaskId = String
+typealias EvaluationId = String
 
 /**
  * Represents a [DbEvaluation], i.e., a concrete instance of a [DbEvaluationTemplate], as executed by DRES.

@@ -14,19 +14,21 @@ import kotlinx.dnq.query.asSequence
  * @author Luca Rossetto
  * @version 2.0.0
  */
-class DbAnswerSet(entity: Entity) : PersistentEntity(entity) {
+class DbAnswerSet(entity: Entity) : PersistentEntity(entity), AnswerSet {
     companion object : XdNaturalEntityType<DbAnswerSet>()
 
     /** The [DbVerdictStatus] of this [DbAnswerSet]. */
-    var status by xdLink1(DbVerdictStatus)
+    override var status by xdLink1(DbVerdictStatus)
 
     /** The [DbSubmission] this [DbAnswerSet] belongs to. */
-    var submission: DbSubmission by xdParent<DbAnswerSet,DbSubmission>(DbSubmission::answerSets)
+    override var submission: DbSubmission by xdParent<DbAnswerSet,DbSubmission>(DbSubmission::answerSets)
 
     /** The [DbTask] this [DbAnswerSet] belongs to. */
-    var task: DbTask by xdParent<DbAnswerSet, DbTask>(DbTask::submissions)
+    override var task: DbTask by xdParent<DbAnswerSet, DbTask>(DbTask::answerSets)
 
     val answers by xdChildren1_N<DbAnswerSet, DbAnswer>(DbAnswer::answerSet)
+
+    override fun answers(): Sequence<Answer> = answers.asSequence()
 
     /**
      * Converts this [DbVerdictStatus] to a RESTful API representation [ApiAnswerSet].

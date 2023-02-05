@@ -13,12 +13,12 @@ import kotlinx.dnq.xdRequiredStringProp
  * @author Luca Rossetto
  * @version 2.0.0
  */
-class DbVerdictStatus(entity: Entity) : XdEnumEntity(entity) {
+class DbVerdictStatus(entity: Entity) : XdEnumEntity(entity), VerdictStatus {
     companion object : XdEnumEntityType<DbVerdictStatus>() {
-        val CORRECT by enumField { description = "CORRECT" }                 /** Submission has been deemed as correct. */
-        val WRONG by enumField { description = "WRONG" }
-        val INDETERMINATE by enumField { description = "INDETERMINATE" }     /** Submission has been deemed as wrong. */
-        val UNDECIDABLE by enumField { description = "UNDECIDABLE" }        /** Submission has not been validated yet. */
+        val CORRECT by enumField { description = VerdictStatus.Status.CORRECT.name }                 /** Submission has been deemed as correct. */
+        val WRONG by enumField { description = VerdictStatus.Status.WRONG.name }
+        val INDETERMINATE by enumField { description = VerdictStatus.Status.INDETERMINATE.name }     /** Submission has been deemed as wrong. */
+        val UNDECIDABLE by enumField { description = VerdictStatus.Status.UNDECIDABLE.name }        /** Submission has not been validated yet. */
 
         /**
          * Returns a list of all [DbRole] values.
@@ -31,10 +31,10 @@ class DbVerdictStatus(entity: Entity) : XdEnumEntity(entity) {
          * Parses a [DbRole] instance from a [String].
          */
         fun parse(string: String) = when (string.uppercase()) {
-            "CORRECT" -> CORRECT
-            "WRONG" -> WRONG
-            "INDETERMINATE" -> INDETERMINATE
-            "UNDECIDABLE" -> UNDECIDABLE
+            VerdictStatus.Status.CORRECT.name -> CORRECT
+            VerdictStatus.Status.WRONG.name -> WRONG
+            VerdictStatus.Status.INDETERMINATE.name -> INDETERMINATE
+            VerdictStatus.Status.UNDECIDABLE.name  -> UNDECIDABLE
             else -> throw IllegalArgumentException("Failed to parse submission status '$string'.")
         }
     }
@@ -49,6 +49,9 @@ class DbVerdictStatus(entity: Entity) : XdEnumEntity(entity) {
      * @return [ApiVerdictStatus]
      */
     fun toApi() = ApiVerdictStatus.values().find { it.toDb() == this } ?: throw IllegalStateException("Verdict status ${this.description} is not supported.")
+    override fun eq(status: VerdictStatus.Status): Boolean = status.name == this.description
 
     override fun toString(): String = this.description
+
+
 }

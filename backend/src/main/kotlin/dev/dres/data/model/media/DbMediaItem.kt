@@ -16,7 +16,7 @@ typealias MediaId = String
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class DbMediaItem(entity: Entity) : PersistentEntity(entity) {
+class DbMediaItem(entity: Entity) : PersistentEntity(entity), MediaItem {
     companion object : XdNaturalEntityType<DbMediaItem>() {
         /** Combination of [DbMediaItem] name / competition must be unique. */
         override val compositeIndices = listOf(
@@ -25,7 +25,7 @@ class DbMediaItem(entity: Entity) : PersistentEntity(entity) {
     }
 
     /** The name of this [DbMediaItem]. */
-    var name by xdRequiredStringProp(unique = false, trimmed = false)
+    override var name by xdRequiredStringProp(unique = false, trimmed = false)
 
     /** The [DbMediaType] of this [DbMediaItem]. */
     var type by xdLink1(DbMediaType)

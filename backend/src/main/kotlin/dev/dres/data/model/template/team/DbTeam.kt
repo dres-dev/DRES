@@ -10,8 +10,7 @@ import kotlinx.dnq.link.OnDeletePolicy
 import kotlinx.dnq.query.asSequence
 
 
-/** The ID of a [DbTeam]. */
-typealias TeamId = String
+
 
 /**
  * Represents a [DbTeam] that takes part in a competition managed by DRES.
@@ -19,7 +18,7 @@ typealias TeamId = String
  * @author Ralph Gasser, Loris Sauter, Luca Rossetto
  * @version 2.0.0
  */
-class DbTeam(entity: Entity) : PersistentEntity(entity) {
+class DbTeam(entity: Entity) : PersistentEntity(entity), Team {
     companion object: XdNaturalEntityType<DbTeam>() {
         /** Combination of [DbTeam] name / competition must be unique. */
         override val compositeIndices = listOf(
@@ -28,7 +27,7 @@ class DbTeam(entity: Entity) : PersistentEntity(entity) {
     }
 
     /** The [TeamId] of this [DbTeam]. */
-    var teamId: TeamId
+    override var teamId: TeamId
         get() = this.id
         set(value) { this.id = value }
 

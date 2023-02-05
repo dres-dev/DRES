@@ -33,11 +33,11 @@ import java.lang.Long.max
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
-class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), CachingTaskScorerFactory, SubmissionFilterFactory {
+class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), CachingTaskScorerFactory, SubmissionFilterFactory, TaskTemplate {
     companion object: XdNaturalEntityType<DbTaskTemplate>()
 
     /** The [TemplateId] of this [DbTaskTemplate]. */
-    var templateId: TemplateId
+    override var templateId: TemplateId
         get() = this.id
         set(value) { this.id = value }
 

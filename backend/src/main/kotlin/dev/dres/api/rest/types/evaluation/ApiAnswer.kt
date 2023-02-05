@@ -1,11 +1,12 @@
 package dev.dres.api.rest.types.evaluation
 
 import dev.dres.api.rest.types.collection.ApiMediaItem
+import dev.dres.data.model.submissions.Answer
 
 data class ApiAnswer(
     val type: ApiAnswerType,
-    val item: ApiMediaItem?,
-    val text: String?,
-    val start: Long?,
-    val end: Long?
-    )
+    override val item: ApiMediaItem?,
+    override val text: String?,
+    override val start: Long?,
+    override val end: Long?
+    ) : Answer

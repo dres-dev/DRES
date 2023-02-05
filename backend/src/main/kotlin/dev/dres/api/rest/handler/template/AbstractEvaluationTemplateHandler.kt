@@ -32,7 +32,7 @@ abstract class AbstractEvaluationTemplateHandler(protected val store: TransientE
 
     /** Convenience method to extract [DbEvaluationTemplate]'s ID from [Context]. */
     private fun competitionId(ctx: Context): TemplateId =
-        ctx.pathParamMap().getOrElse("competitionId") {
+        ctx.pathParamMap().getOrElse("templateId") {
             throw ErrorStatusException(404, "Parameter 'competitionId' is missing!'", ctx)
         }
 

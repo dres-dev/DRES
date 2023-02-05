@@ -15,14 +15,14 @@ import jetbrains.exodus.database.TransientEntityStore
  * @version 1.0
  */
 class EvaluationOverviewHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), GetRestHandler<ApiEvaluationOverview> {
-    override val route = "run/admin/{runId}/overview"
+    override val route = "evaluation/admin/{evaluationId}/overview"
     @OpenApi(
         summary = "Provides a complete overview of a run.",
-        path = "/api/v2/run/admin/{runId}/overview",
+        path = "/api/v2/evaluation/admin/{evaluationId}/overview",
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.GET],
         pathParams = [
-            OpenApiParam("runId", String::class, "The evaluation ID", required = true, allowEmptyValue = false),
+            OpenApiParam("evaluationId", String::class, "The evaluation ID", required = true, allowEmptyValue = false),
         ],
         tags = ["Evaluation Administrator"],
         responses = [

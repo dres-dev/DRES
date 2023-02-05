@@ -19,11 +19,11 @@ import kotlinx.dnq.query.asSequence
  */
 class ListTeamHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), GetRestHandler<List<ApiTeam>> {
 
-    override val route: String = "competition/{competitionId}/team/list"
+    override val route: String = "template/{templateId}/team/list"
 
     @OpenApi(
         summary = "Lists all the teams of a specific competition.",
-        path = "/api/v2/competition/{templateId}/team/list",
+        path = "/api/v2/template/{templateId}/team/list",
         operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [OpenApiParam("templateId", String::class, "The evaluation template ID.")],
         tags = ["Template"],

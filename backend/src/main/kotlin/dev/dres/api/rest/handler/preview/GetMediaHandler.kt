@@ -21,7 +21,7 @@ import java.nio.file.Paths
  * @version 2.0.0
  */
 class GetMediaHandler(private val store: TransientEntityStore) : GetRestHandler<Any>, AccessManagedRestHandler {
-    override val route: String = "media/{collection}/{item}"
+    override val route: String = "media/{itemId}"
 
     /** All [GetMediaHandler] can be used by [ApiRole.VIEWER], [ApiRole.PARTICIPANT] and [ApiRole.ADMIN]. */
     override val permittedRoles = setOf(ApiRole.VIEWER, ApiRole.PARTICIPANT, ApiRole.ADMIN)

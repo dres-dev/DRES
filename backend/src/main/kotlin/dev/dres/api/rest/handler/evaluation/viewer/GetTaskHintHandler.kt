@@ -32,11 +32,11 @@ import java.io.IOException
  */
 class GetTaskHintHandler(store: TransientEntityStore, private val config: Config) : AbstractEvaluationViewerHandler(store), GetRestHandler<ApiHintContent> {
 
-    override val route = "run/{evaluationId}/hint/{taskId}"
+    override val route = "evaluation/{evaluationId}/hint/{taskId}"
 
     @OpenApi(
         summary = "Returns the task hint for the specified task.",
-        path = "/api/v2/run/{evaluationId}/hint/{taskId}",
+        path = "/api/v2/evaluation/{evaluationId}/hint/{taskId}",
         tags = ["Evaluation"],
         operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [

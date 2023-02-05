@@ -20,8 +20,9 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Luca Rossetto
  */
 class LogoutHandler(private val store: TransientEntityStore) : RestHandler, GetRestHandler<SuccessStatus> {
+    override val route = "logout"
     override val apiVersion = "v2"
-    
+
     @OpenApi(summary = "Clears all user roles of the current session.",
         path = "/api/v2/logout",
         operationId = OpenApiOperation.AUTO_GENERATE,
@@ -45,5 +46,4 @@ class LogoutHandler(private val store: TransientEntityStore) : RestHandler, GetR
             SuccessStatus("User '${username}' logged out successfully.")
         }
     }
-    override val route = "logout"
 }

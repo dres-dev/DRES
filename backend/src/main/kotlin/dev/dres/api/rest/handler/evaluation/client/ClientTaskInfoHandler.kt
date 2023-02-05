@@ -26,7 +26,7 @@ class ClientTaskInfoHandler(store: TransientEntityStore): AbstractEvaluationClie
         summary = "Returns an overview of the currently active task for a run.",
         path = "/api/v2/client/evaluation/currentTask/{evaluationId}",
         operationId = OpenApiOperation.AUTO_GENERATE,
-        tags = ["Client Run Info"],
+        tags = ["Evaluation Client"],
         queryParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)
         ],

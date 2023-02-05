@@ -17,10 +17,10 @@ import jetbrains.exodus.database.TransientEntityStore
  */
 class MediaPreviewHandler(store: TransientEntityStore, config: Config) : AbstractPreviewHandler(store, config) {
 
-    override val route: String = "preview/item/{collection}/{item}/{time}"
+    override val route: String = "preview/item/{collectionId}/{item}/{time}"
     @OpenApi(
         summary = "Returns a preview image from a collection item",
-        path = "/api/v2/preview/item/{collection}/{item}/{time}",
+        path = "/api/v2/preview/item/{collectionId}/{item}/{time}",
         operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [
             OpenApiParam("collectionId", String::class, "Unique ID of the media collection."),

@@ -24,6 +24,7 @@ import jetbrains.exodus.database.TransientEntityStore
  */
 class LoginHandler(private val store: TransientEntityStore) : RestHandler, PostRestHandler<ApiUser> {
 
+    override val route = "login"
     override val apiVersion = "v2"
 
     data class LoginRequest(var username: String, var password: String)
@@ -72,5 +73,4 @@ class LoginHandler(private val store: TransientEntityStore) : RestHandler, PostR
         }
     }
 
-    override val route = "login"
 }

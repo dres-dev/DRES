@@ -23,7 +23,7 @@ class ListTasksHandler(store: TransientEntityStore) : AbstractEvaluationTemplate
 
     @OpenApi(
         summary = "Lists the task templates contained in a specific evaluation template.",
-        path = "/api/v2/competition/{templateId}/task/list",
+        path = "/api/v2/template/{templateId}/task/list",
         operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [OpenApiParam("templateId", String::class, "The evaluation template ID.")],
         tags = ["Template"],

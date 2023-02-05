@@ -24,7 +24,7 @@ class ListSubmissionsHandler(store: TransientEntityStore): AbstractEvaluationAdm
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.GET],
         pathParams = [
-            OpenApiParam("runId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false),
+            OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false),
             OpenApiParam("templateId", String::class, "The task template ID.", required = true, allowEmptyValue = false)
         ],
         tags = ["Evaluation Administrator"],

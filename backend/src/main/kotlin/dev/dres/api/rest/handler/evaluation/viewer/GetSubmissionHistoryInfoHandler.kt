@@ -18,11 +18,11 @@ import kotlinx.dnq.query.filter
 
 class GetSubmissionHistoryInfoHandler(store: TransientEntityStore): AbstractEvaluationViewerHandler(store), GetRestHandler<List<ApiSubmission>> {
 
-    override val route = "evaluation/{evaluationId}/task/{taskRunId}/submission/list"
+    override val route = "evaluation/{evaluationId}/task/{taskId}/submission/list"
 
     @OpenApi(
         summary = "Returns the submissions of a specific task run, regardless of whether it is currently running or has ended.",
-        path = "/api/v2/evaluation/{evaluationId}/task/{taskRunId}/submission/list",
+        path = "/api/v2/evaluation/{evaluationId}/task/{taskId}/submission/list",
         operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Evaluation"],
         pathParams = [

@@ -158,7 +158,7 @@
     },
     "/api/v2/client/evaluation/currentTask/{evaluationId}" : {
       "get" : {
-        "tags" : [ "Client Run Info" ],
+        "tags" : [ "Evaluation Client" ],
         "summary" : "Returns an overview of the currently active task for a run.",
         "operationId" : "getApiV2ClientEvaluationCurrentTask{evaluationId}",
         "parameters" : [ {
@@ -697,143 +697,13 @@
         "security" : [ ]
       }
     },
-    "/api/v2/competition/{templateId}/task/list" : {
-      "get" : {
-        "tags" : [ "Template" ],
-        "summary" : "Lists the task templates contained in a specific evaluation template.",
-        "operationId" : "getApiV2Competition{templateId}TaskList",
-        "parameters" : [ {
-          "name" : "templateId",
-          "in" : "path",
-          "description" : "The evaluation template ID.",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiTaskTemplate"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/competition/{templateId}/team/list" : {
-      "get" : {
-        "tags" : [ "Template" ],
-        "summary" : "Lists all the teams of a specific competition.",
-        "operationId" : "getApiV2Competition{templateId}TeamList",
-        "parameters" : [ {
-          "name" : "templateId",
-          "in" : "path",
-          "description" : "The evaluation template ID.",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiTeam"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
     "/api/v2/download/evaluation/{evaluationId}" : {
       "get" : {
         "tags" : [ "Download" ],
         "summary" : "Provides a JSON download of the entire evaluation  structure.",
         "operationId" : "getApiV2DownloadEvaluation{evaluationId}",
         "parameters" : [ {
-          "name" : "runId",
+          "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
           "required" : true,
@@ -895,7 +765,7 @@
         "summary" : "Provides a CSV download with the scores for a given evaluation.",
         "operationId" : "getApiV2DownloadEvaluation{evaluationId}Scores",
         "parameters" : [ {
-          "name" : "runId",
+          "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
           "required" : true,
@@ -1065,6 +935,141 @@
         "security" : [ ]
       }
     },
+    "/api/v2/evaluation/admin/{evaluationId}/adjust/{duration}" : {
+      "post" : {
+        "tags" : [ "Evaluation Administrator" ],
+        "summary" : "Adjusts the duration of a running task. This is a method for admins.",
+        "operationId" : "postApiV2EvaluationAdmin{evaluationId}Adjust{duration}",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "duration",
+          "in" : "path",
+          "description" : "Duration to add. Can be negative.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/evaluation/admin/{evaluationId}/overview" : {
+      "get" : {
+        "tags" : [ "Evaluation Administrator" ],
+        "summary" : "Provides a complete overview of a run.",
+        "operationId" : "getApiV2EvaluationAdmin{evaluationId}Overview",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiEvaluationOverview"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
     "/api/v2/evaluation/admin/{evaluationId}/properties" : {
       "patch" : {
         "tags" : [ "Evaluation Administrator" ],
@@ -1195,7 +1200,7 @@
         "summary" : "Lists all submissions for a given evaluation and task.",
         "operationId" : "getApiV2EvaluationAdmin{evaluationId}SubmissionList{templateId}",
         "parameters" : [ {
-          "name" : "runId",
+          "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
           "required" : true,
@@ -1341,6 +1346,58 @@
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Aborts the currently running task run. This is a method for admins.",
         "operationId" : "postApiV2EvaluationAdmin{evaluationId}TaskAbort",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/evaluation/admin/{evaluationId}/task/next" : {
+      "post" : {
+        "tags" : [ "Evaluation Administrator" ],
+        "summary" : "Moves to and selects the next task within the evaluation. This is a method for admins.",
+        "operationId" : "postApiV2EvaluationAdmin{evaluationId}TaskNext",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -1620,6 +1677,58 @@
         "security" : [ ]
       }
     },
+    "/api/v2/evaluation/admin/{evaluationId}/terminate" : {
+      "post" : {
+        "tags" : [ "Evaluation Administrator" ],
+        "summary" : "Terminates an evaluation. This is a method for administrators.",
+        "operationId" : "postApiV2EvaluationAdmin{evaluationId}Terminate",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
     "/api/v2/evaluation/admin/{evaluationId}/viewer/list" : {
       "get" : {
         "tags" : [ "Evaluation Administrator" ],
@@ -1757,110 +1866,6 @@
         "security" : [ ]
       }
     },
-    "/api/v2/evaluation/admin/{runId}/task/next" : {
-      "post" : {
-        "tags" : [ "Evaluation Administrator" ],
-        "summary" : "Moves to and selects the next task within the evaluation. This is a method for admins.",
-        "operationId" : "postApiV2EvaluationAdmin{runId}TaskNext",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/evaluation/admin/{runId}/terminate" : {
-      "post" : {
-        "tags" : [ "Evaluation Administrator" ],
-        "summary" : "Terminates an evaluation. This is a method for administrators.",
-        "operationId" : "postApiV2EvaluationAdmin{runId}Terminate",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
     "/api/v2/evaluation/info/list" : {
       "get" : {
         "tags" : [ "Evaluation" ],
@@ -1931,6 +1936,78 @@
         "security" : [ ]
       }
     },
+    "/api/v2/evaluation/{evaluationId}/hint/{taskId}" : {
+      "get" : {
+        "tags" : [ "Evaluation" ],
+        "summary" : "Returns the task hint for the specified task.",
+        "operationId" : "getApiV2Evaluation{evaluationId}Hint{taskId}",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "taskId",
+          "in" : "path",
+          "description" : "The task ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiHintContent"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
     "/api/v2/evaluation/{evaluationId}/info" : {
       "get" : {
         "tags" : [ "Evaluation" ],
@@ -1980,6 +2057,98 @@
           },
           "404" : {
             "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/evaluation/{evaluationId}/judge" : {
+      "post" : {
+        "tags" : [ "Judgement" ],
+        "summary" : "Endpoint to post a judgement for a previously detached judgement request.",
+        "operationId" : "postApiV2Evaluation{evaluationId}Judge",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ApiJudgement"
+              }
+            }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "408" : {
+            "description" : "On timeout: Judgement took too long",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -2339,6 +2508,61 @@
         "security" : [ ]
       }
     },
+    "/api/v2/evaluation/{evaluationId}/submission/list" : {
+      "get" : {
+        "tags" : [ "Evaluation" ],
+        "summary" : "Returns all submissions for the current task run, if one is either running or has just ended.",
+        "operationId" : "getApiV2Evaluation{evaluationId}SubmissionList",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiSubmission"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
     "/api/v2/evaluation/{evaluationId}/submission/list/after/{timestamp}" : {
       "get" : {
         "tags" : [ "Evaluation" ],
@@ -2392,61 +2616,6 @@
           },
           "403" : {
             "description" : "Forbidden",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/evaluation/{evaluationId}/submission/list/{timestamp}" : {
-      "get" : {
-        "tags" : [ "Evaluation" ],
-        "summary" : "Returns all submissions for the current task run, if one is either running or has just ended.",
-        "operationId" : "getApiV2Evaluation{evaluationId}SubmissionList{timestamp}",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiSubmission"
-                  }
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -2604,11 +2773,11 @@
         "security" : [ ]
       }
     },
-    "/api/v2/evaluation/{evaluationId}/task/{taskRunId}/submission/list" : {
+    "/api/v2/evaluation/{evaluationId}/task/{taskId}/submission/list" : {
       "get" : {
         "tags" : [ "Evaluation" ],
         "summary" : "Returns the submissions of a specific task run, regardless of whether it is currently running or has ended.",
-        "operationId" : "getApiV2Evaluation{evaluationId}Task{taskRunId}SubmissionList",
+        "operationId" : "getApiV2Evaluation{evaluationId}Task{taskId}SubmissionList",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -3240,305 +3409,6 @@
         "security" : [ ]
       }
     },
-    "/api/v2/run/admin/{runId}/adjust/{duration}" : {
-      "post" : {
-        "tags" : [ "Evaluation Administrator" ],
-        "summary" : "Adjusts the duration of a running task. This is a method for admins.",
-        "operationId" : "postApiV2RunAdmin{runId}Adjust{duration}",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "duration",
-          "in" : "path",
-          "description" : "Duration to add. Can be negative.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/run/admin/{runId}/overview" : {
-      "get" : {
-        "tags" : [ "Evaluation Administrator" ],
-        "summary" : "Provides a complete overview of a run.",
-        "operationId" : "getApiV2RunAdmin{runId}Overview",
-        "parameters" : [ {
-          "name" : "runId",
-          "in" : "path",
-          "description" : "The evaluation ID",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiEvaluationOverview"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/run/{evaluationId}/hint/{taskId}" : {
-      "get" : {
-        "tags" : [ "Evaluation" ],
-        "summary" : "Returns the task hint for the specified task.",
-        "operationId" : "getApiV2Run{evaluationId}Hint{taskId}",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "taskId",
-          "in" : "path",
-          "description" : "The task ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiHintContent"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Forbidden",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/run/{runId}/judge" : {
-      "post" : {
-        "tags" : [ "Judgement" ],
-        "summary" : "Endpoint to post a judgement for a previously detached judgement request.",
-        "operationId" : "postApiV2Run{runId}Judge",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/ApiJudgement"
-              }
-            }
-          },
-          "required" : false
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Forbidden",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "408" : {
-            "description" : "On timeout: Judgement took too long",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
     "/api/v2/score/evaluation/{evaluationId}" : {
       "get" : {
         "tags" : [ "Evaluation Scores" ],
@@ -3809,9 +3679,9 @@
         "summary" : "Returns team group aggregated values of the current task.",
         "operationId" : "getApiV2ScoreEvaluation{evaluationId}TeamGroupList",
         "parameters" : [ {
-          "name" : "runId",
+          "name" : "evaluationId",
           "in" : "path",
-          "description" : "ID of the competition run.",
+          "description" : "The evaluation ID.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -4388,6 +4258,136 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/template/{templateId}/task/list" : {
+      "get" : {
+        "tags" : [ "Template" ],
+        "summary" : "Lists the task templates contained in a specific evaluation template.",
+        "operationId" : "getApiV2Template{templateId}TaskList",
+        "parameters" : [ {
+          "name" : "templateId",
+          "in" : "path",
+          "description" : "The evaluation template ID.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiTaskTemplate"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/template/{templateId}/team/list" : {
+      "get" : {
+        "tags" : [ "Template" ],
+        "summary" : "Lists all the teams of a specific competition.",
+        "operationId" : "getApiV2Template{templateId}TeamList",
+        "parameters" : [ {
+          "name" : "templateId",
+          "in" : "path",
+          "description" : "The evaluation template ID.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiTeam"
+                  }
                 }
               }
             }

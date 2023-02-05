@@ -29,7 +29,7 @@ class EvaluationDownloadHandler(store: TransientEntityStore) : AbstractDownloadH
         operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Download"],
         pathParams = [
-            OpenApiParam("runId", String::class, "The evaluation ID.", required = true)
+            OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true)
         ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(String::class, type = "application/json")]),

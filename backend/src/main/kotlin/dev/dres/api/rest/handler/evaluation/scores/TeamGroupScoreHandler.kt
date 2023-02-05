@@ -26,7 +26,7 @@ class TeamGroupScoreHandler(store: TransientEntityStore) : AbstractScoreHandler(
         operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Evaluation Scores"],
         pathParams = [
-            OpenApiParam("runId", String::class, "ID of the competition run.", required = true),
+            OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true),
         ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<ApiTeamGroupValue>::class)]),

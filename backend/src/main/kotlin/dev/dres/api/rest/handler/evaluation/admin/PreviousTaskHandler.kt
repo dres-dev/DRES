@@ -20,7 +20,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @version 2.0.0
  */
 class PreviousTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), PostRestHandler<SuccessStatus> {
-    override val route: String = "evaluation/admin/{runId}/task/previous"
+    override val route: String = "evaluation/admin/{evaluationId}/task/previous"
 
     @OpenApi(
         summary = "Moves to and selects the previous task. This is a method for admins.",

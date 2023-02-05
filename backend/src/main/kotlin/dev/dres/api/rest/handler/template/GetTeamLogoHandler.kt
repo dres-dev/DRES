@@ -20,7 +20,7 @@ import kotlinx.dnq.query.query
  */
 class GetTeamLogoHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), GetRestHandler<Any> {
 
-    override val route = "template/logo/{logoId}"
+    override val route = "template/logo/{teamId}"
     override val apiVersion = "v2"
 
     //not used

@@ -22,7 +22,7 @@ import java.io.IOException
  */
 class GetTaskTargetHandler(store: TransientEntityStore, private val config: Config) : AbstractEvaluationViewerHandler(store), GetRestHandler<ApiTargetContent> {
 
-    override val route = "run/{evaluationId}/target/{taskId}"
+    override val route = "evaluation/{evaluationId}/target/{taskId}"
 
     @OpenApi(
         summary = "Returns the task target for the current task run (i.e. the one that is currently selected).",

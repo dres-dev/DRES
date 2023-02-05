@@ -1,7 +1,7 @@
 /**
  * A class with time related utilities. Basically a port of dev.dres.utilities.TimeUtil.kt
  */
-import { ApiTemporalPoint, ApiTemporalRange } from '../../../openapi';
+import {ApiTemporalPoint, ApiTemporalRange} from '../../../openapi';
 
 export class TimeUtilities {
   /**

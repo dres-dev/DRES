@@ -52,7 +52,7 @@ dependencies {
     def log4jVersion = '2.17.1'
 
     ///// Frontend files (produced by sub-project).
-    //implementation frontendClasspath(project(path: ":frontend", configuration: 'frontendFiles'))
+    implementation frontendClasspath(project(path: ":frontend", configuration: 'frontendFiles'))
 
     ///// FFMpeg dependency
     implementation files("$buildDir/ext") {builtBy 'setupFFMpeg'}

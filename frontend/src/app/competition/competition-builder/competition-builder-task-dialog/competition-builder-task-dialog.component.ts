@@ -253,7 +253,7 @@ export class CompetitionBuilderTaskDialogComponent {
 
   getImageUrl(mi: ApiMediaItem) {
     if (mi && mi.type === 'IMAGE') {
-      return this.config.resolveApiUrl(`/media/${mi.collectionId}/${mi.id}`);
+      return this.config.resolveApiUrl(`/media/${mi.id}`);
     }
     return '';
   }

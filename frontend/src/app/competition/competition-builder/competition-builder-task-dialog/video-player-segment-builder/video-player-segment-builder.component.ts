@@ -51,7 +51,7 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
        */
       if (this.data.mediaItem) {
         this.videoUrl = of(
-          this.config.resolveApiUrl(`/media/${this.data?.mediaItem?.collectionId}/${this.data?.mediaItem?.id}`)
+          this.config.resolveApiUrl(`/media/${this.data?.mediaItem?.id}`)
         );
         this.durationInSeconds = this.data.mediaItem.durationMs / 1000;
         this.setNewRange(0, this.durationInSeconds);

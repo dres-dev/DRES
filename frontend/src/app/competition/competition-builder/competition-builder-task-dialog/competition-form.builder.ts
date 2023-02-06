@@ -7,7 +7,7 @@ import {
   ApiHint,
   ApiHintOption,
   ApiMediaItem, ApiTarget,
-  ApiTargetOption,
+  ApiTargetOption, ApiTargetType,
   ApiTaskGroup,
   ApiTaskTemplate,
   ApiTaskType, ApiTemporalPoint, ApiTemporalRange,
@@ -194,7 +194,7 @@ export class CompetitionFormBuilder {
       }),
       targets:  (this.form.get('target') as FormArray).controls.map((t) => {
           return {
-            type: this.taskType.targetOption,
+            type: t.get('type').value,
             target: t.get('mediaItem').value?.id || t.get('mediaItem').value,
             range:
               t.get('segment_start') && t.get('segment_start')
@@ -255,31 +255,31 @@ export class CompetitionFormBuilder {
   private formForTarget() {
     switch (this.taskType.targetOption) {
       case 'SINGLE_MEDIA_ITEM':
-        return new FormArray([this.singleMediaItemTargetForm(0, this.data?.targets[0])]); // FIXME semantic check
-        // FIXME only compiler happiness, no semantic check
-      /*case 'MULTIPLE_MEDIA_ITEMS':
-        const content: FormGroup[] = [];
-        if (this.data?.target) {
-          this.data?.target?.mediaItems.forEach((d, i) => content.push(this.singleMediaItemTargetForm(i, d)));
-        } else {
-          content.push(this.singleMediaItemTargetForm(0));
-        }
-        return new FormArray(content);*/
+        return new FormArray([this.singleMediaItemTargetForm(0, this.data?.targets[0])]);
       case 'SINGLE_MEDIA_SEGMENT':
-        return new FormArray([this.singleMediaSegmentTargetForm(this.data?.targets[0])]);  // FIXME semantic check
+        return new FormArray([this.singleMediaSegmentTargetForm(this.data?.targets[0])]);
       case 'JUDGEMENT':
-        return new FormArray([]);
+        return new FormArray([new FormGroup({type: new FormControl(ApiTargetType.JUDGEMENT)})]);
       case 'VOTE':
-        return new FormArray([]);
+        return new FormArray([new FormGroup({type: new FormControl(ApiTargetType.JUDGEMENT_WITH_VOTE)})]);
       case 'TEXT':
         const text: FormGroup[] = [];
         if (this.data?.targets) {
-          this.data?.targets?.forEach((d, i) => text.push(this.singleTextTargetForm(d)));  // FIXME semantic check
+          this.data?.targets?.forEach((d, i) => text.push(this.singleTextTargetForm(d)));
         } else {
           console.log('no target');
           text.push(this.singleTextTargetForm());
         }
         return new FormArray(text);
+      default:
+        // Handling multiple here, since it's the default.
+        const content: FormGroup[] = [];
+        if (this.data?.targets) {
+          this.data?.targets?.forEach((t, i) => content.push(this.singleMediaItemTargetForm(i, t)));
+        } else {
+          content.push(this.singleMediaItemTargetForm(0));
+        }
+        return new FormArray(content);
     }
   }
 
@@ -292,6 +292,8 @@ export class CompetitionFormBuilder {
   private singleMediaItemTargetForm(index: number, initialize?: ApiTarget): FormGroup {
     /* Prepare auto complete field. */
     const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
+    const typeFormControl = new FormControl(ApiTargetType.MEDIA_ITEM);
+
     this.dataSources.set(
       `target.${index}.mediaItem`,
       mediaItemFormControl.valueChanges.pipe(
@@ -312,7 +314,7 @@ export class CompetitionFormBuilder {
         });
     }
 
-    return new FormGroup({ mediaItem: mediaItemFormControl }, [RequireMatch]);
+    return new FormGroup({ type: typeFormControl, mediaItem: mediaItemFormControl }, [RequireMatch]);
   }
 
   /**
@@ -323,6 +325,7 @@ export class CompetitionFormBuilder {
   private singleMediaSegmentTargetForm(initialize?: ApiTarget) {
     /* Prepare auto complete field. */
     const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
+    const typeFormControl = new FormControl(ApiTargetType.MEDIA_ITEM_TEMPORAL_RANGE);
 
     this.dataSources.set(
       `target.0.mediaItem`,
@@ -345,6 +348,7 @@ export class CompetitionFormBuilder {
     }
 
     const formGroup = new FormGroup({
+      type: typeFormControl,
       mediaItem: mediaItemFormControl,
       segment_start: new FormControl(initialize?.range.start.value, [Validators.required]),
       segment_end: new FormControl(initialize?.range.end.value, [Validators.required]),
@@ -368,12 +372,14 @@ export class CompetitionFormBuilder {
 
   private singleTextTargetForm(initialize?: ApiTarget) {
     const textFormControl = new FormControl(null, [Validators.required]);
+    const typeFormControl = new FormControl(ApiTargetType.TEXT);
 
     console.log(initialize?.target);
 
     textFormControl.setValue(initialize?.target);
 
     return new FormGroup({
+      type: typeFormControl,
       mediaItem: textFormControl,
     });
   }

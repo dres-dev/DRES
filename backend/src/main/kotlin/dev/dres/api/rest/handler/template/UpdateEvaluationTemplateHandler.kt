@@ -8,6 +8,7 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.Config
 import dev.dres.data.model.admin.DbUser
+import dev.dres.data.model.media.DbMediaCollection
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.*
 import dev.dres.data.model.template.task.options.DbConfiguredOption
@@ -118,7 +119,8 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 }
                 t.name = task.name
                 t.duration = task.duration
-
+                t.collection = DbMediaCollection.query(DbMediaCollection::id eq task.collectionId).first()
+                t.taskGroup = DbTaskGroup.query(DbTaskGroup::name eq task.taskGroup).first()
                 /* Update task targets. */
                 t.targets.clear()
                 for (target in task.targets) {

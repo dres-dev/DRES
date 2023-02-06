@@ -96,7 +96,7 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
             existing.taskGroups.removeAll(DbTaskGroup.query(DbTaskGroup::evaluation eq existing and not(DbTaskGroup::name.containsIn(*taskGroups))))
             for (group in apiValue.taskGroups) {
                 val g = DbTaskGroup.findOrNew {
-                    (DbTaskGroup::name eq type.name) and (DbTaskGroup::evaluation eq existing)
+                    (DbTaskGroup::name eq group.name) and (DbTaskGroup::evaluation eq existing)
                 }
                 g.name = group.name
                 g.type = DbTaskType.query((DbTaskType::name eq group.name) and (DbTaskGroup::evaluation eq existing)).first()

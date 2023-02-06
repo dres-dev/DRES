@@ -62,10 +62,10 @@ object AccessManager {
      * @param user The [DbUser] to register.
      */
     fun registerUserForSession(sessionId: String, user: ApiUser) = this.locks.write {
+        require(user.id != null) { "Can only register user with userId for session. This is a programmer's error!"}
         if (!this.sessionRoleMap.containsKey(sessionId)){
             this.sessionRoleMap[sessionId] = mutableSetOf()
         }
-
         this.sessionUserMap[sessionId] = user.id
         this.sessionRoleMap[sessionId]!!.addAll(
             when(user.role) {

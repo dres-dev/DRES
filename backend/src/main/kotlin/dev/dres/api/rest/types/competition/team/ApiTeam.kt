@@ -1,5 +1,7 @@
 package dev.dres.api.rest.types.competition.team
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.Team
@@ -12,9 +14,14 @@ import dev.dres.data.model.template.team.TeamId
  * @version 1.0.0
  */
 data class ApiTeam(
-    override val teamId: TeamId?,
-    val name: String,
-    val color: String,
+    val id: TeamId? = null,
+    val name: String? = null,
+    val color: String? = null,
     val users: List<ApiUser> = emptyList(),
     var logoData: String? = null
-) : Team
+) : Team {
+    override val teamId: TeamId
+        @JsonIgnore(true)
+        get() =this.id ?: "<unspecified>"
+
+}

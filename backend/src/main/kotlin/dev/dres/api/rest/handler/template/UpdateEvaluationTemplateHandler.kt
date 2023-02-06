@@ -160,16 +160,16 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
             }
 
             /* Update team information. */
-            val teamIds = apiValue.teams.map { it.teamId }.toTypedArray()
+            val teamIds = apiValue.teams.map { it.id }.toTypedArray()
             existing.teams.removeAll(DbTeam.query(DbTeam::evaluation eq existing and not(DbTeam::id.containsIn(*teamIds))))
             for (team in apiValue.teams) {
-                val t = if (team.teamId != null) {
-                    existing.teams.filter { it.id eq team.teamId }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown team ${team.teamId} for evaluation ${apiValue.id}.", ctx)
+                val t = if (team.id != null) {
+                    existing.teams.filter { it.id eq team.id }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown team ${team.id} for evaluation ${apiValue.id}.", ctx)
                 } else {
                     DbTeam.new { this.id = UUID.randomUUID().toString() }
                 }
-
-                t.color = team.color
+                t.name = team.name ?: throw ErrorStatusException(404, "Team name must be specified.", ctx)
+                t.color = team.color ?: throw ErrorStatusException(404, "Team colour must be specified.", ctx)
                 t.logo = team.logoData?.drop("data:image/png;base64,".length)?.decodeBase64()?.let { ByteArrayInputStream(it) } /* TODO: Generalize! Should also work with other types than PNG. */
                 t.users.clear()
                 t.users.addAll(DbUser.query(DbUser::id.containsIn(*team.users.map { it.id }.toTypedArray())))
@@ -191,7 +191,7 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 }
 
                 t.teams.clear()
-                t.teams.addAll(DbTeam.query(DbTeam::id.containsIn(*teamGroup.teams.map { it.teamId }.toTypedArray())))
+                t.teams.addAll(DbTeam.query(DbTeam::id.containsIn(*teamGroup.teams.map { it.id }.toTypedArray())))
 
                 /* Establish relationship if entry is new. */
                 if (t.isNew) {

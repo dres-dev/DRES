@@ -401,7 +401,7 @@
               <input type="number" matInput placeholder="End" [formControl]="description.get('end')" />
             </mat-form-field>
 
-            <span *ngIf="description.get('type').value === 'IMAGE_ITEM'">
+            <span *ngIf="description.get('type').value === 'IMAGE'">
               <mat-form-field style="width: 85%" *ngIf="description.get('mediaItem')">
                 <input
                   type="text"
@@ -456,7 +456,7 @@
               </mat-form-field>
             </span>
 
-            <span *ngIf="description.get('type').value === 'VIDEO_ITEM_SEGMENT'">
+            <span *ngIf="description.get('type').value === 'VIDEO'">
               <mat-form-field style="width: 45%" *ngIf="description.get('mediaItem')">
                 <input
                   type="text"

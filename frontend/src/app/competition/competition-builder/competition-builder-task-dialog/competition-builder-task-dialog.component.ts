@@ -12,7 +12,7 @@ import {
 } from './advanced-builder-dialog/advanced-builder-dialog.component';
 import { TimeUtilities } from '../../../utilities/time.utilities';
 import {
-  ApiHintOption,
+  ApiHintOption, ApiHintType,
   ApiMediaCollection,
   ApiMediaItem,
   ApiTargetOption,
@@ -95,7 +95,25 @@ export class CompetitionBuilderTaskDialogComponent {
    * Handler for (+) button for query hint form component.
    */
   public addQueryComponent(componentType: ApiHintOption, previous: number = null) {
-    this.builder.addComponentForm(componentType, previous);
+    // FIXME: push switch to builder
+    switch(componentType){
+      case 'IMAGE_ITEM':
+        this.builder.addComponentForm(ApiHintType.IMAGE, previous);
+        break;
+      case 'VIDEO_ITEM_SEGMENT':
+        this.builder.addComponentForm(ApiHintType.VIDEO, previous);
+        break;
+      case 'TEXT':
+        this.builder.addComponentForm(ApiHintType.TEXT, previous);
+        break;
+      case 'EXTERNAL_IMAGE':
+        this.builder.addComponentForm(ApiHintType.IMAGE, previous); // FIXME not entirely supported
+        break;
+      case 'EXTERNAL_VIDEO':
+        this.builder.addComponentForm(ApiHintType.VIDEO, previous); // FIXME not entirely supported
+        break;
+
+    }
   }
 
   /**

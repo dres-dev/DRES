@@ -5,7 +5,7 @@ import { RequireMatch } from './require-match';
 import { TimeUtilities } from '../../../utilities/time.utilities';
 import {
   ApiHint,
-  ApiHintOption,
+  ApiHintOption, ApiHintType,
   ApiMediaItem, ApiTarget,
   ApiTargetOption, ApiTargetType,
   ApiTaskGroup,
@@ -69,25 +69,22 @@ export class CompetitionFormBuilder {
    * @param type The {@link ConfiguredOptionQueryComponentType.OptionEnum} to add a {@link FormGroup} for.
    * @param afterIndex The {@link FormControl} to insert the new {@link FormControl} after.
    */
-  public addComponentForm(type: ApiHintOption, afterIndex: number = null) {
+  public addComponentForm(type: ApiHintType, afterIndex: number = null) {
     const array = this.form.get('components') as FormArray;
     const newIndex = afterIndex ? afterIndex + 1 : array.length;
     let component = null;
     switch (type) {
-      case 'IMAGE_ITEM':
-        component = this.imageItemComponentForm(newIndex);
-        break;
-      case 'VIDEO_ITEM_SEGMENT':
-        component = this.videoItemComponentForm(newIndex);
+      // FIXME cannot differ external from internal in video / image
+      case 'EMPTY':
         break;
       case 'TEXT':
         component = this.textItemComponentForm(newIndex);
         break;
-      case 'EXTERNAL_IMAGE':
-        component = this.externalImageItemComponentForm(newIndex);
+      case 'VIDEO':
+        component = this.videoItemComponentForm(newIndex);
         break;
-      case 'EXTERNAL_VIDEO':
-        component = this.externalVideoItemComponentForm(newIndex);
+      case 'IMAGE':
+        component = this.imageItemComponentForm(newIndex);
         break;
       default:
         console.error(`Failed to add query hint: Unsupported component type '${type}.`);
@@ -459,7 +456,7 @@ export class CompetitionFormBuilder {
         Validators.max(this.taskType.duration),
       ]),
       end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
-      type: new FormControl('IMAGE_ITEM', [Validators.required]),
+      type: new FormControl('IMAGE', [Validators.required]),
       mediaItem: mediaItemFormControl,
     });
   }
@@ -514,7 +511,7 @@ export class CompetitionFormBuilder {
         Validators.min(0),
         Validators.max(this.taskType.duration),
       ]),
-      type: new FormControl('VIDEO_ITEM_SEGMENT', [Validators.required]),
+      type: new FormControl('VIDEO', [Validators.required]),
       mediaItem: mediaItemFormControl,
       segment_start: new FormControl(initialize?.range.start.value, [Validators.required]),
       segment_end: new FormControl(initialize?.range.end.value, [Validators.required]),

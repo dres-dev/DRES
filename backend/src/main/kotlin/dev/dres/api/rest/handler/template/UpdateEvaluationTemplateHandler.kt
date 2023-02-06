@@ -100,7 +100,7 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                     (DbTaskGroup::name eq group.name) and (DbTaskGroup::evaluation eq existing)
                 }
                 g.name = group.name
-                g.type = DbTaskType.query((DbTaskType::name eq group.type) and (DbTaskGroup::evaluation eq existing)).firstOrNull() ?: throw ErrorStatusException(404, "Unknown task group ${group.type} for evaluation ${apiValue.id}.", ctx)
+                g.type = DbTaskType.query((DbTaskType::name eq group.type) and (DbTaskType::evaluation eq existing)).firstOrNull() ?: throw ErrorStatusException(404, "Unknown task group ${group.type} for evaluation ${apiValue.id}.", ctx)
                 existing.taskGroups.add(g)
             }
 

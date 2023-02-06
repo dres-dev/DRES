@@ -12,7 +12,7 @@ import dev.dres.data.model.template.team.TeamId
  * @version 1.0.0
  */
 data class ApiTeam(
-    override val teamId: TeamId,
+    override val teamId: TeamId?,
     val name: String,
     val color: String,
     val users: List<ApiUser> = emptyList(),

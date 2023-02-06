@@ -5,6 +5,6 @@ typealias TeamId = String
 
 interface Team { //TODO
 
-    val teamId: TeamId
+    val teamId: TeamId?
 
 }

@@ -160,7 +160,7 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 t.name = team.name
                 t.color = team.color
                 if (team.logoData != null) {
-                    t.logo = ByteArrayInputStream(team.logoData!!.decodeBase64())
+                    t.logo = ByteArrayInputStream(team.logoData!!.drop("data:image/png;base64,".length).decodeBase64())
                 }
                 t.users.clear()
                 t.users.addAll(DbUser.query(DbUser::id.containsIn(*team.users.map { it.id }.toTypedArray())))

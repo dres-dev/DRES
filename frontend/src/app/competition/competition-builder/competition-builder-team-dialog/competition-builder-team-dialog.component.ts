@@ -88,7 +88,7 @@ export class CompetitionBuilderTeamDialogComponent {
    * @param event @{MatAutocompleteSelectedEvent}
    */
   public addUser(event: MatAutocompleteSelectedEvent): void {
-    this.form.get('users').value.push(event.option.value.id);
+    this.form.get('users').value.push(event.option.value);
     this.form.get('userInput').setValue(null);
   }
 

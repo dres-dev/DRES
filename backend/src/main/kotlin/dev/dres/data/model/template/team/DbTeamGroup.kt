@@ -35,7 +35,7 @@ class DbTeamGroup(entity: Entity) : PersistentEntity(entity) {
     var defaultAggregator by xdLink1(DbTeamAggregator)
 
     /** The [DbEvaluationTemplate] this [DbTeam] belongs to. */
-    val evaluation: DbEvaluationTemplate by xdParent<DbTeamGroup,DbEvaluationTemplate>(DbEvaluationTemplate::teamsGroups)
+    val evaluation: DbEvaluationTemplate by xdParent<DbTeamGroup,DbEvaluationTemplate>(DbEvaluationTemplate::teamGroups)
 
     /** The [DbTeam]s that belong to this [DbTeamGroup]. */
     val teams by xdLink1_N<DbTeamGroup,DbTeam>(DbTeam::group)

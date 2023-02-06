@@ -30,7 +30,7 @@ abstract class AbstractInteractiveTask(task: DbTask): AbstractTask(task) {
 
     /** Map of [TeamGroupId] to [TeamAggregatorImpl]. */
     val teamGroupAggregators: Map<TeamGroupId, TeamAggregatorImpl> by lazy {
-        this.competition.description.teamsGroups.asSequence().associate { it.id to it.newAggregator() }
+        this.competition.description.teamGroups.asSequence().associate { it.id to it.newAggregator() }
     }
 
     /** The [SubmissionValidator] used to validate [DbSubmission]s. */

@@ -109,7 +109,7 @@ object RestApi {
             // Competition
             ListEvaluationTemplatesHandler(store),
             CreateEvaluationTemplateHandler(store),
-            UpdateEvaluationHandler(store, config),
+            UpdateEvaluationTemplateHandler(store, config),
             ShowEvaluationTemplateHandler(store),
             DeleteEvaluationTemplateHandler(store),
             ListTeamHandler(store),

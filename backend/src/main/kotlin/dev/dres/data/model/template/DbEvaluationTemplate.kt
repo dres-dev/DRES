@@ -59,7 +59,7 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity){
     val teams by xdChildren0_N<DbEvaluationTemplate,DbTeam>(DbTeam::evaluation)
 
     /** The [DbTeam]s that are part of this [DbEvaluationTemplate]. */
-    val teamsGroups by xdChildren0_N<DbEvaluationTemplate,DbTeamGroup>(DbTeamGroup::evaluation)
+    val teamGroups by xdChildren0_N<DbEvaluationTemplate,DbTeamGroup>(DbTeamGroup::evaluation)
 
     /** The [DbUser]s that act as judge for this [DbEvaluationTemplate] */
     val judges by xdLink0_N(DbUser, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)
@@ -79,7 +79,7 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity){
         taskGroups = this.taskGroups.asSequence().map { it.toApi() }.toList(),
         tasks = this.tasks.asSequence().map { it.toApi() }.toList(),
         teams = this.teams.asSequence().map { it.toApi() }.toList(),
-        teamGroups = this.teamsGroups.asSequence().map { it.toApi() }.toList(),
+        teamGroups = this.teamGroups.asSequence().map { it.toApi() }.toList(),
         judges = this.judges.asSequence().map { it.id }.toList()
     )
 

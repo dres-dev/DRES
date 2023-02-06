@@ -30,7 +30,7 @@ import java.io.ByteArrayInputStream
  * @author Loris Sauter
  * @version 2.0.0
  */
-class UpdateEvaluationHandler(store: TransientEntityStore, val config: Config) : AbstractEvaluationTemplateHandler(store), PatchRestHandler<SuccessStatus> {
+class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: Config) : AbstractEvaluationTemplateHandler(store), PatchRestHandler<SuccessStatus> {
 
     override val route: String = "template/{templateId}"
 
@@ -58,7 +58,7 @@ class UpdateEvaluationHandler(store: TransientEntityStore, val config: Config) :
 
         /* Store change. */
         this.store.transactional {
-            val existing = this.competitionById(apiValue.id, ctx)
+            val existing = this.evaluationTemplateById(apiValue.id, ctx)
 
             /* Update core information. */
             existing.name = apiValue.name
@@ -88,6 +88,7 @@ class UpdateEvaluationHandler(store: TransientEntityStore, val config: Config) :
                         this.value = it.value
                     }
                 })
+                existing.taskTypes.add(t)
             }
 
             /* Update task group information. */
@@ -99,6 +100,9 @@ class UpdateEvaluationHandler(store: TransientEntityStore, val config: Config) :
                 }
                 g.name = group.name
                 g.type = DbTaskType.query((DbTaskType::name eq group.name) and (DbTaskGroup::evaluation eq existing)).first()
+
+                existing.taskGroups.add(g)
+
             }
 
             /* Update task information. */
@@ -142,6 +146,8 @@ class UpdateEvaluationHandler(store: TransientEntityStore, val config: Config) :
                         this.temporalRangeEnd = hint.range?.end?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
                     })
                 }
+
+                existing.tasks.add(t) //TODO do we need to explicitly sort these here?
             }
 
             /* Update team information. */
@@ -158,11 +164,14 @@ class UpdateEvaluationHandler(store: TransientEntityStore, val config: Config) :
                 }
                 t.users.clear()
                 t.users.addAll(DbUser.query(DbUser::id.containsIn(*team.users.map { it.id }.toTypedArray())))
+
+                existing.teams.add(t)
+
             }
 
             /* Update teamGroup information */
             val teamGroupIds = apiValue.teamGroups.map { it.id }.toTypedArray()
-            existing.teamsGroups.removeAll(DbTeamGroup.query(DbTeamGroup::evaluation eq existing and not(DbTeamGroup::id.containsIn(*teamGroupIds))))
+            existing.teamGroups.removeAll(DbTeamGroup.query(DbTeamGroup::evaluation eq existing and not(DbTeamGroup::id.containsIn(*teamGroupIds))))
             for (teamGroup in apiValue.teamGroups) {
                 val t = DbTeamGroup.findOrNew {
                     (DbTeam::name eq teamGroup.name) and (DbTeam::evaluation eq existing)
@@ -170,6 +179,8 @@ class UpdateEvaluationHandler(store: TransientEntityStore, val config: Config) :
                 t.name = teamGroup.name
                 t.teams.clear()
                 t.teams.addAll(DbTeam.query(DbTeam::id.containsIn(*teamGroup.teams.map { it.teamId }.toTypedArray())))
+
+                existing.teamGroups.add(t)
             }
 
             /* Update judge information */

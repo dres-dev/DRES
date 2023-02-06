@@ -4,6 +4,7 @@ import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.template.task.options.DbSubmissionOption
 import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.size
@@ -14,7 +15,12 @@ import kotlinx.dnq.query.size
  * @version 1.0
  */
 class MaximumWrongPerTeamFilter(private val max: Int = Int.MAX_VALUE) : SubmissionFilter {
-    constructor(parameters: Map<String, String>) : this(parameters.getOrDefault("limit", "${Int.MAX_VALUE}").toIntOrNull() ?: Int.MAX_VALUE)
+
+    companion object {
+        val PARAMETER_KEY_LIMIT = "${DbSubmissionOption.LIMIT_WRONG_PER_TEAM.description}.limit"
+    }
+
+    constructor(parameters: Map<String, String>) : this(parameters.getOrDefault(PARAMETER_KEY_LIMIT, "${Int.MAX_VALUE}").toIntOrNull() ?: Int.MAX_VALUE)
 
     override val reason = "Maximum number of wrong submissions ($max) exceeded for the team"
     /**

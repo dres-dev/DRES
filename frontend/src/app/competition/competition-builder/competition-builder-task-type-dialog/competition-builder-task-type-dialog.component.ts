@@ -156,10 +156,12 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
 
   private init() {
 
-    const parameters: Array<[string, string]> = [];
+    const parameters: Array<[string, string, string]> = [];
     /* Load all configuration parameters. */
     for (let configurationKey in this.data?.configuration) {
-      parameters.push([configurationKey, this?.data.configuration[configurationKey]]);
+      const keyParts = configurationKey.split('.');
+      console.log(configurationKey, this?.data.configuration[configurationKey])
+      parameters.push([keyParts[0] as ApiSubmissionOption, keyParts[1], this?.data.configuration[configurationKey]]);
     }
     /*
     --- Legacy. Keep to check validity
@@ -261,7 +263,7 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
     const obj = {};
     (this.form.get('parameters') as FormArray).controls.forEach((c) => {
       const cast = (c as FormArray).controls;
-        obj[cast[0].value] = cast[1].value;
+        obj[`${cast[0].value}.${cast[1].value}`] = cast[2].value;
     });
     return obj;
   }

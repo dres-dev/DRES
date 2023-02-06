@@ -4,6 +4,7 @@ import dev.dres.api.rest.handler.DeleteRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.utilities.extensions.evaluationId
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -36,7 +37,7 @@ class DeleteEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEva
     override fun doDelete(ctx: Context): SuccessStatus = this.store.transactional {
         val competitionToDelete = competitionFromContext(ctx)
         competitionToDelete.delete()
-        SuccessStatus("Evaluation template with ID ${competitionToDelete.id} was deleted successfully.")
+        SuccessStatus("Evaluation template with ID ${ctx.pathParam("templateId")} was deleted successfully.")
     }
 }
 

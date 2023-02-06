@@ -22,6 +22,7 @@ import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.creator.findOrNew
 import kotlinx.dnq.query.*
 import java.io.ByteArrayInputStream
+import java.util.UUID
 
 /**
  * A [AbstractEvaluationTemplateHandler] that can be used to create a new [DbEvaluationTemplate].
@@ -69,10 +70,9 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
             val taskTypes = apiValue.taskTypes.map { it.name }.toTypedArray()
             existing.taskTypes.removeAll(DbTaskType.query(DbTaskType::evaluation eq existing and not(DbTaskType::name.containsIn(*taskTypes))))
             for (type in apiValue.taskTypes) {
-                val t = DbTaskType.findOrNew {
-                    (DbTaskType::name eq type.name) and (DbTaskType::evaluation eq existing)
+                val t = DbTaskType.findOrNew(DbTaskType.query(  (DbTaskType::name eq type.name) and (DbTaskType::evaluation eq existing))) {
+                  this.name = type.name
                 }
-                t.name = type.name
                 t.duration = type.duration
                 t.score = type.scoreOption.toDb()
                 t.target = type.targetOption.toDb()
@@ -89,19 +89,26 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                         this.value = it.value
                     }
                 })
-                existing.taskTypes.add(t)
+
+                /* Establish relationship if entry is new. */
+                if (t.isNew) {
+                    existing.taskTypes.add(t)
+                }
             }
 
             /* Update task group information. */
             val taskGroups = apiValue.taskGroups.map { it.name }.toTypedArray()
             existing.taskGroups.removeAll(DbTaskGroup.query(DbTaskGroup::evaluation eq existing and not(DbTaskGroup::name.containsIn(*taskGroups))))
             for (group in apiValue.taskGroups) {
-                val g = DbTaskGroup.findOrNew {
-                    (DbTaskGroup::name eq group.name) and (DbTaskGroup::evaluation eq existing)
+                val g = DbTaskGroup.findOrNew(DbTaskGroup.query((DbTaskGroup::name eq group.name) and (DbTaskGroup::evaluation eq existing))) {
+                    this.name = group.name
                 }
-                g.name = group.name
                 g.type = DbTaskType.query((DbTaskType::name eq group.type) and (DbTaskType::evaluation eq existing)).firstOrNull() ?: throw ErrorStatusException(404, "Unknown task group ${group.type} for evaluation ${apiValue.id}.", ctx)
-                existing.taskGroups.add(g)
+
+                /* Establish relationship if entry is new. */
+                if (g.isNew) {
+                    existing.taskGroups.add(g)
+                }
             }
 
             /* Update task information. */
@@ -109,16 +116,15 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
             existing.tasks.removeAll(DbTaskTemplate.query(DbTaskTemplate::evaluation eq existing and not(DbTaskTemplate::id.containsIn(*taskIds))))
             for (task in apiValue.tasks) {
                 val t = if (task.id != null) {
-                    existing.tasks.filter { it.id eq task.id }.first()
+                    existing.tasks.filter { it.id eq task.id }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown task ${task.id} for evaluation ${apiValue.id}.", ctx)
                 } else {
-                    val desc = DbTaskTemplate.new { }
-                    existing.tasks.add(desc)
-                    desc
+                    DbTaskTemplate.new { this.id = UUID.randomUUID().toString() }
                 }
                 t.name = task.name
                 t.duration = task.duration
                 t.collection = DbMediaCollection.query(DbMediaCollection::id eq task.collectionId).first()
                 t.taskGroup = DbTaskGroup.query(DbTaskGroup::name eq task.taskGroup).first()
+
                 /* Update task targets. */
                 t.targets.clear()
                 for (target in task.targets) {
@@ -147,36 +153,50 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                     })
                 }
 
-                existing.tasks.add(t) //TODO do we need to explicitly sort these here?
+                /* Establish relationship if entry is new. */
+                if (t.isNew) {
+                    existing.tasks.add(t)
+                }
             }
 
             /* Update team information. */
             val teamIds = apiValue.teams.map { it.teamId }.toTypedArray()
             existing.teams.removeAll(DbTeam.query(DbTeam::evaluation eq existing and not(DbTeam::id.containsIn(*teamIds))))
             for (team in apiValue.teams) {
-                val t = DbTeam.findOrNew {
-                    (DbTeam::name eq team.name) and (DbTeam::evaluation eq existing)
+                val t = if (team.teamId != null) {
+                    existing.teams.filter { it.id eq team.teamId }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown team ${team.teamId} for evaluation ${apiValue.id}.", ctx)
+                } else {
+                    DbTeam.new { this.id = UUID.randomUUID().toString() }
                 }
-                t.name = team.name
+
                 t.color = team.color
                 t.logo = team.logoData?.drop("data:image/png;base64,".length)?.decodeBase64()?.let { ByteArrayInputStream(it) } /* TODO: Generalize! Should also work with other types than PNG. */
                 t.users.clear()
                 t.users.addAll(DbUser.query(DbUser::id.containsIn(*team.users.map { it.id }.toTypedArray())))
-                existing.teams.add(t)
+
+                /* Establish relationship if entry is new. */
+                if (t.isNew) {
+                    existing.teams.add(t)
+                }
             }
 
             /* Update teamGroup information */
             val teamGroupIds = apiValue.teamGroups.map { it.id }.toTypedArray()
             existing.teamGroups.removeAll(DbTeamGroup.query(DbTeamGroup::evaluation eq existing and not(DbTeamGroup::id.containsIn(*teamGroupIds))))
             for (teamGroup in apiValue.teamGroups) {
-                val t = DbTeamGroup.findOrNew {
-                    (DbTeam::name eq teamGroup.name) and (DbTeam::evaluation eq existing)
+                val t = if (teamGroup.id != null) {
+                    existing.teamGroups.filter { it.id eq teamGroup.id }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown team groum ${teamGroup.id} for evaluation ${apiValue.id}.", ctx)
+                } else {
+                    DbTeamGroup.new { this.id = UUID.randomUUID().toString() }
                 }
-                t.name = teamGroup.name
+
                 t.teams.clear()
                 t.teams.addAll(DbTeam.query(DbTeam::id.containsIn(*teamGroup.teams.map { it.teamId }.toTypedArray())))
 
-                existing.teamGroups.add(t)
+                /* Establish relationship if entry is new. */
+                if (t.isNew) {
+                    existing.teamGroups.add(t)
+                }
             }
 
             /* Update judge information */

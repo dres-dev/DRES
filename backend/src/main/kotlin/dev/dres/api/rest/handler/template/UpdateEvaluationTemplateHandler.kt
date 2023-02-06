@@ -100,10 +100,8 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                     (DbTaskGroup::name eq group.name) and (DbTaskGroup::evaluation eq existing)
                 }
                 g.name = group.name
-                g.type = DbTaskType.query((DbTaskType::name eq group.name) and (DbTaskGroup::evaluation eq existing)).first()
-
+                g.type = DbTaskType.query((DbTaskType::name eq group.type) and (DbTaskGroup::evaluation eq existing)).firstOrNull() ?: throw ErrorStatusException(404, "Unknown task group ${group.type} for evaluation ${apiValue.id}.", ctx)
                 existing.taskGroups.add(g)
-
             }
 
             /* Update task information. */
@@ -161,14 +159,10 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 }
                 t.name = team.name
                 t.color = team.color
-                if (team.logoData != null) {
-                    t.logo = ByteArrayInputStream(team.logoData!!.drop("data:image/png;base64,".length).decodeBase64())
-                }
+                t.logo = team.logoData?.drop("data:image/png;base64,".length)?.decodeBase64()?.let { ByteArrayInputStream(it) } /* TODO: Generalize! Should also work with other types than PNG. */
                 t.users.clear()
                 t.users.addAll(DbUser.query(DbUser::id.containsIn(*team.users.map { it.id }.toTypedArray())))
-
                 existing.teams.add(t)
-
             }
 
             /* Update teamGroup information */

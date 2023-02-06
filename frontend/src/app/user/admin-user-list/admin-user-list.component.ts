@@ -60,7 +60,7 @@ export class AdminUserListComponent implements AfterViewInit {
         filter((r) => r != null),
         flatMap((u: UserRequest) => {
           console.debug(`Edit Result: ${u}`);
-          return this.userService.patchApiV2UseruserId(user.id, u);
+          return this.userService.patchApiV2UserByUserId(user.id, u);
         })
       )
       .subscribe(
@@ -76,7 +76,7 @@ export class AdminUserListComponent implements AfterViewInit {
 
   public delete(userId: string) {
     if (confirm(`Do you really want to delete user (${userId})?`)) {
-      this.userService.deleteApiV2UseruserId(userId).subscribe(
+      this.userService.deleteApiV2UserByUserId(userId).subscribe(
         (u: ApiUser) => {
           this.refresh();
           this.snackBar.open(`Success: ${u.username} (${u.id}) deleted`, null, { duration: 5000 });

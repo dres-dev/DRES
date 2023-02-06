@@ -296,7 +296,7 @@ export class CompetitionFormBuilder {
       mediaItemFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
         switchMap((s) =>
-          this.collectionService.getApiV2CollectioncollectionIdstartsWith(this.form.get('mediaCollection').value, s)
+          this.collectionService.getApiV2CollectionByCollectionIdByStartsWith(this.form.get('mediaCollection').value, s)
         )
       )
     );
@@ -304,7 +304,7 @@ export class CompetitionFormBuilder {
     /* Load media item from API. */
     if (initialize?.target && this.data?.collectionId) {
       this.collectionService
-        .getApiV2MediaItemmediaId(initialize?.target)
+        .getApiV2MediaItemByMediaId(initialize?.target)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);
@@ -329,7 +329,7 @@ export class CompetitionFormBuilder {
       mediaItemFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
         switchMap((s) =>
-          this.collectionService.getApiV2CollectioncollectionIdstartsWith(this.form.get('mediaCollection').value, s)
+          this.collectionService.getApiV2CollectionByCollectionIdByStartsWith(this.form.get('mediaCollection').value, s)
         )
       )
     );
@@ -337,7 +337,7 @@ export class CompetitionFormBuilder {
     /* Load media item from API. */
     if (initialize?.target && this.data.collectionId) {
       this.collectionService
-        .getApiV2MediaItemmediaId(initialize.target)
+        .getApiV2MediaItemByMediaId(initialize.target)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);
@@ -434,7 +434,7 @@ export class CompetitionFormBuilder {
       mediaItemFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
         switchMap((s) =>
-          this.collectionService.getApiV2CollectioncollectionIdstartsWith(this.form.get('mediaCollection').value, s)
+          this.collectionService.getApiV2CollectionByCollectionIdByStartsWith(this.form.get('mediaCollection').value, s)
         )
       )
     );
@@ -442,7 +442,7 @@ export class CompetitionFormBuilder {
     /* Load media item from API. */
     if (initialize?.mediaItem && this.data?.collectionId) {
       this.collectionService
-        .getApiV2MediaItemmediaId(initialize?.mediaItem)
+        .getApiV2MediaItemByMediaId(initialize?.mediaItem)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);
@@ -484,7 +484,7 @@ export class CompetitionFormBuilder {
       mediaItemFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
         switchMap((s) =>
-          this.collectionService.getApiV2CollectioncollectionIdstartsWith(this.form.get('mediaCollection').value, s)
+          this.collectionService.getApiV2CollectionByCollectionIdByStartsWith(this.form.get('mediaCollection').value, s)
         )
       )
     );
@@ -492,7 +492,7 @@ export class CompetitionFormBuilder {
     /* Load media item from API. */
     if (initialize?.mediaItem && this.data?.collectionId) {
       this.collectionService
-        .getApiV2MediaItemmediaId(initialize.mediaItem)
+        .getApiV2MediaItemByMediaId(initialize.mediaItem)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);
@@ -586,7 +586,7 @@ export class CompetitionFormBuilder {
       `components.${index}.path`,
       pathFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
-        switchMap((s) => this.collectionService.getApiV2ExternalstartsWith(s))
+        switchMap((s) => this.collectionService.getApiV2ExternalByStartsWith(s))
       )
     );
 
@@ -618,7 +618,7 @@ export class CompetitionFormBuilder {
       `components.${index}.path`,
       pathFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
-        switchMap((s) => this.collectionService.getApiV2ExternalstartsWith(s))
+        switchMap((s) => this.collectionService.getApiV2ExternalByStartsWith(s))
       )
     );
 

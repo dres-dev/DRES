@@ -95,7 +95,7 @@ export class AbstractRunListComponent {
   }
 
   public downloadScores(runId: string) {
-    this.downloadService.getApiV2DownloadEvaluationevaluationIdScores(runId).subscribe((scoresCSV) => {
+    this.downloadService.getApiV2DownloadEvaluationByEvaluationIdScores(runId).subscribe((scoresCSV) => {
       const csvBlob = new Blob([scoresCSV], { type: 'text/csv' });
       const fake = document.createElement('a');
       fake.href = URL.createObjectURL(csvBlob);
@@ -106,7 +106,7 @@ export class AbstractRunListComponent {
   }
 
   public nextTask(runId: string) {
-    this.runAdminService.postApiV2EvaluationAdminevaluationIdTaskNext(runId).subscribe(
+    this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskNext(runId).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -118,7 +118,7 @@ export class AbstractRunListComponent {
   }
 
   public startTask(runId: string) {
-    this.runAdminService.postApiV2EvaluationAdminevaluationIdTaskStart(runId).subscribe(
+    this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskStart(runId).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -131,7 +131,7 @@ export class AbstractRunListComponent {
 
   scoreDownloadProvider = (runId: string) => {
     return this.downloadService
-      .getApiV2DownloadEvaluationevaluationIdScores(runId, 'body', false, { httpHeaderAccept: 'text/plain' }) // FIXME was text/css, might require openapi specs adjustement
+      .getApiV2DownloadEvaluationByEvaluationIdScores(runId, 'body', false, { httpHeaderAccept: 'text/plain' }) // FIXME was text/css, might require openapi specs adjustement
       .pipe(take(1));
   };
 
@@ -140,7 +140,7 @@ export class AbstractRunListComponent {
   };
 
   downloadProvider = (runId) => {
-    return this.downloadService.getApiV2DownloadEvaluationevaluationId(runId).pipe(take(1));
+    return this.downloadService.getApiV2DownloadEvaluationByEvaluationId(runId).pipe(take(1));
     // .toPromise();
   };
 

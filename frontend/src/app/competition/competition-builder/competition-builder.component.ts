@@ -202,7 +202,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
       let obs: Observable<SuccessStatus>;
       if(this.competition.id){
         /* saving existing */
-        obs = this.competitionService.patchApiV2TemplatetemplateId(this.competitionId, this.competition)
+        obs = this.competitionService.patchApiV2TemplateByTemplateId(this.competitionId, this.competition)
       }else{
         /* saving new */
         obs = this.competitionService.postApiV2Template(this.competition as ApiCreateEvaluation)
@@ -225,7 +225,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   };
 
   downloadProvider = () => {
-    return this.downloadService.getApiV2DownloadEvaluationevaluationId(this.competitionId).pipe(take(1));
+    return this.downloadService.getApiV2DownloadEvaluationByEvaluationId(this.competitionId).pipe(take(1));
     // .toPromise();
   };
 
@@ -237,7 +237,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
 
   public refresh() {
     if (this.checkDirty()) {
-      this.competitionService.getApiV2TemplatetemplateId(this.competitionId).subscribe(
+      this.competitionService.getApiV2TemplateByTemplateId(this.competitionId).subscribe(
         (c) => {
           this.competition = c;
           this.form.get('name').setValue(c.name);

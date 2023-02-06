@@ -75,7 +75,7 @@ export class CollectionListComponent implements AfterViewInit {
 
   delete(id: string) {
     if (confirm(`Do you really want to delete collection with ID ${id}?`)) {
-      this.collectionService.deleteApiV2CollectioncollectionId(id).subscribe(
+      this.collectionService.deleteApiV2CollectionByCollectionId(id).subscribe(
         (r) => {
           this.refresh();
           this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });

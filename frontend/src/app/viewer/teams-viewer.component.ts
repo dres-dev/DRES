@@ -108,7 +108,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     /* Create source observable; list of all submissions.  */
     this.submissions = this.state.pipe(
       switchMap((st) =>
-        this.evaluationService.getApiV2EvaluationevaluationIdSubmissionList(st.id).pipe(
+        this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(st.id).pipe(
           retry(3),
           catchError((err, o) => {
             console.log(`[TeamsViewerComponent] Error while loading submissions: ${err?.message}.`);
@@ -139,7 +139,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
     /* Observable that tracks the current score per team. */
     this.scores = this.state.pipe(
       switchMap((st) =>
-        this.scoresService.getApiV2ScoreEvaluationevaluationIdCurrent(st.id).pipe(
+        this.scoresService.getApiV2ScoreEvaluationByEvaluationIdCurrent(st.id).pipe(
           retry(3),
           catchError((err, o) => {
             console.log(`[TeamsViewerComponent] Error while loading scores: ${err?.message}.`);

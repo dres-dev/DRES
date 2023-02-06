@@ -166,7 +166,7 @@ export class CompetitionBuilderTaskDialogComponent {
    */
   public pickRandomMediaItem(collectionId: string, target: FormControl) {
     this.collectionService
-      .getApiV2CollectioncollectionIdRandom(collectionId)
+      .getApiV2CollectionByCollectionIdRandom(collectionId)
       .pipe(first())
       .subscribe((value) => {
         target.setValue(value);
@@ -296,7 +296,7 @@ export class CompetitionBuilderTaskDialogComponent {
       .subscribe((r: Array<string>) => {
         this.builder.removeTargetForm(0);
         const mediaCollectionId = this.builder.form.get('mediaCollection').value;
-        this.collectionService.postApiV2CollectioncollectionIdResolve(mediaCollectionId, r).subscribe((items) => {
+        this.collectionService.postApiV2CollectionByCollectionIdResolve(mediaCollectionId, r).subscribe((items) => {
           items.forEach((item) => {
             // const form = this.builder.addTargetForm(ConfiguredOptionTargetOption.OptionEnum.MULTIPLE_MEDIA_ITEMS);
             const form = this.builder.addTargetForm(ApiTargetOption.SINGLE_MEDIA_ITEM); // FIXME only to make compiler happy. obviously this is semantically not appropriate

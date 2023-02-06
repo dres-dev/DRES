@@ -40,7 +40,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
   }
 
   public start(runId: string) {
-    this.runAdminService.postApiV2EvaluationAdminevaluationIdStart(runId).subscribe(
+    this.runAdminService.postApiV2EvaluationAdminByEvaluationIdStart(runId).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -60,7 +60,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.runAdminService.postApiV2EvaluationAdminevaluationIdTerminate(runId).subscribe(
+        this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTerminate(runId).subscribe(
           (r) => {
             this.update.next();
             this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -74,7 +74,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
   }
 
   public previousTask(runId: string) {
-    this.runAdminService.postApiV2EvaluationAdminevaluationIdTaskPrevious(runId).subscribe(
+    this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskPrevious(runId).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -94,7 +94,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.runAdminService.postApiV2EvaluationAdminevaluationIdTaskAbort(runId).subscribe(
+        this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskAbort(runId).subscribe(
           (r) => {
             this.update.next();
             this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -112,7 +112,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
       flatMap((t) => this.runService.getApiV2EvaluationInfoList()),
       map((runInfo) =>
         runInfo.map((run) =>
-          this.runAdminService.getApiV2EvaluationAdminevaluationIdOverview(run.id).pipe(
+          this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(run.id).pipe(
             map((overview) => {
               return {
                 id: run.id,

@@ -89,7 +89,7 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
     this.subscription = merge(timer(0, this.pollingFrequencyFactor).pipe(filter((i) => this.polling)), this.refreshSubject)
       .pipe(
         withLatestFrom(this.runId, this.taskId),
-        switchMap(([i, r, t]) => this.runService.getApiV2EvaluationAdminevaluationIdSubmissionListtemplateId(r, t)),
+        switchMap(([i, r, t]) => this.runService.getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(r, t)),
         catchError((err, o) => {
           console.log(`[RunAdminSubmissionListComponent] Error occurred while loading submissions: ${err?.message}`);
           this.snackBar.open(`Error: ${err?.message}`, null, { duration: 5000 });

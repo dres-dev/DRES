@@ -14,7 +14,7 @@
       "get" : {
         "tags" : [ "Evaluation Client" ],
         "summary" : "Returns an overview of the currently active task for a run.",
-        "operationId" : "getApiV2ClientEvaluationCurrentTask{evaluationId}",
+        "operationId" : "getApiV2ClientEvaluationCurrentTaskByEvaluationId",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "query",
@@ -101,7 +101,7 @@
       "get" : {
         "tags" : [ "Download" ],
         "summary" : "Provides a JSON download of the entire evaluation  structure.",
-        "operationId" : "getApiV2DownloadEvaluation{evaluationId}",
+        "operationId" : "getApiV2DownloadEvaluationByEvaluationId",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -163,7 +163,7 @@
       "get" : {
         "tags" : [ "Download" ],
         "summary" : "Provides a JSON download of the entire evaluation template structure.",
-        "operationId" : "getApiV2DownloadTemplate{templateId}",
+        "operationId" : "getApiV2DownloadTemplateByTemplateId",
         "parameters" : [ {
           "name" : "templateId",
           "in" : "path",
@@ -277,7 +277,7 @@
       "post" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Adjusts the duration of a running task. This is a method for admins.",
-        "operationId" : "postApiV2EvaluationAdmin{evaluationId}Adjust{duration}",
+        "operationId" : "postApiV2EvaluationAdminByEvaluationIdAdjustByDuration",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -350,7 +350,7 @@
       "get" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Provides a complete overview of a run.",
-        "operationId" : "getApiV2EvaluationAdmin{evaluationId}Overview",
+        "operationId" : "getApiV2EvaluationAdminByEvaluationIdOverview",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -412,7 +412,7 @@
       "patch" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Changes the properties of an evaluation.",
-        "operationId" : "patchApiV2EvaluationAdmin{evaluationId}Properties",
+        "operationId" : "patchApiV2EvaluationAdminByEvaluationIdProperties",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -484,7 +484,7 @@
       "post" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Starts a evaluation. This is a method for administrators.",
-        "operationId" : "postApiV2EvaluationAdmin{evaluationId}Start",
+        "operationId" : "postApiV2EvaluationAdminByEvaluationIdStart",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -536,7 +536,7 @@
       "get" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Lists all submissions for a given evaluation and task.",
-        "operationId" : "getApiV2EvaluationAdmin{evaluationId}SubmissionList{templateId}",
+        "operationId" : "getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -611,7 +611,7 @@
       "patch" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Override the submission status for a given submission.",
-        "operationId" : "patchApiV2EvaluationAdmin{evaluationId}SubmissionOverride",
+        "operationId" : "patchApiV2EvaluationAdminByEvaluationIdSubmissionOverride",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -683,7 +683,7 @@
       "post" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Aborts the currently running task run. This is a method for admins.",
-        "operationId" : "postApiV2EvaluationAdmin{evaluationId}TaskAbort",
+        "operationId" : "postApiV2EvaluationAdminByEvaluationIdTaskAbort",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -735,7 +735,7 @@
       "post" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Moves to and selects the next task within the evaluation. This is a method for admins.",
-        "operationId" : "postApiV2EvaluationAdmin{evaluationId}TaskNext",
+        "operationId" : "postApiV2EvaluationAdminByEvaluationIdTaskNext",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -787,7 +787,7 @@
       "get" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Lists all past tasks for a given evaluation.",
-        "operationId" : "getApiV2EvaluationAdmin{evaluationId}TaskPastList",
+        "operationId" : "getApiV2EvaluationAdminByEvaluationIdTaskPastList",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -852,7 +852,7 @@
       "post" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Moves to and selects the previous task. This is a method for admins.",
-        "operationId" : "postApiV2EvaluationAdmin{evaluationId}TaskPrevious",
+        "operationId" : "postApiV2EvaluationAdminByEvaluationIdTaskPrevious",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -904,7 +904,7 @@
       "post" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Starts the currently active task as a new task run. This is a method for admins.",
-        "operationId" : "postApiV2EvaluationAdmin{evaluationId}TaskStart",
+        "operationId" : "postApiV2EvaluationAdminByEvaluationIdTaskStart",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -956,7 +956,7 @@
       "post" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Moves to and selects the specified task. This is a method for admins.",
-        "operationId" : "postApiV2EvaluationAdmin{evaluationId}TaskSwitch{idx}",
+        "operationId" : "postApiV2EvaluationAdminByEvaluationIdTaskSwitchByIdx",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -1019,7 +1019,7 @@
       "post" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Terminates an evaluation. This is a method for administrators.",
-        "operationId" : "postApiV2EvaluationAdmin{evaluationId}Terminate",
+        "operationId" : "postApiV2EvaluationAdminByEvaluationIdTerminate",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -1071,7 +1071,7 @@
       "get" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Lists all registered viewers for a evaluation. This is a method for admins.",
-        "operationId" : "getApiV2EvaluationAdmin{evaluationId}ViewerList",
+        "operationId" : "getApiV2EvaluationAdminByEvaluationIdViewerList",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -1136,7 +1136,7 @@
       "post" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Forces a viewer with the given viewer ID into the READY state. This is a method for admins.",
-        "operationId" : "postApiV2EvaluationAdmin{evaluationId}ViewerList{viewerId}Force",
+        "operationId" : "postApiV2EvaluationAdminByEvaluationIdViewerListByViewerIdForce",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -1278,7 +1278,7 @@
       "get" : {
         "tags" : [ "Evaluation" ],
         "summary" : "Returns the task hint for the specified task.",
-        "operationId" : "getApiV2Evaluation{evaluationId}Hint{taskId}",
+        "operationId" : "getApiV2EvaluationByEvaluationIdHintByTaskId",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -1350,7 +1350,7 @@
       "get" : {
         "tags" : [ "Evaluation" ],
         "summary" : "Returns basic information about a specific evaluation.",
-        "operationId" : "getApiV2Evaluation{evaluationId}Info",
+        "operationId" : "getApiV2EvaluationByEvaluationIdInfo",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -1412,7 +1412,7 @@
       "post" : {
         "tags" : [ "Judgement" ],
         "summary" : "Endpoint to post a judgement for a previously detached judgement request.",
-        "operationId" : "postApiV2Evaluation{evaluationId}Judge",
+        "operationId" : "postApiV2EvaluationByEvaluationIdJudge",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -1504,7 +1504,7 @@
       "get" : {
         "tags" : [ "Judgement" ],
         "summary" : "Gets the next open submission that is waiting to be judged.",
-        "operationId" : "getApiV2Evaluation{evaluationId}JudgeNext",
+        "operationId" : "getApiV2EvaluationByEvaluationIdJudgeNext",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -1586,7 +1586,7 @@
       "get" : {
         "tags" : [ "Judgement" ],
         "summary" : "Retrieves the status of all judgement validators.",
-        "operationId" : "getApiV2Evaluation{evaluationId}JudgeStatus",
+        "operationId" : "getApiV2EvaluationByEvaluationIdJudgeStatus",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -1651,7 +1651,7 @@
       "post" : {
         "tags" : [ "Judgement" ],
         "summary" : "Returns a Vote.",
-        "operationId" : "postApiV2Evaluation{evaluationId}JudgeVote",
+        "operationId" : "postApiV2EvaluationByEvaluationIdJudgeVote",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -1723,7 +1723,7 @@
       "get" : {
         "tags" : [ "Evaluation" ],
         "summary" : "Returns the state of a specific evaluation.",
-        "operationId" : "getApiV2Evaluation{evaluationId}State",
+        "operationId" : "getApiV2EvaluationByEvaluationIdState",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -1785,7 +1785,7 @@
       "get" : {
         "tags" : [ "Evaluation" ],
         "summary" : "Returns all submissions for the current task run, if one is either running or has just ended.",
-        "operationId" : "getApiV2Evaluation{evaluationId}SubmissionList",
+        "operationId" : "getApiV2EvaluationByEvaluationIdSubmissionList",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -1840,7 +1840,7 @@
       "get" : {
         "tags" : [ "Evaluation" ],
         "summary" : "Returns all submissions for the current task that are more recent than the provided timestamp, if a task is either running or has just ended.",
-        "operationId" : "getApiV2Evaluation{evaluationId}SubmissionListAfter{timestamp}",
+        "operationId" : "getApiV2EvaluationByEvaluationIdSubmissionListAfterByTimestamp",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -1916,7 +1916,7 @@
       "get" : {
         "tags" : [ "Evaluation" ],
         "summary" : "Returns the task target for the current task run (i.e. the one that is currently selected).",
-        "operationId" : "getApiV2Evaluation{evaluationId}Target{taskId}",
+        "operationId" : "getApiV2EvaluationByEvaluationIdTargetByTaskId",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -1988,7 +1988,7 @@
       "get" : {
         "tags" : [ "Evaluation" ],
         "summary" : "Returns the information for the currently active task template (i.e., the one that is currently selected).",
-        "operationId" : "getApiV2Evaluation{evaluationId}Task",
+        "operationId" : "getApiV2EvaluationByEvaluationIdTask",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -2050,7 +2050,7 @@
       "get" : {
         "tags" : [ "Evaluation" ],
         "summary" : "Returns the submissions of a specific task run, regardless of whether it is currently running or has ended.",
-        "operationId" : "getApiV2Evaluation{evaluationId}Task{taskId}SubmissionList",
+        "operationId" : "getApiV2EvaluationByEvaluationIdTaskByTaskIdSubmissionList",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -2125,7 +2125,7 @@
       "get" : {
         "tags" : [ "Judgement" ],
         "summary" : "Gets the next open submission that is waiting to be voted on.",
-        "operationId" : "getApiV2Evaluation{evaluationId}VoteNext",
+        "operationId" : "getApiV2EvaluationByEvaluationIdVoteNext",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -2655,7 +2655,7 @@
       "post" : {
         "tags" : [ "Batch Submission" ],
         "summary" : "Endpoint to accept batch submissions in JSON format",
-        "operationId" : "postApiV2Submit{evaluationId}",
+        "operationId" : "postApiV2SubmitByEvaluationId",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -2824,7 +2824,7 @@
       "delete" : {
         "tags" : [ "Template" ],
         "summary" : "Deletes the evaluation template with the given template ID.",
-        "operationId" : "deleteApiV2Template{templateId}",
+        "operationId" : "deleteApiV2TemplateByTemplateId",
         "parameters" : [ {
           "name" : "templateId",
           "in" : "path",
@@ -2884,7 +2884,7 @@
       "get" : {
         "tags" : [ "Template" ],
         "summary" : "Loads the detailed definition of a specific evaluation template.",
-        "operationId" : "getApiV2Template{templateId}",
+        "operationId" : "getApiV2TemplateByTemplateId",
         "parameters" : [ {
           "name" : "templateId",
           "in" : "path",
@@ -2944,12 +2944,12 @@
       "patch" : {
         "tags" : [ "Template" ],
         "summary" : "Updates an existing evaluation template.",
-        "operationId" : "patchApiV2Template{templateId}",
+        "operationId" : "patchApiV2TemplateByTemplateId",
         "parameters" : [ {
           "name" : "templateId",
           "in" : "path",
           "description" : "The evaluation template ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3016,7 +3016,7 @@
       "get" : {
         "tags" : [ "Template" ],
         "summary" : "Lists the task templates contained in a specific evaluation template.",
-        "operationId" : "getApiV2Template{templateId}TaskList",
+        "operationId" : "getApiV2TemplateByTemplateIdTaskList",
         "parameters" : [ {
           "name" : "templateId",
           "in" : "path",
@@ -3081,7 +3081,7 @@
       "get" : {
         "tags" : [ "Template" ],
         "summary" : "Lists all the teams of a specific competition.",
-        "operationId" : "getApiV2Template{templateId}TeamList",
+        "operationId" : "getApiV2TemplateByTemplateIdTeamList",
         "parameters" : [ {
           "name" : "templateId",
           "in" : "path",
@@ -3270,7 +3270,7 @@
       "delete" : {
         "tags" : [ "User" ],
         "summary" : "Deletes the specified user. Requires ADMIN privileges",
-        "operationId" : "deleteApiV2User{userId}",
+        "operationId" : "deleteApiV2UserByUserId",
         "parameters" : [ {
           "name" : "userId",
           "in" : "path",
@@ -3320,7 +3320,7 @@
       "patch" : {
         "tags" : [ "User" ],
         "summary" : "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone.",
-        "operationId" : "patchApiV2User{userId}",
+        "operationId" : "patchApiV2UserByUserId",
         "parameters" : [ {
           "name" : "userId",
           "in" : "path",
@@ -3390,7 +3390,7 @@
       "get" : {
         "tags" : [ "User" ],
         "summary" : "Gets details of the user with the given id.",
-        "operationId" : "getApiV2User{userId}",
+        "operationId" : "getApiV2UserByUserId",
         "parameters" : [ {
           "name" : "userId",
           "in" : "path",
@@ -3566,7 +3566,7 @@
             "format" : "float"
           }
         },
-        "required" : [ "id", "name", "type", "collectionId", "location" ]
+        "required" : [ "name", "type", "collectionId", "location" ]
       },
       "ApiMediaType" : {
         "type" : "string",
@@ -3929,7 +3929,7 @@
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
-          "teamId" : {
+          "id" : {
             "type" : "string"
           },
           "name" : {
@@ -3946,9 +3946,12 @@
           },
           "logoData" : {
             "type" : "string"
+          },
+          "teamId" : {
+            "type" : "string"
           }
         },
-        "required" : [ "teamId", "name", "color", "users" ]
+        "required" : [ "users", "teamId" ]
       },
       "ApiTeamGroup" : {
         "type" : "object",
@@ -3970,7 +3973,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "id", "name", "teams", "aggregation" ]
+        "required" : [ "teams" ]
       },
       "ApiAnswer" : {
         "type" : "object",
@@ -4625,8 +4628,7 @@
           "sessionId" : {
             "type" : "string"
           }
-        },
-        "required" : [ "id", "username", "role" ]
+        }
       },
       "UserRequest" : {
         "type" : "object",

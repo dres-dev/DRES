@@ -72,7 +72,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
     this.collection = this.refreshSubject.pipe(
       flatMap((s) => this.collectionId),
       switchMap((id) =>
-        this.collectionService.getApiV2CollectioncollectionId(id).pipe(
+        this.collectionService.getApiV2CollectionByCollectionId(id).pipe(
           retry(3),
           catchError((err, o) => {
             console.log(`[CollectionViewer.${id}] There was an error while loading the current collection ${err?.message}`);
@@ -101,7 +101,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
 
   delete(id: string) {
     if (confirm(`Do you really want to delete media item with ID ${id}?`)) {
-      this.collectionService.deleteApiV2MediaItemmediaId(id).subscribe(
+      this.collectionService.deleteApiV2MediaItemByMediaId(id).subscribe(
         (r) => {
           this.refreshSubject.next();
           this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });

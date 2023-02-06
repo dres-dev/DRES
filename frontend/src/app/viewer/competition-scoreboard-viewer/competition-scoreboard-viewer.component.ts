@@ -121,7 +121,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
     /* Download scores. */
     const score = this.state.pipe(
       switchMap((s) => {
-        return this.scoreService.getApiV2ScoreEvaluationevaluationIdCurrent(s.id).pipe(
+        return this.scoreService.getApiV2ScoreEvaluationByEvaluationIdCurrent(s.id).pipe(
           catchError((err) => {
             console.log('Error when retrieving scores.', err);
             return of(null);
@@ -187,7 +187,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
     /* Fetch scores. */
     const score: Observable<Array<ApiScoreOverview>> = this.state.pipe(
       switchMap((s) => {
-        return this.scoreService.getApiV2ScoreEvaluationevaluationId(s.id).pipe(
+        return this.scoreService.getApiV2ScoreEvaluationByEvaluationId(s.id).pipe(
           catchError((err) => {
             console.log('Error when retrieving scores.', err);
             return of(null);

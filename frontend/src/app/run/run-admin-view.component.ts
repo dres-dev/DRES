@@ -57,7 +57,7 @@ export class RunAdminViewComponent {
     this.run = this.runId.pipe(
       switchMap((runId) =>
         combineLatest([
-          this.runService.getApiV2EvaluationevaluationIdInfo(runId).pipe(
+          this.runService.getApiV2EvaluationByEvaluationIdInfo(runId).pipe(
             catchError((err, o) => {
               console.log(
                 `[RunAdminViewComponent] There was an error while loading information in the current run state: ${err?.message}`
@@ -72,7 +72,7 @@ export class RunAdminViewComponent {
             }),
             filter((q) => q != null)
           ),
-          merge(timer(0, 1000), this.update).pipe(switchMap((index) => this.runService.getApiV2EvaluationevaluationIdState(runId))),
+          merge(timer(0, 1000), this.update).pipe(switchMap((index) => this.runService.getApiV2EvaluationByEvaluationIdState(runId))),
         ])
       ),
       map(([i, s]) => {
@@ -83,7 +83,7 @@ export class RunAdminViewComponent {
 
     /** Observable for list of past tasks. */
     this.submissionsForPastTasks = this.run.pipe(
-        switchMap(s => this.runAdminService.getApiV2EvaluationAdminevaluationIdTaskPastList(s.info.id).pipe(
+        switchMap(s => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdTaskPastList(s.info.id).pipe(
             catchError((err, o) => {
               console.log(`[RunAdminViewComponent] There was an error while loading the past task list: ${err?.message}`);
               return of(null);
@@ -101,7 +101,7 @@ export class RunAdminViewComponent {
 
     /** Observable for list of submissions for current task. */
     this.submissionsForCurrentTask = this.run.pipe(
-        switchMap(s => this.runAdminService.getApiV2EvaluationAdminevaluationIdSubmissionListtemplateId(s.info.id, s.state.currentTask.templateId).pipe(
+        switchMap(s => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(s.info.id, s.state.currentTask.templateId).pipe(
             catchError((err, o) => {
               console.log(`[RunAdminViewComponent] There was an error while submissions for the running task: ${err?.message}`);
               return of(null);
@@ -122,7 +122,7 @@ export class RunAdminViewComponent {
     this.runOverview = this.runId.pipe(
       switchMap((runId) =>
         combineLatest([
-          this.runService.getApiV2EvaluationevaluationIdInfo(runId).pipe(
+          this.runService.getApiV2EvaluationByEvaluationIdInfo(runId).pipe(
             catchError((err, o) => {
               console.log(
                 `[RunAdminViewComponent] There was an error while loading information in the current run state: ${err?.message}`
@@ -138,7 +138,7 @@ export class RunAdminViewComponent {
             filter((q) => q != null)
           ),
           merge(timer(0, 1000), this.update).pipe(
-            switchMap((index) => this.runAdminService.getApiV2EvaluationAdminevaluationIdOverview(runId))
+            switchMap((index) => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
           ),
         ])
       ),
@@ -149,19 +149,19 @@ export class RunAdminViewComponent {
     );
 
     this.viewers = this.runId.pipe(
-      flatMap((runId) => timer(0, 1000).pipe(switchMap((i) => this.runAdminService.getApiV2EvaluationAdminevaluationIdViewerList(runId))))
+      flatMap((runId) => timer(0, 1000).pipe(switchMap((i) => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId))))
     );
 
     this.teams = this.run.pipe(
       switchMap((runAndInfo) => {
-        return this.competitionService.getApiV2TemplatetemplateIdTeamList(runAndInfo.info.templateId);
+        return this.competitionService.getApiV2TemplateByTemplateIdTeamList(runAndInfo.info.templateId);
       }),
       shareReplay({ bufferSize: 1, refCount: true })
     );
   }
 
   public nextTask() {
-    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminevaluationIdTaskNext(id))).subscribe(
+    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskNext(id))).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -173,7 +173,7 @@ export class RunAdminViewComponent {
   }
 
   public previousTask() {
-    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminevaluationIdTaskPrevious(id))).subscribe(
+    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskPrevious(id))).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -185,7 +185,7 @@ export class RunAdminViewComponent {
   }
 
   public startTask() {
-    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminevaluationIdTaskStart(id))).subscribe(
+    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskStart(id))).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -205,7 +205,7 @@ export class RunAdminViewComponent {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminevaluationIdTaskAbort(id))).subscribe(
+        this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskAbort(id))).subscribe(
           (r) => {
             this.update.next();
             this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -219,7 +219,7 @@ export class RunAdminViewComponent {
   }
 
   public switchTask(idx: number) {
-    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminevaluationIdTaskSwitchidx(id, idx))).subscribe(
+    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskSwitchByIdx(id, idx))).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -238,7 +238,7 @@ export class RunAdminViewComponent {
 
   public adjustDuration(duration: number) {
     this.runId
-      .pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminevaluationIdAdjustduration(id, duration)))
+      .pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdAdjustByDuration(id, duration)))
       .subscribe(
         (r) => {
           this.update.next();
@@ -252,7 +252,7 @@ export class RunAdminViewComponent {
 
   public forceViewer(viewerId: string) {
     this.runId
-      .pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminevaluationIdViewerListviewerIdForce(id, viewerId)))
+      .pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdViewerListByViewerIdForce(id, viewerId)))
       .subscribe(
         (r) => {
           this.update.next();

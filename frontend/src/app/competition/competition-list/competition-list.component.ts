@@ -105,7 +105,7 @@ export class CompetitionListComponent implements AfterViewInit {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.evaluationService.deleteApiV2TemplatetemplateId(competitionId).subscribe(
+        this.evaluationService.deleteApiV2TemplateByTemplateId(competitionId).subscribe(
           (r) => {
             this.refresh();
             this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -135,7 +135,7 @@ export class CompetitionListComponent implements AfterViewInit {
   }
 
   downloadProvider = (competitionId) => {
-    return this.downloadService.getApiV2DownloadTemplatetemplateId(competitionId).pipe(take(1));
+    return this.downloadService.getApiV2DownloadTemplateByTemplateId(competitionId).pipe(take(1));
     // .toPromise();
   };
 

@@ -122,7 +122,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
             .pipe(
                 withLatestFrom(this.runId),
                 switchMap(([i, runId]) => {
-                    return this.judgementService.getApiV2EvaluationevaluationIdJudgeStatus(runId).pipe(
+                    return this.judgementService.getApiV2EvaluationByEvaluationIdJudgeStatus(runId).pipe(
                         catchError((err) => {
                             console.log('Error in JudgeStatus');
                             console.log(err);
@@ -150,7 +150,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
                 switchMap(([i, runId]) => {
                     /* Stop polling while judgment is ongooing */
                     if (this.runId && !this.isJudgmentAvailable) {
-                        return this.judgementService.getApiV2EvaluationevaluationIdJudgeNext(runId, 'response').pipe(
+                        return this.judgementService.getApiV2EvaluationByEvaluationIdJudgeNext(runId, 'response').pipe(
                             map((req: HttpResponse<ApiJudgementRequest>) => {
                                 if (req.status === 202) {
                                     this.noJudgementMessage = 'There is currently no submission awaiting judgement.';
@@ -223,7 +223,7 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
             verdict: status,
         } as ApiJudgement;
         this.runId
-            .pipe(switchMap((runId) => this.judgementService.postApiV2EvaluationevaluationIdJudge(runId, judgement)),
+            .pipe(switchMap((runId) => this.judgementService.postApiV2EvaluationByEvaluationIdJudge(runId, judgement)),
                 catchError((err) => {
                     const httperr = err as HttpErrorResponse;
                     if (httperr) {

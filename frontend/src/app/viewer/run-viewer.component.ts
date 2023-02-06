@@ -134,7 +134,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     /* Basic observable for general run info; this information is static and does not change over the course of a run. */
     this.runInfo = this.runId.pipe(
       switchMap((runId) =>
-        this.runService.getApiV2EvaluationevaluationIdInfo(runId).pipe(
+        this.runService.getApiV2EvaluationByEvaluationIdInfo(runId).pipe(
           catchError((err, o) => {
             console.log(
               `[RunViewerComponent] There was an error while loading information in the current run: ${err?.message}`
@@ -199,7 +199,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     this.runState = merge(this.runId, wsMessages).pipe(
       sampleTime(500) /* State updates are triggered only once every 500ms. */,
       switchMap((runId) =>
-        this.runService.getApiV2EvaluationevaluationIdState(runId).pipe(
+        this.runService.getApiV2EvaluationByEvaluationIdState(runId).pipe(
           catchError((err, o) => {
             console.log(
               `[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`

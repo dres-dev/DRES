@@ -45,7 +45,7 @@ export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
         withLatestFrom(this.runId),
         switchMap(([i, runId]) => {
           if (this.runId) {
-            return this.judgementService.getApiV2EvaluationevaluationIdVoteNext(runId, 'response').pipe(
+            return this.judgementService.getApiV2EvaluationByEvaluationIdVoteNext(runId, 'response').pipe(
               map((req: HttpResponse<ApiJudgementRequest>) => {
                 if (req.status === 202) {
                   this.isJudgmentAvailable = false;

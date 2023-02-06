@@ -53,7 +53,7 @@ export class AuthenticationService {
    */
   public updateUser(user: UserRequest) {
     return this.user.pipe(
-      flatMap((u: ApiUser) => this.userService.patchApiV2UseruserId(u.id, user)),
+      flatMap((u: ApiUser) => this.userService.patchApiV2UserByUserId(u.id, user)),
       tap((u: ApiUser) => this.userDetails.next(u))
     );
   }

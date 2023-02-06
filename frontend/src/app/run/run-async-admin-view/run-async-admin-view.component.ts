@@ -51,7 +51,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
     this.run = this.runId.pipe(
       switchMap((runId) =>
         combineLatest([
-          this.evaluationService.getApiV2EvaluationevaluationIdInfo(runId).pipe(
+          this.evaluationService.getApiV2EvaluationByEvaluationIdInfo(runId).pipe(
             catchError((err, o) => {
               console.log(
                 `[RunAdminViewComponent] There was an error while loading information in the current run state: ${err?.message}`
@@ -65,7 +65,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
             filter((q) => q != null)
           ),
           merge(timer(0, 1000), this.update).pipe(
-            switchMap((index) => this.runAdminService.getApiV2EvaluationAdminevaluationIdOverview(runId))
+            switchMap((index) => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
           ),
         ])
       ),
@@ -100,18 +100,18 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     /* Cache past tasks initially */
     this.runId.subscribe((runId) => {
-      this.runAdminService.getApiV2EvaluationAdminevaluationIdTaskPastList(runId).subscribe((arr) => (this.pastTasksValue = arr));
+      this.runAdminService.getApiV2EvaluationAdminByEvaluationIdTaskPastList(runId).subscribe((arr) => (this.pastTasksValue = arr));
     });
 
     /* On each update, update past tasks */
     this.update.subscribe((_) => {
       this.runId.subscribe((runId) => {
-        this.runAdminService.getApiV2EvaluationAdminevaluationIdTaskPastList(runId).subscribe((arr) => (this.pastTasksValue = arr));
+        this.runAdminService.getApiV2EvaluationAdminByEvaluationIdTaskPastList(runId).subscribe((arr) => (this.pastTasksValue = arr));
       });
     });
 
     this.run.subscribe((r) => {
-      this.runAdminService.getApiV2EvaluationAdminevaluationIdTaskPastList(r.runInfo.id).subscribe((arr) => (this.pastTasksValue = arr));
+      this.runAdminService.getApiV2EvaluationAdminByEvaluationIdTaskPastList(r.runInfo.id).subscribe((arr) => (this.pastTasksValue = arr));
     });
   }
 

@@ -45,7 +45,7 @@ export class RunAdminToolbarComponent implements OnInit {
 
   public start() {
     const runId = this.runId.value;
-    this.runAdminService.postApiV2EvaluationAdminevaluationIdStart(runId).subscribe(
+    this.runAdminService.postApiV2EvaluationAdminByEvaluationIdStart(runId).subscribe(
       (r) => {
         this.update.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -68,7 +68,7 @@ export class RunAdminToolbarComponent implements OnInit {
       .subscribe((result) => {
         if (result) {
           const runId = this.runId.value;
-          this.runAdminService.postApiV2EvaluationAdminevaluationIdTerminate(runId).subscribe(
+          this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTerminate(runId).subscribe(
             (r) => {
               this.update.next();
               this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
@@ -133,7 +133,7 @@ export class RunAdminToolbarComponent implements OnInit {
   }
 
   public downloadScores(runId: string) {
-    this.downloadService.getApiV2DownloadEvaluationevaluationIdScores(runId).subscribe((scoresCSV) => {
+    this.downloadService.getApiV2DownloadEvaluationByEvaluationIdScores(runId).subscribe((scoresCSV) => {
       const csvBlob = new Blob([scoresCSV], { type: 'text/csv' });
       const fake = document.createElement('a');
       fake.href = URL.createObjectURL(csvBlob);
@@ -146,7 +146,7 @@ export class RunAdminToolbarComponent implements OnInit {
   scoreDownloadProvider = (runId: string) => {
     return this.downloadService
         // FIXME httpHeaderAccept was text/csv -- might have to adjust openapi info
-      .getApiV2DownloadEvaluationevaluationIdScores(runId, 'body', false, { httpHeaderAccept: 'text/plain' })
+      .getApiV2DownloadEvaluationByEvaluationIdScores(runId, 'body', false, { httpHeaderAccept: 'text/plain' })
       .pipe(take(1));
   };
 
@@ -155,7 +155,7 @@ export class RunAdminToolbarComponent implements OnInit {
   };
 
   downloadProvider = (runId) => {
-    return this.downloadService.getApiV2DownloadEvaluationevaluationId(runId).pipe(take(1));
+    return this.downloadService.getApiV2DownloadEvaluationByEvaluationId(runId).pipe(take(1));
     // .toPromise();
   };
 

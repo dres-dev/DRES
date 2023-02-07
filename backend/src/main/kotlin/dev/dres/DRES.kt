@@ -26,7 +26,7 @@ import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.submissions.DbAnswerType
-import dev.dres.mgmt.admin.UserManager
+import dev.dres.mgmt.admin.DbUserManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
@@ -67,9 +67,6 @@ object DRES {
 
         /* Initialize Xodus based data store. */
         val store = this.prepareDatabase(config)
-
-        /* Initialize UserManager. */
-        UserManager.init(store)
 
         /* Initialize RunExecutor. */
         RunExecutor.init(store)

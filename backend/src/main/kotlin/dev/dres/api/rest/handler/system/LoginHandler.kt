@@ -8,7 +8,7 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.Password
 import dev.dres.data.model.audit.DbAuditLogSource
-import dev.dres.mgmt.admin.UserManager
+import dev.dres.mgmt.admin.DbUserManager
 import dev.dres.run.audit.AuditLogger
 import dev.dres.utilities.extensions.getOrCreateSessionToken
 import io.javalin.http.BadRequestResponse
@@ -54,7 +54,7 @@ class LoginHandler(private val store: TransientEntityStore) : RestHandler, PostR
             /* Validate login request. */
             val username = loginRequest.username
             val password = Password.Plain(loginRequest.password)
-            val user = UserManager.getMatchingApiUser(username, password) ?: throw ErrorStatusException(
+            val user = DbUserManager.getMatchingApiUser(username, password) ?: throw ErrorStatusException(
                 401,
                 "Invalid credentials. Please try again!",
                 ctx

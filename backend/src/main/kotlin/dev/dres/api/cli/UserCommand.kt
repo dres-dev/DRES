@@ -13,7 +13,7 @@ import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.admin.DbUser.Companion.MIN_LENGTH_PASSWORD
 import dev.dres.data.model.admin.DbUser.Companion.MIN_LENGTH_USERNAME
 import dev.dres.data.model.admin.UserId
-import dev.dres.mgmt.admin.UserManager
+import dev.dres.mgmt.admin.DbUserManager
 import jetbrains.exodus.database.TransientEntityStore
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -58,9 +58,9 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
         private val apiRole: ApiRole by option("-r", "--role", help = "Role of the new user.").convert { ApiRole.valueOf(it) }.required()
 
         override fun run() = this.store.transactional {
-            val successful = UserManager.create(username = this.username, password = this.password.hash(), role = apiRole)
+            val successful = DbUserManager.create(username = this.username, password = this.password.hash(), role = apiRole)
             if (successful) {
-                println("New user '${UserManager.get(username = this.username)}' created.")
+                println("New user '${DbUserManager.get(username = this.username)}' created.")
             } else {
                 println("Could not create user '${this.username}' because a user with that name already exists.")
             }
@@ -90,7 +90,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
                 println("You must specify a valid username or user ID in order to update a user!")
                 return@transactional
             }
-            if (UserManager.update(id = this.id, username = this.username, password = this.password, role = this.role)) {
+            if (DbUserManager.update(id = this.id, username = this.username, password = this.password, role = this.role)) {
                 println("User updated successfully!")
                 return@transactional
             } else {
@@ -111,7 +111,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
             if (this.id == null && this.username == null) {
                 println("You must specify a valid username or user ID in order to delete a user!")
             }
-            val success = UserManager.delete(id = this.id, username = this.username)
+            val success = DbUserManager.delete(id = this.id, username = this.username)
             if (success) {
                 println("User deleted successfully!")
                 return@transactional
@@ -131,7 +131,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
         private val path: String by option("-o", "--output").required()
         override fun run() = this.store.transactional(true) {
             if (this.id == null && this.username == null) {
-                val users = UserManager.list()
+                val users = DbUserManager.list()
                 val path = Paths.get(this.path)
                 val mapper = ObjectMapper()
                 Files.newBufferedWriter(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE).use { writer ->
@@ -140,7 +140,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
                 println("Successfully wrote ${users.size} users to $path.")
                 return@transactional
             } else {
-                val user = UserManager.get(id = this.id, username = this.username)
+                val user = DbUserManager.get(id = this.id, username = this.username)
                 if (user != null) {
                     val path = Paths.get(this.path)
                     val mapper = ObjectMapper()
@@ -180,9 +180,9 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
 
             import.forEach {
                 if (new) {
-                    UserManager.create(it.username, it.hashedPassword(), it.role)
+                    DbUserManager.create(it.username, it.hashedPassword(), it.role)
                 } else {
-                    UserManager.update(it.id, it.username, it.hashedPassword(), it.role)
+                    DbUserManager.update(it.id, it.username, it.hashedPassword(), it.role)
                 }
             }
             println("done")
@@ -196,7 +196,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
     inner class List(private val store: TransientEntityStore): CliktCommand(name = "list", help = "Lists all Users") {
         val plain by option("-p", "--plain", help = "Plain print: No fancy table. Might be easier if the output should be processed").flag(default = false)
         override fun run() = this.store.transactional(true) {
-            val users = UserManager.list()
+            val users = DbUserManager.list()
             println("Available users: ${users.size}")
             if (plain) {
                 for (user in users) {

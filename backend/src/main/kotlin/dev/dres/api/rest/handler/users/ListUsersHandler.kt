@@ -5,7 +5,7 @@ import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.DbUser
-import dev.dres.mgmt.admin.UserManager
+import dev.dres.mgmt.admin.DbUserManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -32,6 +32,6 @@ class ListUsersHandler(private val store: TransientEntityStore): AbstractUserHan
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context) = this.store.transactional {
-        UserManager.list().map { it.toApi() }
+        DbUserManager.list().map { it.toApi() }
     }
 }

@@ -2,7 +2,7 @@ package dev.dres.api.rest.types
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.AccessManager
-import dev.dres.mgmt.admin.UserManager
+import dev.dres.mgmt.admin.DbUserManager
 import io.javalin.websocket.WsContext
 import org.eclipse.jetty.server.session.Session
 import java.nio.ByteBuffer
@@ -33,7 +33,7 @@ value class WebSocketConnection(val context: WsContext) {
 
     /** Name of the user that generated this [WebSocketConnection]. */
     val userName
-        get() = UserManager.get(AccessManager.userIdForSession(this.httpSessionId))?.username ?: UNKNOWN_USER
+        get() = DbUserManager.get(AccessManager.userIdForSession(this.httpSessionId))?.username ?: UNKNOWN_USER
 
     /** IP address of the client. */
     val host: String

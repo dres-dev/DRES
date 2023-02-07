@@ -9,7 +9,7 @@ import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.api.rest.types.users.UserRequest
 import dev.dres.data.model.admin.DbRole
 import dev.dres.data.model.admin.DbUser
-import dev.dres.mgmt.admin.UserManager
+import dev.dres.mgmt.admin.DbUserManager
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -56,9 +56,9 @@ class UpdateUsersHandler(private val store: TransientEntityStore) : AbstractUser
             val caller = userFromSession(ctx)
 
             if (caller.role == DbRole.ADMIN || user.id == caller.id) {
-                val success = UserManager.update(id = user.id, request = request)
+                val success = DbUserManager.update(id = user.id, request = request)
                 if (success) {
-                    return@transactional UserManager.get(id = user.id)!!.toApi()
+                    return@transactional DbUserManager.get(id = user.id)!!.toApi()
                 } else {
                     throw ErrorStatusException(500, "Could not update user!", ctx)
                 }

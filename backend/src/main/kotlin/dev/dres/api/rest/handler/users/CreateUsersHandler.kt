@@ -9,7 +9,7 @@ import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.api.rest.types.users.UserRequest
 import dev.dres.data.model.admin.Password
 import dev.dres.data.model.admin.DbUser
-import dev.dres.mgmt.admin.UserManager
+import dev.dres.mgmt.admin.DbUserManager
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -54,7 +54,7 @@ class CreateUsersHandler(private val store: TransientEntityStore) : AbstractUser
             throw ErrorStatusException(400, "Invalid parameters. Role must be defined.", ctx)
 
         val success = this.store.transactional {
-            UserManager.create(
+            DbUserManager.create(
                 req.username,
                 Password.Plain(req.password),
                 req.role.toDb() ?: throw ErrorStatusException(
@@ -68,7 +68,7 @@ class CreateUsersHandler(private val store: TransientEntityStore) : AbstractUser
         //TODO is there a nicer way of doing this?
         return this.store.transactional {
             if (success) {
-                return@transactional UserManager.get(username = req.username)!!.toApi()
+                return@transactional DbUserManager.get(username = req.username)!!.toApi()
             } else {
                 throw ErrorStatusException(400, "The request could not be fulfilled.", ctx)
             }

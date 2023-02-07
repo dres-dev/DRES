@@ -7,7 +7,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.DbUser
-import dev.dres.mgmt.admin.UserManager
+import dev.dres.mgmt.admin.DbUserManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -40,7 +40,7 @@ class ListActiveUsersHandler(private val store: TransientEntityStore) : GetRestH
     override fun doGet(ctx: Context): List<ApiUser> = this.store.transactional {
         AccessManager.currentSessions.map { session ->
             AccessManager.userIdForSession(session)?.let {
-                UserManager.get(id = it)
+                DbUserManager.get(id = it)
             }?.toApi() ?: return@map ApiUser("??", "??", ApiRole.VIEWER, session)
         }
     }

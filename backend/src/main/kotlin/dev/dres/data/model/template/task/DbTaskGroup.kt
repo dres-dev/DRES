@@ -5,6 +5,7 @@ import dev.dres.api.rest.types.competition.tasks.ApiTaskGroup
 import dev.dres.data.model.template.DbEvaluationTemplate
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
+import kotlinx.dnq.link.OnDeletePolicy
 
 /**
  * A [DbTaskGroup] allows the user to specify common traits among a group of [Task]s.
@@ -24,7 +25,7 @@ class DbTaskGroup(entity: Entity) : XdEntity(entity) {
     var name: String by xdRequiredStringProp(unique = false, trimmed = false)
 
     /** The [DbTaskType] this [DbTaskGroup] belongs to.*/
-    var type by xdLink1(DbTaskType)
+    var type by xdLink1(DbTaskType, onTargetDelete = OnDeletePolicy.CASCADE)
 
     /** The [DbEvaluationTemplate] this [DbTaskGroup] belongs to. */
     var evaluation: DbEvaluationTemplate by xdParent<DbTaskGroup, DbEvaluationTemplate>(DbEvaluationTemplate::taskGroups)

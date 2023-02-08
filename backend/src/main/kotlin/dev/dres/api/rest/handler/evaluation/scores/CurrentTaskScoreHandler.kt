@@ -25,7 +25,8 @@ import kotlinx.dnq.query.asSequence
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class CurrentTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandler(store), GetRestHandler<ApiScoreOverview> {
+class CurrentTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandler(store),
+    GetRestHandler<ApiScoreOverview> {
 
     override val route = "score/evaluation/{evaluationId}/current"
 
@@ -43,20 +44,30 @@ class CurrentTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandle
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): ApiScoreOverview {
-        val manager = ctx.eligibleManagerForId() as? InteractiveRunManager ?: throw ErrorStatusException(400, "Specified evaluation ${ctx.evaluationId()} does not scores for a current task.", ctx)
+    override fun doGet(ctx: Context): ApiScoreOverview = this.store.transactional(true) {
+
+        val manager = ctx.eligibleManagerForId() as? InteractiveRunManager ?: throw ErrorStatusException(
+            400,
+            "Specified evaluation ${ctx.evaluationId()} does not scores for a current task.",
+            ctx
+        )
         if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
 
-        return this.store.transactional(true) {
-            val rac = RunActionContext.runActionContext(ctx, manager)
-            val scorer = manager.currentTask(rac)?.scorer ?: throw ErrorStatusException(404, "No active task run in evaluation ${ctx.evaluationId()}.", ctx)
-            val scores =  scorer.teamScoreMap()
-            ApiScoreOverview("task",
-                manager.currentTaskTemplate(rac).taskGroup.name,
-                manager.template.teams.asSequence().map { team -> ApiScore(team.id, scores[team.id] ?: 0.0) }.toList()
-            )
-        }
+
+        val rac = RunActionContext.runActionContext(ctx, manager)
+        val scorer = manager.currentTask(rac)?.scorer ?: throw ErrorStatusException(
+            404,
+            "No active task run in evaluation ${ctx.evaluationId()}.",
+            ctx
+        )
+        val scores = scorer.teamScoreMap()
+        return@transactional ApiScoreOverview(
+            "task",
+            manager.currentTaskTemplate(rac).taskGroup.name,
+            manager.template.teams.asSequence().map { team -> ApiScore(team.id, scores[team.id] ?: 0.0) }.toList()
+        )
     }
+
 }

@@ -44,7 +44,7 @@ abstract class AbstractEvaluation(evaluation: DbEvaluation): EvaluationRun {
         get() = DbEvaluation.findById(this.xdId)
 
     /** Timestamp of when this [AbstractEvaluation] was started. */
-    override var started: Long
+    override var started: Long?
         get() = this.evaluation.started
         protected set(value) {
             this.evaluation.started = value

@@ -67,7 +67,7 @@ export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
                   if (httpErr.status === 404) {
                     const snack = this.snackBar.open(`Invalid runId: ${runId}`, null, { duration: 2000 });
                     snack.afterDismissed().subscribe(() => {
-                      this.router.navigate(['/run/list']);
+                      this.router.navigate(['/evaluation/list']);
                     });
                   }
                 }

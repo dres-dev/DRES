@@ -231,7 +231,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
 
   public back() {
     if (this.checkDirty()) {
-      this.routerService.navigate(['/competition/list']);
+      this.routerService.navigate(['/template/list']);
     }
   }
 

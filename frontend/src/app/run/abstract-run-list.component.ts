@@ -49,7 +49,7 @@ export class AbstractRunListComponent {
   public navigateToViewer(runId: string) {
     /* TODO: Setup depends on type of competition run. */
     this.router.navigate([
-      '/run/viewer',
+      '/evaluation/viewer',
       runId,
       {
         center: 'player',
@@ -82,7 +82,7 @@ export class AbstractRunListComponent {
    * Navigates to admin viewer (for admins).
    */
   public navigateToAdmin(runId: string, async: boolean = false) {
-    this.router.navigate([`/run/admin${async ? '/async' : ''}`, runId]);
+    this.router.navigate([`/evaluation/admin${async ? '/async' : ''}`, runId]);
   }
 
   /**
@@ -91,7 +91,7 @@ export class AbstractRunListComponent {
    * @param runId ID of the run to navigate to.
    */
   public navigateToScoreHistory(runId: string) {
-    this.router.navigate(['/run/scores', runId]);
+    this.router.navigate(['/evaluation/scores', runId]);
   }
 
   public downloadScores(runId: string) {

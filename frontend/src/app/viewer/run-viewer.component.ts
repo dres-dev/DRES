@@ -143,7 +143,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
               duration: 5000,
             });
             if (err.status === 404) {
-              this.router.navigate(['/competition/list']);
+              this.router.navigate(['/template/list']);
             }
             return of(null);
           }),
@@ -208,7 +208,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
               duration: 5000,
             });
             if (err.status === 404) {
-              this.router.navigate(['/competition/list']);
+              this.router.navigate(['/template/list']);
             }
             return of(null);
           }),

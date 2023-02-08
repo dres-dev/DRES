@@ -21,52 +21,63 @@ import { RunAsyncAdminViewComponent } from './run/run-async-admin-view/run-async
 import { NonescapingUrlserializerClass } from './nonescaping-urlserializer.class';
 import {ApiRole} from '../../openapi';
 
+/**
+ * The ROUTE for evaluation templates.
+ * Formerly 'competition'
+ */
+const TEMPLATE_ROUTE = 'template';
+/**
+ * The ROUTE for evaluation instances / runs
+ * Formerly 'run'
+ */
+const EVALUATION_ROUTE = 'evaluation';
+
 const routes: Routes = [
   {
-    path: 'competition/list',
+    path: TEMPLATE_ROUTE+'/list',
     component: CompetitionListComponent,
     canActivate: [AuthenticationGuard],
     data: { roles: [ApiRole.ADMIN] },
   },
   {
-    path: 'competition/builder/:competitionId',
+    path: TEMPLATE_ROUTE+'/builder/:competitionId',
     component: CompetitionBuilderComponent,
     canActivate: [AuthenticationGuard],
     canDeactivate: [CanDeactivateGuard],
     data: { roles: [ApiRole.ADMIN] },
   },
   {
-    path: 'run/list',
+    path: EVALUATION_ROUTE+'/list',
     component: RunListComponent,
     canActivate: [AuthenticationGuard],
     data: { roles: [ApiRole.ADMIN, ApiRole.VIEWER, ApiRole.PARTICIPANT, ApiRole.JUDGE] },
   },
   {
-    path: 'run/admin/:runId',
+    path: EVALUATION_ROUTE+'/admin/:runId',
     component: RunAdminViewComponent,
     canActivate: [AuthenticationGuard],
     data: { roles: [ApiRole.ADMIN] },
   },
   {
-    path: 'run/scores/:runId',
+    path: EVALUATION_ROUTE+'/scores/:runId',
     component: RunScoreHistoryComponent,
     canActivate: [AuthenticationGuard],
     data: { roles: [ApiRole.ADMIN] },
   },
   {
-    path: 'run/admin/async/:runId',
+    path: EVALUATION_ROUTE+'/admin/async/:runId',
     component: RunAsyncAdminViewComponent,
     canActivate: [AuthenticationGuard],
     data: { roles: [ApiRole.ADMIN] },
   },
   {
-    path: 'run/admin/submissions/:runId/:taskId',
+    path: EVALUATION_ROUTE+'/admin/submissions/:runId/:taskId',
     component: RunAdminSubmissionsListComponent,
     canActivate: [AuthenticationGuard],
     data: { roles: [ApiRole.ADMIN] },
   },
   {
-    path: 'run/viewer/:runId',
+    path: EVALUATION_ROUTE+'/viewer/:runId',
     component: RunViewerComponent,
     canActivate: [AuthenticationGuard],
     data: { roles: [ApiRole.ADMIN, ApiRole.VIEWER, ApiRole.PARTICIPANT, ApiRole.JUDGE] },

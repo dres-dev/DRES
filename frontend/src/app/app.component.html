@@ -10,12 +10,12 @@
     mat-button
     aria-label="Competition builder and overview"
     matTooltip="Competition builder and overview"
-    routerLink="/competition/list"
+    routerLink="/template/list"
   >
     <mat-icon>build</mat-icon> Evaluation Template Builder
   </button>
 
-  <button *ngIf="loggedIn | async" mat-button aria-label="Ongoing runs" matTooltip="Ongoing runs" routerLink="/run/list">
+  <button *ngIf="loggedIn | async" mat-button aria-label="Ongoing runs" matTooltip="Ongoing runs" routerLink="/evaluation/list">
     <mat-icon>directions_run</mat-icon> Evaluations
   </button>
 

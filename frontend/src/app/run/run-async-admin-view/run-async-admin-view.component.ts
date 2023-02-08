@@ -58,7 +58,7 @@ export class RunAsyncAdminViewComponent implements AfterViewInit {
               );
               this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`);
               if (err.status === 404) {
-                this.router.navigate(['/competition/list']);
+                this.router.navigate(['/template/list']);
               }
               return of(null);
             }),

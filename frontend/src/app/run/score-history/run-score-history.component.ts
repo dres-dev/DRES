@@ -126,7 +126,7 @@ export class RunScoreHistoryComponent {
               `[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`
             );
             if (err.status === 404) {
-              this.router.navigate(['/competition/list']);
+              this.router.navigate(['/template/list']);
             }
             return of(null);
           }),
@@ -157,7 +157,7 @@ export class RunScoreHistoryComponent {
               `[ScoreHistoryComponent] There was an error while loading information in the current run: ${err?.message}`
             );
             if (err.status === 404) {
-              this.router.navigate(['/competition/list']);
+              this.router.navigate(['/template/list']);
             }
             return of([]);
           })
@@ -182,7 +182,7 @@ export class RunScoreHistoryComponent {
               catchError((err, o) => {
                 console.log(`[ScoreHistoryComponent] There was an error while loading scores for run: ${err?.message}`);
                 if (err.status === 404) {
-                  this.router.navigate(['/competition/list']);
+                  this.router.navigate(['/template/list']);
                 }
                 return of(null);
               }),

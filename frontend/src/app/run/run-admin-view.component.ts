@@ -66,7 +66,7 @@ export class RunAdminViewComponent {
                 duration: 5000,
               });
               if (err.status === 404) {
-                this.router.navigate(['/competition/list']);
+                this.router.navigate(['/template/list']);
               }
               return of(null);
             }),
@@ -131,7 +131,7 @@ export class RunAdminViewComponent {
                 duration: 5000,
               });
               if (err.status === 404) {
-                this.router.navigate(['/competition/list']);
+                this.router.navigate(['/template/list']);
               }
               return of(null);
             }),

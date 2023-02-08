@@ -119,7 +119,7 @@ export class RunAdminToolbarComponent implements OnInit {
    */
   public navigateToAdmin() {
     const runId = this.runId.value;
-    this.router.navigate(['/run/admin', runId]);
+    this.router.navigate(['/evaluation/admin', runId]);
   }
 
   /**
@@ -129,7 +129,7 @@ export class RunAdminToolbarComponent implements OnInit {
    */
   public navigateToScoreHistory() {
     const runId = this.runId.value;
-    this.router.navigate(['/run/scores', runId]);
+    this.router.navigate(['/evaluation/scores', runId]);
   }
 
   public downloadScores(runId: string) {

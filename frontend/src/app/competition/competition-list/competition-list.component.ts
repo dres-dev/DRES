@@ -93,7 +93,7 @@ export class CompetitionListComponent implements AfterViewInit {
   }
 
   public edit(competitionId: string) {
-    this.routerService.navigate(['/competition/builder', competitionId]);
+    this.routerService.navigate(['/template/builder', competitionId]);
   }
 
   public delete(competitionId: string) {

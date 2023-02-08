@@ -17,11 +17,18 @@ export class AuthenticationService {
    * Constructor
    */
   constructor(@Inject(UserService) private userService: UserService) {
-    this.userService.getApiV2UserSession()
+    // TODO there *must* be a more elegant OpenAPI way to do this ?!?
+    this.userService.getApiV2UserSession(null, null, null, {httpHeaderAccept: 'text/plain'})
       .pipe(
-        catchError((e) => of(null)),
+        catchError((e) => {
+          console.log("error", e);
+          return of(null)
+        }),
         filter((s) => s != null),
-        flatMap((s) => this.userService.getApiV2User()),
+        flatMap((s) => {
+          console.log('before getApiV2User')
+          return this.userService.getApiV2User()
+        }),
         filter((u) => u != null)
       )
       .subscribe((u) => {

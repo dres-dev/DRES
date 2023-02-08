@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import {ApiEvaluationTemplate} from '../../../../../../openapi';
+import {ApiEvaluationTemplate} from '../../../../../openapi';
 import {Subscription} from 'rxjs';
-import {TemplateBuilderService} from '../../template-builder.service';
+import {TemplateBuilderService} from '../template-builder.service';
 
 export abstract class AbstractTemplateBuilderComponent {
 

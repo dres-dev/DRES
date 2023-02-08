@@ -20,6 +20,7 @@ import { JudgementVotingViewerComponent } from './judgement/judgement-voting-vie
 import { RunAsyncAdminViewComponent } from './run/run-async-admin-view/run-async-admin-view.component';
 import { NonescapingUrlserializerClass } from './nonescaping-urlserializer.class';
 import {ApiRole} from '../../openapi';
+import {TemplateBuilderComponent} from './template/template-builder/template-builder.component';
 
 /**
  * The ROUTE for evaluation templates.
@@ -42,6 +43,13 @@ const routes: Routes = [
   {
     path: TEMPLATE_ROUTE+'/builder/:competitionId',
     component: CompetitionBuilderComponent,
+    canActivate: [AuthenticationGuard],
+    canDeactivate: [CanDeactivateGuard],
+    data: { roles: [ApiRole.ADMIN] },
+  },
+  {
+    path: TEMPLATE_ROUTE+'/builder2/:templateId',
+    component: TemplateBuilderComponent,
     canActivate: [AuthenticationGuard],
     canDeactivate: [CanDeactivateGuard],
     data: { roles: [ApiRole.ADMIN] },

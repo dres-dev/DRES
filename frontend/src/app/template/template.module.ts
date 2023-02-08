@@ -1,25 +1,18 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { BuilderComponent } from './builder/builder.component';
-import {GeneralInfoTabComponent} from './builder/tabs/general-info-tab/general-info-tab.component';
-import { InformationComponent } from './builder/components/information/information.component';
-import { AbstractTemplateBuilderComponent } from './builder/components/abstract-template-builder/abstract-template-builder.component';
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {MatInputModule} from '@angular/material/input';
 import {ReactiveFormsModule} from '@angular/forms';
-
+import {TemplateBuilderModule} from './template-builder/template-builder.module';
 
 
 @NgModule({
-  declarations: [
-    BuilderComponent,
-    GeneralInfoTabComponent,
-    InformationComponent,
-    AbstractTemplateBuilderComponent
-  ],
+    declarations: [],
     imports: [
         CommonModule,
         MatInputModule,
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        TemplateBuilderModule
     ]
 })
-export class TemplateModule { }
+export class TemplateModule {
+}

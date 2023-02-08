@@ -19,6 +19,11 @@ typealias EvaluationId = String
 class DbEvaluation(entity: Entity) : PersistentEntity(entity) {
     companion object : XdNaturalEntityType<DbEvaluation>()
 
+    override fun constructor() {
+        super.constructor()
+        created = System.currentTimeMillis()
+    }
+
     /** The [EvaluationId] of this [DbEvaluation]. */
     var evaluationId: EvaluationId
         get() = this.id
@@ -33,8 +38,11 @@ class DbEvaluation(entity: Entity) : PersistentEntity(entity) {
     /** The [DbEvaluationTemplate] backing this [DbEvaluation]. */
     var template by xdLink1(DbEvaluationTemplate)
 
+    /** Timestamp of when this [DbEvaluation] was created. */
+    var created by xdRequiredLongProp()
+
     /** Timestamp of when this [DbEvaluation] started. */
-    var started by xdRequiredLongProp()
+    var started by xdNullableLongProp()
 
     /** Timestamp of when this [DbEvaluation] ended. */
     var ended by xdNullableLongProp()
@@ -66,6 +74,7 @@ class DbEvaluation(entity: Entity) : PersistentEntity(entity) {
         name = this.name,
         type = this.type.toApi(),
         template = this.template.toApi(),
+        created = this.created,
         started = this.started,
         ended = this.ended,
         tasks = this.tasks.asSequence().map { it.toApi() }.toList()

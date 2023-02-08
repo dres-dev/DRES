@@ -16,7 +16,8 @@ data class ApiEvaluation(
     val name: String,
     val type: ApiEvaluationType,
     val template: ApiEvaluationTemplate,
-    val started: Long,
+    val created: Long,
+    val started: Long?,
     val ended: Long?,
     val tasks: List<ApiTask>
 )

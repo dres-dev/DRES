@@ -44,7 +44,7 @@ class DbTeam(entity: Entity) : PersistentEntity(entity), Team {
     val evaluation: DbEvaluationTemplate by xdParent(DbEvaluationTemplate::teams)
 
     /** The [DbTeamGroup] this [DbTeam] belongs to (or null if not assigned to a group). */
-    var group: DbTeamGroup? by xdLink0_1(DbTeamGroup::teams)
+    var group: DbTeamGroup? by xdLink0_1(DbTeamGroup::teams) //FIXME a team should be able to belong to arbitrarily many team groups
 
     /** The [DbUser]s that belong to this [DbTeam]. */
     val users by xdLink0_N(DbUser, onDelete = OnDeletePolicy.CLEAR, onTargetDelete = OnDeletePolicy.CLEAR)

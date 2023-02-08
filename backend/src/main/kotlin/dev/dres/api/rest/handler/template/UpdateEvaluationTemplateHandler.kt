@@ -118,7 +118,7 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 val t = if (task.id != null) {
                     existing.tasks.filter { it.id eq task.id }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown task ${task.id} for evaluation ${apiValue.id}.", ctx)
                 } else {
-                    DbTaskTemplate.new { this.id = UUID.randomUUID().toString() }
+                    DbTaskTemplate.new()
                 }
                 t.name = task.name
                 t.duration = task.duration
@@ -166,7 +166,7 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 val t = if (team.id != null) {
                     existing.teams.filter { it.id eq team.id }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown team ${team.id} for evaluation ${apiValue.id}.", ctx)
                 } else {
-                    DbTeam.new { this.id = UUID.randomUUID().toString() }
+                    DbTeam.new()
                 }
                 t.name = team.name ?: throw ErrorStatusException(404, "Team name must be specified.", ctx)
                 t.color = team.color ?: throw ErrorStatusException(404, "Team colour must be specified.", ctx)
@@ -187,7 +187,7 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 val t = if (teamGroup.id != null) {
                     existing.teamGroups.filter { it.id eq teamGroup.id }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown team groum ${teamGroup.id} for evaluation ${apiValue.id}.", ctx)
                 } else {
-                    DbTeamGroup.new { this.id = UUID.randomUUID().toString() }
+                    DbTeamGroup.new()
                 }
 
                 t.teams.clear()

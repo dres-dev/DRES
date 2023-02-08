@@ -1,0 +1,16 @@
+<div>
+    <form [formGroup]="form">
+        <p>
+            <mat-form-field style="width: 100%">
+                <mat-label>Name</mat-label>
+                <input type="text" matInput placeholder="Evaluation Template Name" formControlName="name" required/>
+            </mat-form-field>
+        </p>
+        <p>
+            <mat-form-field style="width: 100%">
+                <mat-label>Description</mat-label>
+                <textarea matInput placeholder="Description" formControlName="description" required></textarea>
+            </mat-form-field>
+        </p>
+    </form>
+</div>

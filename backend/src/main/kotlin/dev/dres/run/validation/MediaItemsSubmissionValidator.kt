@@ -3,6 +3,7 @@ package dev.dres.run.validation
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.Submission
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import kotlinx.dnq.query.asSequence
 
@@ -22,13 +23,13 @@ class MediaItemsSubmissionValidator(private val items : Set<DbMediaItem>) : Subm
      *
      * @param submission The [DbSubmission] to validate.
      */
-    override fun validate(submission: DbSubmission) {
-        submission.answerSets.asSequence().forEach { answerSet ->
+    override fun validate(submission: Submission) {
+        submission.answerSets().forEach { answerSet ->
 
-            if (answerSet.answers.asSequence().any {  it.item == null || it.item !in this.items} ) {
-                answerSet.status = DbVerdictStatus.WRONG
+            if (answerSet.answers().any {  it.item == null || it.item !in this.items} ) {
+                answerSet.status(DbVerdictStatus.WRONG)
             } else {
-                answerSet.status = DbVerdictStatus.CORRECT
+                answerSet.status(DbVerdictStatus.CORRECT)
             }
         }
     }

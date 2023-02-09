@@ -3,11 +3,14 @@ package dev.dres.run
 import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.data.model.run.*
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
 
@@ -107,7 +110,7 @@ interface RunManager : Runnable {
      * @return [DbVerdictStatus] of the [DbSubmission]
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    fun postSubmission(context: RunActionContext, submission: DbSubmission): DbVerdictStatus
+    fun postSubmission(context: RunActionContext, submission: Submission): VerdictStatus
 
     /**
      * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.

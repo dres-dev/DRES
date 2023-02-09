@@ -1,6 +1,7 @@
 package dev.dres.run.validation.judged
 
 import dev.dres.data.model.media.DbMediaItem
+import dev.dres.data.model.submissions.Answer
 import dev.dres.data.model.submissions.DbAnswer
 import dev.dres.data.model.submissions.DbAnswerType
 
@@ -13,9 +14,9 @@ import dev.dres.data.model.submissions.DbAnswerType
 data class ItemRange(val element: String, val start: Long, val end: Long){
     constructor(item: DbMediaItem): this(item.id, 0, 0)
     constructor(item: DbMediaItem, start: Long, end: Long): this(item.id, start, end)
-    constructor(answer: DbAnswer): this(when (answer.type){
+    constructor(answer: Answer): this(when (answer.type){
             DbAnswerType.ITEM,
-            DbAnswerType.TEMPORAL -> answer.item!!.id
+            DbAnswerType.TEMPORAL -> answer.item!!.id!!
             DbAnswerType.TEXT  -> answer.text!!
             else -> throw IllegalStateException("Submission contains neither item nor text.")
         }, answer.start ?: 0, answer.end ?: 0)

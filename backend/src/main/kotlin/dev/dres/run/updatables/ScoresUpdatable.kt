@@ -3,9 +3,10 @@ package dev.dres.run.updatables
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
 import dev.dres.data.model.run.AbstractInteractiveTask
-import dev.dres.data.model.run.EvaluationId
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbAnswerSet
+import dev.dres.data.model.submissions.Submission
 import dev.dres.run.RunManagerStatus
 import dev.dres.run.score.TaskContext
 import kotlinx.dnq.query.asSequence
@@ -24,13 +25,13 @@ class ScoresUpdatable(private val evaluationId: EvaluationId, private val scoreb
     }
 
     /** Internal list of [DbAnswerSet] that pend processing. */
-    private val list = LinkedList<Pair<AbstractInteractiveTask, DbSubmission>>()
+    private val list = LinkedList<Pair<AbstractInteractiveTask, Submission>>()
 
     /** The [Phase] this [ScoresUpdatable] belongs to. */
     override val phase: Phase = Phase.MAIN
 
     /** Enqueues a new [DbAnswerSet] for post-processing. */
-    fun enqueue(submission: Pair<AbstractInteractiveTask,DbSubmission>) = this.list.add(submission)
+    fun enqueue(submission: Pair<AbstractInteractiveTask, Submission>) = this.list.add(submission)
 
     override fun update(status: RunManagerStatus) {
         if (!this.list.isEmpty()) {

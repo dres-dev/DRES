@@ -1,5 +1,6 @@
 package dev.dres.run.validation.judged
 
+import dev.dres.data.model.submissions.AnswerSet
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.run.validation.interfaces.VoteValidator
@@ -25,7 +26,7 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
         private val defaultVoteDifference = 1
     }
 
-    private val submissionQueue = ConcurrentLinkedQueue<DbAnswerSet>()
+    private val submissionQueue = ConcurrentLinkedQueue<AnswerSet>()
     private val voteCountMap = ConcurrentHashMap<DbVerdictStatus, Int>()
     private val updateLock = ReentrantReadWriteLock()
 
@@ -45,7 +46,7 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
 
         if (enoughVotes()){
             val finalVerdict = this.voteCountMap.entries.maxByOrNull { it.value }!!.key
-            verdict.status = finalVerdict
+            verdict.status(finalVerdict)
             this.submissionQueue.poll()
             this.voteCountMap.clear()
         }
@@ -59,14 +60,14 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
         return max - others >= voteDifference
     }
 
-    override fun nextSubmissionToVoteOn(): DbAnswerSet? = submissionQueue.firstOrNull() //TODO maybe add timeout mechanism?
+    override fun nextSubmissionToVoteOn() = submissionQueue.firstOrNull() //TODO maybe add timeout mechanism?
 
     //siphon of undecidable submission from logic of super class
     override fun judge(token: String, status: DbVerdictStatus) {
         val verdict = super.processSubmission(token, status)
         when (status){
             DbVerdictStatus.CORRECT,
-            DbVerdictStatus.WRONG -> verdict.status = status
+            DbVerdictStatus.WRONG -> verdict.status(status)
             DbVerdictStatus.INDETERMINATE -> {}
             DbVerdictStatus.UNDECIDABLE -> this.submissionQueue.add(verdict)
         }

@@ -3,7 +3,7 @@ package dev.dres.api.rest.handler.evaluation.viewer
 import dev.dres.api.rest.handler.*
 import dev.dres.api.rest.handler.evaluation.client.AbstractEvaluationClientHandler
 import dev.dres.api.rest.types.users.ApiRole
-import dev.dres.data.model.run.EvaluationId
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager

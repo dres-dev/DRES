@@ -8,6 +8,8 @@ import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.ScoreboardsUpdatable
@@ -165,7 +167,7 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
      *
      */
     override fun tasks(context: RunActionContext): List<AbstractNonInteractiveTask> = this.evaluation.tasks
-    override fun postSubmission(context: RunActionContext, submission: DbSubmission): DbVerdictStatus {
+    override fun postSubmission(context: RunActionContext, submission: Submission): VerdictStatus {
         TODO("Not yet implemented")
     }
 }

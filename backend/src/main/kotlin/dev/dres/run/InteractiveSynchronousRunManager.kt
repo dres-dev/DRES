@@ -7,12 +7,11 @@ import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.*
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.run.interfaces.TaskRun
+import dev.dres.data.model.submissions.*
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
-import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.DbAnswerSet
-import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
@@ -445,7 +444,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      * @param context The [RunActionContext] used for the invocation
      * @param submission [DbSubmission] that should be registered.
      */
-    override fun postSubmission(context: RunActionContext, submission: DbSubmission): DbVerdictStatus = this.stateLock.read {
+    override fun postSubmission(context: RunActionContext, submission: Submission): VerdictStatus = this.stateLock.read {
         assureTaskRunning()
 
         /* Register submission. */
@@ -463,7 +462,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
 
         /* Enqueue WS message for sending */
         this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.TASK_UPDATED))
-        return submission.answerSets.first().status
+        return submission.answerSets().first().status()
     }
 
     /**
@@ -614,7 +613,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      * @param context [RunActionContext] used for invocation.
      * @param sub The [DbSubmission] to apply the [Option] for.
      */
-    private fun prolongOnSubmit(context: RunActionContext, sub: DbSubmission) {
+    private fun prolongOnSubmit(context: RunActionContext, sub: Submission) {
         /* require(option.option == SimpleOption.PROLONG_ON_SUBMISSION) { "Cannot process ${option.option} in prolongOnSubmit()." }
         val limit = option.getAsInt(SimpleOptionParameters.PROLONG_ON_SUBMISSION_LIMIT_PARAM)
             ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_LIMIT_DEFAULT

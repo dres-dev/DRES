@@ -6,6 +6,7 @@ import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.Submission
 import dev.dres.run.filter.SubmissionFilter
 import kotlinx.dnq.query.*
 
@@ -51,16 +52,18 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
             get() = TODO("Can there be submission filters for non-interactive tasks?")
 
         @Synchronized
-        override fun postSubmission(submission: DbSubmission) {
-            check(this@NonInteractiveEvaluation.description.teams.filter { it eq submission.team }.any()) {
+        override fun postSubmission(submission: Submission) {
+            check(this@NonInteractiveEvaluation.description.teams.asSequence().filter { it == submission.team }.any()) {
                 "Team ${submission.team.teamId} does not exists for evaluation run ${this@NonInteractiveEvaluation.name}. This is a programmer's error!"
             }
 
             /* Execute submission filters. */
             this.filter.acceptOrThrow(submission)
 
+            val dbSubmission: DbSubmission = TODO("submission needs to be stored at this point and not earlier")
+
             /* Process Submission. */
-            this.submissions.add(submission)
+            this.submissions.add(dbSubmission)
 
             /* TODO: Validation? */
         }

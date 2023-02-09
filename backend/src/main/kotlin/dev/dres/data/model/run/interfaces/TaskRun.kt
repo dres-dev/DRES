@@ -3,6 +3,7 @@ package dev.dres.data.model.run.interfaces
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
 import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.Submission
 import dev.dres.run.TaskStatus
 import dev.dres.run.score.scorer.CachingTaskScorer
 import dev.dres.run.score.scorer.TaskScorer

@@ -18,7 +18,7 @@ class DbAnswerSet(entity: Entity) : PersistentEntity(entity), AnswerSet {
     companion object : XdNaturalEntityType<DbAnswerSet>()
 
     /** The [DbVerdictStatus] of this [DbAnswerSet]. */
-    override var status by xdLink1(DbVerdictStatus)
+    var status: DbVerdictStatus by xdLink1(DbVerdictStatus)
 
     /** The [DbSubmission] this [DbAnswerSet] belongs to. */
     override var submission: DbSubmission by xdParent<DbAnswerSet,DbSubmission>(DbSubmission::answerSets)
@@ -29,6 +29,13 @@ class DbAnswerSet(entity: Entity) : PersistentEntity(entity), AnswerSet {
     val answers by xdChildren1_N<DbAnswerSet, DbAnswer>(DbAnswer::answerSet)
 
     override fun answers(): Sequence<Answer> = answers.asSequence()
+    override fun status(): VerdictStatus {
+        TODO("Not yet implemented")
+    }
+
+    override fun status(status: VerdictStatus) {
+        TODO("Not yet implemented")
+    }
 
     /**
      * Converts this [DbVerdictStatus] to a RESTful API representation [ApiAnswerSet].

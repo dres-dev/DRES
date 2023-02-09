@@ -1,5 +1,6 @@
 package dev.dres.run.validation.interfaces
 
+import dev.dres.data.model.submissions.AnswerSet
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbVerdictStatus
@@ -33,7 +34,7 @@ interface JudgementValidator {
      *
      * @return Optional [Pair] containing a string token and the [DbSubmission] that should be judged.
      */
-    fun next(queue: String): Pair<String, DbAnswerSet>?
+    fun next(queue: String): Pair<String, AnswerSet>?
 
     /**
      * Places a verdict for the [DbSubmission] identified by the given token.

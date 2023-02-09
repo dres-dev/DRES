@@ -4,7 +4,7 @@ import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.users.ApiRole
-import dev.dres.data.model.run.EvaluationId
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor

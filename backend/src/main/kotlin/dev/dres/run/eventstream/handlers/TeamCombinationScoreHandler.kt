@@ -1,8 +1,9 @@
 package dev.dres.run.eventstream.handlers
 
-import dev.dres.data.model.run.EvaluationId
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.Submission
 import dev.dres.run.eventstream.*
 import java.io.File
 import java.io.PrintWriter
@@ -28,7 +29,7 @@ class TeamCombinationScoreHandler : StreamEventHandler {
     /**
      *
      */
-    private val submissionTaskMap = mutableMapOf<EvaluationId, MutableList<DbSubmission>>()
+    private val submissionTaskMap = mutableMapOf<EvaluationId, MutableList<Submission>>()
 
     init {
         writer.println("task,team1,team2,score")

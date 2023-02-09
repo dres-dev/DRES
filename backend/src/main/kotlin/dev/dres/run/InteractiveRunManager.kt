@@ -3,6 +3,7 @@ package dev.dres.run
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.*
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus

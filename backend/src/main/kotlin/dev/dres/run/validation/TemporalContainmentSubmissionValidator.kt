@@ -4,6 +4,7 @@ import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.submissions.DbAnswerType
+import dev.dres.data.model.submissions.Submission
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import kotlinx.dnq.query.asSequence
 
@@ -26,14 +27,14 @@ class TemporalContainmentSubmissionValidator(private val targetSegment: Transien
      *
      * @param submission The [DbSubmission] to validate.
      */
-    override fun validate(submission: DbSubmission) {
-        submission.answerSets.asSequence().forEach { answerSet ->
+    override fun validate(submission: Submission) {
+        submission.answerSets().forEach { answerSet ->
 
-            answerSet.answers.asSequence().forEach { answer ->
+            answerSet.answers().forEach { answer ->
 
                 /* Perform sanity checks. */
                 if (answer.type != DbAnswerType.TEMPORAL) {
-                    answerSet.status = DbVerdictStatus.WRONG
+                    answerSet.status(DbVerdictStatus.WRONG)
                     return@forEach
                 }
 
@@ -41,23 +42,23 @@ class TemporalContainmentSubmissionValidator(private val targetSegment: Transien
                 val end = answer.end
                 val item = answer.item
                 if (item == null || start == null || end == null || start > end) {
-                    answerSet.status = DbVerdictStatus.WRONG
+                    answerSet.status(DbVerdictStatus.WRONG)
                     return@forEach
 
                 }
 
                 /* Perform item validation. */
                 if (answer.item != this.targetSegment.first) {
-                    answerSet.status = DbVerdictStatus.WRONG
+                    answerSet.status(DbVerdictStatus.WRONG)
                     return@forEach
                 }
 
                 /* Perform temporal validation. */
                 val outer = this.targetSegment.second.toMilliseconds()
                 if (outer.first <= start && outer.second >= end) {
-                    answerSet.status = DbVerdictStatus.CORRECT
+                    answerSet.status(DbVerdictStatus.CORRECT)
                 } else {
-                    answerSet.status = DbVerdictStatus.WRONG
+                    answerSet.status(DbVerdictStatus.WRONG)
                 }
 
             }

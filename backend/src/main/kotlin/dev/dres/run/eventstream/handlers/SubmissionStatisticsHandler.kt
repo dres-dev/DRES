@@ -1,8 +1,9 @@
 package dev.dres.run.eventstream.handlers
 
-import dev.dres.data.model.run.EvaluationId
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.Submission
 import dev.dres.run.eventstream.*
 import kotlinx.dnq.query.first
 import kotlinx.dnq.query.size
@@ -14,7 +15,7 @@ class SubmissionStatisticsHandler : StreamEventHandler {
 
     private val writer = PrintWriter(File("statistics/submission_statistics_${System.currentTimeMillis()}.csv").also { it.parentFile.mkdirs() })
 
-    private val submissionTaskMap = mutableMapOf<EvaluationId, MutableList<DbSubmission>>()
+    private val submissionTaskMap = mutableMapOf<EvaluationId, MutableList<Submission>>()
     private val taskStartMap = mutableMapOf<EvaluationId, Long>()
     private val taskNameMap = mutableMapOf<EvaluationId, String>()
 
@@ -59,22 +60,22 @@ class SubmissionStatisticsHandler : StreamEventHandler {
      *
      * I assume here, that there this handler requires a single verdict per submission. Is this a valid assumption?
      */
-    private fun computeStatistics(submissions: List<DbSubmission>, taskStart: Long, task: String) {
+    private fun computeStatistics(submissions: List<Submission>, taskStart: Long, task: String) {
         val submissionsByTeam = submissions.groupBy { it.team.teamId }
         submissionsByTeam.mapValues { it.value.size }.forEach{
             (teamId, count) -> writer.println("$task,${teamId},\"totalSubmissionsPerTeam\",$count")
         }
         submissionsByTeam.mapValues {
             it.value.firstOrNull { s ->
-                require(s.answerSets.size() == 1) { "SubmissionStatisticsHandler can only process single-verdict submissions." }
-                s.answerSets.first().status == DbVerdictStatus.CORRECT
+                require(s.answerSets().count() == 1) { "SubmissionStatisticsHandler can only process single-verdict submissions." }
+                s.answerSets().first().status() == DbVerdictStatus.CORRECT
             }?.timestamp?.minus(taskStart) }.filter { it.value != null }.forEach{
                 (teamId, time) -> writer.println("$task,${teamId},\"timeUntilCorrectSubmission\",$time")
             }
         submissionsByTeam.mapValues {
             it.value.indexOfFirst { s ->
-                require(s.answerSets.size() == 1) { "SubmissionStatisticsHandler can only process single-verdict submissions." }
-                s.answerSets.first().status == DbVerdictStatus.CORRECT
+                require(s.answerSets().count() == 1) { "SubmissionStatisticsHandler can only process single-verdict submissions." }
+                s.answerSets().first().status() == DbVerdictStatus.CORRECT
             }
         }.forEach{
             (teamId, count) -> writer.println("$task,${teamId},\"incorrectBeforeCorrectSubmissions\",$count")

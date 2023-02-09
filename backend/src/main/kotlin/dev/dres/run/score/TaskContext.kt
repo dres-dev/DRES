@@ -1,6 +1,6 @@
 package dev.dres.run.score
 
-import dev.dres.data.model.run.EvaluationId
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.template.team.TeamId
 
 /**

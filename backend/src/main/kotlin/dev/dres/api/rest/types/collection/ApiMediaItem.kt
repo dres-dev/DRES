@@ -2,6 +2,7 @@ package dev.dres.api.rest.types.collection
 
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.MediaItemCollection
 
 /**
  * The RESTful API equivalent for [DbMediaItem].
@@ -11,9 +12,9 @@ import dev.dres.data.model.media.MediaItem
  * @version 1.1.0
  */
 data class ApiMediaItem(
-    val id: String?,
+    override val id: String?,
     override val name: String,
-    val type: ApiMediaType,
+    override val type: ApiMediaType,
     val collectionId: String,
     val location: String,
     val durationMs: Long? = null,
@@ -25,4 +26,7 @@ data class ApiMediaItem(
             require(this.fps != null) { "Duration must be set for a video item." }
         }
     }
+
+    override val collection: MediaItemCollection
+        get() = TODO("Not yet implemented")
 }

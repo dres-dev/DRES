@@ -28,7 +28,7 @@ class DbMediaItem(entity: Entity) : PersistentEntity(entity), MediaItem {
     override var name by xdRequiredStringProp(unique = false, trimmed = false)
 
     /** The [DbMediaType] of this [DbMediaItem]. */
-    var type by xdLink1(DbMediaType)
+    override var type by xdLink1(DbMediaType)
 
     /** The location of this [DbMediaItem] on disk. */
     var location by xdRequiredStringProp(unique = false, trimmed = false)
@@ -40,7 +40,7 @@ class DbMediaItem(entity: Entity) : PersistentEntity(entity), MediaItem {
     var durationMs by xdNullableLongProp() { requireIf { this.type ==  DbMediaType.VIDEO } }
 
     /** The [DbMediaCollection] this [DbMediaItem] belongs to. */
-    var collection: DbMediaCollection by xdParent<DbMediaItem, DbMediaCollection>(DbMediaCollection::items)
+    override var collection: DbMediaCollection by xdParent<DbMediaItem, DbMediaCollection>(DbMediaCollection::items)
 
     /** List of [DbMediaSegment] that this [DbMediaItem] contains.  */
     val segments by xdChildren0_N<DbMediaItem, DbMediaSegment>(DbMediaSegment::item)

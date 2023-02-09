@@ -1,9 +1,11 @@
 package dev.dres.data.model.run
 
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.Submission
 import dev.dres.run.TaskStatus
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.validation.interfaces.SubmissionValidator
@@ -122,5 +124,5 @@ abstract class AbstractTask(task: DbTask): TaskRun {
      *
      * @param submission The [DbSubmission] to append.
      */
-    abstract fun postSubmission(submission: DbSubmission)
+    abstract fun postSubmission(submission: Submission)
 }

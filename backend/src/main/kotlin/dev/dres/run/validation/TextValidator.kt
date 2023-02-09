@@ -1,8 +1,6 @@
 package dev.dres.run.validation
 
-import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.DbVerdictStatus
-import dev.dres.data.model.submissions.DbAnswerType
+import dev.dres.data.model.submissions.*
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import kotlinx.dnq.query.asSequence
 
@@ -46,29 +44,29 @@ class TextValidator(targets: List<String>) : SubmissionValidator {
      *
      * @param submission The [DbSubmission] to validate.
      */
-    override fun validate(submission: DbSubmission) {
-        submission.answerSets.asSequence().forEach { answerSet ->
+    override fun validate(submission: Submission) {
+        submission.answerSets().forEach { answerSet ->
 
-            answerSet.answers.asSequence().forEach {
+            answerSet.answers().forEach {
                 answer ->
 
                 /* Perform sanity checks. */
                 if (answer.type != DbAnswerType.TEXT) {
-                    answerSet.status = DbVerdictStatus.WRONG
+                    answerSet.status(DbVerdictStatus.WRONG)
                     return@forEach
                 }
 
                 /* Perform text validation. */
                 val text = answer.text
                 if (text == null) {
-                    answerSet.status = DbVerdictStatus.WRONG
+                    answerSet.status(DbVerdictStatus.WRONG)
                     return@forEach
                 }
 
                 if (regex.any { it matches text })  {
-                    answerSet.status = DbVerdictStatus.CORRECT
+                    answerSet.status(DbVerdictStatus.CORRECT)
                 } else {
-                    answerSet.status = DbVerdictStatus.WRONG
+                    answerSet.status(DbVerdictStatus.WRONG)
                 }
 
             }

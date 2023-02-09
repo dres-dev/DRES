@@ -2,7 +2,7 @@ package dev.dres.run.eventstream.handlers
 
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.time.TemporalRange
-import dev.dres.data.model.run.EvaluationId
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.run.eventstream.StreamEvent
 import dev.dres.run.eventstream.StreamEventHandler

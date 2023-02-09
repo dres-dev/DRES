@@ -22,8 +22,7 @@ import dev.dres.api.rest.handler.preview.GetMediaHandler
 import dev.dres.api.rest.handler.preview.MediaPreviewHandler
 import dev.dres.api.rest.handler.preview.SubmissionPreviewHandler
 import dev.dres.api.rest.handler.scores.ListEvaluationScoreHandler
-import dev.dres.api.rest.handler.submission.BatchSubmissionHandler
-import dev.dres.api.rest.handler.submission.SubmissionHandler
+import dev.dres.api.rest.handler.submission.LegacySubmissionHandler
 import dev.dres.api.rest.handler.system.CurrentTimeHandler
 import dev.dres.api.rest.handler.system.InfoHandler
 import dev.dres.api.rest.handler.system.LoginHandler
@@ -117,8 +116,7 @@ object RestApi {
             GetTeamLogoHandler(store),
 
             // Submission
-            SubmissionHandler(store, config),
-            BatchSubmissionHandler(store, config),
+            LegacySubmissionHandler(store, config),
 
             // Log
             QueryLogHandler(),

@@ -42,13 +42,13 @@ import java.nio.file.Paths
  * @author Loris Sauter
  * @version 2.0.0
  */
-class SubmissionHandler(private val store: TransientEntityStore, private val config: Config): GetRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
+class LegacySubmissionHandler(private val store: TransientEntityStore, private val config: Config): GetRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
 
-    /** [SubmissionHandler] requires [ApiRole.PARTICIPANT]. */
+    /** [LegacySubmissionHandler] requires [ApiRole.PARTICIPANT]. */
     override val permittedRoles = setOf(ApiRole.PARTICIPANT)
 
-    /** All [SubmissionHandler]s are part of the v1 API. */
-    override val apiVersion = "v2"
+    /** All [LegacySubmissionHandler]s are part of the v1 API. */
+    override val apiVersion = "v1"
 
     override val route = "submit"
 

@@ -3,9 +3,6 @@ package dres.run.score.scorer
 import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.collection.ApiMediaType
 import dev.dres.api.rest.types.evaluation.*
-import dev.dres.data.model.media.DbMediaItem
-import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.run.score.TaskContext
 import dev.dres.run.score.scorer.AvsTaskScorer
 import org.junit.jupiter.api.Assertions.assertEquals

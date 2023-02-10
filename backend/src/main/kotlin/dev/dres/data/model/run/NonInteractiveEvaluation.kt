@@ -53,14 +53,15 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
 
         @Synchronized
         override fun postSubmission(submission: Submission) {
-            check(this@NonInteractiveEvaluation.description.teams.asSequence().filter { it == submission.team }.any()) {
-                "Team ${submission.team.teamId} does not exists for evaluation run ${this@NonInteractiveEvaluation.name}. This is a programmer's error!"
+            check(this@NonInteractiveEvaluation.description.teams.asSequence().filter { it.teamId == submission.teamId }.any()) {
+                "Team ${submission.teamId} does not exists for evaluation run ${this@NonInteractiveEvaluation.name}. This is a programmer's error!"
             }
 
             /* Execute submission filters. */
             this.filter.acceptOrThrow(submission)
 
-            val dbSubmission: DbSubmission = TODO("submission needs to be stored at this point and not earlier")
+            /* At this point, the submission is considered valid and is persisted */
+            val dbSubmission: DbSubmission = submission.toDb()
 
             /* Process Submission. */
             this.submissions.add(dbSubmission)

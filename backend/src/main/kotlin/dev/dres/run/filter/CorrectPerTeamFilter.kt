@@ -29,7 +29,7 @@ class CorrectPerTeamFilter(private val limit: Int = 1) : SubmissionFilter {
     override fun test(submission: Submission): Boolean {
         return submission.answerSets().all { answer ->
             answer.task.answerSets().filter {
-                (it.status() == VerdictStatus.CORRECT) && it.submission.team == submission.team
+                (it.status() == VerdictStatus.CORRECT) && it.submission.teamId == submission.teamId
             }.count() < limit
         }
     }

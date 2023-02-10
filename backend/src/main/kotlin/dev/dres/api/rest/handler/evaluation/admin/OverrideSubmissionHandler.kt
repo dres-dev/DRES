@@ -67,11 +67,11 @@ class OverrideSubmissionHandler(store: TransientEntityStore): AbstractEvaluation
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
 
             /* Sanity check to see, whether the submission exists */
-            if (evaluationManager.allSubmissions(rac).none { it.id == submissionInfo.id }) {
+            if (evaluationManager.allSubmissions(rac).none { it.id == submissionInfo.submissionId }) {
                 throw ErrorStatusException(404, "The given submission $submissionInfo was not found.", ctx)
             }
-            if (evaluationManager.updateSubmission(rac, submissionInfo.id, submissionInfo.answers.first().status.toDb())) {
-                val submission = evaluationManager.allSubmissions(rac).single { it.id == submissionInfo.id }
+            if (evaluationManager.updateSubmission(rac, submissionInfo.submissionId, submissionInfo.answers.first().status.toDb())) {
+                val submission = evaluationManager.allSubmissions(rac).single { it.id == submissionInfo.submissionId }
                 AuditLogger.overrideSubmission(submission, DbAuditLogSource.REST, ctx.sessionToken())
                 submission.toApi()
             } else {

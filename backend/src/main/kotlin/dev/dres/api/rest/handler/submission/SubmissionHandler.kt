@@ -71,7 +71,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
 
             AuditLogger.submission(apiSubmission, DbAuditLogSource.REST, ctx.sessionToken(), ctx.req().remoteAddr)
 
-            logger.info("Submission ${apiSubmission.id} received status $result.")
+            logger.info("Submission ${apiSubmission.submissionId} received status $result.")
 
             return@transactional when (result) {
                 VerdictStatus.CORRECT -> SuccessfulSubmissionsStatus(ApiVerdictStatus.CORRECT, "Submission correct!")

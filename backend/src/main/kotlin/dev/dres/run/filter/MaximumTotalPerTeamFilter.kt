@@ -22,7 +22,7 @@ class MaximumTotalPerTeamFilter(private val max: Int = Int.MAX_VALUE) : Submissi
      */
     override fun test(submission: Submission): Boolean {
         return submission.answerSets().all { answerSet ->
-            answerSet.task.answerSets().filter { it.submission.team == submission.team }.count() < max
+            answerSet.task.answerSets().filter { it.submission.teamId == submission.teamId }.count() < max
         }
     }
 }

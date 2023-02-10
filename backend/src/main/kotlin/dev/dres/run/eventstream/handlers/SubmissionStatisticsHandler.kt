@@ -62,7 +62,7 @@ class SubmissionStatisticsHandler : StreamEventHandler {
      * I assume here, that there this handler requires a single verdict per submission. Is this a valid assumption?
      */
     private fun computeStatistics(submissions: List<Submission>, taskStart: Long, task: String) {
-        val submissionsByTeam = submissions.groupBy { it.team.teamId }
+        val submissionsByTeam = submissions.groupBy { it.teamId }
         submissionsByTeam.mapValues { it.value.size }.forEach{
             (teamId, count) -> writer.println("$task,${teamId},\"totalSubmissionsPerTeam\",$count")
         }

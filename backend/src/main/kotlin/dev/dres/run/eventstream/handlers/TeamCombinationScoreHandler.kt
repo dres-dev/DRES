@@ -54,7 +54,7 @@ class TeamCombinationScoreHandler : StreamEventHandler {
 
                 val submissions = submissionTaskMap[event.taskId] ?: return
 
-                val teams = submissions.map { it.team.teamId }.toSet().toList().sortedBy { it }
+                val teams = submissions.map { it.teamId }.toSet().toList().sortedBy { it }
 
                 val combinations = teams.mapIndexed { firstIndex, uidA ->
                     teams.mapIndexed {secondIndex, uidB -> if (firstIndex > secondIndex) (uidA to uidB) else null}

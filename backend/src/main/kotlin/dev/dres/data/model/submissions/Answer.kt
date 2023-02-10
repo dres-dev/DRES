@@ -6,7 +6,6 @@ import dev.dres.data.model.media.time.TemporalRange
 
 interface Answer {
 
-    val type: AnswerType
     val item: MediaItem?
     val start: Long?
     val end: Long?
@@ -21,5 +20,9 @@ interface Answer {
 
             return TemporalRange(TemporalPoint.Millisecond(start), TemporalPoint.Millisecond(end))
         }
+
+    fun toDb(): DbAnswer
+
+    fun type(): AnswerType
 
 }

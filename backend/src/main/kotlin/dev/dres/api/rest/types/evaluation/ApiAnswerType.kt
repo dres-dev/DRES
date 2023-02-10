@@ -10,12 +10,9 @@ import dev.dres.data.model.submissions.DbAnswerType
  * @author Ralph Gasser
  * @version 1.0.0
  */
-enum class ApiAnswerType: AnswerType {
+enum class ApiAnswerType {
     ITEM, TEMPORAL, TEXT;
 
-    override fun eq(status: AnswerType.Type): Boolean {
-        return this.name == status.name
-    }
     /**
      * Converts this [ApiAnswerType] to a [DbAnswerType] representation. Requires an ongoing transaction.
      *

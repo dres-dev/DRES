@@ -12,4 +12,6 @@ interface AnswerSet { //TODO
 
     fun status() : VerdictStatus
     fun status(status: VerdictStatus)
+
+    fun toDb(): DbAnswerSet
 }

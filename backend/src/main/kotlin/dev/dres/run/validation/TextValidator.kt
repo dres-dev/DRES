@@ -51,7 +51,7 @@ class TextValidator(targets: List<String>) : SubmissionValidator {
                 answer ->
 
                 /* Perform sanity checks. */
-                if (answer.type != DbAnswerType.TEXT) {
+                if (answer.type() != AnswerType.TEXT) {
                     answerSet.status(VerdictStatus.WRONG)
                     return@forEach
                 }

@@ -6,6 +6,7 @@ import dev.dres.api.rest.types.collection.ApiMediaType
 import dev.dres.api.rest.types.judgement.ApiJudgementRequest
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.data.model.submissions.AnswerType
 import dev.dres.data.model.submissions.DbAnswerType
 import dev.dres.run.validation.interfaces.VoteValidator
 import io.javalin.http.Context
@@ -47,16 +48,16 @@ class DequeueVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(
                 val validator = evaluationManager.judgementValidators.filterIsInstance<VoteValidator>().find {  it.isActive } ?: break
                 val next = validator.nextSubmissionToVoteOn() ?: break
                 val taskDescription = next.task.template.textualDescription()
-                when (next.answers().firstOrNull()?.type) {
-                    DbAnswerType.TEXT -> {
+                when (next.answers().firstOrNull()?.type()) {
+                    AnswerType.TEXT -> {
                         val text = next.answers().firstOrNull()?.text ?: continue
                         return@transactional ApiJudgementRequest(null, ApiMediaType.TEXT, validator.id, "text", text, taskDescription, null, null)
                     }
-                    DbAnswerType.ITEM -> {
+                    AnswerType.ITEM -> {
                         val item = next.answers().firstOrNull()?.item ?: continue
                         return@transactional ApiJudgementRequest(null, item.type.toApi(), validator.id, item.collection.id, item.id!!, taskDescription, null, null)
                     }
-                    DbAnswerType.TEMPORAL -> {
+                    AnswerType.TEMPORAL -> {
                         val answer = next.answers().firstOrNull() ?: continue
                         val item = answer.item ?: continue
                         val start = answer.start ?: continue

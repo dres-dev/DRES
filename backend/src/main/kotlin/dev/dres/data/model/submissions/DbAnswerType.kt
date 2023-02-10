@@ -13,11 +13,11 @@ import kotlinx.dnq.xdRequiredStringProp
  * @author Ralph Gasser & Luca Rossetto
  * @version 1.1.0
  */
-class DbAnswerType(entity: Entity) : XdEnumEntity(entity), AnswerType {
+class DbAnswerType(entity: Entity) : XdEnumEntity(entity) {
     companion object : XdEnumEntityType<DbAnswerType>() {
-        val ITEM by enumField { description = AnswerType.Type.ITEM.name }
-        val TEMPORAL by enumField { description = AnswerType.Type.TEMPORAL.name }
-        val TEXT by enumField { description = AnswerType.Type.TEXT.name }
+        val ITEM by enumField { description = AnswerType.ITEM.name }
+        val TEMPORAL by enumField { description = AnswerType.TEMPORAL.name }
+        val TEXT by enumField { description = AnswerType.TEXT.name }
 
         /**
          * Returns a list of all [DbRole] values.
@@ -30,9 +30,9 @@ class DbAnswerType(entity: Entity) : XdEnumEntity(entity), AnswerType {
          * Parses a [DbRole] instance from a [String].
          */
         fun parse(string: String) = when (string.uppercase()) {
-            AnswerType.Type.ITEM.name -> ITEM
-            AnswerType.Type.TEMPORAL.name -> TEMPORAL
-            AnswerType.Type.TEXT.name -> TEXT
+            AnswerType.ITEM.name -> ITEM
+            AnswerType.TEMPORAL.name -> TEMPORAL
+            AnswerType.TEXT.name -> TEXT
             else -> throw IllegalArgumentException("Failed to parse submission type '$string'.")
         }
     }
@@ -46,6 +46,6 @@ class DbAnswerType(entity: Entity) : XdEnumEntity(entity), AnswerType {
      *
      * @return [DbAnswerType]
      */
-    fun toApi() = ApiAnswerType.values().find { it.toDb() == this } ?: throw IllegalStateException("Verdict type ${this.description} is not supported.")
-    override fun eq(status: AnswerType.Type): Boolean = status.name == this.description
+    fun toApi() = AnswerType.fromDb(this).toApi()
+
 }

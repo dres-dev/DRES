@@ -34,7 +34,7 @@ class TemporalOverlapSubmissionValidator(private val targetSegment: TransientMed
             answerSet.answers().forEach { answer ->
 
                 /* Perform sanity checks. */
-                if (answer.type != DbAnswerType.TEMPORAL) {
+                if (answer.type() != AnswerType.TEMPORAL) {
                     answerSet.status(VerdictStatus.WRONG)
                     return@forEach
                 }

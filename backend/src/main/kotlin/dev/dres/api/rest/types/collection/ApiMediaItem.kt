@@ -1,5 +1,6 @@
 package dev.dres.api.rest.types.collection
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.MediaItemCollection
@@ -27,6 +28,8 @@ data class ApiMediaItem(
         }
     }
 
-    override val collection: MediaItemCollection
+
+    override val collection: MediaItemCollection //TODO do we want this here?
+        @JsonIgnore
         get() = TODO("Not yet implemented")
 }

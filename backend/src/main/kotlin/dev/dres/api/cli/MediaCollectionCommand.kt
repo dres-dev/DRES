@@ -40,7 +40,20 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     init {
-        this.subcommands(Create(), Delete(), Update(), List(), Show(), Check(), Scan(), AddItem(), DeleteItem(), Export(), Import(), ImportSegments())
+        this.subcommands(
+            Create(),
+            Delete(),
+            Update(),
+            List(),
+            Show(),
+            Check(),
+            Scan(),
+            AddItem(),
+            DeleteItem(),
+            Export(),
+            Import(),
+            ImportSegments()
+        )
     }
 
     override fun aliases(): Map<String, kotlin.collections.List<String>> {
@@ -60,7 +73,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
     /**
      *
      */
-    abstract inner class AbstractCollectionCommand(name: String, help: String) : CliktCommand(name = name, help = help, printHelpOnEmptyArgs = true) {
+    abstract inner class AbstractCollectionCommand(name: String, help: String) :
+        CliktCommand(name = name, help = help, printHelpOnEmptyArgs = true) {
 
         /** The [CollectionId] of the [DbMediaCollection] affected by this [AbstractCollectionCommand]. */
         protected val id: CollectionId? by option("-i", "--id", help = "ID of a media collection.")
@@ -74,23 +88,33 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
          *
          * @return [DbMediaCollection] or null
          */
-        protected fun getCollection(): DbMediaCollection?
-            = DbMediaCollection.query((DbMediaCollection::id eq this.id).or(DbMediaCollection::name eq this.name)).firstOrNull()
+        protected fun getCollection(): DbMediaCollection? =
+            DbMediaCollection.query((DbMediaCollection::id eq this.id).or(DbMediaCollection::name eq this.name))
+                .firstOrNull()
     }
 
     /**
      * [CliktCommand] to create a new [DbMediaCollection].
      */
-    inner class Create: CliktCommand(name = "create", help = "Creates a new media collection.", printHelpOnEmptyArgs = true) {
+    inner class Create :
+        CliktCommand(name = "create", help = "Creates a new media collection.", printHelpOnEmptyArgs = true) {
 
         /** The name of the new [DbMediaCollection]. */
         private val name: String by option("-n", "--name", help = "Name of the Collection to be created").required()
 
         /** A description of the new [DbMediaCollection]. */
-        private val description: String by option("-d", "--description", help = "Description of the Collection to be created").default("")
+        private val description: String by option(
+            "-d",
+            "--description",
+            help = "Description of the Collection to be created"
+        ).default("")
 
         /** The base path to the new [DbMediaCollection]. */
-        private val basePath: String by option("-p", "--path", help = "Base path of the Collection all contained Items will be specified relative to").required()
+        private val basePath: String by option(
+            "-p",
+            "--path",
+            help = "Base path of the Collection all contained Items will be specified relative to"
+        ).required()
 
         override fun run() {
             if (!Files.exists(Paths.get(this.basePath))) {
@@ -110,7 +134,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
     /**
      * [CliktCommand] to create a new [DbMediaCollection].
      */
-    inner class Delete: AbstractCollectionCommand("delete", help = "Deletes a media collection.") {
+    inner class Delete : AbstractCollectionCommand("delete", help = "Deletes a media collection.") {
         override fun run() {
             this@MediaCollectionCommand.store.transactional {
                 val collection = this.getCollection()
@@ -133,10 +157,18 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
         private val newName: String? by option("-n", "--name", help = "The new name of the collection")
 
         /** The new description for the [DbMediaCollection]. */
-        private val newDescription: String? by option("-d", "--description", help = "Description of the Collection to be created")
+        private val newDescription: String? by option(
+            "-d",
+            "--description",
+            help = "Description of the Collection to be created"
+        )
 
         /** The new path for the [DbMediaCollection]. */
-        private val newPath: String? by option("-p", "--path", help = "Base path of the Collection all contained Items will be specified relative to")
+        private val newPath: String? by option(
+            "-p",
+            "--path",
+            help = "Base path of the Collection all contained Items will be specified relative to"
+        )
 
         override fun run() {
             this@MediaCollectionCommand.store.transactional {
@@ -160,7 +192,11 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
      * [CliktCommand] to list all [DbMediaCollection]s.
      */
     inner class List : CliktCommand(name = "list", help = "Lists all media collections.") {
-        val plain by option("-p", "--plain", help = "Plain print: No fancy table presentation for machine readable output").flag(default = false)
+        val plain by option(
+            "-p",
+            "--plain",
+            help = "Plain print: No fancy table presentation for machine readable output"
+        ).flag(default = false)
 
         override fun run() = this@MediaCollectionCommand.store.transactional(true) {
             println("Available media collections ${DbMediaCollection.all().size()}")
@@ -194,7 +230,11 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
     inner class Show : AbstractCollectionCommand("show", help = "Lists the content of a media collection.") {
 
         /** The property of the [DbMediaItem]s to sort by. */
-        private val sort by option("-s", "--sort", help = "Chose which sorting to use").enum<SortField>(ignoreCase = true).defaultLazy { SortField.NAME }
+        private val sort by option(
+            "-s",
+            "--sort",
+            help = "Chose which sorting to use"
+        ).enum<SortField>(ignoreCase = true).defaultLazy { SortField.NAME }
 
         private val plain by option("-p", "--plain", help = "Plain formatting. No fancy tables").flag(default = false)
 
@@ -233,7 +273,14 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
                         }
                         body {
                             query.asSequence().forEach {
-                                row(it.id, it.name, it.location, it.type.description, it.durationMs ?: "n/a", it.fps ?: "n/a")
+                                row(
+                                    it.id,
+                                    it.name,
+                                    it.location,
+                                    it.type.description,
+                                    it.durationMs ?: "n/a",
+                                    it.fps ?: "n/a"
+                                )
                             }
                         }
                     }
@@ -245,7 +292,10 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
     /**
      * [CliktCommand] to validate a [DbMediaCollection]'s [DbMediaItem]s.
      */
-    inner class Check : AbstractCollectionCommand("check", help = "Checks if all the files in a media collection are present and accessible.") {
+    inner class Check : AbstractCollectionCommand(
+        "check",
+        help = "Checks if all the files in a media collection are present and accessible."
+    ) {
         override fun run() = this@MediaCollectionCommand.store.transactional(true) {
             /* Find media collection. */
             val collection = this.getCollection()
@@ -278,10 +328,19 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
     inner class Scan : AbstractCollectionCommand("scan", help = "Scans a collection directory and adds found items") {
 
         /** The file suffices that should be considered as images. */
-        private val imageTypes by option("-it", "--imageType", help = "Image file types (endings) to be considered in the scan").convert { it.lowercase() }.multiple()        /** The file suffices that should be considered as images. */
+        private val imageTypes by option(
+            "-it",
+            "--imageType",
+            help = "Image file types (endings) to be considered in the scan"
+        ).convert { it.lowercase() }.multiple()
+        /** The file suffices that should be considered as images. */
 
         /** The file suffices that should be considered as videos. */
-        private val videoTypes by option("-vt", "--videoType", help = "Video file types (endings) to be considered in the scan").convert { it.lowercase() }.multiple()
+        private val videoTypes by option(
+            "-vt",
+            "--videoType",
+            help = "Video file types (endings) to be considered in the scan"
+        ).convert { it.lowercase() }.multiple()
 
         override fun run() = this@MediaCollectionCommand.store.transactional {
             /* Sanity cehck. */
@@ -320,7 +379,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
                 Files.isRegularFile(it) && (it.extension in imageTypes || it.extension in videoTypes)
             }.forEach {
                 val relativePath = it.relativeTo(base)
-                val exists = DbMediaItem.query((DbMediaItem::collection eq collection) and (DbMediaItem::location eq relativePath.toString())).isNotEmpty
+                val exists =
+                    DbMediaItem.query((DbMediaItem::collection eq collection) and (DbMediaItem::location eq relativePath.toString())).isNotEmpty
                 if (!exists) {
                     try {
                         when (it.extension.lowercase()) {
@@ -332,6 +392,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
                                     this.location = relativePath.toString()
                                 })
                             }
+
                             in videoTypes -> {
                                 println("Found video $it; analyzing...")
                                 val result = FFmpegUtil.analyze(it).streams.first()
@@ -358,8 +419,11 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
                                 })
                             }
                         }
-                    } catch(e:Throwable) {
-                        this@MediaCollectionCommand.logger.error(this@MediaCollectionCommand.logMarker, "An error occurred with $it. Noting and skipping...")
+                    } catch (e: Throwable) {
+                        this@MediaCollectionCommand.logger.error(
+                            this@MediaCollectionCommand.logMarker,
+                            "An error occurred with $it. Noting and skipping..."
+                        )
                         println("An error occurred with $it. Noting and skipping...")
                         issues[it] = e.stackTraceToString()
                     }
@@ -388,8 +452,11 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
         private val itemName: String? by option("-in", "--itemName", help = "The exact name of the media item.")
 
         /** A RegEx matching the name of the [DbMediaItem] to delete. */
-        private val itemNameRegex: Regex? by option("-e", "--regex", help="Regex for item names").convert { it.toRegex() }
-
+        private val itemNameRegex: Regex? by option(
+            "-e",
+            "--regex",
+            help = "Regex for item names"
+        ).convert { it.toRegex() }
 
 
         override fun run() = this@MediaCollectionCommand.store.transactional {
@@ -430,10 +497,18 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
     inner class AddItem : AbstractCollectionCommand(name = "add", help = "Adds a media item to a media collection.") {
 
         /** The [ApiMediaType] of the new [DbMediaItem]. */
-        private val type: ApiMediaType by option("-t", "--type", help = "Type of the new media item.").enum<ApiMediaType>().required()
+        private val type: ApiMediaType by option(
+            "-t",
+            "--type",
+            help = "Type of the new media item."
+        ).enum<ApiMediaType>().required()
 
         /** The relative path of the new [DbMediaItem]. */
-        private val path: String by option("-p", "--path", help = "Path of the new media item. relative to the collection base path").required()
+        private val path: String by option(
+            "-p",
+            "--path",
+            help = "Path of the new media item. relative to the collection base path"
+        ).required()
 
         /** The duration of the new [DbMediaItem]. */
         private val duration: Long? by option("-d", "--duration", help = "video duration in seconds").long()
@@ -474,7 +549,11 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
     inner class Export : AbstractCollectionCommand("export", help = "Exports a media collection into a CSV file.") {
 
         /** The output path for the export.. */
-        private val output: Path by option("-o", "--output", help = "Path of the file the media collection should to be exported to.").convert { Paths.get(it)}.required()
+        private val output: Path by option(
+            "-o",
+            "--output",
+            help = "Path of the file the media collection should to be exported to."
+        ).convert { Paths.get(it) }.required()
 
         /** The header of an exported CSV file. */
         private val header = listOf("itemType", "name", "location", "duration", "fps")
@@ -491,7 +570,15 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
                 csvWriter().open(os) {
                     writeRow(this@Export.header)
                     collection.items.asSequence().forEach {
-                        writeRow(listOf(it.type.description, it.name, it.location, it.durationMs?.toString(), it.fps?.toString()))
+                        writeRow(
+                            listOf(
+                                it.type.description,
+                                it.name,
+                                it.location,
+                                it.durationMs?.toString(),
+                                it.fps?.toString()
+                            )
+                        )
                     }
                 }
             }
@@ -504,7 +591,10 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
     inner class Import : AbstractCollectionCommand("import", help = "Imports a media collection from a CSV file.") {
 
         /** [Path] to the input file. */
-        private val input: Path by option("--input", help = "Path of the file the media collection should be imported from.")
+        private val input: Path by option(
+            "--input",
+            help = "Path of the file the media collection should be imported from."
+        )
             .convert { Paths.get(it) }.required()
 
         override fun run() {
@@ -530,7 +620,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
                     for (row in rows) {
                         inserted += 1
                         collection.items.add(DbMediaItem.new {
-                            this.type = ApiMediaType.valueOf(row.getValue("type").uppercase()).toDb()
+                            this.type = ApiMediaType.valueOf(row.getValue("itemType").uppercase()).toDb()
                             this.name = row.getValue("name")
                             this.location = row.getValue("location")
                             this.durationMs = row["duration"]?.toLongOrNull()
@@ -545,15 +635,24 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
     }
 
 
+    data class ListSegment(val video: String, val name: String, val start: Int, val end: Int)
+
     /**
      * [CliktCommand] to import a [DbMediaSegment]s.
      *
      * Uses the VBS format.
      */
-    inner class ImportSegments : AbstractCollectionCommand("importSegments", "Imports the Segment information for the Items in a Collection from a CSV file") {
+    inner class ImportSegments : AbstractCollectionCommand(
+        "importSegments",
+        "Imports the Segment information for the Items in a Collection from a CSV file"
+    ) {
+
 
         /** [Path] to the input file. */
-        private val input: Path by option("--input", help = "Path of the file the media segments should be imported from.")
+        private val input: Path by option(
+            "--input",
+            help = "Path of the file the media segments should be imported from."
+        )
             .convert { Paths.get(it) }.required()
 
         override fun run() {
@@ -578,23 +677,29 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
                     print("Reading input file...")
                     val rows: kotlin.collections.List<Map<String, String>> = csvReader().readAllWithHeader(ips)
                     println("Done! Reading ${rows.size} rows")
-                    for (row in rows) {
-                        val videoName = row["name"] ?: continue
-                        val start = row["start"]?.toIntOrNull() ?: continue
-                        val end = row["end"]?.toIntOrNull() ?: continue
-                        val videoItem = collection.items.filter { it.name eq videoName }.firstOrNull()
-                        if (videoItem != null) {
-                            inserted += 1
-                            videoItem.segments.add(
-                                DbMediaSegment.new {
-                                    this.name = videoName
-                                    this.start = start
-                                    this.end = end
+
+                    rows.mapNotNull {
+                        val segmentName = it["name"] ?: return@mapNotNull null
+                        val videoName = it["video"] ?: return@mapNotNull null
+                        val start = it["start"]?.toIntOrNull() ?: return@mapNotNull null
+                        val end = it["end"]?.toIntOrNull() ?: return@mapNotNull null
+                        ListSegment(videoName, segmentName, start, end)
+                    }
+                        .groupBy(ListSegment::video)
+                        .forEach { (videoName, segments) ->
+                            val videoItem = collection.items.filter { it.name eq videoName }.firstOrNull()
+                            videoItem?.segments?.addAll(
+                                segments.map {
+                                    inserted += 1
+                                    DbMediaSegment.new {
+                                        this.name = it.name
+                                        this.start = it.start
+                                        this.end = it.end
+                                    }
                                 }
                             )
                         }
 
-                    }
                     println("Done! Read $inserted valid segments.")
                 }
             }

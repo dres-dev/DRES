@@ -7,6 +7,7 @@ import dev.dres.api.rest.types.judgement.ApiVote
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.validation.interfaces.VoteValidator
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -50,7 +51,7 @@ class PostVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(sto
             val validator = evaluationManager.judgementValidators.find { it is VoteValidator && it.isActive } // Get first active vote validator
                 ?: throw ErrorStatusException(404, "There is currently no voting going on in evaluation ${evaluationManager.id}.", ctx)
             validator as VoteValidator
-            validator.vote(vote.verdict.toDb())
+            validator.vote(VerdictStatus.fromApi(vote.verdict))
         }
         return SuccessStatus("vote received")
     }

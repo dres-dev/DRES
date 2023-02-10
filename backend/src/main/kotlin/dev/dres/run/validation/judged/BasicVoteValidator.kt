@@ -3,6 +3,7 @@ package dev.dres.run.validation.judged
 import dev.dres.data.model.submissions.AnswerSet
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.validation.interfaces.VoteValidator
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -27,7 +28,7 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
     }
 
     private val submissionQueue = ConcurrentLinkedQueue<AnswerSet>()
-    private val voteCountMap = ConcurrentHashMap<DbVerdictStatus, Int>()
+    private val voteCountMap = ConcurrentHashMap<VerdictStatus, Int>()
     private val updateLock = ReentrantReadWriteLock()
 
     override val isActive: Boolean
@@ -36,8 +37,8 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
     override val voteCount: Map<String, Int>
         get() = voteCountMap.mapKeys { it.toString() }
 
-    override fun vote(status: DbVerdictStatus) = updateLock.write {
-        if (status == DbVerdictStatus.INDETERMINATE || status == DbVerdictStatus.UNDECIDABLE){ //should not happen anyway but will be ignored in case it does
+    override fun vote(status: VerdictStatus) = updateLock.write {
+        if (status == VerdictStatus.INDETERMINATE || status == VerdictStatus.UNDECIDABLE){ //should not happen anyway but will be ignored in case it does
             return@write
         }
 
@@ -63,13 +64,13 @@ class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList()
     override fun nextSubmissionToVoteOn() = submissionQueue.firstOrNull() //TODO maybe add timeout mechanism?
 
     //siphon of undecidable submission from logic of super class
-    override fun judge(token: String, status: DbVerdictStatus) {
+    override fun judge(token: String, status: VerdictStatus) {
         val verdict = super.processSubmission(token, status)
         when (status){
-            DbVerdictStatus.CORRECT,
-            DbVerdictStatus.WRONG -> verdict.status(status)
-            DbVerdictStatus.INDETERMINATE -> {}
-            DbVerdictStatus.UNDECIDABLE -> this.submissionQueue.add(verdict)
+            VerdictStatus.CORRECT,
+            VerdictStatus.WRONG -> verdict.status(status)
+            VerdictStatus.INDETERMINATE -> {}
+            VerdictStatus.UNDECIDABLE -> this.submissionQueue.add(verdict)
         }
     }
 }

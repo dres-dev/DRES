@@ -54,8 +54,8 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
     private val cache: MutableMap<ItemRange, VerdictStatus> = ConcurrentHashMap()
 
     init {
-        knownCorrectRanges.forEach { cache[it] = DbVerdictStatus.CORRECT }
-        knownWrongRanges.forEach { cache[it] = DbVerdictStatus.WRONG }
+        knownCorrectRanges.forEach { cache[it] = VerdictStatus.CORRECT }
+        knownWrongRanges.forEach { cache[it] = VerdictStatus.WRONG }
     }
 
     private fun checkTimeOuts() = updateLock.write {
@@ -95,7 +95,7 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
     override fun validate(submission: Submission) = this.updateLock.read {
         for (verdict in submission.answerSets()) {
             //only validate submissions which are not already validated
-            if (verdict.status() != DbVerdictStatus.INDETERMINATE){
+            if (verdict.status() != VerdictStatus.INDETERMINATE){
                 continue
             }
 
@@ -107,7 +107,7 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
             } else if (itemRange !in queuedItemRanges.keys) {
                 updateLock.write {
                     this.queue.offer(verdict)
-                    verdict.status(DbVerdictStatus.INDETERMINATE)
+                    verdict.status(VerdictStatus.INDETERMINATE)
                     this.queuedItemRanges[itemRange] = mutableListOf(verdict)
                 }
             } else {
@@ -145,7 +145,7 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
      * @param token The token used to identify the [DbSubmission].
      * @param verdict The verdict of the judge.
      */
-    override fun judge(token: String, verdict: DbVerdictStatus) {
+    override fun judge(token: String, verdict: VerdictStatus) {
         processSubmission(token, verdict).status(verdict)
     }
 

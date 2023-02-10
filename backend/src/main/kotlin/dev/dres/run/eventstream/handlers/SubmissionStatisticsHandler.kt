@@ -4,6 +4,7 @@ import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.eventstream.*
 import kotlinx.dnq.query.first
 import kotlinx.dnq.query.size
@@ -68,14 +69,14 @@ class SubmissionStatisticsHandler : StreamEventHandler {
         submissionsByTeam.mapValues {
             it.value.firstOrNull { s ->
                 require(s.answerSets().count() == 1) { "SubmissionStatisticsHandler can only process single-verdict submissions." }
-                s.answerSets().first().status() == DbVerdictStatus.CORRECT
+                s.answerSets().first().status() == VerdictStatus.CORRECT
             }?.timestamp?.minus(taskStart) }.filter { it.value != null }.forEach{
                 (teamId, time) -> writer.println("$task,${teamId},\"timeUntilCorrectSubmission\",$time")
             }
         submissionsByTeam.mapValues {
             it.value.indexOfFirst { s ->
                 require(s.answerSets().count() == 1) { "SubmissionStatisticsHandler can only process single-verdict submissions." }
-                s.answerSets().first().status() == DbVerdictStatus.CORRECT
+                s.answerSets().first().status() == VerdictStatus.CORRECT
             }
         }.forEach{
             (teamId, count) -> writer.println("$task,${teamId},\"incorrectBeforeCorrectSubmissions\",$count")

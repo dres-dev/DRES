@@ -5,6 +5,7 @@ import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.competition.ApiEvaluationStartMessage
 import dev.dres.api.rest.types.evaluation.ApiSubmission
+import dev.dres.api.rest.types.evaluation.ApiVerdictStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessfulSubmissionsStatus
 import dev.dres.api.rest.types.users.ApiRole
@@ -12,6 +13,7 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.NonInteractiveRunManager
@@ -72,14 +74,14 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
             logger.info("Submission ${apiSubmission.id} received status $result.")
 
             return@transactional when (result) {
-                DbVerdictStatus.CORRECT -> SuccessfulSubmissionsStatus(DbVerdictStatus.CORRECT.toApi(), "Submission correct!")
-                DbVerdictStatus.WRONG -> SuccessfulSubmissionsStatus(DbVerdictStatus.WRONG.toApi(), "Submission incorrect! Try again")
-                DbVerdictStatus.INDETERMINATE -> {
+                VerdictStatus.CORRECT -> SuccessfulSubmissionsStatus(ApiVerdictStatus.CORRECT, "Submission correct!")
+                VerdictStatus.WRONG -> SuccessfulSubmissionsStatus(ApiVerdictStatus.WRONG, "Submission incorrect! Try again")
+                VerdictStatus.INDETERMINATE -> {
                     ctx.status(202) /* HTTP Accepted. */
-                    SuccessfulSubmissionsStatus(DbVerdictStatus.INDETERMINATE.toApi(), "Submission received. Waiting for verdict!")
+                    SuccessfulSubmissionsStatus(ApiVerdictStatus.INDETERMINATE, "Submission received. Waiting for verdict!")
                 }
 
-                DbVerdictStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(DbVerdictStatus.UNDECIDABLE.toApi(),"Submission undecidable. Try again!")
+                VerdictStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(ApiVerdictStatus.UNDECIDABLE,"Submission undecidable. Try again!")
                 else -> throw ErrorStatusException(500, "Unsupported submission status. This is very unusual!", ctx)
             }
 

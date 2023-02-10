@@ -134,7 +134,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
             this.evaluation.tasks.forEach { task ->
                 task.getSubmissions().forEach { sub ->
                     this.scoresUpdatable.enqueue(Pair(task, sub))
-                    if (sub.answerSets().filter { v -> v.status() == DbVerdictStatus.INDETERMINATE }.any()) {
+                    if (sub.answerSets().filter { v -> v.status() == VerdictStatus.INDETERMINATE }.any()) {
                         task.validator.validate(sub)
                     }
                 }

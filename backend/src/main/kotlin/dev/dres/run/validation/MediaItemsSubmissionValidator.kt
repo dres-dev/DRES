@@ -4,6 +4,7 @@ import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import kotlinx.dnq.query.asSequence
 
@@ -27,9 +28,9 @@ class MediaItemsSubmissionValidator(private val items : Set<DbMediaItem>) : Subm
         submission.answerSets().forEach { answerSet ->
 
             if (answerSet.answers().any {  it.item == null || it.item !in this.items} ) {
-                answerSet.status(DbVerdictStatus.WRONG)
+                answerSet.status(VerdictStatus.WRONG)
             } else {
-                answerSet.status(DbVerdictStatus.CORRECT)
+                answerSet.status(VerdictStatus.CORRECT)
             }
         }
     }

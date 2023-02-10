@@ -19,7 +19,7 @@ class CorrectPerTeamItemFilter(private val limit: Int = 1) : SubmissionFilter {
         val submittedItems = submission.answerSets().flatMap { it.answers() }.mapNotNull { it.item }.toSet()
         return submission.answerSets().all { answerSet ->
             answerSet.task.answerSets().filter { taskAnswerSets ->
-                (taskAnswerSets.status() eq VerdictStatus.Status.CORRECT) && taskAnswerSets.submission.team == submission.team && taskAnswerSets.answers().any { it.item in submittedItems }
+                (taskAnswerSets.status() == VerdictStatus.CORRECT) && taskAnswerSets.submission.team == submission.team && taskAnswerSets.answers().any { it.item in submittedItems }
             }.count() < this.limit
         }
     }

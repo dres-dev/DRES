@@ -29,12 +29,10 @@ class DbAnswerSet(entity: Entity) : PersistentEntity(entity), AnswerSet {
     val answers by xdChildren1_N<DbAnswerSet, DbAnswer>(DbAnswer::answerSet)
 
     override fun answers(): Sequence<Answer> = answers.asSequence()
-    override fun status(): VerdictStatus {
-        TODO("Not yet implemented")
-    }
+    override fun status(): VerdictStatus = VerdictStatus.fromDb(status)
 
     override fun status(status: VerdictStatus) {
-        TODO("Not yet implemented")
+        this.status = status.toDb()
     }
 
     /**

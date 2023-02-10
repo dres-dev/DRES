@@ -52,21 +52,21 @@ class TextValidator(targets: List<String>) : SubmissionValidator {
 
                 /* Perform sanity checks. */
                 if (answer.type != DbAnswerType.TEXT) {
-                    answerSet.status(DbVerdictStatus.WRONG)
+                    answerSet.status(VerdictStatus.WRONG)
                     return@forEach
                 }
 
                 /* Perform text validation. */
                 val text = answer.text
                 if (text == null) {
-                    answerSet.status(DbVerdictStatus.WRONG)
+                    answerSet.status(VerdictStatus.WRONG)
                     return@forEach
                 }
 
                 if (regex.any { it matches text })  {
-                    answerSet.status(DbVerdictStatus.CORRECT)
+                    answerSet.status(VerdictStatus.CORRECT)
                 } else {
-                    answerSet.status(DbVerdictStatus.WRONG)
+                    answerSet.status(VerdictStatus.WRONG)
                 }
 
             }

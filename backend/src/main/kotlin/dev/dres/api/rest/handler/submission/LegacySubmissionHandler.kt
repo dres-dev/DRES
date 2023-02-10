@@ -4,6 +4,7 @@ import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
+import dev.dres.api.rest.types.evaluation.ApiVerdictStatus
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessfulSubmissionsStatus
@@ -116,13 +117,13 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
         logger.info("Submission ${s.id} received status $r.")
 
         return when (r) {
-            DbVerdictStatus.CORRECT -> SuccessfulSubmissionsStatus(DbVerdictStatus.CORRECT.toApi(), "Submission correct!")
-            DbVerdictStatus.WRONG -> SuccessfulSubmissionsStatus(DbVerdictStatus.WRONG.toApi(), "Submission incorrect! Try again")
-            DbVerdictStatus.INDETERMINATE -> {
+            VerdictStatus.CORRECT -> SuccessfulSubmissionsStatus(ApiVerdictStatus.CORRECT, "Submission correct!")
+            VerdictStatus.WRONG -> SuccessfulSubmissionsStatus(ApiVerdictStatus.WRONG, "Submission incorrect! Try again")
+            VerdictStatus.INDETERMINATE -> {
                 ctx.status(202) /* HTTP Accepted. */
-                SuccessfulSubmissionsStatus(DbVerdictStatus.INDETERMINATE.toApi(), "Submission received. Waiting for verdict!")
+                SuccessfulSubmissionsStatus(ApiVerdictStatus.INDETERMINATE, "Submission received. Waiting for verdict!")
             }
-            DbVerdictStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(DbVerdictStatus.UNDECIDABLE.toApi(),"Submission undecidable. Try again!")
+            VerdictStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(ApiVerdictStatus.UNDECIDABLE,"Submission undecidable. Try again!")
             else -> throw ErrorStatusException(500, "Unsupported submission status. This is very unusual!", ctx)
         }
     }

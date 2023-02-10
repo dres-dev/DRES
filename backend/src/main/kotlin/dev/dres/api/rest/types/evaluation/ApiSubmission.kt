@@ -31,6 +31,11 @@ data class ApiSubmission(
     override val submissionId: SubmissionId = UUID.randomUUID().toString() //TODO is there a use case where this needs to be settable via an API request?
 ) : Submission {
 
+    init {
+        answers.forEach {
+            it.submission = this
+        }
+    }
 
     override fun answerSets(): Sequence<AnswerSet> = this.answers.asSequence()
     override fun toDb(): DbSubmission {

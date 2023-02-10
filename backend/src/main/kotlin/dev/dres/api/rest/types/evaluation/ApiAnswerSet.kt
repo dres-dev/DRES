@@ -18,12 +18,13 @@ data class ApiAnswerSet(
     var status: ApiVerdictStatus,
     val answers: List<ApiAnswer>
 ) : AnswerSet {
-    override val task: Task
-        @JsonIgnore
-        get() = TODO("Not yet implemented")
-    override val submission: Submission
-        @JsonIgnore
-        get() = TODO("Not yet implemented")
+
+    @JsonIgnore
+    override lateinit var task: Task
+
+    @JsonIgnore
+    override lateinit var submission: ApiSubmission
+    internal set
 
     override fun answers(): Sequence<Answer> = answers.asSequence()
     override fun status(): VerdictStatus = VerdictStatus.fromApi(this.status)

@@ -2,6 +2,7 @@ package dev.dres.run.score.scorer
 
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.TaskContext
 
@@ -10,7 +11,7 @@ typealias ScoreEntry = Triple<TeamId, String?, Double>
 
 /**
  * A [TaskScorer] that re-computes the current scores of all teams for a given [TaskRun] based on the
- * entire [DbSubmission] history. As opposed to the [IncrementalSubmissionTaskScorer], incremental updates are not possible.
+ * entire [Submission] history.
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
@@ -18,10 +19,10 @@ typealias ScoreEntry = Triple<TeamId, String?, Double>
  */
 interface TaskScorer {
     /**
-     * Re-computes this [RecalculatingSubmissionTaskScorer]'s score based on the given [DbSubmission] history.
+     * Re-computes this [TaskScorer]'s score based on the given [Submission] history.
      *
-     * @param submissions The [DbSubmission]s used to update this [RecalculatingSubmissionTaskScorer] with.
+     * @param submissions The [Submission]s used to update this [TaskScorer] with.
      * @param context The [TaskContext] in which scoring takes place.
      */
-    fun computeScores(submissions: Sequence<DbSubmission>, context: TaskContext): Map<TeamId, Double>
+    fun computeScores(submissions: Sequence<Submission>, context: TaskContext): Map<TeamId, Double>
 }

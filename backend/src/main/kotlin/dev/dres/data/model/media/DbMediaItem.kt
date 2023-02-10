@@ -28,7 +28,7 @@ class DbMediaItem(entity: Entity) : PersistentEntity(entity), MediaItem {
     override var name by xdRequiredStringProp(unique = false, trimmed = false)
 
     /** The [DbMediaType] of this [DbMediaItem]. */
-    override var type by xdLink1(DbMediaType)
+    var type by xdLink1(DbMediaType)
 
     /** The location of this [DbMediaItem] on disk. */
     var location by xdRequiredStringProp(unique = false, trimmed = false)
@@ -41,6 +41,7 @@ class DbMediaItem(entity: Entity) : PersistentEntity(entity), MediaItem {
 
     /** The [DbMediaCollection] this [DbMediaItem] belongs to. */
     override var collection: DbMediaCollection by xdParent<DbMediaItem, DbMediaCollection>(DbMediaCollection::items)
+    override fun type(): MediaItemType = MediaItemType.fromDb(this.type)
 
     /** List of [DbMediaSegment] that this [DbMediaItem] contains.  */
     val segments by xdChildren0_N<DbMediaItem, DbMediaSegment>(DbMediaSegment::item)

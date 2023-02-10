@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.MediaItemCollection
+import dev.dres.data.model.media.MediaItemType
 
 /**
  * The RESTful API equivalent for [DbMediaItem].
@@ -15,7 +16,7 @@ import dev.dres.data.model.media.MediaItemCollection
 data class ApiMediaItem(
     override val id: String?,
     override val name: String,
-    override val type: ApiMediaType,
+    val type: ApiMediaType,
     val collectionId: String,
     val location: String,
     val durationMs: Long? = null,
@@ -28,8 +29,9 @@ data class ApiMediaItem(
         }
     }
 
-
     override val collection: MediaItemCollection //TODO do we want this here?
         @JsonIgnore
         get() = TODO("Not yet implemented")
+
+    override fun type(): MediaItemType = MediaItemType.fromApi(this.type)
 }

@@ -10,7 +10,7 @@ import dev.dres.data.model.media.MediaItemType
  * @author Ralph Gasser
  * @version 1.0.0
  */
-enum class ApiMediaType : MediaItemType {
+enum class ApiMediaType {
     IMAGE, VIDEO, TEXT;
 
     /**
@@ -24,5 +24,4 @@ enum class ApiMediaType : MediaItemType {
         TEXT -> DbMediaType.TEXT
     }
 
-    override fun toApi(): ApiMediaType = this
 }

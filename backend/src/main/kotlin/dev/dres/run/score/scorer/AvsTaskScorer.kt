@@ -1,15 +1,10 @@
 package dev.dres.run.score.scorer
 
 import dev.dres.data.model.template.team.TeamId
-import dev.dres.data.model.media.DbMediaType
+import dev.dres.data.model.media.MediaItemType
 import dev.dres.data.model.submissions.*
 import dev.dres.run.score.TaskContext
 import dev.dres.utilities.TimeUtil
-import kotlinx.dnq.query.asSequence
-import kotlinx.dnq.query.filter
-import kotlinx.dnq.query.first
-import kotlinx.dnq.query.firstOrNull
-
 
 /**
  * A [TeamTaskScorer] used for AVS tasks.
@@ -44,13 +39,13 @@ object AvsTaskScorer : TaskScorer {
         .filter { it.answers().firstOrNull()?.item != null }
         .groupBy { it.answers().first().item }
         .map {
-            when (it.key!!.type) {
-                DbMediaType.IMAGE -> 1
-                DbMediaType.VIDEO -> {
+            when (it.key!!.type()) {
+                MediaItemType.IMAGE -> 1
+                MediaItemType.VIDEO -> {
                     val ranges = it.value.asSequence().map { s -> s.answers().first().temporalRange!! }.toList()
                     TimeUtil.merge(ranges, overlap = 1).size
                 }
-                else -> throw IllegalStateException("Unsupported media type ${it.key!!.type} for AVS task scorer.")
+                else -> throw IllegalStateException("Unsupported media type ${it.key!!.type()} for AVS task scorer.")
             }
         }.sum()
 

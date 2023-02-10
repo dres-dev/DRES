@@ -12,7 +12,7 @@ import kotlinx.dnq.xdRequiredStringProp
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class DbMediaType(entity: Entity) : XdEnumEntity(entity), MediaItemType {
+class DbMediaType(entity: Entity) : XdEnumEntity(entity) {
     companion object : XdEnumEntityType<DbMediaType>() {
         val IMAGE by enumField { description = "IMAGE"; suffix = "mp4"; }
         val VIDEO by enumField { description = "VIDEO"; suffix = "jpg"; }
@@ -30,7 +30,7 @@ class DbMediaType(entity: Entity) : XdEnumEntity(entity), MediaItemType {
      *
      * This is a convenience method and requires an active transaction context.
      */
-    override fun toApi(): ApiMediaType
+    fun toApi(): ApiMediaType
         = ApiMediaType.values().find { it.toDb() == this } ?: throw IllegalStateException("Media type ${this.description} is not supported.")
 
     override fun toString(): String = this.description

@@ -57,14 +57,14 @@ class DequeueJudgementHandler(store: TransientEntityStore) : AbstractJudgementHa
                     }
                     AnswerType.ITEM -> {
                         val item = next.second.answers().firstOrNull()?.item ?: continue
-                        return@transactional ApiJudgementRequest(next.first, item.type.toApi(), validator.id, item.collection.id, item.id!!, taskDescription, null, null)
+                        return@transactional ApiJudgementRequest(next.first, item.type().toApi(), validator.id, item.collection.id, item.id!!, taskDescription, null, null)
                     }
                     AnswerType.TEMPORAL -> {
                         val answer = next.second.answers().firstOrNull() ?: continue
                         val item = answer.item ?: continue
                         val start = answer.start ?: continue
                         val end = answer.end ?: continue
-                        return@transactional ApiJudgementRequest(next.first, item.type.toApi(), validator.id, item.collection.id, item.id!!, taskDescription, start, end)
+                        return@transactional ApiJudgementRequest(next.first, item.type().toApi(), validator.id, item.collection.id, item.id!!, taskDescription, start, end)
                     }
                     else -> continue
                 }

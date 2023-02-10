@@ -136,7 +136,7 @@ class KisTaskScorerTest {
             ApiSubmission(teams[0], teams[0], "user1", "user1", correctAnswer, taskStartTime + (defaultTaskDuration * 1000 / 2)),
             ApiSubmission(teams[1], teams[1], "user2", "user2", correctAnswer, taskStartTime + (defaultTaskDuration * 1000 / 2)),
             ApiSubmission(teams[2], teams[2], "user3", "user3", correctAnswer, taskStartTime + (defaultTaskDuration * 1000 / 2)),
-            
+
         )
         val scores = this.scorer.computeScores(submissions, TaskContext("task6", teams, taskStartTime, defaultTaskDuration))
 

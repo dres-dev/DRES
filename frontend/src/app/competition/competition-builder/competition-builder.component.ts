@@ -410,7 +410,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
     if (team.logoData != null) {
       return team.logoData;
     } else {
-      return this.config.resolveApiUrl(`/template/logo/${team.teamId}`);
+      return this.config.resolveApiUrl(`/template/logo/${team.id}`);
     }
   }
 

@@ -46,7 +46,8 @@ object Cli {
             MediaCollectionCommand(store),
             EvaluationCommand(store),
             OpenApiCommand(),
-            ExecutionCommand()
+            ExecutionCommand(),
+            AuditCommand(store)
         )
 
         val terminal = try {

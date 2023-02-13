@@ -23,11 +23,10 @@ import { AudioPlayerUtilities } from '../utilities/audio-player.utilities';
 import { fromArray } from 'rxjs/internal/observable/fromArray';
 import {
   ApiContentElement, ApiContentType,
-  ApiEvaluationState, ApiHint,
+  ApiEvaluationState,
   ApiHintContent,
-  ApiTarget,
   ApiTargetContent,
-  ApiTaskStatus,
+  ApiTaskStatus, ApiTaskTemplateInfo,
   EvaluationService
 } from '../../../openapi';
 
@@ -51,9 +50,9 @@ enum ViewerState {
 export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   @Input() runId: Observable<string>;
   @Input() state: Observable<ApiEvaluationState>;
-  @Input() taskStarted: Observable<ApiEvaluationState>;
-  @Input() taskChanged: Observable<ApiEvaluationState>;
-  @Input() taskEnded: Observable<ApiEvaluationState>;
+  @Input() taskStarted: Observable<ApiTaskTemplateInfo>;
+  @Input() taskChanged: Observable<ApiTaskTemplateInfo>;
+  @Input() taskEnded: Observable<ApiTaskTemplateInfo>;
   @Input() webSocketSubject: WebSocketSubject<IWsMessage>;
 
   /** Time that is still left (only when a task is running). */
@@ -90,7 +89,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     const currentTaskHint = this.taskChanged.pipe(
       withLatestFrom(this.runId),
       switchMap(([task, runId]) =>
-        this.runService.getApiV2EvaluationByEvaluationIdHintByTaskId(runId, task.id).pipe(
+        this.runService.getApiV2EvaluationByEvaluationIdHintByTaskId(runId, task.templateId).pipe(
           catchError((e) => {
             console.error('[TaskViewerComponent] Could not load current query hint due to an error.', e);
             return of(null);

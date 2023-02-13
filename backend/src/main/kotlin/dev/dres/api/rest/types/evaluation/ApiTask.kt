@@ -1,7 +1,7 @@
 package dev.dres.api.rest.types.evaluation
 
 import dev.dres.data.model.run.DbTask
-import dev.dres.data.model.run.interfaces.EvaluationId
+import dev.dres.data.model.run.TaskId
 import dev.dres.data.model.template.TemplateId
 
 /**
@@ -12,7 +12,7 @@ import dev.dres.data.model.template.TemplateId
  * @version 2.0.0
  */
 data class ApiTask(
-    val taskId: EvaluationId,
+    val taskId: TaskId,
     val templateId: TemplateId,
     val started: Long?,
     val ended: Long?,

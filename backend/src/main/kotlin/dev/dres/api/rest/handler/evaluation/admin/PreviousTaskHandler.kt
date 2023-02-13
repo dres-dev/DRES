@@ -38,7 +38,7 @@ class PreviousTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminH
     override fun doPost(ctx: Context): SuccessStatus {
         val evaluationId = ctx.evaluationId()
         val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
-        return this.store.transactional {
+        return this.store.transactional(true) {
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             try {
                 if (evaluationManager.previous(rac)) {

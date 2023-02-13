@@ -52,7 +52,7 @@ class NextTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandl
         synchronousAdminCheck(evaluationManager, ctx)
 
 
-        return this.store.transactional {
+        return this.store.transactional(true) {
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             if (evaluationManager is InteractiveAsynchronousRunManager
                 && !AccessManager.rolesOfSession(ctx.sessionToken()).contains(ApiRole.ADMIN)

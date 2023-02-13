@@ -41,7 +41,7 @@ class SwitchTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHan
         val evaluationId = ctx.evaluationId()
         val idx = ctx.pathParamMap()["idx"]?.toIntOrNull() ?: throw ErrorStatusException(404, "Parameter 'idx' is missing!'", ctx)
         val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
-        return this.store.transactional {
+        return this.store.transactional(true) {
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             try {
                 evaluationManager.goTo(rac, idx)

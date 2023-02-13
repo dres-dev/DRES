@@ -2651,78 +2651,6 @@
         "security" : [ ]
       }
     },
-    "/api/v2/submit/{evaluationId}" : {
-      "post" : {
-        "tags" : [ "Batch Submission" ],
-        "summary" : "Endpoint to accept batch submissions in JSON format",
-        "operationId" : "postApiV2SubmitByEvaluationId",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/RunResult"
-              }
-            }
-          },
-          "required" : false
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
     "/api/v2/template" : {
       "post" : {
         "tags" : [ "Template" ],
@@ -2821,10 +2749,10 @@
       }
     },
     "/api/v2/template/{templateId}" : {
-      "delete" : {
+      "get" : {
         "tags" : [ "Template" ],
-        "summary" : "Deletes the evaluation template with the given template ID.",
-        "operationId" : "deleteApiV2TemplateByTemplateId",
+        "summary" : "Loads the detailed definition of a specific evaluation template.",
+        "operationId" : "getApiV2TemplateByTemplateId",
         "parameters" : [ {
           "name" : "templateId",
           "in" : "path",
@@ -2842,7 +2770,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
+                  "$ref" : "#/components/schemas/ApiEvaluationTemplate"
                 }
               }
             }
@@ -2881,10 +2809,10 @@
         "deprecated" : false,
         "security" : [ ]
       },
-      "get" : {
+      "delete" : {
         "tags" : [ "Template" ],
-        "summary" : "Loads the detailed definition of a specific evaluation template.",
-        "operationId" : "getApiV2TemplateByTemplateId",
+        "summary" : "Deletes the evaluation template with the given template ID.",
+        "operationId" : "deleteApiV2TemplateByTemplateId",
         "parameters" : [ {
           "name" : "templateId",
           "in" : "path",
@@ -2902,7 +2830,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiEvaluationTemplate"
+                  "$ref" : "#/components/schemas/SuccessStatus"
                 }
               }
             }
@@ -3143,6 +3071,36 @@
       }
     },
     "/api/v2/user" : {
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Get information about the current user.",
+        "operationId" : "getApiV2User",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiUser"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
       "post" : {
         "tags" : [ "User" ],
         "summary" : "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
@@ -3175,36 +3133,6 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      },
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Get information about the current user.",
-        "operationId" : "getApiV2User",
-        "parameters" : [ ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiUser"
                 }
               }
             }
@@ -3317,6 +3245,56 @@
         "deprecated" : false,
         "security" : [ ]
       },
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Gets details of the user with the given id.",
+        "operationId" : "getApiV2UserByUserId",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "description" : "User's UID",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiUser"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "If the user could not be found.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
       "patch" : {
         "tags" : [ "User" ],
         "summary" : "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone.",
@@ -3365,56 +3343,6 @@
           },
           "404" : {
             "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      },
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Gets details of the user with the given id.",
-        "operationId" : "getApiV2UserByUserId",
-        "parameters" : [ {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "User's UID",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiUser"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "If the user could not be found.",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -3564,9 +3492,12 @@
           "fps" : {
             "type" : "number",
             "format" : "float"
+          },
+          "collection" : {
+            "$ref" : "#/components/schemas/MediaItemCollection"
           }
         },
-        "required" : [ "name", "type", "collectionId", "location" ]
+        "required" : [ "name", "type", "collectionId", "location", "collection" ]
       },
       "ApiMediaType" : {
         "type" : "string",
@@ -3980,7 +3911,7 @@
         "additionalProperties" : false,
         "properties" : {
           "type" : {
-            "$ref" : "#/components/schemas/AnswerType"
+            "$ref" : "#/components/schemas/ApiAnswerType"
           },
           "item" : {
             "$ref" : "#/components/schemas/ApiMediaItem"
@@ -4014,9 +3945,19 @@
             "items" : {
               "$ref" : "#/components/schemas/ApiAnswer"
             }
+          },
+          "task" : {
+            "$ref" : "#/components/schemas/Task"
+          },
+          "submission" : {
+            "$ref" : "#/components/schemas/ApiSubmission"
           }
         },
-        "required" : [ "status", "answers" ]
+        "required" : [ "status", "answers", "task", "submission" ]
+      },
+      "ApiAnswerType" : {
+        "type" : "string",
+        "enum" : [ "ITEM", "TEMPORAL", "TEXT" ]
       },
       "ApiEvaluationInfo" : {
         "type" : "object",
@@ -4059,16 +4000,16 @@
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
-          "id" : {
+          "evaluationId" : {
             "type" : "string"
           },
-          "runStatus" : {
-            "$ref" : "#/components/schemas/RunManagerStatus"
+          "evaluationStatus" : {
+            "$ref" : "#/components/schemas/ApiEvaluationStatus"
           },
-          "taskRunStatus" : {
+          "taskStatus" : {
             "$ref" : "#/components/schemas/ApiTaskStatus"
           },
-          "currentTask" : {
+          "currentTemplate" : {
             "$ref" : "#/components/schemas/ApiTaskTemplateInfo"
           },
           "timeLeft" : {
@@ -4080,7 +4021,11 @@
             "format" : "int64"
           }
         },
-        "required" : [ "id", "runStatus", "taskRunStatus", "timeLeft", "timeElapsed" ]
+        "required" : [ "evaluationId", "evaluationStatus", "taskStatus", "timeLeft", "timeElapsed" ]
+      },
+      "ApiEvaluationStatus" : {
+        "type" : "string",
+        "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
       },
       "ApiEvaluationType" : {
         "type" : "string",
@@ -4090,33 +4035,33 @@
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
-          "id" : {
+          "submissionId" : {
             "type" : "string"
           },
           "teamId" : {
             "type" : "string"
           },
-          "teamName" : {
+          "memberId" : {
             "type" : "string"
           },
-          "memberId" : {
+          "teamName" : {
             "type" : "string"
           },
           "memberName" : {
             "type" : "string"
-          },
-          "timestamp" : {
-            "type" : "integer",
-            "format" : "int64"
           },
           "answers" : {
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/ApiAnswerSet"
             }
+          },
+          "timestamp" : {
+            "type" : "integer",
+            "format" : "int64"
           }
         },
-        "required" : [ "id", "teamId", "teamName", "memberId", "memberName", "timestamp", "answers" ]
+        "required" : [ "submissionId", "teamId", "memberId", "teamName", "memberName", "answers", "timestamp" ]
       },
       "ApiSubmissionInfo" : {
         "type" : "object",
@@ -4456,79 +4401,6 @@
         },
         "required" : [ "status", "submission", "description" ]
       },
-      "ResultElement" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "item" : {
-            "type" : "string"
-          },
-          "text" : {
-            "type" : "string"
-          },
-          "startTimeCode" : {
-            "type" : "string"
-          },
-          "endTimeCode" : {
-            "type" : "string"
-          },
-          "index" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "rank" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "weight" : {
-            "type" : "number",
-            "format" : "float"
-          }
-        }
-      },
-      "RunResult" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "tasks" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/TaskResult"
-            }
-          },
-          "timeStamp" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "serverTimeStamp$backend" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        },
-        "required" : [ "tasks", "timeStamp", "serverTimeStamp$backend" ]
-      },
-      "TaskResult" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "task" : {
-            "type" : "string"
-          },
-          "resultName" : {
-            "type" : "string"
-          },
-          "resultType" : {
-            "type" : "string"
-          },
-          "results" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ResultElement"
-            }
-          }
-        },
-        "required" : [ "task", "resultName", "results" ]
-      },
       "CurrentTime" : {
         "type" : "object",
         "additionalProperties" : false,
@@ -4750,6 +4622,16 @@
         },
         "required" : [ "timestamp", "sortType", "resultSetAvailability", "results", "events", "serverTimeStamp$backend" ]
       },
+      "MediaItemCollection" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "id" ]
+      },
       "TemporalPoint" : {
         "type" : "object",
         "additionalProperties" : false,
@@ -4792,10 +4674,49 @@
         },
         "required" : [ "participantCanView", "shuffleTasks", "allowRepeatedTasks", "limitSubmissionPreviews" ]
       },
-      "AnswerType" : {
+      "Task" : {
         "type" : "object",
         "additionalProperties" : false,
-        "properties" : { }
+        "properties" : {
+          "taskId" : {
+            "type" : "string"
+          },
+          "started" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "ended" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "evaluation" : {
+            "$ref" : "#/components/schemas/Evaluation"
+          },
+          "template" : {
+            "$ref" : "#/components/schemas/TaskTemplate"
+          }
+        },
+        "required" : [ "taskId", "evaluation", "template" ]
+      },
+      "Evaluation" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "evaluationId" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "evaluationId" ]
+      },
+      "TaskTemplate" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "templateId" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "templateId" ]
       },
       "RunManagerStatus" : {
         "type" : "string",

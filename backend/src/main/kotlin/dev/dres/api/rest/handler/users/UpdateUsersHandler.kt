@@ -56,7 +56,14 @@ class UpdateUsersHandler(private val store: TransientEntityStore) : AbstractUser
             val caller = userFromSession(ctx)
 
             if (caller.role == DbRole.ADMIN || user.id == caller.id) {
-                val success = DbUserManager.update(id = user.id, request = request)
+
+                val sanitized = if (caller.role == DbRole.ADMIN) {
+                    request
+                } else { //non admins can only change their passwords, nothing else
+                    request.copy(username = user.username, role = user.role.toApi())
+                }
+
+                val success = DbUserManager.update(id = user.id, request = sanitized)
                 if (success) {
                     return@transactional DbUserManager.get(id = user.id)!!.toApi()
                 } else {
@@ -65,7 +72,7 @@ class UpdateUsersHandler(private val store: TransientEntityStore) : AbstractUser
             } else {
                 throw ErrorStatusException(
                     403,
-                    "You do not have permissions to edit user (${user.id}) as $caller!",
+                    "You do not have permissions to edit user (${user.id}) as ${caller.id}!",
                     ctx
                 )
             }

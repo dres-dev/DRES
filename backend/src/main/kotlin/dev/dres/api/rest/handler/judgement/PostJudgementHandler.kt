@@ -7,6 +7,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.audit.DbAuditLogSource
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.JudgementTimeoutException
 import dev.dres.utilities.extensions.eligibleManagerForId
@@ -56,7 +57,7 @@ class PostJudgementHandler(store: TransientEntityStore): AbstractJudgementHandle
             val validator = evaluationManager.judgementValidators.find { it.id == judgement.validator }
                 ?: throw ErrorStatusException(404, "No matching task found for validator ${judgement.validator}.", ctx)
             try {
-                validator.judge(judgement.token, judgement.verdict.toDb())
+                validator.judge(judgement.token, VerdictStatus.fromApi(judgement.verdict))
             } catch (ex: JudgementTimeoutException) {
                 throw ErrorStatusException(408, ex.message!!, ctx)
             }

@@ -2,7 +2,8 @@ package dev.dres.api.rest.types.evaluation
 
 import dev.dres.api.rest.types.competition.ApiEvaluationTemplate
 import dev.dres.data.model.run.DbEvaluation
-import dev.dres.data.model.run.EvaluationId
+import dev.dres.data.model.run.interfaces.Evaluation
+import dev.dres.data.model.run.interfaces.EvaluationId
 
 /**
  * The RESTful API equivalent of a [DbEvaluation].
@@ -12,7 +13,7 @@ import dev.dres.data.model.run.EvaluationId
  * @version 2.0.0
  */
 data class ApiEvaluation(
-    val evaluationId: EvaluationId,
+    override val evaluationId: EvaluationId,
     val name: String,
     val type: ApiEvaluationType,
     val template: ApiEvaluationTemplate,
@@ -20,4 +21,4 @@ data class ApiEvaluation(
     val started: Long?,
     val ended: Long?,
     val tasks: List<ApiTask>
-)
+) : Evaluation

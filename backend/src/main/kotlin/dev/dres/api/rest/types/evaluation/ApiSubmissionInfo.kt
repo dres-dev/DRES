@@ -1,6 +1,6 @@
 package dev.dres.api.rest.types.evaluation
 
-import dev.dres.data.model.run.EvaluationId
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.template.TemplateId
 
 /**

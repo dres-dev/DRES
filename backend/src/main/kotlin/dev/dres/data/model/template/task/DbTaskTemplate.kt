@@ -141,7 +141,7 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), CachingTaskScor
      *
      * @return Textual description of this [DbTaskTemplate]'s content,
      */
-    fun textualDescription(): String = this.hints.asSequence().filter { it.type == DbHintType.TEXT }.maxByOrNull { it.start ?: 0 }?.text ?: name
+    override fun textualDescription(): String = this.hints.asSequence().filter { it.type == DbHintType.TEXT }.maxByOrNull { it.start ?: 0 }?.text ?: name
 
     /**
      * Converts this [DbTaskTemplate] to a RESTful API representation [ApiTaskTemplate].

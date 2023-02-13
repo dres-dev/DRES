@@ -28,7 +28,7 @@ class MaximumWrongPerTeamFilter(private val max: Int = Int.MAX_VALUE) : Submissi
      */
     override fun test(submission: Submission): Boolean {
         return submission.answerSets().all { answerSet ->
-            answerSet.task.answerSets().filter { (it.submission.team == submission.team) and (it.status eq VerdictStatus.Status.WRONG) }.count() < max
+            answerSet.task.answerSets().filter { (it.submission.teamId == submission.teamId) and (it.status() == VerdictStatus.WRONG) }.count() < max
         }
     }
 }

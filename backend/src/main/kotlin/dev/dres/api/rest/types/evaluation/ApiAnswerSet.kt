@@ -1,15 +1,46 @@
 package dev.dres.api.rest.types.evaluation
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.api.rest.types.collection.ApiMediaItem
+import dev.dres.data.model.run.Task
+import dev.dres.data.model.submissions.*
+import dev.dres.data.model.template.interfaces.EvaluationTemplate
+import kotlinx.dnq.query.addAll
 
 /**
- * The RESTful API equivalent for the type of a [ApiAnswerSet].
+ * The RESTful API equivalent for the type of [ApiAnswerSet].
  *
  * @see ApiAnswerSet
  * @author Ralph Gasser
  * @version 1.0.0
  */
 data class ApiAnswerSet(
-    val status: ApiVerdictStatus,
+    var status: ApiVerdictStatus,
     val answers: List<ApiAnswer>
-)
+) : AnswerSet {
+
+    @JsonIgnore
+    override lateinit var task: Task
+
+    @JsonIgnore
+    override lateinit var submission: ApiSubmission
+    internal set
+
+    override fun answers(): Sequence<Answer> = answers.asSequence()
+    override fun status(): VerdictStatus = VerdictStatus.fromApi(this.status)
+
+    override fun status(status: VerdictStatus) {
+        this.status = status.toApi()
+    }
+
+    override fun toDb(): DbAnswerSet {
+        return DbAnswerSet.new {
+            this.status = this@ApiAnswerSet.status.toDb()
+            this.answers.addAll(
+                this@ApiAnswerSet.answers.map {
+                    it.toDb()
+                }
+            )
+        }
+    }
+}

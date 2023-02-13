@@ -3,6 +3,8 @@ package dev.dres.run.score.scorer
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.score.TaskContext
 import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.filter
@@ -27,15 +29,15 @@ class KisTaskScorer(
     }
 
 
-    override fun computeScores(submissions: Sequence<DbSubmission>, context: TaskContext): Map<TeamId, Double>  {
+    override fun computeScores(submissions: Sequence<Submission>, context: TaskContext): Map<TeamId, Double>  {
         val taskStartTime = context.taskStartTime ?: throw IllegalArgumentException("No task start time specified.")
         val taskDuration = context.taskDuration ?: throw IllegalArgumentException("No task duration specified.")
         val tDur = max(taskDuration * 1000L, (context.taskEndTime ?: 0) - taskStartTime).toDouble() //actual duration of task, in case it was extended during competition
         return context.teamIds.associateWith { teamId ->
-            val verdicts = submissions.filter { it.team.id == teamId }.sortedBy { it.timestamp }.flatMap { sub ->
-                sub.answerSets.filter { (it.status eq DbVerdictStatus.CORRECT) or (it.status eq DbVerdictStatus.WRONG) }.asSequence()
+            val verdicts = submissions.filter { it.teamId == teamId }.sortedBy { it.timestamp }.flatMap { sub ->
+                sub.answerSets().filter { (it.status() == VerdictStatus.CORRECT) or (it.status() == VerdictStatus.WRONG) }.asSequence()
             }.toList()
-            val firstCorrect = verdicts.indexOfFirst { it.status == DbVerdictStatus.CORRECT }
+            val firstCorrect = verdicts.indexOfFirst { it.status() == VerdictStatus.CORRECT }
             val score = if (firstCorrect > -1) {
                 val timeFraction = 1.0 - (verdicts[firstCorrect].submission.timestamp - taskStartTime) / tDur
                 max(

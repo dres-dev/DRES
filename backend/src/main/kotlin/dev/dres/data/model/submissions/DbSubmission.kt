@@ -3,7 +3,9 @@ package dev.dres.data.model.submissions
 import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.admin.DbUser
+import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.template.team.DbTeam
+import dev.dres.data.model.template.team.TeamId
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
@@ -32,15 +34,21 @@ class DbSubmission(entity: Entity) : PersistentEntity(entity), Submission {
     override var timestamp by xdRequiredLongProp { min(0L) }
 
     /** The [DbTeam] that submitted this [DbSubmission] */
-    override var team by xdLink1(DbTeam)
+    var team by xdLink1(DbTeam)
+    override val teamId: TeamId
+        get() = this.team.teamId
 
     /** The [DbUser] that submitted this [DbSubmission] */
-    override var user by xdLink1(DbUser)
+    var user by xdLink1(DbUser)
+
+    override val memberId: UserId
+        get() = this.user.userId
 
     /** The [DbAnswerSet]s that make-up this [DbSubmission]. For batched submissions, more than one verdict can be possible. */
     val answerSets by xdChildren1_N<DbSubmission,DbAnswerSet>(DbAnswerSet::submission)
 
     override fun answerSets(): Sequence<AnswerSet> = answerSets.asSequence()
+    override fun toDb(): DbSubmission = this
 
     /**
      * Converts this [DbSubmission] to a RESTful API representation [ApiSubmission].
@@ -51,7 +59,7 @@ class DbSubmission(entity: Entity) : PersistentEntity(entity), Submission {
      * @return [ApiSubmission]
      */
     fun toApi(blind: Boolean = false): ApiSubmission = ApiSubmission(
-        id = this.id,
+        submissionId = this.id,
         teamId = this.team.id,
         teamName = this.team.name,
         memberId = this.user.id,

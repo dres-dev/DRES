@@ -2,6 +2,7 @@ package dev.dres.run.validation.interfaces
 
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.Submission
 
 /**
  * A validator class that checks, if a [DbSubmission] is correct.
@@ -15,7 +16,7 @@ interface SubmissionValidator {
      *
      * @param submission The [DbSubmission] to validate.
      */
-    fun validate(submission: DbSubmission)
+    fun validate(submission: Submission)
 
     /**
      * Indicates whether this [SubmissionValidator] needs to defer the validation to some later point in time

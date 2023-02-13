@@ -6,6 +6,7 @@ import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.Submission
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionFilter
@@ -203,15 +204,18 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
          * @throws IllegalArgumentException If [DbSubmission] could not be added for any reason.
          */
         @Synchronized
-        override fun postSubmission(submission: DbSubmission) {
+        override fun postSubmission(submission: Submission) {
             check(this.isRunning) { "Task run '${this@InteractiveAsynchronousEvaluation.name}.${this.position}' is currently not running. This is a programmer's error!" }
-            check(this.teamId == submission.team.id) { "Team ${submission.team.id} is not eligible to submit to this task. This is a programmer's error!" }
+            check(this.teamId == submission.teamId) { "Team ${submission.teamId} is not eligible to submit to this task. This is a programmer's error!" }
 
             /* Execute submission filters. */
             this.filter.acceptOrThrow(submission)
 
+            /* At this point, the submission is considered valid and is persisted */
+            val dbSubmission: DbSubmission = submission.toDb()
+
             /* Process Submission. */
-            this.submissions.add(submission)
+            this.submissions.add(dbSubmission)
             this.validator.validate(submission)
             AuditLogger.validateSubmission(submission, this.validator)
         }

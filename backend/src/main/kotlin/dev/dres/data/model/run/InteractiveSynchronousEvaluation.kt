@@ -5,6 +5,7 @@ import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.Submission
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.filter.SubmissionFilter
 import kotlinx.dnq.query.*
@@ -107,17 +108,20 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
          * @param submission The [DbSubmission] to add.
          */
         @Synchronized
-        override fun postSubmission(submission: DbSubmission) {
+        override fun postSubmission(submission: Submission) {
             check(this.isRunning) { "Task run '${this@InteractiveSynchronousEvaluation.name}.${this.position}' is currently not running. This is a programmer's error!" }
-            check(this@InteractiveSynchronousEvaluation.description.teams.filter { it eq submission.team }.any()) {
-                "Team ${submission.team.teamId} does not exists for evaluation run ${this@InteractiveSynchronousEvaluation.name}. This is a programmer's error!"
+            check(this@InteractiveSynchronousEvaluation.description.teams.asSequence().filter { it.teamId == submission.teamId }.any()) {
+                "Team ${submission.teamId} does not exists for evaluation run ${this@InteractiveSynchronousEvaluation.name}. This is a programmer's error!"
             }
 
             /* Execute submission filters. */
             this.filter.acceptOrThrow(submission)
 
+            /* At this point, the submission is considered valid and is persisted */
+            val dbSubmission: DbSubmission = submission.toDb()
+
             /* Process Submission. */
-            this.submissions.add(submission)
+            this.submissions.add(dbSubmission)
             this.validator.validate(submission)
             AuditLogger.validateSubmission(submission, this.validator)
         }

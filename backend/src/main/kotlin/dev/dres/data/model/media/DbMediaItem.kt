@@ -40,7 +40,8 @@ class DbMediaItem(entity: Entity) : PersistentEntity(entity), MediaItem {
     var durationMs by xdNullableLongProp() { requireIf { this.type ==  DbMediaType.VIDEO } }
 
     /** The [DbMediaCollection] this [DbMediaItem] belongs to. */
-    var collection: DbMediaCollection by xdParent<DbMediaItem, DbMediaCollection>(DbMediaCollection::items)
+    override var collection: DbMediaCollection by xdParent<DbMediaItem, DbMediaCollection>(DbMediaCollection::items)
+    override fun type(): MediaItemType = MediaItemType.fromDb(this.type)
 
     /** List of [DbMediaSegment] that this [DbMediaItem] contains.  */
     val segments by xdChildren0_N<DbMediaItem, DbMediaSegment>(DbMediaSegment::item)

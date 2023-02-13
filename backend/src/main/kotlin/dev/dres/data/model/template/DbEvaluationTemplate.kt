@@ -11,6 +11,7 @@ import dev.dres.data.model.template.task.DbTaskType
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.DbTeamGroup
 import dev.dres.data.model.media.time.TemporalRange
+import dev.dres.data.model.template.interfaces.EvaluationTemplate
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
@@ -29,11 +30,11 @@ typealias TemplateId = String
  * @version 2.0.0
  * @author Luca Rossetto & Ralph Gasser
  */
-class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity){
+class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), EvaluationTemplate{
     companion object: XdNaturalEntityType<DbEvaluationTemplate>()
 
     /** The [TemplateId] of this [DbEvaluationTemplate]. */
-    var templateId: TemplateId
+    override var templateId: TemplateId
         get() = this.id
         set(value) { this.id = value }
 

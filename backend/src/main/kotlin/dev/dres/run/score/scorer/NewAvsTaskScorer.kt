@@ -3,6 +3,8 @@ package dev.dres.run.score.scorer
 
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.TaskContext
 import kotlinx.dnq.query.asSequence
@@ -53,13 +55,13 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
     }
 
     override fun computeScores(
-        submissions: Sequence<DbSubmission>,
+        submissions: Sequence<Submission>,
         context: TaskContext
     ): Map<TeamId, Double> {
 
         val distinctCorrectVideos = submissions.flatMap { submission ->
-            submission.answerSets.asSequence().filter { it.status == DbVerdictStatus.CORRECT && it.answers.firstOrNull()?.item != null }
-        }.mapNotNullTo(mutableSetOf()) { it.answers.firstOrNull()?.item }
+            submission.answerSets().filter { it.status() == VerdictStatus.CORRECT && it.answers().firstOrNull()?.item != null }
+        }.mapNotNullTo(mutableSetOf()) { it.answers().firstOrNull()?.item }
             .size
 
 
@@ -73,15 +75,15 @@ class NewAvsTaskScorer(private val penaltyConstant: Double, private val maxPoint
             }
         }
 
-        return teamScoreMapSanitised(submissions.groupBy { it.team }.map { submissionsPerTeam ->
+        return teamScoreMapSanitised(submissions.groupBy { it.teamId }.map { submissionsPerTeam ->
             val verdicts = submissionsPerTeam.value.sortedBy { it.timestamp }.flatMap {
-                it.answerSets.asSequence()
-                    .filter { v -> v.answers.firstOrNull()?.item != null && (v.status == DbVerdictStatus.CORRECT || v.status == DbVerdictStatus.WRONG) }
+                it.answerSets()
+                    .filter { v -> v.answers().firstOrNull()?.item != null && (v.status() == VerdictStatus.CORRECT || v.status() == VerdictStatus.WRONG) }
             }
-            submissionsPerTeam.key.teamId to
+            submissionsPerTeam.key to
                     max(0.0, //prevent negative total scores
-                        verdicts.groupBy { it.answers.firstOrNull()?.item!! }.map {
-                            val firstCorrectIdx = it.value.indexOfFirst { v -> v.status == DbVerdictStatus.CORRECT }
+                        verdicts.groupBy { it.answers().firstOrNull()?.item!! }.map {
+                            val firstCorrectIdx = it.value.indexOfFirst { v -> v.status() == VerdictStatus.CORRECT }
                             if (firstCorrectIdx < 0) { //no correct submissions, only penalty
                                 it.value.size * -penaltyConstant
                             } else {  //apply penalty for everything before correct submission

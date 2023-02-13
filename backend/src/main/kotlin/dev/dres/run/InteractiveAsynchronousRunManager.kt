@@ -11,10 +11,7 @@ import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.TaskRun
-import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.SubmissionId
-import dev.dres.data.model.submissions.DbAnswerSet
-import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.*
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
@@ -137,7 +134,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
             this.evaluation.tasks.forEach { task ->
                 task.getSubmissions().forEach { sub ->
                     this.scoresUpdatable.enqueue(Pair(task, sub))
-                    if (sub.answerSets.filter { v -> v.status eq DbVerdictStatus.INDETERMINATE }.any()) {
+                    if (sub.answerSets().filter { v -> v.status() == VerdictStatus.INDETERMINATE }.any()) {
                         task.validator.validate(sub)
                     }
                 }
@@ -509,10 +506,10 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
      * @return [DbVerdictStatus] of the [DbSubmission]
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.ACTIVE].
      */
-    override fun postSubmission(context: RunActionContext, submission: DbSubmission): DbVerdictStatus = this.stateLock.read {
+    override fun postSubmission(context: RunActionContext, submission: Submission): VerdictStatus = this.stateLock.read {
         require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         require(teamHasRunningTask(context.teamId)) { "No running task for Team ${context.teamId}" }
-        require(submission.answerSets.size() == 1) { "Only single verdict per submission is allowed for InteractiveAsynchronousRunManager." } /* TODO: Do we want this restriction? */
+        require(submission.answerSets().count() == 1) { "Only single verdict per submission is allowed for InteractiveAsynchronousRunManager." } /* TODO: Do we want this restriction? */
 
         /* Register submission. */
         val task = this.currentTask(context)
@@ -524,7 +521,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
 
         /* Enqueue WS message for sending */
         this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.TASK_UPDATED), context.teamId)
-        return submission.answerSets.first().status
+        return submission.answerSets().first().status()
     }
 
     /**
@@ -616,7 +613,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
                     e
                 )
 
-                // oh shit, something went horribly horribly wrong
+                // oh shit, something went horribly, horribly wrong
                 if (errorCounter >= MAXIMUM_ERROR_COUNT) {
                     LOGGER.error("Reached maximum consecutive error count of  $MAXIMUM_ERROR_COUNT; terminating loop...")
                     RunExecutor.dump(this.evaluation)

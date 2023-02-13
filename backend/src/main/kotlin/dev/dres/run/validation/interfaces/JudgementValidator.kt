@@ -1,8 +1,6 @@
 package dev.dres.run.validation.interfaces
 
-import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.DbAnswerSet
-import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.*
 
 /**
  * A [SubmissionValidator] that bases validation on human (manual) verdicts.
@@ -33,14 +31,14 @@ interface JudgementValidator {
      *
      * @return Optional [Pair] containing a string token and the [DbSubmission] that should be judged.
      */
-    fun next(queue: String): Pair<String, DbAnswerSet>?
+    fun next(queue: String): Pair<String, AnswerSet>?
 
     /**
-     * Places a verdict for the [DbSubmission] identified by the given token.
+     * Places a verdict for the [Submission] identified by the given token.
      *
-     * @param token The token used to identify the [DbSubmission].
+     * @param token The token used to identify the [Submission].
      * @param verdict The verdict of the judge.
      */
-    fun judge(token: String, verdict: DbVerdictStatus)
+    fun judge(token: String, verdict: VerdictStatus)
 }
 

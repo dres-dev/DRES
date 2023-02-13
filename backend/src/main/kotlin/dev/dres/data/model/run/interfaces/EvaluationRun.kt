@@ -2,7 +2,6 @@ package dev.dres.data.model.run.interfaces
 
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.DbEvaluation
-import dev.dres.data.model.run.EvaluationId
 /**
  * Represents a [DbEvaluation] that a DRES user or client takes place in and that groups several [TaskRun]s
  *

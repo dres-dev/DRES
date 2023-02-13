@@ -1,6 +1,7 @@
 package dev.dres.run.score.scorer
 
 import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.TaskContext
 
@@ -13,7 +14,7 @@ object InferredAveragePrecisionScorer : TaskScorer {
 
 
     private val epsilon = 0.01 //TODO check what TRECVID uses
-    override fun computeScores(submissions: Sequence<DbSubmission>, context: TaskContext): Map<TeamId, Double> {
+    override fun computeScores(submissions: Sequence<Submission>, context: TaskContext): Map<TeamId, Double> {
         TODO("Not yet implemented")
     }
 

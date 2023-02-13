@@ -1,6 +1,7 @@
 package dev.dres.api.rest.types.collection
 
 import dev.dres.data.model.media.DbMediaType
+import dev.dres.data.model.media.MediaItemType
 
 /**
  * The RESTful API equivalent for the type of a [ApiMediaItem]
@@ -22,4 +23,5 @@ enum class ApiMediaType {
         VIDEO -> DbMediaType.VIDEO
         TEXT -> DbMediaType.TEXT
     }
+
 }

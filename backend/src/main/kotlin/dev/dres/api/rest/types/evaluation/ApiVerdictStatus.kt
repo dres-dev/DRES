@@ -1,7 +1,6 @@
 package dev.dres.api.rest.types.evaluation
 
 import dev.dres.data.model.submissions.DbVerdictStatus
-import dev.dres.data.model.submissions.VerdictStatus
 
 /**
  * The RESTful API equivalent for the type of a [DbVerdictStatus]
@@ -10,11 +9,8 @@ import dev.dres.data.model.submissions.VerdictStatus
  * @author Ralph Gasser
  * @version 1.0.0
  */
-enum class ApiVerdictStatus(private val status: VerdictStatus.Status) : VerdictStatus {
-    CORRECT(VerdictStatus.Status.CORRECT),
-    WRONG(VerdictStatus.Status.WRONG),
-    INDETERMINATE(VerdictStatus.Status.INDETERMINATE),
-    UNDECIDABLE(VerdictStatus.Status.INDETERMINATE);
+enum class ApiVerdictStatus() {
+    CORRECT, WRONG, INDETERMINATE, UNDECIDABLE;
 
     /**
      * Converts this [ApiVerdictStatus] to a [DbVerdictStatus] representation. Requires an ongoing transaction.
@@ -28,5 +24,4 @@ enum class ApiVerdictStatus(private val status: VerdictStatus.Status) : VerdictS
         UNDECIDABLE -> DbVerdictStatus.UNDECIDABLE
     }
 
-    override fun eq(status: VerdictStatus.Status): Boolean = status == this.status
 }

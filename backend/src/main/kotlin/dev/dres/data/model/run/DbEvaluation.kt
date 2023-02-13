@@ -2,13 +2,13 @@ package dev.dres.data.model.run
 
 import dev.dres.api.rest.types.evaluation.ApiEvaluation
 import dev.dres.data.model.PersistentEntity
+import dev.dres.data.model.run.interfaces.Evaluation
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
-
-typealias EvaluationId = String
 
 /**
  * Represents a [DbEvaluation], i.e., a concrete instance of a [DbEvaluationTemplate], as executed by DRES.
@@ -16,7 +16,7 @@ typealias EvaluationId = String
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class DbEvaluation(entity: Entity) : PersistentEntity(entity) {
+class DbEvaluation(entity: Entity) : PersistentEntity(entity), Evaluation {
     companion object : XdNaturalEntityType<DbEvaluation>()
 
     override fun constructor() {
@@ -25,7 +25,7 @@ class DbEvaluation(entity: Entity) : PersistentEntity(entity) {
     }
 
     /** The [EvaluationId] of this [DbEvaluation]. */
-    var evaluationId: EvaluationId
+    override var evaluationId: EvaluationId
         get() = this.id
         set(value) { this.id = value }
 

@@ -34,13 +34,13 @@ class DbTask(entity: Entity) : PersistentEntity(entity), Task {
     override var ended by xdNullableLongProp()
 
     /** The [DbTaskTemplate] this [DbTask] is an instance of. */
-    var template by xdLink1(DbTaskTemplate)
+    override var template by xdLink1(DbTaskTemplate)
 
     /** Link to a [DbTeam] this [DbTask] was created for. Can be NULL!*/
     var team by xdLink0_1(DbTeam)
 
     /** The [DbEvaluation] this [DbTask] belongs to. */
-    var evaluation: DbEvaluation by xdParent<DbTask,DbEvaluation>(DbEvaluation::tasks)
+    override var evaluation: DbEvaluation by xdParent<DbTask,DbEvaluation>(DbEvaluation::tasks)
 
     /** List of [DbSubmission]s received by this [DbTask]. */
     val answerSets by xdChildren0_N<DbTask,DbAnswerSet>(DbAnswerSet::task)

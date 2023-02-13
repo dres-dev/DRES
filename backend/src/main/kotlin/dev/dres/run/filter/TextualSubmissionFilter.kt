@@ -1,5 +1,6 @@
 package dev.dres.run.filter
 
+import dev.dres.data.model.submissions.AnswerType
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbAnswerType
 import dev.dres.data.model.submissions.Submission
@@ -16,5 +17,5 @@ class TextualSubmissionFilter : SubmissionFilter {
     override val reason = "Submission does not include textual information (or is an empty submission)"
 
     override fun test(submission: Submission): Boolean
-        = submission.answerSets().all { it.answers().all { it.text != null && it.type == DbAnswerType.TEXT } } /* TODO: Probably needs adjustment if this is supposed work with batch submissions. */
+        = submission.answerSets().all { set -> set.answers().all { it.text != null && it.type() == AnswerType.TEXT } } /* TODO: Probably needs adjustment if this is supposed work with batch submissions. */
 }

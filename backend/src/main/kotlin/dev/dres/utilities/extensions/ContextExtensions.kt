@@ -6,12 +6,11 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.util.MimeTypeHelper
 import dev.dres.data.model.admin.UserId
-import dev.dres.data.model.run.EvaluationId
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
 import io.javalin.http.Context
-import kotlinx.dnq.query.FilteringContext.eq
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.flatMapDistinct
 import kotlinx.dnq.query.isEmpty

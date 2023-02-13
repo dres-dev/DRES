@@ -12,7 +12,7 @@ typealias CollectionId = String
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class DbMediaCollection(entity: Entity): PersistentEntity(entity) {
+class DbMediaCollection(entity: Entity): PersistentEntity(entity), MediaItemCollection {
     companion object : XdNaturalEntityType<DbMediaCollection>()
     /** The name of this [DbMediaItem]. */
     var name: String by xdRequiredStringProp(unique = true, trimmed = false)

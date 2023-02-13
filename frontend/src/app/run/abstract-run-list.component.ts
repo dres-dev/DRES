@@ -162,15 +162,15 @@ export class AbstractRunListComponent {
       flatMap((t) => query),
       map(([info, state]) => {
         return info.map((v, i) => {
-          const s = state.find((_) => _.id === v.id);
+          const s = state.find((_) => _.evaluationId === v.id);
           return {
             id: v.id,
             name: v.name,
             description: v.templateDescription,
             teams: v.teams.length,
-            runStatus: s.runStatus,
-            taskRunStatus: s.taskRunStatus,
-            currentTask: s.currentTask?.name,
+            runStatus: s.evaluationStatus,
+            taskRunStatus: s.taskStatus,
+            currentTask: s.currentTemplate?.name,
             timeLeft: s.timeLeft > -1 ? `${Math.round(s.timeLeft)}s` : 'n/a',
             asynchronous: v.type === 'ASYNCHRONOUS',
             runProperties: v.properties,

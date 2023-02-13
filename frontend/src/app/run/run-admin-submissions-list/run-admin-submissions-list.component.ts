@@ -8,7 +8,7 @@ import { MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { catchError, filter, map, switchMap, withLatestFrom } from 'rxjs/operators';
 import { MatPaginator } from '@angular/material/paginator';
 import { AppConfig } from '../../app.config';
-import {ApiAnswerSet, ApiSubmission, ApiSubmissionInfo, ApiVerdictStatus, EvaluationAdministratorService} from 'openapi';
+import { ApiSubmission, ApiSubmissionInfo, ApiVerdictStatus, EvaluationAdministratorService} from 'openapi';
 
 @Component({
   selector: 'app-run-admin-submissions-list',
@@ -140,7 +140,7 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
    * Generates a URL for the preview image of a submission.
    */
   public previewForSubmission(submission: ApiSubmission): Observable<string> {
-    return this.runId.pipe(map((runId) => this.config.resolveApiUrl(`/preview/submission/${runId}/${submission.id}`)));
+    return this.runId.pipe(map((runId) => this.config.resolveApiUrl(`/preview/submission/${runId}/${submission.submissionId}`)));
   }
 
   resolveIdBySelf(_: number, item: string) {
@@ -148,6 +148,6 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
   }
 
   resolveSubmissionById(_: number, item: ApiSubmission) {
-    return item.id;
+    return item.submissionId;
   }
 }

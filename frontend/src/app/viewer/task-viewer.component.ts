@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
-import { BehaviorSubject, combineLatest, interval, merge, Observable, of, Subscription, timer } from 'rxjs';
+import { BehaviorSubject, combineLatest, interval, merge, Observable, of, Subscription } from 'rxjs';
 import {
   catchError,
   delayWhen,
@@ -48,7 +48,7 @@ enum ViewerState {
   styleUrls: ['./task-viewer.component.scss'],
 })
 export class TaskViewerComponent implements AfterViewInit, OnDestroy {
-  @Input() runId: Observable<string>;
+  @Input() evaluationId: Observable<string>;
   @Input() state: Observable<ApiEvaluationState>;
   @Input() taskStarted: Observable<ApiTaskTemplateInfo>;
   @Input() taskChanged: Observable<ApiTaskTemplateInfo>;
@@ -67,10 +67,10 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   /** The current {@link ViewerState} of this {@link TaskViewerComponent}. */
   viewerState: BehaviorSubject<ViewerState> = new BehaviorSubject(ViewerState.VIEWER_UNKNOWN);
 
-  /** Reference to the current {@link TaskHint} {@link ContentElement}s. */
+  /** Reference to the current {@link ApiHintContent}. */
   currentTaskHint: Observable<ApiHintContent>;
 
-  /** Reference to the current {@link TaskTarget} {@link ContentElement}. */
+  /** Reference to the current {@link ApiTargetContent}. */
   currentTaskTarget: Observable<ApiTargetContent>;
 
   /** The subscription associated with the current viewer state. */
@@ -87,7 +87,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     /*  Observable for the current query hint. */
     const currentTaskHint = this.taskChanged.pipe(
-      withLatestFrom(this.runId),
+      withLatestFrom(this.evaluationId),
       switchMap(([task, runId]) =>
         this.runService.getApiV2EvaluationByEvaluationIdHintByTaskId(runId, task.templateId).pipe(
           catchError((e) => {
@@ -101,9 +101,9 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
 
     /*  Observable for the current query target. */
     const currentTaskTarget = this.state.pipe(
-      filter(s => s.taskRunStatus == ApiTaskStatus.ENDED),
+      filter(s => s.taskStatus == ApiTaskStatus.ENDED),
       switchMap((s) =>
-        this.runService.getApiV2EvaluationByEvaluationIdHintByTaskId(s.id, s.currentTask?.templateId).pipe(
+        this.runService.getApiV2EvaluationByEvaluationIdHintByTaskId(s.evaluationId, s.currentTemplate?.templateId).pipe(
           catchError((e) => {
             console.error('[TaskViewerComponent] Could not load current task target due to an error.', e);
             return of(null);
@@ -121,7 +121,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
      *
      * Implicitly, this Observable is only used when a task is running due to how it is used in the template!
      */
-    const polledState = merge(interval(1000).pipe(flatMap(() => this.runId)), this.state).pipe(
+    const polledState = merge(interval(1000).pipe(flatMap(() => this.evaluationId)), this.state).pipe(
       sampleTime(1000) /* This is again sampled to only ever emit once every second. */,
       switchMap((s) => {
         if (typeof s === 'string') {
@@ -144,7 +144,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
      * IMPORTANT: Unsubscribe onDestroy.
      */
     this.viewerStateSubscription = combineLatest([currentTaskHint, polledState]).subscribe(([h, s]) => {
-      switch (s.taskRunStatus) {
+      switch (s.taskStatus) {
         case 'NO_TASK':
         case 'CREATED':
           this.viewerState.next(ViewerState.VIEWER_WAITING_FOR_TASK);
@@ -152,7 +152,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
         case 'PREPARING':
           this.viewerState.next(ViewerState.VIEWER_SYNC);
           if (h != null) {
-            this.webSocketSubject.next({ runId: s.id, type: 'ACK' } as IWsClientMessage);
+            this.webSocketSubject.next({ evaluationId: s.id, type: 'ACK' } as IWsClientMessage);
           } /* Send ACK. */
           break;
         case 'RUNNING':

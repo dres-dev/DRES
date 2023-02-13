@@ -103,7 +103,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
     this.teams = this.info.pipe(map((i) => i.teams));
 
     /* Create observable for current task group. */
-    this.currentTaskGroup = this.state.pipe(map((state) => state.currentTask?.taskGroup));
+    this.currentTaskGroup = this.state.pipe(map((state) => state.currentTemplate?.taskGroup));
 
     if (this.competitionOverview) {
       /* Create observable for series. */
@@ -121,7 +121,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
     /* Download scores. */
     const score = this.state.pipe(
       switchMap((s) => {
-        return this.scoreService.getApiV2ScoreEvaluationByEvaluationIdCurrent(s.id).pipe(
+        return this.scoreService.getApiV2ScoreEvaluationByEvaluationIdCurrent(s.evaluationId).pipe(
           catchError((err) => {
             console.log('Error when retrieving scores.', err);
             return of(null);
@@ -187,7 +187,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
     /* Fetch scores. */
     const score: Observable<Array<ApiScoreOverview>> = this.state.pipe(
       switchMap((s) => {
-        return this.scoreService.getApiV2ScoreEvaluationByEvaluationId(s.id).pipe(
+        return this.scoreService.getApiV2ScoreEvaluationByEvaluationId(s.evaluationId).pipe(
           catchError((err) => {
             console.log('Error when retrieving scores.', err);
             return of(null);

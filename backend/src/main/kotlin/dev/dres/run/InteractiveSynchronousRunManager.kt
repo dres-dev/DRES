@@ -207,20 +207,14 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         checkStatus(RunManagerStatus.ACTIVE)
         assureNoRunningTask()
         if (index >= 0 && index < this.template.tasks.size()) {
-
             /* Update active task. */
             this.evaluation.goTo(index)
-
-            //FIXME since task run and competition run states are separated, this is not actually a state change
-//            /* Update RunManager status. */
-//            this.status = RunManagerStatus.ACTIVE
 
             /* Mark scoreboards for update. */
             this.scoreboardsUpdatable.dirty = true
 
             /* Enqueue WS message for sending */
             this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.COMPETITION_UPDATE))
-
             LOGGER.info("SynchronousRunManager ${this.id} set to task $index")
         } else {
             throw IndexOutOfBoundsException("Index $index is out of bounds for the number of available tasks.")
@@ -578,7 +572,6 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         if (this.evaluation.currentTask?.status == TaskStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
             this.stateLock.write {
                 this.evaluation.currentTask!!.start()
-                //this.status = RunManagerStatus.RUNNING_TASK
                 DbAuditLogger.taskStart(this.id, this.evaluation.currentTask!!.id, this.evaluation.currentTaskTemplate, DbAuditLogSource.INTERNAL, null)
             }
 

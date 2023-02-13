@@ -13,7 +13,7 @@ import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.NonInteractiveEvaluation
 import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.run.interfaces.EvaluationRun
-import dev.dres.run.audit.AuditLogger
+import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.extensions.read
 import dev.dres.utilities.extensions.write
@@ -63,7 +63,7 @@ object RunExecutor : Consumer<WsConfig> {
     /** Internal array of [Future]s for cleaning after [RunManager]s. See [RunExecutor.cleanerThread]*/
     private val results = HashMap<Future<*>, EvaluationId>()
 
-    /** The [TransientEntityStore] instance used by this [AuditLogger]. */
+    /** The [TransientEntityStore] instance used by this [DbAuditLogger]. */
     private lateinit var store: TransientEntityStore
 
     /**

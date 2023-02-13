@@ -19,7 +19,7 @@ import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.submissions.*
 import dev.dres.run.InteractiveRunManager
-import dev.dres.run.audit.AuditLogger
+import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionRejectedException
@@ -107,7 +107,7 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
                 throw ErrorStatusException(400, "Run manager does not know the given teamId ${rac.teamId}.", ctx)
             }
 
-            AuditLogger.submission(submission, DbAuditLogSource.REST, ctx.sessionToken(), ctx.req().remoteAddr)
+            DbAuditLogger.submission(submission, DbAuditLogSource.REST, ctx.sessionToken(), ctx.req().remoteAddr)
             if (run.currentTaskTemplate(rac).taskGroup.type.options.contains(DbTaskOption.HIDDEN_RESULTS)) { //pre-generate preview
                 generatePreview(submission.answerSets.first())
             }

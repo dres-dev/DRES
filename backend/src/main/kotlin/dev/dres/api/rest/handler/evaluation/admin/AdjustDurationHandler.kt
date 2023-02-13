@@ -7,7 +7,7 @@ import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.DbTask
-import dev.dres.run.audit.AuditLogger
+import dev.dres.run.audit.DbAuditLogger
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
@@ -50,7 +50,7 @@ class AdjustDurationHandler(store: TransientEntityStore): AbstractEvaluationAdmi
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             try {
                 evaluationManager.adjustDuration(rac, duration)
-                AuditLogger.taskModified(evaluationManager.id, evaluationManager.currentTaskTemplate(rac).id, "Task duration adjusted by ${duration}s.", DbAuditLogSource.REST, ctx.sessionToken())
+                DbAuditLogger.taskModified(evaluationManager.id, evaluationManager.currentTaskTemplate(rac).id, "Task duration adjusted by ${duration}s.", DbAuditLogSource.REST, ctx.sessionToken())
                 SuccessStatus("Duration for run $evaluationId was successfully adjusted.")
             } catch (e: IllegalStateException) {
                 throw ErrorStatusException(400, "Duration for run $evaluationId could not be adjusted because it is in the wrong state (state = ${evaluationManager.status}).", ctx)

@@ -31,7 +31,7 @@ class AuditCommand(private val store: TransientEntityStore) : NoOpCliktCommand(n
 
         override fun run() {
             this@AuditCommand.store.transactional(readonly = true) {
-                DbAuditLogEntry.all().sortedBy(DbAuditLogEntry::timestamp, asc = true)
+                DbAuditLogEntry.all().sortedBy(DbAuditLogEntry::timestamp, asc = false)
                     .take(number).asSequence().forEach { entry ->
                         println("${entry.timestamp}: (${entry.type.description}@${entry.source.description}) user: ${entry.userId}, evaluation: ${entry.evaluationId}, task: ${entry.taskId}, description: ${entry.description}")
                     }

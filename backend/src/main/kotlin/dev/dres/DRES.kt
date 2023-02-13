@@ -26,9 +26,8 @@ import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.submissions.DbAnswerType
-import dev.dres.mgmt.admin.DbUserManager
 import dev.dres.run.RunExecutor
-import dev.dres.run.audit.AuditLogger
+import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.handlers.ResultLogStatisticsHandler
 import dev.dres.run.eventstream.handlers.SubmissionStatisticsHandler
@@ -70,9 +69,6 @@ object DRES {
 
         /* Initialize RunExecutor. */
         RunExecutor.init(store)
-
-        /* Initialize AuditLogger */
-        AuditLogger.init(store)
 
         /* Initialize EventStreamProcessor */
         EventStreamProcessor.register(SubmissionStatisticsHandler(), ResultLogStatisticsHandler(store), TeamCombinationScoreHandler())

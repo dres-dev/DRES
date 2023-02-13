@@ -13,7 +13,7 @@ import dev.dres.data.model.submissions.*
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.task.options.DbTaskOption
-import dev.dres.run.audit.AuditLogger
+import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
 import dev.dres.run.exceptions.IllegalRunStateException
@@ -579,7 +579,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             this.stateLock.write {
                 this.evaluation.currentTask!!.start()
                 //this.status = RunManagerStatus.RUNNING_TASK
-                AuditLogger.taskStart(this.id, this.evaluation.currentTask!!.id, this.evaluation.currentTaskTemplate, DbAuditLogSource.INTERNAL, null)
+                DbAuditLogger.taskStart(this.id, this.evaluation.currentTask!!.id, this.evaluation.currentTaskTemplate, DbAuditLogSource.INTERNAL, null)
             }
 
             /* Enqueue WS message for sending */
@@ -597,7 +597,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 this.stateLock.write {
                     task.end()
                     //this.status = RunManagerStatus.TASK_ENDED
-                    AuditLogger.taskEnd(this.id, this.evaluation.currentTask!!.id, DbAuditLogSource.INTERNAL, null)
+                    DbAuditLogger.taskEnd(this.id, this.evaluation.currentTask!!.id, DbAuditLogSource.INTERNAL, null)
                     EventStreamProcessor.event(TaskEndEvent(this.id, task.id))
                 }
 

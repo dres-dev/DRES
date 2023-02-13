@@ -7,7 +7,7 @@ import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.Submission
-import dev.dres.run.audit.AuditLogger
+import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionFilter
 import kotlinx.dnq.query.*
@@ -217,7 +217,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
             /* Process Submission. */
             this.submissions.add(dbSubmission)
             this.validator.validate(submission)
-            AuditLogger.validateSubmission(submission, this.validator)
+            DbAuditLogger.validateSubmission(submission, this.validator)
         }
     }
 }

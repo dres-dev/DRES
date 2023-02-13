@@ -22,14 +22,7 @@ import org.joda.time.DateTime
  * @author Luca Rossetto
  * @version 2.0.0
  */
-object AuditLogger {
-    /** The [TransientEntityStore] instance used by this [AuditLogger]. */
-    private lateinit var store: TransientEntityStore
-
-    /** Initializes this [AuditLogger]. */
-    fun init(store: TransientEntityStore) {
-        this.store = store
-    }
+object DbAuditLogger {
 
     /**
      * Logs the start of a DRES competition.
@@ -38,12 +31,12 @@ object AuditLogger {
      * @param api The [DbAuditLogSource]
      * @param session The identifier of the user session.
      */
-    fun competitionStart(evaluationId: EvaluationId, description: DbEvaluationTemplate, api: DbAuditLogSource, session: SessionToken?) = this.store.transactional {
+    fun evaluationStart(evaluationId: EvaluationId, description: DbEvaluationTemplate, api: DbAuditLogSource, userId: UserId?, session: SessionToken?) {
         DbAuditLogEntry.new {
             this.type = DbAuditLogType.COMPETITION_START
             this.source = api
-            this.timestamp = DateTime.now()
             this.evaluationId = evaluationId
+            this.userId = userId
             this.session = session
         }
         EventStreamProcessor.event(RunStartEvent(evaluationId, description))
@@ -56,12 +49,12 @@ object AuditLogger {
      * @param api The [DbAuditLogSource]
      * @param session The identifier of the user session.
      */
-    fun competitionEnd(evaluationId: EvaluationId, api: DbAuditLogSource, session: SessionToken?) = this.store.transactional {
+    fun evaluationEnd(evaluationId: EvaluationId, api: DbAuditLogSource, userId: UserId?, session: SessionToken?) {
         DbAuditLogEntry.new {
             this.type = DbAuditLogType.COMPETITION_END
             this.source = api
-            this.timestamp = DateTime.now()
             this.evaluationId = evaluationId
+            this.userId = userId
             this.session = session
         }
         EventStreamProcessor.event(RunEndEvent(evaluationId))
@@ -76,11 +69,10 @@ object AuditLogger {
      * @param api The [DbAuditLogSource]
      * @param session The identifier of the user session.
      */
-    fun taskStart(evaluationId: EvaluationId, taskId: EvaluationId, description: DbTaskTemplate, api: DbAuditLogSource, session: SessionToken?) = this.store.transactional {
+    fun taskStart(evaluationId: EvaluationId, taskId: EvaluationId, description: DbTaskTemplate, api: DbAuditLogSource, session: SessionToken?) {
         DbAuditLogEntry.new {
             this.type = DbAuditLogType.TASK_START
             this.source = api
-            this.timestamp = DateTime.now()
             this.evaluationId = evaluationId
             this.taskId = taskId
             this.session = session
@@ -97,11 +89,10 @@ object AuditLogger {
      * @param api The [DbAuditLogSource]
      * @param session The identifier of the user session.
      */
-    fun taskModified(evaluationId: EvaluationId, taskId: EvaluationId, modification: String, api: DbAuditLogSource, session: String?)  = this.store.transactional {
+    fun taskModified(evaluationId: EvaluationId, taskId: EvaluationId, modification: String, api: DbAuditLogSource, session: String?) {
         DbAuditLogEntry.new {
             this.type = DbAuditLogType.TASK_MODIFIED
             this.source = api
-            this.timestamp = DateTime.now()
             this.evaluationId = evaluationId
             this.taskId = taskId
             this.description = modification
@@ -117,11 +108,10 @@ object AuditLogger {
      * @param api The [DbAuditLogSource]
      * @param session The identifier of the user session.
      */
-    fun taskEnd(evaluationId: EvaluationId, taskId: EvaluationId, api: DbAuditLogSource, session: SessionToken?) = this.store.transactional {
+    fun taskEnd(evaluationId: EvaluationId, taskId: EvaluationId, api: DbAuditLogSource, session: SessionToken?) {
         DbAuditLogEntry.new {
             this.type = DbAuditLogType.TASK_END
             this.source = api
-            this.timestamp = DateTime.now()
             this.evaluationId = evaluationId
             this.taskId = taskId
             this.session = session
@@ -137,11 +127,10 @@ object AuditLogger {
      * @param sessionToken The identifier of the user session.
      * @param address The IP address of the submitter.
      */
-    fun submission(submission: Submission, api: DbAuditLogSource, sessionToken: SessionToken?, address: String) = this.store.transactional {
+    fun submission(submission: Submission, api: DbAuditLogSource, sessionToken: SessionToken?, address: String) {
         DbAuditLogEntry.new {
             this.type = DbAuditLogType.SUBMISSION
             this.source = api
-            this.timestamp = DateTime.now()
             this.submissionId = submission.submissionId
             this.evaluationId = submission.answerSets().first().task.evaluation.evaluationId
             this.taskId = submission.answerSets().first().task.taskId /* TODO: Multiple verdicts. */
@@ -157,17 +146,14 @@ object AuditLogger {
      * @param submission The [DbSubmission] the submission that was validated
      * @param validator The [SubmissionValidator] instance.
      */
-    fun validateSubmission(submission: Submission, validator: SubmissionValidator) = this.store.transactional {
-        this.store.transactional {
-            DbAuditLogEntry.new {
-                this.type = DbAuditLogType.SUBMISSION_VALIDATION
-                this.source = DbAuditLogSource.INTERNAL
-                this.timestamp = DateTime.now()
-                this.submissionId = submission.submissionId
-                this.evaluationId = submission.answerSets().first().task.evaluation.evaluationId
-                this.taskId = submission.answerSets().first().task.taskId /* TODO: Multiple verdicts. */
-                this.description = "Validator: ${validator::class.simpleName}, Verdict: ${submission.answerSets().first().status()}" /* TODO: Here name, there ID. Why? */
-            }
+    fun validateSubmission(submission: Submission, validator: SubmissionValidator) {
+        DbAuditLogEntry.new {
+            this.type = DbAuditLogType.SUBMISSION_VALIDATION
+            this.source = DbAuditLogSource.INTERNAL
+            this.submissionId = submission.submissionId
+            this.evaluationId = submission.answerSets().first().task.evaluation.evaluationId
+            this.taskId = submission.answerSets().first().task.taskId /* TODO: Multiple verdicts. */
+            this.description = "Validator: ${validator::class.simpleName}, Verdict: ${submission.answerSets().first().status()}" /* TODO: Here name, there ID. Why? */
         }
     }
 
@@ -178,18 +164,15 @@ object AuditLogger {
      * @param api The [DbAuditLogSource]
      * @param sessionToken The identifier of the user session.
      */
-    fun overrideSubmission(submission: DbSubmission, api: DbAuditLogSource, sessionToken: SessionToken?) = this.store.transactional {
-        this.store.transactional {
-            DbAuditLogEntry.new {
-                this.type = DbAuditLogType.SUBMISSION_STATUS_OVERWRITE
-                this.source = api
-                this.timestamp = DateTime.now()
-                this.submissionId = submission.id
-                this.evaluationId = submission.answerSets.first().task.evaluation.evaluationId
-                this.taskId = submission.answerSets.first().task.id /* TODO: Multiple verdicts. */
-                this.description = "Verdict: ${submission.answerSets.first().status.description}"
-                this.session = sessionToken
-            }
+    fun overrideSubmission(submission: DbSubmission, api: DbAuditLogSource, sessionToken: SessionToken?) {
+        DbAuditLogEntry.new {
+            this.type = DbAuditLogType.SUBMISSION_STATUS_OVERWRITE
+            this.source = api
+            this.submissionId = submission.id
+            this.evaluationId = submission.answerSets.first().task.evaluation.evaluationId
+            this.taskId = submission.answerSets.first().task.id /* TODO: Multiple verdicts. */
+            this.description = "Verdict: ${submission.answerSets.first().status.description}"
+            this.session = sessionToken
         }
     }
 
@@ -200,11 +183,10 @@ object AuditLogger {
      * @param validator The [JudgementValidator] instance.
      * @param token The token generated by the judgement sub-system
      */
-    fun prepareJudgement(answerSet: AnswerSet, validator: JudgementValidator, token: String) = this.store.transactional {
+    fun prepareJudgement(answerSet: AnswerSet, validator: JudgementValidator, token: String) {
         DbAuditLogEntry.new {
             this.type = DbAuditLogType.PREPARE_JUDGEMENT
             this.source = DbAuditLogSource.INTERNAL
-            this.timestamp = DateTime.now()
             this.submissionId = answerSet.submission.submissionId
             this.evaluationId = answerSet.task.evaluation.evaluationId
             this.taskId = answerSet.task.taskId
@@ -222,11 +204,10 @@ object AuditLogger {
      * @param api The [DbAuditLogSource]
      * @param sessionToken The identifier of the user session.
      */
-    fun judgement(evaluationId: EvaluationId, validator: JudgementValidator, token: String, verdict: DbVerdictStatus, api: DbAuditLogSource, sessionToken: SessionToken?) = this.store.transactional {
+    fun judgement(evaluationId: EvaluationId, validator: JudgementValidator, token: String, verdict: DbVerdictStatus, api: DbAuditLogSource, sessionToken: SessionToken?) {
         DbAuditLogEntry.new {
             this.type = DbAuditLogType.JUDGEMENT
             this.source = api
-            this.timestamp = DateTime.now()
             this.evaluationId = evaluationId
             this.description = "Token: $token, Validator: ${validator.id}, Verdict: ${verdict.description}"
             this.session = sessionToken
@@ -240,11 +221,10 @@ object AuditLogger {
      * @param api The [DbAuditLogSource]
      * @param sessionToken The [SessionToken]
      */
-    fun login(userId: UserId, api: DbAuditLogSource, sessionToken: SessionToken) = this.store.transactional {
+    fun login(userId: UserId, api: DbAuditLogSource, sessionToken: SessionToken) {
         DbAuditLogEntry.new {
             this.type = DbAuditLogType.LOGIN
             this.source = api
-            this.timestamp = DateTime.now()
             this.userId = userId
             this.session = sessionToken
         }
@@ -257,11 +237,10 @@ object AuditLogger {
      * @param api The [DbAuditLogSource]
      * @param sessionToken The [SessionToken]
      */
-    fun logout(userId: UserId, api: DbAuditLogSource, sessionToken: SessionToken) = this.store.transactional {
+    fun logout(userId: UserId, api: DbAuditLogSource, sessionToken: SessionToken) {
         DbAuditLogEntry.new {
             this.type = DbAuditLogType.LOGOUT
             this.source = api
-            this.timestamp = DateTime.now()
             this.userId = userId
             this.session = sessionToken
         }

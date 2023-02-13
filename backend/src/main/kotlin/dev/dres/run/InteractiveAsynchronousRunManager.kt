@@ -13,7 +13,7 @@ import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.*
 import dev.dres.data.model.template.team.TeamId
-import dev.dres.run.audit.AuditLogger
+import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.score.ScoreTimePoint
@@ -662,7 +662,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
                 if (timeLeft <= 0) {
                     this.stateLock.write {
                         task.end()
-                        AuditLogger.taskEnd(this.id, task.id, DbAuditLogSource.INTERNAL, null)
+                        DbAuditLogger.taskEnd(this.id, task.id, DbAuditLogSource.INTERNAL, null)
                     }
 
                     /* Enqueue WS message for sending */
@@ -672,7 +672,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
                 val task = this.evaluation.currentTaskForTeam(team.teamId)
                     ?: throw IllegalStateException("Could not find active task for team ${team.teamId} despite status of the team being ${this.statusMap[team.teamId]}. This is a programmer's error!")
                 task.start()
-                AuditLogger.taskStart(this.id, task.teamId, task.template, DbAuditLogSource.REST, null)
+                DbAuditLogger.taskStart(this.id, task.teamId, task.template, DbAuditLogSource.REST, null)
                 this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.TASK_START), team.teamId)
             }
         }

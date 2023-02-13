@@ -1,12 +1,10 @@
 package dev.dres.run.validation.judged
 
 import dev.dres.data.model.submissions.*
-import dev.dres.run.audit.AuditLogger
+import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.exceptions.JudgementTimeoutException
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.run.validation.interfaces.SubmissionValidator
-import kotlinx.dnq.query.asSequence
-import kotlinx.dnq.query.first
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -132,7 +130,7 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
             val token = UUID.randomUUID().toString()
             this.waiting[token] = next
             this.timeouts.add((System.currentTimeMillis() + judgementTimeout) to token)
-            AuditLogger.prepareJudgement(next, this, token)
+            DbAuditLogger.prepareJudgement(next, this, token)
             Pair(token, next)
         } else {
             null

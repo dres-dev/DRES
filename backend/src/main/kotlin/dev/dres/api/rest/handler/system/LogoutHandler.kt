@@ -7,7 +7,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.audit.DbAuditLogSource
-import dev.dres.run.audit.AuditLogger
+import dev.dres.run.audit.DbAuditLogger
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -40,7 +40,7 @@ class LogoutHandler(private val store: TransientEntityStore) : RestHandler, GetR
         val username = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(400, "You are currently not logged in.", ctx)
         val userId = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(400, "You are currently not logged in.", ctx)
         return store.transactional {
-            AuditLogger.logout(userId, DbAuditLogSource.REST, ctx.sessionToken()!!)
+            DbAuditLogger.logout(userId, DbAuditLogSource.REST, ctx.sessionToken()!!)
             AccessManager.deregisterUserSession(ctx.sessionToken()!!)
 
             SuccessStatus("User '${username}' logged out successfully.")

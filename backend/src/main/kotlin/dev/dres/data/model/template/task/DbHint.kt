@@ -125,10 +125,11 @@ class DbHint(entity: Entity) : XdEntity(entity) {
                 } else {
                     throw IllegalArgumentException("A hint of type  ${this.type.description} must have a valid media item or external path.")
                 }
-                val data = Files.newInputStream(path, StandardOpenOption.READ).use { stream ->
-                    stream.readAllBytes()
+                if (Files.exists(path)) {
+                    Base64.getEncoder().encodeToString(Files.readAllBytes(path))
+                } else {
+                    ""
                 }
-                Base64.getEncoder().encodeToString(data)
             }
             DbHintType.EMPTY -> ""
             DbHintType.TEXT -> this.text ?: throw IllegalStateException("A hint of type  ${this.type.description} must have a valid text.")

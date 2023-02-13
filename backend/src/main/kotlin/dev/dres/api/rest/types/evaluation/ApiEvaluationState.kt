@@ -12,16 +12,16 @@ import dev.dres.run.*
  * @version 1.2.0
  */
 data class ApiEvaluationState(
-    val id: String,
-    val runStatus: RunManagerStatus, // FIXME non-api type exposed via api
-    val taskRunStatus: ApiTaskStatus,
-    val currentTask: ApiTaskTemplateInfo?,
+    val evaluationId: String,
+    val evaluationStatus: ApiEvaluationStatus,
+    val taskStatus: ApiTaskStatus,
+    val currentTemplate: ApiTaskTemplateInfo?,
     val timeLeft: Long,
     val timeElapsed: Long
 ) {
     constructor(run: InteractiveRunManager, context: RunActionContext) : this(
         run.id,
-        run.status,
+        run.status.toApi(),
         when(run.currentTask(context)?.status) {
             TaskStatus.CREATED -> ApiTaskStatus.CREATED
             TaskStatus.PREPARING -> ApiTaskStatus.PREPARING

@@ -13,7 +13,6 @@ import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.NonInteractiveEvaluation
 import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.run.interfaces.EvaluationRun
-import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.extensions.read
 import dev.dres.utilities.extensions.write
@@ -49,7 +48,7 @@ object RunExecutor : Consumer<WsConfig> {
     private val judgementValidators = LinkedList<JudgementValidator>()
 
     /** List of [WsContext] that are currently connected. */
-    private val connectedClients = HashSet<WebSocketConnection>()
+    private val connectedClients = HashMap<String,WebSocketConnection>()
 
     /** List of session IDs that are currently observing a competition. */
     private val observingClients = HashMap<EvaluationId, MutableSet<WebSocketConnection>>()
@@ -63,16 +62,12 @@ object RunExecutor : Consumer<WsConfig> {
     /** Internal array of [Future]s for cleaning after [RunManager]s. See [RunExecutor.cleanerThread]*/
     private val results = HashMap<Future<*>, EvaluationId>()
 
-    /** The [TransientEntityStore] instance used by this [DbAuditLogger]. */
-    private lateinit var store: TransientEntityStore
-
     /**
      * Initializes this [RunExecutor].
      *
      * @param store The shared [TransientEntityStore].
      */
     fun init(store: TransientEntityStore) {
-        this.store = store
         /* TODO: Schedule runs that have not ended
         *  this.runs.filter { !it.hasEnded }.forEach { //TODO needs more distinction
             schedule(it)
@@ -101,7 +96,7 @@ object RunExecutor : Consumer<WsConfig> {
      *
      * @param manager [RunManager] to execute.
      */
-    fun schedule(manager: RunManager) = this.runManagerLock.write {
+    private fun schedule(manager: RunManager) = this.runManagerLock.write {
         if (this.runManagers.containsKey(manager.id)) {
             throw IllegalArgumentException("This RunExecutor already runs a RunManager with the given ID ${manager.id}. The same RunManager cannot be executed twice!")
         }
@@ -163,17 +158,14 @@ object RunExecutor : Consumer<WsConfig> {
             /* Add WSContext to set of connected clients. */
             this@RunExecutor.clientLock.write {
                 val connection = WebSocketConnection(it)
-                //only keep connections from known users
-                if (connection.userName != WebSocketConnection.UNKNOWN_USER) {
-                    this.connectedClients.add(connection)
-                }
+                this.connectedClients[connection.httpSessionId] = connection
             }
         }
         t.onClose {
             val session = WebSocketConnection(it)
             this@RunExecutor.clientLock.write {
                 val connection = WebSocketConnection(it)
-                this.connectedClients.remove(connection)
+                this.connectedClients.remove(connection.httpSessionId)
                 this.runManagerLock.read {
                     for (m in this.runManagers) {
                         if (this.observingClients[m.key]?.contains(connection) == true) {
@@ -194,14 +186,14 @@ object RunExecutor : Consumer<WsConfig> {
             val session = WebSocketConnection(it)
             logger.debug("Received WebSocket message: $message from ${it.session.policy}")
             this.runManagerLock.read {
-                if (this.runManagers.containsKey(message.runId)) {
+                if (this.runManagers.containsKey(message.evaluationId)) {
                     when (message.type) {
                         ClientMessageType.ACK -> {}
-                        ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.add(WebSocketConnection(it)) }
-                        ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.runId]?.remove(WebSocketConnection(it)) }
-                        ClientMessageType.PING -> it.send(ServerMessage(message.runId, ServerMessageType.PING))
+                        ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.evaluationId]?.add(WebSocketConnection(it)) }
+                        ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.evaluationId]?.remove(WebSocketConnection(it)) }
+                        ClientMessageType.PING -> it.send(ServerMessage(message.evaluationId, ServerMessageType.PING))
                     }
-                    this.runManagers[message.runId]!!.wsMessageReceived(session, message) /* Forward message to RunManager. */
+                    this.runManagers[message.evaluationId]!!.wsMessageReceived(session, message) /* Forward message to RunManager. */
                 }
             }
         }
@@ -232,7 +224,7 @@ object RunExecutor : Consumer<WsConfig> {
      * @param message The [ServerMessage] that should be broadcast.
      */
     fun broadcastWsMessage(message: ServerMessage) = this.clientLock.read {
-        this.connectedClients.forEach {
+        this.connectedClients.values.forEach {
             it.send(message)
         }
     }
@@ -240,12 +232,12 @@ object RunExecutor : Consumer<WsConfig> {
     /**
      * Broadcasts a [ServerMessage] to all clients currently connected and observing a specific [RunManager].
      *
-     * @param evaluationId The run ID identifying the [RunManager] for which clients should received the message.
+     * @param evaluationId The [EvaluationId] identifying the [RunManager] for which clients should receive the message.
      * @param message The [ServerMessage] that should be broadcast.
      */
     fun broadcastWsMessage(evaluationId: EvaluationId, message: ServerMessage) = this.clientLock.read {
         this.runManagerLock.read {
-            this.connectedClients.filter {
+            this.connectedClients.values.filter {
                 this.observingClients[evaluationId]?.contains(it) ?: false
             }.forEach {
                 it.send(message)
@@ -263,12 +255,10 @@ object RunExecutor : Consumer<WsConfig> {
     fun broadcastWsMessage(evaluationId: EvaluationId, teamId: TeamId, message: ServerMessage) = this.clientLock.read {
         val manager = managerForId(evaluationId)
         if (manager != null) {
-            val teamMembers = this.store.transactional(true) {
-                manager.template.teams.filter { it.id eq teamId }.flatMapDistinct { it.users }.asSequence().map { it.userId }.toList()
-            }
+            val teamMembers = manager.template.teams.filter { it.id eq teamId }.flatMapDistinct { it.users }.asSequence().map { it.userId }.toList()
             this.runManagerLock.read {
-                this.connectedClients.filter {
-                    this.observingClients[evaluationId]?.contains(it) ?: false && AccessManager.userIdForSession(it.httpSessionId) in teamMembers
+                this.connectedClients.values.filter {
+                    this.observingClients[evaluationId]?.contains(it) ?: false && AccessManager.userIdForSession(it.sessionId) in teamMembers
                 }.forEach {
                     it.send(message)
                 }

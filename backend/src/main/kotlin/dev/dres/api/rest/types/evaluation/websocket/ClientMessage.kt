@@ -6,5 +6,5 @@ package dev.dres.api.rest.types.evaluation.websocket
  * @author Ralph Gasser
  * @version 1.0
  */
-data class ClientMessage(val runId: String, val type: ClientMessageType)
+data class ClientMessage(val evaluationId: String, val type: ClientMessageType)
 

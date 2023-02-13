@@ -1,10 +1,13 @@
 package dev.dres.api.rest.handler.evaluation.admin
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.api.rest.types.evaluation.ApiViewerInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.data.model.admin.DbUser
+import dev.dres.mgmt.admin.DbUserManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -34,6 +37,14 @@ class ListViewersHandler(store: TransientEntityStore): AbstractEvaluationAdminHa
     override fun doGet(ctx: Context): List<ApiViewerInfo> {
         val evaluationId = ctx.evaluationId()
         val evaluation = getManager(evaluationId) ?: throw ErrorStatusException(404, "Run $evaluationId not found", ctx)
-        return evaluation.viewers().map { ApiViewerInfo(it.key.sessionId, it.key.userName, it.key.host, it.value) }
+        return this.store.transactional(true) {
+            evaluation.viewers().map {
+                ApiViewerInfo(
+                    it.key.sessionId,
+                    DbUserManager.get(AccessManager.userIdForSession(it.key.httpSessionId))?.username ?: "UNKNOWN",
+                    it.key.host,
+                    it.value)
+            }
+        }
     }
 }

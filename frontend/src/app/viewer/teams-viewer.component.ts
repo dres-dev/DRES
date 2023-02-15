@@ -261,7 +261,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
    * Generates a URL for the logo of the team.
    */
   public teamLogo(teamId: string): string {
-    return this.config.resolveApiUrl(`/competition/logo/${teamId}`);
+    return this.config.resolveApiUrl(`/template/logo/${teamId}`);
   }
 
   /**

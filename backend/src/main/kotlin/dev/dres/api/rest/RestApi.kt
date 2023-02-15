@@ -101,6 +101,7 @@ object RestApi {
             UpdateMediaItemHandler(store),
             DeleteMediaItemHandler(store),
             RandomMediaItemHandler(store), // Must be before ListMediaItem
+            ShowMediaItemHandler(store),
             ResolveMediaItemListByNameHandler(store), // Must be before ListMediaItem
             ListMediaItemHandler(store),
             ListExternalItemHandler(config),

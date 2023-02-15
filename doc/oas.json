@@ -1,13 +1,13 @@
 {
   "openapi" : "3.0.3",
   "info" : {
-    "title" : null,
+    "title" : "DRES API",
     "summary" : null,
-    "description" : null,
+    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0",
     "termsOfService" : null,
     "contact" : null,
     "license" : null,
-    "version" : null
+    "version" : "2.0.0"
   },
   "paths" : {
     "/api/v2/audit/info" : {
@@ -3246,10 +3246,10 @@
       }
     },
     "/api/v2/mediaItem/{mediaId}" : {
-      "get" : {
+      "delete" : {
         "tags" : [ "Collection" ],
-        "summary" : "Selects and returns a specific media item.",
-        "operationId" : "getApiV2MediaItemByMediaId",
+        "summary" : "Tries to delete a specific media item.",
+        "operationId" : "deleteApiV2MediaItemByMediaId",
         "parameters" : [ {
           "name" : "mediaId",
           "in" : "path",
@@ -3267,7 +3267,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiMediaItem"
+                  "$ref" : "#/components/schemas/SuccessStatus"
                 }
               }
             }
@@ -3305,16 +3305,18 @@
         },
         "deprecated" : false,
         "security" : [ ]
-      },
-      "delete" : {
+      }
+    },
+    "/api/v2/mediaItem/{mediaItemId}" : {
+      "get" : {
         "tags" : [ "Collection" ],
-        "summary" : "Tries to delete a specific media item.",
-        "operationId" : "deleteApiV2MediaItemByMediaId",
+        "summary" : "Selects and returns a specific media item.",
+        "operationId" : "getApiV2MediaItemByMediaItemId",
         "parameters" : [ {
-          "name" : "mediaId",
+          "name" : "mediaItemId",
           "in" : "path",
-          "description" : "Media item ID",
-          "required" : false,
+          "description" : "Media item ID.",
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3327,7 +3329,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
+                  "$ref" : "#/components/schemas/ApiMediaItem"
                 }
               }
             }

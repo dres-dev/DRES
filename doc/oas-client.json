@@ -1,13 +1,13 @@
 {
   "openapi" : "3.0.3",
   "info" : {
-    "title" : null,
+    "title" : "DRES API (client)",
     "summary" : null,
-    "description" : null,
+    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 1.0",
     "termsOfService" : null,
     "contact" : null,
     "license" : null,
-    "version" : null
+    "version" : "1.0"
   },
   "paths" : {
     "/api/v2/client/evaluation/currentTask/{evaluationId}" : {

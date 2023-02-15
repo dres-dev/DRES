@@ -15,18 +15,18 @@ import kotlinx.dnq.query.query
 /**
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.0.0
  */
 class ShowMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), GetRestHandler<ApiMediaItem> {
-    override val route: String = "mediaItem/{mediaId}"
+    override val route: String = "mediaItem/{mediaItemId}"
 
     @OpenApi(
         summary = "Selects and returns a specific media item.",
-        path = "/api/v2/mediaItem/{mediaId}",
+        path = "/api/v2/mediaItem/{mediaItemId}",
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.GET],
         pathParams = [
-            OpenApiParam("mediaId", String::class, "Media item ID")
+            OpenApiParam("mediaItemId", String::class, "Media item ID.", required = true, allowEmptyValue = false)
         ],
         tags = ["Collection"],
         responses = [
@@ -37,8 +37,8 @@ class ShowMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHand
         ]
     )
     override fun doGet(ctx: Context): ApiMediaItem {
-        val mediaId = ctx.pathParamMap().getOrElse("mediaId") {
-            throw ErrorStatusException(404, "Parameter 'mediaId' is missing!'", ctx)
+        val mediaId = ctx.pathParamMap().getOrElse("mediaItemId") {
+            throw ErrorStatusException(404, "Parameter 'mediaItemId' is missing!'", ctx)
         }
 
         return this.store.transactional(true) {

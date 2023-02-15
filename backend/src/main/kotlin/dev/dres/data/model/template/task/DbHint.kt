@@ -15,6 +15,7 @@ import kotlinx.dnq.simple.requireIf
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 
@@ -115,6 +116,7 @@ class DbHint(entity: Entity) : XdEntity(entity) {
      * @throws IOException
      */
     fun toQueryContentElement(config: Config): ApiContentElement {
+        val cacheLocation: Path = Paths.get(config.cachePath, "tasks")
         val content = when (this.type) {
             DbHintType.IMAGE -> {
                 val filePath = this.item?.pathToOriginal() ?: this.path?.let { Paths.get(it) }
@@ -125,7 +127,7 @@ class DbHint(entity: Entity) : XdEntity(entity) {
                 }
             }
             DbHintType.VIDEO -> {
-                val filePath = this.item?.cachedItemName(this.temporalRangeStart, this.temporalRangeEnd)?.let { Paths.get(config.cachePath, it) } ?: this.path?.let { Paths.get(it) }
+                val filePath = this.item?.cachedItemName(this.temporalRangeStart, this.temporalRangeEnd)?.let { cacheLocation.resolve(it) } ?: this.path?.let { Paths.get(it) }
                 if (Files.exists(filePath)) {
                     Base64.getEncoder().encodeToString(Files.readAllBytes(filePath))
                 } else {

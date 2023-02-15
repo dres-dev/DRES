@@ -92,7 +92,7 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
                 val cachePath = this.cacheLocation.resolve(cacheName)
                 if (!Files.exists(cachePath)) {
                     logger.warn("Query video file for item ${item.name} not found; rendering to $cachePath")
-                    FFmpegUtil.extractSegment(item, it.second, cachePath)
+                    FFmpegUtil.extractSegment(item, it.second, this.cacheLocation)
                 }
             }
 

@@ -304,7 +304,7 @@ export class CompetitionFormBuilder {
     /* Load media item from API. */
     if (initialize?.target && this.data?.collectionId) {
       this.collectionService
-        .getApiV2MediaItemByMediaId(initialize?.target)
+        .getApiV2MediaItemByMediaItemId(initialize?.target)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);
@@ -337,7 +337,7 @@ export class CompetitionFormBuilder {
     /* Load media item from API. */
     if (initialize?.target && this.data.collectionId) {
       this.collectionService
-        .getApiV2MediaItemByMediaId(initialize.target)
+        .getApiV2MediaItemByMediaItemId(initialize.target)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);
@@ -390,11 +390,10 @@ export class CompetitionFormBuilder {
       for (const component of this.data.hints) {
         const index = this.data.hints.indexOf(component);
         switch (component.type) {
-          // FIXME handle external video / external image
-          case 'VIDEO':
+          case 'IMAGE':
             array.push(this.imageItemComponentForm(index, component));
             break;
-          case 'IMAGE':
+          case 'VIDEO':
             array.push(this.videoItemComponentForm(index, component));
             break;
           case 'TEXT':
@@ -442,7 +441,7 @@ export class CompetitionFormBuilder {
     /* Load media item from API. */
     if (initialize?.mediaItem && this.data?.collectionId) {
       this.collectionService
-        .getApiV2MediaItemByMediaId(initialize?.mediaItem)
+        .getApiV2MediaItemByMediaItemId(initialize?.mediaItem)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);
@@ -492,7 +491,7 @@ export class CompetitionFormBuilder {
     /* Load media item from API. */
     if (initialize?.mediaItem && this.data?.collectionId) {
       this.collectionService
-        .getApiV2MediaItemByMediaId(initialize.mediaItem)
+        .getApiV2MediaItemByMediaItemId(initialize.mediaItem)
         .pipe(first())
         .subscribe((s) => {
           mediaItemFormControl.setValue(s);

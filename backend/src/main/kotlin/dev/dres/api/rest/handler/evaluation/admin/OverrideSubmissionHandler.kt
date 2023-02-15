@@ -8,7 +8,7 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.DbVerdictStatus
-import dev.dres.run.audit.AuditLogger
+import dev.dres.run.audit.DbAuditLogger
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.BadRequestResponse
@@ -72,7 +72,7 @@ class OverrideSubmissionHandler(store: TransientEntityStore): AbstractEvaluation
             }
             if (evaluationManager.updateSubmission(rac, submissionInfo.submissionId, submissionInfo.answers.first().status.toDb())) {
                 val submission = evaluationManager.allSubmissions(rac).single { it.id == submissionInfo.submissionId }
-                AuditLogger.overrideSubmission(submission, DbAuditLogSource.REST, ctx.sessionToken())
+                DbAuditLogger.overrideSubmission(submission, DbAuditLogSource.REST, ctx.sessionToken())
                 submission.toApi()
             } else {
                 throw ErrorStatusException(500, "Could not update the submission. Please see the backend's log.", ctx)

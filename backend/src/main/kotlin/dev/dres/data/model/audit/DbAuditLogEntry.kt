@@ -7,12 +7,18 @@ import kotlinx.dnq.XdNaturalEntityType
 import kotlinx.dnq.xdLink1
 import kotlinx.dnq.xdRequiredDateTimeProp
 import kotlinx.dnq.xdStringProp
+import org.joda.time.DateTime
 
 /**
  *
  */
 class DbAuditLogEntry(entity: Entity): PersistentEntity(entity) {
     companion object : XdNaturalEntityType<DbAuditLogEntry>()
+
+    override fun constructor() {
+        super.constructor()
+        this.timestamp = DateTime.now()
+    }
 
     /** The type of [DbAuditLogEntry]. */
     var type by xdLink1(DbAuditLogType)

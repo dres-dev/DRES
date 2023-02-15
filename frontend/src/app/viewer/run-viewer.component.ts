@@ -41,7 +41,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
   webSocket: Observable<IWsServerMessage>;
 
   /** Observable for current run ID. */
-  runId: Observable<string>;
+  evaluationId: Observable<string>;
 
   /** Observable for information about the current run. Usually queried once when the view is loaded. */
   runInfo: Observable<ApiEvaluationInfo>;
@@ -99,7 +99,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     } as WebSocketSubjectConfig<IWsMessage>);
 
     /** Observable for the current run ID. */
-    this.runId = this.activeRoute.params.pipe(
+    this.evaluationId = this.activeRoute.params.pipe(
       map((a) => {
         /* A hack since our custom url serializer kicks in too late */
         if (a.runId.includes(';')) {
@@ -132,9 +132,9 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     );
 
     /* Basic observable for general run info; this information is static and does not change over the course of a run. */
-    this.runInfo = this.runId.pipe(
-      switchMap((runId) =>
-        this.runService.getApiV2EvaluationByEvaluationIdInfo(runId).pipe(
+    this.runInfo = this.evaluationId.pipe(
+      switchMap((evaluationId) =>
+        this.runService.getApiV2EvaluationByEvaluationIdInfo(evaluationId).pipe(
           catchError((err, o) => {
             console.log(
               `[RunViewerComponent] There was an error while loading information in the current run: ${err?.message}`
@@ -154,17 +154,17 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     );
 
     /* Basic observable for web socket messages received from the DRES server. */
-    this.webSocket = this.runId.pipe(
-      flatMap((runId) =>
+    this.webSocket = this.evaluationId.pipe(
+      flatMap((evaluationId) =>
         this.webSocketSubject
           .multiplex(
             () => {
-              return { runId, type: 'REGISTER' } as IWsClientMessage;
+              return { evaluationId: evaluationId, type: 'REGISTER' } as IWsClientMessage;
             },
             () => {
-              return { runId, type: 'UNREGISTER' } as IWsClientMessage;
+              return { evaluationId: evaluationId, type: 'UNREGISTER' } as IWsClientMessage;
             },
-            (message) => message.runId === runId || message.runId === null
+            (message) => message.evaluationId === evaluationId || message.evaluationId === null
           )
           .pipe(
             retryWhen((err) =>
@@ -194,12 +194,12 @@ export class RunViewerComponent implements OnInit, OnDestroy {
      */
     const wsMessages = this.webSocket.pipe(
       filter((m) => m.type !== 'PING') /* Filter out ping messages. */,
-      map((b) => b.runId)
+      map((b) => b.evaluationId)
     );
-    this.runState = merge(this.runId, wsMessages).pipe(
+    this.runState = merge(this.evaluationId, wsMessages).pipe(
       sampleTime(500) /* State updates are triggered only once every 500ms. */,
-      switchMap((runId) =>
-        this.runService.getApiV2EvaluationByEvaluationIdState(runId).pipe(
+      switchMap((evaluationId) =>
+        this.runService.getApiV2EvaluationByEvaluationIdState(evaluationId).pipe(
           catchError((err, o) => {
             console.log(
               `[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`
@@ -221,24 +221,24 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     /* Basic observable that fires when a task starts.  */
     this.taskStarted = this.runState.pipe(
       pairwise(),
-      filter(([s1, s2]) => (s1 === null || s1.taskRunStatus === 'PREPARING') && s2.taskRunStatus === 'RUNNING'),
-      map(([s1, s2]) => s2.currentTask),
+      filter(([s1, s2]) => (s1 === null || s1.taskStatus === 'PREPARING') && s2.taskStatus === 'RUNNING'),
+      map(([s1, s2]) => s2.currentTemplate),
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
     /* Basic observable that fires when a task ends.  */
     this.taskEnded = merge(of(null as ApiEvaluationState), this.runState).pipe(
       pairwise(),
-      filter(([s1, s2]) => (s1 === null || s1.taskRunStatus === 'RUNNING') && s2.taskRunStatus === 'ENDED'),
-      map(([s1, s2]) => s2.currentTask),
+      filter(([s1, s2]) => (s1 === null || s1.taskStatus === 'RUNNING') && s2.taskStatus === 'ENDED'),
+      map(([s1, s2]) => s2.currentTemplate),
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
     /* Observable that tracks the currently active task. */
     this.taskChanged = merge(of(null as ApiEvaluationState), this.runState).pipe(
       pairwise(),
-      filter(([s1, s2]) => s1 === null || s1.currentTask.name !== s2.currentTask.name),
-      map(([s1, s2]) => s2.currentTask),
+      filter(([s1, s2]) => s1 === null || s1.currentTemplate.name !== s2.currentTemplate.name),
+      map(([s1, s2]) => s2.currentTemplate),
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
@@ -254,8 +254,8 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     /* Register WebSocket ping. */
     this.pingSubscription = interval(5000)
       .pipe(
-        withLatestFrom(this.runId),
-        tap(([i, runId]) => this.webSocketSubject.next({ runId: runId, type: 'PING' } as IWsClientMessage))
+        withLatestFrom(this.evaluationId),
+        tap(([i, evaluationId]) => this.webSocketSubject.next({ evaluationId: evaluationId, type: 'PING' } as IWsClientMessage))
       )
       .subscribe();
   }

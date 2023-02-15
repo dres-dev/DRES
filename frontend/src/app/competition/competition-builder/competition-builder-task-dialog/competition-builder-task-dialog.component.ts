@@ -142,7 +142,9 @@ export class CompetitionBuilderTaskDialogComponent {
    * Handler for 'save' button.
    */
   public save() {
+    console.log(this.builder.fetchFormData())
     if (this.form.valid) {
+      console.log("Valid!")
       this.dialogRef.close(this.builder.fetchFormData());
     }
   }

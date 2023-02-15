@@ -22,13 +22,13 @@ import java.util.UUID
  * @version 2.0.0
  */
 data class ApiSubmission(
+    override val submissionId: SubmissionId = UUID.randomUUID().toString(), //TODO is there a use case where this needs to be settable via an API request?
     override val teamId: String,
-    val teamName: String,
     override val memberId: String,
+    val teamName: String,
     val memberName: String,
     val answers: List<ApiAnswerSet>,
-    override val timestamp: Long = System.currentTimeMillis(),
-    override val submissionId: SubmissionId = UUID.randomUUID().toString() //TODO is there a use case where this needs to be settable via an API request?
+    override val timestamp: Long = System.currentTimeMillis()
 ) : Submission {
 
     init {

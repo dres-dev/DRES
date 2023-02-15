@@ -18,22 +18,16 @@ value class WebSocketConnection(val context: WsContext) {
 
     companion object {
         val jsonMapper = jacksonObjectMapper()
-
         const val UNKNOWN_USER = "UNKNOWN"
-
     }
 
     /** ID of the WebSocket session. */
     val sessionId
-        get() = context.sessionId
+        get() = this.context.sessionId
 
     /** ID of the HTTP session that generated this [WebSocketConnection]. */
-    val httpSessionId
-        get() = (this.context.session as Session).id
-
-    /** Name of the user that generated this [WebSocketConnection]. */
-    val userName
-        get() = DbUserManager.get(AccessManager.userIdForSession(this.httpSessionId))?.username ?: UNKNOWN_USER
+    val httpSessionId: String
+        get() = this.context.cookie("SESSIONID") ?: throw IllegalStateException("Unable to obtain HTTP Session ID associated with WebSocket connection request.")
 
     /** IP address of the client. */
     val host: String
@@ -44,7 +38,6 @@ value class WebSocketConnection(val context: WsContext) {
             } else {
                 this.context.host()
             }
-
         }
 
     /**

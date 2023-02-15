@@ -5,7 +5,7 @@
         <mat-card-title>
           <app-back-button forceBack="true"></app-back-button>Viewer for '{{ (runInfo | async)?.name }}'
         </mat-card-title>
-        <mat-card-subtitle><strong>Description:</strong> {{ (runInfo | async)?.description }}</mat-card-subtitle>
+        <mat-card-subtitle><strong>Description:</strong> {{ (runInfo | async)?.templateDescription }}</mat-card-subtitle>
 
         <div class="spacer-flex"></div>
 
@@ -84,7 +84,7 @@
     >
       <app-task-viewer
         *ngSwitchCase="'player'"
-        [runId]="runId"
+        [evaluationId]="evaluationId"
         [state]="runState"
         [taskChanged]="taskChanged"
         [taskStarted]="taskStarted"
@@ -107,13 +107,13 @@
 
     <div
       class="main"
-      *ngIf="(centerWidget | async) != null"
+      *ngIf="(centerWidget | async) !== null"
       [ngSwitch]="(centerWidget | async)?.name"
       [style.width]="centerWidgetWidth() | async"
     >
       <app-task-viewer
         *ngSwitchCase="'player'"
-        [runId]="runId"
+        [evaluationId]="evaluationId"
         [state]="runState"
         [taskChanged]="taskChanged"
         [taskStarted]="taskStarted"
@@ -136,13 +136,13 @@
 
     <div
       class="right"
-      *ngIf="(rightWidget | async) != null"
+      *ngIf="(rightWidget | async) !== null"
       [ngSwitch]="(rightWidget | async)?.name"
       [style.width]="rightWidgetWidth() | async"
     >
       <app-task-viewer
         *ngSwitchCase="'player'"
-        [runId]="runId"
+        [evaluationId]="evaluationId"
         [state]="runState"
         [taskChanged]="taskChanged"
         [taskStarted]="taskStarted"
@@ -167,7 +167,7 @@
   <div class="footer" *ngIf="bottomWidget | async" [ngSwitch]="(bottomWidget | async)?.name">
     <app-teams-viewer
       *ngSwitchCase="'team_score'"
-      [runId]="runId"
+      [runId]="evaluationId"
       [taskEnded]="taskEnded"
       [info]="runInfo"
       [state]="runState"

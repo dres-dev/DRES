@@ -101,7 +101,7 @@ object DbUserManager {
      * @return True on success, false otherwise.
      */
     fun update(id: UserId?, request: UserRequest): Boolean
-        = update(id = id, username = request.username, password = request.password?.let { Password.Plain(it) }, role = request.role?.toDb())
+        = update(id = id, username = request.username, password = request.password?.let { if (it.isNotBlank()) Password.Plain(it) else null }, role = request.role?.toDb())
 
     /**
      * Deletes the [DbUser] for the given [UserId].

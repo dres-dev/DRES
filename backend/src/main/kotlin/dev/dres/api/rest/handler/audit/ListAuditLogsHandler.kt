@@ -10,6 +10,7 @@ import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.drop
+import kotlinx.dnq.query.sortedBy
 import kotlinx.dnq.query.take
 
 /**
@@ -50,6 +51,6 @@ class ListAuditLogsHandler(store: TransientEntityStore) : AbstractAuditLogHandle
     override fun doGet(ctx: Context): List<ApiAuditLogEntry> = this.store.transactional(true) {
         val limit = (ctx.pathParamMap()[LIMIT_PARAM]?.toIntOrNull() ?: DEFAULT_LIMIT).coerceAtLeast(0)
         val index = (ctx.pathParamMap()[PAGE_INDEX_PARAM]?.toIntOrNull() ?: 0).coerceAtLeast(0)
-        DbAuditLogEntry.all().drop(index * limit).take(limit).asSequence().map { it.toApi() }.toList()
+        DbAuditLogEntry.all().sortedBy(DbAuditLogEntry::timestamp, asc = false).drop(index * limit).take(limit).asSequence().map { it.toApi() }.toList()
     }
 }

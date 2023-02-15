@@ -8,7 +8,7 @@ import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.DbEvaluation
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.run.audit.AuditLogger
+import dev.dres.run.audit.DbAuditLogger
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
@@ -55,7 +55,7 @@ class StartTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHand
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             try {
                 evaluationManager.startTask(rac)
-                AuditLogger.taskStart(evaluationManager.id, evaluationManager.currentTask(rac)!!.id, evaluationManager.currentTaskTemplate(rac), DbAuditLogSource.REST, ctx.sessionToken())
+                DbAuditLogger.taskStart(evaluationManager.id, evaluationManager.currentTask(rac)!!.id, evaluationManager.currentTaskTemplate(rac), DbAuditLogSource.REST, ctx.sessionToken())
                 SuccessStatus("Task '${evaluationManager.currentTaskTemplate(rac).name}' for evaluation $evaluationId was successfully started.")
             } catch (e: IllegalStateException) {
                 throw ErrorStatusException(400, e.message ?: "", ctx)

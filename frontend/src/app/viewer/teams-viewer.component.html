@@ -5,38 +5,36 @@
         *ngFor="let team of (info | async)?.teams"
         [style.background-color]="team.color + '44'"
         class="tile"
-        [@highlight]="(highlight | async).get(team.uid)"
+        [@highlight]="(highlight | async).get(team.id)"
         (@highlight.done)="resetHighlight.next()"
       >
         <h3 [style.text-align]="'center'">{{ team.name }}</h3>
 
         <div></div>
         <div [style.background-color]="team.color" class="logo">
-          <img src="{{ teamLogo(team) }}" />
+          <img src="{{ teamLogo(team.id) }}" />
         </div>
-        <div *ngIf="(state | async)?.taskRunStatus === 'ENDED' || (state | async)?.taskRunStatus === 'RUNNING'">
+        <div *ngIf="(state | async)?.taskStatus === 'ENDED' || (state | async)?.taskStatus === 'RUNNING'">
           <p class="score" *ngIf="scores | async">
-            {{ (scores | async).get(team.uid) | number: '1.0-0' }}
+            {{ (scores | async).get(team.id) | number: '1.0-0' }}
           </p>
 
           <p class="counter">
-            <span class="CORRECT">{{ correctSubmissions(team.uid) | async }}</span> |
-            <span class="WRONG">{{ wrongSubmissions(team.uid) | async }}</span> |
-            <span class="INDETERMINATE">{{ indeterminate(team.uid) | async }}</span>
+            <span class="CORRECT">{{ correctSubmissions(team.id) | async }}</span> |
+            <span class="WRONG">{{ wrongSubmissions(team.id) | async }}</span> |
+            <span class="INDETERMINATE">{{ indeterminate(team.id) | async }}</span>
           </p>
 
           <div class="submissions">
-            <div *ngFor="let submission of submissionForTeam(team.uid) | async; trackBy:trackSubmission" [className]="'submission ' + submission.status">
-              <img
-                *ngIf="submission.id"
-                [src]="previewForSubmission(submission) | async"
-                [matTooltip]="tooltipForSubmission(submission)"
-              />
-              <p *ngIf="!submission.id">?</p>
+            <div *ngFor="let answer of submissionPreviews(team.id) | async; trackBy: previewById" [className]="'submission ' + answer.status">
+              <div [ngSwitch]="answer.type">
+                <img *ngSwitchCase="'ITEM'" src="{{previewOfItem(answer.previewItem, answer.previewStart, answer.previewEnd)}}" alt="Preview for submission {{answer.submissionId}}." />
+                <img *ngSwitchCase="'TEMPORAL'" src="{{previewOfItem(answer.previewItem, answer.previewStart, answer.previewEnd)}}" alt="Preview for submission {{answer.submissionId}}." />
+                <p *ngSwitchCase="'TEXT'">{{ answer.previewText }}</p>
+              </div>
             </div>
           </div>
         </div>
-
         <audio #audio [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
       </div>
     </div>

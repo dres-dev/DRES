@@ -3,7 +3,6 @@ package dev.dres.api.rest.handler.submission
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.PostRestHandler
-import dev.dres.api.rest.types.competition.ApiEvaluationStartMessage
 import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.api.rest.types.evaluation.ApiVerdictStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
@@ -12,12 +11,8 @@ import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.Config
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.submissions.VerdictStatus
-import dev.dres.data.model.template.task.options.DbTaskOption
-import dev.dres.run.InteractiveRunManager
-import dev.dres.run.NonInteractiveRunManager
-import dev.dres.run.audit.AuditLogger
+import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionRejectedException
@@ -26,8 +21,6 @@ import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
 import jetbrains.exodus.database.TransientEntityStore
-import kotlinx.dnq.query.contains
-import kotlinx.dnq.query.first
 import org.slf4j.LoggerFactory
 
 class SubmissionHandler(private val store: TransientEntityStore, private val config: Config): PostRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
@@ -69,7 +62,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
                 throw ErrorStatusException(400, "Run manager does not know the given teamId ${rac.teamId}.", ctx)
             }
 
-            AuditLogger.submission(apiSubmission, DbAuditLogSource.REST, ctx.sessionToken(), ctx.req().remoteAddr)
+            DbAuditLogger.submission(apiSubmission, DbAuditLogSource.REST, ctx.sessionToken(), ctx.req().remoteAddr)
 
             logger.info("Submission ${apiSubmission.submissionId} received status $result.")
 

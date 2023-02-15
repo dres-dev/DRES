@@ -101,7 +101,7 @@ export class RunAdminViewComponent {
 
     /** Observable for list of submissions for current task. */
     this.submissionsForCurrentTask = this.run.pipe(
-        switchMap(s => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(s.info.id, s.state.currentTask.templateId).pipe(
+        switchMap(s => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdSubmissionListByTemplateId(s.info.id, s.state.currentTemplate.templateId).pipe(
             catchError((err, o) => {
               console.log(`[RunAdminViewComponent] There was an error while submissions for the running task: ${err?.message}`);
               return of(null);
@@ -110,9 +110,9 @@ export class RunAdminViewComponent {
             map((submissions: Array<ApiSubmissionInfo>) => {
               const map = new Map<string,number>();
               if (submissions.length > 0) {
-                map.set(s.state.currentTask.templateId, submissions[submissions.length - 1].submissions.length);
+                map.set(s.state.currentTemplate.templateId, submissions[submissions.length - 1].submissions.length);
               } else {
-                map.set(s.state.currentTask.templateId, 0);
+                map.set(s.state.currentTemplate.templateId, 0);
               }
               return map;
             })

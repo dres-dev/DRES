@@ -6,9 +6,11 @@ import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.template.TemplateId
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.filter.SubmissionFilter
 import kotlinx.dnq.query.*
+import java.lang.IndexOutOfBoundsException
 
 /**
  * Represents a concrete, interactive and synchronous [Run] of a [DbEvaluationTemplate].
@@ -46,14 +48,34 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
     }.toMutableList()
 
     /** Reference to the currently active [DbTaskTemplate]. This is part of the task navigation. */
-    var currentTaskTemplate = this.description.tasks.first()
+    private val templates = this.description.tasks.asSequence().map { it.templateId }.toList()
+
+    /** The index of the task template this [InteractiveSynchronousEvaluation] is pointing to. */
+    var templateIndex: Int = 0
         private set
 
     /** Returns the last [TaskRun]. */
     val currentTask: AbstractInteractiveTask?
-        get() = this.tasks.firstOrNull { it.template.id == this.currentTaskTemplate.id }
+        get() = this.tasks.lastOrNull { it.templateId == this.templates[this.templateIndex] }
 
-    override fun toString(): String = "InteractiveSynchronousCompetition(id=$id, name=${name})"
+
+    /**
+     * Returns the [TemplateId] this [InteractiveSynchronousEvaluation] is currently pointing to.
+     *
+     * @return [TemplateId]
+     */
+    fun getCurrentTemplateId(): TemplateId = this.templates[this.templateIndex]
+
+    /**
+     * Returns the [DbTaskTemplate] this [InteractiveSynchronousEvaluation] is currently pointing to.
+     *
+     * Requires an active database transaction.
+     *
+     * @return [DbTaskTemplate]
+     */
+    fun getCurrentTemplate(): DbTaskTemplate = this.evaluation.template.tasks.filter {
+        it.id eq this@InteractiveSynchronousEvaluation.getCurrentTemplateId()
+    }.first()
 
     /**
      * Moves this [InteractiveSynchronousEvaluation] to the given task index.
@@ -61,8 +83,12 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
      * @param index The new task index to move to.
      */
     fun goTo(index: Int) {
-        this.currentTaskTemplate = this.description.tasks.drop(index).first()
+        if (index < 0) throw IndexOutOfBoundsException("The template index must be greater or equal to zero.")
+        if (index >= this.templates.size) throw IndexOutOfBoundsException("The template index cannot exceed the number of templates.")
+        this.templateIndex = index
     }
+
+    override fun toString(): String = "InteractiveSynchronousCompetition(id=$id, name=${name})"
 
     /**
      * Represents a concrete [Run] of a [DbTaskTemplate]. [DbTask]s always exist within a [InteractiveSynchronousEvaluation].

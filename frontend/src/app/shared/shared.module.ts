@@ -10,6 +10,8 @@ import { DownloadButtonComponent } from './download-button/download-button.compo
 import { UploadJsonButtonComponent } from './upload-json-button/upload-json-button.component';
 import { ConfirmationDialogComponent } from './confirmation-dialog/confirmation-dialog.component';
 import { MatDialogModule } from '@angular/material/dialog';
+import { DynamicTableComponent } from './dynamic-table/dynamic-table.component';
+import {MatTableModule} from '@angular/material/table';
 
 @NgModule({
   declarations: [
@@ -18,6 +20,7 @@ import { MatDialogModule } from '@angular/material/dialog';
     DownloadButtonComponent,
     UploadJsonButtonComponent,
     ConfirmationDialogComponent,
+    DynamicTableComponent,
   ],
   exports: [
     BackButtonComponent,
@@ -28,6 +31,6 @@ import { MatDialogModule } from '@angular/material/dialog';
     DownloadButtonComponent,
     UploadJsonButtonComponent,
   ],
-  imports: [CommonModule, MatButtonModule, ServicesModule, MatIconModule, MatTooltipModule, MatDialogModule],
+  imports: [CommonModule, MatButtonModule, ServicesModule, MatIconModule, MatTooltipModule, MatDialogModule, MatTableModule],
 })
 export class SharedModule {}

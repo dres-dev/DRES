@@ -4,19 +4,35 @@ import {TemplateInformationComponent} from './template-information/template-info
 import {ReactiveFormsModule} from '@angular/forms';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
+import { JudgesListComponent } from './judges-list/judges-list.component';
+import {FlexModule} from '@angular/flex-layout';
+import {MatButtonModule} from '@angular/material/button';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatIconModule} from '@angular/material/icon';
+import {MatMenuModule} from '@angular/material/menu';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
+import {MatTableModule} from '@angular/material/table';
 
 
 @NgModule({
     declarations: [
-        TemplateInformationComponent
+        TemplateInformationComponent,
+        JudgesListComponent
     ],
     imports: [
         CommonModule,
         ReactiveFormsModule,
         MatFormFieldModule,
-        MatInputModule
+        MatInputModule,
+        FlexModule,
+        MatButtonModule,
+        MatTooltipModule,
+        MatIconModule,
+        MatMenuModule,
+        MatAutocompleteModule,
+        MatTableModule
     ],
-    exports: [TemplateInformationComponent]
+    exports: [TemplateInformationComponent, JudgesListComponent]
 })
 export class TemplateBuilderComponentsModule {
 }

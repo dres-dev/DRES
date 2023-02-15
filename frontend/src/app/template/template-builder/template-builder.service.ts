@@ -34,7 +34,8 @@ export class TemplateBuilderService {
     return this.templateSubject.asObservable();
   }
 
-  public update(template: ApiEvaluationTemplate){
+  public update(template: ApiEvaluationTemplate = null){
+    template = template ? template : this.templateSubject.getValue();
     this.templateSubject.next(template);
     this.markDirty();
   }
@@ -46,7 +47,7 @@ export class TemplateBuilderService {
   }
 
   public hasTemplate(){
-    return this.templateSubject != undefined;
+    return this.templateSubject != undefined && this.templateSubject.getValue();
   }
 
   public clear(){

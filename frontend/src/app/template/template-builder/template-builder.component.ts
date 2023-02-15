@@ -61,7 +61,9 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
   }
 
   downloadProvider = () => {
-    return this.downloadService.getApiV2DownloadTemplateByTemplateId(this.builderService.getTemplate()?.id).pipe(take(1));
+    if(this.builderService.hasTemplate()){
+      return this.downloadService.getApiV2DownloadTemplateByTemplateId(this.builderService.getTemplate()?.id).pipe(take(1));
+    }
   }
 
   public save(){

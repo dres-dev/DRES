@@ -24,7 +24,7 @@
         <app-download-button
                 [name]="''"
                 [fileName]="fileProvider"
-                [downloadProvider]="downloadProvider"
+                [downloadProvider]="downloadProvider()"
                 matTooltip="Download the entire competition as JSON"></app-download-button>
     </div>
 </div>
@@ -34,7 +34,10 @@
             <app-template-information></app-template-information>
         </mat-tab>
         <mat-tab bodyClass="p2e" label="Teams & Judges">
-            teams judges
+            <div fxLayout="row" fxLayoutAlign="space-between start">
+                <p fxFlex="68">TEAMS</p>
+                <app-judges-list fxFlex="28"></app-judges-list>
+            </div>
         </mat-tab>
         <mat-tab bodyClass="p2e" label="Task Types & Task Groups">
             types and groups

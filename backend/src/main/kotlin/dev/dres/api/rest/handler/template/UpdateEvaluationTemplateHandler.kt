@@ -21,8 +21,11 @@ import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.creator.findOrNew
 import kotlinx.dnq.query.*
+import java.awt.Image
+import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
-import java.util.UUID
+import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
 
 /**
  * A [AbstractEvaluationTemplateHandler] that can be used to create a new [DbEvaluationTemplate].
@@ -168,9 +171,16 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 } else {
                     DbTeam.new()
                 }
+
                 t.name = team.name ?: throw ErrorStatusException(404, "Team name must be specified.", ctx)
                 t.color = team.color ?: throw ErrorStatusException(404, "Team colour must be specified.", ctx)
-                t.logo = team.logoData?.drop("data:image/png;base64,".length)?.decodeBase64()?.let { ByteArrayInputStream(it) } /* TODO: Generalize! Should also work with other types than PNG. */
+
+                /* Process logo data. */
+                val logoData = team.logoData?.let { submitted -> ByteArrayInputStream(this.normalizeLogo(submitted)) }
+                if (logoData != null) {
+                    t.logo = logoData
+                }
+
                 t.users.clear()
                 t.users.addAll(DbUser.query(DbUser::id.containsIn(*team.users.map { it.id }.toTypedArray())))
 
@@ -204,6 +214,37 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
             existing.judges.addAll(DbUser.query(DbUser::id.containsIn(*apiValue.judges.toTypedArray())))
         }
         return SuccessStatus("Competition with ID ${apiValue.id} was updated successfully.")
+    }
+
+    /**
+     * Tries to normalize the logo data to a PNG image of a given size.
+     *
+     * @param submittedData The submitted data as base 64 encoded string.
+     * @return [ByteArray] representation of the normalized log.
+     */
+    private fun normalizeLogo(submittedData: String): ByteArray? {
+        /* Try to read image. */
+        val image: BufferedImage = submittedData.drop(submittedData.indexOf(',') + 1).decodeBase64().let {
+            try {
+                ImageIO.read(ByteArrayInputStream(it))
+            }  catch (e: Exception) {
+                null
+            }
+        } ?: return null
+
+        /* Scale image to a maximum of 500x500 pixels. */
+        val scaled: Image = if (image.width > image.height) {
+            image.getScaledInstance(200, -1, Image.SCALE_DEFAULT)
+        } else {
+            image.getScaledInstance(-1, 200, Image.SCALE_DEFAULT)
+        }
+        val outputImage = BufferedImage(scaled.getWidth(null), scaled.getHeight(null), BufferedImage.TYPE_INT_ARGB)
+        outputImage.graphics.drawImage(scaled, 0, 0, null);
+
+        /* Write image as PNG. */
+        val out = ByteArrayOutputStream()
+        ImageIO.write(outputImage, "png", out)
+        return out.toByteArray()
     }
 }
 

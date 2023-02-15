@@ -28,7 +28,7 @@ class DbTask(entity: Entity) : PersistentEntity(entity), Task {
         set(value) { this.id = value }
 
     /** Timestamp of when this [DbEvaluation] started. */
-    override var started by xdRequiredLongProp()
+    override var started by xdNullableLongProp()
 
     /** Timestamp of when this [DbEvaluation] ended. */
     override var ended by xdNullableLongProp()

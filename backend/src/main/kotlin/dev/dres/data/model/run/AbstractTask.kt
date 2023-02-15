@@ -43,7 +43,7 @@ abstract class AbstractTask(task: DbTask): TaskRun {
     protected val submissions: ConcurrentLinkedQueue<DbSubmission> = ConcurrentLinkedQueue<DbSubmission>()
 
     /** Timestamp of when this [AbstractTask] was started. */
-    final override var started: Long
+    final override var started: Long?
         get() = this.task.started
         protected set(value) {
             this.task.started = value

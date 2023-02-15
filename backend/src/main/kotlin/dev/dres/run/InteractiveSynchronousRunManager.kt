@@ -331,12 +331,11 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         assureTaskRunning()
         checkContext(context)
 
-        val currentTaskRun = this.currentTask(context)
-            ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
+        val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
         val newDuration = currentTaskRun.duration + s
-        check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
+        check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
         currentTaskRun.duration = newDuration
-        return (currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started))
+        return (currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!))
     }
 
     /**
@@ -352,7 +351,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
             max(
                 0L,
-                currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started) + InteractiveRunManager.COUNTDOWN_DURATION
+                currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
             )
         } else {
             -1L
@@ -369,7 +368,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         return if (this.evaluation.currentTask?.status == TaskStatus.RUNNING) {
             val currentTaskRun = this.currentTask(context)
                 ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
-            System.currentTimeMillis() - (currentTaskRun.started + InteractiveRunManager.COUNTDOWN_DURATION)
+            System.currentTimeMillis() - (currentTaskRun.started!! + InteractiveRunManager.COUNTDOWN_DURATION)
         } else {
             -1L
         }
@@ -584,7 +583,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             val task = this.evaluation.currentTask!!
             val timeLeft = max(
                 0L,
-                task.duration * 1000L - (System.currentTimeMillis() - task.started) + InteractiveRunManager.COUNTDOWN_DURATION
+                task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
             )
             if (timeLeft <= 0) {
                 this.stateLock.write {

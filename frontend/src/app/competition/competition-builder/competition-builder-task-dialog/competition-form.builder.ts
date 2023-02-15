@@ -390,11 +390,10 @@ export class CompetitionFormBuilder {
       for (const component of this.data.hints) {
         const index = this.data.hints.indexOf(component);
         switch (component.type) {
-          // FIXME handle external video / external image
-          case 'VIDEO':
+          case 'IMAGE':
             array.push(this.imageItemComponentForm(index, component));
             break;
-          case 'IMAGE':
+          case 'VIDEO':
             array.push(this.videoItemComponentForm(index, component));
             break;
           case 'TEXT':

@@ -238,7 +238,7 @@ export class RunAdminViewComponent {
 
   public adjustDuration(duration: number) {
     this.runId
-      .pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdAdjustByDuration(id, duration)))
+      .pipe(switchMap((id) => this.runAdminService.patchApiV2EvaluationAdminByEvaluationIdAdjustByDuration(id, duration)))
       .subscribe(
         (r) => {
           this.update.next();

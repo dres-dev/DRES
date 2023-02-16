@@ -29,7 +29,7 @@ class AdjustDurationHandler(store: TransientEntityStore): AbstractEvaluationAdmi
         summary = "Adjusts the duration of a running task. This is a method for admins.",
         path = "/api/v2/evaluation/admin/{evaluationId}/adjust/{duration}",
         operationId = OpenApiOperation.AUTO_GENERATE,
-        methods = [HttpMethod.POST],
+        methods = [HttpMethod.PATCH],
         pathParams = [
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false),
             OpenApiParam("duration", Int::class, "Duration to add. Can be negative.", required = true, allowEmptyValue = false)

@@ -274,10 +274,10 @@
       }
     },
     "/api/v2/evaluation/admin/{evaluationId}/adjust/{duration}" : {
-      "post" : {
+      "patch" : {
         "tags" : [ "Evaluation Administrator" ],
         "summary" : "Adjusts the duration of a running task. This is a method for admins.",
-        "operationId" : "postApiV2EvaluationAdminByEvaluationIdAdjustByDuration",
+        "operationId" : "patchApiV2EvaluationAdminByEvaluationIdAdjustByDuration",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",

@@ -11,6 +11,7 @@ import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.filter.SubmissionFilter
 import kotlinx.dnq.query.*
 import java.lang.IndexOutOfBoundsException
+import java.util.LinkedList
 
 /**
  * Represents a concrete, interactive and synchronous [Run] of a [DbEvaluationTemplate].
@@ -43,9 +44,7 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
     })
 
     /** List of [TaskRun]s registered for this [InteractiveSynchronousEvaluation]. */
-    override val tasks = this.evaluation.tasks.asSequence().map {
-        ISTaskRun(it)
-    }.toMutableList()
+    override val tasks = LinkedList<ISTaskRun>()
 
     /** Reference to the currently active [DbTaskTemplate]. This is part of the task navigation. */
     private val templates = this.description.tasks.asSequence().map { it.templateId }.toList()
@@ -58,6 +57,10 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
     val currentTask: AbstractInteractiveTask?
         get() = this.tasks.lastOrNull { it.templateId == this.templates[this.templateIndex] }
 
+    init {
+        /* Load all ongoing tasks. */
+        this.evaluation.tasks.asSequence().map { ISTaskRun(it) }.toMutableList()
+    }
 
     /**
      * Returns the [TemplateId] this [InteractiveSynchronousEvaluation] is currently pointing to.

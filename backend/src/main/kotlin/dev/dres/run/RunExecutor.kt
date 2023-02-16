@@ -7,10 +7,8 @@ import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
+import dev.dres.data.model.run.*
 import dev.dres.data.model.template.team.TeamId
-import dev.dres.data.model.run.InteractiveAsynchronousEvaluation
-import dev.dres.data.model.run.InteractiveSynchronousEvaluation
-import dev.dres.data.model.run.NonInteractiveEvaluation
 import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.run.validation.interfaces.JudgementValidator
@@ -68,11 +66,16 @@ object RunExecutor : Consumer<WsConfig> {
      * @param store The shared [TransientEntityStore].
      */
     fun init(store: TransientEntityStore) {
-        /* TODO: Schedule runs that have not ended
-        *  this.runs.filter { !it.hasEnded }.forEach { //TODO needs more distinction
-            schedule(it)
+        store.transactional {
+            DbEvaluation.filter { (it.started) ne null and (it.ended eq null) }.asSequence().forEach {
+                this.schedule(when (it.type) {
+                    DbEvaluationType.INTERACTIVE_SYNCHRONOUS -> InteractiveSynchronousEvaluation(it)
+                    DbEvaluationType.INTERACTIVE_ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(it, emptyMap()) /* TODO: Team map. */
+                    DbEvaluationType.NON_INTERACTIVE -> TODO()
+                    else -> throw IllegalStateException("Unsupported evaluation type ${it.type}.")
+                }, store)
+            }
         }
-        */
     }
 
     /**

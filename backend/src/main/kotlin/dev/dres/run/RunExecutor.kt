@@ -67,12 +67,18 @@ object RunExecutor : Consumer<WsConfig> {
      */
     fun init(store: TransientEntityStore) {
         store.transactional {
-            DbEvaluation.filter { (it.started) ne null and (it.ended eq null) }.asSequence().forEach {
-                this.schedule(when (it.type) {
-                    DbEvaluationType.INTERACTIVE_SYNCHRONOUS -> InteractiveSynchronousEvaluation(it)
-                    DbEvaluationType.INTERACTIVE_ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(it, emptyMap()) /* TODO: Team map. */
+            DbEvaluation.filter { (it.started) ne null and (it.ended eq null) }.asSequence().forEach {e ->
+
+                /* Force-end tasks that are still running. */
+                e.tasks.filter { t -> (t.ended eq null) }.asSequence().forEach { t ->
+                    t.ended = System.currentTimeMillis()
+                }
+
+                this.schedule(when (e.type) {
+                    DbEvaluationType.INTERACTIVE_SYNCHRONOUS -> InteractiveSynchronousEvaluation(e)
+                    DbEvaluationType.INTERACTIVE_ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(e, emptyMap()) /* TODO: Team map. */
                     DbEvaluationType.NON_INTERACTIVE -> TODO()
-                    else -> throw IllegalStateException("Unsupported evaluation type ${it.type}.")
+                    else -> throw IllegalStateException("Unsupported evaluation type ${e.type}.")
                 }, store)
             }
         }

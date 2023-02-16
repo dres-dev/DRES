@@ -54,7 +54,7 @@ abstract class AbstractTask(task: DbTask): TaskRun {
      *
      * Setter requires active database transaction!
      */
-    final override var started: Long? = null
+    final override var started: Long? = task.started
         protected set(value) {
             field = value
             this.task.started = value  /* Update backing database field. */
@@ -65,7 +65,7 @@ abstract class AbstractTask(task: DbTask): TaskRun {
      *
      * Setter requires active database transaction!
      */
-    final override var ended: Long? = null
+    final override var ended: Long? = task.ended
         protected set(value) {
             field = value
             this.task.ended = value /* Update backing database field. */
@@ -81,8 +81,12 @@ abstract class AbstractTask(task: DbTask): TaskRun {
 
     /** The current status of this [AbstractTask]. This is a transient property. */
     @Volatile
-    final override var status: TaskStatus = TaskStatus.CREATED
-        protected set
+    final override var status: TaskStatus = when {
+        this.started != null && this.ended != null -> TaskStatus.ENDED
+        this.started != null && this.ended == null -> TaskStatus.RUNNING
+        else -> TaskStatus.CREATED
+    }
+    protected set
 
     /** The [SubmissionFilter] used to filter [DbSubmission]s. */
     abstract val filter: SubmissionFilter

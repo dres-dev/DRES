@@ -1,7 +1,6 @@
 package dev.dres.data.model.media.time
 
 import dev.dres.data.model.media.DbMediaItem
-import dev.dres.data.model.media.PlayableMediaItem
 import java.lang.IllegalArgumentException
 
 /**
@@ -43,18 +42,21 @@ sealed class TemporalPoint {
     data class Timecode(val timecode: String, val fps: Float) : TemporalPoint(){
 
         companion object {
-            private val timecodeRegex = "^\\s*(?:(?:(?:(\\d+):)?([0-5]?\\d):)?([0-5]?\\d):)?(\\d+)\\s*\$".toRegex()
+            private val timecodeFrameRegex = "^\\s*(?:(?:(?:(\\d+):)?([0-5]?\\d):)?([0-5]?\\d):)?(\\d+)\\s*\$".toRegex()
+            private val timecodeMsRegex = "^\\s*(?:(?:(\\d+):)?([0-5]?\\d):)?([0-5]?\\d)\\.(\\d{1,3})\\s*\$".toRegex()
 
             private const val msPerHour: Long = 3_600_000
             private const val msPerMinute: Long = 60_000
 
             /**
-             * Transforms a time code of the form HH:MM:SS:FF to milliseconds
+             * Transforms a time code of the form HH:MM:SS:FF or HH:MM:SS.mmm to milliseconds
              * @return time in milliseconds or null if the input is not a valid time code
              */
-            fun timeCodeToMilliseconds(timecode: String, fps: Float = 24.0f): Long? {
+            fun timeCodeToMilliseconds(timecode: String, fps: Float = 24.0f): Long? = parseFrameTimecode(timecode, fps) ?: parseMsTimecode(timecode, fps)
 
-                val matches = timecodeRegex.matchEntire(timecode) ?: return null
+            private fun parseFrameTimecode(timecode: String, fps: Float = 24.0f): Long? {
+
+                val matches = timecodeFrameRegex.matchEntire(timecode) ?: return null
 
                 val hours = matches.groups[1]?.value?.toLong() ?: 0
                 val minutes = matches.groups[2]?.value?.toLong() ?: 0
@@ -62,9 +64,21 @@ sealed class TemporalPoint {
                 val frames = matches.groups[4]?.value?.toLong() ?: 0
 
                 return hours * msPerHour + minutes * msPerMinute + seconds * 1000 + (1000 * frames / fps).toLong()
+
             }
 
-            fun timeCodeToMilliseconds(timecode: String, item: PlayableMediaItem): Long? = timeCodeToMilliseconds(timecode, item.fps)
+            private fun parseMsTimecode(timecode: String, fps: Float = 24.0f): Long? {
+
+                val matches = timecodeMsRegex.matchEntire(timecode) ?: return null
+
+                val hours = matches.groups[1]?.value?.toLong() ?: 0
+                val minutes = matches.groups[2]?.value?.toLong() ?: 0
+                val seconds = matches.groups[3]?.value?.toLong() ?: 0
+                val ms = matches.groups[4]?.value?.toLong() ?: 0
+
+                return hours * msPerHour + minutes * msPerMinute + seconds * 1000 + ms
+
+            }
         }
 
         private val millisecond: Long = timeCodeToMilliseconds(timecode, fps) ?: throw IllegalArgumentException("'$timecode' is not a valid time code of the form HH:MM:SS:FF")

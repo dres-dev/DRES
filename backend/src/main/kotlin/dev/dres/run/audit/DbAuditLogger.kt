@@ -132,12 +132,12 @@ object DbAuditLogger {
             this.type = DbAuditLogType.SUBMISSION
             this.source = api
             this.submissionId = submission.submissionId
-            this.evaluationId = submission.answerSets().first().task.evaluation.evaluationId
-            this.taskId = submission.answerSets().first().task.taskId /* TODO: Multiple verdicts. */
+            this.evaluationId = submission.evaluationId
+            this.taskId = submission.answerSets().first().taskId /* TODO: Multiple verdicts. */
             this.session = sessionToken
             this.address = address
         }
-        EventStreamProcessor.event(SubmissionEvent(sessionToken ?: "na", submission.answerSets().first().task.evaluation.evaluationId, submission.answerSets().first().task.taskId, submission))
+        EventStreamProcessor.event(SubmissionEvent(sessionToken ?: "na", submission.evaluationId, submission.answerSets().first().taskId, submission))
     }
 
     /**
@@ -151,8 +151,8 @@ object DbAuditLogger {
             this.type = DbAuditLogType.SUBMISSION_VALIDATION
             this.source = DbAuditLogSource.INTERNAL
             this.submissionId = submission.submissionId
-            this.evaluationId = submission.answerSets().first().task.evaluation.evaluationId
-            this.taskId = submission.answerSets().first().task.taskId /* TODO: Multiple verdicts. */
+            this.evaluationId = submission.evaluationId
+            this.taskId = submission.answerSets().first().taskId /* TODO: Multiple verdicts. */
             this.description = "Validator: ${validator::class.simpleName}, Verdict: ${submission.answerSets().first().status()}" /* TODO: Here name, there ID. Why? */
         }
     }
@@ -188,8 +188,8 @@ object DbAuditLogger {
             this.type = DbAuditLogType.PREPARE_JUDGEMENT
             this.source = DbAuditLogSource.INTERNAL
             this.submissionId = answerSet.submission.submissionId
-            this.evaluationId = answerSet.task.evaluation.evaluationId
-            this.taskId = answerSet.task.taskId
+            this.evaluationId = "" //FIXME lookup?
+            this.taskId = answerSet.taskId
             this.description = "Token: $token, Validator: ${validator.id}, Verdict: ${answerSet.status()}"
         }
     }

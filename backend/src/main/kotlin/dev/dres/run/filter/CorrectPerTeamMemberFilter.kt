@@ -27,7 +27,7 @@ class CorrectPerTeamMemberFilter(private val limit: Int = 1) : SubmissionFilter 
     override val reason = "Maximum number of correct submissions ($limit) exceeded for the team member."
     override fun test(submission: Submission): Boolean {
         return submission.answerSets().all { answer ->
-            answer.task.answerSets().filter {
+            answer.task().answerSets().filter {
                 (it.status() == VerdictStatus.CORRECT) && it.submission.teamId == submission.teamId && it.submission.memberId == submission.memberId
             }.count() < limit
         }

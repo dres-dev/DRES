@@ -3,6 +3,7 @@ package dev.dres.api.rest.types.evaluation
 import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.admin.User
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.submissions.AnswerSet
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.Submission
@@ -28,7 +29,8 @@ data class ApiSubmission(
     val teamName: String,
     val memberName: String,
     val answers: List<ApiAnswerSet>,
-    override val timestamp: Long = System.currentTimeMillis()
+    override val timestamp: Long = System.currentTimeMillis(),
+    override val evaluationId: EvaluationId
 ) : Submission {
 
     init {

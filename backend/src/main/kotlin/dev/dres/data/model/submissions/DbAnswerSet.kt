@@ -3,6 +3,8 @@ package dev.dres.data.model.submissions
 import dev.dres.api.rest.types.evaluation.ApiAnswerSet
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.run.DbTask
+import dev.dres.data.model.run.Task
+import dev.dres.data.model.run.TaskId
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
@@ -24,7 +26,11 @@ class DbAnswerSet(entity: Entity) : PersistentEntity(entity), AnswerSet {
     override var submission: DbSubmission by xdParent<DbAnswerSet,DbSubmission>(DbSubmission::answerSets)
 
     /** The [DbTask] this [DbAnswerSet] belongs to. */
-    override var task: DbTask by xdParent<DbAnswerSet, DbTask>(DbTask::answerSets)
+    var task: DbTask by xdParent<DbAnswerSet, DbTask>(DbTask::answerSets)
+
+    override fun task(): Task = task
+    override val taskId: TaskId
+        get() = task.taskId
 
     val answers by xdChildren1_N<DbAnswerSet, DbAnswer>(DbAnswer::answerSet)
 
@@ -46,6 +52,7 @@ class DbAnswerSet(entity: Entity) : PersistentEntity(entity), AnswerSet {
      */
     fun toApi(): ApiAnswerSet = ApiAnswerSet(
         status = this.status.toApi(),
+        taskId = this.taskId,
         answers = this.answers.asSequence().map { it.toApi() }.toList()
     )
 }

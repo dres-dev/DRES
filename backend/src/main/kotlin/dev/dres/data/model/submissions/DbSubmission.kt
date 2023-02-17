@@ -4,11 +4,13 @@ import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.admin.UserId
+import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.TeamId
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.first
 import kotlinx.dnq.simple.min
 
 
@@ -43,6 +45,8 @@ class DbSubmission(entity: Entity) : PersistentEntity(entity), Submission {
 
     override val memberId: UserId
         get() = this.user.userId
+    override val evaluationId: EvaluationId
+        get() = this.answerSets.first().task.evaluation.evaluationId
 
     /** The [DbAnswerSet]s that make-up this [DbSubmission]. For batched submissions, more than one verdict can be possible. */
     val answerSets by xdChildren1_N<DbSubmission,DbAnswerSet>(DbAnswerSet::submission)
@@ -65,6 +69,7 @@ class DbSubmission(entity: Entity) : PersistentEntity(entity), Submission {
         memberId = this.user.id,
         memberName = this.user.username,
         timestamp = this.timestamp,
-        answers = if (blind) { emptyList() } else { this.answerSets.asSequence().map { it.toApi() }.toList()}
+        answers = if (blind) { emptyList() } else { this.answerSets.asSequence().map { it.toApi() }.toList()},
+        evaluationId = this.evaluationId
     )
 }

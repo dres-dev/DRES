@@ -7,6 +7,7 @@ import dev.dres.api.rest.types.judgement.ApiJudgementRequest
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.submissions.AnswerType
+import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbAnswerType
 import dev.dres.run.validation.interfaces.VoteValidator
 import io.javalin.http.Context
@@ -47,7 +48,7 @@ class DequeueVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(
             do {
                 val validator = evaluationManager.judgementValidators.filterIsInstance<VoteValidator>().find {  it.isActive } ?: break
                 val next = validator.nextSubmissionToVoteOn() ?: break
-                val taskDescription = next.task.template.textualDescription()
+                val taskDescription = next.task().template.textualDescription()
                 when (next.answers().firstOrNull()?.type()) {
                     AnswerType.TEXT -> {
                         val text = next.answers().firstOrNull()?.text ?: continue

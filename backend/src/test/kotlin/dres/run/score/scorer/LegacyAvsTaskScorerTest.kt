@@ -44,6 +44,7 @@ class LegacyAvsTaskScorerTest {
     private fun answerSets(status: ApiVerdictStatus, item: ApiMediaItem) = listOf(
         ApiAnswerSet(
             status,
+            "task",
             listOf(
                 ApiAnswer(
                     ApiAnswerType.ITEM,
@@ -57,6 +58,7 @@ class LegacyAvsTaskScorerTest {
     private fun answerSets(status: ApiVerdictStatus, item: ApiMediaItem, start: Long, end: Long) = listOf(
         ApiAnswerSet(
             status,
+            "task",
             listOf(
                 ApiAnswer(
                     ApiAnswerType.TEMPORAL,
@@ -87,9 +89,9 @@ class LegacyAvsTaskScorerTest {
         val taskStartTime = System.currentTimeMillis() - 100_000
 
         val submissions = sequenceOf(
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[0]), taskStartTime + 1000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[0]), taskStartTime + 2000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[0]), taskStartTime + 3000)
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[0]), taskStartTime + 1000, "task2"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[0]), taskStartTime + 2000, "task2"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[0]), taskStartTime + 3000, "task2")
         )
         val scores = this.scorer.computeScores(submissions, TaskContext("task2", teams, 100_000, defaultTaskDuration))
         assertEquals(0.0, scores[teams[0]])
@@ -101,9 +103,9 @@ class LegacyAvsTaskScorerTest {
     fun allWrongDifferentImages() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = sequenceOf(
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[0]), taskStartTime + 1000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[1]), taskStartTime + 2000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[2]), taskStartTime + 3000)
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[0]), taskStartTime + 1000, "task3"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[1]), taskStartTime + 2000, "task3"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[2]), taskStartTime + 3000, "task3")
         )
         val scores = this.scorer.computeScores(submissions, TaskContext("task3", teams, 100_000, defaultTaskDuration))
         assertEquals(0.0, scores[teams[0]])
@@ -115,9 +117,9 @@ class LegacyAvsTaskScorerTest {
     fun allSameImageAllCorrect() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = sequenceOf(
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 1000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 2000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 3000)
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 1000, "task4"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 2000, "task4"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 3000, "task4")
         )
         val scores = this.scorer.computeScores(submissions, TaskContext("task4", teams, 100_000, defaultTaskDuration))
         assertEquals(100.0, scores[teams[0]])
@@ -129,9 +131,9 @@ class LegacyAvsTaskScorerTest {
     fun allDifferentImageAllCorrect() {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = sequenceOf(
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 1000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[1]), taskStartTime + 2000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[2]), taskStartTime + 3000)
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 1000, "task5"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[1]), taskStartTime + 2000, "task5"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[2]), taskStartTime + 3000, "task5")
         )
         val scores = this.scorer.computeScores(submissions, TaskContext("task5", teams, 100_000, defaultTaskDuration))
         assertEquals(100.0 / 3.0, scores[teams[0]]!!, 0.001)
@@ -150,19 +152,19 @@ class LegacyAvsTaskScorerTest {
              */
 
             //3 out of 4 correct
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 1000),
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[1]), taskStartTime + 2000),
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[2]), taskStartTime + 3000),
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[3]), taskStartTime + 4000),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 1000, "task6"),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[1]), taskStartTime + 2000, "task6"),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[2]), taskStartTime + 3000, "task6"),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[3]), taskStartTime + 4000, "task6"),
 
             //1 out of 3 correct
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 1000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[4]), taskStartTime + 2000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[5]), taskStartTime + 3000),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 1000, "task6"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[4]), taskStartTime + 2000, "task6"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[5]), taskStartTime + 3000, "task6"),
 
             //1 out of 2 correct
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[3]), taskStartTime + 2000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[5]), taskStartTime + 3000),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[3]), taskStartTime + 2000, "task6"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[5]), taskStartTime + 3000, "task6"),
         )
 
 
@@ -203,9 +205,9 @@ class LegacyAvsTaskScorerTest {
         val taskStartTime = System.currentTimeMillis() - 100_000
 
         val submissions = sequenceOf(
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 2000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 3000)
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000, "task7"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 2000, "task7"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 3000, "task7")
         )
 
         val scores = this.scorer.computeScores(submissions, TaskContext("task7", teams, 100_000, defaultTaskDuration))
@@ -220,9 +222,9 @@ class LegacyAvsTaskScorerTest {
         val taskStartTime = System.currentTimeMillis() - 100_000
 
         val submissions = sequenceOf(
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 30_000, 40_000), taskStartTime + 2000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 50_000, 60_000), taskStartTime + 3000)
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000, "task8"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 30_000, 40_000), taskStartTime + 2000, "task8"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 50_000, 60_000), taskStartTime + 3000, "task8")
         )
 
         val scores = this.scorer.computeScores(submissions, TaskContext("task8", teams, 100_000, defaultTaskDuration))
@@ -237,9 +239,9 @@ class LegacyAvsTaskScorerTest {
         val taskStartTime = System.currentTimeMillis() - 100_000
 
         val submissions = sequenceOf(
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[2], 30_000, 40_000), taskStartTime + 2000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[3], 50_000, 60_000), taskStartTime + 3000)
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000, "task9"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[2], 30_000, 40_000), taskStartTime + 2000, "task9"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[3], 50_000, 60_000), taskStartTime + 3000, "task9")
         )
 
         val scores = this.scorer.computeScores(submissions, TaskContext("task9", teams, 100_000, defaultTaskDuration))
@@ -254,17 +256,17 @@ class LegacyAvsTaskScorerTest {
 
         val submissions = sequenceOf(
 
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000),
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 11_000, 21_000), taskStartTime + 2000),
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 12_000, 22_000), taskStartTime + 3000),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000, "task10"),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 11_000, 21_000), taskStartTime + 2000, "task10"),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 12_000, 22_000), taskStartTime + 3000, "task10"),
 
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 11_000, 21_000), taskStartTime + 2000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 12_000, 22_000), taskStartTime + 3000),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000, "task10"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 11_000, 21_000), taskStartTime + 2000, "task10"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 12_000, 22_000), taskStartTime + 3000, "task10"),
 
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 11_000, 21_000), taskStartTime + 1000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 12_000, 22_000), taskStartTime + 1000),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000, "task10"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 11_000, 21_000), taskStartTime + 1000, "task10"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 12_000, 22_000), taskStartTime + 1000, "task10"),
         )
 
         val scores = this.scorer.computeScores(submissions, TaskContext("task10", teams, 100_000, defaultTaskDuration))
@@ -278,21 +280,21 @@ class LegacyAvsTaskScorerTest {
         val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = sequenceOf(
 
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000),
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 11_000, 21_000), taskStartTime + 2000),
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 12_000, 22_000), taskStartTime + 3000),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000, "task11"),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 11_000, 21_000), taskStartTime + 2000, "task11"),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 12_000, 22_000), taskStartTime + 3000, "task11"),
 
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 11_000, 21_000), taskStartTime + 2000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 12_000, 22_000), taskStartTime + 3000),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000, "task11"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 11_000, 21_000), taskStartTime + 2000, "task11"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 12_000, 22_000), taskStartTime + 3000, "task11"),
 
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 11_000, 21_000), taskStartTime + 1000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 12_000, 22_000), taskStartTime + 1000),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000, "task11"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 11_000, 21_000), taskStartTime + 1000, "task11"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 12_000, 22_000), taskStartTime + 1000, "task11"),
 
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[3], 10_000, 20_000), taskStartTime + 1000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[3], 10_000, 20_000), taskStartTime + 2000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[3], 10_000, 20_000), taskStartTime + 3000),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[3], 10_000, 20_000), taskStartTime + 1000, "task11"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[3], 10_000, 20_000), taskStartTime + 2000, "task11"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[3], 10_000, 20_000), taskStartTime + 3000, "task11"),
 
         )
         val scores = this.scorer.computeScores(submissions, TaskContext("task11", teams, 100_000, defaultTaskDuration))
@@ -309,47 +311,47 @@ class LegacyAvsTaskScorerTest {
         val submissions = sequenceOf(
             //team 1
             //gets merged to one
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000),
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 20_001, 25_000), taskStartTime + 2000),
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 25_001, 30_000), taskStartTime + 3000),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000, "task12"),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 20_001, 25_000), taskStartTime + 2000, "task12"),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 25_001, 30_000), taskStartTime + 3000, "task12"),
 
             //plus 2 independent correct ones
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[1], 5_000, 6_000), taskStartTime + 4000),
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[2], 3_000, 4_000), taskStartTime + 5000),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[1], 5_000, 6_000), taskStartTime + 4000, "task12"),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[2], 3_000, 4_000), taskStartTime + 5000, "task12"),
 
             //and an incorrect one directly next to it
-            ApiSubmission(teams[0], teams[0], "user1", "user1", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[2], 4_001, 5_000), taskStartTime + 6000),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[2], 4_001, 5_000), taskStartTime + 6000, "task12"),
 
             //c = 5, q(c) = 3, i = 1
 
 
             //team 2
             //the center part is missing, so it's counted as two in the quantization
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 25_001, 30_000), taskStartTime + 3000),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000, "task12"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 25_001, 30_000), taskStartTime + 3000, "task12"),
 
             //another correct one, same as team 1
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[1], 5_000, 6_000), taskStartTime + 4000),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[1], 5_000, 6_000), taskStartTime + 4000, "task12"),
 
             //and two wrong ones
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[3], 0, 5_000), taskStartTime + 6000),
-            ApiSubmission(teams[1], teams[1], "user2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[3], 10_000, 15_000), taskStartTime + 6000),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[3], 0, 5_000), taskStartTime + 6000, "task12"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[3], 10_000, 15_000), taskStartTime + 6000, "task12"),
 
 
             //c = 3, q(c) = 3, i = 2
 
             //team 3
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 20_001, 25_000), taskStartTime + 2000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 25_001, 30_000), taskStartTime + 3000),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 1000, "task12"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 20_001, 25_000), taskStartTime + 2000, "task12"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 25_001, 30_000), taskStartTime + 3000, "task12"),
 
             //another correct one, same as team 1
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[1], 5_000, 6_000), taskStartTime + 4000),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[1], 5_000, 6_000), taskStartTime + 4000, "task12"),
 
 
             //and two wrong ones
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[3], 0, 5_000), taskStartTime + 4000),
-            ApiSubmission(teams[2], teams[2], "user3", "user3", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[3], 10_000, 15_000), taskStartTime + 4000),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[3], 0, 5_000), taskStartTime + 4000, "task12"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[3], 10_000, 15_000), taskStartTime + 4000, "task12"),
 
             //c = 4, q(c) = 2, i = 2
 

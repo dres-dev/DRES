@@ -37,11 +37,9 @@ import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.staticfiles.Location
 import io.javalin.community.ssl.SSLPlugin
+import io.javalin.openapi.CookieAuth
 import io.javalin.openapi.OpenApiInfo
-import io.javalin.openapi.plugin.DefinitionConfiguration
-import io.javalin.openapi.plugin.OpenApiConfiguration
-import io.javalin.openapi.plugin.OpenApiPlugin
-import io.javalin.openapi.plugin.OpenApiPluginConfiguration
+import io.javalin.openapi.plugin.*
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
 import jetbrains.exodus.database.TransientEntityStore
@@ -210,7 +208,12 @@ object RestApi {
                                 t.version = DRES.VERSION
                                 t.description = "API for DRES (Distributed Retrieval Evaluation Server), Version ${DRES.VERSION}"
                             }
+                            u.withSecurity(SecurityComponentConfiguration()
+                                .withSecurityScheme("CookieAuth", CookieAuth(AccessManager.SESSION_COOKIE_NAME))
+                            )
                         }
+
+
                 )
             )
 

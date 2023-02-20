@@ -4,6 +4,7 @@ import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.template.TemplateId
 import dev.dres.run.TaskStatus
 import dev.dres.run.score.scorer.CachingTaskScorer
 import dev.dres.run.score.scorer.TaskScorer
@@ -16,8 +17,11 @@ typealias TaskId = String
  * @version 1.0.0
  */
 interface TaskRun: Run {
-    /** The unique [TaskId] that identifies this [IATaskRun]. Used by the persistence layer. */
+    /** The unique [TaskId] that identifies this [TaskRun]. */
     val id: TaskId
+
+    /** The unique [TemplateId] that identifies the task template underpinning [TaskRun]. */
+    val templateId: TemplateId
 
     /** Reference to the [EvaluationRun] this [IATaskRun] belongs to. */
     val competition: EvaluationRun
@@ -31,7 +35,7 @@ interface TaskRun: Run {
     /** The [TaskScorer] used to update score for this [IATaskRun]. */
     val scorer: CachingTaskScorer
 
-    /** The current status of this [IATaskRun]. */
+    /** The current status of this [TaskRun]. This is typically a transient property. */
     val status: TaskStatus
 
     /**

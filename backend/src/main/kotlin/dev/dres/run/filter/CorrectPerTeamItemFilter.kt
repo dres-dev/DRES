@@ -18,7 +18,7 @@ class CorrectPerTeamItemFilter(private val limit: Int = 1) : SubmissionFilter {
     override fun test(submission: Submission): Boolean {
         val submittedItems = submission.answerSets().flatMap { it.answers() }.mapNotNull { it.item }.toSet()
         return submission.answerSets().all { answerSet ->
-            answerSet.task.answerSets().filter { taskAnswerSets ->
+            answerSet.task().answerSets().filter { taskAnswerSets ->
                 (taskAnswerSets.status() == VerdictStatus.CORRECT) && taskAnswerSets.submission.teamId == submission.teamId && taskAnswerSets.answers().any { it.item in submittedItems }
             }.count() < this.limit
         }

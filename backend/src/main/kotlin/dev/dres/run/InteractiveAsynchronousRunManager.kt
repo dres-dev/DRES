@@ -372,10 +372,11 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     override fun timeLeft(context: RunActionContext): Long = this.stateLock.read {
         require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         val currentTaskRun = this.currentTask(context)
+
         return if (currentTaskRun?.isRunning == true) {
             max(
                 0L,
-                currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started) + InteractiveRunManager.COUNTDOWN_DURATION
+                currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
             )
         } else {
             -1L
@@ -391,7 +392,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     override fun timeElapsed(context: RunActionContext): Long = this.stateLock.read {
         val currentTaskRun = this.currentTask(context)
         return if (currentTaskRun?.isRunning == true) {
-            System.currentTimeMillis() - (currentTaskRun.started + InteractiveRunManager.COUNTDOWN_DURATION)
+            System.currentTimeMillis() - (currentTaskRun.started!! + InteractiveRunManager.COUNTDOWN_DURATION)
         } else {
             -1L
         }
@@ -476,9 +477,9 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
         val currentTaskRun = this.currentTask(context)
             ?: throw IllegalStateException("No active TaskRun found. This is a serious error!")
         val newDuration = currentTaskRun.duration + s
-        check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
+        check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
         currentTaskRun.duration = newDuration
-        return (currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started))
+        return (currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!))
 
     }
 
@@ -657,7 +658,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
                     ?: throw IllegalStateException("Could not find active task for team ${team.teamId} despite status of the team being ${this.statusMap[team.teamId]}. This is a programmer's error!")
                 val timeLeft = max(
                     0L,
-                    task.duration * 1000L - (System.currentTimeMillis() - task.started) + InteractiveRunManager.COUNTDOWN_DURATION
+                    task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
                 )
                 if (timeLeft <= 0) {
                     this.stateLock.write {

@@ -24,6 +24,7 @@ import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.ReadyLatch
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
+import kotlinx.dnq.transactional
 import org.slf4j.LoggerFactory
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -169,21 +170,28 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         LOGGER.info("SynchronousRunManager ${this.id} terminated")
     }
 
+    /**
+     *
+     */
     override fun updateProperties(properties: RunProperties) {
         TODO("Not yet implemented")
     }
 
+    /**
+     * Returns the [DbTaskTemplate] this [InteractiveAsynchronousRunManager] is currently pointing to.
+     *
+     * Requires an active database transaction.
+     *
+     * @return [DbTaskTemplate]
+     */
     override fun currentTaskTemplate(context: RunActionContext): DbTaskTemplate = this.stateLock.write {
-        checkStatus(
-            RunManagerStatus.CREATED,
-            RunManagerStatus.ACTIVE/*, RunManagerStatus.PREPARING_TASK, RunManagerStatus.RUNNING_TASK, RunManagerStatus.TASK_ENDED*/
-        )
-        this.evaluation.currentTaskTemplate
+        checkStatus(RunManagerStatus.CREATED, RunManagerStatus.ACTIVE)
+        this.evaluation.getCurrentTemplate()
     }
 
     override fun previous(context: RunActionContext): Boolean = this.stateLock.write {
         checkContext(context)
-        val newIndex = this.template.tasks.indexOf(this.evaluation.currentTaskTemplate) - 1
+        val newIndex = this.evaluation.templateIndex - 1
         return try {
             this.goTo(context, newIndex)
             true
@@ -194,7 +202,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
 
     override fun next(context: RunActionContext): Boolean = this.stateLock.write {
         checkContext(context)
-        val newIndex = this.template.tasks.indexOf(this.evaluation.currentTaskTemplate) + 1
+        val newIndex = this.evaluation.templateIndex + 1
         return try {
             this.goTo(context, newIndex)
             true
@@ -246,7 +254,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         /* Enqueue WS message for sending */
         this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.TASK_PREPARE))
 
-        LOGGER.info("SynchronousRunManager ${this.id} started task task ${this.evaluation.currentTaskTemplate}")
+        LOGGER.info("SynchronousRunManager ${this.id} started task ${this.evaluation.getCurrentTemplateId()}.")
     }
 
     override fun abortTask(context: RunActionContext) = this.stateLock.write {
@@ -262,7 +270,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
 
         /* Enqueue WS message for sending */
         this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.TASK_END))
-        LOGGER.info("SynchronousRunManager ${this.id} aborted task task ${this.evaluation.currentTaskTemplate}")
+        LOGGER.info("SynchronousRunManager ${this.id} aborted task  ${this.evaluation.getCurrentTemplateId()}.")
     }
 
     /** List of [DbTask] for this [InteractiveSynchronousRunManager]. */
@@ -331,12 +339,11 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         assureTaskRunning()
         checkContext(context)
 
-        val currentTaskRun = this.currentTask(context)
-            ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
+        val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
         val newDuration = currentTaskRun.duration + s
-        check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
+        check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
         currentTaskRun.duration = newDuration
-        return (currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started))
+        return (currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!))
     }
 
     /**
@@ -352,7 +359,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
             max(
                 0L,
-                currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started) + InteractiveRunManager.COUNTDOWN_DURATION
+                currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
             )
         } else {
             -1L
@@ -369,7 +376,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         return if (this.evaluation.currentTask?.status == TaskStatus.RUNNING) {
             val currentTaskRun = this.currentTask(context)
                 ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
-            System.currentTimeMillis() - (currentTaskRun.started + InteractiveRunManager.COUNTDOWN_DURATION)
+            System.currentTimeMillis() - (currentTaskRun.started!! + InteractiveRunManager.COUNTDOWN_DURATION)
         } else {
             -1L
         }
@@ -506,15 +513,15 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             try {
                 /* Obtain lock on current state. */
                 this.stateLock.read {
-                    /* 2) Invoke all relevant [Updatable]s. */
+                    /* 1) Invoke all relevant [Updatable]s. */
                     this.invokeUpdatables()
 
-                    /* 3) Process internal state updates (if necessary). */
+                    /* 2) Process internal state updates (if necessary). */
                     this.internalStateUpdate()
                 }
 
                 /* 3) Yield to other threads. */
-                Thread.sleep(10)
+                Thread.sleep(50)
 
                 /* Reset error counter. */
                 errorCounter = 0
@@ -522,10 +529,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 LOGGER.info("Interrupted SynchronousRunManager, exiting")
                 return
             } catch (e: Throwable) {
-                LOGGER.error(
-                    "Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!",
-                    e
-                )
+                LOGGER.error("Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!", e)
                 LOGGER.error("This is the ${++errorCounter}. in a row, will terminate loop after $maxErrorCount errors")
 
                 // oh shit, something went horribly, horribly wrong
@@ -571,8 +575,10 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         /** Case 1: Facilitates internal transition from RunManagerStatus.PREPARING_TASK to RunManagerStatus.RUNNING_TASK. */
         if (this.evaluation.currentTask?.status == TaskStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
             this.stateLock.write {
-                this.evaluation.currentTask!!.start()
-                DbAuditLogger.taskStart(this.id, this.evaluation.currentTask!!.id, this.evaluation.currentTaskTemplate, DbAuditLogSource.INTERNAL, null)
+                this.store.transactional {
+                    this.evaluation.currentTask!!.start()
+                    DbAuditLogger.taskStart(this.id, this.evaluation.currentTask!!.id, this.evaluation.getCurrentTemplate(), DbAuditLogSource.INTERNAL, null)
+                }
             }
 
             /* Enqueue WS message for sending */
@@ -581,17 +587,15 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
 
         /** Case 2: Facilitates internal transition from RunManagerStatus.RUNNING_TASK to RunManagerStatus.TASK_ENDED due to timeout. */
         if (this.evaluation.currentTask?.status == TaskStatus.RUNNING) {
-            val task = this.evaluation.currentTask!!
-            val timeLeft = max(
-                0L,
-                task.duration * 1000L - (System.currentTimeMillis() - task.started) + InteractiveRunManager.COUNTDOWN_DURATION
-            )
-            if (timeLeft <= 0) {
-                this.stateLock.write {
-                    task.end()
-                    //this.status = RunManagerStatus.TASK_ENDED
-                    DbAuditLogger.taskEnd(this.id, this.evaluation.currentTask!!.id, DbAuditLogSource.INTERNAL, null)
-                    EventStreamProcessor.event(TaskEndEvent(this.id, task.id))
+            this.stateLock.write {
+                val task = this.evaluation.currentTask!!
+                val timeLeft = max(0L, task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
+                if (timeLeft <= 0) {
+                    this.store.transactional {
+                        task.end()
+                        DbAuditLogger.taskEnd(this.id, this.evaluation.currentTask!!.id, DbAuditLogSource.INTERNAL, null)
+                        EventStreamProcessor.event(TaskEndEvent(this.id, task.id))
+                    }
                 }
 
                 /* Enqueue WS message for sending */

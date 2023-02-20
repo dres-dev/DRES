@@ -1,9 +1,9 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { DataUtilities } from '../../utilities/data.utilities';
-import {ApiHint} from '../../../../openapi';
+import { ApiContentElement } from '../../../../openapi';
 
 @Component({
   selector: 'app-image-object-preview',
@@ -13,9 +13,9 @@ import {ApiHint} from '../../../../openapi';
     </div>
   `,
 })
-export class ImageObjectPreviewComponent implements OnInit, OnDestroy {
+export class ImageObjectPreviewComponent implements OnInit {
   /** Observable of current {@link QueryContentElement} that should be displayed. */
-  @Input() queryContent: Observable<ApiHint>;
+  @Input() queryContent: Observable<ApiContentElement>;
 
   /** Current image to display (as data URL). */
   imageUrl: Observable<SafeUrl>;
@@ -24,17 +24,14 @@ export class ImageObjectPreviewComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.imageUrl = this.queryContent.pipe(
-      filter((q) => q.type === 'IMAGE'),
+      filter((q) => q.contentType === 'IMAGE'),
       map((q) => {
-        if (q.mediaItem) {
-          // FIXME differ between external image and internal (i.e. media item). the following code is very likely broken
-          return this.sanitizer.bypassSecurityTrustUrl(DataUtilities.base64ToUrl(q.mediaItem, 'image/jpg')); // FIXME should the content type be used from api q.dataType ?
+        if (q.content) {
+          return this.sanitizer.bypassSecurityTrustUrl(DataUtilities.base64ToUrl(q.content, 'image/jpg'));
         } else {
           return null;
         }
       })
     );
   }
-
-  ngOnDestroy(): void {}
 }

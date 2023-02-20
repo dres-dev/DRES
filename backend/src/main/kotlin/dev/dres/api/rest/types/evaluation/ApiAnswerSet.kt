@@ -1,11 +1,13 @@
 package dev.dres.api.rest.types.evaluation
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import dev.dres.api.rest.types.collection.ApiMediaItem
+import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.run.Task
+import dev.dres.data.model.run.TaskId
 import dev.dres.data.model.submissions.*
-import dev.dres.data.model.template.interfaces.EvaluationTemplate
 import kotlinx.dnq.query.addAll
+import kotlinx.dnq.query.filter
+import kotlinx.dnq.query.first
 
 /**
  * The RESTful API equivalent for the type of [ApiAnswerSet].
@@ -16,15 +18,17 @@ import kotlinx.dnq.query.addAll
  */
 data class ApiAnswerSet(
     var status: ApiVerdictStatus,
+    override val taskId: TaskId,
     val answers: List<ApiAnswer>
 ) : AnswerSet {
 
     @JsonIgnore
-    override lateinit var task: Task
-
-    @JsonIgnore
     override lateinit var submission: ApiSubmission
     internal set
+
+    override fun task(): Task {
+        TODO("Not yet implemented")
+    }
 
     override fun answers(): Sequence<Answer> = answers.asSequence()
     override fun status(): VerdictStatus = VerdictStatus.fromApi(this.status)
@@ -36,6 +40,7 @@ data class ApiAnswerSet(
     override fun toDb(): DbAnswerSet {
         return DbAnswerSet.new {
             this.status = this@ApiAnswerSet.status.toDb()
+            this.task = DbTask.filter { taskId eq this@ApiAnswerSet.taskId }.first()
             this.answers.addAll(
                 this@ApiAnswerSet.answers.map {
                     it.toDb()

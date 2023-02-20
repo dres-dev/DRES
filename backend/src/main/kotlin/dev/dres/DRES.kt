@@ -22,10 +22,7 @@ import dev.dres.data.model.media.DbMediaType
 import dev.dres.data.model.run.DbEvaluation
 import dev.dres.data.model.run.DbEvaluationType
 import dev.dres.data.model.run.DbTask
-import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.DbAnswerSet
-import dev.dres.data.model.submissions.DbVerdictStatus
-import dev.dres.data.model.submissions.DbAnswerType
+import dev.dres.data.model.submissions.*
 import dev.dres.run.RunExecutor
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
@@ -129,6 +126,7 @@ object DRES {
             DbTeamAggregator,
             DbTeamGroup,
             DbUser,
+            DbAnswer,
             DbAnswerSet,
             DbAnswerType,
             DbVerdictStatus,

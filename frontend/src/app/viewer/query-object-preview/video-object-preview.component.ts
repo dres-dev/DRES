@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { filter, map } from 'rxjs/operators';
 import { DataUtilities } from '../../utilities/data.utilities';
-import {ApiHint} from '../../../../openapi';
+import {ApiContentElement, ApiHint} from '../../../../openapi';
 
 @Component({
   selector: 'app-video-object-preview',
@@ -25,7 +25,7 @@ import {ApiHint} from '../../../../openapi';
 })
 export class VideoObjectPreviewComponent implements OnInit {
   /** Observable of current {@link ContentElement} that should be displayed. Provided by user of this component. */
-  @Input() queryObject: Observable<ApiHint>;
+  @Input() queryObject: Observable<ApiContentElement>;
 
   /** Flag indicating whether video player should be muted or not. Can be provided by a user of this component. */
   @Input() muted = true;
@@ -44,11 +44,10 @@ export class VideoObjectPreviewComponent implements OnInit {
 
   ngOnInit(): void {
     this.videoUrl = this.queryObject.pipe(
-      filter((q) => q.type === 'VIDEO'),
+      filter((q) => q.contentType === 'VIDEO'),
       map((q) => {
-        if (q.mediaItem) {
-          // FIXME differ between external video and internal (i.e. media item). the following code is very likely broken
-          return this.sanitizer.bypassSecurityTrustUrl(DataUtilities.base64ToUrl(q.mediaItem, 'video/mp4')); // FIXME should q.dataType be respected?
+        if (q.content) {
+          return this.sanitizer.bypassSecurityTrustUrl(DataUtilities.base64ToUrl(q.content, 'video/mp4'));
         } else {
           return null;
         }

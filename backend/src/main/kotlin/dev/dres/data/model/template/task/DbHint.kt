@@ -10,12 +10,13 @@ import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.media.time.TemporalRange
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
+import kotlinx.dnq.query.FilteringContext.le
 import kotlinx.dnq.simple.requireIf
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.StandardOpenOption
 import java.util.*
 
 /**
@@ -115,20 +116,22 @@ class DbHint(entity: Entity) : XdEntity(entity) {
      * @throws IOException
      */
     fun toQueryContentElement(config: Config): ApiContentElement {
+        val cacheLocation: Path = Paths.get(config.cachePath, "tasks")
         val content = when (this.type) {
-            DbHintType.IMAGE,
-            DbHintType.VIDEO -> {
-                val path = if (this.item != null) {
-                    Paths.get(config.cachePath, this.item!!.cachedItemName(this.temporalRangeStart, this.temporalRangeEnd))
-                } else if (this.path != null) {
-                    Paths.get(this.path!!)
+            DbHintType.IMAGE -> {
+                val filePath = this.item?.pathToOriginal() ?: this.path?.let { Paths.get(it) }
+                if (filePath != null && Files.exists(filePath)) {
+                    Base64.getEncoder().encodeToString(Files.readAllBytes(filePath))
                 } else {
-                    throw IllegalArgumentException("A hint of type  ${this.type.description} must have a valid media item or external path.")
+                    null
                 }
-                if (Files.exists(path)) {
-                    Base64.getEncoder().encodeToString(Files.readAllBytes(path))
+            }
+            DbHintType.VIDEO -> {
+                val filePath = this.item?.cachedItemName(this.temporalRangeStart, this.temporalRangeEnd)?.let { cacheLocation.resolve(it) } ?: this.path?.let { Paths.get(it) }
+                if (Files.exists(filePath)) {
+                    Base64.getEncoder().encodeToString(Files.readAllBytes(filePath))
                 } else {
-                    ""
+                    null
                 }
             }
             DbHintType.EMPTY -> ""

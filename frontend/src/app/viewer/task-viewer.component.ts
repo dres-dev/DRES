@@ -68,10 +68,10 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   viewerState: BehaviorSubject<ViewerState> = new BehaviorSubject(ViewerState.VIEWER_UNKNOWN);
 
   /** Reference to the current {@link ApiHintContent}. */
-  currentTaskHint: Observable<ApiHintContent>;
+  currentTaskHint: Observable<ApiContentElement>;
 
   /** Reference to the current {@link ApiTargetContent}. */
-  currentTaskTarget: Observable<ApiTargetContent>;
+  currentTaskTarget: Observable<ApiContentElement>;
 
   /** The subscription associated with the current viewer state. */
   viewerStateSubscription: Subscription;

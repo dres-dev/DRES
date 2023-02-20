@@ -14,8 +14,8 @@ import kotlinx.dnq.xdRequiredStringProp
  */
 class DbMediaType(entity: Entity) : XdEnumEntity(entity) {
     companion object : XdEnumEntityType<DbMediaType>() {
-        val IMAGE by enumField { description = "IMAGE"; suffix = "mp4"; }
-        val VIDEO by enumField { description = "VIDEO"; suffix = "jpg"; }
+        val IMAGE by enumField { description = "IMAGE"; suffix = "jpg"; }
+        val VIDEO by enumField { description = "VIDEO"; suffix = "mp4"; }
         val TEXT by enumField { description = "TEXT"; suffix = "txt"; }
     }
 

@@ -1,11 +1,11 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.template.TemplateId
 import dev.dres.run.TaskStatus
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.validation.interfaces.SubmissionValidator
@@ -24,7 +24,7 @@ abstract class AbstractTask(task: DbTask): TaskRun {
      *
      * Since this cannot change during the lifetime of an evaluation, it is kept in memory.
      */
-    protected val xdId = task.xdId
+    private val xdId = task.xdId
 
     /**
      * Accessor for the [DbTask] underpinning this [AbstractTask]
@@ -33,36 +33,60 @@ abstract class AbstractTask(task: DbTask): TaskRun {
         get() = DbTask.findById(this.xdId)
 
     /**
-     * The [EvaluationId] of this [AbstractTask].
+     * The [TaskId] of this [AbstractTask].
      *
      * Since this cannot change during the lifetime of an evaluation, it is kept in memory.
      */
-    final override val id: EvaluationId = this.task.id
+    final override val id: TaskId = this.task.id
+
+    /**
+     * The [TemplateId] of this [AbstractTask].
+     *
+     * Since this cannot change during the lifetime of an evaluation, it is kept in memory.
+     */
+    final override val templateId: TemplateId = this.task.template.templateId
 
     /** List of [DbSubmission]s* registered for this [AbstractTask]. */
     protected val submissions: ConcurrentLinkedQueue<DbSubmission> = ConcurrentLinkedQueue<DbSubmission>()
 
-    /** Timestamp of when this [AbstractTask] was started. */
-    final override var started: Long
-        get() = this.task.started
+    /**
+     * Timestamp of when this [AbstractTask] was started.
+     *
+     * Setter requires active database transaction!
+     */
+    final override var started: Long? = task.started
         protected set(value) {
-            this.task.started = value
+            field = value
+            this.task.started = value  /* Update backing database field. */
         }
 
-    /** Timestamp of when this [AbstractTask] was ended. */
-    final override var ended: Long?
-        get() = this.task.ended
+    /**
+     * Timestamp of when this [AbstractTask] was ended.
+     *
+     * Setter requires active database transaction!
+     */
+    final override var ended: Long? = task.ended
         protected set(value) {
-            this.task.ended = value
+            field = value
+            this.task.ended = value /* Update backing database field. */
         }
 
-    /** Reference to the [DbTaskTemplate] describing this [AbstractTask]. */
+    /**
+     * Reference to the [DbTaskTemplate] describing this [AbstractTask].
+     *
+     * Requires active database transaction!
+     */
     final override val template: DbTaskTemplate
         get() = this.task.template
 
+    /** The current status of this [AbstractTask]. This is a transient property. */
     @Volatile
-    final override var status: TaskStatus = TaskStatus.CREATED
-        protected set
+    final override var status: TaskStatus = when {
+        this.started != null && this.ended != null -> TaskStatus.ENDED
+        this.started != null && this.ended == null -> TaskStatus.RUNNING
+        else -> TaskStatus.CREATED
+    }
+    protected set
 
     /** The [SubmissionFilter] used to filter [DbSubmission]s. */
     abstract val filter: SubmissionFilter

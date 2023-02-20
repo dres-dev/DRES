@@ -238,7 +238,7 @@ export class RunAdminViewComponent {
 
   public adjustDuration(duration: number) {
     this.runId
-      .pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdAdjustByDuration(id, duration)))
+      .pipe(switchMap((id) => this.runAdminService.patchApiV2EvaluationAdminByEvaluationIdAdjustByDuration(id, duration)))
       .subscribe(
         (r) => {
           this.update.next();
@@ -279,7 +279,7 @@ export class RunAdminViewComponent {
    * Generates a URL for the logo of the team.
    */
   public teamLogo(team: ApiTeam): string {
-    return this.config.resolveApiUrl(`/competition/logo/${team.logoData}`);
+    return this.config.resolveApiUrl(`/template/logo/${team.id}`);
   }
 
   resolveTeamByName(idx: number, item: ApiTeam) {

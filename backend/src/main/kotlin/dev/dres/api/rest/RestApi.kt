@@ -37,8 +37,9 @@ import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.staticfiles.Location
 import io.javalin.community.ssl.SSLPlugin
-import io.javalin.openapi.plugin.OpenApiConfiguration
-import io.javalin.openapi.plugin.OpenApiPlugin
+import io.javalin.openapi.CookieAuth
+import io.javalin.openapi.OpenApiInfo
+import io.javalin.openapi.plugin.*
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
 import jetbrains.exodus.database.TransientEntityStore
@@ -46,6 +47,8 @@ import org.eclipse.jetty.server.*
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
+import java.util.function.BiConsumer
+import java.util.function.Consumer
 
 /**
  * This is a singleton instance of the RESTful API
@@ -197,19 +200,24 @@ object RestApi {
 
             it.plugins.register(
                 OpenApiPlugin(
-                    OpenApiConfiguration().apply {
-                        this.info.title = "DRES API"
-                        this.info.version = DRES.VERSION
-                        this.info.description = "API for DRES (Distributed Retrieval Evaluation Server), Version ${DRES.VERSION}"
-                        this.documentationPath = "/swagger-docs"
-                    }
+                    OpenApiPluginConfiguration()
+                        .withDocumentationPath("/swagger-docs")
+                        .withDefinitionConfiguration { _, u ->
+                            u.withOpenApiInfo { t ->
+                                t.title = "DRES API"
+                                t.version = DRES.VERSION
+                                t.description = "API for DRES (Distributed Retrieval Evaluation Server), Version ${DRES.VERSION}"
+                            }
+                            u.withSecurity(SecurityComponentConfiguration()
+                                .withSecurityScheme("CookieAuth", CookieAuth(AccessManager.SESSION_COOKIE_NAME))
+                            )
+                        }
+
+
                 )
             )
 
-            it.plugins.register(
-                ClientOpenApiPlugin()
-            )
-
+            it.plugins.register(ClientOpenApiPlugin())
             it.plugins.register(
                 SwaggerPlugin(
                     SwaggerConfiguration().apply {
@@ -218,8 +226,6 @@ object RestApi {
                     }
                 )
             )
-
-//            it.plugins.register(ClientSwaggerPlugin())
 
             it.http.defaultContentType = "application/json"
             it.http.prefer405over404 = true
@@ -245,20 +251,15 @@ object RestApi {
 
             //check for session cookie
             val cookieId = ctx.cookie(AccessManager.SESSION_COOKIE_NAME)
-
             if (cookieId != null) {
-                //update cookie lifetime
-                ctx.cookie(AccessManager.SESSION_COOKIE_NAME, cookieId, AccessManager.SESSION_COOKIE_LIFETIME)
-                //store id in attribute for later use
-                ctx.attribute("session", cookieId)
+                ctx.cookie(AccessManager.SESSION_COOKIE_NAME, cookieId, AccessManager.SESSION_COOKIE_LIFETIME) //update cookie lifetime
+                ctx.attribute("session", cookieId) //store id in attribute for later use
             }
 
             //check for query parameter
             val paramId = ctx.queryParam("session")
-
             if (paramId != null) {
-                //store id in attribute for later use
-                ctx.attribute("session", paramId)
+                ctx.attribute("session", paramId) //store id in attribute for later use
             }
 
             //logging

@@ -7,4 +7,5 @@ class ClientSwaggerPlugin : SwaggerPlugin(
     SwaggerConfiguration().apply {
         this.documentationPath = "/client-oas"
         this.uiPath = "/swagger-client"
+        this.version = "4.10.3"
     })

@@ -11,10 +11,10 @@ export interface ColumnDefinition {
   templateUrl: './dynamic-table.component.html',
   styleUrls: ['./dynamic-table.component.scss']
 })
-export class DynamicTableComponent {
+export class DynamicTableComponent<T> {
 
   @Input()
-  public dataSource;
+  public dataSource: Array<T>;
 
   @Input()
   public columnSchema: ColumnDefinition[];

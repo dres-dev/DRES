@@ -12,6 +12,7 @@ import { ConfirmationDialogComponent } from './confirmation-dialog/confirmation-
 import { MatDialogModule } from '@angular/material/dialog';
 import { DynamicTableComponent } from './dynamic-table/dynamic-table.component';
 import {MatTableModule} from '@angular/material/table';
+import { ActionableDynamicTable } from './actionable-dynamic-table/actionable-dynamic-table.component';
 
 @NgModule({
   declarations: [
@@ -21,6 +22,7 @@ import {MatTableModule} from '@angular/material/table';
     UploadJsonButtonComponent,
     ConfirmationDialogComponent,
     DynamicTableComponent,
+    ActionableDynamicTable,
   ],
   exports: [
     BackButtonComponent,

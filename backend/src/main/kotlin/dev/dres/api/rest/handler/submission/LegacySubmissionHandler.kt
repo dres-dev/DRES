@@ -67,7 +67,7 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
 
     @OpenApi(
         summary = "Endpoint to accept submissions",
-        path = "/api/v2/submit",
+        path = "/api/v1/submit",
         operationId = OpenApiOperation.AUTO_GENERATE,
         queryParams = [
             OpenApiParam(

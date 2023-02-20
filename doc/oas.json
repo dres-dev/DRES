@@ -10,12 +10,162 @@
     "version" : "2.0.0"
   },
   "paths" : {
+    "/api/v1/submit" : {
+      "get" : {
+        "tags" : [ "Submission" ],
+        "summary" : "Endpoint to accept submissions",
+        "operationId" : "getApiV1Submit",
+        "parameters" : [ {
+          "name" : "collection",
+          "in" : "query",
+          "description" : "Collection identifier. Optional, in which case the default collection for the run will be considered.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "item",
+          "in" : "query",
+          "description" : "Identifier for the actual media object or media file.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "text",
+          "in" : "query",
+          "description" : "Text to be submitted. ONLY for tasks with target type TEXT. If this parameter is provided, it superseeds all athers.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "frame",
+          "in" : "query",
+          "description" : "Frame number for media with temporal progression (e.g., video).",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "shot",
+          "in" : "query",
+          "description" : "Shot number for media with temporal progression (e.g., video).",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "timecode",
+          "in" : "query",
+          "description" : "Timecode for media with temporal progression (e.g,. video).",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "session",
+          "in" : "query",
+          "description" : "Session Token",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
+                }
+              }
+            }
+          },
+          "202" : {
+            "description" : "Accepted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "412" : {
+            "description" : "Precondition Failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
     "/api/v2/audit/info" : {
       "get" : {
         "tags" : [ "Audit" ],
         "summary" : "Gives information about the audit log. Namely size and latest timestamp of known entries.",
         "operationId" : "getApiV2AuditInfo",
         "parameters" : [ ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "The audit log info.",
@@ -70,6 +220,9 @@
             "format" : "int32"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "The audit logs",
@@ -127,6 +280,9 @@
             "format" : "int64"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "The audit logs",
@@ -172,6 +328,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -214,6 +373,9 @@
         "summary" : "Lists an overview of all evaluation runs visible to the current client.",
         "operationId" : "getApiV2ClientEvaluationList",
         "parameters" : [ ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -351,6 +513,9 @@
         "summary" : "Lists all available media collections with basic information about their content.",
         "operationId" : "getApiV2CollectionList",
         "parameters" : [ ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -396,6 +561,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -446,6 +614,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -498,6 +669,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -648,6 +822,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -713,6 +890,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -775,6 +955,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -837,6 +1020,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -962,6 +1148,9 @@
             "format" : "int32"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1024,6 +1213,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1158,6 +1350,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1220,6 +1415,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1357,6 +1555,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1409,6 +1610,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1461,6 +1665,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1526,6 +1733,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1578,6 +1788,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1641,6 +1854,9 @@
             "format" : "int32"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1693,6 +1909,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1745,6 +1964,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1820,6 +2042,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1872,6 +2097,9 @@
         "summary" : "Lists an overview of all evaluations visible to the current user.",
         "operationId" : "getApiV2EvaluationInfoList",
         "parameters" : [ ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1907,6 +2135,9 @@
         "summary" : "Lists an overview of all evaluation visible to the current user.",
         "operationId" : "getApiV2EvaluationStateList",
         "parameters" : [ ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1962,6 +2193,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2024,6 +2258,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2178,6 +2415,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2260,6 +2500,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2397,6 +2640,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2462,6 +2708,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2524,6 +2773,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2590,6 +2842,9 @@
             "format" : "int64"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2665,6 +2920,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2727,6 +2985,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2799,6 +3060,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2864,6 +3128,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2936,6 +3203,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3177,6 +3447,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3261,6 +3534,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3323,6 +3599,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3427,6 +3706,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3482,6 +3764,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3554,6 +3839,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3626,6 +3914,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3691,6 +3982,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3746,6 +4040,9 @@
         "summary" : "Returns an overview of the server properties.",
         "operationId" : "getApiV2StatusInfo",
         "parameters" : [ ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3778,6 +4075,9 @@
         "summary" : "Returns the current time on the server.",
         "operationId" : "getApiV2StatusTime",
         "parameters" : [ ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3785,150 +4085,6 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/CurrentTime"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/submit" : {
-      "get" : {
-        "tags" : [ "Submission" ],
-        "summary" : "Endpoint to accept submissions",
-        "operationId" : "getApiV2Submit",
-        "parameters" : [ {
-          "name" : "collection",
-          "in" : "query",
-          "description" : "Collection identifier. Optional, in which case the default collection for the run will be considered.",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "item",
-          "in" : "query",
-          "description" : "Identifier for the actual media object or media file.",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "text",
-          "in" : "query",
-          "description" : "Text to be submitted. ONLY for tasks with target type TEXT. If this parameter is provided, it superseeds all athers.",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "frame",
-          "in" : "query",
-          "description" : "Frame number for media with temporal progression (e.g., video).",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "shot",
-          "in" : "query",
-          "description" : "Shot number for media with temporal progression (e.g., video).",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "timecode",
-          "in" : "query",
-          "description" : "Timecode for media with temporal progression (e.g,. video).",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "session",
-          "in" : "query",
-          "description" : "Session Token",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
-                }
-              }
-            }
-          },
-          "202" : {
-            "description" : "Accepted",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "412" : {
-            "description" : "Precondition Failed",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
                 }
               }
             }
@@ -4006,6 +4162,9 @@
         "summary" : "Lists an overview of all available competitions with basic information about their content.",
         "operationId" : "getApiV2TemplateList",
         "parameters" : [ ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4051,6 +4210,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4111,6 +4273,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4243,6 +4408,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4308,6 +4476,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4413,6 +4584,9 @@
         "summary" : "Get information about the current user.",
         "operationId" : "getApiV2User",
         "parameters" : [ ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4445,6 +4619,9 @@
         "summary" : "Lists all available users.",
         "operationId" : "getApiV2UserList",
         "parameters" : [ ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4480,6 +4657,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4512,6 +4692,9 @@
         "summary" : "Get details of all current user sessions",
         "operationId" : "getApiV2UserSessionActiveList",
         "parameters" : [ ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4557,6 +4740,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4677,6 +4863,9 @@
             "type" : "string"
           }
         } ],
+        "requestBody" : {
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",

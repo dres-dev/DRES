@@ -88,9 +88,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -163,9 +160,6 @@
         "summary" : "Gives information about the audit log. Namely size and latest timestamp of known entries.",
         "operationId" : "getApiV2AuditInfo",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "The audit log info.",
@@ -220,9 +214,6 @@
             "format" : "int32"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "The audit logs",
@@ -280,9 +271,6 @@
             "format" : "int64"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "The audit logs",
@@ -328,9 +316,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -373,9 +358,6 @@
         "summary" : "Lists an overview of all evaluation runs visible to the current client.",
         "operationId" : "getApiV2ClientEvaluationList",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -513,9 +495,6 @@
         "summary" : "Lists all available media collections with basic information about their content.",
         "operationId" : "getApiV2CollectionList",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -561,9 +540,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -614,9 +590,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -669,9 +642,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -822,9 +792,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -890,9 +857,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -955,9 +919,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1020,9 +981,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1148,9 +1106,6 @@
             "format" : "int32"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1213,9 +1168,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1350,9 +1302,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1415,9 +1364,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1555,9 +1501,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1610,9 +1553,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1665,9 +1605,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1733,9 +1670,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1788,9 +1722,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1854,9 +1785,6 @@
             "format" : "int32"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1909,9 +1837,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1964,9 +1889,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2042,9 +1964,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2097,9 +2016,6 @@
         "summary" : "Lists an overview of all evaluations visible to the current user.",
         "operationId" : "getApiV2EvaluationInfoList",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2135,9 +2051,6 @@
         "summary" : "Lists an overview of all evaluation visible to the current user.",
         "operationId" : "getApiV2EvaluationStateList",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2193,9 +2106,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2258,9 +2168,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2415,9 +2322,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2500,9 +2404,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2640,9 +2541,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2708,9 +2606,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2773,9 +2668,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2842,9 +2734,6 @@
             "format" : "int64"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2920,9 +2809,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2985,9 +2871,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3060,9 +2943,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3128,9 +3008,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3203,9 +3080,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3447,9 +3321,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3534,9 +3405,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3599,9 +3467,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3706,9 +3571,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3764,9 +3626,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3839,9 +3698,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3914,9 +3770,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3982,9 +3835,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4040,9 +3890,6 @@
         "summary" : "Returns an overview of the server properties.",
         "operationId" : "getApiV2StatusInfo",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4075,9 +3922,6 @@
         "summary" : "Returns the current time on the server.",
         "operationId" : "getApiV2StatusTime",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4162,9 +4006,6 @@
         "summary" : "Lists an overview of all available competitions with basic information about their content.",
         "operationId" : "getApiV2TemplateList",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4210,9 +4051,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4273,9 +4111,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4408,9 +4243,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4476,9 +4308,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4584,9 +4413,6 @@
         "summary" : "Get information about the current user.",
         "operationId" : "getApiV2User",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4619,9 +4445,6 @@
         "summary" : "Lists all available users.",
         "operationId" : "getApiV2UserList",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4657,9 +4480,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4692,9 +4512,6 @@
         "summary" : "Get details of all current user sessions",
         "operationId" : "getApiV2UserSessionActiveList",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4740,9 +4557,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -4863,9 +4677,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",

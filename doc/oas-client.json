@@ -88,9 +88,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -173,9 +170,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -218,9 +212,6 @@
         "summary" : "Lists an overview of all evaluation runs visible to the current client.",
         "operationId" : "getApiV2ClientEvaluationList",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -266,9 +257,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -331,9 +319,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -459,9 +444,6 @@
             "format" : "int32"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -524,9 +506,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -661,9 +640,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -726,9 +702,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -866,9 +839,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -921,9 +891,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -976,9 +943,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1044,9 +1008,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1099,9 +1060,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1165,9 +1123,6 @@
             "format" : "int32"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1220,9 +1175,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1275,9 +1227,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1353,9 +1302,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1408,9 +1354,6 @@
         "summary" : "Lists an overview of all evaluations visible to the current user.",
         "operationId" : "getApiV2EvaluationInfoList",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1446,9 +1389,6 @@
         "summary" : "Lists an overview of all evaluation visible to the current user.",
         "operationId" : "getApiV2EvaluationStateList",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1504,9 +1444,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1569,9 +1506,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1726,9 +1660,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1811,9 +1742,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1951,9 +1879,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2016,9 +1941,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2085,9 +2007,6 @@
             "format" : "int64"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2163,9 +2082,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2228,9 +2144,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2303,9 +2216,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2371,9 +2281,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2622,9 +2529,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2699,9 +2603,6 @@
         "summary" : "Returns an overview of the server properties.",
         "operationId" : "getApiV2StatusInfo",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2734,9 +2635,6 @@
         "summary" : "Returns the current time on the server.",
         "operationId" : "getApiV2StatusTime",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2821,9 +2719,6 @@
         "summary" : "Lists an overview of all available competitions with basic information about their content.",
         "operationId" : "getApiV2TemplateList",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2869,9 +2764,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2932,9 +2824,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3067,9 +2956,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3135,9 +3021,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3243,9 +3126,6 @@
         "summary" : "Get information about the current user.",
         "operationId" : "getApiV2User",
         "parameters" : [ ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3288,9 +3168,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3333,9 +3210,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -3456,9 +3330,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",

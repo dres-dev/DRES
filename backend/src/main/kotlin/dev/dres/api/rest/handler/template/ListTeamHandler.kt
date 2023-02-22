@@ -25,7 +25,7 @@ class ListTeamHandler(store: TransientEntityStore) : AbstractEvaluationTemplateH
         summary = "Lists all the teams of a specific competition.",
         path = "/api/v2/template/{templateId}/team/list",
         operationId = OpenApiOperation.AUTO_GENERATE,
-        pathParams = [OpenApiParam("templateId", String::class, "The evaluation template ID.")],
+        pathParams = [OpenApiParam("templateId", String::class, "The evaluation template ID.", required = true)],
         tags = ["Template"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<ApiTeam>::class)]),

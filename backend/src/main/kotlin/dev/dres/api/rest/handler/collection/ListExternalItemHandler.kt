@@ -38,7 +38,7 @@ class ListExternalItemHandler(config: Config) : GetRestHandler<Array<String>> {
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.GET],
         pathParams = [
-            OpenApiParam("startsWith", String::class, "Name starts with.", required = false)
+            OpenApiParam("startsWith", String::class, "Name starts with.", required = true)
         ],
         tags = ["Collection"],
         responses = [

@@ -27,8 +27,8 @@ class SubmissionPreviewHandler(store: TransientEntityStore, config: Config) : Ab
         path = "/api/v2/preview/submission/{evaluationId}/{submissionId}",
         operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [
-            OpenApiParam("evaluationId", String::class, "The evaluation ID."),
-            OpenApiParam("submissionId", String::class, "The submission ID")
+            OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true),
+            OpenApiParam("submissionId", String::class, "The submission ID", required = true)
         ],
         tags = ["Media"],
         responses = [OpenApiResponse(

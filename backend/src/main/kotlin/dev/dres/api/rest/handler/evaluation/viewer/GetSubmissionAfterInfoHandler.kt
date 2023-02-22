@@ -28,7 +28,7 @@ class GetSubmissionAfterInfoHandler(store: TransientEntityStore): AbstractEvalua
         tags = ["Evaluation"],
         pathParams = [
             OpenApiParam("evaluationId", String::class,"The evaluation ID.", required = true),
-            OpenApiParam("timestamp", Long::class, "Timestamp that marks the lower bound for returned submissions.", required = false)
+            OpenApiParam("timestamp", Long::class, "Timestamp that marks the lower bound for returned submissions.", required = true)
         ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(Array<ApiSubmission>::class)]),

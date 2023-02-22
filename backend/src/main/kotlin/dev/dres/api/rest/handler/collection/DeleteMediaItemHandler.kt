@@ -27,7 +27,7 @@ class DeleteMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHa
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.DELETE],
         pathParams = [
-            OpenApiParam("mediaId", String::class, "Media item ID")
+            OpenApiParam("mediaId", String::class, "Media item ID", required = true)
         ],
         tags = ["Collection"],
         responses = [

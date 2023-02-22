@@ -28,7 +28,7 @@ class DeleteUsersHandler(private val store: TransientEntityStore) : AbstractUser
         summary = "Deletes the specified user. Requires ADMIN privileges",
         path = "/api/v2/user/{userId}", methods = [HttpMethod.DELETE],
         operationId = OpenApiOperation.AUTO_GENERATE,
-        pathParams = [OpenApiParam("userId", String::class, "User ID")],
+        pathParams = [OpenApiParam("userId", String::class, "User ID", required = true)],
         tags = ["User"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(ApiUser::class)]),

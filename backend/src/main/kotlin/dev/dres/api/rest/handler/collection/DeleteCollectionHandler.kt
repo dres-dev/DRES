@@ -17,7 +17,7 @@ class DeleteCollectionHandler(store: TransientEntityStore) : AbstractCollectionH
     @OpenApi(
         summary = "Deletes a media collection identified by a collection id.",
         path = "/api/v2/collection/{collectionId}",
-        pathParams = [OpenApiParam("collectionId", String::class, "Collection ID")],
+        pathParams = [OpenApiParam("collectionId", String::class, "Collection ID", required = true)],
         tags = ["Collection"],
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.DELETE],

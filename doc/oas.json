@@ -195,7 +195,7 @@
           "name" : "limit",
           "in" : "path",
           "description" : "The maximum number of results. Default: 500",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -206,7 +206,7 @@
           "name" : "page",
           "in" : "path",
           "description" : "The page index offset, relative to the limit.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -252,7 +252,7 @@
           "name" : "since",
           "in" : "path",
           "description" : "Timestamp of the earliest audit log to include",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -263,7 +263,7 @@
           "name" : "upto",
           "in" : "path",
           "description" : "Timestamp of the latest audit log to include.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -307,7 +307,7 @@
         "operationId" : "getApiV2ClientEvaluationCurrentTaskByEvaluationId",
         "parameters" : [ {
           "name" : "evaluationId",
-          "in" : "query",
+          "in" : "path",
           "description" : "The evaluation ID.",
           "required" : true,
           "deprecated" : false,
@@ -533,7 +533,7 @@
           "name" : "collectionId",
           "in" : "path",
           "description" : "Collection ID",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -583,7 +583,7 @@
           "name" : "collectionId",
           "in" : "path",
           "description" : "Collection ID",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -635,7 +635,7 @@
           "name" : "collectionId",
           "in" : "path",
           "description" : "Collection ID",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -697,7 +697,7 @@
           "name" : "collectionId",
           "in" : "path",
           "description" : "Collection ID",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -775,7 +775,7 @@
           "name" : "collectionId",
           "in" : "path",
           "description" : "Collection ID",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -785,7 +785,7 @@
           "name" : "startsWith",
           "in" : "path",
           "description" : "Name the item(s) should start with.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -2223,7 +2223,7 @@
           "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -2315,7 +2315,7 @@
           "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -2397,7 +2397,7 @@
           "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -2462,7 +2462,7 @@
           "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -2726,7 +2726,7 @@
           "name" : "timestamp",
           "in" : "path",
           "description" : "Timestamp that marks the lower bound for returned submissions.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3001,7 +3001,7 @@
           "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3073,7 +3073,7 @@
           "name" : "startsWith",
           "in" : "path",
           "description" : "Name starts with.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3398,7 +3398,7 @@
           "name" : "mediaId",
           "in" : "path",
           "description" : "Media item ID",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -4044,7 +4044,7 @@
           "name" : "templateId",
           "in" : "path",
           "description" : "The evaluation template ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -4104,7 +4104,7 @@
           "name" : "templateId",
           "in" : "path",
           "description" : "The evaluation template ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -4236,7 +4236,7 @@
           "name" : "templateId",
           "in" : "path",
           "description" : "The evaluation template ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -4301,7 +4301,7 @@
           "name" : "templateId",
           "in" : "path",
           "description" : "The evaluation template ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -4550,7 +4550,7 @@
           "name" : "userId",
           "in" : "path",
           "description" : "User ID",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -4600,7 +4600,7 @@
           "name" : "userId",
           "in" : "path",
           "description" : "User ID",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -4670,7 +4670,7 @@
           "name" : "userId",
           "in" : "path",
           "description" : "User's UID",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {

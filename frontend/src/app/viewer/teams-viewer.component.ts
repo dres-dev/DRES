@@ -14,10 +14,9 @@ import {AppConfig} from '../app.config';
 import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
 import {animate, keyframes, style, transition, trigger} from '@angular/animations';
 import {
-    ApiAnswer, ApiAnswerType,
+    ApiAnswerType,
     ApiEvaluationInfo,
     ApiEvaluationState, ApiMediaItem, ApiScoreOverview, ApiSubmission,
-    ApiSubmissionInfo,
     ApiTaskTemplateInfo, ApiVerdictStatus,
     EvaluationScoresService,
     EvaluationService
@@ -86,7 +85,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
   @Input() taskEnded: Observable<ApiTaskTemplateInfo>;
 
   /** Observable that tracks all the submissions. */
-  submissions: Observable<ApiSubmissionInfo[]>;
+  submissions: Observable<ApiSubmission[]>;
 
   /** Observable that tracks all the submissions per team. */
   submissionsPerTeam: Observable<Map<string, ApiSubmission[]>>;
@@ -142,7 +141,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
       map(([submissions, info]) => {
         const submissionsPerTeam = new Map<string, ApiSubmission[]>();
         info.teams.forEach((t) => {
-          submissionsPerTeam.set(t.id, submissions.flatMap((s) => s.submissions).filter((s) => s.teamId === t.id));
+          submissionsPerTeam.set(t.id, submissions.filter((s) => s.teamId === t.id));
         });
         return submissionsPerTeam;
       }),
@@ -220,12 +219,10 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
       .pipe(
         withLatestFrom(this.submissions),
         map(([ended, submissions]) => {
-          for (const i of submissions) {
-              for (const s of i.submissions) {
-                  for (const a of s.answers) {
-                      if (a.status === 'CORRECT') {
-                          return true;
-                      }
+          for (const s of submissions) {
+              for (const a of s.answers) {
+                  if (a.status === 'CORRECT') {
+                      return true;
                   }
               }
           }
@@ -251,8 +248,8 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
   /**
    * Generates a URL for the preview image of a submission.
    */
-  public previewOfItem(item: ApiMediaItem, start: number, end: number): Observable<string> {
-      return of('')
+  public previewOfItem(item: ApiMediaItem, start: number, end: number): string {
+      return''
       /* TODO: I believe this endpoint needs to be redesigned. */
      /* return this.runId.pipe(map((evaluationId) => this.config.resolveApiUrl(`/preview/submission/${evaluationId}/${submission.submissionId}`))); */
   }

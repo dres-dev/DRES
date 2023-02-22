@@ -152,9 +152,6 @@ distributions {
 
 task downloadFFmpeg(type: Download) {
     def f = new File("$buildDir/cache/ffmpeg.zip")
-    outputs.upToDateWhen {
-        return f.exists()
-    }
 
     def os = ""
     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -167,13 +164,13 @@ task downloadFFmpeg(type: Download) {
 
     src "https://github.com/vot/ffbinaries-prebuilt/releases/download/v4.2.1/ffmpeg-4.2.1-$os-64.zip"
     dest f
+    onlyIf {
+        !f.exists()
+    }
 }
 
 task downloadFFprobe(type: Download) {
     def f = new File("$buildDir/cache/ffprobe.zip")
-    outputs.upToDateWhen {
-        return f.exists()
-    }
 
     def os = ""
     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -186,6 +183,10 @@ task downloadFFprobe(type: Download) {
 
     src "https://github.com/vot/ffbinaries-prebuilt/releases/download/v4.2.1/ffprobe-4.2.1-$os-64.zip"
     dest f
+    onlyIf {
+        !f.exists()
+    }
+
 }
 
 task copyFFmpeg(type: Copy) {

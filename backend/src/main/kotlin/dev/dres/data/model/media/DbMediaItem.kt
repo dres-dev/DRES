@@ -26,6 +26,8 @@ class DbMediaItem(entity: Entity) : PersistentEntity(entity), MediaItem {
 
     /** The name of this [DbMediaItem]. */
     override var name by xdRequiredStringProp(unique = false, trimmed = false)
+    override val mediaItemId: MediaItemId
+        get() = this.id
 
     /** The [DbMediaType] of this [DbMediaItem]. */
     var type by xdLink1(DbMediaType)

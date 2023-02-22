@@ -45,22 +45,22 @@ class TextValidator(targets: List<String>) : SubmissionValidator {
      * @param submission The [DbSubmission] to validate.
      */
     override fun validate(submission: Submission) {
-        submission.answerSets().forEach { answerSet ->
+        submission.answerSets().forEach outer@{ answerSet ->
 
-            answerSet.answers().forEach {
+            answerSet.answers().forEach inner@{
                 answer ->
 
                 /* Perform sanity checks. */
                 if (answer.type() != AnswerType.TEXT) {
                     answerSet.status(VerdictStatus.WRONG)
-                    return@forEach
+                    return@inner
                 }
 
                 /* Perform text validation. */
                 val text = answer.text
                 if (text == null) {
                     answerSet.status(VerdictStatus.WRONG)
-                    return@forEach
+                    return@inner
                 }
 
                 if (regex.any { it matches text })  {

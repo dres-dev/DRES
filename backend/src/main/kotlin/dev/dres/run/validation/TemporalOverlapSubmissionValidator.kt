@@ -2,13 +2,14 @@ package dev.dres.run.validation
 
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.media.DbMediaItem
+import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.time.TemporalRange
 import dev.dres.data.model.submissions.*
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import kotlinx.dnq.query.asSequence
 
 /** */
-typealias TransientMediaSegment = Pair<DbMediaItem,TemporalRange>
+typealias TransientMediaSegment = Pair<MediaItem,TemporalRange>
 
 /**
  * A [SubmissionValidator] class that checks, if a submission is correct based on the target segment and the
@@ -29,14 +30,14 @@ class TemporalOverlapSubmissionValidator(private val targetSegment: TransientMed
      * @param submission The [DbSubmission] to validate.
      */
     override fun validate(submission: Submission) {
-        submission.answerSets().forEach { answerSet ->
+        submission.answerSets().forEach outer@{ answerSet ->
 
-            answerSet.answers().forEach { answer ->
+            answerSet.answers().forEach inner@{ answer ->
 
                 /* Perform sanity checks. */
                 if (answer.type() != AnswerType.TEMPORAL) {
                     answerSet.status(VerdictStatus.WRONG)
-                    return@forEach
+                    return@inner
                 }
 
                 val start = answer.start
@@ -44,13 +45,13 @@ class TemporalOverlapSubmissionValidator(private val targetSegment: TransientMed
                 val item = answer.item
                 if (item == null || start == null || end == null || start > end) {
                     answerSet.status(VerdictStatus.WRONG)
-                    return@forEach
+                    return@inner
                 }
 
                 /* Perform item validation. */
-                if (answer.item != this.targetSegment.first) {
+                if (answer.item?.mediaItemId != this.targetSegment.first.mediaItemId) {
                     answerSet.status(VerdictStatus.WRONG)
-                    return@forEach
+                    return@inner
                 }
 
                 /* Perform temporal validation. */

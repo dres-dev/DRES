@@ -21,7 +21,7 @@ interface VoteValidator : JudgementValidator {
     /**
      * Places a verdict for the currently active Submission
      */
-    fun vote(verdict: VerdictStatus)
+    fun vote(status: VerdictStatus)
 
     /**
      *

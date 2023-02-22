@@ -56,14 +56,14 @@ class DequeueVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(
                     }
                     AnswerType.ITEM -> {
                         val item = next.answers().firstOrNull()?.item ?: continue
-                        return@transactional ApiJudgementRequest(null, item.type().toApi(), validator.id, item.collection.id, item.id!!, taskDescription, null, null)
+                        return@transactional ApiJudgementRequest(null, item.type().toApi(), validator.id, item.collection.id, item.mediaItemId, taskDescription, null, null)
                     }
                     AnswerType.TEMPORAL -> {
                         val answer = next.answers().firstOrNull() ?: continue
                         val item = answer.item ?: continue
                         val start = answer.start ?: continue
                         val end = answer.end ?: continue
-                        return@transactional ApiJudgementRequest(null, item.type().toApi(), validator.id, item.collection.id, item.id!!, taskDescription, start, end)
+                        return@transactional ApiJudgementRequest(null, item.type().toApi(), validator.id, item.collection.id, item.mediaItemId, taskDescription, start, end)
                     }
                     else -> continue
                 }

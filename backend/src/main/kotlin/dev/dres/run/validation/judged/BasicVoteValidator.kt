@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.write
 
-class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList(), val minimumVotes: Int = defaultMinimimVotes, val voteDifference: Int = defaultVoteDifference) : BasicJudgementValidator(knownCorrectRanges, knownWrongRanges), VoteValidator {
+class BasicVoteValidator(knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList(), private val minimumVotes: Int = defaultMinimimVotes, private val voteDifference: Int = defaultVoteDifference) : BasicJudgementValidator(knownCorrectRanges, knownWrongRanges), VoteValidator {
 
     constructor(knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList(), parameters: Map<String, String>): this(
         knownCorrectRanges, knownWrongRanges,

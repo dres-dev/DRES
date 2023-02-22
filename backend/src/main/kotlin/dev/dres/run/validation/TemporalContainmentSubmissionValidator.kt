@@ -25,14 +25,14 @@ class TemporalContainmentSubmissionValidator(private val targetSegment: Transien
      * @param submission The [DbSubmission] to validate.
      */
     override fun validate(submission: Submission) {
-        submission.answerSets().forEach { answerSet ->
+        submission.answerSets().forEach outer@{ answerSet ->
 
-            answerSet.answers().forEach { answer ->
+            answerSet.answers().forEach inner@{ answer ->
 
                 /* Perform sanity checks. */
                 if (answer.type() != AnswerType.TEMPORAL) {
                     answerSet.status(VerdictStatus.WRONG)
-                    return@forEach
+                    return@inner
                 }
 
                 val start = answer.start
@@ -40,14 +40,14 @@ class TemporalContainmentSubmissionValidator(private val targetSegment: Transien
                 val item = answer.item
                 if (item == null || start == null || end == null || start > end) {
                     answerSet.status(VerdictStatus.WRONG)
-                    return@forEach
+                    return@inner
 
                 }
 
                 /* Perform item validation. */
-                if (answer.item != this.targetSegment.first) {
+                if (answer.item?.mediaItemId != this.targetSegment.first.mediaItemId) {
                     answerSet.status(VerdictStatus.WRONG)
-                    return@forEach
+                    return@inner
                 }
 
                 /* Perform temporal validation. */

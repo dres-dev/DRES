@@ -63,10 +63,7 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
             /* At this point, the submission is considered valid and is persisted */
             val dbSubmission: DbSubmission = submission.toDb()
 
-            /* Process Submission. */
-            this.submissions.add(dbSubmission)
-
-            /* TODO: Validation? */
+            /* TODO: Process and validate submission. */
         }
     }
 }

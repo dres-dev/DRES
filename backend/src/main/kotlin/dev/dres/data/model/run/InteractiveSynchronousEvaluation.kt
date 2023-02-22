@@ -147,11 +147,7 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
             this.filter.acceptOrThrow(submission)
 
             /* At this point, the submission is considered valid and is persisted */
-            val dbSubmission: DbSubmission = submission.toDb()
-
-            /* Process Submission. */
-            this.submissions.add(dbSubmission)
-            this.validator.validate(submission)
+            this.validator.validate(submission.toDb())
             DbAuditLogger.validateSubmission(submission, this.validator)
         }
     }

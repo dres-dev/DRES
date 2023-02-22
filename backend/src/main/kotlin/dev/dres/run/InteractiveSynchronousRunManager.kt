@@ -145,13 +145,13 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         /* Start the run. */
         this.evaluation.start()
 
-        /* Update status. */
-        this.status = RunManagerStatus.ACTIVE
-
         /* Enqueue WS message for sending */
         this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.COMPETITION_START))
 
+
+        /* Log and update status. */
         LOGGER.info("SynchronousRunManager ${this.id} started")
+        this.status = RunManagerStatus.ACTIVE
     }
 
     override fun end(context: RunActionContext) = this.stateLock.write {
@@ -449,8 +449,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         assureTaskRunning()
 
         /* Register submission. */
-        val task = this.currentTask(context)
-            ?: throw IllegalStateException("Could not find ongoing task in run manager, despite correct status. This is a programmer's error!")
+        val task = this.currentTask(context) ?: throw IllegalStateException("Could not find ongoing task in run manager, despite correct status. This is a programmer's error!")
         task.postSubmission(submission)
 
         /** Checks for the presence of the [DbTaskOption.PROLONG_ON_SUBMISSION] and applies it. */

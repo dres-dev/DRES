@@ -215,7 +215,6 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
             val dbSubmission: DbSubmission = submission.toDb()
 
             /* Process Submission. */
-            this.submissions.add(dbSubmission)
             this.validator.validate(submission)
             DbAuditLogger.validateSubmission(submission, this.validator)
         }

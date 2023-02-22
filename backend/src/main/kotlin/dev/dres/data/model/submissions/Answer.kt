@@ -21,8 +21,5 @@ interface Answer {
             return TemporalRange(TemporalPoint.Millisecond(start), TemporalPoint.Millisecond(end))
         }
 
-    fun toDb(): DbAnswer
-
     fun type(): AnswerType
-
 }

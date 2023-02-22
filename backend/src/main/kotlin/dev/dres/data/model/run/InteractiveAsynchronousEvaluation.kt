@@ -196,27 +196,5 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
                 list
             }
         }
-
-        /**
-         * Adds a [DbSubmission] to this [InteractiveAsynchronousEvaluation.IATaskRun].
-         *
-         * @param submission The [DbSubmission] to add.
-         * @throws IllegalArgumentException If [DbSubmission] could not be added for any reason.
-         */
-        @Synchronized
-        override fun postSubmission(submission: Submission) {
-            check(this.isRunning) { "Task run '${this@InteractiveAsynchronousEvaluation.name}.${this.position}' is currently not running. This is a programmer's error!" }
-            check(this.teamId == submission.teamId) { "Team ${submission.teamId} is not eligible to submit to this task. This is a programmer's error!" }
-
-            /* Execute submission filters. */
-            this.filter.acceptOrThrow(submission)
-
-            /* At this point, the submission is considered valid and is persisted */
-            val dbSubmission: DbSubmission = submission.toDb()
-
-            /* Process Submission. */
-            this.validator.validate(submission)
-            DbAuditLogger.validateSubmission(submission, this.validator)
-        }
     }
 }

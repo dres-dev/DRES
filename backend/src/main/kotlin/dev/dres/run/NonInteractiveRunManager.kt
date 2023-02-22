@@ -1,15 +1,13 @@
 package dev.dres.run
 
 import dev.dres.api.rest.types.WebSocketConnection
+import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.data.model.run.*
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.TaskId
-import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.DbVerdictStatus
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.*
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.ScoreboardsUpdatable
@@ -167,7 +165,8 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
      *
      */
     override fun tasks(context: RunActionContext): List<AbstractNonInteractiveTask> = this.evaluation.tasks
-    override fun postSubmission(context: RunActionContext, submission: Submission): VerdictStatus {
+
+    override fun postSubmission(context: RunActionContext, submission: ApiSubmission): VerdictStatus {
         TODO("Not yet implemented")
     }
 }

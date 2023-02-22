@@ -1,6 +1,7 @@
 package dev.dres.run
 
 import dev.dres.api.rest.types.WebSocketConnection
+import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
@@ -24,7 +25,6 @@ import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.ReadyLatch
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
-import kotlinx.dnq.transactional
 import org.slf4j.LoggerFactory
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -336,14 +336,17 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      * @throws IllegalStateException If [RunManager] was not in wrong [RunManagerStatus].
      */
     override fun adjustDuration(context: RunActionContext, s: Int): Long = this.stateLock.read {
-        assureTaskRunning()
         checkContext(context)
 
-        val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
-        val newDuration = currentTaskRun.duration + s
-        check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
-        currentTaskRun.duration = newDuration
-        return (currentTaskRun.duration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!))
+        /* Obtain task and perform sanity check. */
+        val task = this.currentTask(context) ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
+        check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running. This is a programmer's error!" }
+
+        /* Adjust duration. */
+        val newDuration = task.duration + s
+        check((newDuration * 1000L - (System.currentTimeMillis() - task.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
+        task.duration = newDuration
+        return (task.duration * 1000L - (System.currentTimeMillis() - task.started!!))
     }
 
     /**
@@ -435,26 +438,36 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         }
 
     /**
-     * Processes incoming [DbSubmission]s. If a [DbTask] is running then that [DbSubmission] will usually
+     * Processes incoming [ApiSubmission]s. If a [DbTask] is running then that [ApiSubmission] will usually
      * be associated with that [DbTask].
      *
-     * This method will not throw an exception and instead return false if a [DbSubmission] was
+     * This method will not throw an exception and instead return false if a [ApiSubmission] was
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
      * @param context The [RunActionContext] used for the invocation
-     * @param submission [DbSubmission] that should be registered.
+     * @param submission [ApiSubmission] that should be registered.
      */
-    override fun postSubmission(context: RunActionContext, submission: Submission): VerdictStatus = this.stateLock.read {
-        assureTaskRunning()
-
+    override fun postSubmission(context: RunActionContext, submission: ApiSubmission): VerdictStatus = this.stateLock.read {
         /* Register submission. */
         val task = this.currentTask(context) ?: throw IllegalStateException("Could not find ongoing task in run manager, despite correct status. This is a programmer's error!")
-        task.postSubmission(submission)
+
+        /* Sanity check. */
+        check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running. This is a programmer's error!" }
+        check(this.template.teams.asSequence().filter { it.teamId == submission.teamId }.any()) { "Team ${submission.teamId} does not exists for evaluation run ${this.name}. This is a programmer's error!" }
+
+        /* Check if ApiSubmission meets formal requirements. */
+        task.filter.acceptOrThrow(submission as Submission)
+
+        /* At this point, the submission is considered valid and is persisted */
+        task.validator.validate(submission as Submission)
+
+        /* Persist the submission. */
+        submission.toNewDb()
 
         /** Checks for the presence of the [DbTaskOption.PROLONG_ON_SUBMISSION] and applies it. */
         if (task.template.taskGroup.type.options.contains(DbTaskOption.PROLONG_ON_SUBMISSION)) {
-            this.prolongOnSubmit(context, submission)
+            this.prolongOnSubmit(context, submission as Submission)
         }
 
         /* Enqueue submission for post-processing. */
@@ -634,10 +647,6 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      */
     private fun checkStatus(vararg status: RunManagerStatus) {
         if (this.status !in status) throw IllegalRunStateException(this.status)
-    }
-
-    private fun assureTaskRunning() {
-        if (this.evaluation.currentTask?.status != TaskStatus.RUNNING) throw IllegalStateException("Task not running")
     }
 
     private fun assureTaskPreparingOrRunning() {

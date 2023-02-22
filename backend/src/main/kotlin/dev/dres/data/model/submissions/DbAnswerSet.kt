@@ -41,8 +41,6 @@ class DbAnswerSet(entity: Entity) : PersistentEntity(entity), AnswerSet {
         this.status = status.toDb()
     }
 
-    override fun toDb(): DbAnswerSet = this
-
     /**
      * Converts this [DbVerdictStatus] to a RESTful API representation [ApiAnswerSet].
      *

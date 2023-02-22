@@ -38,13 +38,18 @@ data class ApiAnswerSet(
         this.status = status.toApi()
     }
 
-    override fun toDb(): DbAnswerSet {
+    /**
+     * Creates a new [DbAnswerSet] for this [ApiAnswerSet]. Requires an ongoing transaction.
+     *
+     * @return [DbAnswerSet]
+     */
+    fun toNewDb(): DbAnswerSet {
         return DbAnswerSet.new {
             this.status = this@ApiAnswerSet.status.toDb()
             this.task = DbTask.filter { it.id eq this@ApiAnswerSet.taskId }.first()
             this.answers.addAll(
                 this@ApiAnswerSet.answers.map {
-                    it.toDb()
+                    it.toNewDb()
                 }
             )
         }

@@ -1,6 +1,7 @@
 package dev.dres.run
 
 import dev.dres.api.rest.types.WebSocketConnection
+import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
@@ -436,12 +437,12 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
         this.tasks(context).find { it.id == taskId }
 
     /**
-     * Returns a reference to the currently active [AbstractInteractiveTask].
+     * Returns a reference to the currently active [InteractiveAsynchronousEvaluation.IATaskRun].
      *
      * @param context The [RunActionContext] used for the invocation.
-     * @return [AbstractInteractiveTask] that is currently active or null, if no such task is active.
+     * @return [InteractiveAsynchronousEvaluation.IATaskRun] that is currently active or null, if no such task is active.
      */
-    override fun currentTask(context: RunActionContext): AbstractInteractiveTask? = this.stateLock.read {
+    override fun currentTask(context: RunActionContext): InteractiveAsynchronousEvaluation.IATaskRun? = this.stateLock.read {
         require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         return this.evaluation.currentTaskForTeam(context.teamId)
     }
@@ -507,15 +508,26 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
      * @return [DbVerdictStatus] of the [DbSubmission]
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.ACTIVE].
      */
-    override fun postSubmission(context: RunActionContext, submission: Submission): VerdictStatus = this.stateLock.read {
+    override fun postSubmission(context: RunActionContext, submission: ApiSubmission): VerdictStatus = this.stateLock.read {
         require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         require(teamHasRunningTask(context.teamId)) { "No running task for Team ${context.teamId}" }
         require(submission.answerSets().count() == 1) { "Only single verdict per submission is allowed for InteractiveAsynchronousRunManager." } /* TODO: Do we want this restriction? */
 
         /* Register submission. */
-        val task = this.currentTask(context)
-            ?: throw IllegalStateException("Could not find ongoing task in run manager, despite being in status ${this.statusMap[context.teamId]}. This is a programmer's error!")
-        task.postSubmission(submission)
+        val task = this.currentTask(context) ?: throw IllegalStateException("Could not find ongoing task in run manager, despite being in status ${this.statusMap[context.teamId]}. This is a programmer's error!")
+
+        /* Sanity check. */
+        check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running. This is a programmer's error!" }
+        check(task.teamId == submission.teamId) { "Team ${submission.teamId} is not eligible to submit to this task. This is a programmer's error!" }
+
+        /* Check if ApiSubmission meets formal requirements. */
+        task.filter.acceptOrThrow(submission as Submission)
+
+        /* At this point, the submission is considered valid and is persisted */
+        task.validator.validate(submission as Submission)
+
+        /* Persist the submission. */
+        submission.toNewDb()
 
         /* Enqueue submission for post-processing. */
         this.scoresUpdatable.enqueue(Pair(task, submission))
@@ -701,7 +713,10 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     }
 
     /**
+     * Checks if the team for the given [TeamId] has an active and running task.
      *
+     * @param teamId The [TeamId] to check.
+     * @return True if task is running for team, false otherwise.
      */
     private fun teamHasRunningTask(teamId: TeamId) = this.evaluation.currentTaskForTeam(teamId)?.isRunning == true
 

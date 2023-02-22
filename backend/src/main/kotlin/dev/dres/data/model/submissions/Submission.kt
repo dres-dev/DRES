@@ -15,7 +15,4 @@ interface Submission {
     val evaluationId: EvaluationId
 
     fun answerSets(): Sequence<AnswerSet>
-
-    fun toDb(): DbSubmission
-
 }

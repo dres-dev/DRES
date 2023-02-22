@@ -1,16 +1,14 @@
 package dev.dres.run
 
 import dev.dres.api.rest.types.WebSocketConnection
+import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.TaskRun
-import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.DbVerdictStatus
-import dev.dres.data.model.submissions.Submission
-import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.*
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
 
@@ -95,22 +93,22 @@ interface RunManager : Runnable {
     fun tasks(context: RunActionContext): List<TaskRun>
 
     /**
-     * Invoked by an external caller to post a new [DbSubmission] for the [TaskRun] that is currently being
-     * executed by this [InteractiveRunManager]. [DbSubmission]s usually cause updates to the internal state and/or
+     * Invoked by an external caller to post a new [ApiSubmission] for the [TaskRun] that is currently being
+     * executed by this [InteractiveRunManager]. [ApiSubmission]s usually cause updates to the internal state and/or
      * the [Scoreboard] of this [InteractiveRunManager].
      *
-     * This method will not throw an exception and instead returns false if a [DbSubmission] was
+     * This method will not throw an exception and instead returns false if a [ApiSubmission] was
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
      *
      * @param context The [RunActionContext] used for the invocation
-     * @param submission The [DbSubmission] to be posted.
+     * @param submission The [ApiSubmission] to be posted.
      *
-     * @return [DbVerdictStatus] of the [DbSubmission]
+     * @return [DbVerdictStatus] of the [ApiSubmission]
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    fun postSubmission(context: RunActionContext, submission: Submission): VerdictStatus
+    fun postSubmission(context: RunActionContext, submission: ApiSubmission): VerdictStatus
 
     /**
      * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.

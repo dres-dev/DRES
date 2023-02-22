@@ -149,11 +149,4 @@ abstract class AbstractTask(task: DbTask): TaskRun {
     }.mapDistinct {
         it.submission
     }.asSequence()
-
-    /**
-     * Adds a new [DbSubmission] to this [AbstractInteractiveTask].
-     *
-     * @param submission The [DbSubmission] to append.
-     */
-    abstract fun postSubmission(submission: Submission)
 }

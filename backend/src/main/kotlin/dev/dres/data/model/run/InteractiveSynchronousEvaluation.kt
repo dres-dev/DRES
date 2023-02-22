@@ -130,25 +130,5 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
             check(this@InteractiveSynchronousEvaluation.tasks.isEmpty() || this@InteractiveSynchronousEvaluation.tasks.last().hasEnded) { "Cannot create a new task. Another task is currently running." }
             (this@InteractiveSynchronousEvaluation.tasks as MutableList<TaskRun>).add(this)
         }
-
-        /**
-         * Adds a [DbSubmission] to this [DbTask].
-         *
-         * @param submission The [DbSubmission] to add.
-         */
-        @Synchronized
-        override fun postSubmission(submission: Submission) {
-            check(this.isRunning) { "Task run '${this@InteractiveSynchronousEvaluation.name}.${this.position}' is currently not running. This is a programmer's error!" }
-            check(this@InteractiveSynchronousEvaluation.description.teams.asSequence().filter { it.teamId == submission.teamId }.any()) {
-                "Team ${submission.teamId} does not exists for evaluation run ${this@InteractiveSynchronousEvaluation.name}. This is a programmer's error!"
-            }
-
-            /* Execute submission filters. */
-            this.filter.acceptOrThrow(submission)
-
-            /* At this point, the submission is considered valid and is persisted */
-            this.validator.validate(submission.toDb())
-            DbAuditLogger.validateSubmission(submission, this.validator)
-        }
     }
 }

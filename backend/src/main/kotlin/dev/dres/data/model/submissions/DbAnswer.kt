@@ -28,9 +28,8 @@ class DbAnswer(entity: Entity) : PersistentEntity(entity), Answer {
 
     /** The text submitted. Only for [DbAnswerType.TEXT] . */
     override var text by xdStringProp { requireIf { this.type == DbAnswerType.TEXT } }
-    override fun toDb(): DbAnswer = this
-    override fun type(): AnswerType = AnswerType.fromDb(this.type)
 
+    override fun type(): AnswerType = AnswerType.fromDb(this.type)
 
     fun toApi() = ApiAnswer(
         type = this.type().toApi(),

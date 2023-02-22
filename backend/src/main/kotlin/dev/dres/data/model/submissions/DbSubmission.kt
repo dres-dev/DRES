@@ -13,8 +13,6 @@ import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.first
 import kotlinx.dnq.simple.min
 
-
-
 /**
  * A [DbSubmission] as submitted by a competition participant and received by DRES.
  *
@@ -52,7 +50,6 @@ class DbSubmission(entity: Entity) : PersistentEntity(entity), Submission {
     val answerSets by xdChildren1_N<DbSubmission,DbAnswerSet>(DbAnswerSet::submission)
 
     override fun answerSets(): Sequence<AnswerSet> = answerSets.asSequence()
-    override fun toDb(): DbSubmission = this
 
     /**
      * Converts this [DbSubmission] to a RESTful API representation [ApiSubmission].

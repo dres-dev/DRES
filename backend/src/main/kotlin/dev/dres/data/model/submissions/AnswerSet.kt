@@ -4,8 +4,6 @@ import dev.dres.data.model.run.Task
 import dev.dres.data.model.run.TaskId
 
 interface AnswerSet { //TODO
-
-
     val taskId: TaskId
     val submission: Submission
 
@@ -15,6 +13,4 @@ interface AnswerSet { //TODO
 
     fun status() : VerdictStatus
     fun status(status: VerdictStatus)
-
-    fun toDb(): DbAnswerSet
 }

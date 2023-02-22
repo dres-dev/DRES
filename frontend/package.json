@@ -34,7 +34,7 @@
     "@angular/platform-browser-dynamic": "13.2.x",
     "@angular/router": "13.2.x",
     "angularx-qrcode": "13.0.x",
-    "apexcharts": "3.33.x",
+    "apexcharts": "3.37.x",
     "ng-apexcharts": "1.7.x",
     "ngx-color-picker": "12.0.x",
     "rxjs": "6.5.x",

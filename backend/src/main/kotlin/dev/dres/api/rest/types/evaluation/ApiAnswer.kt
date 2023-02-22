@@ -15,7 +15,6 @@ data class ApiAnswer(
     override fun toDb(): DbAnswer {
         return DbAnswer.new {
             this.type = this@ApiAnswer.type.toDb()
-
         }
     }
 

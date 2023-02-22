@@ -26,8 +26,7 @@ class MediaItemsSubmissionValidator(private val items : Set<DbMediaItem>) : Subm
      */
     override fun validate(submission: Submission) {
         submission.answerSets().forEach { answerSet ->
-
-            if (answerSet.answers().any {  it.item == null || it.item !in this.items} ) {
+            if (answerSet.answers().any {  it.item == null || it.item !in this.items} ) { /* TODO: This doesn't work cause we're comparing DbMediaItem with ApiMediaItem. */
                 answerSet.status(VerdictStatus.WRONG)
             } else {
                 answerSet.status(VerdictStatus.CORRECT)

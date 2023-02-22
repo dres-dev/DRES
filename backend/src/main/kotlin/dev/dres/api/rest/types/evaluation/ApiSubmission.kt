@@ -45,8 +45,8 @@ data class ApiSubmission(
         return DbSubmission.new {
             this.id = this@ApiSubmission.submissionId
             this.timestamp = this@ApiSubmission.timestamp
-            this.team = DbTeam.filter { teamId eq this@ApiSubmission.teamId }.first()
-            this.user = DbUser.filter { id eq this@ApiSubmission.memberId }.first()
+            this.team = DbTeam.filter { it.id eq this@ApiSubmission.teamId }.first()
+            this.user = DbUser.filter { it.id eq this@ApiSubmission.memberId }.first()
             this.answerSets.addAll(
                 this@ApiSubmission.answers.map { it.toDb() }
             )

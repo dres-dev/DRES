@@ -19,14 +19,14 @@ import kotlinx.dnq.query.asSequence
 class DbAnswerSet(entity: Entity) : PersistentEntity(entity), AnswerSet {
     companion object : XdNaturalEntityType<DbAnswerSet>()
 
-    /** The [DbVerdictStatus] of this [DbAnswerSet]. */
-    var status: DbVerdictStatus by xdLink1(DbVerdictStatus)
-
     /** The [DbSubmission] this [DbAnswerSet] belongs to. */
     override var submission: DbSubmission by xdParent<DbAnswerSet,DbSubmission>(DbSubmission::answerSets)
 
+    /** The [DbVerdictStatus] of this [DbAnswerSet]. */
+    var status: DbVerdictStatus by xdLink1(DbVerdictStatus)
+
     /** The [DbTask] this [DbAnswerSet] belongs to. */
-    var task: DbTask by xdParent<DbAnswerSet, DbTask>(DbTask::answerSets)
+    var task: DbTask by xdLink1<DbAnswerSet, DbTask>(DbTask::answerSets)
 
     override fun task(): Task = task
     override val taskId: TaskId

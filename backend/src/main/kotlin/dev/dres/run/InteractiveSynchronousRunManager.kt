@@ -454,7 +454,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         task.postSubmission(submission)
 
         /** Checks for the presence of the [DbTaskOption.PROLONG_ON_SUBMISSION] and applies it. */
-        if (task.template.taskGroup.type.options.filter { it eq DbTaskOption.PROLONG_ON_SUBMISSION }.any()) {
+        if (task.template.taskGroup.type.options.contains(DbTaskOption.PROLONG_ON_SUBMISSION)) {
             this.prolongOnSubmit(context, submission)
         }
 

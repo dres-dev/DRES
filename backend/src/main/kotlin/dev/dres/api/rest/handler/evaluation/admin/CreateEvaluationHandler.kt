@@ -108,9 +108,6 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
             }
 
             /* Try to flush change prior to scheduling it. */
-            if (!tx.flush()) {
-                throw ErrorStatusException(500, "Failed to store new evaluation.", ctx)
-            }
             RunExecutor.schedule(when (message.type) {
                 ApiEvaluationType.ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(evaluation, emptyMap()) /* TODO: Team map */
                 ApiEvaluationType.SYNCHRONOUS -> InteractiveSynchronousEvaluation(evaluation)

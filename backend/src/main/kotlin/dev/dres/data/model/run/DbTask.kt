@@ -27,6 +27,9 @@ class DbTask(entity: Entity) : PersistentEntity(entity), Task {
         get() = this.id
         set(value) { this.id = value }
 
+    /** The [DbEvaluation] this [DbTask] belongs to. */
+    override var evaluation: DbEvaluation by xdParent<DbTask,DbEvaluation>(DbEvaluation::tasks)
+
     /** Timestamp of when this [DbEvaluation] started. */
     override var started by xdNullableLongProp()
 
@@ -39,11 +42,8 @@ class DbTask(entity: Entity) : PersistentEntity(entity), Task {
     /** Link to a [DbTeam] this [DbTask] was created for. Can be NULL!*/
     var team by xdLink0_1(DbTeam)
 
-    /** The [DbEvaluation] this [DbTask] belongs to. */
-    override var evaluation: DbEvaluation by xdParent<DbTask,DbEvaluation>(DbEvaluation::tasks)
-
     /** List of [DbSubmission]s received by this [DbTask]. */
-    val answerSets by xdChildren0_N<DbTask,DbAnswerSet>(DbAnswerSet::task)
+    val answerSets by xdLink0_N<DbTask,DbAnswerSet>(DbAnswerSet::task)
 
     override fun answerSets(): Sequence<AnswerSet> = answerSets.asSequence() //TODO can this be sorted by submission timestamp?
 

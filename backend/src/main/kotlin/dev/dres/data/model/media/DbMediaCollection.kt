@@ -4,7 +4,6 @@ import dev.dres.data.model.PersistentEntity
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 
-typealias CollectionId = String
 
 /**
  * A named media collection consisting of media items.

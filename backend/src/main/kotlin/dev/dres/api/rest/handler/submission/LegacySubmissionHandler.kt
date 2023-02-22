@@ -365,7 +365,7 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
     private fun generatePreview(answerSet: AnswerSet) {
         if (answerSet.answers().firstOrNull()?.type() != AnswerType.TEMPORAL) return
         if (answerSet.answers().firstOrNull()?.item == null) return
-        val item = DbMediaItem.query((DbMediaItem::id eq answerSet.answers().firstOrNull()?.item!!.id)).firstOrNull() ?: return
+        val item = DbMediaItem.query((DbMediaItem::id eq answerSet.answers().firstOrNull()?.item!!.mediaItemId)).firstOrNull() ?: return
         val destinationPath = Paths.get(
             this.config.cachePath,
             "previews",

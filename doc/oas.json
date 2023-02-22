@@ -4817,7 +4817,7 @@
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
-          "id" : {
+          "mediaItemId" : {
             "type" : "string"
           },
           "name" : {
@@ -4844,7 +4844,7 @@
             "$ref" : "#/components/schemas/MediaItemCollection"
           }
         },
-        "required" : [ "name", "type", "collectionId", "location", "collection" ]
+        "required" : [ "mediaItemId", "name", "type", "collectionId", "location", "collection" ]
       },
       "ApiMediaType" : {
         "type" : "string",

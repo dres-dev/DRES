@@ -127,7 +127,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
     this.collectionId.subscribe((colId: string) => {
       const config = { width: '500px' } as MatDialogConfig<Partial<MediaItemBuilderData>>;
       if (id) {
-        config.data = { item: this.dataSource.data.find((it) => it.id === id), collectionId: colId } as MediaItemBuilderData;
+        config.data = { item: this.dataSource.data.find((it) => it.mediaItemId === id), collectionId: colId } as MediaItemBuilderData;
       } else {
         config.data = { collectionId: colId } as Partial<MediaItemBuilderData>;
       }
@@ -157,7 +157,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
   }
 
   resolveMediaItemById(_: number, item: ApiMediaItem) {
-    return item.id;
+    return item.mediaItemId;
   }
 
   /**

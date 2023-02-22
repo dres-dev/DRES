@@ -1,6 +1,7 @@
 package dev.dres.run.validation
 
 import dev.dres.data.model.media.DbMediaItem
+import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.submissions.Submission
@@ -14,10 +15,12 @@ import kotlinx.dnq.query.asSequence
  * @author Luca Rossetto
  * @version 1.0.1
  */
-class MediaItemsSubmissionValidator(private val items : Set<DbMediaItem>) : SubmissionValidator {
+class MediaItemsSubmissionValidator(private val items : Set<MediaItem>) : SubmissionValidator {
 
     /** This type of [SubmissionValidator] can be executed directly.*/
     override val deferring = false
+
+    private val itemIds = items.map { it.mediaItemId }
 
     /**
      * Performs the validation.
@@ -26,7 +29,7 @@ class MediaItemsSubmissionValidator(private val items : Set<DbMediaItem>) : Subm
      */
     override fun validate(submission: Submission) {
         submission.answerSets().forEach { answerSet ->
-            if (answerSet.answers().any {  it.item == null || it.item !in this.items} ) { /* TODO: This doesn't work cause we're comparing DbMediaItem with ApiMediaItem. */
+            if (answerSet.answers().any {  it.item == null || it.item!!.mediaItemId !in this.itemIds} ) {
                 answerSet.status(VerdictStatus.WRONG)
             } else {
                 answerSet.status(VerdictStatus.CORRECT)

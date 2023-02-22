@@ -23,7 +23,7 @@ export class MediaItemBuilderDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: MediaItemBuilderData
   ) {
     this.form = new FormGroup({
-      id: new FormControl(data?.item?.id),
+      id: new FormControl(data?.item?.mediaItemId),
       name: new FormControl(data?.item?.name, [Validators.required, Validators.minLength(3)]),
       location: new FormControl(data?.item?.location, Validators.required),
       type: new FormControl({ value: data?.item?.type, disabled: this.isEditing() }, [Validators.required]),
@@ -49,7 +49,7 @@ export class MediaItemBuilderDialogComponent implements OnInit {
   }
 
   isEditing(): boolean {
-    return this.data?.item?.id !== undefined;
+    return this.data?.item?.mediaItemId !== undefined;
   }
 
   ngOnInit(): void {}
@@ -81,7 +81,7 @@ export class MediaItemBuilderDialogComponent implements OnInit {
     } as ApiMediaItem;
     /* Are we editing ? */
     if (this.isEditing()) {
-      item.id = this.form.get('id').value;
+      item.mediaItemId = this.form.get('id').value;
     }
     /* only relevant for video */
     if (item.type === ApiMediaType.VIDEO) {

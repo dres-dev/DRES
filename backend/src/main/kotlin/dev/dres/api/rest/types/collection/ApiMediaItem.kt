@@ -1,10 +1,7 @@
 package dev.dres.api.rest.types.collection
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import dev.dres.data.model.media.DbMediaItem
-import dev.dres.data.model.media.MediaItem
-import dev.dres.data.model.media.MediaItemCollection
-import dev.dres.data.model.media.MediaItemType
+import dev.dres.data.model.media.*
 
 /**
  * The RESTful API equivalent for [DbMediaItem].
@@ -14,7 +11,7 @@ import dev.dres.data.model.media.MediaItemType
  * @version 1.1.0
  */
 data class ApiMediaItem(
-    override val id: String?,
+    override val mediaItemId: MediaItemId,
     override val name: String,
     val type: ApiMediaType,
     val collectionId: String,

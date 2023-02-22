@@ -586,6 +586,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     private fun internalStateUpdate() {
         /** Case 1: Facilitates internal transition from RunManagerStatus.PREPARING_TASK to RunManagerStatus.RUNNING_TASK. */
         if (this.evaluation.currentTask?.status == TaskStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
+            /* TODO (Potential race condition): It can occur, that this part of the code is entered without the corresponding task being committed (status change in memory manifest faster than persistent information). */
             this.stateLock.write {
                 this.store.transactional {
                     this.evaluation.currentTask!!.start()

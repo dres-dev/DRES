@@ -7,6 +7,7 @@ import { IWsMessage } from './ws-message.interface';
  */
 export interface IWsServerMessage extends IWsMessage {
   evaluationId: string;
+  taskId?: string;
   type: ServerMessageTypeEnum;
   timestamp: number;
 }

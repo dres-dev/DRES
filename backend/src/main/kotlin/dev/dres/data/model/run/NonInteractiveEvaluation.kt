@@ -51,19 +51,19 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
         override val filter: SubmissionFilter
             get() = TODO("Can there be submission filters for non-interactive tasks?")
 
-        @Synchronized
-        override fun postSubmission(submission: Submission) {
-            check(this@NonInteractiveEvaluation.description.teams.asSequence().filter { it.teamId == submission.teamId }.any()) {
-                "Team ${submission.teamId} does not exists for evaluation run ${this@NonInteractiveEvaluation.name}. This is a programmer's error!"
-            }
-
-            /* Execute submission filters. */
-            this.filter.acceptOrThrow(submission)
-
-            /* At this point, the submission is considered valid and is persisted */
-            val dbSubmission: DbSubmission = submission.toDb()
-
-            /* TODO: Process and validate submission. */
-        }
+//        @Synchronized
+//        override fun postSubmission(submission: Submission) {
+//            check(this@NonInteractiveEvaluation.description.teams.asSequence().filter { it.teamId == submission.teamId }.any()) {
+//                "Team ${submission.teamId} does not exists for evaluation run ${this@NonInteractiveEvaluation.name}. This is a programmer's error!"
+//            }
+//
+//            /* Execute submission filters. */
+//            this.filter.acceptOrThrow(submission)
+//
+//            /* At this point, the submission is considered valid and is persisted */
+//            val dbSubmission: DbSubmission = submission.toDb()
+//
+//            /* TODO: Process and validate submission. */
+//        }
     }
 }

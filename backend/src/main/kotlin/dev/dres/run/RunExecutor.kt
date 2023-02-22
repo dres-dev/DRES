@@ -200,7 +200,7 @@ object RunExecutor : Consumer<WsConfig> {
                         ClientMessageType.ACK -> {}
                         ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.evaluationId]?.add(WebSocketConnection(it)) }
                         ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.evaluationId]?.remove(WebSocketConnection(it)) }
-                        ClientMessageType.PING -> it.send(ServerMessage(message.evaluationId, ServerMessageType.PING))
+                        ClientMessageType.PING -> it.send(ServerMessage(message.evaluationId, null, ServerMessageType.PING))
                     }
                     this.runManagers[message.evaluationId]!!.wsMessageReceived(session, message) /* Forward message to RunManager. */
                 }

@@ -146,7 +146,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         this.evaluation.start()
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.COMPETITION_START))
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, null,ServerMessageType.COMPETITION_START))
 
 
         /* Log and update status. */
@@ -165,7 +165,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         this.status = RunManagerStatus.TERMINATED
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.COMPETITION_END))
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, null, ServerMessageType.COMPETITION_END))
 
         LOGGER.info("SynchronousRunManager ${this.id} terminated")
     }
@@ -222,7 +222,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             this.scoreboardsUpdatable.dirty = true
 
             /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.COMPETITION_UPDATE))
+            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, this.evaluation.currentTask?.id, ServerMessageType.COMPETITION_UPDATE))
             LOGGER.info("SynchronousRunManager ${this.id} set to task $index")
         } else {
             throw IndexOutOfBoundsException("Index $index is out of bounds for the number of available tasks.")
@@ -252,7 +252,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         this.readyLatch.reset(VIEWER_TIME_OUT)
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.TASK_PREPARE))
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, this.evaluation.currentTask?.id, ServerMessageType.TASK_PREPARE))
 
         LOGGER.info("SynchronousRunManager ${this.id} started task ${this.evaluation.getCurrentTemplateId()}.")
     }
@@ -269,7 +269,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         this.scoreboardsUpdatable.dirty = true
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.TASK_END))
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, this.currentTask(context)?.id, ServerMessageType.TASK_END))
         LOGGER.info("SynchronousRunManager ${this.id} aborted task  ${this.evaluation.getCurrentTemplateId()}.")
     }
 
@@ -474,7 +474,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         this.scoresUpdatable.enqueue(Pair(task, submission))
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.TASK_UPDATED))
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.id, ServerMessageType.TASK_UPDATED))
         return submission.answerSets().first().status()
     }
 
@@ -503,7 +503,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             this.scoresUpdatable.enqueue(Pair(task, answerSet.submission))
 
             /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.TASK_UPDATED), context.teamId!!)
+            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.id, ServerMessageType.TASK_UPDATED), context.teamId!!)
 
             return true
         }
@@ -595,7 +595,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             }
 
             /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.TASK_START))
+            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, this.evaluation.currentTask?.id, ServerMessageType.TASK_START))
         }
 
         /** Case 2: Facilitates internal transition from RunManagerStatus.RUNNING_TASK to RunManagerStatus.TASK_ENDED due to timeout. */
@@ -612,7 +612,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 }
 
                 /* Enqueue WS message for sending */
-                this.messageQueueUpdatable.enqueue(ServerMessage(this.id, ServerMessageType.TASK_END))
+                this.messageQueueUpdatable.enqueue(ServerMessage(this.id, this.evaluation.currentTask?.id, ServerMessageType.TASK_END))
             }
         }
     }

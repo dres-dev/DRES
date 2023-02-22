@@ -4,6 +4,7 @@ import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
 import dev.dres.data.model.run.AbstractInteractiveTask
 import dev.dres.data.model.run.interfaces.EvaluationId
+import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.Submission
@@ -34,22 +35,26 @@ class ScoresUpdatable(private val evaluationId: EvaluationId, private val scoreb
     fun enqueue(submission: Pair<AbstractInteractiveTask, Submission>) = this.list.add(submission)
 
     override fun update(status: RunManagerStatus) {
+        val removed = mutableListOf<TaskId>()
         if (!this.list.isEmpty()) {
-            val removed = this.list.removeIf {
+            this.list.removeIf {
                 val task = it.first
                 val scores = it.first.scorer.computeScores(
                     task.getSubmissions(),
                     TaskContext(task.id, task.competition.description.teams.asSequence().map { t -> t.id }.toList(), task.started, task.template.duration, task.ended)
                 )
                 task.updateTeamAggregation(scores)
+                removed.add(task.id)
 
                 true
             }
 
             /* If elements were removed, then update scoreboards and tasks. */
-            if (removed) {
+            if (removed.isNotEmpty()) {
                 this.scoreboardsUpdatable.dirty = true
-                this.messageQueueUpdatable.enqueue(ServerMessage(this.evaluationId, ServerMessageType.TASK_UPDATED))
+                removed.forEach {
+                    this.messageQueueUpdatable.enqueue(ServerMessage(this.evaluationId, it, ServerMessageType.TASK_UPDATED))
+                }
             }
         }
     }

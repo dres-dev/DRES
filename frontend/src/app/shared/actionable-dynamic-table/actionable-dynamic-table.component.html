@@ -10,20 +10,16 @@
             <ng-container [ngSwitch]="column.type">
                 <ng-container *ngSwitchCase="'action'">
                     <ng-container [ngSwitch]="column.action">
-                        <button *ngSwitchCase="'edit'"
-                        mat-icon-button aria-label="Edit this element" matTooltip="Edit this element"
-                        (click)="onEdit(element)">
+                        <button *ngSwitchCase="'edit'" mat-icon-button aria-label="Edit this element" matTooltip="Edit this element" (click)="onEdit(element)">
                             <mat-icon>edit</mat-icon>
                         </button>
-                        <button *ngSwitchCase="'remove'"
-                                mat-icon-button aria-label="Remove this element" matTooltip="Remove this element"
-                                (click)="onRemove(element)">
+                        <button *ngSwitchCase="'remove'" mat-icon-button aria-label="Remove this element" matTooltip="Remove this element" (click)="onRemove(element)">
                             <mat-icon>remove</mat-icon>
                         </button>
                     </ng-container>
                 </ng-container>
                 <div *ngSwitchDefault>
-                    {{element[column.property}}
+                    {{ element[column.property] }}
                 </div>
             </ng-container>
         </td>

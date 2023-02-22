@@ -161,7 +161,7 @@
         "operationId" : "getApiV2ClientEvaluationCurrentTaskByEvaluationId",
         "parameters" : [ {
           "name" : "evaluationId",
-          "in" : "query",
+          "in" : "path",
           "description" : "The evaluation ID.",
           "required" : true,
           "deprecated" : false,
@@ -1561,7 +1561,7 @@
           "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -1653,7 +1653,7 @@
           "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -1735,7 +1735,7 @@
           "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -1800,7 +1800,7 @@
           "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -1999,7 +1999,7 @@
           "name" : "timestamp",
           "in" : "path",
           "description" : "Timestamp that marks the lower bound for returned submissions.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -2274,7 +2274,7 @@
           "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -2757,7 +2757,7 @@
           "name" : "templateId",
           "in" : "path",
           "description" : "The evaluation template ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -2817,7 +2817,7 @@
           "name" : "templateId",
           "in" : "path",
           "description" : "The evaluation template ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -2949,7 +2949,7 @@
           "name" : "templateId",
           "in" : "path",
           "description" : "The evaluation template ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3014,7 +3014,7 @@
           "name" : "templateId",
           "in" : "path",
           "description" : "The evaluation template ID.",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3203,7 +3203,7 @@
           "name" : "userId",
           "in" : "path",
           "description" : "User ID",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3253,7 +3253,7 @@
           "name" : "userId",
           "in" : "path",
           "description" : "User ID",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3323,7 +3323,7 @@
           "name" : "userId",
           "in" : "path",
           "description" : "User's UID",
-          "required" : false,
+          "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {

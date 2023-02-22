@@ -25,7 +25,7 @@ class DeleteEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEva
         path = "/api/v2/template/{templateId}",
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.DELETE],
-        pathParams = [OpenApiParam("templateId", String::class, "The evaluation template ID.")],
+        pathParams = [OpenApiParam("templateId", String::class, "The evaluation template ID.", required = true)],
         tags = ["Template"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),

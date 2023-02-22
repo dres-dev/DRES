@@ -30,7 +30,7 @@ class RandomMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHa
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.GET],
         pathParams = [
-            OpenApiParam("collectionId", String::class, "Collection ID")
+            OpenApiParam("collectionId", String::class, "Collection ID", required = true)
         ],
         tags = ["Collection"],
         responses = [

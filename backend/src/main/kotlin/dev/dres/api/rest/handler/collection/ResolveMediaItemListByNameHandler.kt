@@ -25,7 +25,7 @@ class ResolveMediaItemListByNameHandler(store: TransientEntityStore) : AbstractC
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.POST],
         pathParams = [
-            OpenApiParam("collectionId", String::class, "Collection ID")
+            OpenApiParam("collectionId", String::class, "Collection ID", required = true)
         ],
         requestBody = OpenApiRequestBody([OpenApiContent(Array<String>::class)]),
         tags = ["Collection"],

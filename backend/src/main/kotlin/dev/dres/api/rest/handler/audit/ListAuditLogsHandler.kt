@@ -37,8 +37,8 @@ class ListAuditLogsHandler(store: TransientEntityStore) : AbstractAuditLogHandle
         summary = "Lists all audit logs matching the query.",
         path = "/api/v2/audit/log/list/limit/{limit}/{page}",
         pathParams = [
-            OpenApiParam(LIMIT_PARAM, Int::class, "The maximum number of results. Default: 500"),
-            OpenApiParam(PAGE_INDEX_PARAM, Int::class, "The page index offset, relative to the limit.")
+            OpenApiParam(LIMIT_PARAM, Int::class, "The maximum number of results. Default: 500", required = true),
+            OpenApiParam(PAGE_INDEX_PARAM, Int::class, "The page index offset, relative to the limit.", required = true)
         ],
         tags = ["Audit"],
         operationId = OpenApiOperation.AUTO_GENERATE,

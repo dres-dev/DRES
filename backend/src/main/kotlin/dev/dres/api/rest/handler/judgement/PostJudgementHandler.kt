@@ -30,7 +30,7 @@ class PostJudgementHandler(store: TransientEntityStore): AbstractJudgementHandle
         summary = "Endpoint to post a judgement for a previously detached judgement request.",
         path = "/api/v2/evaluation/{evaluationId}/judge", methods = [HttpMethod.POST],
         operationId = OpenApiOperation.AUTO_GENERATE,
-        pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.")],
+        pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true)],
         requestBody = OpenApiRequestBody([OpenApiContent(ApiJudgement::class)]),
         tags = ["Judgement"],
         responses = [

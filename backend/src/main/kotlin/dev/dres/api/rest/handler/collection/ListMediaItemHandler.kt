@@ -26,8 +26,8 @@ class ListMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHand
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.GET],
         pathParams = [
-            OpenApiParam("collectionId", String::class, "Collection ID"),
-            OpenApiParam("startsWith", String::class, "Name the item(s) should start with.", required = false)
+            OpenApiParam("collectionId", String::class, "Collection ID", required = true),
+            OpenApiParam("startsWith", String::class, "Name the item(s) should start with.", required = true)
         ],
         tags = ["Collection"],
         responses = [

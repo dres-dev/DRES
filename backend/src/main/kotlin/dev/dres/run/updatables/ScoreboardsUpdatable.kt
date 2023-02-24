@@ -1,7 +1,5 @@
 package dev.dres.run.updatables
 
-import dev.dres.data.model.run.AbstractInteractiveTask
-import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
 import dev.dres.run.score.ScoreTimePoint
@@ -25,13 +23,14 @@ class ScoreboardsUpdatable(val manager: RunManager, private val updateIntervalMs
     override val phase: Phase = Phase.MAIN
 
     @Volatile
-    override var dirty: Boolean = false
+    override var dirty: Boolean = true
 
     /** Timestamp of the last update. */
     private var lastUpdate: Long = System.currentTimeMillis()
 
     /** List of all [ScoreTimePoint]s tracked by this [ScoreboardsUpdatable]. */
     private val _timeSeries: MutableList<ScoreTimePoint> = LinkedList()
+
     val timeSeries: List<ScoreTimePoint>
         get() = this._timeSeries
 

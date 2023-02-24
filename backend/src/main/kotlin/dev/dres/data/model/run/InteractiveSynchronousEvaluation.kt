@@ -72,6 +72,9 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
     override val scoreboards: List<Scoreboard>
 
     init {
+        /* Load all ongoing tasks. */
+        this.evaluation.tasks.asSequence().forEach { ISTaskRun(it) }
+
         /* Prepare the evaluation scoreboards. */
         val teams = this.description.teams.asSequence().map { it.teamId }.toList()
         val groupBoards = this.description.taskGroups.asSequence().map { group ->
@@ -79,9 +82,6 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
         }.toList()
         val aggregateScoreBoard = SumAggregateScoreBoard("sum", this, groupBoards)
         this.scoreboards = groupBoards.plus(aggregateScoreBoard)
-
-        /* Load all ongoing tasks. */
-        this.evaluation.tasks.asSequence().forEach { ISTaskRun(it) }
     }
 
     /**

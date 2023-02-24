@@ -200,7 +200,7 @@ object RunExecutor : Consumer<WsConfig> {
                         ClientMessageType.ACK -> {}
                         ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.evaluationId]?.add(WebSocketConnection(it)) }
                         ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.evaluationId]?.remove(WebSocketConnection(it)) }
-                        ClientMessageType.PING -> it.send(ServerMessage(message.evaluationId, null, ServerMessageType.PING))
+                        ClientMessageType.PING -> it.send(ServerMessage(message.evaluationId, ServerMessageType.PING))
                     }
                     this.runManagers[message.evaluationId]!!.wsMessageReceived(session, message) /* Forward message to RunManager. */
                 }
@@ -228,26 +228,14 @@ object RunExecutor : Consumer<WsConfig> {
     }
 
     /**
-     * Broadcasts a [ServerMessage] to all clients currently connected.
+     * Broadcasts a [ServerMessage] to all clients currently connected and observing a specific [RunManager].
      *
      * @param message The [ServerMessage] that should be broadcast.
      */
     fun broadcastWsMessage(message: ServerMessage) = this.clientLock.read {
-        this.connectedClients.values.forEach {
-            it.send(message)
-        }
-    }
-
-    /**
-     * Broadcasts a [ServerMessage] to all clients currently connected and observing a specific [RunManager].
-     *
-     * @param evaluationId The [EvaluationId] identifying the [RunManager] for which clients should receive the message.
-     * @param message The [ServerMessage] that should be broadcast.
-     */
-    fun broadcastWsMessage(evaluationId: EvaluationId, message: ServerMessage) = this.clientLock.read {
         this.runManagerLock.read {
             this.connectedClients.values.filter {
-                this.observingClients[evaluationId]?.contains(it) ?: false
+                this.observingClients[message.evaluationId]?.contains(it) ?: false
             }.forEach {
                 it.send(message)
             }
@@ -257,17 +245,16 @@ object RunExecutor : Consumer<WsConfig> {
     /**
      * Broadcasts a [ServerMessage] to all clients currently connected and observing a specific [RunManager] and are member of the specified team.
      *
-     * @param evaluationId The run ID identifying the [RunManager] for which clients should receive the message.
      * @param teamId The [TeamId] of the relevant team
      * @param message The [ServerMessage] that should be broadcast.
      */
-    fun broadcastWsMessage(evaluationId: EvaluationId, teamId: TeamId, message: ServerMessage) = this.clientLock.read {
-        val manager = managerForId(evaluationId)
+    fun broadcastWsMessage(teamId: TeamId, message: ServerMessage) = this.clientLock.read {
+        val manager = managerForId(message.evaluationId)
         if (manager != null) {
             val teamMembers = manager.template.teams.filter { it.id eq teamId }.flatMapDistinct { it.users }.asSequence().map { it.userId }.toList()
             this.runManagerLock.read {
                 this.connectedClients.values.filter {
-                    this.observingClients[evaluationId]?.contains(it) ?: false && AccessManager.userIdForSession(it.sessionId) in teamMembers
+                    this.observingClients[message.evaluationId]?.contains(it) ?: false && AccessManager.userIdForSession(it.sessionId) in teamMembers
                 }.forEach {
                     it.send(message)
                 }

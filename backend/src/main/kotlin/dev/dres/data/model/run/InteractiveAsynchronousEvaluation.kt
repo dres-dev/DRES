@@ -119,6 +119,9 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
     override val scoreboards: List<Scoreboard>
 
     init {
+        /* Load all ongoing tasks. */
+        /* this.evaluation.tasks.asSequence().forEach { IATaskRun(it) } */
+
         /* Prepare the evaluation scoreboards. */
         val teams = this.description.teams.asSequence().map { it.teamId }.toList()
         val groupBoards = this.description.taskGroups.asSequence().map { group ->
@@ -126,9 +129,6 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
         }.toList()
         val aggregateScoreBoard = SumAggregateScoreBoard("sum", this, groupBoards)
         this.scoreboards = groupBoards.plus(aggregateScoreBoard)
-
-        /* Load all ongoing tasks. */
-        /* this.evaluation.tasks.asSequence().forEach { IATaskRun(it) } */
     }
 
     fun goTo(teamId: TeamId, index: Int) {

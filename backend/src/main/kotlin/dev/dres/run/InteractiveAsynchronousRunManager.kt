@@ -66,9 +66,6 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
     private val scoreboardsUpdatable = ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_MS)
 
-    /** The internal [MessageQueueUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
-    private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
-
     /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
     private val scoresUpdatable = ScoresUpdatable(this)
 
@@ -111,7 +108,6 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
         /* Register relevant Updatables. */
         this.updatables.add(this.scoresUpdatable)
         this.updatables.add(this.scoreboardsUpdatable)
-        this.updatables.add(this.messageQueueUpdatable)
 
         this.store.transactional(true) {
             this.template.teams.asSequence().forEach {
@@ -140,7 +136,6 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
                     }
                 }
             }
-            this.scoresUpdatable.update(this.status)
         }
     }
 
@@ -165,7 +160,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
             this.status = RunManagerStatus.ACTIVE
 
             /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, null, ServerMessageType.COMPETITION_START))
+            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_START))
 
             LOGGER.info("Run manager ${this.id} started")
         }
@@ -192,12 +187,15 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
             this.status = RunManagerStatus.TERMINATED
 
             /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, null, ServerMessageType.COMPETITION_END))
+            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_END))
 
             LOGGER.info("SynchronousRunManager ${this.id} terminated")
         }
     }
 
+    /**
+     *
+     */
     override fun updateProperties(properties: RunProperties) {
         TODO("Not yet implemented")
     }
@@ -286,10 +284,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
         this.scoreboardsUpdatable.dirty = true
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(
-            ServerMessage(this.id, this.evaluation.currentTaskForTeam(context.teamId)?.taskId, ServerMessageType.COMPETITION_UPDATE),
-            context.teamId
-        )
+        RunExecutor.broadcastWsMessage(context.teamId, ServerMessage(this.id, ServerMessageType.COMPETITION_UPDATE, this.evaluation.currentTaskForTeam(context.teamId)?.taskId))
 
         LOGGER.info("SynchronousRunManager ${this.id} set to task $idx")
 
@@ -326,10 +321,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
         this.scoreboardsUpdatable.dirty = true
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(
-            ServerMessage(this.id, currentTaskTemplate.id, ServerMessageType.TASK_PREPARE),
-            context.teamId
-        )
+        RunExecutor.broadcastWsMessage(context.teamId, ServerMessage(this.id, ServerMessageType.TASK_PREPARE, currentTaskRun.taskId))
 
         LOGGER.info("Run manager  ${this.id} started task $currentTaskTemplate.")
     }
@@ -357,7 +349,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
         this.scoreboardsUpdatable.dirty = true
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, currentTask.taskId, ServerMessageType.TASK_END), context.teamId)
+        RunExecutor.broadcastWsMessage(context.teamId, ServerMessage(this.id, ServerMessageType.TASK_END, currentTask.taskId))
 
         LOGGER.info("Run manager ${this.id} aborted task $currentTask.")
     }
@@ -533,7 +525,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
         this.scoresUpdatable.enqueue(task)
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.taskId, ServerMessageType.TASK_UPDATED), context.teamId)
+        RunExecutor.broadcastWsMessage(context.teamId, ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.taskId))
         return submission.answerSets().first().status()
     }
 
@@ -563,8 +555,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
             this.scoresUpdatable.enqueue(task)
 
             /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.taskId, ServerMessageType.TASK_UPDATED), context.teamId!!)
-
+            RunExecutor.broadcastWsMessage(context.teamId!!, ServerMessage(this.id,  ServerMessageType.TASK_UPDATED, task.taskId))
             return true
         }
 
@@ -606,7 +597,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
         var errorCounter = 0
         while (this.status != RunManagerStatus.TERMINATED) {
             try {
-                this.store.transactional {
+                this.stateLock.read {
                     /* 1) Invoke all relevant [Updatable]s. */
                     this.invokeUpdatables()
 
@@ -616,7 +607,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
                     /* 3) Reset error counter and yield to other threads. */
                     errorCounter = 0
                 }
-                Thread.sleep(10)
+                Thread.sleep(250)
             } catch (ie: InterruptedException) {
                 LOGGER.info("Interrupted run manager thread; exiting...")
                 return
@@ -666,27 +657,29 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     private fun internalStateUpdate() = this.stateLock.read {
         for (team in this.evaluation.description.teams.asSequence()) {
             if (teamHasRunningTask(team.teamId)) {
-                val task = this.evaluation.currentTaskForTeam(team.teamId)
-                    ?: throw IllegalStateException("Could not find active task for team ${team.teamId} despite status of the team being ${this.statusMap[team.teamId]}. This is a programmer's error!")
-                val timeLeft = max(
-                    0L,
-                    task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
-                )
-                if (timeLeft <= 0) {
-                    this.stateLock.write {
-                        task.end()
-                        DbAuditLogger.taskEnd(this.id, task.taskId, DbAuditLogSource.INTERNAL, null)
-                    }
+                this.stateLock.write {
+                    this.store.transactional {
+                        val task = this.evaluation.currentTaskForTeam(team.teamId) ?: throw IllegalStateException("Could not find active task for team ${team.teamId} despite status of the team being ${this.statusMap[team.teamId]}. This is a programmer's error!")
+                        val timeLeft = max(0L, task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
+                        if (timeLeft <= 0) {
+                            task.end()
+                            DbAuditLogger.taskEnd(this.id, task.taskId, DbAuditLogSource.INTERNAL, null)
 
-                    /* Enqueue WS message for sending */
-                    this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.taskId, ServerMessageType.TASK_END), team.teamId)
+                            /* Enqueue WS message for sending */
+                            RunExecutor.broadcastWsMessage(team.teamId, ServerMessage(this.id, ServerMessageType.TASK_END, task.taskId))
+                        }
+                    }
                 }
             } else if (teamHasPreparingTask(team.teamId)) {
-                val task = this.evaluation.currentTaskForTeam(team.teamId)
-                    ?: throw IllegalStateException("Could not find active task for team ${team.teamId} despite status of the team being ${this.statusMap[team.teamId]}. This is a programmer's error!")
-                task.start()
-                DbAuditLogger.taskStart(this.id, task.teamId, task.template, DbAuditLogSource.REST, null)
-                this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.taskId, ServerMessageType.TASK_START), team.teamId)
+                this.stateLock.write {
+                    this.store.transactional {
+                        val task = this.evaluation.currentTaskForTeam(team.teamId)
+                            ?: throw IllegalStateException("Could not find active task for team ${team.teamId} despite status of the team being ${this.statusMap[team.teamId]}. This is a programmer's error!")
+                        task.start()
+                        DbAuditLogger.taskStart(this.id, task.teamId, task.template, DbAuditLogSource.REST, null)
+                        RunExecutor.broadcastWsMessage(team.teamId, ServerMessage(this.id, ServerMessageType.TASK_START, task.taskId))
+                    }
+                }
             }
         }
     }

@@ -15,7 +15,7 @@ import java.util.*
  * @author Ralph Gasser & Luca Rossetto
  * @version 1.1.0
  */
-class ScoreboardsUpdatable(val scoreboards: List<Scoreboard>, private val updateIntervalMs: Long, private val competition: EvaluationRun): StatefulUpdatable {
+class ScoreboardsUpdatable(val manager: RunManager, private val updateIntervalMs: Long): StatefulUpdatable {
 
     companion object {
        private val ELIGIBLE_STATUS = arrayOf(RunManagerStatus.ACTIVE)
@@ -40,9 +40,11 @@ class ScoreboardsUpdatable(val scoreboards: List<Scoreboard>, private val update
         if (this.dirty && (now - lastUpdate) > this.updateIntervalMs) {
             this.dirty = false
             this.lastUpdate = now
-            this.scoreboards.forEach {
-                it.update(this.competition.tasks.filterIsInstance<AbstractInteractiveTask>())
-                it.scores().map{ score -> this._timeSeries.add(ScoreTimePoint(it.name, score)) }
+            this.manager.store.transactional(true) {
+                this.manager.scoreboards.forEach {
+                    it.update()
+                    it.scores().map{ score -> this._timeSeries.add(ScoreTimePoint(it.name, score)) }
+                }
             }
         }
     }

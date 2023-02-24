@@ -26,7 +26,7 @@ abstract class AbstractInteractiveTask(task: DbTask): AbstractTask(task) {
 
 
     /** The total duration in milliseconds of this task. Usually determined by the [DbTaskTemplate] but can be adjusted! */
-    abstract var duration: Long
+    override abstract var duration: Long
 
     /** Map of [TeamGroupId] to [TeamAggregatorImpl]. */
     val teamGroupAggregators: Map<TeamGroupId, TeamAggregatorImpl> by lazy {

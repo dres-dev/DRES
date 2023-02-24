@@ -9,13 +9,11 @@ import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.media.DbMediaCollection
 import dev.dres.data.model.template.interfaces.SubmissionFilterFactory
-import dev.dres.data.model.template.interfaces.CachingTaskScorerFactory
+import dev.dres.data.model.template.interfaces.TaskScorerFactory
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.template.TemplateId
 import dev.dres.run.filter.SubmissionFilter
-import dev.dres.run.score.scorer.CachingTaskScorer
-import dev.dres.run.score.scorer.TaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
@@ -33,7 +31,7 @@ import java.lang.Long.max
  * @author Luca Rossetto
  * @author Ralph Gasser
  */
-class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), CachingTaskScorerFactory, SubmissionFilterFactory, TaskTemplate {
+class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), TaskTemplate {
     companion object: XdNaturalEntityType<DbTaskTemplate>()
 
     /** The [TemplateId] of this [DbTaskTemplate]. */
@@ -66,24 +64,6 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), CachingTaskScor
     val hints by xdChildren0_N<DbTaskTemplate,DbHint>(DbHint::task)
 
     /**
-     * Generates a new [TaskScorer] for this [DbTaskTemplate]. Depending
-     * on the implementation, the returned instance is a new instance or being re-use.
-     *
-     * @return [TaskScorer].
-     */
-    override fun newScorer(): CachingTaskScorer = this.taskGroup.type.newScorer()
-
-
-    /**
-     * Generates and returns a [SubmissionValidator] instance for this [DbTaskTemplate]. Depending
-     * on the implementation, the returned instance is a new instance or being re-use.
-     *
-     * @return [SubmissionFilter]
-     */
-    override fun newFilter(): SubmissionFilter = this.taskGroup.type.newFilter()
-
-
-    /**
      * Generates and returns a [ApiHintContent] object to be used by the RESTful interface.
      *
      * Requires a valid transaction.
@@ -95,7 +75,7 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), CachingTaskScor
      * @throws IOException
      */
     fun toTaskHint(config: Config): ApiHintContent {
-        val sequence =  this.hints.asSequence().groupBy { it.type }.flatMap { group ->
+        val sequence = this.hints.asSequence().groupBy { it.type }.flatMap { group ->
             var index = 0
             group.value.sortedBy { it.start ?: 0 }.flatMap {
                 val ret = mutableListOf(it.toQueryContentElement(config))
@@ -127,7 +107,7 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), CachingTaskScor
     fun toTaskTarget(config: Config): ApiTargetContent {
         var cummulativeOffset = 0L
         val sequence = this.targets.asSequence().flatMap {
-            cummulativeOffset += Math.floorDiv(it.item!!.durationMs!!, 1000L) + 1L
+            cummulativeOffset += Math.floorDiv(it.item?.durationMs ?: 10000L, 1000L) + 1L
             listOf(
                 it.toQueryContentElement(config),
                 ApiContentElement(ApiContentType.EMPTY, null, cummulativeOffset)

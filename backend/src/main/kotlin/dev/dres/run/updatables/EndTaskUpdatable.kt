@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * @author Luca Rossetto
  * @version 1.1.0
  */
-class EndTaskUpdatable(private val run: InteractiveRunManager, private val context: RunActionContext) : Updatable {
+class EndTaskUpdatable(private val manager: InteractiveRunManager, private val context: RunActionContext) : Updatable {
 
     /** The [EndTaskUpdatable] always belongs to the [Phase.MAIN]. */
     override val phase: Phase = Phase.MAIN
@@ -24,29 +24,31 @@ class EndTaskUpdatable(private val run: InteractiveRunManager, private val conte
     private var submissions = AtomicInteger(0)
 
     /** Internal flag indicating whether the provided [InteractiveRunManager] is asynchronous. */
-    private val isAsync = this.run is InteractiveAsynchronousRunManager
+    private val isAsync = this.manager is InteractiveAsynchronousRunManager
 
     override fun update(status: RunManagerStatus) {
-        val taskRun = this.run.currentTask(this.context)
+        val taskRun = this.manager.currentTask(this.context)
         if (taskRun != null) {
-            if (taskRun.template.taskGroup.type.submission.contains(DbSubmissionOption.LIMIT_CORRECT_PER_TEAM)) {
-                val limit = taskRun.template.taskGroup.type.configurations.filter { it.key eq DbSubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.firstOrNull()?.key?.toIntOrNull() ?: 1
-                if (this.run.timeLeft(this.context) > 0) {
-                    val submissionCount = taskRun.getSubmissions().count()
-                    if (this.submissions.getAndSet(submissionCount) < submissionCount) {
-                        val allDone = if (this.isAsync) {
-                            val numberOfSubmissions = this.run.currentSubmissions(this.context).count { it.team.id == context.teamId && it.answerSets.first().status == DbVerdictStatus.CORRECT }
-                            numberOfSubmissions >= limit
-                        } else {
-                            /* Determine of all teams have submitted . */
-                            this.run.template.teams.asSequence().all { team ->
-                                val numberOfSubmissions = this.run.currentSubmissions(this.context).count { it.team.id == team.teamId && it.answerSets.first().status == DbVerdictStatus.CORRECT }
+            this.manager.store.transactional(true) {
+                if (taskRun.template.taskGroup.type.submission.contains(DbSubmissionOption.LIMIT_CORRECT_PER_TEAM)) {
+                    val limit = taskRun.template.taskGroup.type.configurations.filter { it.key eq DbSubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.firstOrNull()?.key?.toIntOrNull() ?: 1
+                    if (this.manager.timeLeft(this.context) > 0) {
+                        val submissionCount = taskRun.getSubmissions().count()
+                        if (this.submissions.getAndSet(submissionCount) < submissionCount) {
+                            val allDone = if (this.isAsync) {
+                                val numberOfSubmissions = this.manager.currentSubmissions(this.context).count { it.team.id == context.teamId && it.answerSets.first().status == DbVerdictStatus.CORRECT }
                                 numberOfSubmissions >= limit
+                            } else {
+                                /* Determine of all teams have submitted . */
+                                this.manager.template.teams.asSequence().all { team ->
+                                    val numberOfSubmissions = this.manager.currentSubmissions(this.context).count { it.team.id == team.teamId && it.answerSets.first().status == DbVerdictStatus.CORRECT }
+                                    numberOfSubmissions >= limit
+                                }
                             }
-                        }
-                        if (allDone) {
-                            this.run.abortTask(this.context)
-                            this.submissions.set(0)
+                            if (allDone) {
+                                this.manager.abortTask(this.context)
+                                this.submissions.set(0)
+                            }
                         }
                     }
                 }

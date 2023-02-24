@@ -1,22 +1,21 @@
 package dev.dres.run.score.scorer
 
-import dev.dres.data.model.template.team.TeamId
-import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.submissions.VerdictStatus
-import dev.dres.run.score.TaskContext
-import kotlinx.dnq.query.asSequence
-import kotlinx.dnq.query.filter
+import dev.dres.run.score.Scoreable
 import kotlin.math.max
 
 class KisTaskScorer(
-        private val maxPointsPerTask: Double = defaultmaxPointsPerTask,
-        private val maxPointsAtTaskEnd: Double = defaultmaxPointsAtTaskEnd,
-        private val penaltyPerWrongSubmission: Double = defaultpenaltyPerWrongSubmission
+    override val scoreable: Scoreable,
+    private val maxPointsPerTask: Double = defaultmaxPointsPerTask,
+    private val maxPointsAtTaskEnd: Double = defaultmaxPointsAtTaskEnd,
+    private val penaltyPerWrongSubmission: Double = defaultpenaltyPerWrongSubmission
 ) : TaskScorer {
 
-    constructor(parameters: Map<String, String>) : this(
+    constructor(run: TaskRun, parameters: Map<String, String>) : this(
+        run,
         parameters.getOrDefault("maxPointsPerTask", "$defaultmaxPointsPerTask").toDoubleOrNull() ?: defaultmaxPointsPerTask,
         parameters.getOrDefault("maxPointsAtTaskEnd", "$defaultmaxPointsAtTaskEnd").toDoubleOrNull() ?: defaultmaxPointsAtTaskEnd,
         parameters.getOrDefault("penaltyPerWrongSubmission", "$defaultpenaltyPerWrongSubmission").toDoubleOrNull() ?: defaultpenaltyPerWrongSubmission
@@ -28,12 +27,17 @@ class KisTaskScorer(
         private const val defaultpenaltyPerWrongSubmission: Double = 100.0
     }
 
-
-    override fun computeScores(submissions: Sequence<Submission>, context: TaskContext): Map<TeamId, Double>  {
-        val taskStartTime = context.taskStartTime ?: throw IllegalArgumentException("No task start time specified.")
-        val taskDuration = context.taskDuration ?: throw IllegalArgumentException("No task duration specified.")
-        val tDur = max(taskDuration * 1000L, (context.taskEndTime ?: 0) - taskStartTime).toDouble() //actual duration of task, in case it was extended during competition
-        return context.teamIds.associateWith { teamId ->
+    /**
+     * Computes and returns the scores for this [KisTaskScorer]. Requires an ongoing database transaction.
+     *
+     * @param submissions A [Sequence] of [Submission]s to obtain scores for.
+     * @return A [Map] of [TeamId] to calculated task score.
+     */
+    override fun scoreMap(submissions: Sequence<Submission>): Map<TeamId, Double>  {
+        val taskDuration = this.scoreable.duration
+        val taskStartTime = this.scoreable.started ?: throw IllegalArgumentException("No task start time specified.")
+        val tDur = max(taskDuration * 1000L, (scoreable.ended ?: 0) - taskStartTime).toDouble() //actual duration of task, in case it was extended during competition
+        return this.scoreable.teams.associateWith { teamId ->
             val verdicts = submissions.filter { it.teamId == teamId }.sortedBy { it.timestamp }.flatMap { sub ->
                 sub.answerSets().filter { (it.status() == VerdictStatus.CORRECT) or (it.status() == VerdictStatus.WRONG) }.asSequence()
             }.toList()
@@ -52,5 +56,4 @@ class KisTaskScorer(
             score
         }
     }
-
 }

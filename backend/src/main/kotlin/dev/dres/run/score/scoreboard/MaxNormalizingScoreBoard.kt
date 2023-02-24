@@ -1,12 +1,9 @@
 package dev.dres.run.score.scoreboard
 
 import dev.dres.data.model.template.task.DbTaskTemplate
-import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.TeamId
-import dev.dres.data.model.run.AbstractInteractiveTask
+import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.template.TemplateId
-import dev.dres.run.score.scorer.CachingTaskScorer
-import dev.dres.run.score.scorer.TaskScorer
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
@@ -16,12 +13,10 @@ import kotlin.math.max
  * @author Luca Rossett
  * @version 1.1.0
  */
-class MaxNormalizingScoreBoard(override val name: String, teams: List<DbTeam>, private val taskFilter: (DbTaskTemplate) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 1000.0) : Scoreboard {
+class MaxNormalizingScoreBoard(override val name: String, override val run: EvaluationRun, val teamIds: List<TeamId>, private val taskFilter: (DbTaskTemplate) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 1000.0) : Scoreboard {
 
     /** Tracks the score per [TemplateId] (references a [DbTaskTemplate]). */
     private val scorePerTaskMap = ConcurrentHashMap<TemplateId, Map<TemplateId, Double>>()
-
-    private val teamIds = teams.map { it.teamId }
 
     private fun overallScoreMap(): Map<TemplateId, Double> {
         val scoreSums = scorePerTaskMap.values
@@ -42,20 +37,15 @@ class MaxNormalizingScoreBoard(override val name: String, teams: List<DbTeam>, p
 
     override fun score(teamId: TeamId) = overallScoreMap()[teamId] ?: 0.0
 
-
-    override fun update(scorers: Map<TemplateId, CachingTaskScorer>) {
+    override fun update() {
         this.scorePerTaskMap.clear()
-        this.scorePerTaskMap.putAll(scorers.map {
-            it.key to it.value.scores().groupBy { it.first }.mapValues {
-                it.value.maxByOrNull { it.third }?.third ?: 0.0
+        val scorers = this.run.tasks.filter { this.taskFilter(it.template) && (it.started != null) }.map { it.scorer }
+        this.scorePerTaskMap.putAll(scorers.associate { scorer ->
+            scorer.scoreable.taskId to scorer.scoreListFromCache().groupBy { s -> s.first }.mapValues {
+                it.value.maxByOrNull { s -> s.third }?.third ?: 0.0
             }
-        }.toMap()
-        )
+        })
     }
-
-    override fun update(runs: List<AbstractInteractiveTask>) = update(
-        runs.filter { taskFilter(it.template) && (it.started != null) }.associate { it.id to it.scorer }
-    )
 
     override fun overview() = ScoreOverview(name, taskGroupName, scores())
 }

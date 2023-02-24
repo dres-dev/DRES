@@ -3,7 +3,9 @@ package dres.run.score.scorer
 import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.collection.ApiMediaType
 import dev.dres.api.rest.types.evaluation.*
-import dev.dres.run.score.TaskContext
+import dev.dres.data.model.run.interfaces.TaskId
+import dev.dres.data.model.template.team.TeamId
+import dev.dres.run.score.Scoreable
 import dev.dres.run.score.scorer.AvsTaskScorer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -15,8 +17,16 @@ class LegacyAvsTaskScorerTest {
     private lateinit var scorer: AvsTaskScorer
     private val teams = listOf("team-1", "team-2", "team-3")
     private val defaultTaskDuration = 5 * 60L
+    private val taskStartTime =  System.currentTimeMillis() - 100_000
     private val dummyImageItems: List<ApiMediaItem>
     private val dummyVideoItems: List<ApiMediaItem>
+    private val scoreable = object: Scoreable {
+        override val taskId: TaskId = "task1"
+        override val teams: List<TeamId> = this@LegacyAvsTaskScorerTest.teams
+        override val duration: Long = this@LegacyAvsTaskScorerTest.defaultTaskDuration
+        override val started: Long = this@LegacyAvsTaskScorerTest.taskStartTime
+        override val ended: Long? = null
+    }
 
     init {
         val collectionId = "testCollection"
@@ -73,12 +83,12 @@ class LegacyAvsTaskScorerTest {
 
     @BeforeEach
     fun setup() {
-        this.scorer = AvsTaskScorer
+        this.scorer = AvsTaskScorer(this.scoreable)
     }
 
     @Test
     fun noSubmissions() {
-        val scores = this.scorer.computeScores(emptySequence(), TaskContext("task1", teams, 100_000, defaultTaskDuration))
+        val scores = this.scorer.scoreMap(emptySequence())
         assertEquals(0.0, scores[teams[0]])
         assertEquals(0.0, scores[teams[1]])
         assertEquals(0.0, scores[teams[2]])
@@ -86,14 +96,12 @@ class LegacyAvsTaskScorerTest {
 
     @Test
     fun allWrongSameImage() {
-        val taskStartTime = System.currentTimeMillis() - 100_000
-
         val submissions = sequenceOf(
             ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[0]), taskStartTime + 1000, "task2"),
             ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[0]), taskStartTime + 2000, "task2"),
             ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[0]), taskStartTime + 3000, "task2")
         )
-        val scores = this.scorer.computeScores(submissions, TaskContext("task2", teams, 100_000, defaultTaskDuration))
+        val scores = this.scorer.scoreMap(submissions)
         assertEquals(0.0, scores[teams[0]])
         assertEquals(0.0, scores[teams[1]])
         assertEquals(0.0, scores[teams[2]])
@@ -101,13 +109,12 @@ class LegacyAvsTaskScorerTest {
 
     @Test
     fun allWrongDifferentImages() {
-        val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = sequenceOf(
             ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[0]), taskStartTime + 1000, "task3"),
             ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[1]), taskStartTime + 2000, "task3"),
             ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.WRONG, dummyImageItems[2]), taskStartTime + 3000, "task3")
         )
-        val scores = this.scorer.computeScores(submissions, TaskContext("task3", teams, 100_000, defaultTaskDuration))
+        val scores = this.scorer.scoreMap(submissions)
         assertEquals(0.0, scores[teams[0]])
         assertEquals(0.0, scores[teams[1]])
         assertEquals(0.0, scores[teams[2]])
@@ -115,13 +122,12 @@ class LegacyAvsTaskScorerTest {
 
     @Test
     fun allSameImageAllCorrect() {
-        val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = sequenceOf(
             ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 1000, "task4"),
             ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 2000, "task4"),
             ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 3000, "task4")
         )
-        val scores = this.scorer.computeScores(submissions, TaskContext("task4", teams, 100_000, defaultTaskDuration))
+        val scores = this.scorer.scoreMap(submissions)
         assertEquals(100.0, scores[teams[0]])
         assertEquals(100.0, scores[teams[1]])
         assertEquals(100.0, scores[teams[2]])
@@ -129,13 +135,12 @@ class LegacyAvsTaskScorerTest {
 
     @Test
     fun allDifferentImageAllCorrect() {
-        val taskStartTime = System.currentTimeMillis() - 100_000
         val submissions = sequenceOf(
             ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0]), taskStartTime + 1000, "task5"),
             ApiSubmission(teams[1], teams[1], "user2", "team2", "user2", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[1]), taskStartTime + 2000, "task5"),
             ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[2]), taskStartTime + 3000, "task5")
         )
-        val scores = this.scorer.computeScores(submissions, TaskContext("task5", teams, 100_000, defaultTaskDuration))
+        val scores = this.scorer.scoreMap(submissions)
         assertEquals(100.0 / 3.0, scores[teams[0]]!!, 0.001)
         assertEquals(100.0 / 3.0, scores[teams[1]]!!, 0.001)
         assertEquals(100.0 / 3.0, scores[teams[2]]!!, 0.001)
@@ -168,7 +173,7 @@ class LegacyAvsTaskScorerTest {
         )
 
 
-        val scores = this.scorer.computeScores(submissions, TaskContext("task6", teams, 100_000, defaultTaskDuration))
+        val scores = this.scorer.scoreMap(submissions)
 
         /*
         c = q(c) = 3, i = 1, q(p) = 4
@@ -210,7 +215,7 @@ class LegacyAvsTaskScorerTest {
             ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000), taskStartTime + 3000, "task7")
         )
 
-        val scores = this.scorer.computeScores(submissions, TaskContext("task7", teams, 100_000, defaultTaskDuration))
+        val scores = this.scorer.scoreMap(submissions)
         assertEquals(100.0, scores[teams[0]])
         assertEquals(100.0, scores[teams[1]])
         assertEquals(100.0, scores[teams[2]])
@@ -227,7 +232,7 @@ class LegacyAvsTaskScorerTest {
             ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 50_000, 60_000), taskStartTime + 3000, "task8")
         )
 
-        val scores = this.scorer.computeScores(submissions, TaskContext("task8", teams, 100_000, defaultTaskDuration))
+        val scores = this.scorer.scoreMap(submissions)
         assertEquals(33.33333333333333, scores[teams[0]]!!, 0.0001)
         assertEquals(33.33333333333333, scores[teams[1]]!!, 0.0001)
         assertEquals(33.33333333333333, scores[teams[2]]!!, 0.0001)
@@ -244,7 +249,7 @@ class LegacyAvsTaskScorerTest {
             ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[3], 50_000, 60_000), taskStartTime + 3000, "task9")
         )
 
-        val scores = this.scorer.computeScores(submissions, TaskContext("task9", teams, 100_000, defaultTaskDuration))
+        val scores = this.scorer.scoreMap(submissions)
         assertEquals(33.33333333333333, scores[teams[0]]!!, 0.0001)
         assertEquals(33.33333333333333, scores[teams[1]]!!, 0.0001)
         assertEquals(33.33333333333333, scores[teams[2]]!!, 0.0001)
@@ -269,7 +274,7 @@ class LegacyAvsTaskScorerTest {
             ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 12_000, 22_000), taskStartTime + 1000, "task10"),
         )
 
-        val scores = this.scorer.computeScores(submissions, TaskContext("task10", teams, 100_000, defaultTaskDuration))
+        val scores = this.scorer.scoreMap(submissions)
         assertEquals(100.0, scores[teams[0]])
         assertEquals(100.0, scores[teams[1]])
         assertEquals(100.0, scores[teams[2]])
@@ -297,7 +302,7 @@ class LegacyAvsTaskScorerTest {
             ApiSubmission(teams[2], teams[2], "user3", "team3", "user3", answerSets(ApiVerdictStatus.WRONG, dummyVideoItems[3], 10_000, 20_000), taskStartTime + 3000, "task11"),
 
         )
-        val scores = this.scorer.computeScores(submissions, TaskContext("task11", teams, 100_000, defaultTaskDuration))
+        val scores = this.scorer.scoreMap(submissions)
 
         assertEquals(85.71428571428571, scores[teams[0]]!!, 0.001)
         assertEquals(85.71428571428571, scores[teams[1]]!!, 0.001)
@@ -356,7 +361,7 @@ class LegacyAvsTaskScorerTest {
             //c = 4, q(c) = 2, i = 2
 
         )
-        val scores = this.scorer.computeScores(submissions, TaskContext("task12", teams, 100_000, defaultTaskDuration))
+        val scores = this.scorer.scoreMap(submissions)
 
         /*
         c = 5, q(c) = 3, i = 1, q(p) = 3

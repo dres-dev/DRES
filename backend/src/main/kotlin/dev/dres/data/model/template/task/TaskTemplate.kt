@@ -6,5 +6,4 @@ interface TaskTemplate {
     fun textualDescription(): String
 
     val templateId: TemplateId
-
 }

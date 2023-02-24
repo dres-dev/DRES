@@ -5,18 +5,14 @@ import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.template.TemplateId
 import dev.dres.run.TaskStatus
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.validation.interfaces.SubmissionValidator
-import kotlinx.dnq.query.FilteringContext.contains
 import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.filter
-import kotlinx.dnq.query.flatMapDistinct
 import kotlinx.dnq.query.mapDistinct
 import kotlinx.dnq.util.findById
-import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * An abstract [Run] implementation that can be used by different subtypes.
@@ -43,7 +39,7 @@ abstract class AbstractTask(task: DbTask): TaskRun {
      *
      * Since this cannot change during the lifetime of an evaluation, it is kept in memory.
      */
-    final override val id: TaskId = this.task.id
+    final override val taskId: TaskId = this.task.id
 
     /**
      * The [TemplateId] of this [AbstractTask].
@@ -145,7 +141,7 @@ abstract class AbstractTask(task: DbTask): TaskRun {
 
     /** Returns a [Sequence] of all [DbSubmission]s connected to this [AbstractTask]. */
     override fun getSubmissions() = DbAnswerSet.filter {
-        a -> a.task.id eq this@AbstractTask.id
+        a -> a.task.id eq this@AbstractTask.taskId
     }.mapDistinct {
         it.submission
     }.asSequence()

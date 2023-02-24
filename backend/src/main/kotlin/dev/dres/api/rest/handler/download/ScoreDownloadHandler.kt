@@ -43,7 +43,7 @@ class ScoreDownloadHandler(store: TransientEntityStore) : AbstractDownloadHandle
         ctx.contentType("text/csv")
         ctx.header("Content-Disposition", "attachment; filename=\"scores-${manager.id}.csv\"")
 
-        return this.store.transactional(false) {
+        return this.store.transactional(true) {
             val rac = RunActionContext.runActionContext(ctx, manager)
             "startTime,task,group,team,score\n" + manager.tasks(rac).filter {
                 it.started != null
@@ -51,7 +51,7 @@ class ScoreDownloadHandler(store: TransientEntityStore) : AbstractDownloadHandle
                 it.started
             }
             .flatMap { task ->
-                task.scorer.scores().map { "${task.started},\"${task.template.name}\",\"${task.template.taskGroup.name}\",\"${manager.template.teams.filter { t -> t.id eq it.first }.firstOrNull()?.name ?: "???"}\",${it.third}" }
+                task.scorer.scoreListFromCache().map { "${task.started},\"${task.template.name}\",\"${task.template.taskGroup.name}\",\"${manager.template.teams.filter { t -> t.id eq it.first }.firstOrNull()?.name ?: "???"}\",${it.third}" }
             }.joinToString(separator = "\n")
         }
     }

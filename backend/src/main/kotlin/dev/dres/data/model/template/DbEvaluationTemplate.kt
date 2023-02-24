@@ -85,22 +85,6 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
     )
 
     /**
-     * Generates and returns the default [Scoreboard] implementations for this [DbEvaluationTemplate].
-     *
-     * This is a convenience method and requires an active transaction context.
-     *
-     * @return List of [Scoreboard] implementations.
-     */
-    fun generateDefaultScoreboards(): List<Scoreboard> {
-        val teams = this.teams.toList()
-        val groupBoards = this.taskGroups.asSequence().map { group ->
-            MaxNormalizingScoreBoard(group.name, teams, {task -> task.taskGroup.name == group.name}, group.name)
-        }.toList()
-        val aggregateScoreBoard = SumAggregateScoreBoard("sum", groupBoards)
-        return groupBoards.plus(aggregateScoreBoard)
-    }
-
-    /**
      * Generates and returns a list of all [DbMediaItem] for this [DbEvaluationTemplate].
      *
      * This is a convenience method and requires an active transaction context.

@@ -5,11 +5,20 @@ import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
 import dev.dres.data.model.run.interfaces.Run
-import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.Submission
-import dev.dres.run.audit.DbAuditLogger
+import dev.dres.data.model.template.task.options.DbConfiguredOption
+import dev.dres.data.model.template.task.options.DbScoreOption
 import dev.dres.run.exceptions.IllegalTeamIdException
+import dev.dres.run.filter.AllSubmissionFilter
 import dev.dres.run.filter.SubmissionFilter
+import dev.dres.run.filter.SubmissionFilterAggregator
+import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
+import dev.dres.run.score.scoreboard.Scoreboard
+import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
+import dev.dres.run.score.scorer.AvsTaskScorer
+import dev.dres.run.score.scorer.CachingTaskScorer
+import dev.dres.run.score.scorer.KisTaskScorer
+import dev.dres.run.score.scorer.TaskScorer
+import dev.dres.run.validation.interfaces.SubmissionValidator
 import kotlinx.dnq.query.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -106,8 +115,20 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
     /** Tracks the current [DbTaskTemplate] per [TeamId]. */
     private val navigationMap: MutableMap<TeamId, DbTaskTemplate> = HashMap()
 
+    /** List of [Scoreboard]s maintained by this [NonInteractiveEvaluation]. */
+    override val scoreboards: List<Scoreboard>
+
     init {
-        /* TODO: Reconstruct TaskRuns from stored data. */
+        /* Prepare the evaluation scoreboards. */
+        val teams = this.description.teams.asSequence().map { it.teamId }.toList()
+        val groupBoards = this.description.taskGroups.asSequence().map { group ->
+            MaxNormalizingScoreBoard(group.name, this, teams, {task -> task.taskGroup.name == group.name}, group.name)
+        }.toList()
+        val aggregateScoreBoard = SumAggregateScoreBoard("sum", this, groupBoards)
+        this.scoreboards = groupBoards.plus(aggregateScoreBoard)
+
+        /* Load all ongoing tasks. */
+        /* this.evaluation.tasks.asSequence().forEach { IATaskRun(it) } */
     }
 
     fun goTo(teamId: TeamId, index: Int) {
@@ -179,14 +200,16 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
             get() = this@InteractiveAsynchronousEvaluation.tasksMap[this.teamId]?.indexOf(this) ?: -1
 
         /** The [SubmissionFilter] instance used by this [IATaskRun]. */
-        override val filter: SubmissionFilter = this.template.newFilter()
+        override val filter: SubmissionFilter
 
-        /** The [TeamTaskScorer] instance used by this [InteractiveAsynchronousEvaluation].*/
-        override val scorer = this.template.newScorer()
-            ?: throw IllegalArgumentException("specified scorer is not of type TeamTaskScorer")
+        /** The [CachingTaskScorer] instance used by this [InteractiveAsynchronousEvaluation].*/
+        override val scorer: CachingTaskScorer
 
         /** The total duration in milliseconds of this task. Usually determined by the [DbTaskTemplate] but can be adjusted! */
         override var duration: Long = this.template.duration
+
+        /** The [List] of [TeamId]s working on this [IATaskRun]. */
+        override val teams: List<TeamId> = listOf(this.teamId)
 
         init {
             this@InteractiveAsynchronousEvaluation.tasksMap.compute(this.teamId) { _, v ->
@@ -195,6 +218,32 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
                 list.add(this)
                 list
             }
+
+            /* Initialize submission filter. */
+            if (this.template.taskGroup.type.submission.isEmpty) {
+                this.filter = AllSubmissionFilter
+            } else {
+                this.filter = SubmissionFilterAggregator(
+                    this.template.taskGroup.type.submission.asSequence().map { option ->
+                        val parameters = this.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq option.description)
+                            .asSequence().map { it.key to it.value }.toMap()
+                        option.newFilter(parameters)
+                    }.toList()
+                )
+            }
+
+
+            /* Initialize task scorer. */
+            this.scorer = CachingTaskScorer(
+                when(val scoreOption = this.template.taskGroup.type.score) {
+                    DbScoreOption.KIS -> KisTaskScorer(
+                        this,
+                        this.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq scoreOption.description).asSequence().map { it.key to it.value }.toMap()
+                    )
+                    DbScoreOption.AVS -> AvsTaskScorer(this)
+                    else -> throw IllegalStateException("The task score option $scoreOption is currently not supported.")
+                }
+            )
         }
     }
 }

@@ -2,18 +2,21 @@ package dev.dres.run.score.scoreboard
 
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.run.AbstractInteractiveTask
+import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.template.team.TeamId
-import dev.dres.run.score.scorer.CachingTaskScorer
 import dev.dres.run.score.scorer.TaskScorer
 
 /**
  * A [Scoreboard] tracks the [Score]s for different [DbTeam]s
  *
  * @author Ralph Gasser
- * @version 1.0.1
+ * @version 1.1.0
  */
 interface Scoreboard {
+
+    /** The [EvaluationRun] this [Scoreboard] instance belongs to. */
+    val run: EvaluationRun
 
     /**
      * Returns the name of the [Scoreboard]
@@ -34,14 +37,9 @@ interface Scoreboard {
     fun score(teamId: TeamId): Double
 
     /**
-     * Updates the [Scoreboard].
+     * Updates the scores held by this [Scoreboard].
      */
-    fun update(runs: List<AbstractInteractiveTask>)
-
-    /**
-     * Updates using a map of the [TaskId] ids to the corresponding [TaskScorer]s
-     */
-    fun update(scorers: Map<TaskId, CachingTaskScorer>)
+    fun update()
 
     /**
      * Returns a summary of all current scores in a [ScoreOverview]

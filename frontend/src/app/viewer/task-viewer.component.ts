@@ -103,7 +103,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     const currentTaskTarget = this.state.pipe(
       filter(s => s.taskStatus == ApiTaskStatus.ENDED),
       switchMap((s) =>
-        this.runService.getApiV2EvaluationByEvaluationIdHintByTaskId(s.evaluationId, s.currentTemplate?.templateId).pipe(
+        this.runService.getApiV2EvaluationByEvaluationIdTargetByTaskId(s.evaluationId, s.currentTemplate?.templateId).pipe(
           catchError((e) => {
             console.error('[TaskViewerComponent] Could not load current task target due to an error.', e);
             return of(null);

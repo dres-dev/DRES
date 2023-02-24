@@ -19,7 +19,7 @@ data class ApiTaskOverview(
         task.template.taskGroup.name,
         task.template.taskGroup.type.name,
         task.template.duration,
-        task.id,
+        task.taskId,
         task.status,
         task.started,
         task.ended)

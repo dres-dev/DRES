@@ -38,7 +38,7 @@ import kotlin.math.max
  * @version 3.0.0
  * @author Ralph Gasser
  */
-class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynchronousEvaluation, private val store: TransientEntityStore) : InteractiveRunManager {
+class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynchronousEvaluation, override val store: TransientEntityStore) : InteractiveRunManager {
 
     private val VIEWER_TIME_OUT = 30L //TODO make configurable
 
@@ -80,7 +80,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
 
     /** List of [Scoreboard]s for this [InteractiveSynchronousRunManager]. */
     override val scoreboards: List<Scoreboard>
-        get() = this.scoreboardsUpdatable.scoreboards
+        get() = this.evaluation.scoreboards
 
     /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time. */
     override val scoreHistory: List<ScoreTimePoint>
@@ -90,13 +90,13 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     private val readyLatch = ReadyLatch<WebSocketConnection>()
 
     /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable = ScoreboardsUpdatable(this.template.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.evaluation)
+    private val scoreboardsUpdatable = ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_MS)
 
     /** The internal [MessageQueueUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
     private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
 
     /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoresUpdatable = ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable)
+    private val scoresUpdatable = ScoresUpdatable(this)
 
     /** The internal [EndTaskUpdatable] used to end a task once no more submissions are possible */
     private val endTaskUpdatable = EndTaskUpdatable(this, RunActionContext.INTERNAL)
@@ -129,7 +129,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         /** Trigger score updates and re-enqueue pending submissions for judgement (if any). */
         this.evaluation.tasks.forEach { task ->
             task.getSubmissions().forEach { sub ->
-                this.scoresUpdatable.enqueue(Pair(task, sub))
+                this.scoresUpdatable.enqueue(task)
                 if (sub.answerSets.filter { v -> v.status eq DbVerdictStatus.INDETERMINATE }.any()) {
                     task.validator.validate(sub)
                 }
@@ -222,7 +222,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             this.scoreboardsUpdatable.dirty = true
 
             /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, this.evaluation.currentTask?.id, ServerMessageType.COMPETITION_UPDATE))
+            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, this.evaluation.currentTask?.taskId, ServerMessageType.COMPETITION_UPDATE))
             LOGGER.info("SynchronousRunManager ${this.id} set to task $index")
         } else {
             throw IndexOutOfBoundsException("Index $index is out of bounds for the number of available tasks.")
@@ -252,7 +252,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         this.readyLatch.reset(VIEWER_TIME_OUT)
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, this.evaluation.currentTask?.id, ServerMessageType.TASK_PREPARE))
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, this.evaluation.currentTask?.taskId, ServerMessageType.TASK_PREPARE))
 
         LOGGER.info("SynchronousRunManager ${this.id} started task ${this.evaluation.getCurrentTemplateId()}.")
     }
@@ -269,7 +269,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         this.scoreboardsUpdatable.dirty = true
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, this.currentTask(context)?.id, ServerMessageType.TASK_END))
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, this.currentTask(context)?.taskId, ServerMessageType.TASK_END))
         LOGGER.info("SynchronousRunManager ${this.id} aborted task  ${this.evaluation.getCurrentTemplateId()}.")
     }
 
@@ -297,7 +297,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      * @param taskId The [EvaluationId] of the [TaskRun].
      */
     override fun taskForId(context: RunActionContext, taskId: EvaluationId) =
-        this.evaluation.tasks.find { it.id == taskId }
+        this.evaluation.tasks.find { it.taskId == taskId }
 
     /**
      * List of all [DbSubmission]s for this [InteractiveAsynchronousRunManager], irrespective of the [DbTask] it belongs to.
@@ -471,10 +471,10 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         }
 
         /* Enqueue submission for post-processing. */
-        this.scoresUpdatable.enqueue(Pair(task, submission))
+        this.scoresUpdatable.enqueue(task)
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.id, ServerMessageType.TASK_UPDATED))
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.taskId, ServerMessageType.TASK_UPDATED))
         return submission.answerSets().first().status()
     }
 
@@ -500,10 +500,10 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             answerSet.status = submissionStatus
 
             /* Enqueue submission for post-processing. */
-            this.scoresUpdatable.enqueue(Pair(task, answerSet.submission))
+            this.scoresUpdatable.enqueue(task)
 
             /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.id, ServerMessageType.TASK_UPDATED), context.teamId!!)
+            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.taskId, ServerMessageType.TASK_UPDATED), context.teamId!!)
 
             return true
         }
@@ -567,14 +567,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     private fun invokeUpdatables() {
         this.updatables.forEach {
             if (it.shouldBeUpdated(this.status)) {
-                try {
-                    it.update(this.status)
-                } catch (e: Throwable) {
-                    LOGGER.error(
-                        "Uncaught exception while updating ${it.javaClass.simpleName} for competition run ${this.id}. Loop will continue to work but this error should be handled!",
-                        e
-                    )
-                }
+                it.update(this.status)
             }
         }
     }
@@ -590,12 +583,12 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             this.stateLock.write {
                 this.store.transactional {
                     this.evaluation.currentTask!!.start()
-                    DbAuditLogger.taskStart(this.id, this.evaluation.currentTask!!.id, this.evaluation.getCurrentTemplate(), DbAuditLogSource.INTERNAL, null)
+                    DbAuditLogger.taskStart(this.id, this.evaluation.currentTask!!.taskId, this.evaluation.getCurrentTemplate(), DbAuditLogSource.INTERNAL, null)
                 }
             }
 
             /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, this.evaluation.currentTask?.id, ServerMessageType.TASK_START))
+            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, this.evaluation.currentTask?.taskId, ServerMessageType.TASK_START))
         }
 
         /** Case 2: Facilitates internal transition from RunManagerStatus.RUNNING_TASK to RunManagerStatus.TASK_ENDED due to timeout. */
@@ -606,13 +599,13 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 if (timeLeft <= 0) {
                     this.store.transactional {
                         task.end()
-                        DbAuditLogger.taskEnd(this.id, this.evaluation.currentTask!!.id, DbAuditLogSource.INTERNAL, null)
-                        EventStreamProcessor.event(TaskEndEvent(this.id, task.id))
+                        DbAuditLogger.taskEnd(this.id, this.evaluation.currentTask!!.taskId, DbAuditLogSource.INTERNAL, null)
+                        EventStreamProcessor.event(TaskEndEvent(this.id, task.taskId))
                     }
                 }
 
                 /* Enqueue WS message for sending */
-                this.messageQueueUpdatable.enqueue(ServerMessage(this.id, this.evaluation.currentTask?.id, ServerMessageType.TASK_END))
+                this.messageQueueUpdatable.enqueue(ServerMessage(this.id, this.evaluation.currentTask?.taskId, ServerMessageType.TASK_END))
             }
         }
     }

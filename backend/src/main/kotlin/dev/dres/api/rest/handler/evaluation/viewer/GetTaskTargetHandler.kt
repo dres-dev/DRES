@@ -30,8 +30,8 @@ class GetTaskTargetHandler(store: TransientEntityStore, private val config: Conf
         operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Evaluation"],
         pathParams = [
-            OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true),
-            OpenApiParam("taskId", String::class, "The task ID.", required = true)
+            OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false),
+            OpenApiParam("taskId", String::class, "The task ID.", required = true, allowEmptyValue = false)
         ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(ApiTargetContent::class)]),
@@ -54,7 +54,6 @@ class GetTaskTargetHandler(store: TransientEntityStore, private val config: Conf
             var task = manager.currentTask(rac)
             if (task == null) {
                 task = manager.taskForId(rac, taskId) ?: throw ErrorStatusException(404, "Task with specified ID $taskId does not exist.", ctx)
-
             }
             if (task.status != TaskStatus.ENDED) {
                 throw ErrorStatusException(400, "Query target can only be loaded if task has just ended.", ctx)

@@ -1,13 +1,16 @@
 package dev.dres.data.model.run
 
-import dev.dres.data.model.run.InteractiveSynchronousEvaluation.ISTaskRun
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
-import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.filter.SubmissionFilter
+import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
+import dev.dres.run.score.scoreboard.Scoreboard
+import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
+import dev.dres.run.score.scorer.CachingTaskScorer
+import dev.dres.run.score.scorer.TaskScorer
 import kotlinx.dnq.query.*
 
 
@@ -32,11 +35,22 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
         NITaskRun(it)
     }.toList()
 
+    /** List of [Scoreboard]s maintained by this [NonInteractiveEvaluation]. */
+    override val scoreboards: List<Scoreboard>
+
+    init {
+        val teams = this.description.teams.asSequence().map { it.teamId }.toList()
+        val groupBoards = this.description.taskGroups.asSequence().map { group ->
+            MaxNormalizingScoreBoard(group.name, this, teams, {task -> task.taskGroup.name == group.name}, group.name)
+        }.toList()
+        val aggregateScoreBoard = SumAggregateScoreBoard("sum", this, groupBoards)
+        this.scoreboards = groupBoards.plus(aggregateScoreBoard)
+    }
+
     /**
      * The [TaskRun] used by a [NonInteractiveEvaluation].
      */
     inner class NITaskRun(task: DbTask): AbstractNonInteractiveTask(task) {
-
         /** Reference to the [EvaluationRun] hosting this [NITaskRun]. */
         override val competition: EvaluationRun
             get() = this@NonInteractiveEvaluation
@@ -45,25 +59,16 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
         override val position: Int
             get() = this@NonInteractiveEvaluation.tasks.indexOf(this)
 
-        /** The [TeamTaskScorer] instance used by this [ISTaskRun]. */
-        override val scorer = this.template.newScorer()
-        /** */
-        override val filter: SubmissionFilter
-            get() = TODO("Can there be submission filters for non-interactive tasks?")
+        /** The [CachingTaskScorer] instance used by this [NITaskRun]. */
+        override val scorer: CachingTaskScorer = TODO("Will we have the same scorers for non-interactive tasks.")
 
-//        @Synchronized
-//        override fun postSubmission(submission: Submission) {
-//            check(this@NonInteractiveEvaluation.description.teams.asSequence().filter { it.teamId == submission.teamId }.any()) {
-//                "Team ${submission.teamId} does not exists for evaluation run ${this@NonInteractiveEvaluation.name}. This is a programmer's error!"
-//            }
-//
-//            /* Execute submission filters. */
-//            this.filter.acceptOrThrow(submission)
-//
-//            /* At this point, the submission is considered valid and is persisted */
-//            val dbSubmission: DbSubmission = submission.toDb()
-//
-//            /* TODO: Process and validate submission. */
-//        }
+        /** The [SubmissionFilter] instance used by this [NITaskRun]. */
+        override val filter: SubmissionFilter = TODO("Can there be submission filters for non-interactive tasks?")
+
+        /** List of [TeamId]s that work on this [NITaskRun]. */
+        override val teams: List<TeamId> = this@NonInteractiveEvaluation.description.teams.asSequence().map { it.teamId }.toList()
+
+        /** */
+        override val duration: Long = 0
     }
 }

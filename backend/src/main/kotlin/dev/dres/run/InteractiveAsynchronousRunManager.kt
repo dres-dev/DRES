@@ -42,7 +42,7 @@ import kotlin.math.max
  * @version 1.0.0
  * @author Ralph Gasser
  */
-class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsynchronousEvaluation, private val store: TransientEntityStore): InteractiveRunManager {
+class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsynchronousEvaluation, override val store: TransientEntityStore): InteractiveRunManager {
 
     companion object {
         private val LOGGER = LoggerFactory.getLogger(InteractiveAsynchronousRunManager::class.java)
@@ -64,13 +64,13 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     private val stateLock = ReentrantReadWriteLock()
 
     /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable = ScoreboardsUpdatable(this.template.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.evaluation)
+    private val scoreboardsUpdatable = ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_MS)
 
     /** The internal [MessageQueueUpdatable] instance used by this [InteractiveSynchronousRunManager]. */
     private val messageQueueUpdatable = MessageQueueUpdatable(RunExecutor)
 
     /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoresUpdatable = ScoresUpdatable(this.id, this.scoreboardsUpdatable, this.messageQueueUpdatable)
+    private val scoresUpdatable = ScoresUpdatable(this)
 
     /** List of [Updatable] held by this [InteractiveAsynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
@@ -99,13 +99,13 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
     override val judgementValidators: List<JudgementValidator>
         get() = this.evaluation.tasks.mapNotNull { if (it.hasStarted && it.validator is JudgementValidator) it.validator else null }
 
+    /** The list of [Scoreboard]s maintained by this [InteractiveAsynchronousEvaluation]. */
     override val scoreboards: List<Scoreboard>
-        get() = this.scoreboardsUpdatable.scoreboards
+        get() = this.evaluation.scoreboards
 
+    /** The score history for this [InteractiveAsynchronousEvaluation]. */
     override val scoreHistory: List<ScoreTimePoint>
         get() = this.scoreboardsUpdatable.timeSeries
-
-
 
     init {
         /* Register relevant Updatables. */
@@ -134,7 +134,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
             /** Trigger score updates and re-enqueue pending submissions for judgement (if any). */
             this.evaluation.tasks.forEach { task ->
                 task.getSubmissions().forEach { sub ->
-                    this.scoresUpdatable.enqueue(Pair(task, sub))
+                    this.scoresUpdatable.enqueue(task)
                     if (sub.answerSets().filter { v -> v.status() == VerdictStatus.INDETERMINATE }.any()) {
                         task.validator.validate(sub)
                     }
@@ -287,7 +287,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
 
         /* Enqueue WS message for sending */
         this.messageQueueUpdatable.enqueue(
-            ServerMessage(this.id, this.evaluation.currentTaskForTeam(context.teamId)?.id, ServerMessageType.COMPETITION_UPDATE),
+            ServerMessage(this.id, this.evaluation.currentTaskForTeam(context.teamId)?.taskId, ServerMessageType.COMPETITION_UPDATE),
             context.teamId
         )
 
@@ -357,7 +357,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
         this.scoreboardsUpdatable.dirty = true
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, currentTask.id, ServerMessageType.TASK_END), context.teamId)
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, currentTask.taskId, ServerMessageType.TASK_END), context.teamId)
 
         LOGGER.info("Run manager ${this.id} aborted task $currentTask.")
     }
@@ -434,7 +434,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
      * @param taskId The [SubmissionId] of the [AbstractInteractiveTask].
      */
     override fun taskForId(context: RunActionContext, taskId: SubmissionId): AbstractInteractiveTask? =
-        this.tasks(context).find { it.id == taskId }
+        this.tasks(context).find { it.taskId == taskId }
 
     /**
      * Returns a reference to the currently active [InteractiveAsynchronousEvaluation.IATaskRun].
@@ -530,10 +530,10 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
         submission.toNewDb()
 
         /* Enqueue submission for post-processing. */
-        this.scoresUpdatable.enqueue(Pair(task, submission))
+        this.scoresUpdatable.enqueue(task)
 
         /* Enqueue WS message for sending */
-        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.id, ServerMessageType.TASK_UPDATED), context.teamId)
+        this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.taskId, ServerMessageType.TASK_UPDATED), context.teamId)
         return submission.answerSets().first().status()
     }
 
@@ -560,10 +560,10 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
             answerSet.status = submissionStatus
 
             /* Enqueue submission for post-processing. */
-            this.scoresUpdatable.enqueue(Pair(task, answerSet.submission))
+            this.scoresUpdatable.enqueue(task)
 
             /* Enqueue WS message for sending */
-            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.id, ServerMessageType.TASK_UPDATED), context.teamId!!)
+            this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.taskId, ServerMessageType.TASK_UPDATED), context.teamId!!)
 
             return true
         }
@@ -675,18 +675,18 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
                 if (timeLeft <= 0) {
                     this.stateLock.write {
                         task.end()
-                        DbAuditLogger.taskEnd(this.id, task.id, DbAuditLogSource.INTERNAL, null)
+                        DbAuditLogger.taskEnd(this.id, task.taskId, DbAuditLogSource.INTERNAL, null)
                     }
 
                     /* Enqueue WS message for sending */
-                    this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.id, ServerMessageType.TASK_END), team.teamId)
+                    this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.taskId, ServerMessageType.TASK_END), team.teamId)
                 }
             } else if (teamHasPreparingTask(team.teamId)) {
                 val task = this.evaluation.currentTaskForTeam(team.teamId)
                     ?: throw IllegalStateException("Could not find active task for team ${team.teamId} despite status of the team being ${this.statusMap[team.teamId]}. This is a programmer's error!")
                 task.start()
                 DbAuditLogger.taskStart(this.id, task.teamId, task.template, DbAuditLogSource.REST, null)
-                this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.id, ServerMessageType.TASK_START), team.teamId)
+                this.messageQueueUpdatable.enqueue(ServerMessage(this.id, task.taskId, ServerMessageType.TASK_START), team.teamId)
             }
         }
     }

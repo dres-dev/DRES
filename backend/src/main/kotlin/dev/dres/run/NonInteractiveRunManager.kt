@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 
-class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation, private val store: TransientEntityStore) : RunManager {
+class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation, override val store: TransientEntityStore) : RunManager {
 
     private val SCOREBOARD_UPDATE_INTERVAL_MS = 10_000L // TODO make configurable
 
@@ -45,10 +45,11 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
         get() = this.evaluation.description
 
     /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable = ScoreboardsUpdatable(this.template.generateDefaultScoreboards(), SCOREBOARD_UPDATE_INTERVAL_MS, this.evaluation) //TODO requires some changes
+    private val scoreboardsUpdatable = ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_MS) //TODO requires some changes
 
+    /** The [List] of [Scoreboard]s maintained by this [NonInteractiveRunManager]. */
     override val scoreboards: List<Scoreboard>
-        get() = this.scoreboardsUpdatable.scoreboards
+        get() = this.evaluation.scoreboards
 
     @Volatile
     override var status: RunManagerStatus = if (this.evaluation.hasStarted) {
@@ -124,7 +125,7 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
                             break
                         }
 
-                        val task = this.evaluation.tasks.find { it.id == idNamePair.first }
+                        val task = this.evaluation.tasks.find { it.taskId == idNamePair.first }
 
                         if (task == null) {
                             LOGGER.error("Unable to retrieve task with changed id ${idNamePair.first}")

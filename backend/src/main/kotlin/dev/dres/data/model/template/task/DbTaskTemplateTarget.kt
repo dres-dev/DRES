@@ -99,12 +99,12 @@ class DbTaskTemplateTarget(entity: Entity) : XdEntity(entity) {
                     DbMediaType.IMAGE -> ApiContentType.IMAGE
                     else -> throw IllegalStateException("Invalid target description; type indicates presence of media item but item seems unsupported or unspecified.")
                 }
-                val path = Paths.get(config.cachePath, this.item?.cachedItemName(this.start, this.end))
-                    ?:  throw IllegalArgumentException("A target of type  ${this.type.description} must have a valid media item.")
-                val data = Files.newInputStream(path, StandardOpenOption.READ).use { stream ->
-                    stream.readAllBytes()
-                }
-                Base64.getEncoder().encodeToString(data) to type
+                val filePath = this.item?.pathToOriginal()
+                if (filePath != null && Files.exists(filePath)) {
+                    Base64.getEncoder().encodeToString(Files.readAllBytes(filePath))
+                } else {
+                    null
+                } to type
             }
             DbTargetType.TEXT -> this.text to ApiContentType.TEXT
             else -> throw IllegalStateException("The content type ${this.type.description} is not supported.")

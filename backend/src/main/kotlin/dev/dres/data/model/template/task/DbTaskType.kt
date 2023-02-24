@@ -7,8 +7,6 @@ import dev.dres.data.model.template.task.options.DbConfiguredOption
 import dev.dres.run.filter.AllSubmissionFilter
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.filter.SubmissionFilterAggregator
-import dev.dres.run.score.scorer.CachingTaskScorer
-import dev.dres.run.score.scorer.TaskScorer
 import dev.dres.run.validation.interfaces.SubmissionValidator
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
@@ -71,36 +69,4 @@ class DbTaskType(entity: Entity) : XdEntity(entity) {
         scoreOption = this.score.toApi(),
         configuration = this.configurations.asSequence().map { it.key to it.value }.toMap()
     )
-
-    /**
-     * Generates a new [TaskScorer] for this [DbTaskTemplate]. Depending
-     * on the implementation, the returned instance is a new instance or being re-use.
-     *
-     * Calling this method requires an ongoing transaction!
-     *
-     * @return [TaskScorer].
-     */
-    fun newScorer(): CachingTaskScorer {
-        val parameters = this.configurations.query(DbConfiguredOption::key eq this.score.description)
-            .asSequence().map { it.key to it.value }.toMap()
-        return this.score.scorer(parameters)
-    }
-
-    /**
-     * Generates and returns a [SubmissionValidator] instance for this [DbTaskTemplate]. Depending
-     * on the implementation, the returned instance is a new instance or being re-use.
-     *
-     * Calling this method requires an ongoing transaction!
-     *
-     * @return [SubmissionFilter]
-     */
-    fun newFilter(): SubmissionFilter {
-        if (this.submission.isEmpty) return AllSubmissionFilter
-        val filters = this.submission.asSequence().map { option ->
-            val parameters = this.configurations.query(DbConfiguredOption::key eq this.score.description)
-                .asSequence().map { it.key to it.value }.toMap()
-            option.newFilter(parameters)
-        }.toList()
-        return SubmissionFilterAggregator(filters)
-    }
 }

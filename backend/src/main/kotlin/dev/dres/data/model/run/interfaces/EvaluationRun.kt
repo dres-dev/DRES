@@ -2,11 +2,17 @@ package dev.dres.data.model.run.interfaces
 
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.DbEvaluation
+import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
+import dev.dres.run.score.scoreboard.Scoreboard
+import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
+import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.toList
+
 /**
  * Represents a [DbEvaluation] that a DRES user or client takes place in and that groups several [TaskRun]s
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 2.0.0
  */
 interface EvaluationRun: Run {
     /** The unique [EvaluationId] that identifies this [EvaluationRun]. */
@@ -29,4 +35,8 @@ interface EvaluationRun: Run {
 
     /** A fixed limit on submission previews. */
     var limitSubmissionPreviews: Int
+
+    /** List of [Scoreboard] implementations for this [EvaluationRun] */
+    val scoreboards: List<Scoreboard>
 }
+

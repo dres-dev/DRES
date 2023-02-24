@@ -11,6 +11,7 @@ import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.*
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
+import jetbrains.exodus.database.TransientEntityStore
 
 /**
  * A managing class for concrete executions of [DbEvaluationTemplate], i.e. [InteractiveSynchronousEvaluation]s.
@@ -44,6 +45,9 @@ interface RunManager : Runnable {
 
     /** [JudgementValidator]s for all tasks that use them */
     val runProperties: RunProperties
+
+    /** The [TransientEntityStore] that backs this [InteractiveRunManager]. */
+    val store: TransientEntityStore
 
     /**
      * Starts this [RunManager] moving [RunManager.status] from [RunManagerStatus.CREATED] to

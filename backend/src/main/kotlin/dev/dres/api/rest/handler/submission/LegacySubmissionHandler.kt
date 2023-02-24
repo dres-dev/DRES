@@ -238,7 +238,7 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
         /* If text is supplied, it supersedes other parameters */
         val textParam = map[PARAMETER_NAME_TEXT]?.first()
         val itemParam = map[PARAMETER_NAME_ITEM]?.first()
-        val currentTaskId = runManager.currentTask(rac)?.id
+        val currentTaskId = runManager.currentTask(rac)?.taskId
         val task = DbTask.query(DbTask::id eq currentTaskId).firstOrNull() ?: throw ErrorStatusException(
             404,
             "No active task for ID '$currentTaskId' could be found.",

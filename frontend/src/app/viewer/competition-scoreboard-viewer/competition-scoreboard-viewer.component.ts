@@ -37,7 +37,7 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
   @Input() state: Observable<ApiEvaluationState>;
 
   /**
-   * Whether or not to show competition overview scores.
+   * Whether show competition overview scores.
    * Otherwise, the current task group total is shown.
    */
   @Input() competitionOverview = true;

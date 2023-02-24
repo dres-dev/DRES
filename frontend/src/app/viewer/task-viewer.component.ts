@@ -152,7 +152,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
         case 'PREPARING':
           this.viewerState.next(ViewerState.VIEWER_SYNC);
           if (h != null) {
-            this.webSocketSubject.next({ evaluationId: s.id, type: 'ACK' } as IWsClientMessage);
+            this.webSocketSubject.next({ evaluationId: s.evaluationId, type: 'ACK' } as IWsClientMessage);
           } /* Send ACK. */
           break;
         case 'RUNNING':
@@ -190,7 +190,6 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     /* Map task hint to representation used by viewer. */
     this.currentTaskHint = currentTaskHint.pipe(
       flatMap((hint) => {
-        console.log(`Current Task Hint fired`);
         return this.timeElapsed.pipe(
           take(1),
           flatMap((timeElapsed) => {

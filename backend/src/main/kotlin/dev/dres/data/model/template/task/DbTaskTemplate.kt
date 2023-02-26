@@ -8,12 +8,9 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.media.DbMediaCollection
-import dev.dres.data.model.template.interfaces.SubmissionFilterFactory
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.template.TemplateId
-import dev.dres.run.filter.SubmissionFilter
-import dev.dres.run.validation.interfaces.SubmissionValidator
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence

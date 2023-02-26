@@ -13,6 +13,9 @@ import dev.dres.api.rest.handler.evaluation.admin.*
 import dev.dres.api.rest.handler.evaluation.client.ClientListEvaluationsHandler
 import dev.dres.api.rest.handler.evaluation.client.ClientTaskInfoHandler
 import dev.dres.api.rest.handler.evaluation.scores.*
+import dev.dres.api.rest.handler.evaluation.team.CreateTeamHandler
+import dev.dres.api.rest.handler.evaluation.team.ListAllTeamsHandler
+import dev.dres.api.rest.handler.evaluation.team.UpdateTeamHandler
 import dev.dres.api.rest.handler.evaluation.viewer.*
 import dev.dres.api.rest.handler.judgement.*
 import dev.dres.api.rest.handler.log.QueryLogHandler
@@ -163,6 +166,9 @@ object RestApi {
             ListSubmissionsHandler(store),
             ListPastTaskHandler(store),
             EvaluationOverviewHandler(store),
+            ListAllTeamsHandler(store),
+            CreateTeamHandler(store),
+            UpdateTeamHandler(store),
 
             // Judgement
             DequeueJudgementHandler(store),

@@ -19,7 +19,6 @@ data class ItemRange(val element: String, val start: Long, val end: Long){
             AnswerType.ITEM,
             AnswerType.TEMPORAL -> answer.item!!.mediaItemId
             AnswerType.TEXT  -> answer.text!!
-            else -> throw IllegalStateException("Submission contains neither item nor text.")
         }, answer.start ?: 0, answer.end ?: 0)
 
     override fun equals(other: Any?): Boolean {

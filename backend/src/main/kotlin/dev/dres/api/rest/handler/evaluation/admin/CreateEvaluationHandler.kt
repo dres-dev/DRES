@@ -66,7 +66,7 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
         }
 
         /* Prepare run manager. */
-        val evaluationId = this.store.transactional { tx ->
+        val evaluationId = this.store.transactional {
             val template = DbEvaluationTemplate.query(DbEvaluationTemplate::id eq message.templateId).firstOrNull()
                 ?: throw ErrorStatusException(404, "Competition with ID ${message.templateId} not found.'", ctx)
             /* ensure that only one synchronous run of a competition is happening at any given time */

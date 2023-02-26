@@ -27,7 +27,7 @@ abstract class AbstractEvaluationTemplateHandler(protected val store: TransientE
     /** All [AbstractCollectionHandler]s require [ApiRole.ADMIN]. */
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)
 
-    /** All [AbstractCollectionHandler]s are part of the v1 API. */
+    /** All [AbstractCollectionHandler]s are part of the v2 API. */
     override val apiVersion = "v2"
 
     /** Convenience method to extract [DbEvaluationTemplate]'s ID from [Context]. */

@@ -3,6 +3,7 @@ package dev.dres.api.rest.handler.template
 import com.github.kittinunf.fuel.util.decodeBase64
 import dev.dres.api.rest.handler.PatchRestHandler
 import dev.dres.api.rest.types.competition.ApiEvaluationTemplate
+import dev.dres.api.rest.types.competition.team.ApiTeam
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -176,7 +177,7 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 t.color = team.color ?: throw ErrorStatusException(404, "Team colour must be specified.", ctx)
 
                 /* Process logo data. */
-                val logoData = team.logoData?.let { submitted -> ByteArrayInputStream(this.normalizeLogo(submitted)) }
+                val logoData = team.logoStream()
                 if (logoData != null) {
                     t.logo = logoData
                 }
@@ -216,36 +217,6 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
         return SuccessStatus("Competition with ID ${apiValue.id} was updated successfully.")
     }
 
-    /**
-     * Tries to normalize the logo data to a PNG image of a given size.
-     *
-     * @param submittedData The submitted data as base 64 encoded string.
-     * @return [ByteArray] representation of the normalized log.
-     */
-    private fun normalizeLogo(submittedData: String): ByteArray? {
-        /* Try to read image. */
-        val image: BufferedImage = submittedData.drop(submittedData.indexOf(',') + 1).decodeBase64().let {
-            try {
-                ImageIO.read(ByteArrayInputStream(it))
-            }  catch (e: Exception) {
-                null
-            }
-        } ?: return null
-
-        /* Scale image to a maximum of 500x500 pixels. */
-        val scaled: Image = if (image.width > image.height) {
-            image.getScaledInstance(200, -1, Image.SCALE_DEFAULT)
-        } else {
-            image.getScaledInstance(-1, 200, Image.SCALE_DEFAULT)
-        }
-        val outputImage = BufferedImage(scaled.getWidth(null), scaled.getHeight(null), BufferedImage.TYPE_INT_ARGB)
-        outputImage.graphics.drawImage(scaled, 0, 0, null);
-
-        /* Write image as PNG. */
-        val out = ByteArrayOutputStream()
-        ImageIO.write(outputImage, "png", out)
-        return out.toByteArray()
-    }
 }
 
 

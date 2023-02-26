@@ -4,7 +4,7 @@ import dev.dres.data.model.media.DbMediaItem
 import java.lang.IllegalArgumentException
 
 /**
- * Notion of a [TemporalPoint] within a [DbMediaItem] that exhibits temporal development (e.g. [VideoItem]).
+ * Notion of a [TemporalPoint] within a [DbMediaItem] that exhibits temporal development.
  *
  * @version 2.2.0
  * @author Luca Rossetto & Ralph Gasser
@@ -52,7 +52,7 @@ sealed class TemporalPoint {
              * Transforms a time code of the form HH:MM:SS:FF or HH:MM:SS.mmm to milliseconds
              * @return time in milliseconds or null if the input is not a valid time code
              */
-            fun timeCodeToMilliseconds(timecode: String, fps: Float = 24.0f): Long? = parseFrameTimecode(timecode, fps) ?: parseMsTimecode(timecode, fps)
+            fun timeCodeToMilliseconds(timecode: String, fps: Float = 24.0f): Long? = parseFrameTimecode(timecode, fps) ?: parseMsTimecode(timecode)
 
             private fun parseFrameTimecode(timecode: String, fps: Float = 24.0f): Long? {
 
@@ -67,7 +67,7 @@ sealed class TemporalPoint {
 
             }
 
-            private fun parseMsTimecode(timecode: String, fps: Float = 24.0f): Long? {
+            private fun parseMsTimecode(timecode: String): Long? {
 
                 val matches = timecodeMsRegex.matchEntire(timecode) ?: return null
 

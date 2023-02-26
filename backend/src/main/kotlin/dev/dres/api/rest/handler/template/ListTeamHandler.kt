@@ -22,7 +22,7 @@ class ListTeamHandler(store: TransientEntityStore) : AbstractEvaluationTemplateH
     override val route: String = "template/{templateId}/team/list"
 
     @OpenApi(
-        summary = "Lists all the teams of a specific competition.",
+        summary = "Lists all the teams of a specific evaluation template.",
         path = "/api/v2/template/{templateId}/team/list",
         operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [OpenApiParam("templateId", String::class, "The evaluation template ID.", required = true)],

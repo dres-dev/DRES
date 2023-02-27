@@ -120,7 +120,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
 
     init {
         /* Load all ongoing tasks. */
-        /* this.evaluation.tasks.asSequence().forEach { IATaskRun(it) } */
+        this.evaluation.tasks.asSequence().forEach { IATaskRun(it) }
 
         /* Prepare the evaluation scoreboards. */
         val teams = this.description.teams.asSequence().map { it.teamId }.toList()
@@ -176,7 +176,12 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
     /**
      * A [AbstractInteractiveTask] that takes place as part of the [InteractiveAsynchronousEvaluation].
      */
-    inner class IATaskRun internal constructor(task: DbTask, val teamId: TeamId) : AbstractInteractiveTask(task) {
+    inner class IATaskRun internal constructor(task: DbTask) : AbstractInteractiveTask(task) {
+
+        init {
+            /* Sanity check. */
+            require(task.team != null) { "The task of an interactive asynchronous evaluation must be assigned to a single team." }
+        }
 
         /**
          * Constructor used to generate an [IATaskRun] from a [DbTaskTemplate].
@@ -189,7 +194,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
             this.template = template
             this.team = this@InteractiveAsynchronousEvaluation.evaluation.template.teams.filter { it.teamId eq teamId }.singleOrNull()
                 ?: throw IllegalArgumentException("Cannot start a new task run for team with ID ${teamId}. Team is not registered for competition.")
-        }, teamId)
+        })
 
         /** The [InteractiveAsynchronousEvaluation] this [IATaskRun] belongs to.*/
         override val competition: InteractiveAsynchronousEvaluation
@@ -197,7 +202,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
 
         /** The position of this [IATaskRun] within the [InteractiveAsynchronousEvaluation]. */
         override val position: Int
-            get() = this@InteractiveAsynchronousEvaluation.tasksMap[this.teamId]?.indexOf(this) ?: -1
+            get() = this@InteractiveAsynchronousEvaluation.tasksMap[this.task.team!!.id]?.indexOf(this) ?: -1
 
         /** The [SubmissionFilter] instance used by this [IATaskRun]. */
         override val filter: SubmissionFilter
@@ -209,10 +214,10 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
         override var duration: Long = this.template.duration
 
         /** The [List] of [TeamId]s working on this [IATaskRun]. */
-        override val teams: List<TeamId> = listOf(this.teamId)
+        override val teams: List<TeamId> = listOf(this.task.team!!.id)
 
         init {
-            this@InteractiveAsynchronousEvaluation.tasksMap.compute(this.teamId) { _, v ->
+            this@InteractiveAsynchronousEvaluation.tasksMap.compute(this.task.team!!.id) { _, v ->
                 val list = v ?: LinkedList<IATaskRun>()
                 check(list.isEmpty() || list.last().hasEnded) { "Cannot create a new task. Another task is currently running." }
                 list.add(this)

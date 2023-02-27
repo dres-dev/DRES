@@ -10,7 +10,7 @@ import dev.dres.data.model.template.team.DbTeam
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
-import kotlinx.dnq.query.sortedBy
+
 
 
 /**

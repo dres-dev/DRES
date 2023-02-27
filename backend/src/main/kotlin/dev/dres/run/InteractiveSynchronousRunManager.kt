@@ -14,6 +14,8 @@ import dev.dres.data.model.submissions.*
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.task.options.DbTaskOption
+import dev.dres.data.model.template.task.options.Defaults
+import dev.dres.data.model.template.task.options.Parameters
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
@@ -605,27 +607,31 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     }
 
     /**
-     * Applies the [SimpleOption.PROLONG_ON_SUBMISSION] [Option].
+     * Applies the [DbTaskOption.PROLONG_ON_SUBMISSION].
      *
      * @param context [RunActionContext] used for invocation.
-     * @param sub The [DbSubmission] to apply the [Option] for.
+     * @param sub The [Submission] to apply the [DbTaskOption] for.
      */
     private fun prolongOnSubmit(context: RunActionContext, sub: Submission) {
-        /* require(option.option == SimpleOption.PROLONG_ON_SUBMISSION) { "Cannot process ${option.option} in prolongOnSubmit()." }
-        val limit = option.getAsInt(SimpleOptionParameters.PROLONG_ON_SUBMISSION_LIMIT_PARAM)
-            ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_LIMIT_DEFAULT
-        val prolongBy = option.getAsInt(SimpleOptionParameters.PROLONG_ON_SUBMISSION_BY_PARAM)
-            ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_BY_DEFAULT
-        val correctOnly = option.getAsBool(SimpleOptionParameters.PROLONG_ON_SUBMISSION_CORRECT_PARAM)
-            ?: SimpleOptionParameters.PROLONG_ON_SUBMISSION_CORRECT_DEFAULT
-        if (correctOnly && sub.status != VerdictStatus.CORRECT) {
-            return
+        val option = this.evaluation.currentTask?.template?.taskGroup?.type?.options?.filter { it.description eq DbTaskOption.PROLONG_ON_SUBMISSION.description }?.any()
+        if (option == true) {
+            val limit = this.evaluation.currentTask?.template?.taskGroup?.type?.configurations?.filter {
+                it.key eq Parameters.PROLONG_ON_SUBMISSION_LIMIT_PARAM
+            }?.firstOrNull()?.value?.toIntOrNull() ?: Defaults.PROLONG_ON_SUBMISSION_LIMIT_DEFAULT
+            val prolongBy = this.evaluation.currentTask?.template?.taskGroup?.type?.configurations?.filter {
+                it.key eq Parameters.PROLONG_ON_SUBMISSION_BY_PARAM
+            }?.firstOrNull()?.value?.toIntOrNull() ?: Defaults.PROLONG_ON_SUBMISSION_BY_DEFAULT
+            val correctOnly = this.evaluation.currentTask?.template?.taskGroup?.type?.configurations?.filter {
+                it.key eq Parameters.PROLONG_ON_SUBMISSION_CORRECT_PARAM
+            }?.firstOrNull()?.value?.toBooleanStrictOrNull() ?: Defaults.PROLONG_ON_SUBMISSION_CORRECT_DEFAULT
+            if (correctOnly && sub.answerSets().all { it.status() != VerdictStatus.CORRECT }) {
+                return
+            }
+            val timeLeft = Math.floorDiv(this.timeLeft(context), 1000)
+            if (timeLeft in 0 until limit) {
+                this.adjustDuration(context, prolongBy)
+            }
         }
-        val timeLeft = Math.floorDiv(this.timeLeft(context), 1000)
-        if (timeLeft in 0 until limit) {
-            this.adjustDuration(context, prolongBy)
-        } */
-        TODO("Fetch information from database and prolong.")
     }
 
     /**

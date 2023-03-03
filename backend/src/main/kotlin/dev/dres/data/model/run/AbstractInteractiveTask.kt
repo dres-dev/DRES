@@ -6,11 +6,11 @@ import dev.dres.data.model.template.team.TeamAggregatorImpl
 import dev.dres.data.model.template.team.TeamGroupId
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.run.validation.MediaItemsSubmissionValidator
-import dev.dres.run.validation.TemporalOverlapSubmissionValidator
-import dev.dres.run.validation.TextValidator
+import dev.dres.run.validation.MediaItemsAnswerSetValidator
+import dev.dres.run.validation.TemporalOverlapAnswerSetValidator
+import dev.dres.run.validation.TextAnswerSetValidator
 import dev.dres.run.validation.TransientMediaSegment
-import dev.dres.run.validation.interfaces.SubmissionValidator
+import dev.dres.run.validation.interfaces.AnswerSetValidator
 import dev.dres.run.validation.judged.BasicJudgementValidator
 import dev.dres.run.validation.judged.BasicVoteValidator
 import dev.dres.run.validation.judged.ItemRange
@@ -33,17 +33,17 @@ abstract class AbstractInteractiveTask(task: DbTask): AbstractTask(task) {
         this.competition.description.teamGroups.asSequence().associate { it.id to it.newAggregator() }
     }
 
-    /** The [SubmissionValidator] used to validate [DbSubmission]s. */
-    final override val validator: SubmissionValidator
+    /** The [AnswerSetValidator] used to validate [DbSubmission]s. */
+    final override val validator: AnswerSetValidator
 
     init {
         this.validator = when (val targetOption = this.template.taskGroup.type.target) {
-            DbTargetOption.MEDIA_ITEM -> MediaItemsSubmissionValidator(this.template.targets.filter { it.item ne null }.mapDistinct { it.item }.toSet())
+            DbTargetOption.MEDIA_ITEM -> MediaItemsAnswerSetValidator(this.template.targets.filter { it.item ne null }.mapDistinct { it.item }.toSet())
             DbTargetOption.MEDIA_SEGMENT -> {
                 val target = this.template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null)}.take(1) .first()
-                TemporalOverlapSubmissionValidator(TransientMediaSegment(target.item!!, target.range!!))
+                TemporalOverlapAnswerSetValidator(TransientMediaSegment(target.item!!, target.range!!))
             }
-            DbTargetOption.TEXT -> TextValidator(this.template.targets.filter { it.text ne null }.asSequence().map { it.text!! }.toList())
+            DbTargetOption.TEXT -> TextAnswerSetValidator(this.template.targets.filter { it.text ne null }.asSequence().map { it.text!! }.toList())
             DbTargetOption.JUDGEMENT -> {
                 val knownRanges = this.template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null) }.asSequence().map {
                     ItemRange(it.item?.name!!, it.start!!, it.end!!)

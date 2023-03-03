@@ -11,10 +11,8 @@ import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.run.eventstream.*
 import dev.dres.run.validation.interfaces.JudgementValidator
-import dev.dres.run.validation.interfaces.SubmissionValidator
-import jetbrains.exodus.database.TransientEntityStore
+import dev.dres.run.validation.interfaces.AnswerSetValidator
 import kotlinx.dnq.query.first
-import org.joda.time.DateTime
 
 /**
  * Audit logging instance of DRES. Requires one-time initialisation
@@ -144,9 +142,9 @@ object DbAuditLogger {
      * Logs the validation of a [DbSubmission] to DRES.
      *
      * @param submission The [DbSubmission] the submission that was validated
-     * @param validator The [SubmissionValidator] instance.
+     * @param validator The [AnswerSetValidator] instance.
      */
-    fun validateSubmission(submission: Submission, validator: SubmissionValidator) {
+    fun validateSubmission(submission: Submission, validator: AnswerSetValidator) {
         DbAuditLogEntry.new {
             this.type = DbAuditLogType.SUBMISSION_VALIDATION
             this.source = DbAuditLogSource.INTERNAL

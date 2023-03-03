@@ -17,8 +17,6 @@ import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
 import dev.dres.run.score.scorer.AvsTaskScorer
 import dev.dres.run.score.scorer.CachingTaskScorer
 import dev.dres.run.score.scorer.KisTaskScorer
-import dev.dres.run.score.scorer.TaskScorer
-import dev.dres.run.validation.interfaces.SubmissionValidator
 import kotlinx.dnq.query.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -213,8 +211,12 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
         /** The total duration in milliseconds of this task. Usually determined by the [DbTaskTemplate] but can be adjusted! */
         override var duration: Long = this.template.duration
 
+        val teamId = this.task.team!!.id
+
         /** The [List] of [TeamId]s working on this [IATaskRun]. */
-        override val teams: List<TeamId> = listOf(this.task.team!!.id)
+        override val teams: List<TeamId> = listOf(teamId)
+
+
 
         init {
             this@InteractiveAsynchronousEvaluation.tasksMap.compute(this.task.team!!.id) { _, v ->

@@ -1,17 +1,16 @@
 package dev.dres.run.validation
 
 import dev.dres.data.model.submissions.*
-import dev.dres.run.validation.interfaces.SubmissionValidator
-import kotlinx.dnq.query.asSequence
+import dev.dres.run.validation.interfaces.AnswerSetValidator
 
 /**
- * A [SubmissionValidator] class that valiadates textual submissions based on [Regex].
+ * A [AnswerSetValidator] class that valiadates textual submissions based on [Regex].
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
  * @version 1.1.0
  */
-class TextValidator(targets: List<String>) : SubmissionValidator {
+class TextAnswerSetValidator(targets: List<String>) : AnswerSetValidator {
 
     override val deferring = false
 
@@ -30,48 +29,41 @@ class TextValidator(targets: List<String>) : SubmissionValidator {
             it.startsWith("\\") && it.endsWith("\\") -> {
                 Regex(it.substring(1, it.length - 1), RegexOption.CANON_EQ)
             }
+
             it.startsWith("\\") && it.endsWith("\\i") -> {
                 Regex(it.substring(1, it.length - 2), setOf(RegexOption.CANON_EQ, RegexOption.IGNORE_CASE))
             }
+
             else -> {
                 Regex(it, setOf(RegexOption.CANON_EQ, RegexOption.LITERAL))
             }
         }
     }
 
-    /**
-     * Validates a textual [DbSubmission] based on the provided [Regex].
-     *
-     * @param submission The [DbSubmission] to validate.
-     */
-    override fun validate(submission: Submission) {
-        submission.answerSets().forEach outer@{ answerSet ->
+    override fun validate(answerSet: AnswerSet) {
 
-            answerSet.answers().forEach inner@{
-                answer ->
+        answerSet.answers().forEach { answer ->
 
-                /* Perform sanity checks. */
-                if (answer.type() != AnswerType.TEXT) {
-                    answerSet.status(VerdictStatus.WRONG)
-                    return@inner
-                }
-
-                /* Perform text validation. */
-                val text = answer.text
-                if (text == null) {
-                    answerSet.status(VerdictStatus.WRONG)
-                    return@inner
-                }
-
-                if (regex.any { it matches text })  {
-                    answerSet.status(VerdictStatus.CORRECT)
-                } else {
-                    answerSet.status(VerdictStatus.WRONG)
-                }
-
+            /* Perform sanity checks. */
+            if (answer.type() != AnswerType.TEXT) {
+                answerSet.status(VerdictStatus.WRONG)
+                return@forEach
             }
 
+            /* Perform text validation. */
+            val text = answer.text
+            if (text == null) {
+                answerSet.status(VerdictStatus.WRONG)
+                return@forEach
+            }
 
+            if (regex.any { it matches text }) {
+                answerSet.status(VerdictStatus.CORRECT)
+            } else {
+                answerSet.status(VerdictStatus.WRONG)
+                return@forEach
+            }
         }
+
     }
 }

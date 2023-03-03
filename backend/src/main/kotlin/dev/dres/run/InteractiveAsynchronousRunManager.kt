@@ -131,8 +131,8 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
             this.evaluation.tasks.forEach { task ->
                 task.getSubmissions().forEach { sub ->
                     this.scoresUpdatable.enqueue(task)
-                    if (sub.answerSets().filter { v -> v.status() == VerdictStatus.INDETERMINATE }.any()) {
-                        task.validator.validate(sub)
+                    sub.answerSets().filter { v -> v.status() == VerdictStatus.INDETERMINATE }.asSequence().forEach {
+                        task.validator.validate(it)
                     }
                 }
             }
@@ -513,10 +513,15 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
         check(task.teamId == submission.teamId) { "Team ${submission.teamId} is not eligible to submit to this task. This is a programmer's error!" }
 
         /* Check if ApiSubmission meets formal requirements. */
-        task.filter.acceptOrThrow(submission as Submission)
+        task.filter.acceptOrThrow(submission)
+
+        //TODO apply submission transformer
 
         /* At this point, the submission is considered valid and is persisted */
-        task.validator.validate(submission as Submission)
+        /* Validator is applied to each answer set */
+        submission.answerSets().forEach {
+            task.validator.validate(it)
+        }
 
         /* Persist the submission. */
         submission.toNewDb()

@@ -4,7 +4,7 @@ import dev.dres.data.model.submissions.*
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.exceptions.JudgementTimeoutException
 import dev.dres.run.validation.interfaces.JudgementValidator
-import dev.dres.run.validation.interfaces.SubmissionValidator
+import dev.dres.run.validation.interfaces.AnswerSetValidator
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -20,7 +20,10 @@ import kotlin.concurrent.write
  * @author Ralph Gasser
  * @version 1.1.0
  */
-open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = emptyList(), knownWrongRanges: Collection<ItemRange> = emptyList()): SubmissionValidator, JudgementValidator {
+open class BasicJudgementValidator(
+    knownCorrectRanges: Collection<ItemRange> = emptyList(),
+    knownWrongRanges: Collection<ItemRange> = emptyList()
+) : AnswerSetValidator, JudgementValidator {
 
     companion object {
         private val counter = AtomicInteger()
@@ -90,30 +93,30 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
      *
      * @param submission The [DbSubmission] to validate.
      */
-    override fun validate(submission: Submission) = this.updateLock.read {
-        for (verdict in submission.answerSets()) {
-            //only validate submissions which are not already validated
-            if (verdict.status() != VerdictStatus.INDETERMINATE){
-                continue
-            }
+    override fun validate(answerSet: AnswerSet) = this.updateLock.read {
 
-            //check cache first
-            val itemRange = ItemRange(submission.answerSets().first().answers().first()) //TODO reason about semantics
-            val cachedStatus = this.cache[itemRange]
-            if (cachedStatus != null) {
-                verdict.status(cachedStatus)
-            } else if (itemRange !in queuedItemRanges.keys) {
-                updateLock.write {
-                    this.queue.offer(verdict)
-                    verdict.status(VerdictStatus.INDETERMINATE)
-                    this.queuedItemRanges[itemRange] = mutableListOf(verdict)
-                }
-            } else {
-                this.updateLock.write {
-                    this.queuedItemRanges[itemRange]!!.add(verdict)
-                }
+        //only validate submissions which are not already validated
+        if (answerSet.status() != VerdictStatus.INDETERMINATE) {
+            return@read
+        }
+
+        //check cache first
+        val itemRange = ItemRange(answerSet.answers().first()) //TODO reason about semantics
+        val cachedStatus = this.cache[itemRange]
+        if (cachedStatus != null) {
+            answerSet.status(cachedStatus)
+        } else if (itemRange !in queuedItemRanges.keys) {
+            updateLock.write {
+                this.queue.offer(answerSet)
+                answerSet.status(VerdictStatus.INDETERMINATE)
+                this.queuedItemRanges[itemRange] = mutableListOf(answerSet)
+            }
+        } else {
+            this.updateLock.write {
+                this.queuedItemRanges[itemRange]!!.add(answerSet)
             }
         }
+
     }
 
     /**
@@ -150,7 +153,7 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
     /**
      *
      */
-    fun processSubmission(token: String, status: VerdictStatus) : AnswerSet = this.updateLock.write {
+    fun processSubmission(token: String, status: VerdictStatus): AnswerSet = this.updateLock.write {
         val verdict = this.waiting[token]
             ?: throw JudgementTimeoutException("This JudgementValidator does not contain a submission for the token '$token'.") //submission with token not found TODO: this should be logged
         val itemRange = ItemRange(verdict.answers().first()) //TODO reason about semantics

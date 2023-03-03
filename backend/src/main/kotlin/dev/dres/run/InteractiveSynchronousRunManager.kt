@@ -128,8 +128,8 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         this.evaluation.tasks.forEach { task ->
             task.getSubmissions().forEach { sub ->
                 this.scoresUpdatable.enqueue(task)
-                if (sub.answerSets.filter { v -> v.status eq DbVerdictStatus.INDETERMINATE }.any()) {
-                    task.validator.validate(sub)
+                sub.answerSets.filter { v -> v.status eq DbVerdictStatus.INDETERMINATE }.asSequence().forEach {
+                    task.validator.validate(it)
                 }
             }
         }
@@ -453,10 +453,15 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         check(this.template.teams.asSequence().filter { it.teamId == submission.teamId }.any()) { "Team ${submission.teamId} does not exists for evaluation run ${this.name}. This is a programmer's error!" }
 
         /* Check if ApiSubmission meets formal requirements. */
-        task.filter.acceptOrThrow(submission as Submission)
+        task.filter.acceptOrThrow(submission)
+
+        //TODO apply submission transformer
 
         /* At this point, the submission is considered valid and is persisted */
-        task.validator.validate(submission as Submission)
+        /* Validator is applied to each answer set */
+        submission.answerSets().forEach {
+            task.validator.validate(it)
+        }
 
         /* Persist the submission. */
         submission.toNewDb()

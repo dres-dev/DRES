@@ -4,10 +4,6 @@ import dev.dres.api.rest.types.competition.tasks.ApiTaskType
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.options.*
 import dev.dres.data.model.template.task.options.DbConfiguredOption
-import dev.dres.run.filter.AllSubmissionFilter
-import dev.dres.run.filter.SubmissionFilter
-import dev.dres.run.filter.SubmissionFilterAggregator
-import dev.dres.run.validation.interfaces.SubmissionValidator
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.*

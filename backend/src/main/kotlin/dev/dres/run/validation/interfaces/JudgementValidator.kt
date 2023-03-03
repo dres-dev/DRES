@@ -3,9 +3,9 @@ package dev.dres.run.validation.interfaces
 import dev.dres.data.model.submissions.*
 
 /**
- * A [SubmissionValidator] that bases validation on human (manual) verdicts.
+ * A [AnswerSetValidator] that bases validation on human (manual) verdicts.
  *
- * This kind of [SubmissionValidator]  is inherently asynchronous.
+ * This kind of [AnswerSetValidator]  is inherently asynchronous.
  *
  * @author Luca Rossetto & Ralph Gasser
  * @version 1.1.0

@@ -455,20 +455,21 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         /* Check if ApiSubmission meets formal requirements. */
         task.filter.acceptOrThrow(submission)
 
-        //TODO apply submission transformer
+        /* Apply transformations to submissions */
+        val transformedSubmission = task.transformer.transform(submission)
 
         /* At this point, the submission is considered valid and is persisted */
         /* Validator is applied to each answer set */
-        submission.answerSets().forEach {
+        transformedSubmission.answerSets().forEach {
             task.validator.validate(it)
         }
 
         /* Persist the submission. */
-        submission.toNewDb()
+        transformedSubmission.toNewDb()
 
         /** Checks for the presence of the [DbTaskOption.PROLONG_ON_SUBMISSION] and applies it. */
         if (task.template.taskGroup.type.options.contains(DbTaskOption.PROLONG_ON_SUBMISSION)) {
-            this.prolongOnSubmit(context, submission as Submission)
+            this.prolongOnSubmit(context, transformedSubmission)
         }
 
         /* Enqueue submission for post-processing. */

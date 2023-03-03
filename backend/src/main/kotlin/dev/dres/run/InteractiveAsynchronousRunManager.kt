@@ -515,23 +515,24 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
         /* Check if ApiSubmission meets formal requirements. */
         task.filter.acceptOrThrow(submission)
 
-        //TODO apply submission transformer
+        /* Apply transformations to submissions */
+        val transformedSubmission = task.transformer.transform(submission)
 
         /* At this point, the submission is considered valid and is persisted */
         /* Validator is applied to each answer set */
-        submission.answerSets().forEach {
+        transformedSubmission.answerSets().forEach {
             task.validator.validate(it)
         }
 
         /* Persist the submission. */
-        submission.toNewDb()
+        transformedSubmission.toNewDb()
 
         /* Enqueue submission for post-processing. */
         this.scoresUpdatable.enqueue(task)
 
         /* Enqueue WS message for sending */
         RunExecutor.broadcastWsMessage(context.teamId, ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.taskId))
-        return submission.answerSets().first().status()
+        return transformedSubmission.answerSets().first().status()
     }
 
     /**

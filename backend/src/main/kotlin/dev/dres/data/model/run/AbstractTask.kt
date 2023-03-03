@@ -8,6 +8,7 @@ import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.template.TemplateId
 import dev.dres.run.TaskStatus
 import dev.dres.run.filter.SubmissionFilter
+import dev.dres.run.transformer.SubmissionTransformer
 import dev.dres.run.validation.interfaces.AnswerSetValidator
 import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.filter
@@ -87,11 +88,14 @@ abstract class AbstractTask(task: DbTask): TaskRun {
     }
     protected set
 
-    /** The [SubmissionFilter] used to filter [DbSubmission]s. */
+    /** The [SubmissionFilter] used to filter [Submission]s. */
     abstract val filter: SubmissionFilter
 
-    /** The [AnswerSetValidator] used to validate [DbSubmission]s. */
+    abstract val transformer: SubmissionTransformer
+
+    /** The [AnswerSetValidator] used to validate [Submission]s. */
     abstract val validator: AnswerSetValidator
+
 
     /**
      * Prepares this [TaskRun] for later starting.

@@ -4,6 +4,7 @@ import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
+import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
@@ -11,6 +12,10 @@ import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
 import dev.dres.run.score.scorer.CachingTaskScorer
 import dev.dres.run.score.scorer.TaskScorer
+import dev.dres.run.transformer.MapToSegmentTransformer
+import dev.dres.run.transformer.SubmissionTaskMatchFilter
+import dev.dres.run.transformer.SubmissionTransformer
+import dev.dres.run.transformer.SubmissionTransformerAggregator
 import kotlinx.dnq.query.*
 
 
@@ -61,6 +66,17 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
 
         /** The [CachingTaskScorer] instance used by this [NITaskRun]. */
         override val scorer: CachingTaskScorer = TODO("Will we have the same scorers for non-interactive tasks.")
+
+        override val transformer: SubmissionTransformer = if (this.template.taskGroup.type.options.filter { it eq DbTaskOption.MAP_TO_SEGMENT }.any()) {
+            SubmissionTransformerAggregator(
+                listOf(
+                    SubmissionTaskMatchFilter(this.taskId),
+                    MapToSegmentTransformer()
+                )
+            )
+        } else {
+            SubmissionTaskMatchFilter(this.taskId)
+        }
 
         /** The [SubmissionFilter] instance used by this [NITaskRun]. */
         override val filter: SubmissionFilter = TODO("Can there be submission filters for non-interactive tasks?")

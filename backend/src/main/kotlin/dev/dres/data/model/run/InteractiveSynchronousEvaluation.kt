@@ -8,6 +8,7 @@ import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.template.TemplateId
 import dev.dres.data.model.template.task.options.DbConfiguredOption
 import dev.dres.data.model.template.task.options.DbScoreOption
+import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.filter.AllSubmissionFilter
 import dev.dres.run.filter.SubmissionFilter
@@ -19,6 +20,10 @@ import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
 import dev.dres.run.score.scorer.AvsTaskScorer
 import dev.dres.run.score.scorer.CachingTaskScorer
 import dev.dres.run.score.scorer.KisTaskScorer
+import dev.dres.run.transformer.MapToSegmentTransformer
+import dev.dres.run.transformer.SubmissionTaskMatchFilter
+import dev.dres.run.transformer.SubmissionTransformer
+import dev.dres.run.transformer.SubmissionTransformerAggregator
 import kotlinx.dnq.query.*
 import java.lang.IndexOutOfBoundsException
 import java.util.LinkedList
@@ -26,7 +31,7 @@ import java.util.LinkedList
 /**
  * Represents a concrete, interactive and synchronous [Run] of a [DbEvaluationTemplate].
  *
- * [InteractiveSynchronousEvaluation]s can be started, ended and they can be used to create new [TaskRun]s and access the current [TaskRun].
+ * [InteractiveSynchronousEvaluation]s can be started, ended, and they can be used to create new [TaskRun]s and access the current [TaskRun].
  *
  * @author Ralph Gasser
  * @param 2.0.0
@@ -142,6 +147,8 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
         /** The [SubmissionFilter] instance used by this [ISTaskRun]. */
         override val filter: SubmissionFilter
 
+        override val transformer: SubmissionTransformer
+
         /** The [CachingTaskScorer] instance used by this [ISTaskRun]. */
         override val scorer: CachingTaskScorer
 
@@ -155,7 +162,7 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
             check(this@InteractiveSynchronousEvaluation.tasks.isEmpty() || this@InteractiveSynchronousEvaluation.tasks.last().hasEnded) {
                 "Cannot create a new task. Another task is currently running."
             }
-            (this@InteractiveSynchronousEvaluation.tasks as MutableList<TaskRun>).add(this)
+            (this@InteractiveSynchronousEvaluation.tasks).add(this)
 
             /* Initialize submission filter. */
             if (this.template.taskGroup.type.submission.isEmpty) {
@@ -168,6 +175,17 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
                         option.newFilter(parameters)
                     }.toList()
                 )
+            }
+
+            this.transformer = if (this.template.taskGroup.type.options.filter { it eq DbTaskOption.MAP_TO_SEGMENT }.any()) {
+                SubmissionTransformerAggregator(
+                    listOf(
+                        SubmissionTaskMatchFilter(this.taskId),
+                        MapToSegmentTransformer()
+                    )
+                )
+            } else {
+                SubmissionTaskMatchFilter(this.taskId)
             }
 
             /* Initialize task scorer. */

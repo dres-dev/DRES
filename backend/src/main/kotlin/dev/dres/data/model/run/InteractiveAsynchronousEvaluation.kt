@@ -7,6 +7,7 @@ import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.template.task.options.DbConfiguredOption
 import dev.dres.data.model.template.task.options.DbScoreOption
+import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.AllSubmissionFilter
 import dev.dres.run.filter.SubmissionFilter
@@ -17,6 +18,10 @@ import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
 import dev.dres.run.score.scorer.AvsTaskScorer
 import dev.dres.run.score.scorer.CachingTaskScorer
 import dev.dres.run.score.scorer.KisTaskScorer
+import dev.dres.run.transformer.MapToSegmentTransformer
+import dev.dres.run.transformer.SubmissionTaskMatchFilter
+import dev.dres.run.transformer.SubmissionTransformer
+import dev.dres.run.transformer.SubmissionTransformerAggregator
 import kotlinx.dnq.query.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -205,6 +210,8 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
         /** The [SubmissionFilter] instance used by this [IATaskRun]. */
         override val filter: SubmissionFilter
 
+        override val transformer: SubmissionTransformer
+
         /** The [CachingTaskScorer] instance used by this [InteractiveAsynchronousEvaluation].*/
         override val scorer: CachingTaskScorer
 
@@ -239,6 +246,16 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
                 )
             }
 
+            this.transformer = if (this.template.taskGroup.type.options.filter { it eq DbTaskOption.MAP_TO_SEGMENT }.any()) {
+                SubmissionTransformerAggregator(
+                    listOf(
+                        SubmissionTaskMatchFilter(this.taskId),
+                        MapToSegmentTransformer()
+                    )
+                )
+            } else {
+                SubmissionTaskMatchFilter(this.taskId)
+            }
 
             /* Initialize task scorer. */
             this.scorer = CachingTaskScorer(

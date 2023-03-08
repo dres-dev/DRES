@@ -51,7 +51,7 @@ class AdjustPropertiesHandler(store: TransientEntityStore): AbstractEvaluationAd
         val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
         return this.store.transactional {
             evaluationManager.updateProperties(properties)
-            SuccessStatus("Properties updated")
+            SuccessStatus("Properties updated successfully!")
         }
     }
 }

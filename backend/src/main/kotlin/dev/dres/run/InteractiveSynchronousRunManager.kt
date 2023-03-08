@@ -167,10 +167,14 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     }
 
     /**
+     * Updates the [RunProperties] for the [InteractiveSynchronousEvaluation] backing this [InteractiveSynchronousRunManager].
      *
+     * @param properties The set of new [RunProperties]
      */
     override fun updateProperties(properties: RunProperties) {
-        TODO("Not yet implemented")
+        this.evaluation.allowRepeatedTasks = properties.allowRepeatedTasks
+        this.evaluation.limitSubmissionPreviews = properties.limitSubmissionPreviews
+        this.evaluation.participantCanView = properties.participantCanView
     }
 
     /**

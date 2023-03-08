@@ -45,6 +45,7 @@ export class CompetitionBuilderTeamDialogComponent {
     @Inject(MAT_DIALOG_DATA) private team?: ApiTeam
   ) {
     this.form = new FormGroup({
+      id: new FormControl(team?.id),
       name: new FormControl(team?.name, [Validators.required, Validators.minLength(3)]),
       color: new FormControl(team?.color ? team.color : CompetitionBuilderTeamDialogComponent.randomColor(), [
         Validators.required,
@@ -56,9 +57,7 @@ export class CompetitionBuilderTeamDialogComponent {
       users: new FormControl(team?.users != null ? team.users : []),
       userInput: new FormControl(''),
     });
-    this.availableUsers = this.userService.getApiV2UserList()
-    //getApiV1UserList()
-        .pipe(
+    this.availableUsers = this.userService.getApiV2UserList().pipe(
       map((value) => {
         return value.filter((user) => user.role !== 'JUDGE' && user.role !== 'VIEWER');
       }),
@@ -148,10 +147,10 @@ export class CompetitionBuilderTeamDialogComponent {
 
   fetchData() {
     return {
+      id: this.form.get('id').value,
       name: this.form.get('name').value,
       color: this.form.get('color').value,
       logoData: this.form.get('logoData').value,
-      // logoId: this.form.get('logoId').value,
       users: this.form.get('users').value,
     } as ApiTeam;
   }

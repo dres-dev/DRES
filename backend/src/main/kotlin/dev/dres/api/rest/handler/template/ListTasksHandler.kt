@@ -37,6 +37,6 @@ class ListTasksHandler(store: TransientEntityStore) : AbstractEvaluationTemplate
     )
 
     override fun doGet(ctx: Context) = this.store.transactional(true) {
-        competitionFromContext(ctx).tasks.asSequence().map { it.toApi() }.toList()
+        evaluationTemplateFromContext(ctx).tasks.asSequence().map { it.toApi() }.toList()
     }
 }

@@ -2748,22 +2748,22 @@
         "security" : [ ]
       }
     },
-    "/api/v2/template/{templateId}" : {
-      "delete" : {
-        "tags" : [ "Template" ],
-        "summary" : "Deletes the evaluation template with the given template ID.",
-        "operationId" : "deleteApiV2TemplateByTemplateId",
-        "parameters" : [ {
-          "name" : "templateId",
-          "in" : "path",
-          "description" : "The evaluation template ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
+    "/api/v2/template/team" : {
+      "post" : {
+        "tags" : [ "Template", "Team" ],
+        "summary" : "Creates a new team.",
+        "operationId" : "postApiV2TemplateTeam",
+        "parameters" : [ ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ApiTeam"
+              }
+            }
+          },
+          "required" : false
+        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -2808,7 +2808,136 @@
         },
         "deprecated" : false,
         "security" : [ ]
-      },
+      }
+    },
+    "/api/v2/template/team/list" : {
+      "get" : {
+        "tags" : [ "Template", "Team" ],
+        "summary" : "Lists all the teams across all evaluations.",
+        "operationId" : "getApiV2TemplateTeamList",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiTeam"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/template/team/{teamId}" : {
+      "post" : {
+        "tags" : [ "Template", "Team" ],
+        "summary" : "Creates a new team.",
+        "operationId" : "postApiV2TemplateTeamByTeamId",
+        "parameters" : [ {
+          "name" : "teamId",
+          "in" : "path",
+          "description" : "The team ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ApiTeam"
+              }
+            }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/template/{templateId}" : {
       "get" : {
         "tags" : [ "Template" ],
         "summary" : "Loads the detailed definition of a specific evaluation template.",
@@ -2831,6 +2960,66 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ApiEvaluationTemplate"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "delete" : {
+        "tags" : [ "Template" ],
+        "summary" : "Deletes the evaluation template with the given template ID.",
+        "operationId" : "deleteApiV2TemplateByTemplateId",
+        "parameters" : [ {
+          "name" : "templateId",
+          "in" : "path",
+          "description" : "The evaluation template ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
                 }
               }
             }
@@ -3008,7 +3197,7 @@
     "/api/v2/template/{templateId}/team/list" : {
       "get" : {
         "tags" : [ "Template" ],
-        "summary" : "Lists all the teams of a specific competition.",
+        "summary" : "Lists all the teams of a specific evaluation template.",
         "operationId" : "getApiV2TemplateByTemplateIdTeamList",
         "parameters" : [ {
           "name" : "templateId",
@@ -3071,6 +3260,36 @@
       }
     },
     "/api/v2/user" : {
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Get information about the current user.",
+        "operationId" : "getApiV2User",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiUser"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
       "post" : {
         "tags" : [ "User" ],
         "summary" : "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
@@ -3103,36 +3322,6 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      },
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Get information about the current user.",
-        "operationId" : "getApiV2User",
-        "parameters" : [ ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiUser"
                 }
               }
             }
@@ -3245,6 +3434,56 @@
         "deprecated" : false,
         "security" : [ ]
       },
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Gets details of the user with the given id.",
+        "operationId" : "getApiV2UserByUserId",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "description" : "User's UID",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiUser"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "If the user could not be found.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
       "patch" : {
         "tags" : [ "User" ],
         "summary" : "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone.",
@@ -3293,56 +3532,6 @@
           },
           "404" : {
             "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      },
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Gets details of the user with the given id.",
-        "operationId" : "getApiV2UserByUserId",
-        "parameters" : [ {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "User's UID",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiUser"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "If the user could not be found.",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -3645,6 +3834,9 @@
             "items" : {
               "type" : "string"
             }
+          },
+          "canBeEdited" : {
+            "type" : "boolean"
           }
         },
         "required" : [ "id", "name", "taskTypes", "taskGroups", "tasks", "teams", "teamGroups", "judges" ]

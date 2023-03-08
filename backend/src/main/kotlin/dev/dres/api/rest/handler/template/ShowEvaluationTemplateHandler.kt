@@ -34,6 +34,6 @@ class ShowEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEvalu
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context)= this.store.transactional(true) {
-       competitionFromContext(ctx).toApi()
+       evaluationTemplateFromContext(ctx).toApi()
     }
 }

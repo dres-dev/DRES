@@ -1,9 +1,7 @@
 package dev.dres.api.rest.handler.template
 
-import com.github.kittinunf.fuel.util.decodeBase64
 import dev.dres.api.rest.handler.PatchRestHandler
 import dev.dres.api.rest.types.competition.ApiEvaluationTemplate
-import dev.dres.api.rest.types.competition.team.ApiTeam
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -22,11 +20,6 @@ import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.creator.findOrNew
 import kotlinx.dnq.query.*
-import java.awt.Image
-import java.awt.image.BufferedImage
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import javax.imageio.ImageIO
 
 /**
  * A [AbstractEvaluationTemplateHandler] that can be used to create a new [DbEvaluationTemplate].
@@ -65,6 +58,9 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
         /* Store change. */
         this.store.transactional {
             val existing = this.evaluationTemplateById(apiValue.id, ctx)
+            if (!existing.canBeEdited()) {
+                throw ErrorStatusException(400, "Evaluation template ${apiValue.id} can no longer be edited.", ctx)
+            }
 
             /* Update core information. */
             existing.name = apiValue.name

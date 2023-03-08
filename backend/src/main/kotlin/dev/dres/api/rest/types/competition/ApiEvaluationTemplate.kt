@@ -24,6 +24,7 @@ data class ApiEvaluationTemplate(
     val tasks: List<ApiTaskTemplate>,
     val teams: List<ApiTeam>,
     val teamGroups: List<ApiTeamGroup>,
-    val judges: List<String>
+    val judges: List<String>,
+    val canBeEdited: Boolean? = null/* Optional, because not required when sent by the client. */
 )
 

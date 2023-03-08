@@ -34,7 +34,7 @@ class ListEvaluationTemplatesHandler(store: TransientEntityStore) : AbstractEval
     )
     override fun doGet(ctx: Context) = this.store.transactional(true) {
         DbEvaluationTemplate.all().asSequence().map {
-            ApiEvaluationOverview(it.id, it.name, it.description, it.tasks.size(), it.teams.size())
+            ApiEvaluationOverview(it.id, it.name, it.description, it.tasks.size(), it.teams.size(), it.canBeEdited())
         }.toList()
     }
 }

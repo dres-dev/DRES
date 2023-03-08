@@ -11,6 +11,8 @@ import dev.dres.data.model.template.task.DbTaskType
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.DbTeamGroup
 import dev.dres.data.model.media.time.TemporalRange
+import dev.dres.data.model.run.DbEvaluation
+import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.template.interfaces.EvaluationTemplate
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
@@ -39,10 +41,7 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
         set(value) { this.id = value }
 
     /** The name held by this [DbEvaluationTemplate]. Must be unique!*/
-    var name by xdRequiredStringProp(unique = true, trimmed = true)
-
-    /** If set, this [DbEvaluationTemplate] is considered a template!*/
-    var isTemplate by xdBooleanProp()
+    var name by xdRequiredStringProp(trimmed = true)
 
     /** An optional description of this [DbEvaluationTemplate]. */
     var description by xdStringProp(trimmed = false)
@@ -76,6 +75,7 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
         id = this.id,
         name = this.name,
         description = this.description,
+        canBeEdited = this.canBeEdited(),
         taskTypes = this.taskTypes.asSequence().map { it.toApi() }.toList(),
         taskGroups = this.taskGroups.asSequence().map { it.toApi() }.toList(),
         tasks = this.tasks.asSequence().map { it.toApi() }.toList(),
@@ -83,6 +83,13 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
         teamGroups = this.teamGroups.asSequence().map { it.toApi() }.toList(),
         judges = this.judges.asSequence().map { it.id }.toList()
     )
+
+    /**
+     * Checks if this [DbEvaluationTemplate] can be edited. This is the case only, if no active [DbEvaluation] exists that uses it.
+     *
+     * This is a convenience method and requires an active transaction context.
+     */
+    fun canBeEdited() = DbEvaluation.filter { it.template.id eq this@DbEvaluationTemplate.id }.none()
 
     /**
      * Generates and returns a list of all [DbMediaItem] for this [DbEvaluationTemplate].

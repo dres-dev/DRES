@@ -37,6 +37,6 @@ class ListTeamHandler(store: TransientEntityStore) : AbstractEvaluationTemplateH
     )
 
     override fun doGet(ctx: Context) = this.store.transactional(true) {
-        competitionFromContext(ctx).teams.asSequence().map { it.toApi() }.toList()
+        evaluationTemplateFromContext(ctx).teams.asSequence().map { it.toApi() }.toList()
     }
 }

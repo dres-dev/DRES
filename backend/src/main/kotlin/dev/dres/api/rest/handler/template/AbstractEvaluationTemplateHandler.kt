@@ -31,13 +31,14 @@ abstract class AbstractEvaluationTemplateHandler(protected val store: TransientE
     override val apiVersion = "v2"
 
     /** Convenience method to extract [DbEvaluationTemplate]'s ID from [Context]. */
-    private fun evaluationTemplateId(ctx: Context): TemplateId =
+    private fun templateIdFromContext(ctx: Context): TemplateId =
         ctx.pathParamMap().getOrElse("templateId") {
             throw ErrorStatusException(404, "Parameter 'templateId' is missing!'", ctx)
         }
 
     /** Convenience method to extract [DbEvaluationTemplate] from [Context]. */
-    protected fun competitionFromContext(ctx: Context): DbEvaluationTemplate = evaluationTemplateById(evaluationTemplateId(ctx), ctx)
+    protected fun evaluationTemplateFromContext(ctx: Context): DbEvaluationTemplate
+        = evaluationTemplateById(templateIdFromContext(ctx), ctx)
 
     /** Convenience method to extract [DbEvaluationTemplate] by ID. */
     protected fun evaluationTemplateById(id: TemplateId, ctx: Context): DbEvaluationTemplate

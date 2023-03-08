@@ -176,8 +176,8 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
                     }.toList()
                 )
             }
-
-            this.transformer = if (this.template.taskGroup.type.options.filter { it eq DbTaskOption.MAP_TO_SEGMENT }.any()) {
+            val mapToSegment = this.template.taskGroup.type.options.contains(DbTaskOption.MAP_TO_SEGMENT)
+            this.transformer = if (mapToSegment) {
                 SubmissionTransformerAggregator(
                     listOf(
                         SubmissionTaskMatchFilter(this.taskId),

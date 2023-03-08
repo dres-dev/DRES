@@ -99,7 +99,7 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
             /* Prepare evaluation. */
             val evaluation = DbEvaluation.new {
                 this.name = message.name
-                this.template = template /* TODO: Create copy. */
+                this.template = template
                 this.type = message.type.toDb()
                 this.allowRepeatedTasks = message.properties.allowRepeatedTasks
                 this.participantCanView = message.properties.participantCanView

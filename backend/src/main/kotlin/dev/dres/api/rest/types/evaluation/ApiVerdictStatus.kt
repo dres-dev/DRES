@@ -9,7 +9,7 @@ import dev.dres.data.model.submissions.DbVerdictStatus
  * @author Ralph Gasser
  * @version 1.0.0
  */
-enum class ApiVerdictStatus() {
+enum class ApiVerdictStatus {
     CORRECT, WRONG, INDETERMINATE, UNDECIDABLE;
 
     /**

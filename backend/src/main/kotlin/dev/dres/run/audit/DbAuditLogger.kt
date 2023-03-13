@@ -12,7 +12,6 @@ import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.run.eventstream.*
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.run.validation.interfaces.AnswerSetValidator
-import kotlinx.dnq.query.first
 
 /**
  * Audit logging instance of DRES. Requires one-time initialisation
@@ -156,20 +155,16 @@ object DbAuditLogger {
     }
 
     /**
-     * Logs a submission override to DRES.
-     *
-     * @param submission The [DbSubmission] that was overriden (new snapshot).
-     * @param api The [DbAuditLogSource]
-     * @param sessionToken The identifier of the user session.
+     * Logs a AnswerSet VerdictStatus override to DRES.
      */
-    fun overrideSubmission(submission: DbSubmission, api: DbAuditLogSource, sessionToken: SessionToken?) {
+    fun overrideVerdict(answerSet: DbAnswerSet, verdict: DbVerdictStatus, api: DbAuditLogSource, sessionToken: SessionToken?) {
         DbAuditLogEntry.new {
             this.type = DbAuditLogType.SUBMISSION_STATUS_OVERWRITE
             this.source = api
-            this.submissionId = submission.id
-            this.evaluationId = submission.answerSets.first().task.evaluation.evaluationId
-            this.taskId = submission.answerSets.first().task.id /* TODO: Multiple verdicts. */
-            this.description = "Verdict: ${submission.answerSets.first().status.description}"
+            this.submissionId = answerSet.submission.submissionId
+            this.evaluationId = answerSet.task.evaluation.evaluationId
+            this.taskId =answerSet.task.id
+            this.description = "Set verdict of '${answerSet.id}' to ${verdict.description}"
             this.session = sessionToken
         }
     }

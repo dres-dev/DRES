@@ -41,7 +41,6 @@ import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.staticfiles.Location
 import io.javalin.community.ssl.SSLPlugin
 import io.javalin.openapi.CookieAuth
-import io.javalin.openapi.OpenApiInfo
 import io.javalin.openapi.plugin.*
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
@@ -50,8 +49,6 @@ import org.eclipse.jetty.server.*
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
-import java.util.function.BiConsumer
-import java.util.function.Consumer
 
 /**
  * This is a singleton instance of the RESTful API
@@ -160,7 +157,7 @@ object RestApi {
             StopTaskHandler(store),
             AdjustDurationHandler(store),
             AdjustPropertiesHandler(store),
-            OverrideSubmissionHandler(store),
+            OverrideAnswerSetVerdictHandler(store),
             ForceViewerHandler(store),
             ListViewersHandler(store),
             ListSubmissionsHandler(store),

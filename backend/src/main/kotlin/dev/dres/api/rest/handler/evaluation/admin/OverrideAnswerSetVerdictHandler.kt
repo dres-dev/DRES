@@ -1,10 +1,10 @@
 package dev.dres.api.rest.handler.evaluation.admin
 
 import dev.dres.api.rest.handler.PatchRestHandler
-import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.api.rest.types.evaluation.ApiVerdictStatus
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.submissions.DbVerdictStatus
@@ -16,6 +16,9 @@ import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.any
+import kotlinx.dnq.query.filter
+import kotlinx.dnq.query.first
 
 /**
  * A [PatchRestHandler] used to overwrite [DbVerdictStatus] information.
@@ -25,58 +28,57 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class OverrideSubmissionHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), PatchRestHandler<ApiSubmission> {
-    override val route: String = "evaluation/admin/{evaluationId}/submission/override"
+class OverrideAnswerSetVerdictHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), PatchRestHandler<SuccessStatus> {
+    override val route: String = "evaluation/admin/{evaluationId}/override/{answerSetId}"
 
     @OpenApi(
-        summary = "Override the submission status for a given submission.",
-        path = "/api/v2/evaluation/admin/{evaluationId}/submission/override",
+        summary = "Override the verdict status of an AnswerSet.",
+        path = "/api/v2/evaluation/admin/{evaluationId}/override/{answerSetId}",
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.PATCH],
         pathParams = [
-            OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false)
+            OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false),
+            OpenApiParam("answerSetId", String::class, "The ID of the AnswerSet.", required = true, allowEmptyValue = false)
         ],
-        requestBody = OpenApiRequestBody([OpenApiContent(ApiSubmission::class)]),
+        requestBody = OpenApiRequestBody([OpenApiContent(ApiVerdictStatus::class)]),
         tags = ["Evaluation Administrator"],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(ApiSubmission::class)]),
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
         ]
     )
-    override fun doPatch(ctx: Context): ApiSubmission {
+    override fun doPatch(ctx: Context): SuccessStatus {
         val evaluationId = ctx.evaluationId()
+        val answerSetId = ctx.pathParamMap()["answerSetId"] ?: throw ErrorStatusException(400, "Parameter 'answerSetId' is missing!'", ctx)
         val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
 
-        /* TODO: Make this work for batched submissions! */
-
         /* Extract HTTP body. */
-        val submissionInfo = try {
-            ctx.bodyAsClass<ApiSubmission>()
+        val apiVerdictStatus = try {
+            ctx.bodyAsClass<ApiVerdictStatus>()
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
-        /* Perform sanity check. */
 
-        if (submissionInfo.answers.first().status == ApiVerdictStatus.INDETERMINATE ) {
+        /* Perform sanity check. */
+        if (apiVerdictStatus == ApiVerdictStatus.INDETERMINATE ) {
             throw ErrorStatusException(400, "Submission status can not be set to INDETERMINATE.", ctx)
         }
 
         return this.store.transactional {
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
 
-            /* Sanity check to see, whether the submission exists */
-            if (evaluationManager.allSubmissions(rac).none { it.id == submissionInfo.submissionId }) {
-                throw ErrorStatusException(404, "The given submission $submissionInfo was not found.", ctx)
-            }
-            if (evaluationManager.updateSubmission(rac, submissionInfo.submissionId, submissionInfo.answers.first().status.toDb())) {
-                val submission = evaluationManager.allSubmissions(rac).single { it.id == submissionInfo.submissionId }
-                DbAuditLogger.overrideSubmission(submission, DbAuditLogSource.REST, ctx.sessionToken())
-                submission.toApi()
-            } else {
-                throw ErrorStatusException(500, "Could not update the submission. Please see the backend's log.", ctx)
-            }
+            val dbSubmission = evaluationManager.allSubmissions(rac).find { submission -> submission.answerSets.filter { it.id eq answerSetId }.any() } ?:
+            throw ErrorStatusException(404, "No AnswerSet with Id '$answerSetId' found.", ctx)
+
+            val answerSet = dbSubmission.answerSets.filter { it.id eq answerSetId }.first()
+            val verdictStatus = apiVerdictStatus.toDb()
+            answerSet.status = verdictStatus
+
+            DbAuditLogger.overrideVerdict(answerSet, verdictStatus, DbAuditLogSource.REST, ctx.sessionToken())
+
+            SuccessStatus("Set status of AnswerSet '$answerSetId' to '${apiVerdictStatus.name}'")
         }
     }
 }

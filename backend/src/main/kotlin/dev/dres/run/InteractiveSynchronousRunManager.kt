@@ -448,7 +448,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      * @param context The [RunActionContext] used for the invocation
      * @param submission [ApiSubmission] that should be registered.
      */
-    override fun postSubmission(context: RunActionContext, submission: ApiSubmission): VerdictStatus = this.stateLock.read {
+    override fun postSubmission(context: RunActionContext, submission: ApiSubmission) = this.stateLock.read {
         /* Register submission. */
         val task = this.currentTask(context) ?: throw IllegalStateException("Could not find ongoing task in run manager, despite correct status. This is a programmer's error!")
 
@@ -486,7 +486,6 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
 
         /* Enqueue WS message for sending */
         RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.taskId))
-        return submission.answerSets().first().status()
     }
 
     /**

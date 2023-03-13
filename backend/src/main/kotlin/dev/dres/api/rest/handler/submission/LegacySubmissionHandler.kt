@@ -130,7 +130,7 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
             val submission = toSubmission(userId, run, time, ctx)
             val rac = RunActionContext.runActionContext(ctx, run)
 
-            val result = try {
+            try {
                 run.postSubmission(rac, submission)
             } catch (e: SubmissionRejectedException) {
                 throw ErrorStatusException(412, e.message ?: "Submission rejected by submission filter.", ctx)
@@ -150,6 +150,9 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
             if (run.currentTaskTemplate(rac).taskGroup.type.options.contains(DbTaskOption.HIDDEN_RESULTS)) { //pre-generate preview
                 generatePreview(submission.answerSets().first())
             }
+
+            val result = DbSubmission.filter { it.id eq submission.submissionId }.firstOrNull()?.answerSets?.first()?.status?.let { VerdictStatus.fromDb(it) } ?: VerdictStatus.INDETERMINATE
+
             submission to result
         }
 

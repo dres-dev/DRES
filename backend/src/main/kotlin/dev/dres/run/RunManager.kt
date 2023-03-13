@@ -109,10 +109,9 @@ interface RunManager : Runnable {
      * @param context The [RunActionContext] used for the invocation
      * @param submission The [ApiSubmission] to be posted.
      *
-     * @return [DbVerdictStatus] of the [ApiSubmission]
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    fun postSubmission(context: RunActionContext, submission: ApiSubmission): VerdictStatus
+    fun postSubmission(context: RunActionContext, submission: ApiSubmission)
 
     /**
      * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.

@@ -167,7 +167,7 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
      */
     override fun tasks(context: RunActionContext): List<AbstractNonInteractiveTask> = this.evaluation.tasks
 
-    override fun postSubmission(context: RunActionContext, submission: ApiSubmission): VerdictStatus {
+    override fun postSubmission(context: RunActionContext, submission: ApiSubmission) {
         TODO("Not yet implemented")
     }
 }

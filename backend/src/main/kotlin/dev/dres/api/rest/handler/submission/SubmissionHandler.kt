@@ -6,6 +6,7 @@ import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.api.rest.types.evaluation.ApiVerdictStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.api.rest.types.status.SuccessfulSubmissionsStatus
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.Config
@@ -23,7 +24,7 @@ import io.javalin.http.bodyAsClass
 import jetbrains.exodus.database.TransientEntityStore
 import org.slf4j.LoggerFactory
 
-class SubmissionHandler(private val store: TransientEntityStore, private val config: Config): PostRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
+class SubmissionHandler(private val store: TransientEntityStore, private val config: Config): PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
 
     override val permittedRoles = setOf(ApiRole.PARTICIPANT)
 
@@ -34,7 +35,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
-    override fun doPost(ctx: Context): SuccessfulSubmissionsStatus {
+    override fun doPost(ctx: Context): SuccessStatus {
 
         return this.store.transactional {
 
@@ -50,7 +51,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
                 throw ErrorStatusException(400, "Invalid submission, cannot parse: ${e.message}", ctx)
             }
 
-            val result = try {
+            try {
                 runManager.postSubmission(rac, apiSubmission)
             } catch (e: SubmissionRejectedException) {
                 throw ErrorStatusException(412, e.message ?: "Submission rejected by submission filter.", ctx)
@@ -64,19 +65,9 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
 
             DbAuditLogger.submission(apiSubmission, DbAuditLogSource.REST, ctx.sessionToken(), ctx.req().remoteAddr)
 
-            logger.info("Submission ${apiSubmission.submissionId} received status $result.")
 
-            return@transactional when (result) {
-                VerdictStatus.CORRECT -> SuccessfulSubmissionsStatus(ApiVerdictStatus.CORRECT, "Submission correct!")
-                VerdictStatus.WRONG -> SuccessfulSubmissionsStatus(ApiVerdictStatus.WRONG, "Submission incorrect! Try again")
-                VerdictStatus.INDETERMINATE -> {
-                    ctx.status(202) /* HTTP Accepted. */
-                    SuccessfulSubmissionsStatus(ApiVerdictStatus.INDETERMINATE, "Submission received. Waiting for verdict!")
-                }
+            return@transactional SuccessStatus("Submission received")
 
-                VerdictStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(ApiVerdictStatus.UNDECIDABLE,"Submission undecidable. Try again!")
-                else -> throw ErrorStatusException(500, "Unsupported submission status. This is very unusual!", ctx)
-            }
 
         }
 

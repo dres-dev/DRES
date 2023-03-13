@@ -500,7 +500,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
      * @return [DbVerdictStatus] of the [DbSubmission]
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.ACTIVE].
      */
-    override fun postSubmission(context: RunActionContext, submission: ApiSubmission): VerdictStatus = this.stateLock.read {
+    override fun postSubmission(context: RunActionContext, submission: ApiSubmission) = this.stateLock.read {
         require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         require(teamHasRunningTask(context.teamId)) { "No running task for Team ${context.teamId}" }
         require(submission.answerSets().count() == 1) { "Only single verdict per submission is allowed for InteractiveAsynchronousRunManager." } /* TODO: Do we want this restriction? */
@@ -537,7 +537,7 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
 
         /* Enqueue WS message for sending */
         RunExecutor.broadcastWsMessage(context.teamId, ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.taskId))
-        return transformedSubmission.answerSets().first().status()
+
     }
 
     /**

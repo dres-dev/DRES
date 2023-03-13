@@ -9,6 +9,7 @@ import kotlinx.dnq.query.addAll
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.first
 import kotlinx.dnq.query.firstOrNull
+import java.util.*
 
 /**
  * The RESTful API equivalent for the type of [ApiAnswerSet].
@@ -18,7 +19,7 @@ import kotlinx.dnq.query.firstOrNull
  * @version 1.0.0
  */
 data class ApiAnswerSet(
-    override val id: AnswerSetId,
+    override val id: AnswerSetId = UUID.randomUUID().toString(),
     var status: ApiVerdictStatus,
     override val taskId: TaskId,
     val answers: List<ApiAnswer>
@@ -44,8 +45,9 @@ data class ApiAnswerSet(
      *
      * @return [DbAnswerSet]
      */
-    fun toNewDb(): DbAnswerSet { //id is ignored here, since the db element id newly generated
+    fun toNewDb(): DbAnswerSet {
         return DbAnswerSet.new {
+            this.id = this@ApiAnswerSet.id
             this.status = this@ApiAnswerSet.status.toDb()
             this.task = DbTask.filter { it.id eq this@ApiAnswerSet.taskId }.first()
             this.answers.addAll(

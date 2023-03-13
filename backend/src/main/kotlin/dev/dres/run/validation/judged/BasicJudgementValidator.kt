@@ -5,6 +5,10 @@ import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.exceptions.JudgementTimeoutException
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.run.validation.interfaces.AnswerSetValidator
+import kotlinx.dnq.query.eq
+import kotlinx.dnq.query.filter
+import kotlinx.dnq.query.firstOrNull
+import kotlinx.dnq.query.query
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -40,13 +44,13 @@ open class BasicJudgementValidator(
     private val updateLock = ReentrantReadWriteLock()
 
     /** Internal queue that keeps track of all the [DbAnswerSet]s in need of judgement. */
-    private val queue: Queue<AnswerSet> = LinkedList()
+    private val queue: Queue<AnswerSetId> = LinkedList()
 
     /** Internal queue that keeps track of all the [DbAnswerSet]s in need of judgement. */
     private val queuedItemRanges: MutableMap<ItemRange, MutableList<AnswerSet>> = HashMap()
 
-    /** Internal map of all [DbAnswerSet]s that have been retrieved by a judge and are pending a verdict. */
-    private val waiting = HashMap<String, AnswerSet>()
+    /** Internal map of all [AnswerSetId]s that have been retrieved by a judge and are pending a verdict. */
+    private val waiting = HashMap<String, AnswerSetId>()
 
     /** Helper structure to keep track when a request needs to be re-scheduled */
     private val timeouts = mutableListOf<Pair<Long, String>>()
@@ -87,12 +91,6 @@ open class BasicJudgementValidator(
             return this.queue.isNotEmpty()
         }
 
-    /**
-     * Enqueues a [DbSubmission] with the internal judgment queue and updates its [DbVerdictStatus]
-     * to [DbVerdictStatus.INDETERMINATE].
-     *
-     * @param submission The [DbSubmission] to validate.
-     */
     override fun validate(answerSet: AnswerSet) = this.updateLock.read {
 
         //only validate submissions which are not already validated
@@ -107,7 +105,7 @@ open class BasicJudgementValidator(
             answerSet.status(cachedStatus)
         } else if (itemRange !in queuedItemRanges.keys) {
             updateLock.write {
-                this.queue.offer(answerSet)
+                this.queue.offer(answerSet.id)
                 answerSet.status(VerdictStatus.INDETERMINATE)
                 this.queuedItemRanges[itemRange] = mutableListOf(answerSet)
             }
@@ -126,18 +124,16 @@ open class BasicJudgementValidator(
      *
      * @return Optional [Pair] containing a string token and the [DbSubmission] that should be judged.
      */
-    override fun next(queue: String): Pair<String, AnswerSet>? = updateLock.write {
+    override fun next(queue: String): Pair<String, DbAnswerSet>? = updateLock.write {
         checkTimeOuts()
-        val next = this.queue.poll()
-        return if (next != null) {
-            val token = UUID.randomUUID().toString()
-            this.waiting[token] = next
-            this.timeouts.add((System.currentTimeMillis() + judgementTimeout) to token)
-            DbAuditLogger.prepareJudgement(next, this, token)
-            Pair(token, next)
-        } else {
-            null
-        }
+        val nextAnswerSetId = this.queue.poll() ?: return@write null
+        val next = DbAnswerSet.query(DbAnswerSet::id eq nextAnswerSetId).firstOrNull() ?: return@write null
+        val token = UUID.randomUUID().toString()
+        this.waiting[token] = nextAnswerSetId
+        this.timeouts.add((System.currentTimeMillis() + judgementTimeout) to token)
+        DbAuditLogger.prepareJudgement(next, this, token)
+        Pair(token, next)
+
     }
 
     /**
@@ -153,10 +149,14 @@ open class BasicJudgementValidator(
     /**
      *
      */
-    fun processSubmission(token: String, status: VerdictStatus): AnswerSet = this.updateLock.write {
-        val verdict = this.waiting[token]
+    fun processSubmission(token: String, status: VerdictStatus): DbAnswerSet = this.updateLock.write {
+
+        val nextAnswerSetId = this.waiting[token]
             ?: throw JudgementTimeoutException("This JudgementValidator does not contain a submission for the token '$token'.") //submission with token not found TODO: this should be logged
-        val itemRange = ItemRange(verdict.answers().first()) //TODO reason about semantics
+
+        val answerSet = DbAnswerSet.query(DbAnswerSet::id eq nextAnswerSetId).firstOrNull() ?: throw IllegalStateException("DbAnswerSet with id '$nextAnswerSetId' not found")
+
+        val itemRange = ItemRange(answerSet.answers().first()) //TODO reason about semantics
 
         //add to cache
         this.cache[itemRange] = status
@@ -168,7 +168,7 @@ open class BasicJudgementValidator(
         val otherSubmissions = this.queuedItemRanges.remove(itemRange)
         otherSubmissions?.forEach { it.status(status) }
 
-        return@write verdict
+        return@write answerSet
     }
 
     /**

@@ -31,7 +31,7 @@ interface JudgementValidator {
      *
      * @return Optional [Pair] containing a string token and the [DbSubmission] that should be judged.
      */
-    fun next(queue: String): Pair<String, AnswerSet>?
+    fun next(queue: String): Pair<String, DbAnswerSet>?
 
     /**
      * Places a verdict for the [Submission] identified by the given token.

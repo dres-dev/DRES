@@ -40,6 +40,7 @@ class AvsTaskScorerTest {
 
     private fun answerSets(status: ApiVerdictStatus, item: ApiMediaItem, start: Long, end: Long, taskId: String) = listOf(
         ApiAnswerSet(
+            "dummyId",
             status,
             taskId,
             listOf(

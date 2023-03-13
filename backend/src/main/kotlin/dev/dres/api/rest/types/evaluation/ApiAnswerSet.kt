@@ -18,6 +18,7 @@ import kotlinx.dnq.query.firstOrNull
  * @version 1.0.0
  */
 data class ApiAnswerSet(
+    override val id: AnswerSetId,
     var status: ApiVerdictStatus,
     override val taskId: TaskId,
     val answers: List<ApiAnswer>
@@ -43,7 +44,7 @@ data class ApiAnswerSet(
      *
      * @return [DbAnswerSet]
      */
-    fun toNewDb(): DbAnswerSet {
+    fun toNewDb(): DbAnswerSet { //id is ignored here, since the db element id newly generated
         return DbAnswerSet.new {
             this.status = this@ApiAnswerSet.status.toDb()
             this.task = DbTask.filter { it.id eq this@ApiAnswerSet.taskId }.first()

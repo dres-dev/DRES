@@ -3,7 +3,9 @@ package dev.dres.data.model.submissions
 import dev.dres.data.model.run.Task
 import dev.dres.data.model.run.TaskId
 
-interface AnswerSet { //TODO
+typealias AnswerSetId = String
+interface AnswerSet {
+    val id : AnswerSetId
     val taskId: TaskId
     val submission: Submission
 

@@ -31,6 +31,7 @@ class KisTaskScorerTest {
 
     private val wrongAnswer = listOf(
         ApiAnswerSet(
+            "wrong",
             ApiVerdictStatus.WRONG,
             "task",
             listOf(
@@ -45,6 +46,7 @@ class KisTaskScorerTest {
 
     private val correctAnswer = listOf(
         ApiAnswerSet(
+            "correct",
             ApiVerdictStatus.CORRECT,
             "task",
             listOf(

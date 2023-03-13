@@ -53,6 +53,7 @@ class LegacyAvsTaskScorerTest {
 
     private fun answerSets(status: ApiVerdictStatus, item: ApiMediaItem) = listOf(
         ApiAnswerSet(
+            "dummyId",
             status,
             "task",
             listOf(
@@ -67,6 +68,7 @@ class LegacyAvsTaskScorerTest {
 
     private fun answerSets(status: ApiVerdictStatus, item: ApiMediaItem, start: Long, end: Long) = listOf(
         ApiAnswerSet(
+            "",
             status,
             "task",
             listOf(

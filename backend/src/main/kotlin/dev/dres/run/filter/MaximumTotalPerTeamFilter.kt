@@ -18,9 +18,6 @@ class MaximumTotalPerTeamFilter(private val max: Int = Int.MAX_VALUE) : Submissi
 
     override val reason = "Maximum total number of submissions ($max) exceeded for the team"
 
-    /**
-     * TODO: This filter now takes all [Verdict]s into account. Is this desired behaviour?
-     */
     override fun test(submission: ApiSubmission): Boolean {
         return submission.answerSets().all { answerSet ->
             answerSet.task().answerSets().filter { it.submission.teamId == submission.teamId }.count() < max

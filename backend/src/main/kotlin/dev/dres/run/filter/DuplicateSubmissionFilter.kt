@@ -18,16 +18,22 @@ class DuplicateSubmissionFilter : SubmissionFilter {
 
     override val reason = "Duplicate submission received."
 
-    override fun test(submission: ApiSubmission): Boolean { //TODO semantics unclear
-//        return submission.answerSets.asSequence().all { verdict ->
-//            verdict.task.submissions.filter {set ->
-//                set.answers.filter {
-//                    (it.text eq verdict.text) and (it.item eq verdict.item) and (it.start le (verdict.start
-//                        ?: Long.MAX_VALUE)) and (it.end ge (verdict.end ?: Long.MIN_VALUE))
-//                }
-//            }.isEmpty
-//        }
+    override fun test(submission: ApiSubmission): Boolean =
 
-        return true
-    }
+        submission.answers.groupBy { it.taskId }.all {
+
+            val task = it.value.firstOrNull()?.task() ?: return@all true
+
+            val presentSubmissions = task.answerSets().filter { it.submission.teamId == submission.teamId }
+
+            presentSubmissions.forEach { presentAnswerSet ->
+                if (it.value.any { it equivalent presentAnswerSet }) { //any overlap in answerSets
+                    return@all false
+                }
+            }
+
+            true
+        }
+
+
 }

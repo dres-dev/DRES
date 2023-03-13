@@ -22,4 +22,12 @@ interface Answer {
         }
 
     fun type(): AnswerType
+
+    infix fun eq(answer: Answer) : Boolean =
+        answer.type() == this.type() &&
+                answer.item?.mediaItemId == this.item?.mediaItemId &&
+                answer.item?.collection?.id == this.item?.collection?.id &&
+                answer.start == this.start &&
+                answer.end == this.end &&
+                answer.text == this.text
 }

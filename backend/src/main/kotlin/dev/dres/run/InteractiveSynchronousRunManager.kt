@@ -462,6 +462,11 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         /* Apply transformations to submissions */
         val transformedSubmission = task.transformer.transform(submission)
 
+        /* Check if there are answers left after transformation */
+        if (transformedSubmission.answers.isEmpty()) {
+            throw IllegalStateException("Submission contains no valid answer sets")
+        }
+
         /* At this point, the submission is considered valid and is persisted */
         /* Validator is applied to each answer set */
         transformedSubmission.answerSets().forEach {

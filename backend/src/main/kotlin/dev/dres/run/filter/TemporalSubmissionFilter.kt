@@ -1,5 +1,6 @@
 package dev.dres.run.filter
 
+import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.data.model.submissions.AnswerType
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbAnswerType
@@ -16,6 +17,6 @@ import kotlinx.dnq.query.asSequence
 class TemporalSubmissionFilter : SubmissionFilter {
     override val reason = "Submission does not include temporal information."
 
-    override fun test(submission: Submission): Boolean
-        = submission.answerSets().all { set -> set.answers().all {  it.type() == AnswerType.TEMPORAL && it.start != null && it.end != null } } /* TODO: Probably needs adjustment if this is supposed work with batch submissions. */
+    override fun test(submission: ApiSubmission): Boolean
+        = submission.answerSets().all { set -> set.answers().all {  it.type() == AnswerType.TEMPORAL && it.start != null && it.end != null } }
 }

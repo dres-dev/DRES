@@ -1,5 +1,6 @@
 package dev.dres.run.filter
 
+import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.submissions.Submission
@@ -25,7 +26,7 @@ class CorrectPerTeamMemberFilter(private val limit: Int = 1) : SubmissionFilter 
     constructor(parameters: Map<String, String>) : this(parameters.getOrDefault(PARAMETER_KEY_LIMIT, "1").toIntOrNull() ?: 1)
 
     override val reason = "Maximum number of correct submissions ($limit) exceeded for the team member."
-    override fun test(submission: Submission): Boolean {
+    override fun test(submission: ApiSubmission): Boolean {
         return submission.answerSets().all { answer ->
             answer.task().answerSets().filter {
                 (it.status() == VerdictStatus.CORRECT) && it.submission.teamId == submission.teamId && it.submission.memberId == submission.memberId

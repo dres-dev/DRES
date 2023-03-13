@@ -1,5 +1,6 @@
 package dev.dres.run.filter
 
+import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.template.task.options.DbSubmissionOption
@@ -20,7 +21,7 @@ class MaximumTotalPerTeamFilter(private val max: Int = Int.MAX_VALUE) : Submissi
     /**
      * TODO: This filter now takes all [Verdict]s into account. Is this desired behaviour?
      */
-    override fun test(submission: Submission): Boolean {
+    override fun test(submission: ApiSubmission): Boolean {
         return submission.answerSets().all { answerSet ->
             answerSet.task().answerSets().filter { it.submission.teamId == submission.teamId }.count() < max
         }

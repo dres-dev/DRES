@@ -24,11 +24,7 @@ import dev.dres.data.model.run.DbEvaluationType
 import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.submissions.*
 import dev.dres.run.RunExecutor
-import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
-import dev.dres.run.eventstream.handlers.ResultLogStatisticsHandler
-import dev.dres.run.eventstream.handlers.SubmissionStatisticsHandler
-import dev.dres.run.eventstream.handlers.TeamCombinationScoreHandler
 import dev.dres.utilities.FFmpegUtil
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.XdModel
@@ -68,7 +64,7 @@ object DRES {
         RunExecutor.init(store)
 
         /* Initialize EventStreamProcessor */
-        EventStreamProcessor.register(SubmissionStatisticsHandler(), ResultLogStatisticsHandler(store), TeamCombinationScoreHandler())
+        EventStreamProcessor.register( /* Add handlers here */)
         EventStreamProcessor.init()
 
         /* Initialize Rest API. */

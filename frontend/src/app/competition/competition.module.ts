@@ -19,27 +19,29 @@ import { CompetitionStartDialogComponent } from './competition-list/competition-
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SharedModule } from '../shared/shared.module';
+import {MatChipsModule} from "@angular/material/chips";
 
 @NgModule({
-  imports: [
-    MatTableModule,
-    MatIconModule,
-    MatButtonModule,
-    MatTooltipModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    FormsModule,
-    ReactiveFormsModule,
-    CommonModule,
-    MatListModule,
-    MatProgressSpinnerModule,
-    MatMenuModule,
-    CompetitionBuilderModule,
-    MatSelectModule,
-    MatCheckboxModule,
-    SharedModule,
-  ],
+    imports: [
+        MatTableModule,
+        MatIconModule,
+        MatButtonModule,
+        MatTooltipModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        FormsModule,
+        ReactiveFormsModule,
+        CommonModule,
+        MatListModule,
+        MatProgressSpinnerModule,
+        MatMenuModule,
+        CompetitionBuilderModule,
+        MatSelectModule,
+        MatCheckboxModule,
+        SharedModule,
+        MatChipsModule,
+    ],
   exports: [CompetitionListComponent],
   declarations: [CompetitionListComponent, CompetitionCreateDialogComponent, CompetitionStartDialogComponent],
   providers: [],

@@ -240,6 +240,8 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
       this.competitionService.getApiV2TemplateByTemplateId(this.competitionId).subscribe(
         (c) => {
           this.competition = c;
+
+            this.form.disable()
           this.form.get('name').setValue(c.name);
           this.form.get('description').setValue(c.description);
           // TODO fetch other stuff

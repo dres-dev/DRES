@@ -177,8 +177,7 @@ object RunExecutor : Consumer<WsConfig> {
                 this.connectedClients.remove(connection.httpSessionId)
                 this.runManagerLock.read {
                     for (m in this.runManagers) {
-                        if (this.observingClients[m.key]?.contains(connection) == true) {
-                            this.observingClients[m.key]?.remove(connection)
+                        if (this.observingClients[m.key]?.remove(connection) == true) {
                             m.value.wsMessageReceived(session, ClientMessage(m.key, ClientMessageType.UNREGISTER)) /* Send implicit unregister message associated with a disconnect. */
                         }
                     }

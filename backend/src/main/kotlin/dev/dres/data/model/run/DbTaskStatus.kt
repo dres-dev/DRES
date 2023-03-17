@@ -31,5 +31,12 @@ class DbTaskStatus(entity: Entity): XdEnumEntity(entity) {
      *
      * @return [ApiTaskStatus]
      */
-    fun toApi() = ApiTaskStatus.values().find { it.toDb() == this } ?: throw IllegalStateException("Task status ${this.description} is not supported.")
+    fun toApi() = when(this) {
+        CREATED -> ApiTaskStatus.CREATED
+        PREPARING -> ApiTaskStatus.PREPARING
+        RUNNING -> ApiTaskStatus.RUNNING
+        ENDED -> ApiTaskStatus.ENDED
+        IGNORED -> ApiTaskStatus.IGNORED
+        else -> throw IllegalStateException("Task status ${this.description} is not supported.")
+    }
 }

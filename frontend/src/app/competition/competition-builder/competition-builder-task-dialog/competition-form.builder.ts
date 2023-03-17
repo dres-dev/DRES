@@ -177,7 +177,7 @@ export class CompetitionFormBuilder {
           type: c.get('type').value,
           start: c.get('start').value,
           end: c.get('end').value,
-          mediaItem: c.get('mediaItem') ? c.get('mediaItem').value.id : null,
+          mediaItem: c.get('mediaItem') ? c.get('mediaItem').value.mediaItemId : null,
           range:
             c.get('segment_start') && c.get('segment_end')
               ? ({
@@ -192,7 +192,7 @@ export class CompetitionFormBuilder {
       targets:  (this.form.get('target') as FormArray).controls.map((t) => {
           return {
             type: t.get('type').value,
-            target: t.get('mediaItem').value?.id || t.get('mediaItem').value,
+            target: t.get('mediaItem') ? t.get('mediaItem').value.mediaItemId : null,
             range:
               t.get('segment_start') && t.get('segment_start')
                 ? ({

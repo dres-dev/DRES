@@ -94,7 +94,7 @@
             <mat-grid-tile-footer>
               <p>
                 <mat-form-field
-                  *ngIf="target.get('mediaItem') && data.taskType.targetOption !== 'TEXT'"
+                  *ngIf="target.get('mediaItem') &&(data.taskType.targetOption === 'SINGLE_MEDIA_ITEM' || data.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT')"
                   [style]="isImageMediaItem(target.get('mediaItem').value) ? 'width: 95%;' : 'width: 100%;'"
                 >
                   <input
@@ -110,7 +110,7 @@
                       [value]="mediaItem"
                     >
                       <span>{{ mediaItem.name }}</span> |
-                      <small>Type: {{ mediaItem.type }}, ID: {{ mediaItem.id }}</small>
+                      <small>Type: {{ mediaItem.type }}, ID: {{ mediaItem.mediaItemId }}</small>
                     </mat-option>
                   </mat-autocomplete>
                   <button
@@ -236,7 +236,7 @@
                     [value]="mediaItem"
                   >
                     <span>{{ mediaItem.name }}</span> |
-                    <small>Type: {{ mediaItem.type }}, ID: {{ mediaItem.id }}</small>
+                    <small>Type: {{ mediaItem.type }}, ID: {{ mediaItem.mediaItemId }}</small>
                   </mat-option>
                 </mat-autocomplete>
                 <button
@@ -416,7 +416,7 @@
                     [value]="mediaItem"
                   >
                     <span>{{ mediaItem.name }}</span> |
-                    <small>Type: {{ mediaItem.type }}, ID: {{ mediaItem.id }}</small>
+                    <small>Type: {{ mediaItem.type }}, ID: {{ mediaItem.mediaItemId }}</small>
                   </mat-option>
                   <mat-error *ngIf="description.controls['mediaItem'].hasError('incorrect')">
                     Please select a valid media item, i.e., use the autocomplete to select a value.
@@ -471,7 +471,7 @@
                     [value]="mediaItem"
                   >
                     <span>{{ mediaItem.name }}</span> |
-                    <small>Type: {{ mediaItem.type }}, ID: {{ mediaItem.id }}</small>
+                    <small>Type: {{ mediaItem.type }}, ID: {{ mediaItem.mediaItemId }}</small>
                   </mat-option>
                   <mat-error *ngIf="description.controls['mediaItem'].hasError('incorrect')">
                     Please select a valid media item i.e. use the autocomplete to select a value.

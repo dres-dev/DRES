@@ -216,6 +216,9 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
           this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
         }
       );
+    } else {
+      console.log("Save failed due to validation error:")
+      console.log(this.form.errors)
     }
   }
 
@@ -240,11 +243,8 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
       this.competitionService.getApiV2TemplateByTemplateId(this.competitionId).subscribe(
         (c) => {
           this.competition = c;
-
-            this.form.disable()
           this.form.get('name').setValue(c.name);
           this.form.get('description').setValue(c.description);
-          // TODO fetch other stuff
           this.dirty = false;
         },
         (r) => {

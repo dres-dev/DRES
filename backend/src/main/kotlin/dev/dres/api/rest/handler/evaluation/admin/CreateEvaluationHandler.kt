@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.admin
 
+import dev.dres.DRES
 import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.competition.ApiEvaluationStartMessage
 import dev.dres.api.rest.types.evaluation.ApiEvaluationType
@@ -37,10 +38,7 @@ import java.nio.file.Paths
  * @author Loris Sauter
  * @version 2.0.0
  */
-class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : AbstractEvaluationAdminHandler(store), PostRestHandler<SuccessStatus> {
-
-    /** The [Path] to preview cache location. */
-    private val cacheLocation: Path = Paths.get(config.cachePath, "tasks")
+class CreateEvaluationHandler(store: TransientEntityStore) : AbstractEvaluationAdminHandler(store), PostRestHandler<SuccessStatus> {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -90,10 +88,10 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
                 }
 
                 val cacheName = item.cachedItemName(it.second.start.toMilliseconds(), it.second.end.toMilliseconds())
-                val cachePath = this.cacheLocation.resolve(cacheName)
+                val cachePath = DRES.CACHE_ROOT.resolve(cacheName)
                 if (!Files.exists(cachePath)) {
                     logger.warn("Query video file for item ${item.name} not found; rendering to $cachePath")
-                    FFmpegUtil.extractSegment(item, it.second, this.cacheLocation)
+                    FFmpegUtil.extractSegment(item, it.second, DRES.CACHE_ROOT)
                 }
             }
 

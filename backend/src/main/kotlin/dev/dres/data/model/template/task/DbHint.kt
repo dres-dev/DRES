@@ -1,5 +1,6 @@
 package dev.dres.data.model.template.task
 
+import dev.dres.DRES
 import dev.dres.api.rest.types.collection.time.ApiTemporalRange
 import dev.dres.api.rest.types.competition.tasks.ApiHint
 import dev.dres.api.rest.types.task.ApiContentElement
@@ -109,14 +110,13 @@ class DbHint(entity: Entity) : XdEntity(entity) {
     /**
      * Generates and returns a [ApiContentElement] object of this [DbHint] to be used by the RESTful interface.
      *
-     * @param config The [Config] used of path resolution.
      * @return [ApiContentElement]
      *
      * @throws FileNotFoundException
      * @throws IOException
      */
-    fun toQueryContentElement(config: Config): ApiContentElement {
-        val cacheLocation: Path = Paths.get(config.cachePath, "tasks")
+    fun toQueryContentElement(): ApiContentElement {
+        val cacheLocation: Path = DRES.CACHE_ROOT.resolve("tasks")
         val content = when (this.type) {
             DbHintType.IMAGE -> {
                 val filePath = this.item?.pathToOriginal() ?: this.path?.let { Paths.get(it) }

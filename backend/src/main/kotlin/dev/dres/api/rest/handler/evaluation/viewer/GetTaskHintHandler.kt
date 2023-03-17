@@ -30,7 +30,7 @@ import java.io.IOException
  * @author Loris Sauter
  * @version 2.0.0
  */
-class GetTaskHintHandler(store: TransientEntityStore, private val config: Config) : AbstractEvaluationViewerHandler(store), GetRestHandler<ApiHintContent> {
+class GetTaskHintHandler(store: TransientEntityStore) : AbstractEvaluationViewerHandler(store), GetRestHandler<ApiHintContent> {
 
     override val route = "evaluation/{evaluationId}/hint/{taskId}"
 
@@ -69,7 +69,7 @@ class GetTaskHintHandler(store: TransientEntityStore, private val config: Config
 
             try {
                 ctx.header("Cache-Control", "public, max-age=300") //can be cached for 5 minutes
-                task.toTaskHint(this.config)
+                task.toTaskHint()
             } catch (e: FileNotFoundException) {
                 throw ErrorStatusException(404, "Query object cache file not found!", ctx)
             } catch (ioe: IOException) {

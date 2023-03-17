@@ -112,17 +112,16 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), TaskTemplate {
      *
      * Requires a valid transaction.
      *
-     * @param config The [Config] used of path resolution.
      * @return [ApiHintContent]
      *
      * @throws FileNotFoundException
      * @throws IOException
      */
-    fun toTaskHint(config: Config): ApiHintContent {
+    fun toTaskHint(): ApiHintContent {
         val sequence = this.hints.asSequence().groupBy { it.type }.flatMap { group ->
             var index = 0
             group.value.sortedBy { it.start ?: 0 }.flatMap {
-                val ret = mutableListOf(it.toQueryContentElement(config))
+                val ret = mutableListOf(it.toQueryContentElement())
                 if (it.end != null) {
                     if (index == (group.value.size - 1)) {
                         ret.add(ApiContentElement(contentType = ret.first().contentType, offset = it.end!!))
@@ -142,18 +141,17 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), TaskTemplate {
      *
      * Requires a valid transaction.
      *
-     * @param config The [Config] used of path resolution.
      * @return [ApiTargetContent]
      *
      * @throws FileNotFoundException
      * @throws IOException
      */
-    fun toTaskTarget(config: Config): ApiTargetContent {
+    fun toTaskTarget(): ApiTargetContent {
         var cummulativeOffset = 0L
         val sequence = this.targets.asSequence().flatMap {
             cummulativeOffset += Math.floorDiv(it.item?.durationMs ?: 10000L, 1000L) + 1L
             listOf(
-                it.toQueryContentElement(config),
+                it.toQueryContentElement(),
                 ApiContentElement(ApiContentType.EMPTY, null, cummulativeOffset)
             )
         }.toList()

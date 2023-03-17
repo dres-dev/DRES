@@ -20,7 +20,7 @@ import java.io.IOException
 /**
  *
  */
-class GetTaskTargetHandler(store: TransientEntityStore, private val config: Config) : AbstractEvaluationViewerHandler(store), GetRestHandler<ApiTargetContent> {
+class GetTaskTargetHandler(store: TransientEntityStore) : AbstractEvaluationViewerHandler(store), GetRestHandler<ApiTargetContent> {
 
     override val route = "evaluation/{evaluationId}/target/{taskId}"
 
@@ -61,7 +61,7 @@ class GetTaskTargetHandler(store: TransientEntityStore, private val config: Conf
 
             try {
                 ctx.header("Cache-Control", "public, max-age=300") //can be cached for 5 minutes
-                task.template.toTaskTarget(config)
+                task.template.toTaskTarget()
             } catch (e: FileNotFoundException) {
                 throw ErrorStatusException(404, "Query object cache file not found!", ctx)
             } catch (ioe: IOException) {

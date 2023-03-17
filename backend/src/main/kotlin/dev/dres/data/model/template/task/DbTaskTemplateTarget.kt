@@ -83,13 +83,12 @@ class DbTaskTemplateTarget(entity: Entity) : XdEntity(entity) {
     /**
      * Generates and returns a [ApiContentElement] object of this [DbHint] to be used by the RESTful interface.
      *
-     * @param config The [Config] used of path resolution.
      * @return [ApiContentElement]
      *
      * @throws FileNotFoundException
      * @throws IOException
      */
-    fun toQueryContentElement(config: Config): ApiContentElement {
+    fun toQueryContentElement(): ApiContentElement {
         val (content, type) = when (this.type) {
             DbTargetType.JUDGEMENT,
             DbTargetType.JUDGEMENT_WITH_VOTE -> null to ApiContentType.EMPTY

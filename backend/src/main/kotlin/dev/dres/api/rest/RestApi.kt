@@ -107,7 +107,7 @@ object RestApi {
             ShowMediaItemHandler(store),
             ResolveMediaItemListByNameHandler(store), // Must be before ListMediaItem
             ListMediaItemHandler(store),
-            ListExternalItemHandler(config),
+            ListExternalItemHandler(),
 
             // Competition
             ListEvaluationTemplatesHandler(store),
@@ -120,7 +120,7 @@ object RestApi {
             GetTeamLogoHandler(store),
 
             // Submission
-            LegacySubmissionHandler(store, config),
+            LegacySubmissionHandler(store),
 
             // Log
             QueryLogHandler(),
@@ -131,8 +131,8 @@ object RestApi {
             ListEvaluationStatesHandler(store),
             GetEvaluationInfoHandler(store),
             GetEvaluationStateHandler(store),
-            GetTaskHintHandler(store, config),
-            GetTaskTargetHandler(store, config),
+            GetTaskHintHandler(store),
+            GetTaskTargetHandler(store),
             GetCurrentTaskHandler(store),
             GetSubmissionInfoHandler(store),
             GetSubmissionAfterInfoHandler(store),
@@ -147,7 +147,7 @@ object RestApi {
             TeamGroupScoreHandler(store),
 
             // Evaluation administration
-            CreateEvaluationHandler(store, config),
+            CreateEvaluationHandler(store),
             StartEvaluationHandler(store),
             StopEvaluationHandler(store),
             NextTaskHandler(store),

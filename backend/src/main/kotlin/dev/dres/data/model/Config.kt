@@ -3,27 +3,29 @@ package dev.dres.data.model
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Config(
-        val httpPort: Int = 8080,
-        val httpsPort: Int = 8443,
-        val enableSsl: Boolean = true,
-        val keystorePath: String = "keystore.jks",
-        val keystorePassword: String = "password",
-        val externalPath: String = "./external",
-        val dataPath: String = "./data",
-        val cachePath: String = "./cache",
-        val logoMaxSize: Int = 1000) {
+    val httpPort: Int = 8080,
+    val httpsPort: Int = 8443,
+    val enableSsl: Boolean = true,
+    val keystorePath: String = "keystore.jks",
+    val keystorePassword: String = "password",
+    val logoMaxSize: Int = 1000
+) {
 
     companion object{
-        fun read(file: File): Config? {
-            val mapper = ObjectMapper()
-            return try {
-                mapper.readValue(file, Config::class.java)
-            } catch (e: Exception) {
-                null
-            }
+
+        /**
+         * Reads a configuration file from the specified [Path]
+         *
+         * @param path The [Path]
+         */
+        fun read(file: Path): Config = Files.newInputStream(file, StandardOpenOption.READ).use {
+            ObjectMapper().readValue(it, Config::class.java)
         }
     }
 }

@@ -10,8 +10,10 @@ import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.options.validate
 import com.github.ajalt.clikt.parameters.types.path
 import com.jakewharton.picnic.table
+import dev.dres.DRES
 import dev.dres.data.model.Config
 import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.mgmt.admin.CacheManager
 import dev.dres.utilities.FFmpegUtil
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
@@ -50,9 +52,6 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, config:
             "add" to listOf("create")
         )
     }
-
-    /** The cache location [Paths]. */
-    private val cacheLocation = Paths.get(config.cachePath, "tasks")
 
     abstract inner class AbstractEvaluationCommand(name: String, help: String, printHelpOnEmptyArgs: Boolean = true) : CliktCommand(name = name, help = help, printHelpOnEmptyArgs = printHelpOnEmptyArgs) {
         protected val id: String? by option("-i", "--id")
@@ -199,7 +198,7 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, config:
                 }
 
                 println("Rendering ${item.first.name}$ at ${item.second}")
-                FFmpegUtil.extractSegment(item.first, item.second, this@EvaluationTemplateCommand.cacheLocation)
+                FFmpegUtil.extractSegment(item.first, item.second, DRES.CACHE_ROOT)
             }
         }
     }

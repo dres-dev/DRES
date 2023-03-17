@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.collection
 
+import dev.dres.DRES
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.model.Config
@@ -18,19 +19,9 @@ import kotlin.streams.toList
 /**
  * Lists and returns the media items in the external media item directory.
  */
-class ListExternalItemHandler(config: Config) : GetRestHandler<Array<String>> {
+class ListExternalItemHandler: GetRestHandler<Array<String>> {
 
     override val apiVersion = "v2"
-
-    /** Path to the directory that contains the external items. */
-    val path = Paths.get(config.externalPath)
-
-    init {
-        /* Check if directory exists and create it, if it doesn't. */
-        if (!Files.exists(this.path)) {
-            Files.createDirectories(this.path)
-        }
-    }
 
     @OpenApi(
         summary = "Lists items from the external media collection whose name start with the given string.",
@@ -50,7 +41,7 @@ class ListExternalItemHandler(config: Config) : GetRestHandler<Array<String>> {
     )
     override fun doGet(ctx: Context): Array<String> {
         val startsWith = ctx.pathParamMap()["startsWith"] ?: ""
-        val list = Files.walk(this.path, 1, FileVisitOption.FOLLOW_LINKS).filter {
+        val list = Files.walk(DRES.EXTERNAL_ROOT, 1, FileVisitOption.FOLLOW_LINKS).filter {
             Files.isRegularFile(it) && it.fileName.toString().startsWith(startsWith)
         }.limit(50).map { it.toString() }.toList()
         return list.toTypedArray()

@@ -29,14 +29,35 @@ import kotlinx.dnq.XdModel
 import kotlinx.dnq.store.container.StaticStoreContainer
 import kotlinx.dnq.util.initMetaData
 import java.io.File
+import java.nio.file.Path
+import java.nio.file.Paths
 
 
+/**
+ * Main class of DRES with application entry point.
+ *
+ * @author Ralph Gasser
+ * @author Luca Rossetto
+ * @author Loris Sauter
+ * @version 2.0.0
+ */
 object DRES {
-
+    /** Version of DRES. */
     const val VERSION = "2.0.0"
 
     /** Application root; should pe relative to JAR file or classes path. */
-    val rootPath = File(FFmpegUtil::class.java.protectionDomain.codeSource.location.toURI()).toPath()
+    val APPLICATION_ROOT: Path = File(FFmpegUtil::class.java.protectionDomain.codeSource.location.toURI()).toPath()
+
+    /** The path to the data folder. Can be different from the application root if provided via command line argument */
+    var DATA_ROOT: Path = APPLICATION_ROOT
+
+    /** [Path] to the data cache folder. */
+    val CACHE_ROOT: Path
+        get() = DATA_ROOT.resolve("cache")
+
+    /** Path to the directory that contains the external items. */
+    val EXTERNAL_ROOT: Path
+        get() = DATA_ROOT.resolve("external")
 
     init {
         //redirect log of JLine3 from jdk logger to log4j
@@ -46,12 +67,15 @@ object DRES {
     @JvmStatic
     fun main(args: Array<String>) {
         val config = if (args.isNotEmpty()) {
-            Config.read(File(args[0]))
+            val configPath = Paths.get(args[0])
+            val config = Config.read(configPath)
+            DATA_ROOT = configPath.parent
+            config
         } else {
-            null
-        } ?: Config()
+            Config()
+        }
 
-        println("Starting DRES at $rootPath")
+        println("Starting DRES (application: $APPLICATION_ROOT, data: $DATA_ROOT)")
         println("Found FFmpeg at ${FFmpegUtil.ffmpegBin}")
         println("Initializing...")
 
@@ -127,9 +151,8 @@ object DRES {
             DbAnswerType,
             DbVerdictStatus,
         )
-        val store = StaticStoreContainer.init(dbFolder = File(config.dataPath), entityStoreName = "dres-db")
+        val store = StaticStoreContainer.init(dbFolder = DATA_ROOT.resolve("data").toFile(), entityStoreName = "dres-db")
         initMetaData(XdModel.hierarchy, store)
-
         return store
     }
 }

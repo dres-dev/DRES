@@ -20,11 +20,11 @@ object FFmpegUtil {
 
     /** Path to FFMPEG binary; TODO: Make configurable. */
     val ffmpegBin = when {
-        Files.isDirectory(DRES.rootPath.parent.parent.parent.resolve("ext/ffmpeg")) -> DRES.rootPath.parent.parent.parent.resolve(
+        Files.isDirectory(DRES.APPLICATION_ROOT.parent.parent.parent.resolve("ext/ffmpeg")) -> DRES.APPLICATION_ROOT.parent.parent.parent.resolve(
             "ext/ffmpeg"
         )
 
-        Files.isDirectory(DRES.rootPath.parent.resolve("ffmpeg")) -> DRES.rootPath.parent.resolve("ffmpeg") /* Distribution */
+        Files.isDirectory(DRES.APPLICATION_ROOT.parent.resolve("ffmpeg")) -> DRES.APPLICATION_ROOT.parent.resolve("ffmpeg") /* Distribution */
         Files.isDirectory(Paths.get("ext/ffmpeg")) -> Paths.get("ext/ffmpeg")
         Files.isDirectory(Paths.get("ffmpeg")) -> Paths.get("ffmpeg")
         else -> throw IllegalStateException("Could not find valid FFmpeg binary path.")

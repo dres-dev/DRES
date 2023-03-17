@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.preview
 
+import dev.dres.DRES
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
@@ -36,7 +37,7 @@ abstract class AbstractPreviewHandler(protected val store: TransientEntityStore,
     override val apiVersion = "v2"
 
     /** The [Path] to the pre-calculated previews.*/
-    private val cacheLocation = Paths.get(config.cachePath + "/previews")
+    private val cacheLocation = DRES.CACHE_ROOT.resolve("previews")
 
     init {
         Files.createDirectories(this.cacheLocation)

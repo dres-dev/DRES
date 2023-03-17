@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.submission
 
+import dev.dres.DRES
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
@@ -44,8 +45,7 @@ import java.util.*
  * @author Loris Sauter
  * @version 2.0.0
  */
-class LegacySubmissionHandler(private val store: TransientEntityStore, private val config: Config) :
-    GetRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
+class LegacySubmissionHandler(private val store: TransientEntityStore): GetRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
 
     /** [LegacySubmissionHandler] requires [ApiRole.PARTICIPANT]. */
     override val permittedRoles = setOf(ApiRole.PARTICIPANT)
@@ -371,13 +371,10 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
         if (answerSet.answers().firstOrNull()?.type() != AnswerType.TEMPORAL) return
         if (answerSet.answers().firstOrNull()?.item == null) return
         val item = DbMediaItem.query((DbMediaItem::id eq answerSet.answers().firstOrNull()?.item!!.mediaItemId)).firstOrNull() ?: return
-        val destinationPath = Paths.get(
-            this.config.cachePath,
-            "previews",
-            item.collection.name,
-            item.name,
-            "${answerSet.answers().firstOrNull()?.start}.jpg"
-        )
+        val destinationPath = DRES.CACHE_ROOT.resolve("previews")
+            .resolve(item.collection.name)
+            .resolve(item.name)
+            .resolve("${answerSet.answers().firstOrNull()?.start}.jpg")
         if (Files.exists(destinationPath)) {
             return
         }

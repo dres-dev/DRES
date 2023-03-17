@@ -535,11 +535,13 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             try {
                 /* Obtain lock on current state. */
                 this.stateLock.read {
-                    /* 1) Invoke all relevant [Updatable]s. */
-                    this.invokeUpdatables()
+                    this.store.transactional {
+                        /* 1) Invoke all relevant [Updatable]s. */
+                        this.invokeUpdatables()
 
-                    /* 2) Process internal state updates (if necessary). */
-                    this.internalStateUpdate()
+                        /* 2) Process internal state updates (if necessary). */
+                        this.internalStateUpdate()
+                    }
                 }
 
                 /* 3) Yield to other threads. */
@@ -591,10 +593,8 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         if (this.evaluation.currentTask?.status == DbTaskStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
             /* TODO (Potential race condition): It can occur, that this part of the code is entered without the corresponding task being committed (status change in memory manifest faster than persistent information). */
             this.stateLock.write {
-                this.store.transactional {
-                    this.evaluation.currentTask!!.start()
-                    DbAuditLogger.taskStart(this.id, this.evaluation.currentTask!!.taskId, this.evaluation.getCurrentTemplate(), DbAuditLogSource.INTERNAL, null)
-                }
+                this.evaluation.currentTask!!.start()
+                DbAuditLogger.taskStart(this.id, this.evaluation.currentTask!!.taskId, this.evaluation.getCurrentTemplate(), DbAuditLogSource.INTERNAL, null)
             }
 
             /* Enqueue WS message for sending */
@@ -607,11 +607,9 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 val task = this.evaluation.currentTask!!
                 val timeLeft = max(0L, task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
                 if (timeLeft <= 0) {
-                    this.store.transactional {
-                        task.end()
-                        DbAuditLogger.taskEnd(this.id, this.evaluation.currentTask!!.taskId, DbAuditLogSource.INTERNAL, null)
-                        EventStreamProcessor.event(TaskEndEvent(this.id, task.taskId))
-                    }
+                    task.end()
+                    DbAuditLogger.taskEnd(this.id, this.evaluation.currentTask!!.taskId, DbAuditLogSource.INTERNAL, null)
+                    EventStreamProcessor.event(TaskEndEvent(this.id, task.taskId))
 
                     /* Enqueue WS message for sending */
                     RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_END, this.evaluation.currentTask?.taskId))

@@ -129,11 +129,12 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
         /**
          * Constructor used to generate an [ISTaskRun] from a [DbTaskTemplate].
          *
-         * @param template [DbTaskTemplate] to generate [ISTaskRun] from.
+         * @param t [DbTaskTemplate] to generate [ISTaskRun] from.
          */
-        constructor(template: DbTaskTemplate) : this(DbTask.new {
-            this.evaluation = this@InteractiveSynchronousEvaluation.evaluation
-            this.template = template
+        constructor(t: DbTaskTemplate) : this(DbTask.new {
+            status = DbTaskStatus.CREATED
+            evaluation = this@InteractiveSynchronousEvaluation.evaluation
+            template = t
         })
 
         /** The [InteractiveSynchronousEvaluation] this [DbTask] belongs to.*/

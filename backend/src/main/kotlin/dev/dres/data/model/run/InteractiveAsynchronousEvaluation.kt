@@ -189,13 +189,14 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
         /**
          * Constructor used to generate an [IATaskRun] from a [DbTaskTemplate].
          *
-         * @param template [DbTaskTemplate] to generate [IATaskRun] from.
+         * @param t [DbTaskTemplate] to generate [IATaskRun] from.
          * @param teamId The [TeamId] this [IATaskRun] is created for.
          */
-        internal constructor(template: DbTaskTemplate, teamId: TeamId) : this(DbTask.new {
-            this.evaluation = this@InteractiveAsynchronousEvaluation.evaluation
-            this.template = template
-            this.team = this@InteractiveAsynchronousEvaluation.evaluation.template.teams.filter { it.teamId eq teamId }.singleOrNull()
+        constructor(t: DbTaskTemplate, teamId: TeamId) : this(DbTask.new {
+            status = DbTaskStatus.CREATED
+            evaluation = this@InteractiveAsynchronousEvaluation.evaluation
+            template = t
+            team = this@InteractiveAsynchronousEvaluation.evaluation.template.teams.filter { it.teamId eq teamId }.singleOrNull()
                 ?: throw IllegalArgumentException("Cannot start a new task run for team with ID ${teamId}. Team is not registered for competition.")
         })
 

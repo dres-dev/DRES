@@ -490,6 +490,88 @@
         "security" : [ ]
       }
     },
+    "/api/v2/evaluation/admin/{evaluationId}/override/{answerSetId}" : {
+      "patch" : {
+        "tags" : [ "Evaluation Administrator" ],
+        "summary" : "Override the verdict status of an AnswerSet.",
+        "operationId" : "patchApiV2EvaluationAdminByEvaluationIdOverrideByAnswerSetId",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "answerSetId",
+          "in" : "path",
+          "description" : "The ID of the AnswerSet.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ApiVerdictStatus"
+              }
+            }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
     "/api/v2/evaluation/admin/{evaluationId}/overview" : {
       "get" : {
         "tags" : [ "Evaluation Administrator" ],
@@ -712,78 +794,6 @@
                   "items" : {
                     "$ref" : "#/components/schemas/ApiSubmissionInfo"
                   }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/evaluation/admin/{evaluationId}/submission/override" : {
-      "patch" : {
-        "tags" : [ "Evaluation Administrator" ],
-        "summary" : "Override the submission status for a given submission.",
-        "operationId" : "patchApiV2EvaluationAdminByEvaluationIdSubmissionOverride",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/ApiSubmission"
-              }
-            }
-          },
-          "required" : false
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiSubmission"
                 }
               }
             }
@@ -3834,9 +3844,6 @@
             "items" : {
               "type" : "string"
             }
-          },
-          "canBeEdited" : {
-            "type" : "boolean"
           }
         },
         "required" : [ "id", "name", "taskTypes", "taskGroups", "tasks", "teams", "teamGroups", "judges" ]
@@ -4129,6 +4136,9 @@
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
+          "id" : {
+            "type" : "string"
+          },
           "status" : {
             "$ref" : "#/components/schemas/ApiVerdictStatus"
           },
@@ -4145,7 +4155,7 @@
             "$ref" : "#/components/schemas/ApiSubmission"
           }
         },
-        "required" : [ "status", "taskId", "answers", "submission" ]
+        "required" : [ "id", "status", "taskId", "answers", "submission" ]
       },
       "ApiAnswerType" : {
         "type" : "string",
@@ -4301,7 +4311,7 @@
             "type" : "string"
           },
           "status" : {
-            "$ref" : "#/components/schemas/TaskStatus"
+            "$ref" : "#/components/schemas/ApiTaskStatus"
           },
           "started" : {
             "type" : "integer",
@@ -4316,7 +4326,7 @@
       },
       "ApiTaskStatus" : {
         "type" : "string",
-        "enum" : [ "NO_TASK", "CREATED", "PREPARING", "RUNNING", "ENDED" ]
+        "enum" : [ "NO_TASK", "CREATED", "PREPARING", "RUNNING", "ENDED", "IGNORED" ]
       },
       "ApiTaskTemplateInfo" : {
         "type" : "object",
@@ -4872,10 +4882,6 @@
       "RunManagerStatus" : {
         "type" : "string",
         "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
-      },
-      "TaskStatus" : {
-        "type" : "string",
-        "enum" : [ "CREATED", "PREPARING", "RUNNING", "ENDED" ]
       }
     },
     "securitySchemes" : { }

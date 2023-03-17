@@ -11,15 +11,12 @@ import com.github.ajalt.clikt.parameters.options.validate
 import com.github.ajalt.clikt.parameters.types.path
 import com.jakewharton.picnic.table
 import dev.dres.DRES
-import dev.dres.data.model.Config
 import dev.dres.data.model.template.DbEvaluationTemplate
-import dev.dres.mgmt.admin.CacheManager
-import dev.dres.utilities.FFmpegUtil
+import dev.dres.mgmt.cache.CacheManager
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
 /**
@@ -29,7 +26,7 @@ import java.nio.file.StandardOpenOption
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class EvaluationTemplateCommand(private val store: TransientEntityStore, config: Config) : NoOpCliktCommand(name = "template") {
+class EvaluationTemplateCommand(private val store: TransientEntityStore, private val cache: CacheManager) : NoOpCliktCommand(name = "template") {
 
     init {
         this.subcommands(
@@ -176,7 +173,7 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, config:
     /**
      * [CliktCommand] to prepare a specific [DbEvaluationTemplate].
      */
-    inner class Prepare : AbstractEvaluationCommand(name = "prepare", help = "Checks the used Media Items and generates precomputed Queries") {
+    inner class Prepare : AbstractEvaluationCommand(name = "prepare", help = "Checks the used media items and generates precomputed previews.") {
 
         override fun run() = this@EvaluationTemplateCommand.store.transactional(true) {
             val competition = DbEvaluationTemplate.query(
@@ -191,14 +188,15 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, config:
             /* Fetch all videos in the competition. */
             val videos = competition.getAllVideos()
             videos.forEach { item ->
+
                 val path = item.first.pathToOriginal()
                 if (!Files.exists(path)) {
-                    println("ERROR: Media file $path not found for item ${item.first.name}")
+                    println("ERROR: Media file $path not found for item ${item.first.name}.")
                     return@forEach
                 }
 
                 println("Rendering ${item.first.name}$ at ${item.second}")
-                FFmpegUtil.extractSegment(item.first, item.second, DRES.CACHE_ROOT)
+                this@EvaluationTemplateCommand.cache.asyncPreviewVideo(item.first, item.second.start.toMilliseconds(), item.second.end.toMilliseconds())
             }
         }
     }

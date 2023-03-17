@@ -248,10 +248,8 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
   /**
    * Generates a URL for the preview image of a submission.
    */
-  public previewOfItem(item: ApiMediaItem, start: number, end: number): string {
-      return''
-      /* TODO: I believe this endpoint needs to be redesigned. */
-     /* return this.runId.pipe(map((evaluationId) => this.config.resolveApiUrl(`/preview/submission/${evaluationId}/${submission.submissionId}`))); */
+  public previewOfItem(item: ApiMediaItem, start: number): string {
+      return this.config.resolveApiUrl(`/preview/${item.mediaItemId}/${start == null ? 0 : start}`)
   }
 
   /**

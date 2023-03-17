@@ -23,7 +23,7 @@ import dev.dres.api.rest.handler.log.ResultLogHandler
 import dev.dres.api.rest.handler.template.*
 import dev.dres.api.rest.handler.preview.GetMediaHandler
 import dev.dres.api.rest.handler.preview.MediaPreviewHandler
-import dev.dres.api.rest.handler.preview.SubmissionPreviewHandler
+import dev.dres.api.rest.handler.preview.PreviewImageHandler
 import dev.dres.api.rest.handler.scores.ListEvaluationScoreHandler
 import dev.dres.api.rest.handler.submission.LegacySubmissionHandler
 import dev.dres.api.rest.handler.system.CurrentTimeHandler
@@ -34,6 +34,7 @@ import dev.dres.api.rest.handler.users.*
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.Config
+import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.RunExecutor
 import dev.dres.utilities.NamedThreadFactory
 import io.javalin.Javalin
@@ -63,7 +64,14 @@ object RestApi {
     private val logMarker = MarkerFactory.getMarker("REST")
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
-    fun init(config: Config, store: TransientEntityStore) {
+    /**
+     * Initializes the [RestApi] singleton.
+     *
+     * @param config The [Config] with which DRES was started.
+     * @param store The [TransientEntityStore] instance used to access persistent data.
+     * @param cache The [CacheManager] instance used to access the media cache.
+     */
+    fun init(config: Config, store: TransientEntityStore, cache: CacheManager) {
 
         val runExecutor = RunExecutor
 
@@ -90,8 +98,8 @@ object RestApi {
             UserDetailsHandler(store),
 
             // Media
-            MediaPreviewHandler(store, config),
-            SubmissionPreviewHandler(store, config),
+            MediaPreviewHandler(store, cache),
+            PreviewImageHandler(store, cache),
             GetMediaHandler(store),
 
             // Collection
@@ -120,7 +128,7 @@ object RestApi {
             GetTeamLogoHandler(store),
 
             // Submission
-            LegacySubmissionHandler(store),
+            LegacySubmissionHandler(store, cache),
 
             // Log
             QueryLogHandler(),
@@ -147,7 +155,7 @@ object RestApi {
             TeamGroupScoreHandler(store),
 
             // Evaluation administration
-            CreateEvaluationHandler(store),
+            CreateEvaluationHandler(store, cache),
             StartEvaluationHandler(store),
             StopEvaluationHandler(store),
             NextTaskHandler(store),

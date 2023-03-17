@@ -8,6 +8,7 @@ import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.output.CliktHelpFormatter
 import com.github.ajalt.clikt.output.HelpFormatter
 import dev.dres.data.model.Config
+import dev.dres.mgmt.cache.CacheManager
 import jetbrains.exodus.database.TransientEntityStore
 import org.jline.builtins.Completers
 import org.jline.builtins.Completers.TreeCompleter.node
@@ -35,15 +36,16 @@ object Cli {
     /**
      * Blocking call that executes the CLI subsystem.
      *
+     * @param config The [Config] with which DRES was started.
      * @param store The [TransientEntityStore] instance used to access persistent data.
-     * @param config The [Config] instance with which DRES was started.
+     * @param cache The [CacheManager] instance used to access the media cache.
      */
-    fun loop(store: TransientEntityStore, config: Config) {
+    fun loop(config: Config, store: TransientEntityStore, cache: CacheManager) {
 
         clikt = DRESBaseCommand().subcommands(
-            EvaluationTemplateCommand(store, config),
+            EvaluationTemplateCommand(store, cache),
             UserCommand(store),
-            MediaCollectionCommand(store),
+            MediaCollectionCommand(store, config),
             EvaluationCommand(store),
             OpenApiCommand(),
             ExecutionCommand(),

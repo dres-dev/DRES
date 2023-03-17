@@ -14,7 +14,8 @@ data class Config(
     val enableSsl: Boolean = true,
     val keystorePath: String = "keystore.jks",
     val keystorePassword: String = "password",
-    val logoMaxSize: Int = 1000
+    val logoMaxSize: Int = 1000,
+    val ffmpegBinary: Path? = null
 ) {
 
     companion object{

@@ -10,10 +10,15 @@ import com.github.ajalt.clikt.parameters.types.float
 import com.github.ajalt.clikt.parameters.types.long
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
+import com.github.kokorin.jaffree.StreamType
+import com.github.kokorin.jaffree.ffprobe.FFprobe
+import com.github.kokorin.jaffree.ffprobe.FFprobeResult
 import com.jakewharton.picnic.table
+import dev.dres.DRES
 import dev.dres.api.rest.types.collection.ApiMediaType
+import dev.dres.data.model.Config
 import dev.dres.data.model.media.*
-import dev.dres.utilities.FFmpegUtil
+import dev.dres.mgmt.cache.CacheManager
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 import org.slf4j.LoggerFactory
@@ -35,7 +40,7 @@ import kotlin.io.path.relativeTo
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpCliktCommand(name = "collection") {
+class MediaCollectionCommand(private val store: TransientEntityStore, private val config: Config) : NoOpCliktCommand(name = "collection") {
     private val logMarker = MarkerFactory.getMarker("CLI")
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -342,6 +347,25 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
             help = "Video file types (endings) to be considered in the scan"
         ).convert { it.lowercase() }.multiple()
 
+        /** The path to the FFmpeg binary used by this [Scan] instance. */
+        private val ffmpegBin = when {
+            this@MediaCollectionCommand.config.ffmpegBinary != null && Files.isDirectory(this@MediaCollectionCommand.config.ffmpegBinary) -> this@MediaCollectionCommand.config.ffmpegBinary /* Explicitly configured. */
+            Files.isDirectory(DRES.APPLICATION_ROOT.parent.resolve("ffmpeg")) -> DRES.APPLICATION_ROOT.parent.resolve("ffmpeg") /* Distribution */
+            Files.isDirectory(DRES.APPLICATION_ROOT.parent.parent.parent.resolve("ext/ffmpeg")) -> DRES.APPLICATION_ROOT.parent.parent.parent.resolve("ext/ffmpeg") /* Debug mode. */
+            Files.isDirectory(Paths.get("ext/ffmpeg")) -> Paths.get("ext/ffmpeg")
+            Files.isDirectory(Paths.get("ffmpeg")) -> Paths.get("ffmpeg")
+            else -> throw IllegalStateException("Could not find valid FFmpeg binary path.")
+        }
+
+        private fun analyze(videoPath: Path, countFrames: Boolean = false): FFprobeResult =
+            FFprobe.atPath(this.ffmpegBin)
+                .setInput(videoPath)
+                .setShowStreams(true)
+                .setCountFrames(countFrames)
+                .setSelectStreams(StreamType.VIDEO)
+                .execute()
+
+
         override fun run() = this@MediaCollectionCommand.store.transactional {
             /* Sanity cehck. */
             if (imageTypes.isEmpty() && videoTypes.isEmpty()) {
@@ -395,14 +419,14 @@ class MediaCollectionCommand(private val store: TransientEntityStore) : NoOpClik
 
                             in videoTypes -> {
                                 println("Found video $it; analyzing...")
-                                val result = FFmpegUtil.analyze(it).streams.first()
+                                val result = this.analyze(it).streams.first()
                                 val fps = (result.rFrameRate ?: result.avgFrameRate!!).toFloat()
                                 val duration = result.getDuration(TimeUnit.MILLISECONDS).let { duration ->
                                     if (duration != null) {
                                         duration
                                     } else {
                                         println("Cannot read duration from file, counting frames")
-                                        val analysis = FFmpegUtil.analyze(it, countFrames = true)
+                                        val analysis = this.analyze(it, countFrames = true)
                                         val frames = analysis.streams.first().nbReadFrames
                                         println("Counted $frames frames")
                                         ((frames * 1000) / fps).toLong()

@@ -28,8 +28,8 @@
           <div class="submissions">
             <div *ngFor="let answer of submissionPreviews(team.id) | async; trackBy: previewById" [className]="'submission ' + answer.status">
               <div [ngSwitch]="answer.type">
-                <img *ngSwitchCase="'ITEM'" src="{{previewOfItem(answer.previewItem, answer.previewStart, answer.previewEnd)}}" alt="Preview for submission {{answer.submissionId}}." />
-                <img *ngSwitchCase="'TEMPORAL'" src="{{previewOfItem(answer.previewItem, answer.previewStart, answer.previewEnd)}}" alt="Preview for submission {{answer.submissionId}}." />
+                <img *ngSwitchCase="'ITEM'" src="{{previewOfItem(answer.previewItem, answer.previewStart)}}" alt="Preview for submission {{answer.submissionId}}." />
+                <img *ngSwitchCase="'TEMPORAL'" src="{{previewOfItem(answer.previewItem, answer.previewStart)}}" alt="Preview for submission {{answer.submissionId}}." />
                 <p *ngSwitchCase="'TEXT'">{{ answer.previewText }}</p>
               </div>
             </div>

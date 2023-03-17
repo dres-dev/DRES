@@ -9,7 +9,6 @@ import dev.dres.api.rest.types.evaluation.*
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessfulSubmissionsStatus
-import dev.dres.data.model.Config
 import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.audit.DbAuditLogSource
@@ -19,12 +18,12 @@ import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.submissions.*
+import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionRejectedException
-import dev.dres.utilities.FFmpegUtil
 import dev.dres.utilities.TimeUtil
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
@@ -33,7 +32,6 @@ import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.*
 
 /**
@@ -45,7 +43,7 @@ import java.util.*
  * @author Loris Sauter
  * @version 2.0.0
  */
-class LegacySubmissionHandler(private val store: TransientEntityStore): GetRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
+class LegacySubmissionHandler(private val store: TransientEntityStore, private val cache: CacheManager): GetRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
 
     /** [LegacySubmissionHandler] requires [ApiRole.PARTICIPANT]. */
     override val permittedRoles = setOf(ApiRole.PARTICIPANT)
@@ -371,17 +369,6 @@ class LegacySubmissionHandler(private val store: TransientEntityStore): GetRestH
         if (answerSet.answers().firstOrNull()?.type() != AnswerType.TEMPORAL) return
         if (answerSet.answers().firstOrNull()?.item == null) return
         val item = DbMediaItem.query((DbMediaItem::id eq answerSet.answers().firstOrNull()?.item!!.mediaItemId)).firstOrNull() ?: return
-        val destinationPath = DRES.CACHE_ROOT.resolve("previews")
-            .resolve(item.collection.name)
-            .resolve(item.name)
-            .resolve("${answerSet.answers().firstOrNull()?.start}.jpg")
-        if (Files.exists(destinationPath)) {
-            return
-        }
-        FFmpegUtil.extractFrame(
-            item.pathToOriginal(),
-            answerSet.answers().firstOrNull()?.start!!,
-            destinationPath
-        )
+        this.cache.asyncPreviewImage(item, answerSet.answers().firstOrNull()?.start ?: 0)
     }
 }

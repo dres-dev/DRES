@@ -7,15 +7,14 @@ import dev.dres.api.rest.types.evaluation.ApiEvaluationType
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.Config
 import dev.dres.data.model.run.DbEvaluation
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
+import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.InteractiveSynchronousRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManagerStatus
-import dev.dres.utilities.FFmpegUtil
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
@@ -27,8 +26,6 @@ import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 
 /**
  * [PostRestHandler] to create an [DbEvaluation].
@@ -38,7 +35,7 @@ import java.nio.file.Paths
  * @author Loris Sauter
  * @version 2.0.0
  */
-class CreateEvaluationHandler(store: TransientEntityStore) : AbstractEvaluationAdminHandler(store), PostRestHandler<SuccessStatus> {
+class CreateEvaluationHandler(store: TransientEntityStore, private val cache: CacheManager) : AbstractEvaluationAdminHandler(store), PostRestHandler<SuccessStatus> {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -91,7 +88,7 @@ class CreateEvaluationHandler(store: TransientEntityStore) : AbstractEvaluationA
                 val cachePath = DRES.CACHE_ROOT.resolve(cacheName)
                 if (!Files.exists(cachePath)) {
                     logger.warn("Query video file for item ${item.name} not found; rendering to $cachePath")
-                    FFmpegUtil.extractSegment(item, it.second, DRES.CACHE_ROOT)
+                    this@CreateEvaluationHandler.cache.asyncPreviewVideo(item, it.second.start.toMilliseconds(), it.second.end.toMilliseconds())
                 }
             }
 

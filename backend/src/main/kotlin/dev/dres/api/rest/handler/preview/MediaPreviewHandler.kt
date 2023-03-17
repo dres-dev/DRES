@@ -1,8 +1,8 @@
 package dev.dres.api.rest.handler.preview
 
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.Config
 import dev.dres.data.model.media.DbMediaItem
+import dev.dres.mgmt.cache.CacheManager
 import dev.dres.utilities.extensions.errorResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -15,7 +15,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class MediaPreviewHandler(store: TransientEntityStore, config: Config) : AbstractPreviewHandler(store, config) {
+class MediaPreviewHandler(store: TransientEntityStore, cache: CacheManager) : AbstractPreviewHandler(store, cache) {
 
     override val route: String = "preview/item/{collectionId}/{item}/{time}"
     @OpenApi(
@@ -41,7 +41,7 @@ class MediaPreviewHandler(store: TransientEntityStore, config: Config) : Abstrac
             val collectionId = params["collection"] ?: throw ErrorStatusException(400, "Collection ID not specified or invalid.", ctx)
             val itemName = params["item"] ?: throw ErrorStatusException(400, "Item name not specified.", ctx)
             val time = params["time"]?.toLongOrNull()
-            handlePreviewRequest(collectionId, itemName, time, ctx)
+            handlePreviewImageRequest(collectionId, itemName, time, ctx)
         } catch (e: ErrorStatusException) {
             ctx.errorResponse(e)
         }

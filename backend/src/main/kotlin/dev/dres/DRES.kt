@@ -21,9 +21,9 @@ import dev.dres.data.model.media.DbMediaSegment
 import dev.dres.data.model.media.DbMediaType
 import dev.dres.data.model.run.*
 import dev.dres.data.model.submissions.*
+import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.eventstream.EventStreamProcessor
-import dev.dres.utilities.FFmpegUtil
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.XdModel
 import kotlinx.dnq.store.container.StaticStoreContainer
@@ -46,7 +46,7 @@ object DRES {
     const val VERSION = "2.0.0"
 
     /** Application root; should pe relative to JAR file or classes path. */
-    val APPLICATION_ROOT: Path = File(FFmpegUtil::class.java.protectionDomain.codeSource.location.toURI()).toPath()
+    val APPLICATION_ROOT: Path = File(DRES::class.java.protectionDomain.codeSource.location.toURI()).toPath()
 
     /** The path to the data folder. Can be different from the application root if provided via command line argument */
     var DATA_ROOT: Path = APPLICATION_ROOT
@@ -76,35 +76,37 @@ object DRES {
         }
 
         println("Starting DRES (application: $APPLICATION_ROOT, data: $DATA_ROOT)")
-        println("Found FFmpeg at ${FFmpegUtil.ffmpegBin}")
         println("Initializing...")
 
         /* Initialize Xodus based data store. */
         val store = this.prepareDatabase(config)
 
+        /* Initialize the Cache Manager. */
+        val cache = CacheManager(config)
+
         /* Initialize RunExecutor. */
-        RunExecutor.init(store)
+        RunExecutor.init(config, store, cache)
 
         /* Initialize EventStreamProcessor */
         EventStreamProcessor.register( /* Add handlers here */)
         EventStreamProcessor.init()
 
         /* Initialize Rest API. */
-        RestApi.init(config, store)
+        RestApi.init(config, store, cache)
 
         println("Initialization complete!")
 
         if (args.isNotEmpty() && args.first() == "openapi") {
             OpenApiCommand().parse(args)
         } else {
-            Cli.loop(store, config) //blocks until quit command is given
+            Cli.loop(config, store, cache) //blocks until quit command is given
         }
 
         /* Stop. */
+        cache.stop()
         RestApi.stop()
         RunExecutor.stop()
         EventStreamProcessor.stop()
-        FFmpegUtil.stop()
     }
 
     /**

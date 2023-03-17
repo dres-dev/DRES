@@ -2,15 +2,18 @@ package dev.dres.run
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.AccessManager
+import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
+import dev.dres.data.model.Config
 import dev.dres.data.model.run.*
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.run.interfaces.EvaluationRun
+import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.extensions.read
 import dev.dres.utilities.extensions.write
@@ -60,15 +63,15 @@ object RunExecutor : Consumer<WsConfig> {
     /** Internal array of [Future]s for cleaning after [RunManager]s. See [RunExecutor.cleanerThread]*/
     private val results = HashMap<Future<*>, EvaluationId>()
 
-    /**
-     * Initializes this [RunExecutor].
+    /** Initializes the [RunExecutor] singleton.
      *
-     * @param store The shared [TransientEntityStore].
+     * @param config The [Config] with which DRES was started.
+     * @param store The [TransientEntityStore] instance used to access persistent data.
+     * @param cache The [CacheManager] instance used to access the media cache.
      */
-    fun init(store: TransientEntityStore) {
+    fun init(config: Config, store: TransientEntityStore, cache: CacheManager) {
         store.transactional {
             DbEvaluation.filter { (it.started) ne null and (it.ended eq null) }.asSequence().forEach {e ->
-
                 /* Force-end tasks that are still running. */
                 e.tasks.filter { t -> (t.ended eq null) }.asSequence().forEach { t ->
                     t.ended = System.currentTimeMillis()

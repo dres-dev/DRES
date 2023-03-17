@@ -20,6 +20,7 @@ import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.and
 import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
@@ -67,10 +68,10 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
 
         /* Prepare run manager. */
         val evaluationId = this.store.transactional {
-            val template = DbEvaluationTemplate.query(DbEvaluationTemplate::id eq message.templateId).firstOrNull()
-                ?: throw ErrorStatusException(404, "Competition with ID ${message.templateId} not found.'", ctx)
-            /* ensure that only one synchronous run of a competition is happening at any given time */
+            val template = DbEvaluationTemplate.query((DbEvaluationTemplate::id eq message.templateId) and (DbEvaluationTemplate::instance eq false)).firstOrNull()
+                ?: throw ErrorStatusException(404, "Evaluation template with ID ${message.templateId} could not be found.'", ctx)
 
+            /* ensure that only one synchronous run of a competition is happening at any given time */
             if (message.type == ApiEvaluationType.SYNCHRONOUS && RunExecutor.managers().any {
                     it is InteractiveSynchronousRunManager && it.template == template && it.status != RunManagerStatus.TERMINATED
                 }
@@ -99,7 +100,7 @@ class CreateEvaluationHandler(store: TransientEntityStore, config: Config) : Abs
             /* Prepare evaluation. */
             val evaluation = DbEvaluation.new {
                 this.name = message.name
-                this.template = template
+                this.template = template.toInstance()
                 this.type = message.type.toDb()
                 this.allowRepeatedTasks = message.properties.allowRepeatedTasks
                 this.participantCanView = message.properties.participantCanView

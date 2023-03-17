@@ -36,9 +36,6 @@ class DeleteEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEva
     )
     override fun doDelete(ctx: Context): SuccessStatus = this.store.transactional {
         val template = evaluationTemplateFromContext(ctx)
-        if (!template.canBeEdited()) {
-            throw ErrorStatusException(400, "Evaluation template ${template.id} can no longer be deleted.", ctx)
-        }
         template.delete()
         SuccessStatus("Evaluation template with ID ${ctx.pathParam("templateId")} was deleted successfully.")
     }

@@ -8,6 +8,8 @@ import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.eq
+import kotlinx.dnq.query.query
 import kotlinx.dnq.query.size
 
 /**
@@ -33,8 +35,8 @@ class ListEvaluationTemplatesHandler(store: TransientEntityStore) : AbstractEval
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context) = this.store.transactional(true) {
-        DbEvaluationTemplate.all().asSequence().map {
-            ApiEvaluationOverview(it.id, it.name, it.description, it.tasks.size(), it.teams.size(), it.canBeEdited())
+        DbEvaluationTemplate.query(DbEvaluationTemplate::instance eq true).asSequence().map {
+            ApiEvaluationOverview(it.id, it.name, it.description, it.tasks.size(), it.teams.size())
         }.toList()
     }
 }

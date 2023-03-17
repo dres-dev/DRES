@@ -58,9 +58,6 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
         /* Store change. */
         this.store.transactional {
             val existing = this.evaluationTemplateById(apiValue.id, ctx)
-            if (!existing.canBeEdited()) {
-                throw ErrorStatusException(400, "Evaluation template ${apiValue.id} can no longer be edited.", ctx)
-            }
 
             /* Update core information. */
             existing.name = apiValue.name

@@ -8,4 +8,4 @@ import dev.dres.data.model.template.DbEvaluationTemplate
  * @author Ralph Gasser
  * @version 1.1.0
  */
-data class ApiEvaluationOverview(val id: String, val name: String, val description: String?, val taskCount: Int, val teamCount: Int, val editable: Boolean)
+data class ApiEvaluationOverview(val id: String, val name: String, val description: String?, val taskCount: Int, val teamCount: Int)

@@ -6,11 +6,13 @@ import dev.dres.data.model.submissions.AnswerSet
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbAnswerSet
+import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.team.DbTeam
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
-
+import kotlinx.dnq.util.isInstanceOf
+import java.lang.IllegalStateException
 
 
 /**

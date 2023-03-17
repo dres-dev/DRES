@@ -31,7 +31,7 @@ class DbEvaluation(entity: Entity) : PersistentEntity(entity), Evaluation {
         set(value) { this.id = value }
 
     /** The name held by this [DbEvaluation]. Must be unique!*/
-    var name by xdRequiredStringProp(unique = true, trimmed = true)
+    var name by xdRequiredStringProp(trimmed = true)
 
     /** The [DbEvaluationType] of this [DbEvaluation]. */
     var type by xdLink1(DbEvaluationType)

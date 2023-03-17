@@ -8,16 +8,19 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.media.DbMediaCollection
+import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.template.TemplateId
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
-import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.*
 import kotlinx.dnq.simple.min
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.lang.IllegalStateException
 import java.lang.Long.max
+import java.util.*
 
 /**
  * Basic description of a [TaskRun] as executed in DRES. Defines basic attributes such as its name, its duration,
@@ -38,9 +41,6 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), TaskTemplate {
     /** The name held by this [DbTeam]. Must be unique!*/
     var name by xdRequiredStringProp(unique = false, trimmed = true)
 
-    /** If set, this [DbEvaluationTemplate] is considered a template!*/
-    var template by xdBooleanProp()
-
     /** The [DbTaskGroup] this [DbTaskTemplate] belongs to. */
     var taskGroup by xdLink1(DbTaskGroup)
 
@@ -58,6 +58,54 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), TaskTemplate {
 
     /** The [DbHint]s that act as clues to find the target media. */
     val hints by xdChildren0_N<DbTaskTemplate,DbHint>(DbHint::task)
+
+    /**
+     * Creates a [DbTaskTemplate] instance and returns it.
+     *
+     * @return [DbTaskTemplate] instance
+     */
+    fun toInstance(forEvaluation: DbEvaluationTemplate): DbTaskTemplate {
+        require(!this.evaluation.instance) { throw IllegalStateException("Cannot create an instance of an TaskTemplate that is an instance itself.") }
+        require(forEvaluation.instance) { throw IllegalStateException("Cannot attach an instance of an TaskTemplate to an EvaluationTemplate that is not an instance itself.") }
+        val copy = DbTaskTemplate.new {
+            this.id = UUID.randomUUID().toString()
+            this.name = this@DbTaskTemplate.name
+            this.collection = this@DbTaskTemplate.collection
+            this.duration = this@DbTaskTemplate.duration
+            this.taskGroup = forEvaluation.taskGroups.query(DbTaskGroup::name eq this@DbTaskTemplate.taskGroup.name).first()
+        }
+
+        /* Copy task targets. */
+        this.targets.asSequence().forEach {
+            copy.targets.add(
+                DbTaskTemplateTarget.new {
+                    this.type = it.type
+                    this.start = it.start
+                    this.end = it.end
+                    this.item = it.item
+                    this.text = it.text
+                }
+            )
+        }
+
+        /* Copy task hints. */
+        this.hints.asSequence().forEach {
+            copy.hints.add(
+                DbHint.new {
+                    this.type = it.type
+                    this.start = it.start
+                    this.end = it.end
+                    this.item = it.item
+                    this.text = it.text
+                    this.path = it.path
+                    this.temporalRangeStart = it.temporalRangeStart
+                    this.temporalRangeEnd = it.temporalRangeEnd
+                }
+            )
+        }
+
+        return copy
+    }
 
     /**
      * Generates and returns a [ApiHintContent] object to be used by the RESTful interface.

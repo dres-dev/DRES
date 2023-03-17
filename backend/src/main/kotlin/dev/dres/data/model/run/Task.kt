@@ -7,7 +7,6 @@ import dev.dres.data.model.template.task.TaskTemplate
 typealias TaskId = String
 
 interface Task { //TODO
-
     val taskId: TaskId
     val started: Long?
     val ended: Long?
@@ -15,5 +14,4 @@ interface Task { //TODO
     val template: TaskTemplate
 
     fun answerSets(): Sequence<AnswerSet>
-
 }

@@ -27,5 +27,5 @@ class DbEvaluationType(entity: Entity) : XdEnumEntity(entity) {
      *
      * @return [ApiEvaluationType]
      */
-    fun toApi() = ApiEvaluationType.values().find { it.toDb() == this } ?: throw IllegalStateException("Run type ${this.description} is not supported.")
+    fun toApi() = ApiEvaluationType.values().find { it.toDb() == this } ?: throw IllegalStateException("Evaluation type ${this.description} is not supported.")
 }

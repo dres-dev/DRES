@@ -1,5 +1,7 @@
 package dev.dres.api.rest.types.evaluation
 
+import dev.dres.data.model.run.DbEvaluationStatus
+import dev.dres.data.model.run.DbEvaluationType
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
 
@@ -28,5 +30,16 @@ enum class ApiEvaluationStatus {
         CREATED -> RunManagerStatus.CREATED
         ACTIVE -> RunManagerStatus.ACTIVE
         TERMINATED -> RunManagerStatus.TERMINATED
+    }
+
+    /**
+     * Converts this [ApiEvaluationStatus] to a [DbEvaluationStatus] representation. Requires an ongoing transaction.
+     *
+     * @return [DbEvaluationStatus]
+     */
+    fun toDb(): DbEvaluationStatus = when(this) {
+        CREATED -> DbEvaluationStatus.CREATED
+        ACTIVE -> DbEvaluationStatus.ACTIVE
+        TERMINATED -> DbEvaluationStatus.TERMINATED
     }
 }

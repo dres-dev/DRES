@@ -14,7 +14,7 @@ import kotlinx.dnq.query.asSequence
  * Represents a [DbEvaluation], i.e., a concrete instance of a [DbEvaluationTemplate], as executed by DRES.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 class DbEvaluation(entity: Entity) : PersistentEntity(entity), Evaluation {
     companion object : XdNaturalEntityType<DbEvaluation>()
@@ -22,6 +22,7 @@ class DbEvaluation(entity: Entity) : PersistentEntity(entity), Evaluation {
     override fun constructor() {
         super.constructor()
         created = System.currentTimeMillis()
+        status = DbEvaluationStatus.CREATED
     }
 
     /** The [EvaluationId] of this [DbEvaluation]. */
@@ -34,6 +35,9 @@ class DbEvaluation(entity: Entity) : PersistentEntity(entity), Evaluation {
 
     /** The [DbEvaluationType] of this [DbEvaluation]. */
     var type by xdLink1(DbEvaluationType)
+
+    /** The [DbEvaluationStatus] of this [DbEvaluation]. */
+    var status by xdLink1(DbEvaluationStatus)
 
     /** The [DbEvaluationTemplate] backing this [DbEvaluation]. */
     var template by xdLink1(DbEvaluationTemplate)

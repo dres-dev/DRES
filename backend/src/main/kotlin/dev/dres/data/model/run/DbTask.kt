@@ -22,13 +22,16 @@ import kotlinx.dnq.query.asSequence
 class DbTask(entity: Entity) : PersistentEntity(entity), Task {
     companion object : XdNaturalEntityType<DbTask>()
 
-    /** The [EvaluationId] of this [DbTask]. */
+    /** The [TaskId] of this [DbTask]. */
     override var taskId: TaskId
         get() = this.id
         set(value) { this.id = value }
 
     /** The [DbEvaluation] this [DbTask] belongs to. */
     override var evaluation: DbEvaluation by xdParent<DbTask,DbEvaluation>(DbEvaluation::tasks)
+
+    /** The [DbTaskStatus] of this [DbTask]. */
+    var status by xdLink1(DbTaskStatus)
 
     /** Timestamp of when this [DbEvaluation] started. */
     override var started by xdNullableLongProp()

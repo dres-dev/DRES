@@ -7,7 +7,6 @@
   <div>
     <h1>Edit evaluation template {{ competitionId }}
       <span *ngIf="dirty" class="warn-color">(unsaved changes)</span>
-      <mat-icon *ngIf="!competition.canBeEdited" matTooltip="Template is locked.">lock</mat-icon>
     </h1>
   </div>
 
@@ -17,7 +16,6 @@
     <button mat-icon-button
       aria-label="Save changes to evaluation template."
       matTooltip="Save changes to evaluation template."
-      [disabled]="!competition.canBeEdited"
       (click)="save()"
     >
       <mat-icon>save</mat-icon>

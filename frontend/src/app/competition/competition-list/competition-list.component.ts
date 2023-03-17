@@ -24,7 +24,7 @@ import {
 })
 export class CompetitionListComponent implements AfterViewInit {
   /** */
-  displayedColumns = ['actions', 'id', 'name', 'description', 'taskCount', 'teamCount', 'status'];
+  displayedColumns = ['actions', 'id', 'name', 'description', 'taskCount', 'teamCount'];
   competitions: ApiEvaluationOverview[] = [];
   waitingForRun = false;
 

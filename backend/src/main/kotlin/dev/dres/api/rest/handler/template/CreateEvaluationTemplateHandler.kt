@@ -50,6 +50,7 @@ class CreateEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEva
         this.store.transactional {
             DbEvaluationTemplate.new {
                 id = newId
+                instance = false
                 name = createRequest.name
                 description = createRequest.description
             }

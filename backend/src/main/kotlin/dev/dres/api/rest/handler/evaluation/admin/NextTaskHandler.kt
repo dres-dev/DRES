@@ -6,10 +6,10 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.api.rest.types.users.ApiRole
+import dev.dres.data.model.run.DbTaskStatus
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.run.InteractiveAsynchronousRunManager
-import dev.dres.run.TaskStatus
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
@@ -51,12 +51,11 @@ class NextTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandl
         /* Important: Check that user can actually change this manager. */
         synchronousAdminCheck(evaluationManager, ctx)
 
-
         return this.store.transactional(true) {
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             if (evaluationManager is InteractiveAsynchronousRunManager
                 && !AccessManager.rolesOfSession(ctx.sessionToken()).contains(ApiRole.ADMIN)
-                && evaluationManager.currentTask(rac)?.status != TaskStatus.ENDED) {
+                && evaluationManager.currentTask(rac)?.status !in setOf(DbTaskStatus.ENDED, DbTaskStatus.IGNORED)) {
                 throw ErrorStatusException(400, "Cannot advance to next task before current task is completed.", ctx)
             }
 

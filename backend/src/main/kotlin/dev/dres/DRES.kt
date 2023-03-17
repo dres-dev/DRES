@@ -19,9 +19,7 @@ import dev.dres.data.model.media.DbMediaCollection
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.DbMediaSegment
 import dev.dres.data.model.media.DbMediaType
-import dev.dres.data.model.run.DbEvaluation
-import dev.dres.data.model.run.DbEvaluationType
-import dev.dres.data.model.run.DbTask
+import dev.dres.data.model.run.*
 import dev.dres.data.model.submissions.*
 import dev.dres.run.RunExecutor
 import dev.dres.run.eventstream.EventStreamProcessor
@@ -97,6 +95,7 @@ object DRES {
             DbAuditLogType,
             DbConfiguredOption,
             DbEvaluation,
+            DbEvaluationStatus,
             DbEvaluationType,
             DbEvaluationTemplate,
             DbHint,
@@ -111,6 +110,7 @@ object DRES {
             DbSubmission,
             DbSubmissionOption,
             DbTask,
+            DbTaskStatus,
             DbTaskGroup,
             DbTaskType,
             DbTaskOption,

@@ -6,7 +6,6 @@ import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.template.TemplateId
-import dev.dres.run.TaskStatus
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.transformer.SubmissionTransformer
 import dev.dres.run.validation.interfaces.AnswerSetValidator
@@ -19,7 +18,7 @@ import kotlinx.dnq.util.findById
  * An abstract [Run] implementation that can be used by different subtypes.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @version 1.1.0
  */
 abstract class AbstractTask(task: DbTask): TaskRun {
 
@@ -48,6 +47,13 @@ abstract class AbstractTask(task: DbTask): TaskRun {
      * Since this cannot change during the lifetime of an evaluation, it is kept in memory.
      */
     final override val templateId: TemplateId = this.task.template.templateId
+
+    /** The current [DbTaskStatus] of this [AbstractTask]. This is a transient property. */
+    final override var status: DbTaskStatus = task.status
+        protected set(value) {
+            field = value
+            this.task.status = value  /* Update backing database field. */
+        }
 
     /**
      * Timestamp of when this [AbstractTask] was started.
@@ -79,23 +85,14 @@ abstract class AbstractTask(task: DbTask): TaskRun {
     final override val template: DbTaskTemplate
         get() = this.task.template
 
-    /** The current status of this [AbstractTask]. This is a transient property. */
-    @Volatile
-    final override var status: TaskStatus = when {
-        this.started != null && this.ended != null -> TaskStatus.ENDED
-        this.started != null && this.ended == null -> TaskStatus.RUNNING
-        else -> TaskStatus.CREATED
-    }
-    protected set
-
-    /** The [SubmissionFilter] used to filter [Submission]s. */
+    /** The [SubmissionFilter] used to filter [DbSubmission]s. */
     abstract val filter: SubmissionFilter
 
+    /** The [SubmissionTransformer] used to convert [DbSubmission]s. */
     abstract val transformer: SubmissionTransformer
 
-    /** The [AnswerSetValidator] used to validate [Submission]s. */
+    /** The [AnswerSetValidator] used to validate [DbAnswerSet]s. */
     abstract val validator: AnswerSetValidator
-
 
     /**
      * Prepares this [TaskRun] for later starting.
@@ -107,7 +104,7 @@ abstract class AbstractTask(task: DbTask): TaskRun {
         if (this.hasStarted) {
             throw IllegalStateException("Run has already been started.")
         }
-        this.status = TaskStatus.PREPARING
+        this.status = DbTaskStatus.PREPARING
     }
 
     /**
@@ -118,7 +115,7 @@ abstract class AbstractTask(task: DbTask): TaskRun {
             throw IllegalStateException("Run has already been started.")
         }
         this.started = System.currentTimeMillis()
-        this.status = TaskStatus.RUNNING
+        this.status = DbTaskStatus.RUNNING
     }
 
     /**
@@ -129,7 +126,7 @@ abstract class AbstractTask(task: DbTask): TaskRun {
             this.started = System.currentTimeMillis()
         }
         this.ended = System.currentTimeMillis()
-        this.status = TaskStatus.ENDED
+        this.status = DbTaskStatus.ENDED
     }
 
     /**
@@ -140,7 +137,7 @@ abstract class AbstractTask(task: DbTask): TaskRun {
             throw IllegalStateException("Run has not yet ended.")
         }
         this.ended = null
-        this.status = TaskStatus.RUNNING
+        this.status = DbTaskStatus.RUNNING
     }
 
     /** Returns a [Sequence] of all [DbSubmission]s connected to this [AbstractTask]. */

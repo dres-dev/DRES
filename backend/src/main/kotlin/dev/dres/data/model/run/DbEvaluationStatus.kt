@@ -25,9 +25,9 @@ class DbEvaluationStatus(entity: Entity): XdEnumEntity(entity) {
         private set
 
     /**
-     * Converts this [DbEvaluationType] to a RESTful API representation [ApiEvaluationType].
+     * Converts this [DbEvaluationStatus] to a RESTful API representation [ApiEvaluationStatus].
      *
-     * @return [ApiEvaluationType]
+     * @return [ApiEvaluationStatus]
      */
     fun toApi() = ApiEvaluationStatus.values().find { it.toDb() == this } ?: throw IllegalStateException("Evaluation status ${this.description} is not supported.")
 }

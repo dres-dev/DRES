@@ -6,7 +6,9 @@ import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
 
 /**
- * The collection auf statuses a [RunManager] can be in. API version of [RunManagerStatus]
+ * The collection auf statuses an [ApiEvaluation] and the associated [RunManager] can be in.
+ *
+ * API version of [DbEvaluationStatus]
  *
  * @author Ralph Gasser
  * @version 1.0.0

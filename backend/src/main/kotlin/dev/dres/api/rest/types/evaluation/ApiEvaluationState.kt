@@ -22,13 +22,7 @@ data class ApiEvaluationState(
     constructor(run: InteractiveRunManager, context: RunActionContext) : this(
         run.id,
         run.status.toApi(),
-        when(run.currentTask(context)?.status) {
-            TaskStatus.CREATED -> ApiTaskStatus.CREATED
-            TaskStatus.PREPARING -> ApiTaskStatus.PREPARING
-            TaskStatus.RUNNING -> ApiTaskStatus.RUNNING
-            TaskStatus.ENDED -> ApiTaskStatus.ENDED
-            null -> ApiTaskStatus.NO_TASK
-        },
+        run.currentTask(context)?.status?.toApi() ?: ApiTaskStatus.NO_TASK,
         try {
             ApiTaskTemplateInfo(run.currentTaskTemplate(context))
         } catch (e: IllegalArgumentException) {

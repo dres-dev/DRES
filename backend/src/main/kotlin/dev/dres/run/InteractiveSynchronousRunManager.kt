@@ -259,7 +259,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
 
     override fun abortTask(context: RunActionContext) = this.stateLock.write {
         checkStatus(RunManagerStatus.ACTIVE)
-        assureTaskPreparingOrRunning()
+        assertTaskPreparingOrRunning()
         checkContext(context)
 
         /* End TaskRun and persist. */
@@ -284,9 +284,9 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      */
     override fun currentTask(context: RunActionContext) = this.stateLock.read {
         when (this.evaluation.currentTask?.status) {
-            TaskStatus.PREPARING,
-            TaskStatus.RUNNING,
-            TaskStatus.ENDED -> this.evaluation.currentTask
+            DbTaskStatus.PREPARING,
+            DbTaskStatus.RUNNING,
+            DbTaskStatus.ENDED -> this.evaluation.currentTask
             else -> null
         }
     }
@@ -357,7 +357,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      * @return Time remaining until the task will end or -1, if no task is running.
      */
     override fun timeLeft(context: RunActionContext): Long = this.stateLock.read {
-        return if (this.evaluation.currentTask?.status == TaskStatus.RUNNING) {
+        return if (this.evaluation.currentTask?.status == DbTaskStatus.RUNNING) {
             val currentTaskRun = this.currentTask(context)
                 ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
             max(
@@ -376,7 +376,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      * @return Time remaining until the task will end or -1, if no task is running.
      */
     override fun timeElapsed(context: RunActionContext): Long = this.stateLock.read {
-        return if (this.evaluation.currentTask?.status == TaskStatus.RUNNING) {
+        return if (this.evaluation.currentTask?.status == DbTaskStatus.RUNNING) {
             val currentTaskRun = this.currentTask(context)
                 ?: throw IllegalStateException("SynchronizedRunManager is in status ${this.status} but has no active TaskRun. This is a serious error!")
             System.currentTimeMillis() - (currentTaskRun.started!! + InteractiveRunManager.COUNTDOWN_DURATION)
@@ -399,7 +399,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      */
     override fun overrideReadyState(context: RunActionContext, viewerId: String): Boolean = this.stateLock.read {
         checkStatus(RunManagerStatus.ACTIVE)
-        assureTaskPreparingOrRunning()
+        assertTaskPreparingOrRunning()
         checkContext(context)
 
         return try {
@@ -425,7 +425,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         this.stateLock.read {
             when (message.type) {
                 ClientMessageType.ACK -> {
-                    if (this.evaluation.currentTask?.status == TaskStatus.PREPARING) {
+                    if (this.evaluation.currentTask?.status == DbTaskStatus.PREPARING) {
                         this.readyLatch.setReady(connection)
                     }
                 }
@@ -588,7 +588,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      */
     private fun internalStateUpdate() {
         /** Case 1: Facilitates internal transition from RunManagerStatus.PREPARING_TASK to RunManagerStatus.RUNNING_TASK. */
-        if (this.evaluation.currentTask?.status == TaskStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
+        if (this.evaluation.currentTask?.status == DbTaskStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
             /* TODO (Potential race condition): It can occur, that this part of the code is entered without the corresponding task being committed (status change in memory manifest faster than persistent information). */
             this.stateLock.write {
                 this.store.transactional {
@@ -602,7 +602,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         }
 
         /** Case 2: Facilitates internal transition from RunManagerStatus.RUNNING_TASK to RunManagerStatus.TASK_ENDED due to timeout. */
-        if (this.evaluation.currentTask?.status == TaskStatus.RUNNING) {
+        if (this.evaluation.currentTask?.status == DbTaskStatus.RUNNING) {
             this.stateLock.write {
                 val task = this.evaluation.currentTask!!
                 val timeLeft = max(0L, task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
@@ -657,12 +657,22 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         if (this.status !in status) throw IllegalRunStateException(this.status)
     }
 
-    private fun assureTaskPreparingOrRunning() {
+    /**
+     * Internal assertion method that makes sure that a task is either preparing or running.
+     *
+     * @throws IllegalArgumentException If task is neither preparing nor running.
+     */
+    private fun assertTaskPreparingOrRunning() {
         val status = this.evaluation.currentTask?.status
-        if (status != TaskStatus.RUNNING && status != TaskStatus.PREPARING) throw IllegalStateException("Task not preparing or running")
+        if (status != DbTaskStatus.RUNNING && status != DbTaskStatus.PREPARING) throw IllegalStateException("Task is neither preparing nor running.")
     }
 
+    /**
+     * Internal assertion method that makes sure that no task is running.
+     *
+     * @throws IllegalArgumentException If task is neither preparing nor running.
+     */
     private fun assureNoRunningTask() {
-        if (this.evaluation.tasks.any { it.status == TaskStatus.RUNNING }) throw IllegalStateException("Task running!")
+        if (this.evaluation.tasks.any { it.status == DbTaskStatus.RUNNING }) throw IllegalStateException("Task is already running!")
     }
 }

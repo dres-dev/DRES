@@ -1,7 +1,6 @@
 package dev.dres.api.rest.types.evaluation
 
 import dev.dres.data.model.run.interfaces.TaskRun
-import dev.dres.run.TaskStatus
 
 data class ApiTaskOverview(
     val id:String,
@@ -10,7 +9,7 @@ data class ApiTaskOverview(
     val group: String,
     val duration: Long,
     val taskId: String,
-    val status: TaskStatus,
+    val status: ApiTaskStatus,
     val started: Long?,
     val ended: Long?) {
     constructor(task: TaskRun) : this(
@@ -20,7 +19,7 @@ data class ApiTaskOverview(
         task.template.taskGroup.type.name,
         task.template.duration,
         task.taskId,
-        task.status,
+        task.status.toApi(),
         task.started,
         task.ended)
 }

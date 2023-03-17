@@ -8,9 +8,9 @@ import dev.dres.api.rest.types.competition.tasks.ApiTargetContent
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.Config
+import dev.dres.data.model.run.DbTaskStatus
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.run.InteractiveRunManager
-import dev.dres.run.TaskStatus
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -55,7 +55,7 @@ class GetTaskTargetHandler(store: TransientEntityStore, private val config: Conf
             if (task == null) {
                 task = manager.taskForId(rac, taskId) ?: throw ErrorStatusException(404, "Task with specified ID $taskId does not exist.", ctx)
             }
-            if (task.status != TaskStatus.ENDED) {
+            if (task.status != DbTaskStatus.ENDED) {
                 throw ErrorStatusException(400, "Query target can only be loaded if task has just ended.", ctx)
             }
 

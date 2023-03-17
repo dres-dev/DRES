@@ -728,5 +728,5 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
      *
      */
     private fun teamHasPreparingTask(teamId: TeamId) =
-        this.evaluation.currentTaskForTeam(teamId)?.status == TaskStatus.PREPARING
+        this.evaluation.currentTaskForTeam(teamId)?.status == DbTaskStatus.PREPARING
 }

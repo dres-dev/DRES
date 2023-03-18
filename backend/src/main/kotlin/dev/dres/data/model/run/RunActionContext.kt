@@ -9,10 +9,7 @@ import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
-import kotlinx.dnq.query.eq
-import kotlinx.dnq.query.filter
-import kotlinx.dnq.query.first
-import kotlinx.dnq.query.query
+import kotlinx.dnq.query.*
 
 /**
  * The [RunActionContext] captures and encapsulates information usually required during the interaction with a [RunManager].
@@ -40,7 +37,8 @@ data class RunActionContext(val userId: UserId?, val teamId: TeamId?, val roles:
         fun runActionContext(ctx: Context, runManager: RunManager) : RunActionContext {
             val userId = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(403, "Unauthorized user.", ctx)
             val roles = AccessManager.rolesOfSession(ctx.sessionToken()).mapNotNull { it.toDb() }.toSet()
-            val teamId = runManager.template.teams.filter { it.users.contains(DbUser.query(DbUser::id eq userId).first()) }.first().teamId
+            val user = DbUser.query(DbUser::id eq userId).firstOrNull() ?: throw ErrorStatusException(500, "Specified user does not exist in database. This is a programmer's error!", ctx)
+            val teamId = runManager.template.teams.filter { it.users.contains(user) }.firstOrNull()?.teamId
             return RunActionContext(userId, teamId, roles)
         }
     }

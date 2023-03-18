@@ -1,6 +1,6 @@
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import {AfterViewInit, Component, Inject, OnDestroy, OnInit, TemplateRef, ViewChild, ViewContainerRef} from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-import { interval, merge, Observable, of, Subscription, zip } from 'rxjs';
+import {BehaviorSubject, interval, merge, Observable, of, Subscription, zip} from 'rxjs';
 import {
   catchError,
   delay,
@@ -27,15 +27,20 @@ import { Widget } from './model/run-viewer-widgets';
 import { DOCUMENT } from '@angular/common';
 import {Title} from '@angular/platform-browser';
 import {ApiEvaluationInfo, ApiEvaluationState, ApiTaskTemplateInfo, EvaluationService} from '../../../openapi';
+import {Overlay, OverlayRef} from "@angular/cdk/overlay";
+import {TemplatePortal} from "@angular/cdk/portal";
 
 @Component({
   selector: 'app-run-viewer',
   templateUrl: './run-viewer.component.html',
-  styleUrls: ['./run-viewer.component.scss'],
+  styleUrls: ['./run-viewer.component.scss']
 })
-export class RunViewerComponent implements OnInit, OnDestroy {
+export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
   /** The WebSocketSubject that represent the WebSocket connection to the DRES endpoint. */
   webSocketSubject: WebSocketSubject<IWsMessage>;
+
+  /** A {@link BehaviorSubject} that reflect the WebSocket connection status. */
+  webSocketConnectionSubject: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
   /** Observable for incoming WebSocket messages. */
   webSocket: Observable<IWsServerMessage>;
@@ -57,16 +62,33 @@ export class RunViewerComponent implements OnInit, OnDestroy {
 
   /** Observable that fires whenever a task ends. Emits the task description of the task that just ended. */
   taskEnded: Observable<ApiTaskTemplateInfo>;
+
   /** Observable of the {@link Widget} that should be displayed on the left-hand side. */
   leftWidget: Observable<Widget>;
+
   /** Observable of the {@link Widget} that should be displayed on the right-hand side. */
   rightWidget: Observable<Widget>;
+
   /** Observable of the {@link Widget} that should be displayed at the center. */
   centerWidget: Observable<Widget>;
+
   /** Observable of the {@link Widget} that should be displayed at the bottom. */
   bottomWidget: Observable<Widget>;
+
+  /** Reference to the {@link OverlayRef}. Initialized in ngAfterViewInit(). */
+  private overlayRef: OverlayRef = null
+
+  /** Reference to the overlay template. Only available once view has been loaded. */
+  @ViewChild('overlayTemplate')
+  private overlayTemplateRef: TemplateRef<unknown>;
+
+  /** Reference to the overlay template. Only available once view has been loaded. */
+  private overlaySubscription: Subscription;
+
+
   /** Internal WebSocket subscription for pinging the server. */
   private pingSubscription: Subscription;
+
   /** Cached config */
   private p: any;
 
@@ -80,20 +102,25 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     private runService: EvaluationService,
     private snackBar: MatSnackBar,
     private titleService: Title,
-    @Inject(DOCUMENT) private document: Document
+    private overlay: Overlay,
+    @Inject(DOCUMENT) private document: Document,
+    private _viewContainerRef: ViewContainerRef
   ) {
     /** Initialize basic WebSocketSubject. */
     const wsurl = this.config.webSocketUrl;
+    const connectionSubject = this.webSocketConnectionSubject
     this.webSocketSubject = webSocket({
       url: wsurl,
       openObserver: {
         next(openEvent) {
           console.log(`[RunViewerComponent] WebSocket connection to ${wsurl} established!`);
+          connectionSubject.next(true)
         },
       },
       closeObserver: {
         next(closeEvent: CloseEvent) {
           console.log(`[RunViewerComponent] WebSocket connection to ${wsurl} closed: ${closeEvent.reason}.`);
+          connectionSubject.next(false)
         },
       },
     } as WebSocketSubjectConfig<IWsMessage>);
@@ -156,8 +183,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
     /* Basic observable for web socket messages received from the DRES server. */
     this.webSocket = this.evaluationId.pipe(
       flatMap((evaluationId) =>
-        this.webSocketSubject
-          .multiplex(
+        this.webSocketSubject.multiplex(
             () => {
               return { evaluationId: evaluationId, type: 'REGISTER' } as IWsClientMessage;
             },
@@ -175,7 +201,7 @@ export class RunViewerComponent implements OnInit, OnDestroy {
                     e
                   )
                 ),
-                delay(1000)
+                delay(5000)
               )
             ),
             map((m) => m as IWsServerMessage),
@@ -258,15 +284,41 @@ export class RunViewerComponent implements OnInit, OnDestroy {
         tap(([i, evaluationId]) => this.webSocketSubject.next({ evaluationId: evaluationId, type: 'PING' } as IWsClientMessage))
       )
       .subscribe();
+
   }
 
   /**
+   * Prepare the overlay that is being displayed when WebSocket connection times out.
+   */
+  ngAfterViewInit() {
+    this.overlayRef = this.overlay.create({
+      positionStrategy: this.overlay.position().global().centerHorizontally().centerVertically(),
+      scrollStrategy: this.overlay.scrollStrategies.block(),
+      backdropClass: "overlay",
+      hasBackdrop: true
+    });
+
+    /* Create subscription for WebSocket connection status and show overlay. */
+    this.overlaySubscription = this.webSocketConnectionSubject.subscribe((status) => {
+      if (status == false) {
+        this.overlayRef.attach(new TemplatePortal(this.overlayTemplateRef, this._viewContainerRef))
+      } else {
+        this.overlayRef.detach()
+      }
+    })
+  }
+
+    /**
    * Unregisters this RunViewerComponent on view destruction and cleans the WebSocket subscription.
    */
   ngOnDestroy(): void {
     /* Unregister Ping service. */
     this.pingSubscription.unsubscribe();
     this.pingSubscription = null;
+    this.overlaySubscription.unsubscribe()
+    this.overlaySubscription = null
+    this.overlayRef?.dispose()
+    this.overlayRef = null
     this.titleService.setTitle('DRES');
   }
 

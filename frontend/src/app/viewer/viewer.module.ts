@@ -22,6 +22,7 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { CompetitionScoreboardViewerComponent } from './competition-scoreboard-viewer/competition-scoreboard-viewer.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { SharedModule } from '../shared/shared.module';
+import {FullscreenOverlayContainer, OverlayContainer, OverlayModule} from "@angular/cdk/overlay";
 
 @NgModule({
   imports: [
@@ -45,9 +46,10 @@ import { SharedModule } from '../shared/shared.module';
     NgApexchartsModule,
     BrowserAnimationsModule,
     SharedModule,
+    OverlayModule
   ],
   exports: [RunViewerComponent],
   declarations: [RunViewerComponent, TaskViewerComponent, TeamsViewerComponent, CompetitionScoreboardViewerComponent],
-  providers: [],
+  providers: [{provide: OverlayContainer, useClass: FullscreenOverlayContainer}],
 })
 export class ViewerModule {}

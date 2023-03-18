@@ -11,6 +11,11 @@ body {
 
 @import '@angular/material/prebuilt-themes/purple-green.css';
 
+.overlay {
+  background-color: black;
+  opacity: 0.75;
+}
+
 /* */
 #container {
   margin-top: 25px; /* Previous 100px seems far too much */

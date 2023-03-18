@@ -425,8 +425,10 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         this.stateLock.read {
             when (message.type) {
                 ClientMessageType.ACK -> {
-                    if (this.evaluation.currentTask?.status == DbTaskStatus.PREPARING) {
-                        this.readyLatch.setReady(connection)
+                    this.store.transactional(true) {
+                        if (this.evaluation.currentTask?.status == DbTaskStatus.PREPARING) {
+                            this.readyLatch.setReady(connection)
+                        }
                     }
                 }
                 ClientMessageType.REGISTER -> this.readyLatch.register(connection)
@@ -545,7 +547,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 }
 
                 /* 3) Yield to other threads. */
-                Thread.sleep(250)
+                Thread.sleep(500)
 
                 /* Reset error counter. */
                 errorCounter = 0
@@ -591,7 +593,6 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     private fun internalStateUpdate() {
         /** Case 1: Facilitates internal transition from RunManagerStatus.PREPARING_TASK to RunManagerStatus.RUNNING_TASK. */
         if (this.evaluation.currentTask?.status == DbTaskStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
-            /* TODO (Potential race condition): It can occur, that this part of the code is entered without the corresponding task being committed (status change in memory manifest faster than persistent information). */
             this.stateLock.write {
                 this.evaluation.currentTask!!.start()
                 DbAuditLogger.taskStart(this.id, this.evaluation.currentTask!!.taskId, this.evaluation.getCurrentTemplate(), DbAuditLogSource.INTERNAL, null)

@@ -73,6 +73,7 @@ abstract class AbstractPreviewHandler(protected val store: TransientEntityStore,
             }
             else -> {
                 ctx.status(202)
+                ctx.header("Content-Type", "image/png")
                 ctx.header("Cache-Control", "no-store")
                 ctx.outputStream().write(WAITING_IMAGE)
             }

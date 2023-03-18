@@ -29,9 +29,6 @@ import java.nio.file.Files
 abstract class AbstractPreviewHandler(protected val store: TransientEntityStore, private val cache: CacheManager) : GetRestHandler<Any>, AccessManagedRestHandler {
 
     companion object {
-        /** Placeholder for when image is missing. */
-        private val MISSING_IMAGE = this::class.java.getResourceAsStream("/img/missing.png").use { it!!.readAllBytes() }
-
         /** Placeholder for when image is waiting to be loaded. */
         private val WAITING_IMAGE = this::class.java.getResourceAsStream("/img/loading.png").use { it!!.readAllBytes() }
     }

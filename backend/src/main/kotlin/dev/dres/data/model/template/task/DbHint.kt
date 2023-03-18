@@ -9,6 +9,7 @@ import dev.dres.data.model.Config
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.media.time.TemporalRange
+import dev.dres.mgmt.cache.CacheManager
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.FilteringContext.le
@@ -64,7 +65,6 @@ class DbHint(entity: Entity) : XdEntity(entity) {
             null
         }
 
-
     /**
      * Converts this [DbHint] to a RESTful API representation [ApiHint].
      *
@@ -105,49 +105,6 @@ class DbHint(entity: Entity) : XdEntity(entity) {
         }
         DbHintType.EMPTY -> "Empty item"
         else -> throw IllegalStateException("The task hint type ${this.type.description} is currently not supported.")
-    }
-
-    /**
-     * Generates and returns a [ApiContentElement] object of this [DbHint] to be used by the RESTful interface.
-     *
-     * @return [ApiContentElement]
-     *
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
-    fun toQueryContentElement(): ApiContentElement {
-        val cacheLocation: Path = DRES.CACHE_ROOT.resolve("tasks")
-        val content = when (this.type) {
-            DbHintType.IMAGE -> {
-                val filePath = this.item?.pathToOriginal() ?: this.path?.let { Paths.get(it) }
-                if (filePath != null && Files.exists(filePath)) {
-                    Base64.getEncoder().encodeToString(Files.readAllBytes(filePath))
-                } else {
-                    null
-                }
-            }
-            DbHintType.VIDEO -> {
-                val filePath = this.item?.cachedItemName(this.temporalRangeStart, this.temporalRangeEnd)?.let { cacheLocation.resolve(it) } ?: this.path?.let { Paths.get(it) }
-                if (Files.exists(filePath)) {
-                    Base64.getEncoder().encodeToString(Files.readAllBytes(filePath))
-                } else {
-                    null
-                }
-            }
-            DbHintType.EMPTY -> ""
-            DbHintType.TEXT -> this.text ?: throw IllegalStateException("A hint of type  ${this.type.description} must have a valid text.")
-            else -> throw IllegalStateException("The hint type ${this.type.description} is not supported.")
-        }
-
-        val contentType = when (this.type) {
-            DbHintType.IMAGE -> ApiContentType.IMAGE
-            DbHintType.VIDEO -> ApiContentType.VIDEO
-            DbHintType.TEXT -> ApiContentType.TEXT
-            DbHintType.EMPTY -> ApiContentType.EMPTY
-            else ->  throw IllegalStateException("The hint type ${this.type.description} is not supported.")
-        }
-
-        return ApiContentElement(contentType = contentType, content = content, offset = this.start ?: 0L)
     }
 }
 

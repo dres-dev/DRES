@@ -62,17 +62,4 @@ class DbMediaItem(entity: Entity) : PersistentEntity(entity), MediaItem {
      * @return [Path]
      */
     fun pathToOriginal(): Path = Paths.get(this.collection.path, this.location)
-
-    /**
-     * Returns the [Path] to the cached file for this [DbMediaItem].
-     *
-     * @param start
-     * @param end
-     * @return [Path]
-     */
-    fun cachedItemName(start: Long? = null, end: Long? = null) = if (start != null && end != null) {
-        "${this.collection.name}-${this.id}-$start-$end.${this.type.suffix}"
-    }  else {
-        "${this.collection.name}-${this.id}.${this.type.suffix}"
-    }
 }

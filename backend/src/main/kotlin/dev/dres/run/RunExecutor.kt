@@ -2,7 +2,6 @@ package dev.dres.run
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.dres.api.rest.AccessManager
-import dev.dres.api.rest.RestApi
 import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType

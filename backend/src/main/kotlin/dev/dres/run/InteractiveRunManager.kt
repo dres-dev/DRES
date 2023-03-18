@@ -9,7 +9,6 @@ import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
-import jetbrains.exodus.database.TransientEntityStore
 
 interface InteractiveRunManager : RunManager {
 

@@ -79,35 +79,4 @@ class DbTaskTemplateTarget(entity: Entity) : XdEntity(entity) {
         DbTargetType.TEXT -> ApiTarget(this.type.toApi(), this.text)
         else -> throw IllegalStateException("Task description of type ${this.type.description} is not supported.")
     }
-
-    /**
-     * Generates and returns a [ApiContentElement] object of this [DbHint] to be used by the RESTful interface.
-     *
-     * @return [ApiContentElement]
-     *
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
-    fun toQueryContentElement(): ApiContentElement {
-        val (content, type) = when (this.type) {
-            DbTargetType.JUDGEMENT,
-            DbTargetType.JUDGEMENT_WITH_VOTE -> null to ApiContentType.EMPTY
-            DbTargetType.MEDIA_ITEM -> {
-                val type = when (this.item?.type) {
-                    DbMediaType.VIDEO -> ApiContentType.VIDEO
-                    DbMediaType.IMAGE -> ApiContentType.IMAGE
-                    else -> throw IllegalStateException("Invalid target description; type indicates presence of media item but item seems unsupported or unspecified.")
-                }
-                val filePath = this.item?.pathToOriginal()
-                if (filePath != null && Files.exists(filePath)) {
-                    Base64.getEncoder().encodeToString(Files.readAllBytes(filePath))
-                } else {
-                    null
-                } to type
-            }
-            DbTargetType.TEXT -> this.text to ApiContentType.TEXT
-            else -> throw IllegalStateException("The content type ${this.type.description} is not supported.")
-        }
-        return ApiContentElement(contentType = type, content = content, offset = 0L)
-    }
 }

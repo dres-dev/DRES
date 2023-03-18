@@ -6,16 +6,24 @@ import dev.dres.utilities.extensions.isParticipant
 import dev.dres.api.rest.types.competition.tasks.ApiHintContent
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.Config
+import dev.dres.api.rest.types.task.ApiContentElement
+import dev.dres.api.rest.types.task.ApiContentType
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.DbTask
+import dev.dres.data.model.template.task.DbHint
+import dev.dres.data.model.template.task.DbHintType
 import dev.dres.data.model.template.task.DbTaskTemplate
+import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.InteractiveRunManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.asSequence
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.util.*
 
 /**
  * A [AbstractEvaluationViewerHandler] that returns the currently active [DbTaskTemplate].
@@ -30,7 +38,7 @@ import java.io.IOException
  * @author Loris Sauter
  * @version 2.0.0
  */
-class GetTaskHintHandler(store: TransientEntityStore) : AbstractEvaluationViewerHandler(store), GetRestHandler<ApiHintContent> {
+class GetTaskHintHandler(store: TransientEntityStore, private val cache: CacheManager) : AbstractEvaluationViewerHandler(store), GetRestHandler<ApiHintContent> {
 
     override val route = "evaluation/{evaluationId}/hint/{taskId}"
 
@@ -61,7 +69,7 @@ class GetTaskHintHandler(store: TransientEntityStore) : AbstractEvaluationViewer
             val rac = RunActionContext.runActionContext(ctx, manager)
 
             val currentTaskDescription = manager.currentTaskTemplate(rac)
-            val task = if (currentTaskDescription.id == taskId) {
+            val template = if (currentTaskDescription.id == taskId) {
                 currentTaskDescription
             } else {
                 manager.taskForId(rac, taskId)?.template ?: throw ErrorStatusException(404, "Task with specified ID $taskId does not exist.", ctx)
@@ -69,12 +77,85 @@ class GetTaskHintHandler(store: TransientEntityStore) : AbstractEvaluationViewer
 
             try {
                 ctx.header("Cache-Control", "public, max-age=300") //can be cached for 5 minutes
-                task.toTaskHint()
+                template.toTaskHint()
             } catch (e: FileNotFoundException) {
                 throw ErrorStatusException(404, "Query object cache file not found!", ctx)
             } catch (ioe: IOException) {
                 throw ErrorStatusException(500, "Exception when reading query object cache file.", ctx)
             }
         }
+    }
+
+    /**
+     * Generates and returns a [ApiHintContent] object to be used by thi RESTful interface. Requires a valid transaction.
+     *
+     * @return [ApiHintContent]
+     *
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    private fun DbTaskTemplate.toTaskHint(): ApiHintContent {
+        val sequence =  this.hints.asSequence().groupBy { it.type }.flatMap { group ->
+            var index = 0
+            group.value.sortedBy { it.start ?: 0 }.flatMap {
+                val ret = mutableListOf(it.toContentElement())
+                if (it.end != null) {
+                    if (index == (group.value.size - 1)) {
+                        ret.add(ApiContentElement(contentType = ret.first().contentType, offset = it.end!!))
+                    } else if ((group.value[index+1].start ?: 0) > it.end!!) {
+                        ret.add(ApiContentElement(contentType = ret.first().contentType, offset = it.end!!))
+                    }
+                }
+                index += 1
+                ret
+            }
+        }
+        return ApiHintContent(this.id, sequence, false)
+    }
+
+    /**
+     * Generates and returns a [ApiContentElement] object of this [DbHint] to be used by the RESTful interface.
+     *
+     * @return [ApiContentElement]
+     *
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    private fun DbHint.toContentElement(): ApiContentElement {
+        val content = when (this.type) {
+            DbHintType.IMAGE -> {
+                val item = this.item ?: throw IllegalStateException("DbHint of type IMAGE is expected to hold a valid media item but doesn't! This is a programmer's error!")
+                val path = this@GetTaskHintHandler.cache.asyncPreviewImage(item).get() /* This should return immediately, since the previews have been prepared. */
+                if (Files.exists(path)) {
+                    Base64.getEncoder().encodeToString(Files.readAllBytes(path))
+                } else {
+                    null
+                }
+            }
+            DbHintType.VIDEO -> {
+                val item = this.item ?: throw IllegalStateException("DbHint of type IMAGE is expected to hold a valid media item but doesn't! This is a programmer's error!")
+                val start = this.temporalRangeStart ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid start timestamp but doesn't! This is a programmer's error!")
+                val end = this.temporalRangeEnd ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid end timestamp but doesn't!! This is a programmer's error!")
+                val path = this@GetTaskHintHandler.cache.asyncPreviewVideo(item, start, end).get() /* This should return immediately, since the previews have been prepared. */
+                if (Files.exists(path)) {
+                    Base64.getEncoder().encodeToString(Files.readAllBytes(path))
+                } else {
+                    null
+                }
+            }
+            DbHintType.TEXT -> this.text ?: throw IllegalStateException("A hint of type  ${this.type.description} must have a valid text.")
+            DbHintType.EMPTY -> ""
+            else -> throw IllegalStateException("The hint type ${this.type.description} is not supported.")
+        }
+
+        val contentType = when (this.type) {
+            DbHintType.IMAGE -> ApiContentType.IMAGE
+            DbHintType.VIDEO -> ApiContentType.VIDEO
+            DbHintType.TEXT -> ApiContentType.TEXT
+            DbHintType.EMPTY -> ApiContentType.EMPTY
+            else ->  throw IllegalStateException("The hint type ${this.type.description} is not supported.")
+        }
+
+        return ApiContentElement(contentType = contentType, content = content, offset = this.start ?: 0L)
     }
 }

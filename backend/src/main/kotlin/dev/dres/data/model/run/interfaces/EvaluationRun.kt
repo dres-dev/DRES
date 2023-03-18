@@ -2,11 +2,7 @@ package dev.dres.data.model.run.interfaces
 
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.DbEvaluation
-import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
-import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
-import kotlinx.dnq.query.asSequence
-import kotlinx.dnq.query.toList
 
 /**
  * Represents a [DbEvaluation] that a DRES user or client takes place in and that groups several [TaskRun]s

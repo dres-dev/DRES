@@ -51,10 +51,6 @@ object DRES {
     /** The path to the data folder. Can be different from the application root if provided via command line argument */
     var DATA_ROOT: Path = APPLICATION_ROOT
 
-    /** [Path] to the data cache folder. */
-    val CACHE_ROOT: Path
-        get() = DATA_ROOT.resolve("cache")
-
     /** Path to the directory that contains the external items. */
     val EXTERNAL_ROOT: Path
         get() = DATA_ROOT.resolve("external")
@@ -81,29 +77,29 @@ object DRES {
         /* Initialize Xodus based data store. */
         val store = this.prepareDatabase(config)
 
-        /* Initialize the Cache Manager. */
-        val cache = CacheManager(config)
+        /* Initialize the global Cache Manager. */
+        val global = CacheManager(config)
 
         /* Initialize RunExecutor. */
-        RunExecutor.init(config, store, cache)
+        RunExecutor.init(config, store, global)
 
         /* Initialize EventStreamProcessor */
         EventStreamProcessor.register( /* Add handlers here */)
         EventStreamProcessor.init()
 
         /* Initialize Rest API. */
-        RestApi.init(config, store, cache)
+        RestApi.init(config, store, global)
 
         println("Initialization complete!")
 
         if (args.isNotEmpty() && args.first() == "openapi") {
             OpenApiCommand().parse(args)
         } else {
-            Cli.loop(config, store, cache) //blocks until quit command is given
+            Cli.loop(config, store, global) //blocks until quit command is given
         }
 
         /* Stop. */
-        cache.stop()
+        global.stop()
         RestApi.stop()
         RunExecutor.stop()
         EventStreamProcessor.stop()

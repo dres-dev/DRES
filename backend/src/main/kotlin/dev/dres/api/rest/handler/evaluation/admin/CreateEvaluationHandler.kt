@@ -1,6 +1,5 @@
 package dev.dres.api.rest.handler.evaluation.admin
 
-import dev.dres.DRES
 import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.competition.ApiEvaluationStartMessage
 import dev.dres.api.rest.types.evaluation.ApiEvaluationType
@@ -26,6 +25,7 @@ import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
+import java.util.concurrent.TimeUnit
 
 /**
  * [PostRestHandler] to create an [DbEvaluation].
@@ -76,20 +76,24 @@ class CreateEvaluationHandler(store: TransientEntityStore, private val cache: Ca
 
             /* Check and prepare videos */
             val segmentTasks = template.getAllVideos()
-            segmentTasks.forEach {
+            val await = segmentTasks.map {
                 val item = it.first
                 val path = item.pathToOriginal()
                 if (!Files.exists(path)) {
                     logger.error("Required media file $path not found for item ${item.name}.")
-                    return@forEach
+                    throw ErrorStatusException(500, "Required media file $path not found for item ${item.name}.", ctx)
                 }
 
-                val cacheName = item.cachedItemName(it.second.start.toMilliseconds(), it.second.end.toMilliseconds())
-                val cachePath = DRES.CACHE_ROOT.resolve(cacheName)
-                if (!Files.exists(cachePath)) {
-                    logger.warn("Query video file for item ${item.name} not found; rendering to $cachePath")
-                    this@CreateEvaluationHandler.cache.asyncPreviewVideo(item, it.second.start.toMilliseconds(), it.second.end.toMilliseconds())
-                }
+                /** Schedule request for preparing required preview. */
+                this@CreateEvaluationHandler.cache.asyncPreviewVideo(item, it.second.start.toMilliseconds(), it.second.end.toMilliseconds())
+            }
+            await.all {
+                try {
+                    it.get(60, TimeUnit.SECONDS)
+                    true
+                 } catch (e: Throwable) {
+                    throw ErrorStatusException(500, "Required media file could not be prepared.", ctx)
+                 }
             }
 
             /* Prepare evaluation. */

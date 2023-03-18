@@ -11,36 +11,36 @@ import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
 
 /**
+ * A general purpose, [AbstractPreviewHandler] that handles image previews for different [DbMediaItem].
  *
  * @author Ralph Gasser
- * @version 1.0
+ * @version 1.0.0
  */
 class PreviewImageHandler(store: TransientEntityStore, cache: CacheManager) : AbstractPreviewHandler(store, cache) {
 
-    override val route: String = "preview/{mediaItemId}/{time}"
+    override val route: String = "preview/{mediaItemId}/{timestamp}"
     @OpenApi(
         summary = "Returns a preview image from a media item.",
         path = "/api/v2/preview/{mediaItemId}/{time}",
         operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [
-            OpenApiParam("mediaItemId", String::class, "Unique ID of the media collection.", required = true, allowEmptyValue = false),
+            OpenApiParam("mediaItemId", String::class, "Unique ID of the media item.", required = true, allowEmptyValue = false),
             OpenApiParam("timestamp", Long::class, "Time into the video in milliseconds (for videos only).", required = false, allowEmptyValue = false)
         ],
         tags = ["Media"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(type = "image/jpeg")]),
             OpenApiResponse("202"),
-            OpenApiResponse("401"),
-            OpenApiResponse("404"),
-            OpenApiResponse("400")
+            OpenApiResponse("400"),
+            OpenApiResponse("404")
         ],
         ignore = true,
         methods = [HttpMethod.GET]
     )
     override fun get(ctx: Context) {
         val params = ctx.pathParamMap()
-        val mediaItemId = params["mediaItemId"] ?: throw ErrorStatusException(400, "Media item ID not specified or invalid.", ctx)
-        val time = params["timestamp"]?.toLongOrNull()
+        val mediaItemId = params["mediaItemId"] ?: throw ErrorStatusException(400, "Media item ID was not specified or is invalid.", ctx)
+        val time = params["timestamp"]?.toLongOrNull() ?: 0L
         this.store.transactional(true) {
             val item = DbMediaItem.query(DbMediaItem::id eq mediaItemId).firstOrNull() ?: throw ErrorStatusException(404, "Could not find media item with ID ${mediaItemId}.", ctx)
             handlePreviewImageRequest(item, time, ctx)

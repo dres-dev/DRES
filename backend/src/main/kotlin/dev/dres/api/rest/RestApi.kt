@@ -22,8 +22,8 @@ import dev.dres.api.rest.handler.log.QueryLogHandler
 import dev.dres.api.rest.handler.log.ResultLogHandler
 import dev.dres.api.rest.handler.template.*
 import dev.dres.api.rest.handler.preview.GetMediaHandler
-import dev.dres.api.rest.handler.preview.MediaPreviewHandler
 import dev.dres.api.rest.handler.preview.PreviewImageHandler
+import dev.dres.api.rest.handler.preview.PreviewVideoHandler
 import dev.dres.api.rest.handler.scores.ListEvaluationScoreHandler
 import dev.dres.api.rest.handler.submission.LegacySubmissionHandler
 import dev.dres.api.rest.handler.system.CurrentTimeHandler
@@ -98,8 +98,8 @@ object RestApi {
             UserDetailsHandler(store),
 
             // Media
-            MediaPreviewHandler(store, cache),
             PreviewImageHandler(store, cache),
+            PreviewVideoHandler(store, cache),
             GetMediaHandler(store),
 
             // Collection

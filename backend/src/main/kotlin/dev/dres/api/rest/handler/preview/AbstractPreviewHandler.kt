@@ -28,6 +28,14 @@ import java.nio.file.Files
  */
 abstract class AbstractPreviewHandler(protected val store: TransientEntityStore, private val cache: CacheManager) : GetRestHandler<Any>, AccessManagedRestHandler {
 
+    companion object {
+        /** Placeholder for when image is missing. */
+        private val MISSING_IMAGE = this::class.java.getResourceAsStream("/img/missing.png").use { it!!.readAllBytes() }
+
+        /** Placeholder for when image is waiting to be loaded. */
+        private val WAITING_IMAGE = this::class.java.getResourceAsStream("/img/loading.png").use { it!!.readAllBytes() }
+    }
+
     /** All [AbstractCollectionHandler]s require [ApiRole.VIEWER]. */
     override val permittedRoles = setOf(ApiRole.VIEWER)
 
@@ -59,13 +67,42 @@ abstract class AbstractPreviewHandler(protected val store: TransientEntityStore,
     * @param ctx The request [Context]
     */
     protected fun handlePreviewImageRequest(item: DbMediaItem, time: Long?, ctx: Context) {
-        ctx.header("Cache-Control", "max-age=31622400")
         when(val result = this@AbstractPreviewHandler.cache.asyncPreviewImage(item, time ?: 0)) {
-            is CompletedFuture -> ctx.sendFile(result.get())
             is FailedFuture -> throw ErrorStatusException(500, "Failed to load preview image.", ctx)
+            is CompletedFuture -> {
+                ctx.status(200)
+                ctx.header("Cache-Control", "max-age=31622400")
+                ctx.sendFile(result.get())
+            }
             else -> {
                 ctx.status(202)
-                ctx.header("Refresh", "5")
+                ctx.header("Cache-Control", "no-store")
+                ctx.outputStream().write(WAITING_IMAGE)
+            }
+        }
+    }
+
+    /**
+     * Handles a request for a preview video based on an [DbMediaItem] and a start and end timepoint.
+     *
+     * @param item The [DbMediaItem]
+     * @param start The start timepoint of the [DbMediaItem] in ms. Only works for [DbMediaType.VIDEO].
+     * @param end The end timepoint of the [DbMediaItem] in ms. Only works for [DbMediaType.VIDEO].
+     * @param ctx The request [Context]
+     */
+    protected fun handlePreviewVideoRequest(item: DbMediaItem, start: Long, end: Long, ctx: Context) {
+        if (item.type != DbMediaType.VIDEO) throw ErrorStatusException(400, "Selected media item ${item.mediaItemId} is not a video.", ctx)
+        if (start <= end) throw ErrorStatusException(400, "Start timestamp must be greater than end timestamp.", ctx)
+        when(val result = this@AbstractPreviewHandler.cache.asyncPreviewVideo(item, start, end)) {
+            is FailedFuture -> throw ErrorStatusException(500, "Failed to load preview video.", ctx)
+            is CompletedFuture -> {
+                ctx.status(200)
+                ctx.header("Cache-Control", "max-age=31622400")
+                ctx.streamFile(result.get())
+            }
+            else -> {
+                ctx.status(202)
+                ctx.header("Cache-Control", "no-store")
             }
         }
     }

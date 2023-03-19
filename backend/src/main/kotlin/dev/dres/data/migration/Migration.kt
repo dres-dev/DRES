@@ -1,6 +1,6 @@
 package dev.dres.data.migration
 
-import dev.dres.data.model.Config
+import dev.dres.data.model.config.Config
 import jetbrains.exodus.database.TransientEntityStore
 
 /**

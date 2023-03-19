@@ -16,9 +16,8 @@ import com.github.kokorin.jaffree.ffprobe.FFprobeResult
 import com.jakewharton.picnic.table
 import dev.dres.DRES
 import dev.dres.api.rest.types.collection.ApiMediaType
-import dev.dres.data.model.Config
+import dev.dres.data.model.config.Config
 import dev.dres.data.model.media.*
-import dev.dres.mgmt.cache.CacheManager
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 import org.slf4j.LoggerFactory
@@ -347,18 +346,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
             help = "Video file types (endings) to be considered in the scan"
         ).convert { it.lowercase() }.multiple()
 
-        /** The path to the FFmpeg binary used by this [Scan] instance. */
-        private val ffmpegBin = when {
-            this@MediaCollectionCommand.config.ffmpegBinary != null && Files.isDirectory(this@MediaCollectionCommand.config.ffmpegBinary) -> this@MediaCollectionCommand.config.ffmpegBinary /* Explicitly configured. */
-            Files.isDirectory(DRES.APPLICATION_ROOT.parent.resolve("ffmpeg")) -> DRES.APPLICATION_ROOT.parent.resolve("ffmpeg") /* Distribution */
-            Files.isDirectory(DRES.APPLICATION_ROOT.parent.parent.parent.resolve("ext/ffmpeg")) -> DRES.APPLICATION_ROOT.parent.parent.parent.resolve("ext/ffmpeg") /* Debug mode. */
-            Files.isDirectory(Paths.get("ext/ffmpeg")) -> Paths.get("ext/ffmpeg")
-            Files.isDirectory(Paths.get("ffmpeg")) -> Paths.get("ffmpeg")
-            else -> throw IllegalStateException("Could not find valid FFmpeg binary path.")
-        }
-
         private fun analyze(videoPath: Path, countFrames: Boolean = false): FFprobeResult =
-            FFprobe.atPath(this.ffmpegBin)
+            FFprobe.atPath(this@MediaCollectionCommand.config.cache.ffmpegPath())
                 .setInput(videoPath)
                 .setShowStreams(true)
                 .setCountFrames(countFrames)

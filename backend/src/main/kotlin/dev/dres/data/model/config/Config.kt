@@ -1,8 +1,7 @@
-package dev.dres.data.model
+package dev.dres.data.model.config
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.ObjectMapper
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -14,8 +13,7 @@ data class Config(
     val enableSsl: Boolean = true,
     val keystorePath: String = "keystore.jks",
     val keystorePassword: String = "password",
-    val logoMaxSize: Int = 1000,
-    val ffmpegBinary: Path? = null
+    val cache: CacheConfig= CacheConfig()
 ) {
 
     companion object{

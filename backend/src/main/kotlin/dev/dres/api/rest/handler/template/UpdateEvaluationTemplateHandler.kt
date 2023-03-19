@@ -5,7 +5,7 @@ import dev.dres.api.rest.types.competition.ApiEvaluationTemplate
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.Config
+import dev.dres.data.model.config.Config
 import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.media.DbMediaCollection
 import dev.dres.data.model.template.DbEvaluationTemplate

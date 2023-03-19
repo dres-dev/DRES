@@ -7,7 +7,7 @@ import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
-import dev.dres.data.model.Config
+import dev.dres.data.model.config.Config
 import dev.dres.data.model.run.*
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.interfaces.EvaluationId

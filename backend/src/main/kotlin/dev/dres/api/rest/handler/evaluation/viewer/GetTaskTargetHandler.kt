@@ -9,7 +9,6 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.task.ApiContentElement
 import dev.dres.api.rest.types.task.ApiContentType
-import dev.dres.data.model.Config
 import dev.dres.data.model.media.DbMediaType
 import dev.dres.data.model.run.DbTaskStatus
 import dev.dres.data.model.run.RunActionContext

@@ -3,12 +3,10 @@ package dev.dres.api.rest.handler.collection
 import dev.dres.DRES
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
-import dev.dres.data.model.Config
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
-import java.nio.file.Paths
 import kotlin.streams.toList
 
 /**

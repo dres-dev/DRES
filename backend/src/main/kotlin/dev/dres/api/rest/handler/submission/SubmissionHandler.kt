@@ -4,15 +4,12 @@ import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.evaluation.ApiSubmission
-import dev.dres.api.rest.types.evaluation.ApiVerdictStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.api.rest.types.status.SuccessfulSubmissionsStatus
 import dev.dres.api.rest.types.users.ApiRole
-import dev.dres.data.model.Config
+import dev.dres.data.model.config.Config
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.RunActionContext
-import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException

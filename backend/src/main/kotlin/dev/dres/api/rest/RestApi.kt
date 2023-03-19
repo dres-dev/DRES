@@ -33,7 +33,7 @@ import dev.dres.api.rest.handler.system.LogoutHandler
 import dev.dres.api.rest.handler.users.*
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.users.ApiRole
-import dev.dres.data.model.Config
+import dev.dres.data.model.config.Config
 import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.RunExecutor
 import dev.dres.utilities.NamedThreadFactory

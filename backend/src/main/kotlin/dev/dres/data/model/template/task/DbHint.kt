@@ -1,25 +1,13 @@
 package dev.dres.data.model.template.task
 
-import dev.dres.DRES
 import dev.dres.api.rest.types.collection.time.ApiTemporalRange
 import dev.dres.api.rest.types.competition.tasks.ApiHint
-import dev.dres.api.rest.types.task.ApiContentElement
-import dev.dres.api.rest.types.task.ApiContentType
-import dev.dres.data.model.Config
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.media.time.TemporalRange
-import dev.dres.mgmt.cache.CacheManager
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
-import kotlinx.dnq.query.FilteringContext.le
 import kotlinx.dnq.simple.requireIf
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.util.*
 
 /**
  * Represents the hint given by a [DbTaskTemplate], e.g., a media item or text that is shown.

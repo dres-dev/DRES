@@ -2,13 +2,9 @@ package dev.dres.data.model.template.task
 
 import dev.dres.api.rest.types.competition.tasks.*
 import dev.dres.api.rest.types.competition.team.ApiTeam
-import dev.dres.api.rest.types.task.ApiContentElement
-import dev.dres.api.rest.types.task.ApiContentType
-import dev.dres.data.model.Config
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.media.DbMediaCollection
-import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.template.TemplateId
@@ -16,8 +12,6 @@ import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.*
 import kotlinx.dnq.simple.min
-import java.io.FileNotFoundException
-import java.io.IOException
 import java.lang.IllegalStateException
 import java.lang.Long.max
 import java.util.*

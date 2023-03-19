@@ -2,9 +2,6 @@ package dev.dres.data.model.template.task
 
 import dev.dres.api.rest.types.collection.time.ApiTemporalRange
 import dev.dres.api.rest.types.competition.tasks.ApiTarget
-import dev.dres.api.rest.types.task.ApiContentElement
-import dev.dres.api.rest.types.task.ApiContentType
-import dev.dres.data.model.Config
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.DbMediaType
 import dev.dres.data.model.media.time.TemporalPoint
@@ -12,12 +9,6 @@ import dev.dres.data.model.media.time.TemporalRange
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.simple.requireIf
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardOpenOption
-import java.util.*
 
 /**
  * Represents the target of a [DbTaskTemplate], i.e., the [DbMediaItem] or part thereof that is considered correct.

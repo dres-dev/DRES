@@ -3,7 +3,7 @@ package dev.dres
 import dev.dres.api.cli.Cli
 import dev.dres.api.cli.OpenApiCommand
 import dev.dres.api.rest.RestApi
-import dev.dres.data.model.Config
+import dev.dres.data.model.config.Config
 import dev.dres.data.model.admin.DbRole
 import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.audit.DbAuditLogEntry
@@ -78,7 +78,7 @@ object DRES {
         val store = this.prepareDatabase(config)
 
         /* Initialize the global Cache Manager. */
-        val global = CacheManager(config)
+        val global = CacheManager(config, store)
 
         /* Initialize RunExecutor. */
         RunExecutor.init(config, store, global)

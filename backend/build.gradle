@@ -47,8 +47,8 @@ compileTestKotlin {
 }
 
 dependencies {
-    def javalin = '5.3.2'
-    def javalinOpenapi = '5.3.3-SNAPSHOT'
+    def javalin = '5.4.2'
+    def javalinOpenapi = '5.4.2'
     def log4jVersion = '2.17.1'
 
     ///// Frontend files (produced by sub-project).

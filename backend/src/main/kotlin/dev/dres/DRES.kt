@@ -31,6 +31,7 @@ import kotlinx.dnq.util.initMetaData
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.absolute
 
 
 /**
@@ -65,7 +66,7 @@ object DRES {
         val config = if (args.isNotEmpty()) {
             val configPath = Paths.get(args[0])
             val config = Config.read(configPath)
-            DATA_ROOT = configPath.parent
+            DATA_ROOT = configPath.absolute().parent
             config
         } else {
             Config()

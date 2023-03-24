@@ -6,6 +6,8 @@ import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { AppConfig } from './app.config';
 import {ApiRole, ApiUser} from '../../openapi';
+import { MatDialog } from "@angular/material/dialog";
+import { ServerInfoComponent } from "./shared/server-info/server-info.component";
 
 @Component({
   selector: 'app-root',
@@ -24,7 +26,8 @@ export class AppComponent {
     private authenticationService: AuthenticationService,
     private router: Router,
     private snackBar: MatSnackBar,
-    public config: AppConfig
+    public config: AppConfig,
+    private dialog: MatDialog
   ) {
     this.user = this.authenticationService.user;
     this.loggedIn = this.authenticationService.isLoggedIn;
@@ -48,5 +51,9 @@ export class AppComponent {
 
   public profile() {
     this.router.navigate(['/user']);
+  }
+
+  public openInfoDialog(){
+    this.dialog.open(ServerInfoComponent, { width: '600px' });
   }
 }

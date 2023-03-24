@@ -13,6 +13,8 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { DynamicTableComponent } from './dynamic-table/dynamic-table.component';
 import {MatTableModule} from '@angular/material/table';
 import { ActionableDynamicTable } from './actionable-dynamic-table/actionable-dynamic-table.component';
+import { ServerInfoComponent } from './server-info/server-info.component';
+import { FlexModule } from "@angular/flex-layout";
 
 @NgModule({
   declarations: [
@@ -23,6 +25,7 @@ import { ActionableDynamicTable } from './actionable-dynamic-table/actionable-dy
     ConfirmationDialogComponent,
     DynamicTableComponent,
     ActionableDynamicTable,
+    ServerInfoComponent,
   ],
   exports: [
     BackButtonComponent,
@@ -33,6 +36,6 @@ import { ActionableDynamicTable } from './actionable-dynamic-table/actionable-dy
     DownloadButtonComponent,
     UploadJsonButtonComponent,
   ],
-  imports: [CommonModule, MatButtonModule, ServicesModule, MatIconModule, MatTooltipModule, MatDialogModule, MatTableModule],
+  imports: [CommonModule, MatButtonModule, ServicesModule, MatIconModule, MatTooltipModule, MatDialogModule, MatTableModule, FlexModule]
 })
 export class SharedModule {}

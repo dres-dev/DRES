@@ -12,8 +12,8 @@
   <button
     *ngIf="(run | async)?.state.taskStatus === 'PREPARING' || (run | async)?.state.taskStatus === 'RUNNING'"
     mat-icon-button
-    aria-label="Abort running task."
-    matTooltip="Abort running task '{{ (run | async)?.state.currentTemplate.name }}'."
+    aria-label="End running task."
+    matTooltip="End running task '{{ (run | async)?.state.currentTemplate.name }}'."
     (click)="abortTask()"
   >
     <mat-icon>cancel</mat-icon>

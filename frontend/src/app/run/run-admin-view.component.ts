@@ -199,7 +199,7 @@ export class RunAdminViewComponent {
   public abortTask() {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       data: {
-        text: 'Really abort the task?',
+        text: 'Really end the task?',
         color: 'warn',
       } as ConfirmationDialogComponentData,
     });

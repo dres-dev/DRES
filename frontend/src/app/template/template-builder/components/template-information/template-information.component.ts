@@ -16,6 +16,8 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
 
   private changeSub: Subscription;
 
+  private initOngoing = true;
+
   constructor(
       private templateService: TemplateService,
       builder: TemplateBuilderService
@@ -25,7 +27,6 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
 
   ngOnInit(): void {
     this.onInit();
-
     this.changeSub = this.form.valueChanges.subscribe(() => {
       this.builderService.markDirty();
     });
@@ -38,9 +39,18 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
 
   onChange() {
     if(this.builderService.getTemplate()){
-      this.form.get('name').setValue(this.builderService.getTemplate().name);
-      this.form.get('description').setValue(this.builderService.getTemplate().description);
+      if(this.form.get('name').value !== this.builderService.getTemplate().name){
+        this.form.get('name').setValue(this.builderService.getTemplate().name, {emitEvent: !this.initOngoing});
+      }
+      if(this.form.get('description').value !== this.builderService.getTemplate().description){
+        this.form.get('description').setValue(this.builderService.getTemplate().description, {emitEvent: !this.initOngoing});
+      }
+      // We need to check the end of init here
+      if(this.initOngoing){
+        this.initOngoing = false;
+      }
     }
   }
+
 
 }

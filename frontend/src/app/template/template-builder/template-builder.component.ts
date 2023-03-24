@@ -72,6 +72,7 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
     this.templateService.patchApiV2TemplateByTemplateId(this.builderService.getTemplate().id, this.builderService.getTemplate()).subscribe((s) => {
       this.snackBar.open(s.description, null, {duration: 5000});
       this.builderService.unmarkDirty();
+      console.log("TemplateBuilder: Saved successfully", this.builderService.isDirty())
     }, (r) => this.snackBar.open(`Error: ${r?.error?.description}`, null, {duration: 5000}));
   }
 

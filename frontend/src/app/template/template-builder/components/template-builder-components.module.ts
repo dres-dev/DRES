@@ -12,12 +12,14 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatTableModule} from '@angular/material/table';
+import { TeamsListComponent } from './teams-list/teams-list.component';
 
 
 @NgModule({
     declarations: [
         TemplateInformationComponent,
-        JudgesListComponent
+        JudgesListComponent,
+        TeamsListComponent
     ],
     imports: [
         CommonModule,
@@ -32,7 +34,7 @@ import {MatTableModule} from '@angular/material/table';
         MatAutocompleteModule,
         MatTableModule
     ],
-    exports: [TemplateInformationComponent, JudgesListComponent]
+    exports: [TemplateInformationComponent, JudgesListComponent, TeamsListComponent]
 })
 export class TemplateBuilderComponentsModule {
 }

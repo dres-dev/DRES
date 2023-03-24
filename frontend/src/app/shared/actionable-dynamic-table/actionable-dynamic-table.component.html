@@ -9,14 +9,16 @@
         <td mat-cell *matCellDef="let element">
             <ng-container [ngSwitch]="column.type">
                 <ng-container *ngSwitchCase="'action'">
-                    <ng-container [ngSwitch]="column.action">
-                        <button *ngSwitchCase="'edit'" mat-icon-button aria-label="Edit this element" matTooltip="Edit this element" (click)="onEdit(element)">
-                            <mat-icon>edit</mat-icon>
-                        </button>
-                        <button *ngSwitchCase="'remove'" mat-icon-button aria-label="Remove this element" matTooltip="Remove this element" (click)="onRemove(element)">
-                            <mat-icon>remove</mat-icon>
-                        </button>
-                    </ng-container>
+                    <ng-template *ngIf="column.actions">
+                        <ng-container *ngFor="let action of column.actions">
+                            <button *ngSwitchCase="'edit'" mat-icon-button aria-label="Edit this element" matTooltip="Edit this element" (click)="onEdit(element)">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                            <button *ngSwitchCase="'remove'" mat-icon-button aria-label="Remove this element" matTooltip="Remove this element" (click)="onRemove(element)">
+                                <mat-icon>remove</mat-icon>
+                            </button>
+                        </ng-container>
+                    </ng-template>
                 </ng-container>
                 <div *ngSwitchDefault>
                     {{ element[column.property] }}

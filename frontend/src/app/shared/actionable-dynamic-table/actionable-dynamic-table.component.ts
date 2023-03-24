@@ -6,13 +6,18 @@ export class ActionableDynamicTableColumnDefinition {
   type: ActionableDynamicTableColumnType;
   header: string;
 
-  action?: ActionableDynamicTableActionType
+  actions?: ActionableDynamicTableActionType[]
+  /**
+   * The name of the template to use in case this has the type CUSTOM
+   */
+  customName?: string;
 }
 
 export enum ActionableDynamicTableColumnType {
   TEXT = 'text',
   NUMBER = 'number',
-  ACTION = 'action'
+  ACTION = 'action',
+  CUSTOM = 'custom'
 }
 
 export enum ActionableDynamicTableActionType{

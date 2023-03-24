@@ -3,7 +3,7 @@
         <button mat-icon-button (click)="back()">
             <mat-icon>arrow_back</mat-icon>
         </button>
-        <h1>Edit competition {{(builderService.templateAsObservable() | async)?.id}} <span *ngIf="builderService.isDirty" class="warn-color">(unsaved changes)</span></h1>
+        <h1>Edit competition {{(builderService.templateAsObservable() | async)?.id}} <span *ngIf="(builderService.dirty() | async)" class="warn-color">(unsaved changes)</span></h1>
     </div>
 
     <div class="spacer-flex"></div>
@@ -35,7 +35,7 @@
         </mat-tab>
         <mat-tab bodyClass="p2e" label="Teams & Judges">
             <div fxLayout="row" fxLayoutAlign="space-between start">
-                <p fxFlex="68">TEAMS</p>
+                <app-teams-list fxFlex="68"></app-teams-list>
                 <app-judges-list fxFlex="28"></app-judges-list>
             </div>
         </mat-tab>

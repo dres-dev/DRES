@@ -16,14 +16,13 @@ export class TemplateBuilderService {
 
   private shouldLogDirtyChanges = true;
   private templateSubject: BehaviorSubject<ApiEvaluationTemplate> = new BehaviorSubject<ApiEvaluationTemplate>(null);
-  private dirty = false;
+  private dirtySubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   constructor() {
   }
 
   public initialise(template: ApiEvaluationTemplate){
     this.templateSubject.next(template);
-    this.markDirty(); // might be a little early
   }
 
   public getTemplate(){
@@ -57,22 +56,26 @@ export class TemplateBuilderService {
   }
 
   public checkDirty(){
-    if(!this.dirty){
+    if(!this.dirtySubject.value){
       return true;
     }
     return confirm('There are unsaved changes in this evaluation template that will be lost. Do you really want to proceed?')
   }
 
   public markDirty(){
-    this.dirty = true;
+    this.dirtySubject.next(true);
   }
 
   public unmarkDirty(){
-    this.dirty = false;
+    this.dirtySubject.next(false);
   }
 
   public isDirty(){
-    return this.dirty;
+    return this.dirtySubject.value;
+  }
+
+  public dirty(){
+    return this.dirtySubject.asObservable();
   }
 
   public removeTaskType(taskType: ApiTaskType){

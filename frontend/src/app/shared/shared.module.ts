@@ -35,6 +35,7 @@ import { FlexModule } from "@angular/flex-layout";
     ApiStatusComponent,
     DownloadButtonComponent,
     UploadJsonButtonComponent,
+    ActionableDynamicTable
   ],
   imports: [CommonModule, MatButtonModule, ServicesModule, MatIconModule, MatTooltipModule, MatDialogModule, MatTableModule, FlexModule]
 })

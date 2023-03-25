@@ -15,6 +15,8 @@ import {MatTableModule} from '@angular/material/table';
 import { TeamsListComponent } from './teams-list/teams-list.component';
 import { TaskTypesListComponent } from './task-types-list/task-types-list.component';
 import { MatListModule } from "@angular/material/list";
+import { TaskGroupsListComponent } from './task-groups-list/task-groups-list.component';
+import { SharedModule } from "../../../shared/shared.module";
 
 
 @NgModule({
@@ -22,7 +24,8 @@ import { MatListModule } from "@angular/material/list";
         TemplateInformationComponent,
         JudgesListComponent,
         TeamsListComponent,
-        TaskTypesListComponent
+        TaskTypesListComponent,
+        TaskGroupsListComponent
     ],
   imports: [
     CommonModule,
@@ -36,9 +39,10 @@ import { MatListModule } from "@angular/material/list";
     MatMenuModule,
     MatAutocompleteModule,
     MatTableModule,
-    MatListModule
+    MatListModule,
+    SharedModule
   ],
-  exports: [TemplateInformationComponent, JudgesListComponent, TeamsListComponent, TaskTypesListComponent]
+  exports: [TemplateInformationComponent, JudgesListComponent, TeamsListComponent, TaskTypesListComponent, TaskGroupsListComponent]
 })
 export class TemplateBuilderComponentsModule {
 }

@@ -2,9 +2,10 @@ import {Component, Input, OnInit, ViewChild} from '@angular/core';
 import {MatTable} from '@angular/material/table';
 
 export class ActionableDynamicTableColumnDefinition {
-  property: string;
-  type: ActionableDynamicTableColumnType;
+  key: string;
   header: string;
+  type: ActionableDynamicTableColumnType;
+  property?: string;
 
   actions?: ActionableDynamicTableActionType[]
   /**
@@ -23,12 +24,6 @@ export enum ActionableDynamicTableColumnType {
 export enum ActionableDynamicTableActionType{
   EDIT= 'edit',
   REMOVE = 'remove'
-}
-
-export interface ActionableDynamicTableHandler<T>{
-  add(): T;
-  edit(obj: T);
-  beforeRemove(obj: T): boolean;
 }
 
 @Component({
@@ -53,36 +48,36 @@ export class ActionableDynamicTable<T> {
   @Input()
   public trackByProperty?: string;
 
-  private handler: ActionableDynamicTableHandler<T>;
+  @Input()
+  public onEdit?: (element: T) => void;
+
+  @Input()
+  public onRemove?: (element: T) => void;
+
+
 
   @ViewChild('table')
   table: MatTable<T>
 
   constructor() { }
 
-  public setHandler(handler: ActionableDynamicTableHandler<T>){
-    this.handler = handler;
-  }
-
-  onEdit(element: T){
-    if(this.handler){
-      this.handler.edit(element);
+  edit(element: T){
+    if(this.onEdit){
+      this.onEdit(element);
+      this.table.renderRows();
     }
   }
 
-  onAdd(){
-    if(this.handler){
-      const newElement = this.handler.add();
-      this.dataSource.push(newElement);
+
+  remove(element: T){
+    if(this.onRemove){
+      this.onRemove(element);
+      this.table.renderRows();
     }
   }
 
-  onRemove(element: T){
-    if(this.handler){
-      if(this.handler.beforeRemove(element)){
-        this.dataSource.splice(this.dataSource.indexOf(element), 1);
-      }
-    }
+  public renderRows(){
+    this.table.renderRows();
   }
 
 

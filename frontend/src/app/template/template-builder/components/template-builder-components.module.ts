@@ -17,6 +17,12 @@ import { TaskTypesListComponent } from './task-types-list/task-types-list.compon
 import { MatListModule } from "@angular/material/list";
 import { TaskGroupsListComponent } from './task-groups-list/task-groups-list.component';
 import { SharedModule } from "../../../shared/shared.module";
+import { TaskTemplatesListComponent } from './tasks-list/task-templates-list.component';
+import { TaskTemplateEditorComponent } from './task-template-editor/task-template-editor.component';
+import { MatSelectModule } from "@angular/material/select";
+import { MatButtonToggleModule } from "@angular/material/button-toggle";
+import { MatGridListModule } from "@angular/material/grid-list";
+import { CompetitionBuilderModule } from "../../../competition/competition-builder/competition-builder.module";
 
 
 @NgModule({
@@ -25,7 +31,9 @@ import { SharedModule } from "../../../shared/shared.module";
         JudgesListComponent,
         TeamsListComponent,
         TaskTypesListComponent,
-        TaskGroupsListComponent
+        TaskGroupsListComponent,
+        TaskTemplatesListComponent,
+        TaskTemplateEditorComponent
     ],
   imports: [
     CommonModule,
@@ -40,9 +48,13 @@ import { SharedModule } from "../../../shared/shared.module";
     MatAutocompleteModule,
     MatTableModule,
     MatListModule,
-    SharedModule
+    SharedModule,
+    MatSelectModule,
+    MatButtonToggleModule,
+    MatGridListModule,
+    CompetitionBuilderModule
   ],
-  exports: [TemplateInformationComponent, JudgesListComponent, TeamsListComponent, TaskTypesListComponent, TaskGroupsListComponent]
+  exports: [TemplateInformationComponent, JudgesListComponent, TeamsListComponent, TaskTypesListComponent, TaskGroupsListComponent, TaskTemplatesListComponent, TaskTemplateEditorComponent]
 })
 export class TemplateBuilderComponentsModule {
 }

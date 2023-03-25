@@ -1,22 +1,26 @@
-import {Component, HostListener, OnDestroy, OnInit} from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import {AbstractTemplateBuilderComponent} from './components/abstract-template-builder.component';
 import {DeactivationGuarded} from '../../services/can-deactivate.guard';
 import {Observable, Subscription} from 'rxjs';
-import {DownloadService, TemplateService, UserService} from '../../../../openapi';
+import { ApiTaskGroup, ApiTaskTemplate, ApiTaskType, DownloadService, TemplateService, UserService } from "../../../../openapi";
 import {ActivatedRoute, Router, RouterStateSnapshot} from '@angular/router';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {TemplateBuilderService} from './template-builder.service';
 import {take} from 'rxjs/operators';
+import { TaskTemplateEditorLauncher } from "./components/tasks-list/task-templates-list.component";
+import { TaskTemplateEditorComponent } from "./components/task-template-editor/task-template-editor.component";
 
 @Component({
   selector: 'app-template-builder',
   templateUrl: './template-builder.component.html',
   styleUrls: ['./template-builder.component.scss']
 })
-export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy, DeactivationGuarded {
+export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy, DeactivationGuarded, TaskTemplateEditorLauncher {
   onChange() {
 
   }
+
+  @ViewChild('taskTemplateEditor', {static: true}) taskEditor: TaskTemplateEditorComponent;
 
   routeSub: Subscription;
   changeSub: Subscription;
@@ -69,7 +73,7 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
   public save(){
     // FIXME re-enable form validation. possibly on the form-builder?
     console.log("save")
-    this.templateService.patchApiV2TemplateByTemplateId(this.builderService.getTemplate().id, this.builderService.getTemplate()).subscribe((s) => {
+    this.templateService.patchApiV2TemplateByTemplateId(this.builderService.getTemplate().id, this.builderService.getTemplateCleaned()).subscribe((s) => {
       this.snackBar.open(s.description, null, {duration: 5000});
       this.builderService.unmarkDirty();
       console.log("TemplateBuilder: Saved successfully", this.builderService.isDirty())
@@ -96,6 +100,13 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
     if(this.builderService.checkDirty()){
       this.ngOnInit();
     }
+  }
+
+  editTask(taskType: ApiTaskType, taskGroup: ApiTaskGroup, task?: ApiTaskTemplate) {
+    this.taskEditor.taskType = taskType;
+    this.taskEditor.taskGroup = taskGroup;
+    this.taskEditor.task = task;
+    this.taskEditor.init();
   }
 
 }

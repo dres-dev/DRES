@@ -46,7 +46,10 @@
             </div>
         </mat-tab>
         <mat-tab bodyClass="p2e" label="Tasks">
-            tasks
+            <div fxLayout="row" fxLayoutAlign="space-between start">
+                <app-task-templates-list [editorLauncher]="this" fxFlex="48"></app-task-templates-list>
+                <app-task-template-editor #taskTemplateEditor fxFlex="48"></app-task-template-editor>
+            </div>
         </mat-tab>
 
     </mat-tab-group>

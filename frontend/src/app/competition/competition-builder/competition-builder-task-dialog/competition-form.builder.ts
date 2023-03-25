@@ -192,7 +192,7 @@ export class CompetitionFormBuilder {
       targets:  (this.form.get('target') as FormArray).controls.map((t) => {
           return {
             type: t.get('type').value,
-            target: t.get('mediaItem') ? t.get('mediaItem').value.mediaItemId : null,
+            target: t.get('mediaItem')?.value?.mediaItemId ?? null,
             range:
               t.get('segment_start') && t.get('segment_start')
                 ? ({
@@ -237,7 +237,7 @@ export class CompetitionFormBuilder {
    */
   private initializeForm() {
     this.form = new FormGroup({
-      id: new FormControl(this.data?.id),
+      id: new FormControl(this.data?.id ?? `_${Date.now()}`),
       name: new FormControl(this.data?.name, [Validators.required]),
       duration: new FormControl(this.durationInitValue, [Validators.required, Validators.min(1)]),
       mediaCollection: new FormControl(this.data?.collectionId, [Validators.required]),

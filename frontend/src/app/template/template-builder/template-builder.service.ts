@@ -30,6 +30,13 @@ export class TemplateBuilderService {
     return this.templateSubject.getValue();
   }
 
+  public getTemplateCleaned(){
+    const template = this.templateSubject.getValue();
+    console.log(template.tasks);
+    template.tasks.filter((t) => t.id.startsWith('_')).forEach((t) => t.id = '');
+    return template;
+  }
+
   public templateAsObservable(){
     return this.templateSubject.asObservable();
   }
@@ -41,8 +48,13 @@ export class TemplateBuilderService {
   }
 
   public updateTask(task: ApiTaskTemplate){
+    console.log('update task', task);
+    if(this.getTemplate().tasks == null || this.getTemplate().tasks.length === 0){
+      this.templateSubject.getValue().tasks.push(task);
+    }
     const idx = this.getTemplate().tasks.findIndex(t => t.id === task.id);
     this.templateSubject.getValue().tasks[idx] = task;
+    this.update(this.getTemplate());
     this.markDirty();
   }
 

@@ -66,7 +66,7 @@ import { NgxSliderModule } from '@angular-slider/ngx-slider';
     SharedModule,
     ColorPickerModule,
   ],
-  exports: [CompetitionBuilderComponent],
+  exports: [CompetitionBuilderComponent, VideoPlayerSegmentBuilderComponent],
   declarations: [
     CompetitionBuilderComponent,
     CompetitionBuilderTeamDialogComponent,

@@ -96,7 +96,7 @@ export class CompetitionBuilderTeamDialogComponent {
    *
    * @param user The selected user.
    */
-  public removeUser(user: number): void {
+  public removeUser(user: ApiUser): void {
     const index = this.form.get('users').value.indexOf(user);
     if (index >= 0) {
       this.form.get('users').value.splice(index, 1);

@@ -14,7 +14,7 @@
           [removable]="true"
           (removed)="removeUser(user)"
         >
-          {{ (userForId(user) | async)?.username }}
+          {{ user.username }}
           <mat-icon matChipRemove>cancel</mat-icon>
         </mat-chip>
         <input placeholder="New user..." [matAutocomplete]="auto" [matChipInputFor]="chipList" />

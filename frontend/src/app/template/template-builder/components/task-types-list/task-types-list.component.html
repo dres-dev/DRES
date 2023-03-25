@@ -1,0 +1,34 @@
+<div style="display: flex; align-items: center">
+  <h2>Task types</h2>
+  <div class="spacer-flex"></div>
+  <button mat-button aria-label="Add new task type." matTooltip="Add new task type." [matMenuTriggerFor]="taskTypeMenu">
+    <mat-icon>add</mat-icon>Add task type
+  </button>
+  <mat-menu #taskTypeMenu="matMenu">
+    <button mat-menu-item (click)="addTaskType()">New ...</button>
+    <button mat-menu-item [matMenuTriggerFor]="taskTypePresets">Presets</button>
+  </mat-menu>
+
+  <mat-menu #taskTypePresets="matMenu">
+    <button mat-menu-item (click)="addTaskType(tkisPreset)">Textual known item search</button>
+    <button mat-menu-item (click)="addTaskType(vkisPreset)">Visual known item search</button>
+    <button mat-menu-item (click)="addTaskType(avsPreset)">Ad-hoc video search</button>
+    <button mat-menu-item (click)="addTaskType(lscPreset)">Lifelog Search Challenge</button>
+  </mat-menu>
+</div>
+<mat-list>
+  <mat-list-item *ngFor="let taskType of (types | async)" style="height:auto;">
+    <div fxLayout="column" width="100%;">
+      <div fxLayout="row" fxLayoutAlign="space-between start" fxFlexFill>
+        <h3>{{taskType.name}}</h3>
+        <div class="spacer-flex"></div>
+        <button mat-button aria-label="Remove task type." matTooltip="Remove task type." (click)="remove(taskType)"><mat-icon>remove</mat-icon></button>
+      </div>
+      <div fxLayout="row" fxLayoutAlign="space-between start" fxLayoutGap="2">
+        <span fxFlex="none"><b>Scoring: </b>{{taskType.scoreOption}}</span>
+        <span fxFlex="none"><b>Hints: </b><span *ngFor="let h of taskType.hintOptions">{{h}},</span></span>
+        <span fxFlex><b>Target: </b>{{taskType.targetOption}}</span>
+      </div>
+    </div>
+  </mat-list-item>
+</mat-list>

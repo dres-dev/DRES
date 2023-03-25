@@ -40,7 +40,10 @@
             </div>
         </mat-tab>
         <mat-tab bodyClass="p2e" label="Task Types & Task Groups">
-            types and groups
+            <div fxLayout="row" fxLayoutAlign="space-between start">
+                <app-task-types-list fxFlex="48"></app-task-types-list>
+                <div fxLex="48">groups</div>
+            </div>
         </mat-tab>
         <mat-tab bodyClass="p2e" label="Tasks">
             tasks

@@ -22,6 +22,7 @@ export class TemplateBuilderService {
   }
 
   public initialise(template: ApiEvaluationTemplate){
+    this.unmarkDirty();
     this.templateSubject.next(template);
   }
 
@@ -82,6 +83,7 @@ export class TemplateBuilderService {
     this.getTemplate().taskTypes.splice(this.getTemplate().taskTypes.indexOf(taskType), 1);
     this.getTemplate().taskGroups.filter((g) => g.type === taskType.name)
         .forEach((g) => this.removeTaskGroup(g));
+    this.update(this.getTemplate())
   }
 
   public removeTaskGroup(taskGroup: ApiTaskGroup){

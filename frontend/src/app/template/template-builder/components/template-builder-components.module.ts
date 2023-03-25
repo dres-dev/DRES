@@ -13,28 +13,32 @@ import {MatMenuModule} from '@angular/material/menu';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatTableModule} from '@angular/material/table';
 import { TeamsListComponent } from './teams-list/teams-list.component';
+import { TaskTypesListComponent } from './task-types-list/task-types-list.component';
+import { MatListModule } from "@angular/material/list";
 
 
 @NgModule({
     declarations: [
         TemplateInformationComponent,
         JudgesListComponent,
-        TeamsListComponent
+        TeamsListComponent,
+        TaskTypesListComponent
     ],
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        MatInputModule,
-        FlexModule,
-        MatButtonModule,
-        MatTooltipModule,
-        MatIconModule,
-        MatMenuModule,
-        MatAutocompleteModule,
-        MatTableModule
-    ],
-    exports: [TemplateInformationComponent, JudgesListComponent, TeamsListComponent]
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    FlexModule,
+    MatButtonModule,
+    MatTooltipModule,
+    MatIconModule,
+    MatMenuModule,
+    MatAutocompleteModule,
+    MatTableModule,
+    MatListModule
+  ],
+  exports: [TemplateInformationComponent, JudgesListComponent, TeamsListComponent, TaskTypesListComponent]
 })
 export class TemplateBuilderComponentsModule {
 }

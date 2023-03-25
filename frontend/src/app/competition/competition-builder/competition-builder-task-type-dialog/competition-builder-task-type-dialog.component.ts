@@ -161,7 +161,9 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
     for (let configurationKey in this.data?.configuration) {
       const keyParts = configurationKey.split('.');
       console.log(configurationKey, this?.data.configuration[configurationKey])
-      parameters.push([keyParts[0] as ApiSubmissionOption, keyParts[1], this?.data.configuration[configurationKey]]);
+      const param: [string,string,string] = [keyParts[0] as ApiSubmissionOption, keyParts[1], this?.data.configuration[configurationKey]];
+      console.log(param);
+      parameters.push(param);
     }
     /*
     --- Legacy. Keep to check validity
@@ -226,7 +228,7 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
 
       /* Parameters: Optional */
       parameters: new FormArray(
-        parameters.map((v) => new FormArray([new FormControl(v[0]), new FormControl(v[1])]))
+        parameters.map((v) => new FormArray([new FormControl(v[0]), new FormControl(v[1]), new FormControl(v[2])]))
       ),
     });
   }

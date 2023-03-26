@@ -110,7 +110,9 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
 
             /* Update task information. */
             val taskIds = apiValue.tasks.mapNotNull { it.id }.toTypedArray()
-            existing.tasks.removeAll(DbTaskTemplate.query(DbTaskTemplate::evaluation eq existing and not(DbTaskTemplate::id.containsIn(*taskIds))))
+            DbTaskTemplate.query(DbTaskTemplate::evaluation eq existing and not(DbTaskTemplate::id.containsIn(*taskIds))).asSequence().forEach {
+                it.delete()
+            }
             for (task in apiValue.tasks) {
                 val t = if (task.id != null) {
                     existing.tasks.filter { it.id eq task.id }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown task ${task.id} for evaluation ${apiValue.id}.", ctx)

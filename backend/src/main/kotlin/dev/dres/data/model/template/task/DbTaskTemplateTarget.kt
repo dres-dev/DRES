@@ -29,7 +29,7 @@ class DbTaskTemplateTarget(entity: Entity) : XdEntity(entity) {
     var item by xdLink0_1(DbMediaItem)
 
     /** The target text. Can be null. */
-    var text by xdStringProp() { requireIf { item == null }}
+    var text by xdStringProp() { requireIf { item?.type == DbMediaType.TEXT }}
 
     /** The start of a (potential) range. */
     var start by xdNullableLongProp { requireIf { item?.type == DbMediaType.VIDEO } }

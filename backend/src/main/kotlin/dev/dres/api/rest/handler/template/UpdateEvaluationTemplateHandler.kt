@@ -127,12 +127,12 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 /* Update task targets. */
                 t.targets.clear()
                 for (target in task.targets) {
-                    val item = DbMediaItem.query(DbMediaItem::id eq target.target).first()
+                    val item = DbMediaItem.query(DbMediaItem::id eq target.target).firstOrNull()
                     t.targets.add(DbTaskTemplateTarget.new {
                         this.item = item
                         this.type = target.type.toDb()
-                        this.start = target.range?.start?.toTemporalPoint(item.fps ?: 0.0f)?.toMilliseconds()
-                        this.end = target.range?.end?.toTemporalPoint(item.fps ?: 0.0f)?.toMilliseconds()
+                        this.start = target.range?.start?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
+                        this.end = target.range?.end?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
                     })
                 }
 

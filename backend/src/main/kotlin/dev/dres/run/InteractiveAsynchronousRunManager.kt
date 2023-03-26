@@ -540,6 +540,13 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
 
     }
 
+    override fun reScore(taskId: TaskId) {
+        val task = evaluation.tasks.find { it.taskId == taskId }
+        if (task != null) {
+            this.scoresUpdatable.enqueue(task)
+        }
+    }
+
     /**
      * Invoked by an external caller to update an existing [DbSubmission] by its [DbSubmission.submissionId] with a new [DbVerdictStatus].
      * [DbSubmission]s usually cause updates to the internal state and/or the [Scoreboard] of this [InteractiveAsynchronousRunManager].

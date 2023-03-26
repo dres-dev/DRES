@@ -490,6 +490,13 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.taskId))
     }
 
+    override fun reScore(taskId: TaskId) {
+        val task = evaluation.tasks.find { it.taskId == taskId }
+        if (task != null) {
+            this.scoresUpdatable.enqueue(task)
+        }
+    }
+
     /**
      * Processes incoming [DbSubmission]s. If a [DbTask] is running then that [DbSubmission] will usually
      * be associated with that [DbTask].

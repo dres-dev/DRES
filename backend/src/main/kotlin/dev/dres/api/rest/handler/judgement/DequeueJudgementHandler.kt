@@ -45,7 +45,7 @@ class DequeueJudgementHandler(store: TransientEntityStore) : AbstractJudgementHa
         val evaluationManager = ctx.eligibleManagerForId()
 
         /* Start transaction. */
-        this.store.transactional {
+        val request = this.store.transactional {
             checkEligibility(ctx, evaluationManager)
             do {
                 val validator = evaluationManager.judgementValidators.find { it.hasOpen } ?: break
@@ -70,7 +70,8 @@ class DequeueJudgementHandler(store: TransientEntityStore) : AbstractJudgementHa
                     else -> continue
                 }
             } while (true)
+            null
         }
-        throw ErrorStatusException(202, "There is currently no submission awaiting judgement.", ctx)
+        return request ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement.", ctx)
     }
 }

@@ -237,7 +237,7 @@ export class CompetitionFormBuilder {
    */
   private initializeForm() {
     this.form = new FormGroup({
-      id: new FormControl(this.data?.id ?? `_${Date.now()}`),
+      id: new FormControl(this.data?.id),
       name: new FormControl(this.data?.name, [Validators.required]),
       duration: new FormControl(this.durationInitValue, [Validators.required, Validators.min(1)]),
       mediaCollection: new FormControl(this.data?.collectionId, [Validators.required]),

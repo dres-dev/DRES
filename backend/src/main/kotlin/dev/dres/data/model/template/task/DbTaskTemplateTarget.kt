@@ -2,6 +2,7 @@ package dev.dres.data.model.template.task
 
 import dev.dres.api.rest.types.collection.time.ApiTemporalRange
 import dev.dres.api.rest.types.competition.tasks.ApiTarget
+import dev.dres.api.rest.types.competition.tasks.ApiTaskTemplate
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.DbMediaType
 import dev.dres.data.model.media.time.TemporalPoint
@@ -29,13 +30,13 @@ class DbTaskTemplateTarget(entity: Entity) : XdEntity(entity) {
     var item by xdLink0_1(DbMediaItem)
 
     /** The target text. Can be null. */
-    var text by xdStringProp() { requireIf { item?.type == DbMediaType.TEXT }}
+    var text by xdStringProp() { requireIf { this.type == DbTargetType.TEXT }}
 
     /** The start of a (potential) range. */
-    var start by xdNullableLongProp { requireIf { item?.type == DbMediaType.VIDEO } }
+    var start by xdNullableLongProp { requireIf { this.type == DbTargetType.MEDIA_ITEM_TEMPORAL_RANGE } }
 
     /** The start of a (potential) range. */
-    var end by xdNullableLongProp { requireIf { item?.type == DbMediaType.VIDEO } }
+    var end by xdNullableLongProp { requireIf { this.type == DbTargetType.MEDIA_ITEM_TEMPORAL_RANGE } }
 
     /** Returns the [TemporalRange] of this [DbTaskTemplateTarget]. */
     val range: TemporalRange?
@@ -46,21 +47,11 @@ class DbTaskTemplateTarget(entity: Entity) : XdEntity(entity) {
         }
 
     /**
-     * Generates and returns a textual description of this [DbTaskTemplateTarget].
+     * Converts this [DbTaskTemplateTarget] to a RESTful API representation [ApiTaskTemplate].
      *
-     * @return Text
-     */
-    fun textDescription(): String = when (this.type) {
-        DbTargetType.JUDGEMENT -> "Judgement"
-        DbTargetType.JUDGEMENT_WITH_VOTE -> "Judgement with vote"
-        DbTargetType.MEDIA_ITEM -> "Media item ${this.item?.name}"
-        DbTargetType.MEDIA_ITEM_TEMPORAL_RANGE -> "Media item ${this.item?.name} @ ${this.start} - ${this.end}"
-        DbTargetType.TEXT -> "Text: ${this.text}"
-        else -> throw IllegalStateException("The task description type ${this.type.description} is currently not supported.")
-    }
-
-    /**
+     * This is a convenience method and requires an active transaction context.
      *
+     * @return [ApiTarget]
      */
     fun toApi(): ApiTarget = when(this.type) {
         DbTargetType.JUDGEMENT,

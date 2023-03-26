@@ -81,13 +81,21 @@ class CacheManager(private val config: Config, private val store: TransientEntit
         synchronized {
             return try {
                 when(item.type()) {
-                    MediaItemType.IMAGE -> this.executor.submit(PreviewImageFromImageRequest(item.pathToOriginal(), output))
-                    MediaItemType.VIDEO ->  this.executor.submit(PreviewImageFromVideoRequest(item.pathToOriginal(), output, frame))
-                    MediaItemType.TEXT -> return FailedFuture("Cannot generate a preview from a textual media item.")
+                    MediaItemType.IMAGE -> {
+                        val ret = this.executor.submit(PreviewImageFromImageRequest(item.pathToOriginal(), output))
+                        this@CacheManager.inTransit[output] = ret
+                        ret
+                    }
+                    MediaItemType.VIDEO -> {
+                        val ret = this.executor.submit(PreviewImageFromVideoRequest(item.pathToOriginal(), output, frame))
+                        this@CacheManager.inTransit[output] = ret
+                        ret
+                    }
+                    else -> FailedFuture("Cannot generate a preview image from a media item that is neither a video nor an image.")
                 }
             } catch (e: Throwable) {
                 LOGGER.error(e.message)
-                return FailedFuture("Could generate preview image: ${e.message}")
+                FailedFuture("Could generate preview image: ${e.message}")
             }
         }
     }
@@ -115,13 +123,16 @@ class CacheManager(private val config: Config, private val store: TransientEntit
         synchronized {
             return try {
                 when(item.type()) {
-                    MediaItemType.VIDEO ->  this.executor.submit(PreviewVideoFromVideoRequest(item.pathToOriginal(), output, start, end))
-                    MediaItemType.IMAGE ->  return FailedFuture("Cannot generate a video preview from a image media item.")
-                    MediaItemType.TEXT -> return FailedFuture("Cannot generate a video preview from a textual media item.")
+                    MediaItemType.VIDEO -> {
+                        val ret = this.executor.submit(PreviewVideoFromVideoRequest(item.pathToOriginal(), output, start, end))
+                        this@CacheManager.inTransit[output] = ret
+                        ret
+                    }
+                    else -> FailedFuture("Cannot generate a video preview from a media item that is not a video.")
                 }
             } catch (e: Throwable) {
                 LOGGER.error(e.message)
-                return FailedFuture("Could generate preview video: ${e.message}")
+                FailedFuture("Could generate preview video: ${e.message}")
             }
         }
     }

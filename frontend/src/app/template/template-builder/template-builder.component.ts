@@ -99,6 +99,7 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
   refresh() {
     if(this.builderService.checkDirty()){
       this.ngOnInit();
+      this.builderService.selectTaskTemplate(null);
     }
   }
 

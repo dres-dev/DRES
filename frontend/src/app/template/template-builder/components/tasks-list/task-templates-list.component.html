@@ -1,5 +1,5 @@
 <div fxLayout="row" fxLayoutAlign="space-between start">
-  <h2>Tasks</h2>
+  <h2>Tasks</h2><button (click)="logTasks()">debug</button>
   <div class="spacer-flex"></div>
   <mat-menu #taskMenu="matMenu">
     <button *ngFor="let group of (groups | async)" mat-menu-item (click)="addTask(group)">

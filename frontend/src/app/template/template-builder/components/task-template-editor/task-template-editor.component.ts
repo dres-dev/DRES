@@ -1,7 +1,7 @@
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { AbstractTemplateBuilderComponent } from "../abstract-template-builder.component";
 import { TemplateBuilderService } from "../../template-builder.service";
-import { Observable } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import {
   ApiHintOption, ApiHintType,
   ApiMediaCollection, ApiMediaItem, ApiTargetOption,
@@ -32,7 +32,7 @@ import {
   templateUrl: './task-template-editor.component.html',
   styleUrls: ['./task-template-editor.component.scss']
 })
-export class TaskTemplateEditorComponent  implements OnInit {
+export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 
   @Input()
   public task?: ApiTaskTemplate;
@@ -58,6 +58,8 @@ export class TaskTemplateEditorComponent  implements OnInit {
   videoSegmentData: VideoPlayerSegmentBuilderData;
 
   private imagePreviewMap = new Set<number>();
+  private taskSub: Subscription;
+  
 
   constructor(private builderService: TemplateBuilderService,
               public collectionService: CollectionService,
@@ -65,25 +67,37 @@ export class TaskTemplateEditorComponent  implements OnInit {
               private dialog: MatDialog) {}
 
   ngOnInit(): void {
-    if(!this.isInactive() ){
-      this.init();
-    }
+    this.taskSub = this.builderService.selectedTaskTemplateAsObservable().subscribe((t)=>{
+      console.log("Editor selected template sub", t);
+      if(t){
+        this.task = t;
+        this.taskGroup = this.builderService.selectedTaskGroup;
+        this.taskType = this.builderService.selectedTaskType;
+        this.init();
+      }else{
+        console.log("Editor: task unselected")
+        this.task = null;
+        this.taskGroup = null;
+        this.taskType = null;
+      }
+    })
+  }
+
+  ngOnDestroy() {
+    this.taskSub.unsubscribe();
+    this.taskSub = null;
   }
 
   public init(){
-    this.formBuilder = new CompetitionFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.task);
+    console.log("INIT")
+    const newTask = this.task.id === undefined && this.task.name === undefined && this.task.taskGroup !== undefined && this.task.taskType !== undefined;
+    this.formBuilder = new CompetitionFormBuilder(this.taskGroup, this.taskType, this.collectionService, newTask ? null : this.task);
     this.form = this.formBuilder.form;
     this.form.valueChanges.subscribe(newValue => {
       this.builderService.updateTask(this.formBuilder.fetchFormData())
       this.builderService.markDirty()
     });
     this.mediaCollectionSource = this.collectionService.getApiV2CollectionList();
-  }
-
-  public isInactive(){
-    const hasNoType = this.taskType == null
-    const hasNoGroup = this.taskGroup == null
-    return (hasNoGroup && hasNoType)
   }
 
   public isFormValid(){

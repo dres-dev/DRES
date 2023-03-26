@@ -206,7 +206,7 @@ export class CompetitionFormBuilder {
 
     /* Set ID of set. */
     data.id = this.form.get('id')?.value ?? null;
-
+    console.log("FETCH", data);
     return data;
   }
 
@@ -250,9 +250,9 @@ export class CompetitionFormBuilder {
   private formForTarget() {
     switch (this.taskType.targetOption) {
       case 'SINGLE_MEDIA_ITEM':
-        return new FormArray([this.singleMediaItemTargetForm(0, this.data?.targets[0])]);
+        return new FormArray([this.singleMediaItemTargetForm(0, this.data?.targets[0] ?? null)]);
       case 'SINGLE_MEDIA_SEGMENT':
-        return new FormArray([this.singleMediaSegmentTargetForm(this.data?.targets[0])]);
+        return new FormArray([this.singleMediaSegmentTargetForm(this.data?.targets[0] ?? null)]);
       case 'JUDGEMENT':
         return new FormArray([new FormGroup({type: new FormControl(ApiTargetType.JUDGEMENT)})]);
       case 'VOTE':

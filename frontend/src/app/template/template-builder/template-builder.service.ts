@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import {ApiEvaluationTemplate, ApiTaskGroup, ApiTaskTemplate, ApiTaskType} from '../../../../openapi';
-import {BehaviorSubject} from 'rxjs';
+import { BehaviorSubject, Observable } from "rxjs";
+import { map } from "rxjs/operators";
 
 
 /**
@@ -11,6 +12,14 @@ import {BehaviorSubject} from 'rxjs';
   providedIn: 'root'
 })
 export class TemplateBuilderService {
+  get selectedTaskGroup(): ApiTaskGroup {
+    return this._selectedTaskGroup;
+  }
+
+  get selectedTaskType(): ApiTaskType {
+    return this._selectedTaskType;
+  }
+
 
   // TODO might be worthwhile to be the sole provider for a template, i.e. fetching the template from the API would be handled here as well...
 
@@ -18,22 +27,71 @@ export class TemplateBuilderService {
   private templateSubject: BehaviorSubject<ApiEvaluationTemplate> = new BehaviorSubject<ApiEvaluationTemplate>(null);
   private dirtySubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
+  private selectedTaskTemplate: BehaviorSubject<ApiTaskTemplate> = new BehaviorSubject<ApiTaskTemplate>(null);
+  private _selectedTaskType: ApiTaskType;
+  private _selectedTaskGroup: ApiTaskGroup;
+
   constructor() {
+  }
+
+  public selectTaskTemplate(task: ApiTaskTemplate){
+    console.log("BuilderService.selectTaskTemplate task", task);
+    console.log("BuilderService.selectTaskTemplate template's tasks", this.getTemplate().tasks);
+    if(task){
+      const index = this.getTemplate().tasks.indexOf(task);
+      console.log("BuilderService.selectTaskTemplate, index", index);
+      if(index < 0){
+        console.log("BuilderService.selectTaskTemplate, NEW Task");
+        /* new task: we'll have to add id */
+        this.getTemplate().tasks.push(task);
+        this.update(this.getTemplate());
+      }
+      this._selectedTaskGroup = this.findGroupByName(task.taskGroup);
+      this._selectedTaskType = this.findTypeByName(task.taskType);
+      this.selectedTaskTemplate.next(task);
+    }else{
+      console.log("BuilderService.selectTaskTemplate UNSELECT");
+      this.selectedTaskTemplate.next(null);
+      this._selectedTaskGroup = null;
+      this._selectedTaskType = null;
+    }
+  }
+
+  public selectedTaskTemplateAsObservable(){
+    return this.selectedTaskTemplate.asObservable();
+  }
+
+  public getSelectedTaskTemplate(){
+    return this.selectedTaskTemplate.getValue();
+  }
+
+  public findTypeForGroup(group: ApiTaskGroup){
+    return this.getTemplate().taskTypes.find((v) => v.name === group.type);
+  }
+
+  public findGroupByName(name: string){
+    return this.getTemplate().taskGroups.find((v) => v.name === name);
+  }
+
+  public findTypeByName(name: string){
+    return this.getTemplate().taskTypes.find((v) => v.name === name);
   }
 
   public initialise(template: ApiEvaluationTemplate){
     this.unmarkDirty();
     this.templateSubject.next(template);
+    console.log("BuilderService.init", template);
   }
 
   public getTemplate(){
     return this.templateSubject.getValue();
   }
 
+  /**
+   * @deprecated
+   */
   public getTemplateCleaned(){
     const template = this.templateSubject.getValue();
-    console.log(template.tasks);
-    template.tasks.filter((t) => t.id.startsWith('_')).forEach((t) => t.id = '');
     return template;
   }
 
@@ -41,18 +99,48 @@ export class TemplateBuilderService {
     return this.templateSubject.asObservable();
   }
 
+  public taskTemplatesAsObservable(): Observable<ApiTaskTemplate[]>{
+    return this.templateAsObservable().pipe(map((t) => {
+      if(t){
+        return t.tasks;
+      }else{
+        return [];
+      }
+    }));
+  }
+
+  public taskTypesAsObservable(): Observable<ApiTaskType[]>{
+    return this.templateAsObservable().pipe(map((t) => {
+      if(t){
+        return t.taskTypes;
+      }else{
+        return [];
+      }
+    }));
+  }
+
+  public taskGroupsAsObservable(): Observable<ApiTaskGroup[]>{
+    return this.templateAsObservable().pipe(map((t) => {
+      if(t){
+        return t.taskGroups;
+      }else{
+        return [];
+      }
+    }))
+  }
+
   public update(template: ApiEvaluationTemplate = null){
     template = template ? template : this.templateSubject.getValue();
+    console.log("BuilderService.update", template)
     this.templateSubject.next(template);
     this.markDirty();
   }
 
   public updateTask(task: ApiTaskTemplate){
     console.log('update task', task);
-    if(this.getTemplate().tasks == null || this.getTemplate().tasks.length === 0){
-      this.templateSubject.getValue().tasks.push(task);
-    }
-    const idx = this.getTemplate().tasks.findIndex(t => t.id === task.id);
+    console.log('update task, all', this.getTemplate().tasks);
+    const idx = this.getTemplate().tasks.indexOf(task);
+    console.log('update task, index', idx);
     this.templateSubject.getValue().tasks[idx] = task;
     this.update(this.getTemplate());
     this.markDirty();
@@ -66,6 +154,9 @@ export class TemplateBuilderService {
     this.unmarkDirty();
     this.templateSubject.unsubscribe();
     this.templateSubject = undefined;
+    this.selectedTaskTemplate.next(null);
+    this._selectedTaskType = null;
+    this._selectedTaskGroup = null;
   }
 
   public checkDirty(){

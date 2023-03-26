@@ -1,4 +1,4 @@
-<ng-container *ngIf="isInactive(); then inactive; else active">
+<ng-container *ngIf="!task; then inactive; else active">
 </ng-container>
 <ng-template #inactive>
   <p>Currently no task selected</p>
@@ -270,7 +270,7 @@
                 />
               </mat-form-field>
               <button
-                *ngIf="isImageMediaItem(target.get('mediaItem').value)"
+                *ngIf="target.get('mediaItem') && isImageMediaItem(target.get('mediaItem').value)"
                 style="width: 5%"
                 mat-icon-button
                 aria-label="Show media item."

@@ -1,6 +1,7 @@
 package dev.dres.run.validation.judged
 
 import dev.dres.data.model.submissions.*
+import dev.dres.run.RunExecutor
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.exceptions.JudgementTimeoutException
 import dev.dres.run.validation.interfaces.JudgementValidator
@@ -167,6 +168,10 @@ open class BasicJudgementValidator(
         //remove from queue set
         val otherSubmissions = this.queuedItemRanges.remove(itemRange)
         otherSubmissions?.forEach { it.status(status) }
+
+        //trigger score update
+        RunExecutor.managerForId(answerSet.task.evaluation.evaluationId)?.reScore(answerSet.taskId)
+
 
         return@write answerSet
     }

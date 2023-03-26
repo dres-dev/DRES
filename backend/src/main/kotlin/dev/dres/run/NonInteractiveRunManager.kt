@@ -170,4 +170,8 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
     override fun postSubmission(context: RunActionContext, submission: ApiSubmission) {
         TODO("Not yet implemented")
     }
+
+    override fun reScore(taskId: TaskId) {
+        TODO("Not yet implemented")
+    }
 }

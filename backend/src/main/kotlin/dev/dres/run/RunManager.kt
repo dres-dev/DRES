@@ -132,4 +132,9 @@ interface RunManager : Runnable {
      * @return True if [ClientMessage] was processed, false otherwise
      */
     fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean
+
+    /**
+     * Triggers a re-scoring of submissions. Used by Judgement validation mechanism.
+     */
+    fun reScore(taskId: TaskId)
 }

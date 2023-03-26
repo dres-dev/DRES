@@ -64,6 +64,7 @@ class DbHint(entity: Entity) : XdEntity(entity) {
         type = this.type.toApi(),
         start = this.start,
         end = this.end,
+        description = this.text,
         mediaItem = this.item?.id,
         dataType = this.type.mimeType,
         path = this.path,

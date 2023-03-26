@@ -177,7 +177,7 @@ export class CompetitionFormBuilder {
           type: c.get('type').value,
           start: c.get('start').value,
           end: c.get('end').value,
-          mediaItem: c.get('mediaItem') ? c.get('mediaItem').value.mediaItemId : null,
+          mediaItem: c.get('mediaItem')?.value?.mediaItemId ?? null,
           range:
             c.get('segment_start') && c.get('segment_end')
               ? ({
@@ -205,9 +205,7 @@ export class CompetitionFormBuilder {
     } as ApiTaskTemplate;
 
     /* Set ID of set. */
-    if (this.form.get('id').value) {
-      data.id = this.form.get('id').value;
-    }
+    data.id = this.form.get('id')?.value ?? null;
 
     return data;
   }

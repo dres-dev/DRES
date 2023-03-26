@@ -199,7 +199,7 @@ class CacheManager(private val config: Config, private val store: TransientEntit
         val minutes = (ms % (1000 * 3600)) / (60_000)
         val seconds = (ms % 60_000) / 1000
         val milliseconds = ms % 1000
-        return "$hours:$minutes:$seconds.${"%03d".format(milliseconds)}"
+        return "$hours:${"%02d".format(minutes)}:${"%02d".format(seconds)}.${"%03d".format(milliseconds)}"
     }
 
     /**
@@ -262,7 +262,7 @@ class CacheManager(private val config: Config, private val store: TransientEntit
     inner class PreviewVideoFromVideoRequest constructor(input: Path, output: Path, private val start: Long, private val end: Long): AbstractPreviewRequest(input, output){
         override fun call(): Path = try {
             val startTimecode = millisecondToTimestamp(this.start)
-            val endTimecode = millisecondToTimestamp(this.start)
+            val endTimecode = millisecondToTimestamp(this.end)
             LOGGER.info(MARKER, "Start rendering segment for video $input from $startTimecode to $endTimecode")
             FFmpeg.atPath(this@CacheManager.ffmpegBin)
                 .addInput(UrlInput.fromPath(this.input))

@@ -34,12 +34,9 @@ import {
 })
 export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 
-  @Input()
   public task: ApiTaskTemplate;
 
-  @Input()
   public taskType: ApiTaskType;
-  @Input()
   public taskGroup: ApiTaskGroup;
 
   form: FormGroup;
@@ -135,8 +132,24 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
   /**
    * Handler for (+) button for query hint form component.
    */
-  public addQueryComponent(componentType: ApiHintType, previous: number = null) {
-    this.formBuilder.addComponentForm(componentType, previous);
+  public addQueryComponent(componentType: ApiHintOption, previous: number = null) {
+    switch(componentType){
+      case 'IMAGE_ITEM':
+        this.formBuilder.addComponentForm(ApiHintType.IMAGE, previous);
+        break;
+      case 'VIDEO_ITEM_SEGMENT':
+        this.formBuilder.addComponentForm(ApiHintType.VIDEO, previous);
+        break;
+      case 'TEXT':
+        this.formBuilder.addComponentForm(ApiHintType.TEXT, previous);
+        break;
+      case 'EXTERNAL_IMAGE':
+        this.formBuilder.addComponentForm(ApiHintType.IMAGE, previous, true); // FIXME not entirely supported
+        break;
+      case 'EXTERNAL_VIDEO':
+        this.formBuilder.addComponentForm(ApiHintType.VIDEO, previous, true); // FIXME not entirely supported
+        break;
+    }
   }
 
   /**

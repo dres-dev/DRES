@@ -112,7 +112,6 @@ export class CompetitionBuilderTaskDialogComponent {
       case 'EXTERNAL_VIDEO':
         this.builder.addComponentForm(ApiHintType.VIDEO, previous); // FIXME not entirely supported
         break;
-
     }
   }
 

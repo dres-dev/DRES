@@ -3074,7 +3074,7 @@
         "security" : [ ]
       }
     },
-    "/api/v2/external/<startsWith>" : {
+    "/api/v2/external/{startsWith}" : {
       "get" : {
         "tags" : [ "Collection" ],
         "summary" : "Lists items from the external media collection whose name start with the given string.",
@@ -5038,12 +5038,9 @@
           "fps" : {
             "type" : "number",
             "format" : "float"
-          },
-          "collection" : {
-            "$ref" : "#/components/schemas/MediaItemCollection"
           }
         },
-        "required" : [ "mediaItemId", "name", "type", "collectionId", "location", "collection" ]
+        "required" : [ "mediaItemId", "name", "type", "collectionId", "location" ]
       },
       "ApiMediaType" : {
         "type" : "string",
@@ -6173,16 +6170,6 @@
           }
         },
         "required" : [ "timestamp", "sortType", "resultSetAvailability", "results", "events", "serverTimeStamp$backend" ]
-      },
-      "MediaItemCollection" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "id" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "id" ]
       },
       "TemporalPoint" : {
         "type" : "object",

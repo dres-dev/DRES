@@ -69,22 +69,21 @@ export class CompetitionFormBuilder {
    * @param type The {@link ConfiguredOptionQueryComponentType.OptionEnum} to add a {@link FormGroup} for.
    * @param afterIndex The {@link FormControl} to insert the new {@link FormControl} after.
    */
-  public addComponentForm(type: ApiHintType, afterIndex: number = null) {
+  public addComponentForm(type: ApiHintType, afterIndex: number = null, external : boolean = false) {
     const array = this.form.get('components') as FormArray;
     const newIndex = afterIndex ? afterIndex + 1 : array.length;
     let component = null;
     switch (type) {
-      // FIXME cannot differ external from internal in video / image
       case 'EMPTY':
         break;
       case 'TEXT':
         component = this.textItemComponentForm(newIndex);
         break;
       case 'VIDEO':
-        component = this.videoItemComponentForm(newIndex);
+        component = external ?  this.externalVideoItemComponentForm(newIndex) : this.videoItemComponentForm(newIndex);
         break;
       case 'IMAGE':
-        component = this.imageItemComponentForm(newIndex);
+        component = external ? this.externalImageItemComponentForm(newIndex) : this.imageItemComponentForm(newIndex);
         break;
       default:
         console.error(`Failed to add query hint: Unsupported component type '${type}.`);
@@ -636,7 +635,8 @@ export class CompetitionFormBuilder {
         Validators.max(this.taskType.duration),
       ]),
       end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
-      type: new FormControl('EXTERNAL_IMAGE', [Validators.required]),
+      type: new FormControl('IMAGE', [Validators.required]),
+      external: new FormControl(true),
       path: pathFormControl,
     });
   }
@@ -668,7 +668,8 @@ export class CompetitionFormBuilder {
         Validators.max(this.taskType.duration),
       ]),
       end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
-      type: new FormControl('EXTERNAL_VIDEO', [Validators.required]),
+      type: new FormControl('VIDEO', [Validators.required]),
+      external: new FormControl(true),
       path: pathFormControl,
     });
   }

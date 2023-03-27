@@ -23,7 +23,7 @@ class ListExternalItemHandler: GetRestHandler<Array<String>> {
 
     @OpenApi(
         summary = "Lists items from the external media collection whose name start with the given string.",
-        path = "/api/v2/external/<startsWith>",
+        path = "/api/v2/external/{startsWith}",
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.GET],
         pathParams = [
@@ -38,12 +38,14 @@ class ListExternalItemHandler: GetRestHandler<Array<String>> {
         ]
     )
     override fun doGet(ctx: Context): Array<String> {
+        // TODO https://github.com/javalin/javalin-openapi/issues/178 Apparently, we cannot use the slash-included notation here (https://javalin.io/documentation#endpoint-handlers)
         val startsWith = ctx.pathParamMap()["startsWith"] ?: ""
         val list = Files.walk(DRES.EXTERNAL_ROOT, 1, FileVisitOption.FOLLOW_LINKS).filter {
-            Files.isRegularFile(it) && it.fileName.toString().startsWith(startsWith)
-        }.limit(50).map { it.toString() }.toList()
+                Files.isRegularFile(it) && it.toFile().name.startsWith(startsWith)
+
+        }.limit(50).map { it.toFile().name }.toList()
         return list.toTypedArray()
     }
 
-    override val route: String = "external/<startsWith>"
+    override val route: String = "external/{startsWith}"
 }

@@ -370,4 +370,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
         Java Regex matching is used.`;
   }
 
+  close() {
+    this.builderService.selectTaskTemplate(null);
+  }
 }

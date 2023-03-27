@@ -2,10 +2,9 @@ package dev.dres.run.score.scorer
 
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.media.MediaItemType
-import dev.dres.data.model.run.interfaces.TaskRun
+import dev.dres.data.model.media.time.TemporalRange
 import dev.dres.data.model.submissions.*
 import dev.dres.run.score.Scoreable
-import dev.dres.utilities.TimeUtil
 
 /**
  * A [TeamTaskScorer] used for AVS tasks.
@@ -43,7 +42,7 @@ class AvsTaskScorer(override val scoreable: Scoreable) : TaskScorer {
                 MediaItemType.IMAGE -> 1
                 MediaItemType.VIDEO -> {
                     val ranges = it.value.asSequence().map { s -> s.answers().first().temporalRange!! }.toList()
-                    TimeUtil.merge(ranges, overlap = 1).size
+                    TemporalRange.merge(ranges, overlap = 1).size
                 }
                 else -> throw IllegalStateException("Unsupported media type ${it.key!!.type()} for AVS task scorer.")
             }

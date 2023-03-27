@@ -2,6 +2,8 @@ package dev.dres.api.rest.types.collection
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.media.*
+import kotlinx.dnq.query.filter
+import kotlinx.dnq.query.first
 import kotlinx.dnq.util.findById
 
 /**
@@ -28,7 +30,7 @@ data class ApiMediaItem(
     }
 
     override fun dbCollection(): DbMediaCollection {
-        return DbMediaCollection.findById(this.collectionId)
+        return DbMediaCollection.filter { it.id eq collectionId }.first()
     }
 
     override fun type(): MediaItemType = MediaItemType.fromApi(this.type)

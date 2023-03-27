@@ -1,6 +1,5 @@
 package dev.dres.api.rest.handler.submission
 
-import dev.dres.DRES
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
@@ -24,14 +23,12 @@ import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionRejectedException
-import dev.dres.utilities.TimeUtil
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 import org.slf4j.LoggerFactory
-import java.nio.file.Files
 import java.util.*
 
 /**
@@ -266,7 +263,8 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
                 ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_ITEM' is missing but required!'", ctx)
             val range: Pair<Long, Long>? = when {
                 map.containsKey(PARAMETER_NAME_SHOT) && item.type == DbMediaType.VIDEO -> {
-                    val time = TimeUtil.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item.segments.toList())
+                    val shot = map[PARAMETER_NAME_SHOT]?.first()!!
+                    val time = item.segments.filter { it.name eq shot }.firstOrNull()?.range?.toMilliseconds()//TimeUtil.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item.segments.toList())
                         ?: throw ErrorStatusException(
                             400,
                             "Shot '${item.name}.${map[PARAMETER_NAME_SHOT]?.first()!!}' not found.",
@@ -278,7 +276,7 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
                 map.containsKey(PARAMETER_NAME_FRAME) && item.type == DbMediaType.VIDEO -> {
                     val fps = item.fps
                         ?: throw IllegalStateException("Missing media item fps information prevented mapping from frame number to milliseconds.")
-                    val time = TemporalPoint.Frame.toMilliseconds(
+                    val time = TemporalPoint.Frame(
                         map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull()
                             ?: throw ErrorStatusException(
                                 400,
@@ -288,14 +286,15 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
                         fps
                     )
                     if (mapToSegment) {
-                        TimeUtil.timeToSegment(time, item.segments.toList())
+                        DbMediaSegment.findContaining(item, time)?.range?.toMilliseconds()//TimeUtil.timeToSegment(time, item.segments.toList())
                             ?: throw ErrorStatusException(
                                 400,
                                 "No matching segments found for item '${item.name}'.",
                                 ctx
                             )
                     } else {
-                        time to time
+                        val ms = time.toMilliseconds()
+                        ms to ms
                     }
                 }
 
@@ -303,21 +302,23 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
                     val fps = item.fps
                         ?: throw IllegalStateException("Missing media item fps information prevented mapping from frame number to milliseconds.")
                     val time =
-                        TemporalPoint.Timecode.timeCodeToMilliseconds(map[PARAMETER_NAME_TIMECODE]?.first()!!, fps)
+                        TemporalPoint.Millisecond(TemporalPoint.Timecode.timeCodeToMilliseconds(map[PARAMETER_NAME_TIMECODE]?.first()!!, fps)
                             ?: throw ErrorStatusException(
                                 400,
                                 "'${map[PARAMETER_NAME_TIMECODE]?.first()!!}' is not a valid time code",
                                 ctx
                             )
+                        )
                     if (mapToSegment) {
-                        TimeUtil.timeToSegment(time, item.segments.toList())
+                        DbMediaSegment.findContaining(item, time)?.range?.toMilliseconds()//TimeUtil.timeToSegment(time, item.segments.toList())
                             ?: throw ErrorStatusException(
                                 400,
                                 "No matching segments found for item '${item.name}'.",
                                 ctx
                             )
                     } else {
-                        time to time
+                        val ms = time.toMilliseconds()
+                        ms to ms
                     }
                 }
 

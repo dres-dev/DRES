@@ -17,6 +17,43 @@ data class TemporalRange constructor(val start: TemporalPoint, val end: Temporal
         require(start.toMilliseconds() <= end.toMilliseconds()) {"Start point must be before End point in TemporalRange"}
     }
 
+    companion object {
+        /**
+         * merges overlapping ranges
+         */
+        fun merge(ranges: List<TemporalRange>, overlap: Int = 0): List<TemporalRange> {
+
+            if (ranges.isEmpty()){
+                return emptyList()
+            }
+
+            val pairs = ranges.map { it.toMilliseconds() }.sortedBy { it.first }
+
+            var i = 1
+            var current = pairs.first()
+
+            val merged = mutableListOf<Pair<Long, Long>>()
+
+            while (i < pairs.size){
+                val next = pairs[i]
+
+                //if overlapping, merge
+                current = if (current.second + overlap >= next.first){
+                    current.copy(second = next.second)
+                } else { //else add to list and continue
+                    merged.add(current)
+                    next
+                }
+                ++i
+            }
+            merged.add(current)
+
+            return merged.map { TemporalRange(it.first, it.second) }
+
+        }
+    }
+
+
     /**
      * Returns the duration of this [TemporalRange] in milliseconds.
      */

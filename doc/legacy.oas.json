@@ -1,116 +1,91 @@
 {
   "openapi" : "3.0.3",
   "info" : {
-    "title" : "DRES API (client)",
+    "title" : "DRES API",
     "summary" : null,
-    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 1.0",
+    "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0",
     "termsOfService" : null,
     "contact" : null,
     "license" : null,
-    "version" : "1.0"
+    "version" : "2.0.0"
   },
   "paths" : {
-    "/api/v1/submit" : {
+    "/api/v2/audit/info" : {
       "get" : {
-        "tags" : [ "Submission" ],
-        "summary" : "Endpoint to accept submissions",
-        "operationId" : "getApiV1Submit",
+        "tags" : [ "Audit" ],
+        "summary" : "Gives information about the audit log. Namely size and latest timestamp of known entries.",
+        "operationId" : "getApiV2AuditInfo",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "The audit log info.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AuditLogInfo"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Whenever a non-admin user executes the call.",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/audit/log/list/limit/{limit}/{page}" : {
+      "get" : {
+        "tags" : [ "Audit" ],
+        "summary" : "Lists all audit logs matching the query.",
+        "operationId" : "getApiV2AuditLogListLimitByLimitByPage",
         "parameters" : [ {
-          "name" : "collection",
-          "in" : "query",
-          "description" : "Collection identifier. Optional, in which case the default collection for the run will be considered.",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "item",
-          "in" : "query",
-          "description" : "Identifier for the actual media object or media file.",
+          "name" : "limit",
+          "in" : "path",
+          "description" : "The maximum number of results. Default: 500",
           "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "text",
-          "in" : "query",
-          "description" : "Text to be submitted. ONLY for tasks with target type TEXT. If this parameter is provided, it superseeds all athers.",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "frame",
-          "in" : "query",
-          "description" : "Frame number for media with temporal progression (e.g., video).",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : true,
           "schema" : {
             "type" : "integer",
             "format" : "int32"
           }
         }, {
-          "name" : "shot",
-          "in" : "query",
-          "description" : "Shot number for media with temporal progression (e.g., video).",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }, {
-          "name" : "timecode",
-          "in" : "query",
-          "description" : "Timecode for media with temporal progression (e.g,. video).",
-          "required" : false,
-          "deprecated" : false,
-          "allowEmptyValue" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "session",
-          "in" : "query",
-          "description" : "Session Token",
+          "name" : "page",
+          "in" : "path",
+          "description" : "The page index offset, relative to the limit.",
           "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
-            "type" : "string"
+            "type" : "integer",
+            "format" : "int32"
           }
         } ],
         "responses" : {
           "200" : {
-            "description" : "OK",
+            "description" : "The audit logs",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiAuditLogEntry"
+                  }
                 }
               }
             }
           },
-          "202" : {
-            "description" : "Accepted",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
+          "403" : {
+            "description" : "Whenever a non-admin user starts the call",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -118,29 +93,56 @@
                 }
               }
             }
-          },
-          "401" : {
-            "description" : "Unauthorized",
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/audit/log/list/since/{since}/{upto}" : {
+      "get" : {
+        "tags" : [ "Audit" ],
+        "summary" : "Lists all audit logs matching the query",
+        "operationId" : "getApiV2AuditLogListSinceBySinceByUpto",
+        "parameters" : [ {
+          "name" : "since",
+          "in" : "path",
+          "description" : "Timestamp of the earliest audit log to include",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "upto",
+          "in" : "path",
+          "description" : "Timestamp of the latest audit log to include.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The audit logs",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiAuditLogEntry"
+                  }
                 }
               }
             }
           },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "412" : {
-            "description" : "Precondition Failed",
+          "403" : {
+            "description" : "Whenever a non-admin user starts the call",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -161,7 +163,7 @@
         "operationId" : "getApiV2ClientEvaluationCurrentTaskByEvaluationId",
         "parameters" : [ {
           "name" : "evaluationId",
-          "in" : "path",
+          "in" : "query",
           "description" : "The evaluation ID.",
           "required" : true,
           "deprecated" : false,
@@ -241,11 +243,527 @@
         "security" : [ ]
       }
     },
+    "/api/v2/collection" : {
+      "post" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Adds a new media collection.",
+        "operationId" : "postApiV2Collection",
+        "parameters" : [ ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ApiMediaCollection"
+              }
+            }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "patch" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Updates a media collection",
+        "operationId" : "patchApiV2Collection",
+        "parameters" : [ ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ApiMediaCollection"
+              }
+            }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/collection/list" : {
+      "get" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Lists all available media collections with basic information about their content.",
+        "operationId" : "getApiV2CollectionList",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiMediaCollection"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/collection/{collectionId}" : {
+      "delete" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Deletes a media collection identified by a collection id.",
+        "operationId" : "deleteApiV2CollectionByCollectionId",
+        "parameters" : [ {
+          "name" : "collectionId",
+          "in" : "path",
+          "description" : "Collection ID",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "get" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Shows the content of the specified media collection.",
+        "operationId" : "getApiV2CollectionByCollectionId",
+        "parameters" : [ {
+          "name" : "collectionId",
+          "in" : "path",
+          "description" : "Collection ID",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiPopulatedMediaCollection"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/collection/{collectionId}/random" : {
+      "get" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Selects and returns a random media item from a given media collection.",
+        "operationId" : "getApiV2CollectionByCollectionIdRandom",
+        "parameters" : [ {
+          "name" : "collectionId",
+          "in" : "path",
+          "description" : "Collection ID",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiMediaItem"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/collection/{collectionId}/resolve" : {
+      "post" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Resolves a list of media item names to media items",
+        "operationId" : "postApiV2CollectionByCollectionIdResolve",
+        "parameters" : [ {
+          "name" : "collectionId",
+          "in" : "path",
+          "description" : "Collection ID",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiMediaItem"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/collection/{collectionId}/{startsWith}" : {
+      "get" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Lists media items from a given media collection whose name start with the given string.",
+        "operationId" : "getApiV2CollectionByCollectionIdByStartsWith",
+        "parameters" : [ {
+          "name" : "collectionId",
+          "in" : "path",
+          "description" : "Collection ID",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "startsWith",
+          "in" : "path",
+          "description" : "Name the item(s) should start with.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiMediaItem"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
     "/api/v2/download/evaluation/{evaluationId}" : {
       "get" : {
         "tags" : [ "Download" ],
         "summary" : "Provides a JSON download of the entire evaluation  structure.",
         "operationId" : "getApiV2DownloadEvaluationByEvaluationId",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "text/plain" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/download/evaluation/{evaluationId}/scores" : {
+      "get" : {
+        "tags" : [ "Download" ],
+        "summary" : "Provides a CSV download with the scores for a given evaluation.",
+        "operationId" : "getApiV2DownloadEvaluationByEvaluationIdScores",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
@@ -444,88 +962,6 @@
             "format" : "int32"
           }
         } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/evaluation/admin/{evaluationId}/override/{answerSetId}" : {
-      "patch" : {
-        "tags" : [ "Evaluation Administrator" ],
-        "summary" : "Override the verdict status of an AnswerSet.",
-        "operationId" : "patchApiV2EvaluationAdminByEvaluationIdOverrideByAnswerSetId",
-        "parameters" : [ {
-          "name" : "evaluationId",
-          "in" : "path",
-          "description" : "The evaluation ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "answerSetId",
-          "in" : "path",
-          "description" : "The ID of the AnswerSet.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/ApiVerdictStatus"
-              }
-            }
-          },
-          "required" : false
-        },
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -794,6 +1230,78 @@
                   "items" : {
                     "$ref" : "#/components/schemas/ApiSubmissionInfo"
                   }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/evaluation/admin/{evaluationId}/submission/override" : {
+      "patch" : {
+        "tags" : [ "Evaluation Administrator" ],
+        "summary" : "Override the submission status for a given submission.",
+        "operationId" : "patchApiV2EvaluationAdminByEvaluationIdSubmissionOverride",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ApiSubmission"
+              }
+            }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiSubmission"
                 }
               }
             }
@@ -1571,7 +2079,7 @@
           "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
-          "required" : true,
+          "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -1663,7 +2171,7 @@
           "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
-          "required" : true,
+          "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -1745,7 +2253,7 @@
           "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
-          "required" : true,
+          "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -1810,7 +2318,7 @@
           "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
-          "required" : true,
+          "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -1834,6 +2342,71 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/evaluation/{evaluationId}/scoreboard/list" : {
+      "get" : {
+        "tags" : [ "Evaluation Scores" ],
+        "summary" : "Returns a list of available scoreboard names for the given evaluation.",
+        "operationId" : "getApiV2EvaluationByEvaluationIdScoreboardList",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  }
                 }
               }
             }
@@ -2009,7 +2582,7 @@
           "name" : "timestamp",
           "in" : "path",
           "description" : "Timestamp that marks the lower bound for returned submissions.",
-          "required" : true,
+          "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -2284,7 +2857,7 @@
           "name" : "evaluationId",
           "in" : "path",
           "description" : "The evaluation ID.",
-          "required" : true,
+          "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -2308,6 +2881,71 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/external/<startsWith>" : {
+      "get" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Lists items from the external media collection whose name start with the given string.",
+        "operationId" : "getApiV2ExternalByStartsWith",
+        "parameters" : [ {
+          "name" : "startsWith",
+          "in" : "path",
+          "description" : "Name starts with.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  }
                 }
               }
             }
@@ -2565,6 +3203,172 @@
         "security" : [ ]
       }
     },
+    "/api/v2/mediaItem" : {
+      "post" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Adds a media item to the specified media collection.",
+        "operationId" : "postApiV2MediaItem",
+        "parameters" : [ ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ApiMediaItem"
+              }
+            }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/mediaItem/{mediaId}" : {
+      "delete" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Tries to delete a specific media item.",
+        "operationId" : "deleteApiV2MediaItemByMediaId",
+        "parameters" : [ {
+          "name" : "mediaId",
+          "in" : "path",
+          "description" : "Media item ID",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/mediaItem/{mediaItemId}" : {
+      "get" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Selects and returns a specific media item.",
+        "operationId" : "getApiV2MediaItemByMediaItemId",
+        "parameters" : [ {
+          "name" : "mediaItemId",
+          "in" : "path",
+          "description" : "Media item ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiMediaItem"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
     "/api/v2/mediaitem" : {
       "patch" : {
         "tags" : [ "Collection" ],
@@ -2594,6 +3398,335 @@
           },
           "400" : {
             "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/score/evaluation/{evaluationId}" : {
+      "get" : {
+        "tags" : [ "Evaluation Scores" ],
+        "summary" : "Returns the score overviews of a specific evaluation run.",
+        "operationId" : "getApiV2ScoreEvaluationByEvaluationId",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiScoreOverview"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/score/evaluation/{evaluationId}/current" : {
+      "get" : {
+        "tags" : [ "Evaluation Scores" ],
+        "summary" : "Returns the overviews of all score boards for the current task, if it is either running or has just ended.",
+        "operationId" : "getApiV2ScoreEvaluationByEvaluationIdCurrent",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiScoreOverview"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/score/evaluation/{evaluationId}/history/{taskId}" : {
+      "get" : {
+        "tags" : [ "Evaluation Scores" ],
+        "summary" : "Returns the overviews of all score boards for the specified task.",
+        "operationId" : "getApiV2ScoreEvaluationByEvaluationIdHistoryByTaskId",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "taskId",
+          "in" : "path",
+          "description" : "The task ID",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiScoreOverview"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/score/evaluation/{evaluationId}/series/{scoreboard}" : {
+      "get" : {
+        "tags" : [ "Evaluation Scores" ],
+        "summary" : "Returns a time series for a given run and scoreboard.",
+        "operationId" : "getApiV2ScoreEvaluationByEvaluationIdSeriesByScoreboard",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "scoreboard",
+          "in" : "path",
+          "description" : "Name of the scoreboard to return the time series for.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiScoreSeries"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/score/evaluation/{evaluationId}/teamGroup/list" : {
+      "get" : {
+        "tags" : [ "Evaluation Scores" ],
+        "summary" : "Returns team group aggregated values of the current task.",
+        "operationId" : "getApiV2ScoreEvaluationByEvaluationIdTeamGroupList",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiTeamGroupValue"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -2652,6 +3785,150 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/CurrentTime"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/submit" : {
+      "get" : {
+        "tags" : [ "Submission" ],
+        "summary" : "Endpoint to accept submissions",
+        "operationId" : "getApiV2Submit",
+        "parameters" : [ {
+          "name" : "collection",
+          "in" : "query",
+          "description" : "Collection identifier. Optional, in which case the default collection for the run will be considered.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "item",
+          "in" : "query",
+          "description" : "Identifier for the actual media object or media file.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "text",
+          "in" : "query",
+          "description" : "Text to be submitted. ONLY for tasks with target type TEXT. If this parameter is provided, it superseeds all athers.",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "frame",
+          "in" : "query",
+          "description" : "Frame number for media with temporal progression (e.g., video).",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "shot",
+          "in" : "query",
+          "description" : "Shot number for media with temporal progression (e.g., video).",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "timecode",
+          "in" : "query",
+          "description" : "Timecode for media with temporal progression (e.g,. video).",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "session",
+          "in" : "query",
+          "description" : "Session Token",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
+                }
+              }
+            }
+          },
+          "202" : {
+            "description" : "Accepted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "412" : {
+            "description" : "Precondition Failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
                 }
               }
             }
@@ -2758,195 +4035,6 @@
         "security" : [ ]
       }
     },
-    "/api/v2/template/team" : {
-      "post" : {
-        "tags" : [ "Template", "Team" ],
-        "summary" : "Creates a new team.",
-        "operationId" : "postApiV2TemplateTeam",
-        "parameters" : [ ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/ApiTeam"
-              }
-            }
-          },
-          "required" : false
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/template/team/list" : {
-      "get" : {
-        "tags" : [ "Template", "Team" ],
-        "summary" : "Lists all the teams across all evaluations.",
-        "operationId" : "getApiV2TemplateTeamList",
-        "parameters" : [ ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ApiTeam"
-                  }
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
-    "/api/v2/template/team/{teamId}" : {
-      "post" : {
-        "tags" : [ "Template", "Team" ],
-        "summary" : "Creates a new team.",
-        "operationId" : "postApiV2TemplateTeamByTeamId",
-        "parameters" : [ {
-          "name" : "teamId",
-          "in" : "path",
-          "description" : "The team ID.",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/ApiTeam"
-              }
-            }
-          },
-          "required" : false
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      }
-    },
     "/api/v2/template/{templateId}" : {
       "delete" : {
         "tags" : [ "Template" ],
@@ -2956,7 +4044,7 @@
           "name" : "templateId",
           "in" : "path",
           "description" : "The evaluation template ID.",
-          "required" : true,
+          "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3016,7 +4104,7 @@
           "name" : "templateId",
           "in" : "path",
           "description" : "The evaluation template ID.",
-          "required" : true,
+          "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3148,7 +4236,7 @@
           "name" : "templateId",
           "in" : "path",
           "description" : "The evaluation template ID.",
-          "required" : true,
+          "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3207,13 +4295,13 @@
     "/api/v2/template/{templateId}/team/list" : {
       "get" : {
         "tags" : [ "Template" ],
-        "summary" : "Lists all the teams of a specific evaluation template.",
+        "summary" : "Lists all the teams of a specific competition.",
         "operationId" : "getApiV2TemplateByTemplateIdTeamList",
         "parameters" : [ {
           "name" : "templateId",
           "in" : "path",
           "description" : "The evaluation template ID.",
-          "required" : true,
+          "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3351,6 +4439,31 @@
         "security" : [ ]
       }
     },
+    "/api/v2/user/list" : {
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Lists all available users.",
+        "operationId" : "getApiV2UserList",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiUser"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
     "/api/v2/user/session" : {
       "get" : {
         "tags" : [ "User" ],
@@ -3393,6 +4506,41 @@
         "security" : [ ]
       }
     },
+    "/api/v2/user/session/active/list" : {
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Get details of all current user sessions",
+        "operationId" : "getApiV2UserSessionActiveList",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ApiUser"
+                  }
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
     "/api/v2/user/{userId}" : {
       "delete" : {
         "tags" : [ "User" ],
@@ -3402,7 +4550,7 @@
           "name" : "userId",
           "in" : "path",
           "description" : "User ID",
-          "required" : true,
+          "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3452,7 +4600,7 @@
           "name" : "userId",
           "in" : "path",
           "description" : "User ID",
-          "required" : true,
+          "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3522,7 +4670,7 @@
           "name" : "userId",
           "in" : "path",
           "description" : "User's UID",
-          "required" : true,
+          "required" : false,
           "deprecated" : false,
           "allowEmptyValue" : false,
           "schema" : {
@@ -3669,7 +4817,7 @@
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
-          "mediaItemId" : {
+          "id" : {
             "type" : "string"
           },
           "name" : {
@@ -3696,7 +4844,7 @@
             "$ref" : "#/components/schemas/MediaItemCollection"
           }
         },
-        "required" : [ "mediaItemId", "name", "type", "collectionId", "location", "collection" ]
+        "required" : [ "name", "type", "collectionId", "location", "collection" ]
       },
       "ApiMediaType" : {
         "type" : "string",
@@ -4136,9 +5284,6 @@
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
-          "id" : {
-            "type" : "string"
-          },
           "status" : {
             "$ref" : "#/components/schemas/ApiVerdictStatus"
           },
@@ -4155,7 +5300,7 @@
             "$ref" : "#/components/schemas/ApiSubmission"
           }
         },
-        "required" : [ "id", "status", "taskId", "answers", "submission" ]
+        "required" : [ "status", "taskId", "answers", "submission" ]
       },
       "ApiAnswerType" : {
         "type" : "string",
@@ -4311,7 +5456,7 @@
             "type" : "string"
           },
           "status" : {
-            "$ref" : "#/components/schemas/ApiTaskStatus"
+            "$ref" : "#/components/schemas/TaskStatus"
           },
           "started" : {
             "type" : "integer",
@@ -4326,7 +5471,7 @@
       },
       "ApiTaskStatus" : {
         "type" : "string",
-        "enum" : [ "NO_TASK", "CREATED", "PREPARING", "RUNNING", "ENDED", "IGNORED" ]
+        "enum" : [ "NO_TASK", "CREATED", "PREPARING", "RUNNING", "ENDED" ]
       },
       "ApiTaskTemplateInfo" : {
         "type" : "object",
@@ -4882,10 +6027,20 @@
       "RunManagerStatus" : {
         "type" : "string",
         "enum" : [ "CREATED", "ACTIVE", "TERMINATED" ]
+      },
+      "TaskStatus" : {
+        "type" : "string",
+        "enum" : [ "CREATED", "PREPARING", "RUNNING", "ENDED" ]
       }
     },
-    "securitySchemes" : { }
+    "securitySchemes" : {
+      "CookieAuth" : {
+        "name" : "SESSIONID",
+        "in" : "cookie",
+        "type" : "apiKey"
+      }
+    }
   },
   "servers" : [ ],
-  "security" : null
+  "security" : [ ]
 }

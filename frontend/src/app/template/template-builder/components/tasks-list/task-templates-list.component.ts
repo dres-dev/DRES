@@ -3,7 +3,7 @@ import { AbstractTemplateBuilderComponent } from "../abstract-template-builder.c
 import { TemplateBuilderService } from "../../template-builder.service";
 import { ApiEvaluationTemplate, ApiHint, ApiTarget, ApiTaskGroup, ApiTaskTemplate, ApiTaskType } from "../../../../../../openapi";
 import { MatTable } from "@angular/material/table";
-import { Observable } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { SelectionModel } from "@angular/cdk/collections";
 import { map, tap } from "rxjs/operators";
 
@@ -33,6 +33,8 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
   selection = new SelectionModel(false, [], false);
 
 
+  private selectedTaskSub: Subscription;
+
   constructor(builder: TemplateBuilderService) {
     super(builder);
   }
@@ -41,6 +43,11 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
     this.onInit();
     this.tasks = this.builderService.taskTemplatesAsObservable();
     this.groups = this.builderService.taskGroupsAsObservable();
+    this.selectedTaskSub = this.builderService.selectedTaskTemplateAsObservable().subscribe((t) => {
+      if(!t){
+        this.selection.clear();
+      }
+    })
   }
 
   ngOnDestroy(): void {

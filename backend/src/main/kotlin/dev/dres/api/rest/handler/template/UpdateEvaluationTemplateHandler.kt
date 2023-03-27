@@ -2,6 +2,8 @@ package dev.dres.api.rest.handler.template
 
 import dev.dres.api.rest.handler.PatchRestHandler
 import dev.dres.api.rest.types.competition.ApiEvaluationTemplate
+import dev.dres.api.rest.types.competition.tasks.ApiTarget
+import dev.dres.api.rest.types.competition.tasks.ApiTargetType
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -29,24 +31,31 @@ import kotlinx.dnq.query.*
  * @author Loris Sauter
  * @version 2.0.0
  */
-class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: Config) : AbstractEvaluationTemplateHandler(store), PatchRestHandler<SuccessStatus> {
+class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: Config) :
+    AbstractEvaluationTemplateHandler(store), PatchRestHandler<SuccessStatus> {
 
     override val route: String = "template/{templateId}"
 
     @OpenApi(
-            summary = "Updates an existing evaluation template.",
-            path = "/api/v2/template/{templateId}",
-            operationId = OpenApiOperation.AUTO_GENERATE,
-            pathParams = [OpenApiParam("templateId", String::class, "The evaluation template ID.", required = true, allowEmptyValue = false)],
-            methods = [HttpMethod.PATCH],
-            requestBody = OpenApiRequestBody([OpenApiContent(ApiEvaluationTemplate::class)]),
-            tags = ["Template"],
-            responses = [
-                OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
-                OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
-                OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
-            ]
+        summary = "Updates an existing evaluation template.",
+        path = "/api/v2/template/{templateId}",
+        operationId = OpenApiOperation.AUTO_GENERATE,
+        pathParams = [OpenApiParam(
+            "templateId",
+            String::class,
+            "The evaluation template ID.",
+            required = true,
+            allowEmptyValue = false
+        )],
+        methods = [HttpMethod.PATCH],
+        requestBody = OpenApiRequestBody([OpenApiContent(ApiEvaluationTemplate::class)]),
+        tags = ["Template"],
+        responses = [
+            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+        ]
     )
     override fun doPatch(ctx: Context): SuccessStatus {
         val apiValue = try {
@@ -65,11 +74,18 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
 
             /* Update task type information. */
             val taskTypes = apiValue.taskTypes.map { it.name }.toTypedArray()
-            existing.taskTypes.removeAll(DbTaskType.query(DbTaskType::evaluation eq existing and not(DbTaskType::name.containsIn(*taskTypes))))
+            existing.taskTypes.removeAll(
+                DbTaskType.query(
+                    DbTaskType::evaluation eq existing and not(
+                        DbTaskType::name.containsIn(*taskTypes)
+                    )
+                )
+            )
             for (type in apiValue.taskTypes) {
-                val t = DbTaskType.findOrNew(DbTaskType.query(  (DbTaskType::name eq type.name) and (DbTaskType::evaluation eq existing))) {
-                  this.name = type.name
-                }
+                val t =
+                    DbTaskType.findOrNew(DbTaskType.query((DbTaskType::name eq type.name) and (DbTaskType::evaluation eq existing))) {
+                        this.name = type.name
+                    }
                 t.duration = type.duration
                 t.score = type.scoreOption.toDb()
                 t.target = type.targetOption.toDb()
@@ -95,12 +111,25 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
 
             /* Update task group information. */
             val taskGroups = apiValue.taskGroups.map { it.name }.toTypedArray()
-            existing.taskGroups.removeAll(DbTaskGroup.query(DbTaskGroup::evaluation eq existing and not(DbTaskGroup::name.containsIn(*taskGroups))))
+            existing.taskGroups.removeAll(
+                DbTaskGroup.query(
+                    DbTaskGroup::evaluation eq existing and not(
+                        DbTaskGroup::name.containsIn(*taskGroups)
+                    )
+                )
+            )
             for (group in apiValue.taskGroups) {
-                val g = DbTaskGroup.findOrNew(DbTaskGroup.query((DbTaskGroup::name eq group.name) and (DbTaskGroup::evaluation eq existing))) {
-                    this.name = group.name
-                }
-                g.type = DbTaskType.query((DbTaskType::name eq group.type) and (DbTaskType::evaluation eq existing)).firstOrNull() ?: throw ErrorStatusException(404, "Unknown task group ${group.type} for evaluation ${apiValue.id}.", ctx)
+                val g =
+                    DbTaskGroup.findOrNew(DbTaskGroup.query((DbTaskGroup::name eq group.name) and (DbTaskGroup::evaluation eq existing))) {
+                        this.name = group.name
+                    }
+                g.type =
+                    DbTaskType.query((DbTaskType::name eq group.type) and (DbTaskType::evaluation eq existing))
+                        .firstOrNull() ?: throw ErrorStatusException(
+                        404,
+                        "Unknown task group ${group.type} for evaluation ${apiValue.id}.",
+                        ctx
+                    )
 
                 /* Establish relationship if entry is new. */
                 if (g.isNew) {
@@ -110,29 +139,47 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
 
             /* Update task information. */
             val taskIds = apiValue.tasks.mapNotNull { it.id }.toTypedArray()
-            DbTaskTemplate.query(DbTaskTemplate::evaluation eq existing and not(DbTaskTemplate::id.containsIn(*taskIds))).asSequence().forEach {
+            DbTaskTemplate.query(
+                DbTaskTemplate::evaluation eq existing and not(
+                    DbTaskTemplate::id.containsIn(
+                        *taskIds
+                    )
+                )
+            ).asSequence().forEach {
                 it.delete()
             }
             for (task in apiValue.tasks) {
                 val t = if (task.id != null) {
-                    existing.tasks.filter { it.id eq task.id }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown task ${task.id} for evaluation ${apiValue.id}.", ctx)
+                    existing.tasks.filter { it.id eq task.id }.firstOrNull()
+                        ?: throw ErrorStatusException(
+                            404,
+                            "Unknown task ${task.id} for evaluation ${apiValue.id}.",
+                            ctx
+                        )
                 } else {
                     DbTaskTemplate.new()
                 }
                 t.name = task.name
                 t.duration = task.duration
-                t.collection = DbMediaCollection.query(DbMediaCollection::id eq task.collectionId).first()
+                t.collection =
+                    DbMediaCollection.query(DbMediaCollection::id eq task.collectionId).first()
                 t.taskGroup = DbTaskGroup.query(DbTaskGroup::name eq task.taskGroup).first()
 
                 /* Update task targets. */
                 t.targets.clear()
                 for (target in task.targets) {
-                    val item = DbMediaItem.query(DbMediaItem::id eq target.target).firstOrNull()
                     t.targets.add(DbTaskTemplateTarget.new {
-                        this.item = item
                         this.type = target.type.toDb()
-                        this.start = target.range?.start?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
-                        this.end = target.range?.end?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
+                        this.start = target.range?.start?.toTemporalPoint(item?.fps ?: 0.0f)
+                            ?.toMilliseconds()
+                        this.end =
+                            target.range?.end?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
+                    }.also {
+                        when (target.type) {
+                            ApiTargetType.TEXT -> it.text = target.target
+                            else -> it.item =
+                                DbMediaItem.query(DbMediaItem::id eq target.target).firstOrNull()
+                        }
                     })
                 }
 
@@ -147,8 +194,10 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                         this.path = hint.path
                         this.start = hint.start
                         this.end = hint.end
-                        this.temporalRangeStart = hint.range?.start?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
-                        this.temporalRangeEnd = hint.range?.end?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
+                        this.temporalRangeStart =
+                            hint.range?.start?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
+                        this.temporalRangeEnd =
+                            hint.range?.end?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
                     })
                 }
 
@@ -160,16 +209,37 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
 
             /* Update team information. */
             val teamIds = apiValue.teams.map { it.id }.toTypedArray()
-            existing.teams.removeAll(DbTeam.query(DbTeam::evaluation eq existing and not(DbTeam::id.containsIn(*teamIds))))
+            existing.teams.removeAll(
+                DbTeam.query(
+                    DbTeam::evaluation eq existing and not(
+                        DbTeam::id.containsIn(
+                            *teamIds
+                        )
+                    )
+                )
+            )
             for (team in apiValue.teams) {
                 val t = if (team.id != null) {
-                    existing.teams.filter { it.id eq team.id }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown team ${team.id} for evaluation ${apiValue.id}.", ctx)
+                    existing.teams.filter { it.id eq team.id }.firstOrNull()
+                        ?: throw ErrorStatusException(
+                            404,
+                            "Unknown team ${team.id} for evaluation ${apiValue.id}.",
+                            ctx
+                        )
                 } else {
                     DbTeam.new()
                 }
 
-                t.name = team.name ?: throw ErrorStatusException(404, "Team name must be specified.", ctx)
-                t.color = team.color ?: throw ErrorStatusException(404, "Team colour must be specified.", ctx)
+                t.name = team.name ?: throw ErrorStatusException(
+                    404,
+                    "Team name must be specified.",
+                    ctx
+                )
+                t.color = team.color ?: throw ErrorStatusException(
+                    404,
+                    "Team colour must be specified.",
+                    ctx
+                )
 
                 /* Process logo data. */
                 val logoData = team.logoStream()
@@ -178,7 +248,8 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 }
 
                 t.users.clear()
-                t.users.addAll(DbUser.query(DbUser::id.containsIn(*team.users.map { it.id }.toTypedArray())))
+                t.users.addAll(DbUser.query(DbUser::id.containsIn(*team.users.map { it.id }
+                    .toTypedArray())))
 
                 /* Establish relationship if entry is new. */
                 if (t.isNew) {
@@ -188,16 +259,28 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
 
             /* Update teamGroup information */
             val teamGroupIds = apiValue.teamGroups.map { it.id }.toTypedArray()
-            existing.teamGroups.removeAll(DbTeamGroup.query(DbTeamGroup::evaluation eq existing and not(DbTeamGroup::id.containsIn(*teamGroupIds))))
+            existing.teamGroups.removeAll(
+                DbTeamGroup.query(
+                    DbTeamGroup::evaluation eq existing and not(
+                        DbTeamGroup::id.containsIn(*teamGroupIds)
+                    )
+                )
+            )
             for (teamGroup in apiValue.teamGroups) {
                 val t = if (teamGroup.id != null) {
-                    existing.teamGroups.filter { it.id eq teamGroup.id }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown team groum ${teamGroup.id} for evaluation ${apiValue.id}.", ctx)
+                    existing.teamGroups.filter { it.id eq teamGroup.id }.firstOrNull()
+                        ?: throw ErrorStatusException(
+                            404,
+                            "Unknown team groum ${teamGroup.id} for evaluation ${apiValue.id}.",
+                            ctx
+                        )
                 } else {
                     DbTeamGroup.new()
                 }
 
                 t.teams.clear()
-                t.teams.addAll(DbTeam.query(DbTeam::id.containsIn(*teamGroup.teams.map { it.id }.toTypedArray())))
+                t.teams.addAll(DbTeam.query(DbTeam::id.containsIn(*teamGroup.teams.map { it.id }
+                    .toTypedArray())))
 
                 /* Establish relationship if entry is new. */
                 if (t.isNew) {

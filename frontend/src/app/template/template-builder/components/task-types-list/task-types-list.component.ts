@@ -1,14 +1,20 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { AbstractTemplateBuilderComponent } from "../abstract-template-builder.component";
 import { TemplateBuilderService } from "../../template-builder.service";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { ApiTaskType } from "../../../../../../openapi";
+import { ApiTaskGroup, ApiTaskType } from "../../../../../../openapi";
 import { Observable } from "rxjs";
 import { filter, map } from "rxjs/operators";
 import {
   CompetitionBuilderTaskTypeDialogComponent
 } from "../../../../competition/competition-builder/competition-builder-task-type-dialog/competition-builder-task-type-dialog.component";
+import {
+  ActionableDynamicTable,
+  ActionableDynamicTableActionType,
+  ActionableDynamicTableColumnDefinition,
+  ActionableDynamicTableColumnType
+} from "../../../../shared/actionable-dynamic-table/actionable-dynamic-table.component";
 
 @Component({
   selector: "app-task-types-list",
@@ -67,6 +73,18 @@ export class TaskTypesListComponent extends AbstractTemplateBuilderComponent imp
 
   lscPreset = TaskTypesListComponent.LSC_PRSET;
 
+  columns: ActionableDynamicTableColumnDefinition[] = [
+    {key: 'name', header: 'Name', property: 'name', type: ActionableDynamicTableColumnType.TEXT},
+    {key: 'duration', header: 'Duration', property: 'duration', type: ActionableDynamicTableColumnType.TEXT},
+    {key: 'target', header: 'Target', property: 'targetOption', type: ActionableDynamicTableColumnType.TEXT},
+    {key: 'score', header: 'Score', property: 'scoreOption', type: ActionableDynamicTableColumnType.TEXT},
+    {key: 'actions', header: 'Actions', type: ActionableDynamicTableColumnType.ACTION, actions: [ActionableDynamicTableActionType.REMOVE],}
+  ];
+
+  displayedColumns= ['name', 'duration', 'target', 'score', 'actions'];
+
+  @ViewChild("typesTable") table: ActionableDynamicTable<ApiTaskType>;
+
   constructor(
     builder: TemplateBuilderService,
     private dialog: MatDialog
@@ -92,6 +110,8 @@ export class TaskTypesListComponent extends AbstractTemplateBuilderComponent imp
     }));
   }
 
+  //public remove = (type: ApiTaskType) => this.remove(type);
+
   public addTaskType(type?: ApiTaskType) {
     const dialogRef = this.dialog.open(CompetitionBuilderTaskTypeDialogComponent, { data: type ?? null, width: "750px" });
     dialogRef.afterClosed()
@@ -99,11 +119,15 @@ export class TaskTypesListComponent extends AbstractTemplateBuilderComponent imp
       .subscribe((t) => {
         this.builderService.getTemplate().taskTypes.push(t);
         this.builderService.update();
+        this.table?.renderRows();
       });
   }
 
   public remove(taskType: ApiTaskType) {
     this.builderService.removeTaskType(taskType);
+    this.table?.renderRows();
   }
+
+
 
 }

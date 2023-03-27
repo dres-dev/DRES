@@ -236,7 +236,8 @@ export class CompetitionFormBuilder {
       this.data.targets=  (this.form.get('target') as FormArray).controls.map((t) => {
         return {
           type: t.get('type').value,
-          target: t.get('mediaItem')?.value?.mediaItemId ?? null,
+          /** Either its the mediaItem's ID or its text that is stored in 'mediaItem' form control */
+          target: t.get('mediaItem')?.value?.mediaItemId ?? t.get('mediaItem')?.value,
           range:
             t.get('segment_start') && t.get('segment_start')
               ? ({

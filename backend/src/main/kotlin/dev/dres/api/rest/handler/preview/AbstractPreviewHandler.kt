@@ -31,6 +31,7 @@ abstract class AbstractPreviewHandler(protected val store: TransientEntityStore,
     companion object {
         /** Placeholder for when image is waiting to be loaded. */
         private val WAITING_IMAGE = this::class.java.getResourceAsStream("/img/loading.png").use { it!!.readAllBytes() }
+        private val MISSING_IMAGE = this::class.java.getResourceAsStream("/img/missing.png").use { it!!.readAllBytes() }
     }
 
     /** All [AbstractCollectionHandler]s require [ApiRole.VIEWER]. */
@@ -63,9 +64,23 @@ abstract class AbstractPreviewHandler(protected val store: TransientEntityStore,
     * @param time The exact timepoint of the [DbMediaItem] in ms. Only works for [DbMediaType.VIDEO].
     * @param ctx The request [Context]
     */
-    protected fun handlePreviewImageRequest(item: DbMediaItem, time: Long?, ctx: Context) {
+    protected fun handlePreviewImageRequest(item: DbMediaItem?, time: Long?, ctx: Context) {
+
+        if (item == null) {
+            ctx.status(404)
+            ctx.header("Content-Type", "image/png")
+            ctx.header("Cache-Control", "max-age=31622400")
+            ctx.outputStream().write(MISSING_IMAGE)
+            return
+        }
+
         when(val result = this@AbstractPreviewHandler.cache.asyncPreviewImage(item, time ?: 0)) {
-            is FailedFuture -> throw ErrorStatusException(500, "Failed to load preview image.", ctx)
+            is FailedFuture -> {
+                ctx.status(500)
+                ctx.header("Content-Type", "image/png")
+                ctx.header("Cache-Control", "max-age=31622400")
+                ctx.outputStream().write(MISSING_IMAGE)
+            }
             is CompletedFuture -> {
                 ctx.status(200)
                 ctx.header("Cache-Control", "max-age=31622400")
@@ -74,7 +89,7 @@ abstract class AbstractPreviewHandler(protected val store: TransientEntityStore,
             else -> {
                 ctx.status(202)
                 ctx.header("Content-Type", "image/png")
-                ctx.header("Cache-Control", "no-store")
+                ctx.header("Cache-Control", "max-age=0, no-store")
                 ctx.outputStream().write(WAITING_IMAGE)
             }
         }

@@ -42,7 +42,7 @@ class PreviewImageHandler(store: TransientEntityStore, cache: CacheManager) : Ab
         val mediaItemId = params["mediaItemId"] ?: throw ErrorStatusException(400, "Media item ID was not specified or is invalid.", ctx)
         val time = params["timestamp"]?.toLongOrNull() ?: 0L
         this.store.transactional(true) {
-            val item = DbMediaItem.query(DbMediaItem::id eq mediaItemId).firstOrNull() ?: throw ErrorStatusException(404, "Could not find media item with ID ${mediaItemId}.", ctx)
+            val item = DbMediaItem.query(DbMediaItem::id eq mediaItemId).firstOrNull()
             handlePreviewImageRequest(item, time, ctx)
         }
     }

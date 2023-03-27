@@ -708,8 +708,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
                                     inserted += 1
                                     DbMediaSegment.new {
                                         this.name = it.name
-                                        this.start = TemporalPoint.Millisecond(it.start.toLong()).toFrame(fps)
-                                        this.end = TemporalPoint.Millisecond(it.end.toLong()).toFrame(fps)
+                                        this.start = it.start
+                                        this.end = it.end
                                     }
                                 }
                             )

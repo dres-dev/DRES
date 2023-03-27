@@ -4,11 +4,11 @@ import dev.dres.api.rest.types.evaluation.ApiAnswer
 import dev.dres.api.rest.types.evaluation.ApiAnswerType
 import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.data.model.media.DbMediaItem
-import dev.dres.utilities.TimeUtil
+import dev.dres.data.model.media.DbMediaSegment
+import dev.dres.data.model.media.time.TemporalPoint
 import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
-import kotlinx.dnq.query.toList
 
 class MapToSegmentTransformer : SubmissionTransformer {
     override fun transform(submission: ApiSubmission): ApiSubmission = submission.copy(
@@ -26,10 +26,10 @@ class MapToSegmentTransformer : SubmissionTransformer {
         }
 
         val item = DbMediaItem.query(DbMediaItem::id eq answer.item?.mediaItemId).firstOrNull() ?: throw IllegalStateException("MediaItem with id ${answer.item?.mediaItemId} not found")
-        val segments = item.segments.toList()
 
-        val startSegment = answer.start?.let { TimeUtil.timeToSegment(it, segments) }
-        val endSegment = answer.end?.let { TimeUtil.timeToSegment(it, segments) }
+
+        val startSegment = answer.start?.let { DbMediaSegment.findContaining(item, TemporalPoint.Millisecond(it)) }
+        val endSegment = answer.end?.let { DbMediaSegment.findContaining(item, TemporalPoint.Millisecond(it)) }
 
         val bounds = when{
             startSegment != null && endSegment == null -> startSegment
@@ -37,7 +37,7 @@ class MapToSegmentTransformer : SubmissionTransformer {
             startSegment == null && endSegment == null -> throw IllegalStateException("Cannot map answer time to segment, no matching segment found")
             startSegment == endSegment -> startSegment!!
             else -> throw IllegalStateException("Cannot map answer time to segment, range does not fall within one segment")
-        }
+        }.range.toMilliseconds()
 
         return answer.copy(
             start = bounds.first,

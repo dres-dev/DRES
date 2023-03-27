@@ -17,7 +17,7 @@ interface Scoreable {
     /** The [TeamId]s of teams that work on the task identified by this [Scoreable]. */
     val teams: List<TeamId>
 
-    /** Timestamp of when the [Task] identified by this [Scoreable] was started. */
+    /** Duration of when the [Task] in seconds. */
     val duration: Long
 
     /** Timestamp of when the [Task] identified by this [Scoreable] was started. */

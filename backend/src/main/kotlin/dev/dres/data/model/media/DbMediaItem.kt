@@ -29,6 +29,8 @@ class DbMediaItem(entity: Entity) : PersistentEntity(entity), MediaItem {
     override val mediaItemId: MediaItemId
         get() = this.id
 
+    override fun dbCollection(): MediaItemCollection = this.collection
+
     /** The [DbMediaType] of this [DbMediaItem]. */
     var type by xdLink1(DbMediaType)
 
@@ -42,7 +44,7 @@ class DbMediaItem(entity: Entity) : PersistentEntity(entity), MediaItem {
     var durationMs by xdNullableLongProp() { requireIf { this.type ==  DbMediaType.VIDEO } }
 
     /** The [DbMediaCollection] this [DbMediaItem] belongs to. */
-    override var collection: DbMediaCollection by xdParent<DbMediaItem, DbMediaCollection>(DbMediaCollection::items)
+    var collection: DbMediaCollection by xdParent<DbMediaItem, DbMediaCollection>(DbMediaCollection::items)
     override fun type(): MediaItemType = MediaItemType.fromDb(this.type)
 
     /** List of [DbMediaSegment] that this [DbMediaItem] contains.  */

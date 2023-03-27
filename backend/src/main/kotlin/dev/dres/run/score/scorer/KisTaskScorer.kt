@@ -34,7 +34,7 @@ class KisTaskScorer(
      * @return A [Map] of [TeamId] to calculated task score.
      */
     override fun scoreMap(submissions: Sequence<Submission>): Map<TeamId, Double>  {
-        val taskDuration = this.scoreable.duration.toDouble()
+        val taskDuration = this.scoreable.duration.toDouble() * 1000.0
         val taskStartTime = this.scoreable.started ?: throw IllegalArgumentException("No task start time specified.")
         return this.scoreable.teams.associateWith { teamId ->
             val verdicts = submissions.filter { it.teamId == teamId }.sortedBy { it.timestamp }.flatMap { sub ->

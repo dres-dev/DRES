@@ -65,10 +65,10 @@ class EvaluationCommand(internal val store: TransientEntityStore) : NoOpCliktCom
     inner class Ongoing :
         CliktCommand(name = "ongoing", help = "Lists all ongoing evaluations.") {
         private val plain by option("-p", "--plain", help = "Plain print. No fancy tables").flag(default = false)
-        override fun run() {
+        override fun run() = this@EvaluationCommand.store.transactional(true) {
             if (RunExecutor.managers().isEmpty()) {
                 println("No evaluations are currently ongoing!")
-                return
+                return@transactional
             }
             if (this.plain) {
                 RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java).forEach {

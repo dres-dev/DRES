@@ -37,7 +37,7 @@ class DbHint(entity: Entity) : XdEntity(entity) {
     var text by xdStringProp { requireIf { type == DbHintType.TEXT }}
 
     /** The target text. Can be null. */
-    var path by xdStringProp()
+    var path by xdStringProp() { requireIf { (type == DbHintType.VIDEO || type == DbHintType.IMAGE) && item == null }}
 
     /** The start of a (potential) range. */
     var temporalRangeStart by xdNullableLongProp { requireIf { type == DbHintType.VIDEO } }

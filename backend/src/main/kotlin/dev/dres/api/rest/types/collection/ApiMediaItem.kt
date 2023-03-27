@@ -2,6 +2,7 @@ package dev.dres.api.rest.types.collection
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.media.*
+import kotlinx.dnq.util.findById
 
 /**
  * The RESTful API equivalent for [DbMediaItem].
@@ -26,9 +27,9 @@ data class ApiMediaItem(
         }
     }
 
-    override val collection: MediaItemCollection //TODO do we want this here?
-        @JsonIgnore
-        get() = TODO("Not yet implemented")
+    override fun dbCollection(): DbMediaCollection {
+        return DbMediaCollection.findById(this.collectionId)
+    }
 
     override fun type(): MediaItemType = MediaItemType.fromApi(this.type)
 }

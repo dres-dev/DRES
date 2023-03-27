@@ -11,7 +11,7 @@ interface MediaItem {
     val mediaItemId: MediaItemId
 
     /** */
-    val collection: MediaItemCollection
+    fun dbCollection(): MediaItemCollection
 
     /** */
     fun type(): MediaItemType

@@ -26,7 +26,7 @@ export class TaskGroupsListComponent extends AbstractTemplateBuilderComponent im
 
   columns: ActionableDynamicTableColumnDefinition[] = [
     {key: 'name', header: 'Name', property: 'name', type: ActionableDynamicTableColumnType.TEXT},
-   {key: 'type', header: 'Type', property: 'type', type: ActionableDynamicTableColumnType.TEXT},
+    {key: 'type', header: 'Type', property: 'type', type: ActionableDynamicTableColumnType.TEXT},
     {key: 'actions', header: 'Actions', type: ActionableDynamicTableColumnType.ACTION, actions: [ActionableDynamicTableActionType.REMOVE],}
   ];
 

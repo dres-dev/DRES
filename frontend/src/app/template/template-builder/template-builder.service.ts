@@ -139,9 +139,24 @@ export class TemplateBuilderService {
   public updateTask(task: ApiTaskTemplate){
     console.log('update task', task);
     console.log('update task, all', this.getTemplate().tasks);
-    const idx = this.getTemplate().tasks.indexOf(task);
+    let idx: number;
+    if(task.id){
+      for (let i = 0; i <this.getTemplate().tasks.length; i++) {
+        if(this.getTemplate().tasks[i].id === task.id){
+          idx = i;
+          break;
+        }
+      }
+      // TODO handle not found?
+    }else{
+      // TODO how to map tasks that do not have an id
+    }
     console.log('update task, index', idx);
-    this.templateSubject.getValue().tasks[idx] = task;
+    if(idx === -1){
+      this.templateSubject.getValue().tasks.push(task);
+    }else{
+      this.templateSubject.getValue().tasks[idx] = task;
+    }
     this.update(this.getTemplate());
     this.markDirty();
   }

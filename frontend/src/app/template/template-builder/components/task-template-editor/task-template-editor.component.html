@@ -5,8 +5,24 @@
 </ng-template>
 <ng-template #active>
   <form [formGroup]="form">
-    <p *ngIf="form.get('id').value"><strong>UID: </strong>{{ form.get('id').value }}</p>
-    <p><strong>Task group / type: </strong>{{ taskGroup.name }} / {{ taskType.name }}</p>
+    <div fxLayout="row" fxLayoutAlign="space-between start">
+      <div fxFlex>
+        <div fxLayout="column" fxLayoutAlign="space-between stretch">
+          <div fxFlex="grow"><p *ngIf="form.get('id').value"><strong>UID: </strong>{{ form.get('id').value }}</p></div>
+          <div fxFlex="grow">
+            <div fxLayout="row" fxLayoutAlign="space-between start"></div>
+            <p fxFlex="48"><strong>Task group:</strong>{{taskGroup.name}}</p>
+            <p fxFlex="48"><strong>Task type:</strong>{{taskType.name}}</p>
+          </div>
+        </div>
+      </div>
+      <div fxFlex="nogrow">
+        <button mat-button aria-label="Close the editor" matTooltip="Close the editor">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
     <p>
       <mat-form-field style="width: 50%">
         <mat-label>Name</mat-label>

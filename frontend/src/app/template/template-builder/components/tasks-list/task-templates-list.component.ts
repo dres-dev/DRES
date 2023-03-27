@@ -63,15 +63,16 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
       taskType: string;
     };
     newTask.taskGroup = group.name;
+    newTask.targets = [];
+    newTask.hints = [];
     newTask.taskType = this.builderService.findTypeForGroup(group).name;
     this.builderService.selectTaskTemplate(newTask);
-    //this.selection.toggle(newTask);
+    this.selection.toggle(newTask);
   }
 
   public editTask(task: ApiTaskTemplate){
-    console.log("Edit");
     this.builderService.selectTaskTemplate(task);
-    //this.selection.toggle(task);
+    this.selection.toggle(task);
   }
 
   public moveTaskUp(task: ApiTaskTemplate){

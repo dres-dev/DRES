@@ -35,7 +35,7 @@ import {
 export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 
   @Input()
-  public task?: ApiTaskTemplate;
+  public task: ApiTaskTemplate;
 
   @Input()
   public taskType: ApiTaskType;
@@ -68,14 +68,12 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.taskSub = this.builderService.selectedTaskTemplateAsObservable().subscribe((t)=>{
-      console.log("Editor selected template sub", t);
       if(t){
         this.task = t;
         this.taskGroup = this.builderService.selectedTaskGroup;
         this.taskType = this.builderService.selectedTaskType;
         this.init();
       }else{
-        console.log("Editor: task unselected")
         this.task = null;
         this.taskGroup = null;
         this.taskType = null;
@@ -89,12 +87,10 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
   }
 
   public init(){
-    console.log("INIT")
-    const newTask = this.task.id === undefined && this.task.name === undefined && this.task.taskGroup !== undefined && this.task.taskType !== undefined;
-    this.formBuilder = new CompetitionFormBuilder(this.taskGroup, this.taskType, this.collectionService, newTask ? null : this.task);
+    this.formBuilder = new CompetitionFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.task);
     this.form = this.formBuilder.form;
     this.form.valueChanges.subscribe(newValue => {
-      this.builderService.updateTask(this.formBuilder.fetchFormData())
+      this.formBuilder.storeFormData();
       this.builderService.markDirty()
     });
     this.mediaCollectionSource = this.collectionService.getApiV2CollectionList();
@@ -118,7 +114,6 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
     const task = JSON.parse(taskData) as ApiTaskTemplate;
     this.formBuilder = new CompetitionFormBuilder(this.taskGroup, this.taskType, this.collectionService, task);
     this.form = this.formBuilder.form;
-    console.log('Loaded task: ' + JSON.stringify(task));
   };
 
   /**
@@ -261,7 +256,6 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
     startControl?.setValue(range.start.value);
     endControl?.setValue(range.end.value);
     unitControl?.setValue(ApiTemporalUnit.SECONDS);
-    console.log('Range updated');
   }
 
   isImageMediaItem(mi: ApiMediaItem): boolean {

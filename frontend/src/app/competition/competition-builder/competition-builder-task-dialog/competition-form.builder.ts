@@ -102,12 +102,12 @@ export class CompetitionFormBuilder {
 
     /* Initialize new and previous component in channel with default values. */
     if (previousItem == null) {
-      component.get('start').setValue(0);
+      component.get('start').setValue(0, {emitEvent: false});
     } else if (previousItem.get('end').value) {
-      component.get('start').setValue(previousItem.get('end').value);
+      component.get('start').setValue(previousItem.get('end').value, {emitEvent: false});
     } else {
-      previousItem.get('end').setValue(previousItem.get('start').value + CompetitionFormBuilder.DEFAULT_HINT_DURATION);
-      component.get('start').setValue(previousItem.get('end').value);
+      previousItem.get('end').setValue(previousItem.get('start').value + CompetitionFormBuilder.DEFAULT_HINT_DURATION, {emitEvent: false});
+      component.get('start').setValue(previousItem.get('end').value, {emitEvent: false});
     }
 
     /* Append component. */
@@ -210,6 +210,47 @@ export class CompetitionFormBuilder {
     return data;
   }
 
+  public storeFormData(){
+      this.data.name = this.form.get('name').value;
+      this.data.taskGroup = this.taskGroup.name /* Cannot be edited! */;
+      this.data.taskType = this.taskGroup.type /* Cannot be edited! */;
+      this.data.duration= this.form.get('duration').value;
+      this.data.collectionId = this.form.get('mediaCollection').value;
+      this.data.hints = (this.form.get('components') as FormArray).controls.map((c) => {
+        return {
+          type: c.get('type').value,
+          start: c.get('start').value,
+          end: c.get('end').value,
+          mediaItem: c.get('mediaItem')?.value?.mediaItemId ?? null,
+          range:
+            c.get('segment_start') && c.get('segment_end')
+              ? ({
+                start: { value: c.get('segment_start').value, unit: c.get('segment_time_unit').value } as ApiTemporalPoint,
+                end: { value: c.get('segment_end').value, unit: c.get('segment_time_unit').value } as ApiTemporalPoint,
+              } as ApiTemporalRange)
+              : null,
+          description: c.get('description') ? c.get('description').value : null,
+          path: c.get('path') ? c.get('path').value : null,
+        } as ApiHint;
+      });
+      this.data.targets=  (this.form.get('target') as FormArray).controls.map((t) => {
+        return {
+          type: t.get('type').value,
+          target: t.get('mediaItem')?.value?.mediaItemId ?? null,
+          range:
+            t.get('segment_start') && t.get('segment_start')
+              ? ({
+                start: { value: t.get('segment_start').value, unit: t.get('segment_time_unit').value } as ApiTemporalPoint,
+                end: { value: t.get('segment_end').value, unit: t.get('segment_time_unit').value } as ApiTemporalPoint,
+              } as ApiTemporalRange)
+              : null,
+        } as ApiTarget;
+      })as Array<ApiTarget>;
+
+    /* Reset ID if set. */
+    this.data.id = this.form.get('id')?.value ?? null;
+  }
+
   private orValidator(validator1: ValidatorFn, validator2: ValidatorFn): ValidatorFn {
     return (control: AbstractControl): { [key: string]: any } | null => {
       return validator1(control) || validator2(control);
@@ -305,7 +346,7 @@ export class CompetitionFormBuilder {
         .getApiV2MediaItemByMediaItemId(initialize?.target)
         .pipe(first())
         .subscribe((s) => {
-          mediaItemFormControl.setValue(s);
+          mediaItemFormControl.setValue(s, {emitEvent: false});
         });
     }
 
@@ -338,7 +379,7 @@ export class CompetitionFormBuilder {
         .getApiV2MediaItemByMediaItemId(initialize.target)
         .pipe(first())
         .subscribe((s) => {
-          mediaItemFormControl.setValue(s);
+          mediaItemFormControl.setValue(s, {emitEvent: false});
         });
     }
 
@@ -371,7 +412,7 @@ export class CompetitionFormBuilder {
 
     console.log(initialize?.target);
 
-    textFormControl.setValue(initialize?.target);
+    textFormControl.setValue(initialize?.target, {emitEvent: false});
 
     return new FormGroup({
       type: typeFormControl,
@@ -422,7 +463,7 @@ export class CompetitionFormBuilder {
       !initialize?.mediaItem &&
       (this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetOption === 'SINGLE_MEDIA_ITEM')
     ) {
-      mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
+      mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value, {emitEvent: false});
     }
 
     /* Prepare data source. */
@@ -442,7 +483,7 @@ export class CompetitionFormBuilder {
         .getApiV2MediaItemByMediaItemId(initialize?.mediaItem)
         .pipe(first())
         .subscribe((s) => {
-          mediaItemFormControl.setValue(s);
+          mediaItemFormControl.setValue(s, {emitEvent: false});
         });
     }
 
@@ -472,7 +513,7 @@ export class CompetitionFormBuilder {
       !initialize?.mediaItem &&
       (this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetOption === 'SINGLE_MEDIA_ITEM')
     ) {
-      mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value);
+      mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value, {emitEvent: false});
     }
 
     /* Prepare data source. */
@@ -492,7 +533,7 @@ export class CompetitionFormBuilder {
         .getApiV2MediaItemByMediaItemId(initialize.mediaItem)
         .pipe(first())
         .subscribe((s) => {
-          mediaItemFormControl.setValue(s);
+          mediaItemFormControl.setValue(s, {emitEvent: false});
         });
     }
 
@@ -522,19 +563,19 @@ export class CompetitionFormBuilder {
     // fetch target time unit
     const targetTimeUnit = (this.form.get('target') as FormArray).controls[0].get('segment_time_unit').value;
     if (targetTimeUnit && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
-      group.get('segment_time_unit').setValue(targetTimeUnit);
+      group.get('segment_time_unit').setValue(targetTimeUnit, {emitEvent: false});
     }
 
     if (!group.get('segment_start').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
-      group.get('segment_start').setValue((this.form.get('target') as FormArray).controls[0].get('segment_start').value);
+      group.get('segment_start').setValue((this.form.get('target') as FormArray).controls[0].get('segment_start').value, {emitEvent: false});
     }
 
     if (!group.get('segment_end').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
-      group.get('segment_end').setValue((this.form.get('target') as FormArray).controls[0].get('segment_end').value);
+      group.get('segment_end').setValue((this.form.get('target') as FormArray).controls[0].get('segment_end').value, {emitEvent: false});
     }
 
     /* Manually setting the duration of the hint equal to the duration of the task, this way the validators are happy */
-    group.get('end').setValue(this.taskType.duration);
+    group.get('end').setValue(this.taskType.duration, {emitEvent: false});
 
     group
       .get('segment_start')

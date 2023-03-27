@@ -18,6 +18,7 @@ import dev.dres.DRES
 import dev.dres.api.rest.types.collection.ApiMediaType
 import dev.dres.data.model.config.Config
 import dev.dres.data.model.media.*
+import dev.dres.data.model.media.time.TemporalPoint
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 import org.slf4j.LoggerFactory
@@ -701,13 +702,14 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
                         .groupBy(ListSegment::video)
                         .forEach { (videoName, segments) ->
                             val videoItem = collection.items.filter { it.name eq videoName }.firstOrNull()
-                            videoItem?.segments?.addAll(
+                            val fps = videoItem?.fps!!
+                            videoItem.segments.addAll(
                                 segments.map {
                                     inserted += 1
                                     DbMediaSegment.new {
                                         this.name = it.name
-                                        this.start = it.start
-                                        this.end = it.end
+                                        this.start = TemporalPoint.Millisecond(it.start.toLong()).toFrame(fps)
+                                        this.end = TemporalPoint.Millisecond(it.end.toLong()).toFrame(fps)
                                     }
                                 }
                             )

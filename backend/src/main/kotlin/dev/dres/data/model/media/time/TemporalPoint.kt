@@ -2,6 +2,7 @@ package dev.dres.data.model.media.time
 
 import dev.dres.data.model.media.DbMediaItem
 import java.lang.IllegalArgumentException
+import kotlin.math.round
 
 /**
  * Notion of a [TemporalPoint] within a [DbMediaItem] that exhibits temporal development.
@@ -12,6 +13,8 @@ import java.lang.IllegalArgumentException
 sealed class TemporalPoint {
     abstract fun niceText(): String
     abstract fun toMilliseconds(): Long
+
+    abstract fun toFrame(fps: Float): Int
 
     /**
      * A [TemporalPoint] represented by a frame number and a fps value.
@@ -25,6 +28,7 @@ sealed class TemporalPoint {
         override fun niceText(): String = "FrameTemporalPoint(Frame $frame @ $fps fps)"
 
         override fun toMilliseconds(): Long = toMilliseconds(frame, fps)
+        override fun toFrame(fps: Float): Int = frame
     }
 
     /**
@@ -34,6 +38,7 @@ sealed class TemporalPoint {
         override fun niceText(): String = "MilliSecondTemporalPoint($millisecond)"
 
         override fun toMilliseconds(): Long = millisecond
+        override fun toFrame(fps: Float): Int = round(millisecond / 1000.0 * fps).toInt()
     }
 
     /**
@@ -86,6 +91,7 @@ sealed class TemporalPoint {
         override fun niceText(): String = "TimeCodeTemporalPoint($timecode with $fps fps)"
 
         override fun toMilliseconds(): Long = millisecond
+        override fun toFrame(fps: Float): Int = round(millisecond / 1000.0 * fps).toInt()
 
     }
 }

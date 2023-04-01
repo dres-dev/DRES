@@ -49,9 +49,9 @@ abstract class AbstractTask(task: DbTask): TaskRun {
     final override val templateId: TemplateId = this.task.template.templateId
 
     /** The current [DbTaskStatus] of this [AbstractTask]. This is a transient property. */
-    final override var status: DbTaskStatus = task.status
+    final override var status: DbTaskStatus
+        get() = this.task.status
         protected set(value) {
-            field = value
             this.task.status = value  /* Update backing database field. */
         }
 
@@ -60,9 +60,9 @@ abstract class AbstractTask(task: DbTask): TaskRun {
      *
      * Setter requires active database transaction!
      */
-    final override var started: Long? = task.started
+    final override var started: Long?
+        get() = this.task.started
         protected set(value) {
-            field = value
             this.task.started = value  /* Update backing database field. */
         }
 
@@ -71,9 +71,9 @@ abstract class AbstractTask(task: DbTask): TaskRun {
      *
      * Setter requires active database transaction!
      */
-    final override var ended: Long? = task.ended
+    final override var ended: Long?
+        get() = this.task.ended
         protected set(value) {
-            field = value
             this.task.ended = value /* Update backing database field. */
         }
 
@@ -111,7 +111,7 @@ abstract class AbstractTask(task: DbTask): TaskRun {
      * Starts this [AbstractTask].
      */
     override fun start() {
-        if (this.hasStarted) {
+        if (this.started != null || this.status == DbTaskStatus.RUNNING) {
             throw IllegalStateException("Run has already been started.")
         }
         this.started = System.currentTimeMillis()
@@ -122,7 +122,7 @@ abstract class AbstractTask(task: DbTask): TaskRun {
      * Ends this [AbstractTask].
      */
     override fun end() {
-        if (!this.isRunning) {
+        if (this.started == null) {
             this.started = System.currentTimeMillis()
         }
         this.ended = System.currentTimeMillis()

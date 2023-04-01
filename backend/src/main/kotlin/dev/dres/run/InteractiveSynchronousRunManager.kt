@@ -118,10 +118,11 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         this.updatables.add(this.scoreboardsUpdatable)
         this.updatables.add(this.endTaskUpdatable)
 
-
-        /** End ongoing runs upon initialization (in case server crashed during task execution). */
-        if (this.evaluation.currentTask?.isRunning == true) {
-            this.evaluation.currentTask?.end()
+        /** End ongoing tasks upon initialization (in case server crashed during task execution). */
+        for (task in this.evaluation.tasks) {
+            if (task.isRunning || task.status == DbTaskStatus.RUNNING) {
+                task.end()
+            }
         }
 
         /** Trigger score updates and re-enqueue pending submissions for judgement (if any). */
@@ -214,6 +215,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     override fun goTo(context: RunActionContext, index: Int) {
         checkStatus(RunManagerStatus.ACTIVE)
         assureNoRunningTask()
+        this.evaluation.tasks.any { it.status == DbTaskStatus.RUNNING }
         if (index >= 0 && index < this.template.tasks.size()) {
             /* Update active task. */
             this.evaluation.goTo(index)

@@ -25,6 +25,7 @@ import dev.dres.run.transformer.SubmissionTaskMatchFilter
 import dev.dres.run.transformer.SubmissionTransformer
 import dev.dres.run.transformer.SubmissionTransformerAggregator
 import kotlinx.dnq.query.*
+import kotlinx.dnq.query.FilteringContext.le
 import java.lang.IndexOutOfBoundsException
 import java.util.LinkedList
 
@@ -64,14 +65,13 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
     /** Reference to the currently active [DbTaskTemplate]. This is part of the task navigation. */
     private val templates = this.description.tasks.asSequence().map { it.templateId }.toList()
 
-
-    /** The index of the task template this [InteractiveSynchronousEvaluation] is pointing to. */
-    var templateIndex: Int = 0
-        private set
-
     /** Returns the last [TaskRun]. */
     val currentTask: AbstractInteractiveTask?
         get() = this.tasks.lastOrNull { it.templateId == this.templates[this.templateIndex] }
+
+    /** The index of the task template this [InteractiveSynchronousEvaluation] is pointing to. */
+    var templateIndex: Int = this.currentTask?.templateId?.let { this.templates.indexOf(it) } ?: 0
+        private set
 
     /** List of [Scoreboard]s maintained by this [NonInteractiveEvaluation]. */
     override val scoreboards: List<Scoreboard>

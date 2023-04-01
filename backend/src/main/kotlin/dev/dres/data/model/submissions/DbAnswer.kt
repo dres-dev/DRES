@@ -31,11 +31,19 @@ class DbAnswer(entity: Entity) : PersistentEntity(entity), Answer {
 
     override fun type(): AnswerType = AnswerType.fromDb(this.type)
 
-    fun toApi() = ApiAnswer(
+    /**
+     * Converts this [DbAnswer] to a RESTful API representation [ApiAnswer].
+     *
+     * This is a convenience method and requires an active transaction context.
+     *
+     * @param blind True, if a "blind" [ApiAnswer] should be generated.
+     * @return [ApiAnswer]
+     */
+    fun toApi(blind: Boolean = false) = ApiAnswer(
         type = this.type().toApi(),
-        item = this.item?.toApi(),
-        start = this.start,
-        end = this.end,
-        text = this.text
+        item = if (blind) { null } else { this.item?.toApi() },
+        start = if (blind) { null } else { this.start },
+        end = if (blind) { null } else { this.end },
+        text = if (blind) { null } else { this.text }
     )
 }

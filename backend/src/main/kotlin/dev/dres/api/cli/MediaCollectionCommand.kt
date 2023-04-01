@@ -702,17 +702,19 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
                         .groupBy(ListSegment::video)
                         .forEach { (videoName, segments) ->
                             val videoItem = collection.items.filter { it.name eq videoName }.firstOrNull()
-                            val fps = videoItem?.fps!!
-                            videoItem.segments.addAll(
-                                segments.map {
-                                    inserted += 1
-                                    DbMediaSegment.new {
-                                        this.name = it.name
-                                        this.start = it.start
-                                        this.end = it.end
+                            if (videoItem != null) {
+                                val fps = videoItem.fps!!
+                                videoItem.segments.addAll(
+                                    segments.map {
+                                        inserted += 1
+                                        DbMediaSegment.new {
+                                            this.name = it.name
+                                            this.start = it.start
+                                            this.end = it.end
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
 
                     println("Done! Read $inserted valid segments.")

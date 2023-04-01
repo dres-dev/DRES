@@ -42,16 +42,17 @@ class DbAnswerSet(entity: Entity) : PersistentEntity(entity), AnswerSet {
     }
 
     /**
-     * Converts this [DbVerdictStatus] to a RESTful API representation [ApiAnswerSet].
+     * Converts this [DbAnswerSet] to a RESTful API representation [ApiAnswerSet].
      *
      * This is a convenience method and requires an active transaction context.
      *
+     * @param blind True, if a "blind" [ApiAnswerSet] should be generated.
      * @return [ApiAnswerSet]
      */
-    fun toApi(): ApiAnswerSet = ApiAnswerSet(
+    fun toApi(blind: Boolean = false): ApiAnswerSet = ApiAnswerSet(
         id = this.id,
         status = this.status.toApi(),
         taskId = this.taskId,
-        answers = this.answers.asSequence().map { it.toApi() }.toList()
+        answers = this.answers.asSequence().map { it.toApi(blind) }.toList()
     )
 }

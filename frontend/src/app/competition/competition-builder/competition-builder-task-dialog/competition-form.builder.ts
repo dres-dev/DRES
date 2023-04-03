@@ -458,6 +458,10 @@ export class CompetitionFormBuilder {
    * @return The new {@link FormGroup}
    */
   private imageItemComponentForm(index: number, initialize?: ApiHint): FormGroup {
+    if(initialize?.path && !initialize?.mediaItem){
+      /* Handle external image */
+      return this.externalImageItemComponentForm(index, initialize);
+    }
     const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
     if (
       !initialize?.mediaItem &&
@@ -487,6 +491,8 @@ export class CompetitionFormBuilder {
         });
     }
 
+
+
     return new FormGroup({
       start: new FormControl(initialize?.start, [
         Validators.required,
@@ -507,6 +513,10 @@ export class CompetitionFormBuilder {
    * @return The new {@link FormGroup}
    */
   private videoItemComponentForm(index: number, initialize?: ApiHint): FormGroup {
+    if(initialize?.path && !initialize?.mediaItem){
+      /* handle external video */
+      return this.externalVideoItemComponentForm(index, initialize);
+    }
     /* Initialize media item based on target. */
     const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
     if (
@@ -661,7 +671,7 @@ export class CompetitionFormBuilder {
       )
     );
 
-    return new FormGroup({
+    const group = new FormGroup({
       start: new FormControl(initialize?.start, [
         Validators.required,
         Validators.min(0),
@@ -671,6 +681,39 @@ export class CompetitionFormBuilder {
       type: new FormControl('VIDEO', [Validators.required]),
       external: new FormControl(true),
       path: pathFormControl,
+      segment_start: new FormControl(initialize?.range.start.value, [Validators.required]),
+      segment_end: new FormControl(initialize?.range.end.value, [Validators.required]),
+      segment_time_unit: new FormControl(
+        initialize?.range.start.unit ? initialize?.range.start.unit : 'SECONDS',
+        Validators.required
+      ),
     });
+    /* Initialize start, end and time unit based on target. */
+    // fetch target time unit
+    const targetTimeUnit = (this.form.get('target') as FormArray).controls[0].get('segment_time_unit').value;
+    if (targetTimeUnit && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
+      group.get('segment_time_unit').setValue(targetTimeUnit, {emitEvent: false});
+    }
+
+    if (!group.get('segment_start').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
+      group.get('segment_start').setValue((this.form.get('target') as FormArray).controls[0].get('segment_start').value, {emitEvent: false});
+    }
+
+    if (!group.get('segment_end').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
+      group.get('segment_end').setValue((this.form.get('target') as FormArray).controls[0].get('segment_end').value, {emitEvent: false});
+    }
+
+    /* Manually setting the duration of the hint equal to the duration of the task, this way the validators are happy */
+    group.get('end').setValue(this.taskType.duration, {emitEvent: false});
+
+    group
+      .get('segment_start')
+      .setValidators([Validators.required, this.temporalPointValidator(group.get('segment_time_unit') as FormControl)]);
+    group
+      .get('segment_end')
+      .setValidators([Validators.required, this.temporalPointValidator(group.get('segment_time_unit') as FormControl)]);
+    group.get('segment_start').updateValueAndValidity();
+    group.get('segment_end').updateValueAndValidity();
+    return group;
   }
 }

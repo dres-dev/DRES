@@ -451,7 +451,7 @@
             <span
               *ngIf="description.get('external')"
             >
-              <mat-form-field style="width: 85%" *ngIf="description.get('path')">
+              <mat-form-field [style.width]="description.get('type').value === 'VIDEO' ? '45%' : '85%'" *ngIf="description.get('path')">
                 <input
                   type="text"
                   matInput
@@ -496,7 +496,7 @@
                   <!--  -->
                   <mat-option *ngFor="let unit of units" [value]="unit">{{ unit }}</mat-option>
                 </mat-select>
-                <span matSuffix>
+                <!--TODO External Video Preview<span matSuffix>
                   <button
                     mat-icon-button
                     aria-label="Show media item."
@@ -512,7 +512,7 @@
                   >
                     <mat-icon>remove_red_eye</mat-icon>
                   </button>
-                </span>
+                </span>-->
               </mat-form-field>
               </ng-container>
             </span>

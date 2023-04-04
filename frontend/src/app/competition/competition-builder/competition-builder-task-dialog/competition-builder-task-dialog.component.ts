@@ -21,6 +21,7 @@ import {
   ApiTaskType, ApiTemporalPoint, ApiTemporalRange, ApiTemporalUnit,
   CollectionService
 } from '../../../../../openapi';
+import { TemplateBuilderService } from "../../../template/template-builder/template-builder.service";
 
 /**
  * Its expected that the taskGroup and taskType properties are correctly given
@@ -55,9 +56,10 @@ export class CompetitionBuilderTaskDialogComponent {
     public collectionService: CollectionService,
     @Inject(MAT_DIALOG_DATA) public data: CompetitionBuilderTaskDialogData,
     private dialog: MatDialog,
-    public config: AppConfig
+    public config: AppConfig,
+    private builderService: TemplateBuilderService // To make the compiler happy
   ) {
-    this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.data.task);
+    this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.builderService, this.data.task);
     this.form = this.builder.form;
     this.mediaCollectionSource = this.collectionService.getApiV2CollectionList();
   }
@@ -70,7 +72,7 @@ export class CompetitionBuilderTaskDialogComponent {
 
   uploaded = (taskData: string) => {
     const task = JSON.parse(taskData) as ApiTaskTemplate;
-    this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, task);
+    this.builder = new CompetitionFormBuilder(this.data.taskGroup, this.data.taskType, this.collectionService, this.builderService, task);
     this.form = this.builder.form;
     console.log('Loaded task: ' + JSON.stringify(task));
   };

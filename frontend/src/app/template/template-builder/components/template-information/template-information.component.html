@@ -12,5 +12,19 @@
                 <textarea matInput placeholder="Description" formControlName="description" required></textarea>
             </mat-form-field>
         </p>
+        <p>
+            <mat-form-field style="width: 100%">
+                <mat-label>Default collection for tasks within this evaluation template</mat-label>
+                <mat-select
+                  [placeholder]="'Default Media Collection'"
+                  formControlName="collection"
+                >
+                    <mat-option *ngFor="let mediaCollection of mediaCollectionSource | async"
+                                [value]="mediaCollection.id">
+                        <span>{{ mediaCollection.name }}</span> (ID: {{ mediaCollection.id }})
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </p>
     </form>
 </div>

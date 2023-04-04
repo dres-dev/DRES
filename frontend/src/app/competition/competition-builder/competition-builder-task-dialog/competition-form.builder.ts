@@ -13,6 +13,7 @@ import {
   ApiTaskType, ApiTemporalPoint, ApiTemporalRange,
   CollectionService
 } from '../../../../../openapi';
+import { TemplateBuilderService } from "../../../template/template-builder/template-builder.service";
 
 export class CompetitionFormBuilder {
   /** The default duration of a query hint. This is currently a hard-coded constant. */
@@ -20,9 +21,6 @@ export class CompetitionFormBuilder {
 
   /** The {@link FormGroup} held by this {@link CompetitionFormBuilder}. */
   public form: FormGroup;
-
-  /** List of data sources managed by this CompetitionFormBuilder. */
-  private dataSources = new Map<string, Observable<ApiMediaItem[] | string[]>>();
 
   /**
    * Constructor for CompetitionFormBuilder.
@@ -36,10 +34,14 @@ export class CompetitionFormBuilder {
     private taskGroup: ApiTaskGroup,
     private taskType: ApiTaskType,
     private collectionService: CollectionService,
+    private builderService: TemplateBuilderService,
     private data?: ApiTaskTemplate
   ) {
     this.initializeForm();
   }
+
+  /** List of data sources managed by this CompetitionFormBuilder. */
+  private dataSources = new Map<string, Observable<ApiMediaItem[] | string[]>>();
 
   /**
    * Returns the duration value to init with:
@@ -279,7 +281,7 @@ export class CompetitionFormBuilder {
       id: new FormControl(this.data?.id),
       name: new FormControl(this.data?.name, [Validators.required]),
       duration: new FormControl(this.durationInitValue, [Validators.required, Validators.min(1)]),
-      mediaCollection: new FormControl(this.data?.collectionId, [Validators.required]),
+      mediaCollection: new FormControl(this.data?.collectionId ?? this.builderService.defaultCollection, [Validators.required]),
     });
     this.form.addControl('target', this.formForTarget());
     this.form.addControl('components', this.formForQueryComponents());

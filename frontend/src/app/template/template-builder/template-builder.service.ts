@@ -12,6 +12,13 @@ import { map } from "rxjs/operators";
   providedIn: 'root'
 })
 export class TemplateBuilderService {
+  set defaultCollection(value: string) {
+    this._defaultCollection = value;
+  }
+  get defaultCollection(): string {
+    return this._defaultCollection;
+  }
+  private _defaultCollection: string = '';
   get selectedTaskGroup(): ApiTaskGroup {
     return this._selectedTaskGroup;
   }
@@ -215,4 +222,5 @@ export class TemplateBuilderService {
     this.getTemplate().tasks.splice(this.getTemplate().tasks.indexOf(task), 1);
     this.update(this.getTemplate());
   }
+
 }

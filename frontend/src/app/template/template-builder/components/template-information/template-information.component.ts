@@ -1,8 +1,8 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {AbstractTemplateBuilderComponent} from '../abstract-template-builder.component';
 import {FormControl, FormGroup} from '@angular/forms';
-import {Subscription} from 'rxjs';
-import {TemplateService} from '../../../../../../openapi';
+import { Observable, Subscription } from "rxjs";
+import { ApiMediaCollection, CollectionService, TemplateService } from "../../../../../../openapi";
 import {TemplateBuilderService} from '../../template-builder.service';
 
 @Component({
@@ -12,14 +12,21 @@ import {TemplateBuilderService} from '../../template-builder.service';
 })
 export class TemplateInformationComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy {
 
-  form: FormGroup = new FormGroup({name: new FormControl(''), description: new FormControl('')});
+  form: FormGroup = new FormGroup({
+    name: new FormControl(''),
+    description: new FormControl(''),
+    collection: new FormControl('')
+  });
 
   private changeSub: Subscription;
 
   private initOngoing = true;
 
+  mediaCollectionSource: Observable<ApiMediaCollection[]>;
+
   constructor(
       private templateService: TemplateService,
+      private collectionService: CollectionService,
       builder: TemplateBuilderService
   ) {
     super(builder);
@@ -27,9 +34,22 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
 
   ngOnInit(): void {
     this.onInit();
-    this.changeSub = this.form.valueChanges.subscribe(() => {
-      this.builderService.markDirty();
+    this.changeSub = this.form.valueChanges.subscribe((value) => {
+      let isDirty = false;
+      if(value.name !== this.builderService.getTemplate().name){
+        isDirty = true;
+      }
+      if(value.description !== this.builderService.getTemplate().description){
+        isDirty = true;
+      }
+      if(value.collection && value.collection?.length > 0){
+        this.builderService.defaultCollection = value.collection;
+      }
+      if(isDirty){
+        this.builderService.markDirty();
+      }
     });
+    this.mediaCollectionSource = this.collectionService.getApiV2CollectionList();
   }
 
   ngOnDestroy() {

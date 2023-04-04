@@ -84,7 +84,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
   }
 
   public init(){
-    this.formBuilder = new CompetitionFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.task);
+    this.formBuilder = new CompetitionFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.builderService, this.task);
     this.form = this.formBuilder.form;
     this.form.valueChanges.subscribe(newValue => {
       this.formBuilder.storeFormData();
@@ -109,7 +109,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 
   uploaded = (taskData: string) => {
     const task = JSON.parse(taskData) as ApiTaskTemplate;
-    this.formBuilder = new CompetitionFormBuilder(this.taskGroup, this.taskType, this.collectionService, task);
+    this.formBuilder = new CompetitionFormBuilder(this.taskGroup, this.taskType, this.collectionService, this.builderService, task);
     this.form = this.formBuilder.form;
   };
 

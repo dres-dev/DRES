@@ -47,6 +47,7 @@ export class AbstractRunListComponent {
    * @param runId ID of the run to navigate to.
    */
   public navigateToViewer(runId: string) {
+    console.log("Navigate (AbstractList): ", runId)
     /* TODO: Setup depends on type of competition run. */
     this.router.navigate([
       '/evaluation/viewer',

@@ -44,8 +44,8 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
 
   ngOnDestroy(): void {
     this.onDestroy();
-    this.changeSub.unsubscribe();
-    this.routeSub.unsubscribe();
+    this.changeSub?.unsubscribe();
+    this.routeSub?.unsubscribe();
   }
 
   ngOnInit(): void {

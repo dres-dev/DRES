@@ -15,6 +15,7 @@ import {
 } from '../../../../../openapi';
 import { TemplateBuilderService } from "../../../template/template-builder/template-builder.service";
 
+// TODO rename to TemplateFormBuilder
 export class CompetitionFormBuilder {
   /** The default duration of a query hint. This is currently a hard-coded constant. */
   private static DEFAULT_HINT_DURATION = 30;

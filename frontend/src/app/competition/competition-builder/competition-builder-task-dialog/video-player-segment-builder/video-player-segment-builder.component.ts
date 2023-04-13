@@ -2,7 +2,6 @@ import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, O
 import { Observable, of, Subscription } from 'rxjs';
 import { ApiMediaItem, ApiTemporalPoint, ApiTemporalRange } from '../../../../../../openapi';
 import { AppConfig } from '../../../../app.config';
-import { Options } from '@angular-slider/ngx-slider';
 
 export interface VideoPlayerSegmentBuilderData {
   mediaItem: ApiMediaItem;
@@ -27,12 +26,6 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
   endInSeconds = 100;
   durationInSeconds = 100;
 
-  options = {
-    floor: 0,
-    ceil: 100,
-    showTicks: false,
-  } as Options;
-
   doLoop = true;
 
   private requestSub: Subscription;
@@ -53,8 +46,6 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
         this.videoUrl = of(
           this.config.resolveApiUrl(`/media/${this.data?.mediaItem?.mediaItemId}`)
         );
-        this.durationInSeconds = this.data.mediaItem.durationMs / 1000;
-        this.setNewRange(0, this.durationInSeconds);
       }
       if (this.data.segmentStart) {
         this.startInSeconds = this.data.segmentStart === -1 ? 0 : this.data.segmentStart;
@@ -92,12 +83,6 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
     });
   }
 
-  setNewRange(start: number, end: number) {
-    const newOptions: Options = Object.assign({}, this.options);
-    newOptions.ceil = start;
-    newOptions.floor = end;
-    this.options = newOptions;
-  }
 
   stop() {
     this.videoUrl = undefined;

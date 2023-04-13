@@ -9,8 +9,8 @@
     [loop]="doLoop"
     [muted]="(config.configAsObservable | async).effects.mute"
   ></video>
-  <div class="controls-container" *ngIf="videoUrl | async" fxLayout="row" fxFlexFill fxLayoutAlign="space-between center">
-    <div fxFlex="15">
+  <div class="controls-container flex flex-row align-center content-between fill" *ngIf="videoUrl | async">
+    <div class="flex-15">
       <button
         mat-flat-button
         color="primary"
@@ -20,12 +20,12 @@
         <mat-icon>{{ this.video.nativeElement.paused ? 'play_arrow' : 'pause' }}</mat-icon>
       </button>
     </div>
-    <div fxFlex="15">
+    <div class="flex-15">
       <button mat-flat-button (click)="setStart()" matTooltip="Set current time as start time">
         <mat-icon>first_page</mat-icon>
       </button>
     </div>
-    <div fxFlex="15">
+    <div class="flex-15">
       <button mat-flat-button (click)="setEnd()" matTooltip="Set current time as end time">
         <mat-icon>last_page</mat-icon>
       </button>
@@ -35,13 +35,13 @@
                               matTooltip="Time relative to the submission, inclusive some temporal context."></mat-progress-bar>
         </div>-->
     <div class="spacer-flex"></div>
-    <div fxFlex="10">
+    <div class="flex-10">
       <mat-slide-toggle [(ngModel)]="doLoop"><mat-icon>loop</mat-icon></mat-slide-toggle>
     </div>
   </div>
-  <div class="controls-container" *ngIf="videoUrl | async" fxLayout="row" fxFlexFill fxLayoutAlign="space-between center">
-    <div fxFlex="15">{{ video.nativeElement.currentTime | formatTime }} / {{ durationInSeconds | formatTime }}</div>
-    <div fxFlex="85">
+  <div class="controls-container flex flex-row align-center content-between fill" *ngIf="videoUrl | async">
+    <div class="flex-15">{{ video.nativeElement.currentTime | formatTime }} / {{ durationInSeconds | formatTime }}</div>
+    <div class="flex-85">
       <mat-slider
         style="width: 100%"
         [min]="0"
@@ -50,22 +50,17 @@
       ></mat-slider>
     </div>
   </div>
-  <div class="controls-container" *ngIf="videoUrl | async" fxLayout="row" fxFlexFill fxLayoutAlign="space-between center">
-    <div fxFlex="15">Start: {{ startInSeconds | formatTime }}</div>
-    <mat-form-field fxFlex="35">
+  <div class="controls-container flex flex-row align-center content-between fill" *ngIf="videoUrl | async">
+    <div class="flex-15">Start: {{ startInSeconds | formatTime }}</div>
+    <mat-form-field class="flex-35">
       <mat-label>Start [s]</mat-label>
       <input type="number" matInput [(ngModel)]="startInSeconds" (change)="recalcVideoTime($event)" />
     </mat-form-field>
-    <mat-form-field fxFlex="35">
+    <mat-form-field class="flex-35">
       <mat-label>End [s]</mat-label>
       <input type="number" matInput [(ngModel)]="endInSeconds" (change)="recalcVideoTime($event)" />
     </mat-form-field>
-    <!--
-        <div fxFlex>
-            <ng5-slider [(value)]="startInSeconds" [(highValue)]="endInSeconds" [options]="options"></ng5-slider>
-        </div>
-        -->
     <div class="spacer-flex"></div>
-    <div fxFlex="15">End: {{ endInSeconds | formatTime }}</div>
+    <div class="flex-15">End: {{ endInSeconds | formatTime }}</div>
   </div>
 </div>

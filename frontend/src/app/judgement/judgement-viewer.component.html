@@ -2,13 +2,13 @@
   <div class="header">
     <app-back-button></app-back-button>
     <h1>Judgment for Submission</h1>
-    <div fxLayout="row" fxLayoutAlign="space-between start" class="header-container">
-      <div fxFlex="75" class="header-main">
+    <div class="header-container flex flex-row content-between align-start">
+      <div class="header-main flex-75">
         <p *ngIf="isJudgmentAvailable"><strong>Description:</strong> <span class="mat-h1">{{ judgementRequest?.taskDescription }}</span></p>
         <p *ngIf="debug && isJudgmentAvailable">{{ judgePlayer?.videoUrlDebug | async }}</p>
         <div class="message" *ngIf="!isJudgmentAvailable">{{ noJudgementMessage }}</div>
       </div>
-      <div fxFlex="25" class="header-right">
+      <div class="header-right flex-25">
         <span matTooltip="The amount of submissions for which a verdict is missing">
           <strong>Awaiting Verdict:</strong> {{ pendingSubmissions ? (pendingSubmissions | async) : 0 }} </span
         ><br />
@@ -23,11 +23,9 @@
     <div
       [@newDesc]="isNewJudgementDesc ? 'fresh' : 'known'"
       *ngIf="isJudgmentAvailable"
-      class="controls-container"
-      fxLayout="row"
-      fxLayoutAlign="space-evenly center"
+      class="controls-container flex flex-row content-evenly align-center"
     >
-      <div fxLayoutAlign="center" fxFlex="33" class="button-wrapper">
+      <div class="button-wrapper flex-33 flex flex-row align-center">
         <button
           mat-fab
           style="background-color: limegreen; color: white;"
@@ -38,7 +36,7 @@
           <mat-icon>thumb_up</mat-icon>
         </button>
       </div>
-      <div fxLayoutAlign="center" fxFlex="33" class="button-wrapper">
+      <div class="button-wrapper flex-33 flex flex-row align-center">
         <button
           mat-fab
           style="background-color: blue; color: white"
@@ -49,7 +47,7 @@
           <mat-icon>live_help</mat-icon>
         </button>
       </div>
-      <div fxLayoutAlign="center" fxFlex="33" class="button-wrapper">
+      <div class="button-wrapper flex-33 flex flex-row align-center">
         <button
           mat-fab
           style="background-color: red; color: white"

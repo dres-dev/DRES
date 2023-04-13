@@ -26,6 +26,7 @@ import { TemplateBuilderService } from "../../../template/template-builder/templ
 /**
  * Its expected that the taskGroup and taskType properties are correctly given
  * even in the case this is 'edit'!
+ * @deprecated Got replaced since this isnt a dialog anymore
  */
 export interface CompetitionBuilderTaskDialogData {
   taskGroup: ApiTaskGroup;
@@ -33,6 +34,9 @@ export interface CompetitionBuilderTaskDialogData {
   task?: ApiTaskTemplate;
 }
 
+/**
+ * @deprecated Got replaced by task-template-editor.component.ts
+ */
 @Component({
   selector: 'app-competition-builder-task-dialog',
   templateUrl: './competition-builder-task-dialog.component.html',

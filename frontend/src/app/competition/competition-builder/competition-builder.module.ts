@@ -33,7 +33,6 @@ import { AdvancedBuilderDialogComponent } from './competition-builder-task-dialo
 import { SharedModule } from '../../shared/shared.module';
 import { VideoPlayerSegmentBuilderDialogComponent } from './competition-builder-task-dialog/video-player-segment-builder-dialog/video-player-segment-builder-dialog.component';
 import { ColorPickerModule } from 'ngx-color-picker';
-import { NgxSliderModule } from '@angular-slider/ngx-slider';
 
 @NgModule({
   imports: [
@@ -57,7 +56,6 @@ import { NgxSliderModule } from '@angular-slider/ngx-slider';
     MatSlideToggleModule,
     MatButtonToggleModule,
     MatGridListModule,
-    NgxSliderModule,
     ServicesModule,
     FlexModule,
     FormsModule,

@@ -30,6 +30,9 @@ import {
   UserService
 } from '../../../../openapi';
 
+/**
+ * @deprecated Replaced with new template builder
+ */
 @Component({
   selector: 'app-competition-builer',
   templateUrl: './competition-builder.component.html',

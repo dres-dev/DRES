@@ -9,8 +9,8 @@
     loop
     [muted]="(config.configAsObservable | async).effects.mute"
   ></video>
-  <div class="controls-container" *ngIf="mediaUrl | async" fxLayout="row" fxFlexFill fxLayoutAlign="space-between center">
-    <div fxFlex="10">
+  <div class="controls-container flex flex-row content-between align-center fill" *ngIf="mediaUrl | async">
+    <div class="flex-10">
       <button
         mat-flat-button
         color="primary"
@@ -20,7 +20,7 @@
         <mat-icon>{{ videoPlayer.paused ? 'play_arrow' : 'pause' }}</mat-icon>
       </button>
     </div>
-    <div fxFlex>
+    <div class="flex-1">
       <mat-progress-bar
         mode="determinate"
         [value]="playtimeRelative | async"

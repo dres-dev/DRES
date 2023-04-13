@@ -1,4 +1,4 @@
-<div style="display: flex">
+<div class="flex">
   <app-back-button></app-back-button>
   <div>
     <h1>Media collection: "{{ (collection | async)?.collection.name }}" ({{ (collectionId | async).substr(0, 8) }})</h1>
@@ -18,7 +18,7 @@
     </button>
   </div>
 </div>
-<div style="display: flex">
+<div class="flex">
   <div>
     <b>Description: </b>{{ (collection | async)?.collection?.description }}<br />
     <b>Base Path: </b>{{ (collection | async)?.collection?.basePath }}

@@ -11,7 +11,7 @@ import {
   ApiTemporalUnit,
   CollectionService
 } from "../../../../../../openapi";
-import { FormControl, FormGroup } from "@angular/forms";
+import { UntypedFormControl, UntypedFormGroup } from "@angular/forms";
 import {
   CompetitionFormBuilder
 } from "../../../../competition/competition-builder/competition-builder-task-dialog/competition-form.builder";
@@ -39,7 +39,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
   public taskType: ApiTaskType;
   public taskGroup: ApiTaskGroup;
 
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   units = [ApiTemporalUnit.FRAME_NUMBER, ApiTemporalUnit.SECONDS, ApiTemporalUnit.MILLISECONDS, ApiTemporalUnit.TIMECODE]
 
@@ -192,7 +192,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
    * @param collectionId The ID of the collection to pick a {@link MediaItem} from.
    * @param target The target {@link FormControl} to apply the value to.
    */
-  public pickRandomMediaItem(collectionId: string, target: FormControl) {
+  public pickRandomMediaItem(collectionId: string, target: UntypedFormControl) {
     this.collectionService
       .getApiV2CollectionByCollectionIdRandom(collectionId)
       .pipe(first())
@@ -209,7 +209,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
    * @param endControl The target {@link FormControl} to apply the value to.
    * @param unitControl The target {@link FormControl} to apply the value to.
    */
-  public pickRandomSegment(item: ApiMediaItem, startControl: FormControl, endControl: FormControl, unitControl: FormControl) {
+  public pickRandomSegment(item: ApiMediaItem, startControl: UntypedFormControl, endControl: UntypedFormControl, unitControl: UntypedFormControl) {
     const start = TaskTemplateEditorComponent.randInt(1, item.durationMs / 1000 / 2); // always in first half
     let end = 1;
     do {
@@ -220,7 +220,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
     unitControl.setValue('SECONDS');
   }
 
-  toggleVideoPlayer(mediaItem: ApiMediaItem, startControl?: FormControl, endControl?: FormControl, unitControl?: FormControl) {
+  toggleVideoPlayer(mediaItem: ApiMediaItem, startControl?: UntypedFormControl, endControl?: UntypedFormControl, unitControl?: UntypedFormControl) {
     /* Add to toggleVideoPlayer button if
         [disabled]="!target.get('mediaItem').value && !target.get('segment_start').value && !target.get('segment_end').value"
          */
@@ -265,7 +265,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
     this.showVideo = !this.showVideo;
   }
 
-  onRangeChange(range: ApiTemporalRange, startControl?: FormControl, endControl?: FormControl, unitControl?: FormControl) {
+  onRangeChange(range: ApiTemporalRange, startControl?: UntypedFormControl, endControl?: UntypedFormControl, unitControl?: UntypedFormControl) {
     startControl?.setValue(range.start.value);
     endControl?.setValue(range.end.value);
     unitControl?.setValue(ApiTemporalUnit.SECONDS);

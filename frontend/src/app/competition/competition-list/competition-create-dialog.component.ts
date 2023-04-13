@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import {ApiCreateEvaluation} from '../../../../openapi';
 
 @Component({
@@ -8,9 +8,9 @@ import {ApiCreateEvaluation} from '../../../../openapi';
   templateUrl: 'competition-create-dialog.component.html',
 })
 export class CompetitionCreateDialogComponent {
-  form: FormGroup = new FormGroup({
-    name: new FormControl(''),
-    description: new FormControl(''),
+  form: UntypedFormGroup = new UntypedFormGroup({
+    name: new UntypedFormControl(''),
+    description: new UntypedFormControl(''),
   });
 
   participantsCanView = true;

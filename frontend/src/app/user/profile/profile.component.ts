@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { first, flatMap, tap } from 'rxjs/operators';
 import { AuthenticationService } from '../../services/session/authentication.sevice';
@@ -21,9 +21,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   private userSub: Subscription;
 
-  form: FormGroup = new FormGroup({
-    username: new FormControl({ value: '', disabled: !this.editing }),
-    password: new FormControl({ value: '', disabled: !this.editing }),
+  form: UntypedFormGroup = new UntypedFormGroup({
+    username: new UntypedFormControl({ value: '', disabled: !this.editing }),
+    password: new UntypedFormControl({ value: '', disabled: !this.editing }),
   });
 
   constructor(

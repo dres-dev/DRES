@@ -1,4 +1,4 @@
-import { AbstractControl, FormArray, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormArray, UntypedFormControl, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { filter, first, switchMap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { RequireMatch } from './require-match';
@@ -20,7 +20,7 @@ export class CompetitionFormBuilder {
   private static DEFAULT_HINT_DURATION = 30;
 
   /** The {@link FormGroup} held by this {@link CompetitionFormBuilder}. */
-  public form: FormGroup;
+  public form: UntypedFormGroup;
 
   /**
    * Constructor for CompetitionFormBuilder.
@@ -72,7 +72,7 @@ export class CompetitionFormBuilder {
    * @param afterIndex The {@link FormControl} to insert the new {@link FormControl} after.
    */
   public addComponentForm(type: ApiHintType, afterIndex: number = null, external : boolean = false) {
-    const array = this.form.get('components') as FormArray;
+    const array = this.form.get('components') as UntypedFormArray;
     const newIndex = afterIndex ? afterIndex + 1 : array.length;
     let component = null;
     switch (type) {
@@ -121,7 +121,7 @@ export class CompetitionFormBuilder {
    * @param type The {@link TaskType.TargetTypeEnum} to add a {@link FormGroup} for.
    */
   public addTargetForm(type: ApiTargetOption | 'MULTI') {
-    const array = this.form.get('target') as FormArray;
+    const array = this.form.get('target') as UntypedFormArray;
     const newIndex = array.length;
     switch (type) {
       // FIXME to make compiler happy. obviously this is semantically not appropriate
@@ -144,7 +144,7 @@ export class CompetitionFormBuilder {
    * @param index Index to remove.
    */
   public removeComponentForm(index: number) {
-    const array = this.form.get('components') as FormArray;
+    const array = this.form.get('components') as UntypedFormArray;
     if (array.length > index) {
       array.removeAt(index);
     }
@@ -156,7 +156,7 @@ export class CompetitionFormBuilder {
    * @param index Index to remove.
    */
   public removeTargetForm(index: number) {
-    const array = this.form.get('target') as FormArray;
+    const array = this.form.get('target') as UntypedFormArray;
     if (array.length > index) {
       array.removeAt(index);
     }
@@ -173,7 +173,7 @@ export class CompetitionFormBuilder {
       taskType: this.taskGroup.type /* Cannot be edited! */,
       duration: this.form.get('duration').value,
       collectionId: this.form.get('mediaCollection').value,
-      hints: (this.form.get('components') as FormArray).controls.map((c) => {
+      hints: (this.form.get('components') as UntypedFormArray).controls.map((c) => {
         return {
           type: c.get('type').value,
           start: c.get('start').value,
@@ -190,7 +190,7 @@ export class CompetitionFormBuilder {
           path: c.get('path') ? c.get('path').value : null,
         } as ApiHint;
       }),
-      targets:  (this.form.get('target') as FormArray).controls.map((t) => {
+      targets:  (this.form.get('target') as UntypedFormArray).controls.map((t) => {
           return {
             type: t.get('type').value,
             target: t.get('mediaItem')?.value?.mediaItemId ?? null,
@@ -217,7 +217,7 @@ export class CompetitionFormBuilder {
       this.data.taskType = this.taskGroup.type /* Cannot be edited! */;
       this.data.duration= this.form.get('duration').value;
       this.data.collectionId = this.form.get('mediaCollection').value;
-      this.data.hints = (this.form.get('components') as FormArray).controls.map((c) => {
+      this.data.hints = (this.form.get('components') as UntypedFormArray).controls.map((c) => {
         return {
           type: c.get('type').value,
           start: c.get('start').value,
@@ -234,7 +234,7 @@ export class CompetitionFormBuilder {
           path: c.get('path') ? c.get('path').value : null,
         } as ApiHint;
       });
-      this.data.targets=  (this.form.get('target') as FormArray).controls.map((t) => {
+      this.data.targets=  (this.form.get('target') as UntypedFormArray).controls.map((t) => {
         return {
           type: t.get('type').value,
           /** Either its the mediaItem's ID or its text that is stored in 'mediaItem' form control */
@@ -259,7 +259,7 @@ export class CompetitionFormBuilder {
     };
   }
 
-  private temporalPointValidator(unitControl: FormControl): ValidatorFn {
+  private temporalPointValidator(unitControl: UntypedFormControl): ValidatorFn {
     return (control: AbstractControl): { [key: string]: any } | null => {
       if (unitControl.value === 'TIMECODE') {
         if (TimeUtilities.timeCodeRegex.test(`${control.value}`)) {
@@ -277,11 +277,11 @@ export class CompetitionFormBuilder {
    * Initializes the {@link FormGroup}.
    */
   private initializeForm() {
-    this.form = new FormGroup({
-      id: new FormControl(this.data?.id),
-      name: new FormControl(this.data?.name, [Validators.required]),
-      duration: new FormControl(this.durationInitValue, [Validators.required, Validators.min(1)]),
-      mediaCollection: new FormControl(this.data?.collectionId ?? this.builderService.defaultCollection, [Validators.required]),
+    this.form = new UntypedFormGroup({
+      id: new UntypedFormControl(this.data?.id),
+      name: new UntypedFormControl(this.data?.name, [Validators.required]),
+      duration: new UntypedFormControl(this.durationInitValue, [Validators.required, Validators.min(1)]),
+      mediaCollection: new UntypedFormControl(this.data?.collectionId ?? this.builderService.defaultCollection, [Validators.required]),
     });
     this.form.addControl('target', this.formForTarget());
     this.form.addControl('components', this.formForQueryComponents());
@@ -293,31 +293,31 @@ export class CompetitionFormBuilder {
   private formForTarget() {
     switch (this.taskType.targetOption) {
       case 'SINGLE_MEDIA_ITEM':
-        return new FormArray([this.singleMediaItemTargetForm(0, this.data?.targets[0] ?? null)]);
+        return new UntypedFormArray([this.singleMediaItemTargetForm(0, this.data?.targets[0] ?? null)]);
       case 'SINGLE_MEDIA_SEGMENT':
-        return new FormArray([this.singleMediaSegmentTargetForm(this.data?.targets[0] ?? null)]);
+        return new UntypedFormArray([this.singleMediaSegmentTargetForm(this.data?.targets[0] ?? null)]);
       case 'JUDGEMENT':
-        return new FormArray([new FormGroup({type: new FormControl(ApiTargetType.JUDGEMENT)})]);
+        return new UntypedFormArray([new UntypedFormGroup({type: new UntypedFormControl(ApiTargetType.JUDGEMENT)})]);
       case 'VOTE':
-        return new FormArray([new FormGroup({type: new FormControl(ApiTargetType.JUDGEMENT_WITH_VOTE)})]);
+        return new UntypedFormArray([new UntypedFormGroup({type: new UntypedFormControl(ApiTargetType.JUDGEMENT_WITH_VOTE)})]);
       case 'TEXT':
-        const text: FormGroup[] = [];
+        const text: UntypedFormGroup[] = [];
         if (this.data?.targets) {
           this.data?.targets?.forEach((d, i) => text.push(this.singleTextTargetForm(d)));
         } else {
           console.log('no target');
           text.push(this.singleTextTargetForm());
         }
-        return new FormArray(text);
+        return new UntypedFormArray(text);
       default:
         // Handling multiple here, since it's the default.
-        const content: FormGroup[] = [];
+        const content: UntypedFormGroup[] = [];
         if (this.data?.targets) {
           this.data?.targets?.forEach((t, i) => content.push(this.singleMediaItemTargetForm(i, t)));
         } else {
           content.push(this.singleMediaItemTargetForm(0));
         }
-        return new FormArray(content);
+        return new UntypedFormArray(content);
     }
   }
 
@@ -327,10 +327,10 @@ export class CompetitionFormBuilder {
    * @param index Index of the FormControl
    * @param initialize The optional {RestTaskDescriptionTargetItem} containing the data to initialize the form with.
    */
-  private singleMediaItemTargetForm(index: number, initialize?: ApiTarget): FormGroup {
+  private singleMediaItemTargetForm(index: number, initialize?: ApiTarget): UntypedFormGroup {
     /* Prepare auto complete field. */
-    const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
-    const typeFormControl = new FormControl(ApiTargetType.MEDIA_ITEM);
+    const mediaItemFormControl = new UntypedFormControl(null, [Validators.required, RequireMatch]);
+    const typeFormControl = new UntypedFormControl(ApiTargetType.MEDIA_ITEM);
 
     this.dataSources.set(
       `target.${index}.mediaItem`,
@@ -352,7 +352,7 @@ export class CompetitionFormBuilder {
         });
     }
 
-    return new FormGroup({ type: typeFormControl, mediaItem: mediaItemFormControl }, [RequireMatch]);
+    return new UntypedFormGroup({ type: typeFormControl, mediaItem: mediaItemFormControl }, [RequireMatch]);
   }
 
   /**
@@ -362,8 +362,8 @@ export class CompetitionFormBuilder {
    */
   private singleMediaSegmentTargetForm(initialize?: ApiTarget) {
     /* Prepare auto complete field. */
-    const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
-    const typeFormControl = new FormControl(ApiTargetType.MEDIA_ITEM_TEMPORAL_RANGE);
+    const mediaItemFormControl = new UntypedFormControl(null, [Validators.required, RequireMatch]);
+    const typeFormControl = new UntypedFormControl(ApiTargetType.MEDIA_ITEM_TEMPORAL_RANGE);
 
     this.dataSources.set(
       `target.0.mediaItem`,
@@ -385,12 +385,12 @@ export class CompetitionFormBuilder {
         });
     }
 
-    const formGroup = new FormGroup({
+    const formGroup = new UntypedFormGroup({
       type: typeFormControl,
       mediaItem: mediaItemFormControl,
-      segment_start: new FormControl(initialize?.range.start.value, [Validators.required]),
-      segment_end: new FormControl(initialize?.range.end.value, [Validators.required]),
-      segment_time_unit: new FormControl(
+      segment_start: new UntypedFormControl(initialize?.range.start.value, [Validators.required]),
+      segment_end: new UntypedFormControl(initialize?.range.end.value, [Validators.required]),
+      segment_time_unit: new UntypedFormControl(
         initialize?.range.start.unit ? initialize?.range.start.unit : 'SECONDS',
         [Validators.required]
       ),
@@ -398,10 +398,10 @@ export class CompetitionFormBuilder {
 
     formGroup
       .get('segment_start')
-      .setValidators([Validators.required, this.temporalPointValidator(formGroup.get('segment_time_unit') as FormControl)]);
+      .setValidators([Validators.required, this.temporalPointValidator(formGroup.get('segment_time_unit') as UntypedFormControl)]);
     formGroup
       .get('segment_end')
-      .setValidators([Validators.required, this.temporalPointValidator(formGroup.get('segment_time_unit') as FormControl)]);
+      .setValidators([Validators.required, this.temporalPointValidator(formGroup.get('segment_time_unit') as UntypedFormControl)]);
     formGroup.get('segment_start').updateValueAndValidity();
     formGroup.get('segment_end').updateValueAndValidity();
 
@@ -409,14 +409,14 @@ export class CompetitionFormBuilder {
   }
 
   private singleTextTargetForm(initialize?: ApiTarget) {
-    const textFormControl = new FormControl(null, [Validators.required]);
-    const typeFormControl = new FormControl(ApiTargetType.TEXT);
+    const textFormControl = new UntypedFormControl(null, [Validators.required]);
+    const typeFormControl = new UntypedFormControl(ApiTargetType.TEXT);
 
     console.log(initialize?.target);
 
     textFormControl.setValue(initialize?.target, {emitEvent: false});
 
-    return new FormGroup({
+    return new UntypedFormGroup({
       type: typeFormControl,
       mediaItem: textFormControl,
     });
@@ -449,7 +449,7 @@ export class CompetitionFormBuilder {
         }
       }
     }
-    return new FormArray(array, [Validators.required]);
+    return new UntypedFormArray(array, [Validators.required]);
   }
 
   /**
@@ -459,17 +459,17 @@ export class CompetitionFormBuilder {
    * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
    * @return The new {@link FormGroup}
    */
-  private imageItemComponentForm(index: number, initialize?: ApiHint): FormGroup {
+  private imageItemComponentForm(index: number, initialize?: ApiHint): UntypedFormGroup {
     if(initialize?.path && !initialize?.mediaItem){
       /* Handle external image */
       return this.externalImageItemComponentForm(index, initialize);
     }
-    const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
+    const mediaItemFormControl = new UntypedFormControl(null, [Validators.required, RequireMatch]);
     if (
       !initialize?.mediaItem &&
       (this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetOption === 'SINGLE_MEDIA_ITEM')
     ) {
-      mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value, {emitEvent: false});
+      mediaItemFormControl.setValue((this.form.get('target') as UntypedFormArray).controls[0].get('mediaItem').value, {emitEvent: false});
     }
 
     /* Prepare data source. */
@@ -495,14 +495,14 @@ export class CompetitionFormBuilder {
 
 
 
-    return new FormGroup({
-      start: new FormControl(initialize?.start, [
+    return new UntypedFormGroup({
+      start: new UntypedFormControl(initialize?.start, [
         Validators.required,
         Validators.min(0),
         Validators.max(this.taskType.duration),
       ]),
-      end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
-      type: new FormControl('IMAGE', [Validators.required]),
+      end: new UntypedFormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
+      type: new UntypedFormControl('IMAGE', [Validators.required]),
       mediaItem: mediaItemFormControl,
     });
   }
@@ -514,18 +514,18 @@ export class CompetitionFormBuilder {
    * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
    * @return The new {@link FormGroup}
    */
-  private videoItemComponentForm(index: number, initialize?: ApiHint): FormGroup {
+  private videoItemComponentForm(index: number, initialize?: ApiHint): UntypedFormGroup {
     if(initialize?.path && !initialize?.mediaItem){
       /* handle external video */
       return this.externalVideoItemComponentForm(index, initialize);
     }
     /* Initialize media item based on target. */
-    const mediaItemFormControl = new FormControl(null, [Validators.required, RequireMatch]);
+    const mediaItemFormControl = new UntypedFormControl(null, [Validators.required, RequireMatch]);
     if (
       !initialize?.mediaItem &&
       (this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT' || this.taskType.targetOption === 'SINGLE_MEDIA_ITEM')
     ) {
-      mediaItemFormControl.setValue((this.form.get('target') as FormArray).controls[0].get('mediaItem').value, {emitEvent: false});
+      mediaItemFormControl.setValue((this.form.get('target') as UntypedFormArray).controls[0].get('mediaItem').value, {emitEvent: false});
     }
 
     /* Prepare data source. */
@@ -550,22 +550,22 @@ export class CompetitionFormBuilder {
     }
 
     /* Prepare FormGroup. */
-    const group = new FormGroup({
-      start: new FormControl(initialize?.start, [
+    const group = new UntypedFormGroup({
+      start: new UntypedFormControl(initialize?.start, [
         Validators.required,
         Validators.min(0),
         Validators.max(this.taskType.duration),
       ]),
-      end: new FormControl(initialize?.end, [
+      end: new UntypedFormControl(initialize?.end, [
         Validators.required,
         Validators.min(0),
         Validators.max(this.taskType.duration),
       ]),
-      type: new FormControl('VIDEO', [Validators.required]),
+      type: new UntypedFormControl('VIDEO', [Validators.required]),
       mediaItem: mediaItemFormControl,
-      segment_start: new FormControl(initialize?.range.start.value, [Validators.required]),
-      segment_end: new FormControl(initialize?.range.end.value, [Validators.required]),
-      segment_time_unit: new FormControl(
+      segment_start: new UntypedFormControl(initialize?.range.start.value, [Validators.required]),
+      segment_end: new UntypedFormControl(initialize?.range.end.value, [Validators.required]),
+      segment_time_unit: new UntypedFormControl(
         initialize?.range.start.unit ? initialize?.range.start.unit : 'SECONDS',
         Validators.required
       ),
@@ -573,17 +573,17 @@ export class CompetitionFormBuilder {
 
     /* Initialize start, end and time unit based on target. */
     // fetch target time unit
-    const targetTimeUnit = (this.form.get('target') as FormArray).controls[0].get('segment_time_unit').value;
+    const targetTimeUnit = (this.form.get('target') as UntypedFormArray).controls[0].get('segment_time_unit').value;
     if (targetTimeUnit && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
       group.get('segment_time_unit').setValue(targetTimeUnit, {emitEvent: false});
     }
 
     if (!group.get('segment_start').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
-      group.get('segment_start').setValue((this.form.get('target') as FormArray).controls[0].get('segment_start').value, {emitEvent: false});
+      group.get('segment_start').setValue((this.form.get('target') as UntypedFormArray).controls[0].get('segment_start').value, {emitEvent: false});
     }
 
     if (!group.get('segment_end').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
-      group.get('segment_end').setValue((this.form.get('target') as FormArray).controls[0].get('segment_end').value, {emitEvent: false});
+      group.get('segment_end').setValue((this.form.get('target') as UntypedFormArray).controls[0].get('segment_end').value, {emitEvent: false});
     }
 
     /* Manually setting the duration of the hint equal to the duration of the task, this way the validators are happy */
@@ -591,10 +591,10 @@ export class CompetitionFormBuilder {
 
     group
       .get('segment_start')
-      .setValidators([Validators.required, this.temporalPointValidator(group.get('segment_time_unit') as FormControl)]);
+      .setValidators([Validators.required, this.temporalPointValidator(group.get('segment_time_unit') as UntypedFormControl)]);
     group
       .get('segment_end')
-      .setValidators([Validators.required, this.temporalPointValidator(group.get('segment_time_unit') as FormControl)]);
+      .setValidators([Validators.required, this.temporalPointValidator(group.get('segment_time_unit') as UntypedFormControl)]);
     group.get('segment_start').updateValueAndValidity();
     group.get('segment_end').updateValueAndValidity();
 
@@ -608,16 +608,16 @@ export class CompetitionFormBuilder {
    * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
    * @return The new {@link FormGroup}
    */
-  private textItemComponentForm(index: number, initialize?: ApiHint): FormGroup {
-    return new FormGroup({
-      start: new FormControl(initialize?.start, [
+  private textItemComponentForm(index: number, initialize?: ApiHint): UntypedFormGroup {
+    return new UntypedFormGroup({
+      start: new UntypedFormControl(initialize?.start, [
         Validators.required,
         Validators.min(0),
         Validators.max(this.taskType.duration),
       ]),
-      end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
-      type: new FormControl('TEXT', [Validators.required]),
-      description: new FormControl(initialize?.description, [Validators.required]),
+      end: new UntypedFormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
+      type: new UntypedFormControl('TEXT', [Validators.required]),
+      description: new UntypedFormControl(initialize?.description, [Validators.required]),
     });
   }
 
@@ -627,9 +627,9 @@ export class CompetitionFormBuilder {
    * @param index The position of the new {@link FormGroup} (for data source).
    * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
    */
-  private externalImageItemComponentForm(index: number, initialize?: ApiHint): FormGroup {
+  private externalImageItemComponentForm(index: number, initialize?: ApiHint): UntypedFormGroup {
     /* Prepare form control. */
-    const pathFormControl = new FormControl(initialize?.path, [Validators.required]);
+    const pathFormControl = new UntypedFormControl(initialize?.path, [Validators.required]);
 
     /* Prepare data source. */
     this.dataSources.set(
@@ -640,15 +640,15 @@ export class CompetitionFormBuilder {
       )
     );
 
-    return new FormGroup({
-      start: new FormControl(initialize?.start, [
+    return new UntypedFormGroup({
+      start: new UntypedFormControl(initialize?.start, [
         Validators.required,
         Validators.min(0),
         Validators.max(this.taskType.duration),
       ]),
-      end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
-      type: new FormControl('IMAGE', [Validators.required]),
-      external: new FormControl(true),
+      end: new UntypedFormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
+      type: new UntypedFormControl('IMAGE', [Validators.required]),
+      external: new UntypedFormControl(true),
       path: pathFormControl,
     });
   }
@@ -660,9 +660,9 @@ export class CompetitionFormBuilder {
    * @param initialize The {@link RestTaskDescriptionComponent} to populate data from.
    * @return The new {@link FormGroup}
    */
-  private externalVideoItemComponentForm(index: number, initialize?: ApiHint): FormGroup {
+  private externalVideoItemComponentForm(index: number, initialize?: ApiHint): UntypedFormGroup {
     /* Prepare form control. */
-    const pathFormControl = new FormControl(initialize?.path, [Validators.required]);
+    const pathFormControl = new UntypedFormControl(initialize?.path, [Validators.required]);
 
     /* Prepare data source. */
     this.dataSources.set(
@@ -673,36 +673,36 @@ export class CompetitionFormBuilder {
       )
     );
 
-    const group = new FormGroup({
-      start: new FormControl(initialize?.start, [
+    const group = new UntypedFormGroup({
+      start: new UntypedFormControl(initialize?.start, [
         Validators.required,
         Validators.min(0),
         Validators.max(this.taskType.duration),
       ]),
-      end: new FormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
-      type: new FormControl('VIDEO', [Validators.required]),
-      external: new FormControl(true),
+      end: new UntypedFormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
+      type: new UntypedFormControl('VIDEO', [Validators.required]),
+      external: new UntypedFormControl(true),
       path: pathFormControl,
-      segment_start: new FormControl(initialize?.range.start.value, [Validators.required]),
-      segment_end: new FormControl(initialize?.range.end.value, [Validators.required]),
-      segment_time_unit: new FormControl(
+      segment_start: new UntypedFormControl(initialize?.range.start.value, [Validators.required]),
+      segment_end: new UntypedFormControl(initialize?.range.end.value, [Validators.required]),
+      segment_time_unit: new UntypedFormControl(
         initialize?.range.start.unit ? initialize?.range.start.unit : 'SECONDS',
         Validators.required
       ),
     });
     /* Initialize start, end and time unit based on target. */
     // fetch target time unit
-    const targetTimeUnit = (this.form.get('target') as FormArray).controls[0].get('segment_time_unit').value;
+    const targetTimeUnit = (this.form.get('target') as UntypedFormArray).controls[0].get('segment_time_unit').value;
     if (targetTimeUnit && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
       group.get('segment_time_unit').setValue(targetTimeUnit, {emitEvent: false});
     }
 
     if (!group.get('segment_start').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
-      group.get('segment_start').setValue((this.form.get('target') as FormArray).controls[0].get('segment_start').value, {emitEvent: false});
+      group.get('segment_start').setValue((this.form.get('target') as UntypedFormArray).controls[0].get('segment_start').value, {emitEvent: false});
     }
 
     if (!group.get('segment_end').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
-      group.get('segment_end').setValue((this.form.get('target') as FormArray).controls[0].get('segment_end').value, {emitEvent: false});
+      group.get('segment_end').setValue((this.form.get('target') as UntypedFormArray).controls[0].get('segment_end').value, {emitEvent: false});
     }
 
     /* Manually setting the duration of the hint equal to the duration of the task, this way the validators are happy */
@@ -710,10 +710,10 @@ export class CompetitionFormBuilder {
 
     group
       .get('segment_start')
-      .setValidators([Validators.required, this.temporalPointValidator(group.get('segment_time_unit') as FormControl)]);
+      .setValidators([Validators.required, this.temporalPointValidator(group.get('segment_time_unit') as UntypedFormControl)]);
     group
       .get('segment_end')
-      .setValidators([Validators.required, this.temporalPointValidator(group.get('segment_time_unit') as FormControl)]);
+      .setValidators([Validators.required, this.temporalPointValidator(group.get('segment_time_unit') as UntypedFormControl)]);
     group.get('segment_start').updateValueAndValidity();
     group.get('segment_end').updateValueAndValidity();
     return group;

@@ -1,5 +1,5 @@
 import { Component, Inject } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { map, shareReplay } from 'rxjs/operators';
@@ -12,7 +12,7 @@ import {ApiTeam, ApiUser, UserService} from '../../../../../openapi';
   templateUrl: './competition-builder-team-dialog.component.html',
 })
 export class CompetitionBuilderTeamDialogComponent {
-  form: FormGroup;
+  form: UntypedFormGroup;
   logoName = '';
   availableUsers: Observable<ApiUser[]>;
   colorPalette = [
@@ -44,18 +44,18 @@ export class CompetitionBuilderTeamDialogComponent {
     private config: AppConfig,
     @Inject(MAT_DIALOG_DATA) private team?: ApiTeam
   ) {
-    this.form = new FormGroup({
-      id: new FormControl(team?.id),
-      name: new FormControl(team?.name, [Validators.required, Validators.minLength(3)]),
-      color: new FormControl(team?.color ? team.color : CompetitionBuilderTeamDialogComponent.randomColor(), [
+    this.form = new UntypedFormGroup({
+      id: new UntypedFormControl(team?.id),
+      name: new UntypedFormControl(team?.name, [Validators.required, Validators.minLength(3)]),
+      color: new UntypedFormControl(team?.color ? team.color : CompetitionBuilderTeamDialogComponent.randomColor(), [
         Validators.required,
         Validators.minLength(7),
         Validators.maxLength(7),
       ]),
-      logoId: new FormControl(/*team?.logoId*/''),
-      logoData: new FormControl(team?.logoData),
-      users: new FormControl(team?.users != null ? team.users : []),
-      userInput: new FormControl(''),
+      logoId: new UntypedFormControl(/*team?.logoId*/''),
+      logoData: new UntypedFormControl(team?.logoData),
+      users: new UntypedFormControl(team?.users != null ? team.users : []),
+      userInput: new UntypedFormControl(''),
     });
     this.availableUsers = this.userService.getApiV2UserList().pipe(
       map((value) => {

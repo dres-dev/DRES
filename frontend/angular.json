@@ -119,10 +119,11 @@
       }
     }
   },
-  "defaultProject": "dres-frontend",
   "cli": {
     "analytics": "6d219313-be38-49ad-a2fb-7d6b7b72fabe",
     "packageManager": "yarn",
-    "defaultCollection": "@angular-eslint/schematics"
+    "schematicCollections": [
+      "@angular-eslint/schematics"
+    ]
   }
 }

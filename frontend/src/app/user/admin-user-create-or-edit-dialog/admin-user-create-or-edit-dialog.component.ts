@@ -1,6 +1,6 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import {ApiRole, ApiUser, UserRequest} from '../../../../openapi';
 
 @Component({
@@ -9,10 +9,10 @@ import {ApiRole, ApiUser, UserRequest} from '../../../../openapi';
   styleUrls: ['./admin-user-create-or-edit-dialog.component.scss'],
 })
 export class AdminUserCreateOrEditDialogComponent {
-  form: FormGroup = new FormGroup({
-    username: new FormControl(''),
-    password: new FormControl(''),
-    role: new FormControl(''),
+  form: UntypedFormGroup = new UntypedFormGroup({
+    username: new UntypedFormControl(''),
+    password: new UntypedFormControl(''),
+    role: new UntypedFormControl(''),
   });
 
   roles = [ApiRole.ADMIN, ApiRole.JUDGE, ApiRole.PARTICIPANT, ApiRole.VIEWER];

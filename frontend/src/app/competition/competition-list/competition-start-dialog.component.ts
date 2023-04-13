@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import {ApiEvaluationType} from '../../../../openapi';
 
@@ -17,13 +17,13 @@ export interface CompetitionStartDialogResult {
   templateUrl: 'competition-start-dialog.component.html',
 })
 export class CompetitionStartDialogComponent {
-  form: FormGroup = new FormGroup({
-    name: new FormControl(''),
-    type: new FormControl(''),
-    participantsCanView: new FormControl(true),
-    shuffleTasks: new FormControl(false),
-    allowRepeatedTasks: new FormControl(false),
-    limit: new FormControl(0)
+  form: UntypedFormGroup = new UntypedFormGroup({
+    name: new UntypedFormControl(''),
+    type: new UntypedFormControl(''),
+    participantsCanView: new UntypedFormControl(true),
+    shuffleTasks: new UntypedFormControl(false),
+    allowRepeatedTasks: new UntypedFormControl(false),
+    limit: new UntypedFormControl(0)
   });
   runTypes: ApiEvaluationType[] = ['SYNCHRONOUS', 'ASYNCHRONOUS'];
 

@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import {ApiHintOption, ApiScoreOption, ApiSubmissionOption, ApiTargetOption, ApiTaskOption, ApiTaskType} from '../../../../../openapi';
 
@@ -19,7 +19,7 @@ interface ActivatedType<T> {
 })
 export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterViewInit {
   /** FromGroup for this dialog. */
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   /**
    * Dynamically generated list of all target types. Since TargetType is an enum, values is required as this is the "underscore sensitive"
@@ -56,13 +56,13 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
    * @param name
    */
   onCheckboxChange(e: MatCheckboxChange, name: string) {
-    const arr: FormArray = this.form.get(name) as FormArray;
+    const arr: UntypedFormArray = this.form.get(name) as UntypedFormArray;
 
     if (e.checked) {
-      arr.push(new FormControl(e.source.value));
+      arr.push(new UntypedFormControl(e.source.value));
     } else {
       let i = 0;
-      arr.controls.forEach((item: FormControl) => {
+      arr.controls.forEach((item: UntypedFormControl) => {
         if (item.value === e.source.value) {
           arr.removeAt(i);
           return;
@@ -105,16 +105,16 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
    * Adds a new parameter entry to the list of parameter entries.
    */
   public addParameter() {
-    (this.form.get('parameters') as FormArray).controls.push(
-      new FormArray([new FormControl(null), new FormControl(null), new FormControl(null)])
+    (this.form.get('parameters') as UntypedFormArray).controls.push(
+      new UntypedFormArray([new UntypedFormControl(null), new UntypedFormControl(null), new UntypedFormControl(null)])
     );
   }
 
   /**
    * Removes a parameter entry from the list of parameter entries.
    */
-  public removeParameter(entry: FormArray) {
-    const array = (this.form.get('parameters') as FormArray).controls;
+  public removeParameter(entry: UntypedFormArray) {
+    const array = (this.form.get('parameters') as UntypedFormArray).controls;
     const index = array.indexOf(entry);
     if (index >= 0) {
       array.splice(index, 1);
@@ -128,9 +128,9 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
     const array = [];
     array.push(this.form.get('target').value);
     array.push(this.form.get('scoring').value);
-    (this.form.get('components') as FormArray).controls.forEach((c) => array.push(c.value));
-    (this.form.get('filters') as FormArray).controls.forEach((c) => array.push(c.value));
-    (this.form.get('options') as FormArray).controls.forEach((c) => array.push(c.value));
+    (this.form.get('components') as UntypedFormArray).controls.forEach((c) => array.push(c.value));
+    (this.form.get('filters') as UntypedFormArray).controls.forEach((c) => array.push(c.value));
+    (this.form.get('options') as UntypedFormArray).controls.forEach((c) => array.push(c.value));
     return array;
   }
 
@@ -199,36 +199,36 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
     */
 
     /* Prepare empty FormControl. */
-    this.form = new FormGroup({
+    this.form = new UntypedFormGroup({
       /* Name. Required */
-      name: new FormControl(this.data?.name, [Validators.required, Validators.minLength(3)]),
+      name: new UntypedFormControl(this.data?.name, [Validators.required, Validators.minLength(3)]),
 
       /* Default Duration. Required */
-      defaultTaskDuration: new FormControl(this.data?.duration, [Validators.required, Validators.min(1)]),
+      defaultTaskDuration: new UntypedFormControl(this.data?.duration, [Validators.required, Validators.min(1)]),
 
       /* Target Type. Required */
-      target: new FormControl(this.data?.targetOption, [Validators.required]),
+      target: new UntypedFormControl(this.data?.targetOption, [Validators.required]),
 
       /* Components: Required, at least one */
       components: this.data?.hintOptions
-        ? new FormArray(
-            this.data?.hintOptions?.map((v) => new FormControl(v)),
+        ? new UntypedFormArray(
+            this.data?.hintOptions?.map((v) => new UntypedFormControl(v)),
             [Validators.minLength(1)]
           )
-        : new FormArray([]),
+        : new UntypedFormArray([]),
 
       /* Scoring: Required */
-      scoring: new FormControl(this.data?.scoreOption, [Validators.required]),
+      scoring: new UntypedFormControl(this.data?.scoreOption, [Validators.required]),
 
       /* Submission Filters: Optional*/
-      filters: this.data?.submissionOptions ? new FormArray(this.data.submissionOptions.map((v) => new FormControl(v))) : new FormArray([]),
+      filters: this.data?.submissionOptions ? new UntypedFormArray(this.data.submissionOptions.map((v) => new UntypedFormControl(v))) : new UntypedFormArray([]),
 
       /* Options: Optional */
-      options: this.data?.taskOptions ? new FormArray(this.data.taskOptions.map((v) => new FormControl(v))) : new FormArray([]),
+      options: this.data?.taskOptions ? new UntypedFormArray(this.data.taskOptions.map((v) => new UntypedFormControl(v))) : new UntypedFormArray([]),
 
       /* Parameters: Optional */
-      parameters: new FormArray(
-        parameters.map((v) => new FormArray([new FormControl(v[0]), new FormControl(v[1]), new FormControl(v[2])]))
+      parameters: new UntypedFormArray(
+        parameters.map((v) => new UntypedFormArray([new UntypedFormControl(v[0]), new UntypedFormControl(v[1]), new UntypedFormControl(v[2])]))
       ),
     });
   }
@@ -241,14 +241,14 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
       name: this.form.get('name').value,
       duration: this.form.get('defaultTaskDuration').value,
       targetOption: this.form.get('target').value as ApiTargetOption,
-      hintOptions: (this.form.get('components') as FormArray).controls.map((c) => {
+      hintOptions: (this.form.get('components') as UntypedFormArray).controls.map((c) => {
         return c.value as ApiHintOption;
       }) as Array<ApiHintOption>,
       scoreOption: this.form.get('scoring').value as ApiScoreOption,
-      submissionOptions: (this.form.get('filters') as FormArray).controls.map((c) => {
+      submissionOptions: (this.form.get('filters') as UntypedFormArray).controls.map((c) => {
         return c.value as ApiSubmissionOption;
       }) as Array<ApiSubmissionOption>,
-      taskOptions: (this.form.get('options') as FormArray).controls.map((c) => {
+      taskOptions: (this.form.get('options') as UntypedFormArray).controls.map((c) => {
         return c.value as ApiTaskOption;
       }) as Array<ApiTaskOption>,
       configuration: this.fetchConfigurationParameters()
@@ -263,8 +263,8 @@ export class CompetitionBuilderTaskTypeDialogComponent implements OnInit, AfterV
    */
   private fetchConfigurationParameters(): any {
     const obj = {};
-    (this.form.get('parameters') as FormArray).controls.forEach((c) => {
-      const cast = (c as FormArray).controls;
+    (this.form.get('parameters') as UntypedFormArray).controls.forEach((c) => {
+      const cast = (c as UntypedFormArray).controls;
         obj[`${cast[0].value}.${cast[1].value}`] = cast[2].value;
     });
     return obj;

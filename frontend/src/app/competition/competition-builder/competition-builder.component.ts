@@ -2,7 +2,7 @@ import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/
 import { ActivatedRoute, Router, RouterStateSnapshot } from '@angular/router';
 import { filter, map, shareReplay, take } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { CompetitionBuilderTeamDialogComponent } from './competition-builder-team-dialog/competition-builder-team-dialog.component';
@@ -133,7 +133,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   displayedColumnsTeams: string[] = ['logo', 'name', 'action'];
   displayedColumnsJudges: string[] = ['name', 'action'];
   displayedColumnsTasks: string[] = ['name', 'group', 'type', 'duration', 'action'];
-  form: FormGroup = new FormGroup({ name: new FormControl(''), description: new FormControl('') });
+  form: UntypedFormGroup = new UntypedFormGroup({ name: new UntypedFormControl(''), description: new UntypedFormControl('') });
   dirty = false;
   routeSubscription: Subscription;
   changeSubscription: Subscription;

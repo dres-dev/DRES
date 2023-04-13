@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {AbstractTemplateBuilderComponent} from '../abstract-template-builder.component';
-import {FormControl, FormGroup} from '@angular/forms';
+import {UntypedFormControl, UntypedFormGroup} from '@angular/forms';
 import { Observable, Subscription } from "rxjs";
 import { ApiMediaCollection, CollectionService, TemplateService } from "../../../../../../openapi";
 import {TemplateBuilderService} from '../../template-builder.service';
@@ -12,10 +12,10 @@ import {TemplateBuilderService} from '../../template-builder.service';
 })
 export class TemplateInformationComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy {
 
-  form: FormGroup = new FormGroup({
-    name: new FormControl(''),
-    description: new FormControl(''),
-    collection: new FormControl('')
+  form: UntypedFormGroup = new UntypedFormGroup({
+    name: new UntypedFormControl(''),
+    description: new UntypedFormControl(''),
+    collection: new UntypedFormControl('')
   });
 
   private changeSub: Subscription;

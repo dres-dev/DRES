@@ -1,6 +1,6 @@
 import { Component, ElementRef, Inject, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogConfig, MatDialogRef } from '@angular/material/dialog';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { filter, first } from 'rxjs/operators';
 import { AppConfig } from '../../../app.config';
@@ -39,7 +39,7 @@ export interface CompetitionBuilderTaskDialogData {
   styleUrls: ['./competition-builder-task-dialog.component.scss'],
 })
 export class CompetitionBuilderTaskDialogComponent {
-  form: FormGroup;
+  form: UntypedFormGroup;
   units = ['FRAME_NUMBER', 'SECONDS', 'MILLISECONDS', 'TIMECODE'];
   /** Data source for list of {@link MediaCollection}. Loaded upon construction of the dialog. */
   mediaCollectionSource: Observable<ApiMediaCollection[]>;
@@ -167,7 +167,7 @@ export class CompetitionBuilderTaskDialogComponent {
    * @param collectionId The ID of the collection to pick a {@link MediaItem} from.
    * @param target The target {@link FormControl} to apply the value to.
    */
-  public pickRandomMediaItem(collectionId: string, target: FormControl) {
+  public pickRandomMediaItem(collectionId: string, target: UntypedFormControl) {
     this.collectionService
       .getApiV2CollectionByCollectionIdRandom(collectionId)
       .pipe(first())
@@ -184,7 +184,7 @@ export class CompetitionBuilderTaskDialogComponent {
    * @param endControl The target {@link FormControl} to apply the value to.
    * @param unitControl The target {@link FormControl} to apply the value to.
    */
-  public pickRandomSegment(item: ApiMediaItem, startControl: FormControl, endControl: FormControl, unitControl: FormControl) {
+  public pickRandomSegment(item: ApiMediaItem, startControl: UntypedFormControl, endControl: UntypedFormControl, unitControl: UntypedFormControl) {
     const start = CompetitionBuilderTaskDialogComponent.randInt(1, item.durationMs / 1000 / 2); // always in first half
     let end = 1;
     do {
@@ -195,7 +195,7 @@ export class CompetitionBuilderTaskDialogComponent {
     unitControl.setValue('SECONDS');
   }
 
-  toggleVideoPlayer(mediaItem: ApiMediaItem, startControl?: FormControl, endControl?: FormControl, unitControl?: FormControl) {
+  toggleVideoPlayer(mediaItem: ApiMediaItem, startControl?: UntypedFormControl, endControl?: UntypedFormControl, unitControl?: UntypedFormControl) {
     /* Add to toggleVideoPlayer button if
         [disabled]="!target.get('mediaItem').value && !target.get('segment_start').value && !target.get('segment_end').value"
          */
@@ -240,7 +240,7 @@ export class CompetitionBuilderTaskDialogComponent {
     this.showVideo = !this.showVideo;
   }
 
-  onRangeChange(range: ApiTemporalRange, startControl?: FormControl, endControl?: FormControl, unitControl?: FormControl) {
+  onRangeChange(range: ApiTemporalRange, startControl?: UntypedFormControl, endControl?: UntypedFormControl, unitControl?: UntypedFormControl) {
     startControl?.setValue(range.start.value);
     endControl?.setValue(range.end.value);
     unitControl?.setValue(ApiTemporalUnit.SECONDS);

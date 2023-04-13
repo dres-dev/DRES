@@ -1,6 +1,6 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import {ApiTaskGroup, ApiTaskType} from '../../../../../openapi';
 
 export interface CompetitionBuilderTaskGroupDialogData {
@@ -17,7 +17,7 @@ export class CompetitionBuilderTaskGroupDialogComponent {
   readonly supportedTaskTypes: ApiTaskType[] = [];
 
   /** FromGroup for this dialog. */
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   constructor(
     public dialogRef: MatDialogRef<CompetitionBuilderTaskGroupDialogComponent>,
@@ -56,9 +56,9 @@ export class CompetitionBuilderTaskGroupDialogComponent {
   }
 
   private init() {
-    this.form = new FormGroup({
-      name: new FormControl(this.data?.group?.name, [Validators.required, Validators.minLength(3)]),
-      type: new FormControl(this.typeFromName(this.data?.group?.type), [Validators.required]),
+    this.form = new UntypedFormGroup({
+      name: new UntypedFormControl(this.data?.group?.name, [Validators.required, Validators.minLength(3)]),
+      type: new UntypedFormControl(this.typeFromName(this.data?.group?.type), [Validators.required]),
     });
   }
 

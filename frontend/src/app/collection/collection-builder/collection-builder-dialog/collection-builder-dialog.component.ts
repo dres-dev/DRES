@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import {ApiMediaCollection} from '../../../../../openapi';
 
 @Component({
@@ -9,17 +9,17 @@ import {ApiMediaCollection} from '../../../../../openapi';
   styleUrls: ['./collection-builder-dialog.component.scss'],
 })
 export class CollectionBuilderDialogComponent implements OnInit {
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   constructor(
     public dialogRef: MatDialogRef<CollectionBuilderDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ApiMediaCollection
   ) {
-    this.form = new FormGroup({
-      id: new FormControl(data?.id),
-      name: new FormControl(data?.name, [Validators.required, Validators.minLength(3)]),
-      description: new FormControl(data?.description),
-      basePath: new FormControl(data?.basePath),
+    this.form = new UntypedFormGroup({
+      id: new UntypedFormControl(data?.id),
+      name: new UntypedFormControl(data?.name, [Validators.required, Validators.minLength(3)]),
+      description: new UntypedFormControl(data?.description),
+      basePath: new UntypedFormControl(data?.basePath),
     });
   }
 

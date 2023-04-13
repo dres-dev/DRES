@@ -1,0 +1,115 @@
+/**
+Reusable classed to mimic functionality formerly provided by fxFlex
+ */
+
+/**
+Flex containers
+ */
+.flex {
+  display: flex;
+}
+
+.flex-inline{
+  display: inline-flex;
+}
+
+.flex-row {
+  flex-flow: row wrap;
+}
+
+.flex-column {
+  flex-flow: column wrap;
+}
+
+.flex-nowrap{
+  flex-wrap: nowrap;
+}
+
+.content-start{
+  justify-content: flex-start;
+}
+.content-end{
+  justify-content: flex-end;
+}
+
+.content-center{
+  justify-content: center;
+}
+
+.content-between {
+  justify-content: space-between;
+}
+
+.content-around {
+  justify-content: space-around;
+}
+
+.content-evenly{
+  justify-content: space-evenly;
+}
+
+.align-start{
+  align-items: flex-start;
+}
+
+.align-end {
+  align-items: flex-end;
+}
+
+.align-center{
+  align-items: center;
+}
+
+.align-stretch{
+  align-items: stretch;
+}
+
+.align-baseline{
+  align-items: baseline;
+}
+/**
+Flex items
+ */
+.flex-default {
+  flex: 0 1 auto;
+}
+
+.flex-none {
+  flex: none;
+}
+
+.flex-auto {
+  flex: 1 1 auto;
+}
+
+.flex-initial {
+  flex: 0 1 auto;
+}
+
+.flex-1 {
+  flex: 1 1 0;
+}
+
+.flex-2 {
+  flex: 2 1 0;
+}
+
+.flex-3 {
+  flex: 3 1 0;
+}
+
+.flex-4 {
+  flex: 4 1 0;
+}
+
+.self-flex-start {
+  align-self: flex-start;
+}
+
+.self-flex-end{
+  align-self: flex-end;
+}
+
+.self-flex-center {
+  align-self: center;
+}

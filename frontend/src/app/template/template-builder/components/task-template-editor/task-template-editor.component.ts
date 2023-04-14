@@ -91,6 +91,8 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
       this.builderService.markDirty()
     });
     this.mediaCollectionSource = this.collectionService.getApiV2CollectionList();
+    /* Close open video preview */
+    this.showVideo = false;
   }
 
   public isFormValid(){

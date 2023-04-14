@@ -14,7 +14,6 @@ import { DynamicTableComponent } from './dynamic-table/dynamic-table.component';
 import {MatTableModule} from '@angular/material/table';
 import { ActionableDynamicTable } from './actionable-dynamic-table/actionable-dynamic-table.component';
 import { ServerInfoComponent } from './server-info/server-info.component';
-import { FlexModule } from "@angular/flex-layout";
 
 @NgModule({
   declarations: [
@@ -37,6 +36,6 @@ import { FlexModule } from "@angular/flex-layout";
     UploadJsonButtonComponent,
     ActionableDynamicTable
   ],
-  imports: [CommonModule, MatButtonModule, ServicesModule, MatIconModule, MatTooltipModule, MatDialogModule, MatTableModule, FlexModule]
+  imports: [CommonModule, MatButtonModule, ServicesModule, MatIconModule, MatTooltipModule, MatDialogModule, MatTableModule]
 })
 export class SharedModule {}

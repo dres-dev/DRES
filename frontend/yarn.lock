@@ -381,21 +381,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/flex-layout@npm:^13.0.0-beta.38":
-  version: 13.0.0-beta.38
-  resolution: "@angular/flex-layout@npm:13.0.0-beta.38"
-  dependencies:
-    tslib: ^2.3.0
-  peerDependencies:
-    "@angular/cdk": ^13.0.0
-    "@angular/common": ^13.0.0
-    "@angular/core": ^13.0.0
-    "@angular/platform-browser": ^13.0.0
-    rxjs: ^6.5.3 || ^7.4.0
-  checksum: c5f22d6748ad8dc2ebc9fa57c82d80cb9f9942d66dfb0246315d351872a2c9df5fa95d849fb0d2750ca99812d5e27d073b7842e07e6f21e541cbe337d9f4e7ed
-  languageName: node
-  linkType: hard
-
 "@angular/forms@npm:14.3.0":
   version: 14.3.0
   resolution: "@angular/forms@npm:14.3.0"
@@ -4961,7 +4946,6 @@ __metadata:
     "@angular/compiler": 14.3.0
     "@angular/compiler-cli": 14.3.0
     "@angular/core": 14.3.0
-    "@angular/flex-layout": ^13.0.0-beta.38
     "@angular/forms": 14.3.0
     "@angular/language-service": 14.3.0
     "@angular/material": 13.2.x

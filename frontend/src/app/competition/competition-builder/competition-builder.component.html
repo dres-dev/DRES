@@ -42,10 +42,10 @@
 </div>
 
 <div *ngIf="competition">
-  <div fxLayout="column" fxLayoutAlign="space-between stretch">
-    <div fxLayoutAlign="space-between" style="display: flex; flex-direction: row">
+  <div class="flex flex-column content-between align-stretch">
+    <div class="flex flex-row content-between">
       <!-- Judges and Competition Description -->
-      <div fxFlex="70" style="flex: 1 1 100%">
+      <div class="flex-70">
         <!-- Competition  Description -->
         <form [formGroup]="form">
           <p>
@@ -123,7 +123,7 @@
       </div>
       <!-- END Competition Description -->
 
-      <div fxFlex="25" style="flex: 1 1 100%">
+      <div class="flex-25">
         <!-- Judges Table -->
         <div style="display: flex; align-items: center">
           <h2>Judges</h2>
@@ -181,9 +181,9 @@
       <!-- END Judges Table -->
     </div>
     <!-- END Judges and Competition Description -->
-    <div fxLayoutAlign="space-between" style="display: flex; flex-direction: row">
+    <div class="flex flex-row content-between" style="display: flex; flex-direction: row">
       <!-- Teams and Tasks -->
-      <div fxFlex="30" style="flex: 1 1 100%">
+      <div style="flex: 1 1 100%">
         <!-- Teams -->
         <div style="display: flex; align-items: center">
           <h2>Teams</h2>
@@ -234,7 +234,7 @@
       </div>
       <!-- END Teams -->
 
-      <div fxFlex="65" style="flex: 1 1 100%">
+      <div style="flex: 1 1 100%">
         <!-- Tasks -->
         <div style="display: flex; align-items: center">
           <h2>Tasks</h2>

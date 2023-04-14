@@ -23,7 +23,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatCardModule } from '@angular/material/card';
 import { VideoPlayerSegmentBuilderComponent } from './competition-builder-task-dialog/video-player-segment-builder/video-player-segment-builder.component';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { FlexModule } from '@angular/flex-layout';
 import { MatSliderModule } from '@angular/material/slider';
 import { ServicesModule } from '../../services/services.module';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -57,7 +56,6 @@ import { ColorPickerModule } from 'ngx-color-picker';
     MatButtonToggleModule,
     MatGridListModule,
     ServicesModule,
-    FlexModule,
     FormsModule,
     ReactiveFormsModule,
     CommonModule,

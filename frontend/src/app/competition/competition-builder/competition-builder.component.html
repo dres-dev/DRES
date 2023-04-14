@@ -82,8 +82,8 @@
             </button>
 
             <mat-list style="display: inline-block">
-              <mat-chip-list>
-                <mat-chip
+              <mat-chip-listbox>
+                <mat-chip-option
                   *ngFor="let taskType of competition.taskTypes"
                   [removable]="true"
                   (removed)="removeTaskType(taskType)"
@@ -92,8 +92,8 @@
                 >
                   {{ taskType.name }} ({{ taskType.targetOption }} | {{ taskType.scoreOption }})
                   <mat-icon matChipRemove>cancel</mat-icon>
-                </mat-chip>
-              </mat-chip-list>
+                </mat-chip-option>
+              </mat-chip-listbox>
             </mat-list>
           </h2>
           <h2>
@@ -104,8 +104,8 @@
             </button>
 
             <mat-list style="display: inline-block">
-              <mat-chip-list>
-                <mat-chip
+              <mat-chip-listbox>
+                <mat-chip-option
                   *ngFor="let group of competition.taskGroups"
                   [removable]="true"
                   (removed)="removeTaskGroup(group)"
@@ -115,8 +115,8 @@
                 >
                   {{ group.name }}
                   <mat-icon matChipRemove>cancel</mat-icon>
-                </mat-chip>
-              </mat-chip-list>
+                </mat-chip-option>
+              </mat-chip-listbox>
             </mat-list>
           </h2>
         </form>

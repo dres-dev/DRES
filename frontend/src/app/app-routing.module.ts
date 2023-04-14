@@ -135,7 +135,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, { relativeLinkResolution: 'legacy', enableTracing: false })], // enable tracing for debugging
+  imports: [RouterModule.forRoot(routes, { enableTracing: false })], // enable tracing for debugging
   exports: [RouterModule],
   providers: [{ provide: UrlSerializer, useClass: NonescapingUrlserializerClass }],
 })

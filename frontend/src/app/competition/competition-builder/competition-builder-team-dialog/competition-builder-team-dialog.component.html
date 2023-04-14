@@ -7,18 +7,17 @@
     </mat-form-field>
 
     <mat-form-field class="user-chip-list">
-      <mat-chip-list #chipList aria-label="Users">
-        <mat-chip
+      <mat-chip-grid #chipList aria-label="Users">
+        <mat-chip-row
           *ngFor="let user of form.get('users').value"
-          [selectable]="true"
           [removable]="true"
           (removed)="removeUser(user)"
         >
           {{ user.username }}
           <mat-icon matChipRemove>cancel</mat-icon>
-        </mat-chip>
+        </mat-chip-row>
         <input placeholder="New user..." [matAutocomplete]="auto" [matChipInputFor]="chipList" />
-      </mat-chip-list>
+      </mat-chip-grid>
       <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addUser($event)">
         <mat-option *ngFor="let user of availableUsers | async" [value]="user">
           {{ user.username }}

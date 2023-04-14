@@ -46,8 +46,7 @@
         style="width: 100%"
         [min]="0"
         [max]="durationInSeconds"
-        [(value)]="video.nativeElement.currentTime"
-      ></mat-slider>
+      ><input matSliderThumb [(value)]="video.nativeElement.currentTime" /></mat-slider>
     </div>
   </div>
   <div class="controls-container flex flex-row align-center content-between fill" *ngIf="videoUrl | async">

@@ -1,5 +1,5 @@
 <mat-toolbar color="primary">
-  <button mat-flat-button color="primary" (click)="openInfoDialog()" matTooltip="Click for server information"><h2>DRES</h2></button>
+  <button mat-flat-button color="primary" (click)="openInfoDialog()" matTooltip="Click for server information"><h2 style="margin: 0;">DRES</h2></button>
   <div class="spacer-small"></div>
   <app-api-status></app-api-status>
 
@@ -8,8 +8,8 @@
   <button
     *ngIf="isAdmin | async"
     mat-button
-    aria-label="Competition builder and overview"
-    matTooltip="Competition builder and overview"
+    aria-label="Evaluation template builder and overview"
+    matTooltip="Evaluation template builder and overview"
     routerLink="/template/list"
   >
     <mat-icon>build</mat-icon> Evaluation Template Builder

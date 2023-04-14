@@ -5,7 +5,6 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import { JudgesListComponent } from './judges-list/judges-list.component';
-import {FlexModule} from '@angular/flex-layout';
 import {MatButtonModule} from '@angular/material/button';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatIconModule} from '@angular/material/icon';
@@ -40,7 +39,6 @@ import { CompetitionBuilderModule } from "../../../competition/competition-build
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
-    FlexModule,
     MatButtonModule,
     MatTooltipModule,
     MatIconModule,

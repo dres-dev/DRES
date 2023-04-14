@@ -12,6 +12,7 @@ import { EnhanceTaskPastInfoPipe } from './pipes/enhance-task-past-info.pipe';
 import { ResolveTeamPipe } from './pipes/resolve-team.pipe';
 import { EnhanceTaskSubmissionInfoPipe } from './pipes/enhance-task-submission-info.pipe';
 import {ApiModule, Configuration} from '../../../openapi';
+import { SpaceToNewlinePipe } from './pipes/space-to-newline.pipe';
 
 /**
  * Provides the {@link AppConfig} reference.
@@ -39,6 +40,7 @@ export function initializeApiConfig(appConfig: AppConfig) {
     EnhanceTaskPastInfoPipe,
     ResolveTeamPipe,
     EnhanceTaskSubmissionInfoPipe,
+    SpaceToNewlinePipe
   ],
   declarations: [
     RoundPipePipe,
@@ -49,6 +51,7 @@ export function initializeApiConfig(appConfig: AppConfig) {
     EnhanceTaskPastInfoPipe,
     ResolveTeamPipe,
     EnhanceTaskSubmissionInfoPipe,
+    SpaceToNewlinePipe,
   ],
   providers: [AuthenticationService, NavigationService, CanDeactivateGuard],
 })

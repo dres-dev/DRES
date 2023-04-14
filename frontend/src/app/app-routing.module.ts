@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
-import { DefaultUrlSerializer, RouterModule, Routes, UrlSerializer } from '@angular/router';
-import { CompetitionBuilderComponent } from './competition/competition-builder/competition-builder.component';
+import { RouterModule, Routes, UrlSerializer } from '@angular/router';
 import { CompetitionListComponent } from './competition/competition-list/competition-list.component';
 import { LoginComponent } from './user/login/login.component';
 import { AuthenticationGuard } from './services/session/authentication.guard';
@@ -41,14 +40,7 @@ const routes: Routes = [
     data: { roles: [ApiRole.ADMIN] },
   },
   {
-    path: TEMPLATE_ROUTE+'/builder/:competitionId',
-    component: CompetitionBuilderComponent,
-    canActivate: [AuthenticationGuard],
-    canDeactivate: [CanDeactivateGuard],
-    data: { roles: [ApiRole.ADMIN] },
-  },
-  {
-    path: TEMPLATE_ROUTE+'/builder2/:templateId',
+    path: TEMPLATE_ROUTE+'/builder/:templateId',
     component: TemplateBuilderComponent,
     canActivate: [AuthenticationGuard],
     canDeactivate: [CanDeactivateGuard],

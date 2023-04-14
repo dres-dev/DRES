@@ -5,18 +5,18 @@
 </ng-template>
 <ng-template #active>
   <form [formGroup]="form">
-    <div fxLayout="row" fxLayoutAlign="space-between start">
-      <div fxFlex>
-        <div fxLayout="column" fxLayoutAlign="space-between stretch">
-          <div fxFlex="grow"><p *ngIf="form.get('id').value"><strong>UID: </strong>{{ form.get('id').value }}</p></div>
-          <div fxFlex="grow">
-            <div fxLayout="row" fxLayoutAlign="space-between start"></div>
-            <p fxFlex="48"><strong>Task group:</strong>{{taskGroup.name}}</p>
-            <p fxFlex="48"><strong>Task type:</strong>{{taskType.name}}</p>
+    <div class="flex flex-row content-between align-start">
+      <div class="flex-1">
+        <div class="flex flex-column content-between align-stretch">
+          <div class="flex-grow"><p *ngIf="form.get('id').value"><strong>UID: </strong>{{ form.get('id').value }}</p></div>
+          <div class="flex-grow">
+            <div class="flex flex-row content-between align-start"></div>
+            <p class="flex-48"><strong>Task group:</strong>{{taskGroup.name}}</p>
+            <p class="flex-48"><strong>Task type:</strong>{{taskType.name}}</p>
           </div>
         </div>
       </div>
-      <div fxFlex="nogrow">
+      <div class="flex-none">
         <button mat-button aria-label="Close the editor" matTooltip="Close the editor" (click)="close()">
           <mat-icon>close</mat-icon>
         </button>
@@ -218,7 +218,6 @@
             </mat-grid-tile-footer>
             <mat-grid-tile-header style="text-align: right">
               <!-- remove button -->
-              <!-- TODO re-add condition || MULTIPLE -->
               <div
                 *ngIf="taskType.targetOption == 'TEXT'"
               >
@@ -237,7 +236,7 @@
       </div>
       <div *ngIf="viewLayout === 'list'">
         <div *ngFor="let target of form.get('target')['controls']; let i = index" style="display: flex">
-          <div style="flex-basis: 100%; flex-grow: 1">
+          <div class="flex-grow">
             <p>
               <mat-form-field
                 *ngIf="target.get('mediaItem') && taskType.targetOption != 'TEXT'"

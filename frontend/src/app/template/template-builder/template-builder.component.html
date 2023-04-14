@@ -1,4 +1,4 @@
-<div style="display: flex" class="header">
+<div class="flex flex-row header">
     <div>
         <button mat-icon-button (click)="back()">
             <mat-icon>arrow_back</mat-icon>
@@ -34,21 +34,21 @@
             <app-template-information></app-template-information>
         </mat-tab>
         <mat-tab bodyClass="p2e" label="Teams & Judges">
-            <div fxLayout="row" fxLayoutAlign="space-between start">
-                <app-teams-list fxFlex="68"></app-teams-list>
-                <app-judges-list fxFlex="28"></app-judges-list>
+            <div class="flex flex-row content-between align-start">
+                <app-teams-list class="flex-68"></app-teams-list>
+                <app-judges-list class="flex-28"></app-judges-list>
             </div>
         </mat-tab>
         <mat-tab bodyClass="p2e" label="Task Types & Task Groups">
-            <div fxLayout="row" fxLayoutAlign="space-between start">
-                <app-task-types-list fxFlex="48"></app-task-types-list>
-                <app-task-groups-list fxFlex="48"></app-task-groups-list>
+            <div class="flex flex-row content-between align-start">
+                <app-task-types-list class="flex-48"></app-task-types-list>
+                <app-task-groups-list class="flex-48"></app-task-groups-list>
             </div>
         </mat-tab>
         <mat-tab bodyClass="p2e" label="Tasks">
-            <div fxLayout="row" fxLayoutAlign="space-between start">
-                <app-task-templates-list [editorLauncher]="this" fxFlex="48"></app-task-templates-list>
-                <app-task-template-editor #taskTemplateEditor fxFlex="48"></app-task-template-editor>
+            <div class="flex flex-row content-between align-start">
+                <app-task-templates-list [editorLauncher]="this" class="flex-48"></app-task-templates-list>
+                <app-task-template-editor #taskTemplateEditor class="flex-48"></app-task-template-editor>
             </div>
         </mat-tab>
 

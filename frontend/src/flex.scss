@@ -70,6 +70,10 @@ Flex containers
 /**
 Flex items
  */
+.flex-grow {
+  flex: 1 1 100%;
+}
+
 .flex-default {
   flex: 0 1 auto;
 }
@@ -101,11 +105,11 @@ $growFlex: 1,2,3,4,5;
   }
 }
 
-$basisFlex: 5,10,15,20,25,30,33,35,40,45,48,50,55,60,65,66,70,75,80,85,90,95;
+$basisFlex: 5,10,15,20,22,25,28,30,33,35,40,45,48,50,55,60,65,66,68,70,75,80,85,90,95;
 
 @each $f in $basisFlex {
   .flex-#{$f}{
-    flex: 1 1 percentage($f);
+    flex: 0 1 percentage(calc($f / 100));
   }
 }
 

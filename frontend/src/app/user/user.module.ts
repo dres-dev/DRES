@@ -4,7 +4,6 @@ import { ProfileComponent } from './profile/profile.component';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
@@ -28,7 +27,6 @@ import { MatSortModule } from '@angular/material/sort';
     MatCardModule,
     ReactiveFormsModule,
     MatFormFieldModule,
-    FlexLayoutModule,
     MatGridListModule,
     MatDividerModule,
     MatIconModule,

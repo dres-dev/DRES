@@ -5,7 +5,6 @@ import {TemplateBuilderComponentsModule} from './components/template-builder-com
 import {MatIconModule} from '@angular/material/icon';
 import {MatTabsModule} from '@angular/material/tabs';
 import {SharedModule} from '../../shared/shared.module';
-import {FlexModule} from '@angular/flex-layout';
 
 
 @NgModule({
@@ -18,7 +17,6 @@ import {FlexModule} from '@angular/flex-layout';
         MatIconModule,
         MatTabsModule,
         SharedModule,
-        FlexModule
     ],
     exports: [TemplateBuilderComponent]
 })

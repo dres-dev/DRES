@@ -42,9 +42,9 @@
       </label>
       <label>
         <button type="button" mat-button (click)="logoInput.click()">Select logo</button>
-        <input hidden type="file" #logoInput formControlName="logo" (change)="processImage($event)" />
+        <input hidden type="file" #logoInput formControlName="logoData" (change)="processImage($event)" />
         <span style="text-align: center">
-          <img [src]="teamLogo()" [alt]="form.get('logoId')" style="max-height: 75px; max-width: 150px" />
+          <img [src]="teamLogo()" alt="The logo of the team" style="max-height: 75px; max-width: 150px" />
         </span>
       </label>
     </p>

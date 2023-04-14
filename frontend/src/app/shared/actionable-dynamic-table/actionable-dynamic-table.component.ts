@@ -43,7 +43,7 @@ export class ActionableDynamicTable<T> {
   public displayedColumns: string[];
 
   @Input()
-  public title: string;
+  public tableTitle: string;
 
   @Input()
   public trackByProperty?: string;

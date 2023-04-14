@@ -44,6 +44,7 @@ export class CompetitionBuilderTeamDialogComponent {
     private config: AppConfig,
     @Inject(MAT_DIALOG_DATA) private team?: ApiTeam
   ) {
+    console.log("TEAM", team);
     this.form = new UntypedFormGroup({
       id: new UntypedFormControl(team?.id),
       name: new UntypedFormControl(team?.name, [Validators.required, Validators.minLength(3)]),
@@ -52,7 +53,6 @@ export class CompetitionBuilderTeamDialogComponent {
         Validators.minLength(7),
         Validators.maxLength(7),
       ]),
-      logoId: new UntypedFormControl(/*team?.logoId*/''),
       logoData: new UntypedFormControl(team?.logoData),
       users: new UntypedFormControl(team?.users != null ? team.users : []),
       userInput: new UntypedFormControl(''),
@@ -128,7 +128,7 @@ export class CompetitionBuilderTeamDialogComponent {
     if (this.form.get('logoData').value != null) {
       return this.form.get('logoData').value;
     } else {
-      return this.config.resolveApiUrl(`/competition/logo/${this.form.get('logoId').value}`);
+      return this.config.resolveApiUrl(`/template/logo/${this.team.id}`);
     }
   }
 

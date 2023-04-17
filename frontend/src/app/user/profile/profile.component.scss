@@ -4,18 +4,6 @@
   margin: 100px 0px;
 }
 
-.mat-mdc-form-field {
-  width: 100%;
-  min-width: 300px;
-}
-
-/* TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version.*/
-mat-card-title,
-mat-card-content {
-  display: flex;
-  justify-content: center;
-}
-
 mat-grid-list {
   min-width: 300px;
 }
@@ -32,10 +20,6 @@ mat-grid-list {
   justify-content: flex-end;
 }
 
-// See https://stackoverflow.com/a/52009315
-.mat-mdc-card-header {
-  width: 100% !important;
-}
 
 .flush-right {
   margin-left: auto;

@@ -20,6 +20,7 @@ import { RunAsyncAdminViewComponent } from './run/run-async-admin-view/run-async
 import { NonescapingUrlserializerClass } from './nonescaping-urlserializer.class';
 import {ApiRole} from '../../openapi';
 import {TemplateBuilderComponent} from './template/template-builder/template-builder.component';
+import { TemplateListComponent } from "./template/template-list/template-list.component";
 
 /**
  * The ROUTE for evaluation templates.
@@ -35,7 +36,7 @@ const EVALUATION_ROUTE = 'evaluation';
 const routes: Routes = [
   {
     path: TEMPLATE_ROUTE+'/list',
-    component: CompetitionListComponent,
+    component: TemplateListComponent,
     canActivate: [AuthenticationGuard],
     data: { roles: [ApiRole.ADMIN] },
   },

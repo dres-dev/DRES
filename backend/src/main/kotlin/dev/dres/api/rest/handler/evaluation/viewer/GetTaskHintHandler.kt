@@ -134,7 +134,11 @@ class GetTaskHintHandler(store: TransientEntityStore, private val cache: CacheMa
                     )
                 }
                if (Files.exists(path)) {
-                    Base64.getEncoder().encodeToString(Files.readAllBytes(path))
+                   if (path.toString().endsWith(".jpg", ignoreCase = true)) {
+                       Base64.getEncoder().encodeToString(Files.readAllBytes(path))
+                   } else { //convert to jpg
+                       null
+                   }
                 } else {
                     null
                 }

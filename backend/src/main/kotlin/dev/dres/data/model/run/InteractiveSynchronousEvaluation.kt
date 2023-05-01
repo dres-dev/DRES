@@ -45,20 +45,6 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
         require(this.description.teams.size() > 0) { "Cannot create a run from a competition that doesn't have any teams." }
     }
 
-    /**
-     * Internal constructor to create an [InteractiveSynchronousEvaluation] from an [DbEvaluationTemplate].
-     *
-     * Requires a transaction context!
-     *
-     * @param name The name of the new [InteractiveSynchronousEvaluation]
-     * @param template The [DbEvaluationTemplate]
-     */
-    constructor(name: String, template: DbEvaluationTemplate) : this(DbEvaluation.new {
-        this.type = DbEvaluationType.INTERACTIVE_SYNCHRONOUS
-        this.template = template
-        this.name = name
-    })
-
     /** List of [TaskRun]s registered for this [InteractiveSynchronousEvaluation]. */
     override val tasks = LinkedList<ISTaskRun>()
 

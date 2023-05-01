@@ -109,34 +109,33 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
         this.updatables.add(this.scoresUpdatable)
         this.updatables.add(this.scoreboardsUpdatable)
 
-        this.store.transactional(true) {
-            this.template.teams.asSequence().forEach {
-                val teamContext = RunActionContext("<EMPTY>", it.teamId, setOf(DbRole.ADMIN))
-                this.updatables.add(EndTaskUpdatable(this, teamContext))
+        this.template.teams.asSequence().forEach {
+            val teamContext = RunActionContext("<EMPTY>", it.teamId, setOf(DbRole.ADMIN))
+            this.updatables.add(EndTaskUpdatable(this, teamContext))
 
-                /* Initialize map and set all tasks pointers to the first task. */
-                this.statusMap[it.teamId] = if (this.evaluation.hasStarted) {
-                    RunManagerStatus.ACTIVE
-                } else {
-                    RunManagerStatus.CREATED
-                }
-
-                /** End ongoing runs upon initialization (in case server crashed during task execution). */
-                if (this.evaluation.tasksForTeam(it.teamId).lastOrNull()?.isRunning == true) {
-                    this.evaluation.tasksForTeam(it.teamId).last().end()
-                }
+            /* Initialize map and set all tasks pointers to the first task. */
+            this.statusMap[it.teamId] = if (this.evaluation.hasStarted) {
+                RunManagerStatus.ACTIVE
+            } else {
+                RunManagerStatus.CREATED
             }
 
-            /** Trigger score updates and re-enqueue pending submissions for judgement (if any). */
-            this.evaluation.tasks.forEach { task ->
-                task.getSubmissions().forEach { sub ->
-                    this.scoresUpdatable.enqueue(task)
-                    sub.answerSets().filter { v -> v.status() == VerdictStatus.INDETERMINATE }.asSequence().forEach {
-                        task.validator.validate(it)
-                    }
+            /** End ongoing runs upon initialization (in case server crashed during task execution). */
+            if (this.evaluation.tasksForTeam(it.teamId).lastOrNull()?.isRunning == true) {
+                this.evaluation.tasksForTeam(it.teamId).last().end()
+            }
+        }
+
+        /** Trigger score updates and re-enqueue pending submissions for judgement (if any). */
+        this.evaluation.tasks.forEach { task ->
+            task.getSubmissions().forEach { sub ->
+                this.scoresUpdatable.enqueue(task)
+                sub.answerSets().filter { v -> v.status() == VerdictStatus.INDETERMINATE }.forEach {
+                    task.validator.validate(it)
                 }
             }
         }
+
     }
 
     /**
@@ -673,29 +672,41 @@ class InteractiveAsynchronousRunManager(override val evaluation: InteractiveAsyn
      * i.e., status updates that are not triggered by an outside interaction.
      */
     private fun internalStateUpdate() = this.stateLock.read {
-        for (team in this.evaluation.description.teams.asSequence()) {
-            if (teamHasRunningTask(team.teamId)) {
-                this.stateLock.write {
-                    this.store.transactional {
-                        val task = this.evaluation.currentTaskForTeam(team.teamId) ?: throw IllegalStateException("Could not find active task for team ${team.teamId} despite status of the team being ${this.statusMap[team.teamId]}. This is a programmer's error!")
-                        val timeLeft = max(0L, task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
+        this.store.transactional {
+            for (team in this.evaluation.description.teams.asSequence()) { //FIXME  template was removed?!
+                if (teamHasRunningTask(team.teamId)) {
+                    this.stateLock.write {
+
+                        val task = this.evaluation.currentTaskForTeam(team.teamId)
+                            ?: throw IllegalStateException("Could not find active task for team ${team.teamId} despite status of the team being ${this.statusMap[team.teamId]}. This is a programmer's error!")
+                        val timeLeft = max(
+                            0L,
+                            task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
+                        )
                         if (timeLeft <= 0) {
                             task.end()
                             DbAuditLogger.taskEnd(this.id, task.taskId, DbAuditLogSource.INTERNAL, null)
 
                             /* Enqueue WS message for sending */
-                            RunExecutor.broadcastWsMessage(team.teamId, ServerMessage(this.id, ServerMessageType.TASK_END, task.taskId))
+                            RunExecutor.broadcastWsMessage(
+                                team.teamId,
+                                ServerMessage(this.id, ServerMessageType.TASK_END, task.taskId)
+                            )
                         }
+
                     }
-                }
-            } else if (teamHasPreparingTask(team.teamId)) {
-                this.stateLock.write {
-                    this.store.transactional {
-                        val task = this.evaluation.currentTaskForTeam(team.teamId)
-                            ?: throw IllegalStateException("Could not find active task for team ${team.teamId} despite status of the team being ${this.statusMap[team.teamId]}. This is a programmer's error!")
-                        task.start()
-                        DbAuditLogger.taskStart(this.id, task.teamId, task.template, DbAuditLogSource.REST, null)
-                        RunExecutor.broadcastWsMessage(team.teamId, ServerMessage(this.id, ServerMessageType.TASK_START, task.taskId))
+                } else if (teamHasPreparingTask(team.teamId)) {
+                    this.stateLock.write {
+                        this.store.transactional {
+                            val task = this.evaluation.currentTaskForTeam(team.teamId)
+                                ?: throw IllegalStateException("Could not find active task for team ${team.teamId} despite status of the team being ${this.statusMap[team.teamId]}. This is a programmer's error!")
+                            task.start()
+                            DbAuditLogger.taskStart(this.id, task.teamId, task.template, DbAuditLogSource.REST, null)
+                            RunExecutor.broadcastWsMessage(
+                                team.teamId,
+                                ServerMessage(this.id, ServerMessageType.TASK_START, task.taskId)
+                            )
+                        }
                     }
                 }
             }

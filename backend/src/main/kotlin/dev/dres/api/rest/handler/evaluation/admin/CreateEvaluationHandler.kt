@@ -105,11 +105,12 @@ class CreateEvaluationHandler(store: TransientEntityStore, private val cache: Ca
                 this.participantCanView = message.properties.participantCanView
                 this.shuffleTasks = message.properties.shuffleTasks
                 this.limitSubmissionPreviews = message.properties.limitSubmissionPreviews
+                initPermutation()
             }
 
             /* Try to flush change prior to scheduling it. */
             RunExecutor.schedule(when (message.type) {
-                ApiEvaluationType.ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(evaluation, emptyMap()) /* TODO: Team map */
+                ApiEvaluationType.ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(evaluation)
                 ApiEvaluationType.SYNCHRONOUS -> InteractiveSynchronousEvaluation(evaluation)
                 ApiEvaluationType.NON_INTERACTIVE -> TODO()
             }, this.store)

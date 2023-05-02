@@ -7,6 +7,7 @@ import io.javalin.http.Context
 import io.javalin.openapi.*
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
+import kotlin.io.path.name
 import kotlin.streams.toList
 
 /**
@@ -17,7 +18,7 @@ import kotlin.streams.toList
 /**
  * Lists and returns the media items in the external media item directory.
  */
-class ListExternalItemHandler: GetRestHandler<Array<String>> {
+class ListExternalItemHandler : GetRestHandler<List<String>> {
 
     override val apiVersion = "v2"
 
@@ -37,14 +38,12 @@ class ListExternalItemHandler: GetRestHandler<Array<String>> {
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
         ]
     )
-    override fun doGet(ctx: Context): Array<String> {
+    override fun doGet(ctx: Context): List<String> {
         // TODO https://github.com/javalin/javalin-openapi/issues/178 Apparently, we cannot use the slash-included notation here (https://javalin.io/documentation#endpoint-handlers)
         val startsWith = ctx.pathParamMap()["startsWith"] ?: ""
-        val list = Files.walk(DRES.EXTERNAL_ROOT, 1, FileVisitOption.FOLLOW_LINKS).filter {
-                Files.isRegularFile(it) && it.toFile().name.startsWith(startsWith)
-
-        }.limit(50).map { it.toFile().name }.toList()
-        return list.toTypedArray()
+        return Files.walk(DRES.EXTERNAL_ROOT, 1, FileVisitOption.FOLLOW_LINKS).filter {
+            Files.isRegularFile(it) && it.name.startsWith(startsWith) && (it.name.endsWith(".jpg", ignoreCase = true) || it.name.endsWith(".mkv", ignoreCase = true) || it.name.endsWith(".mp4", ignoreCase = true))
+        }.sorted { o1, o2 -> o1.name.length - o2.name.length }.limit(50).map { it.toFile().name }.toList()
     }
 
     override val route: String = "external/{startsWith}"

@@ -78,7 +78,7 @@ object RunExecutor : Consumer<WsConfig> {
 
                 this.schedule(when (e.type) {
                     DbEvaluationType.INTERACTIVE_SYNCHRONOUS -> InteractiveSynchronousEvaluation(e)
-                    DbEvaluationType.INTERACTIVE_ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(e, emptyMap()) /* TODO: Team map. */
+                    DbEvaluationType.INTERACTIVE_ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(e)
                     DbEvaluationType.NON_INTERACTIVE -> TODO()
                     else -> throw IllegalStateException("Unsupported evaluation type ${e.type}.")
                 }, store)

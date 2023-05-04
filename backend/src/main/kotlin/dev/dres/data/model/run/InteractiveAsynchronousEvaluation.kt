@@ -32,81 +32,13 @@ import java.util.concurrent.ConcurrentHashMap
  * [InteractiveAsynchronousEvaluation]s can be started and ended, and they can be used to create new [IATaskRun]s and access the current [IATaskRun].
  *
  */
-class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val permutation: Map<TeamId, List<Int>>) : AbstractEvaluation(evaluation) {
+class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(evaluation) {
 
-    companion object {
-        fun generatePermutation(description: DbEvaluationTemplate, shuffle: Boolean): Map<TeamId, List<Int>> =
-            if (shuffle) {
-                description.teams.asSequence().associate { it.id to makeLoop(description.tasks.size()) }
-            } else {
-                description.teams.asSequence().associate { it.id to description.tasks.asSequence().toList().indices.toList() }
-            }
+    private val permutation: Map<TeamId, List<Int>>
 
-        /**
-         * generates a sequence of tasks that loops through all tasks exactly once
-         */
-        private fun makeLoop(length: Int): List<Int> {
-            if (length <= 0) {
-                return emptyList()
-            }
-            val positions = (0 until length).shuffled()
-            val array = IntArray(length) { -1 }
-
-            fun recursionStep(open: List<Int>, idx: Int): Boolean {
-
-                //nothing left to do
-                if (open.isEmpty()) {
-                    return true
-                }
-
-                //invalid state, need to backtrack
-                if (array[idx] != -1) {
-                    return false
-                }
-
-                //for all remaining options...
-                for (nextPosition in open) {
-                    //...assign the next one...
-                    array[idx] = nextPosition
-                    //...and continue recursively
-                    if (recursionStep(
-                            (open - nextPosition), //without the last assigned value
-                            (nextPosition + 1) % array.size
-                        ) //at the index after the last assigned position
-                    ) {
-                        //assignment succeeded
-                        return true
-                    }
-                }
-
-                //there was no valid assignment in the given options, need to back track
-                array[idx] = -1
-                return false
-            }
-
-            if (!recursionStep(positions, 0)) {
-                error("Error during generation of task sequence")
-            }
-
-            return array.toList()
-        }
+    init {
+        this.permutation = evaluation.permutation()!!
     }
-
-    /**
-     * Internal constructor to create an [InteractiveAsynchronousEvaluation] from an [DbEvaluationTemplate].
-     * Requires a transaction context!
-     *
-     * @param name The name of the new [InteractiveSynchronousEvaluation]
-     * @param shuffle Flag indicating if [IATaskRun]s should be shuffled.
-     * @param template The [DbEvaluationTemplate]
-     */
-    constructor(name: String, shuffle: Boolean, template: DbEvaluationTemplate) : this(DbEvaluation.new {
-        this.type = DbEvaluationType.INTERACTIVE_ASYNCHRONOUS
-        this.name = name
-        this.template = template
-        this.shuffleTasks = shuffle
-        this.started = System.currentTimeMillis()
-    }, generatePermutation(template, shuffle))
 
     /** A [List] of all active [IATaskRun]s.*/
     override val tasks: List<IATaskRun>
@@ -135,7 +67,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation, private val pe
     }
 
     fun goTo(teamId: TeamId, index: Int) {
-        this.navigationMap[teamId] = this.description.tasks.drop(this.permutation[teamId]!![index]).single()
+        this.navigationMap[teamId] = this.description.tasks.drop(this.permutation[teamId]!![index]).first()
     }
 
     fun currentTaskDescription(teamId: TeamId): DbTaskTemplate =

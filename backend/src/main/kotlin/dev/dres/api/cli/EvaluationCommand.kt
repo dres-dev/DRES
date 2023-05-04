@@ -147,7 +147,7 @@ class EvaluationCommand(internal val store: TransientEntityStore) : NoOpCliktCom
                             paddingRight = 1
                         }
                         header {
-                            row("id", "name", "description", "lastTask", "status", "start", "end")
+                            row("id", "name", "description", "type", "lastTask", "status", "start", "end")
                         }
                         body {
                             query.asSequence().forEach {
@@ -155,11 +155,13 @@ class EvaluationCommand(internal val store: TransientEntityStore) : NoOpCliktCom
                                     it.id,
                                     it.name,
                                     it.template.description,
+                                    it.type.description,
                                     if (it.type == DbEvaluationType.INTERACTIVE_SYNCHRONOUS) {
                                         it.tasks.firstOrNull()?.template?.name ?: "N/A"
                                     } else {
                                         "N/A"
                                     },
+                                    it.status.description,
                                     it.started?.toDateString() ?: "-",
                                     it.ended?.toDateString() ?: "-",
                                 )

@@ -1,14 +1,17 @@
 package dev.dres.data.model.run
 
+import com.fasterxml.jackson.module.kotlin.*
 import dev.dres.api.rest.types.evaluation.ApiEvaluation
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.run.interfaces.Evaluation
 import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.EvaluationRun
+import dev.dres.data.model.template.team.TeamId
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.size
 
 /**
  * Represents a [DbEvaluation], i.e., a concrete instance of a [DbEvaluationTemplate], as executed by DRES.
@@ -28,7 +31,9 @@ class DbEvaluation(entity: Entity) : PersistentEntity(entity), Evaluation {
     /** The [EvaluationId] of this [DbEvaluation]. */
     override var evaluationId: EvaluationId
         get() = this.id
-        set(value) { this.id = value }
+        set(value) {
+            this.id = value
+        }
 
     /** The name held by this [DbEvaluation]. Must be unique!*/
     var name by xdRequiredStringProp(trimmed = true)
@@ -52,7 +57,7 @@ class DbEvaluation(entity: Entity) : PersistentEntity(entity), Evaluation {
     var ended by xdNullableLongProp()
 
     /** The [DbTask]s that belong to this [DbEvaluation]. */
-    val tasks by xdChildren0_N<DbEvaluation,DbTask>(DbTask::evaluation)
+    val tasks by xdChildren0_N<DbEvaluation, DbTask>(DbTask::evaluation)
 
     /** Flag indicating that participants can also use the viewer for this [DbEvaluation]. */
     var participantCanView by xdBooleanProp()
@@ -65,6 +70,86 @@ class DbEvaluation(entity: Entity) : PersistentEntity(entity), Evaluation {
 
     /** A fixed limit on submission previews. */
     var limitSubmissionPreviews by xdIntProp()
+
+    /** A serialized representation of the task permutation map used for [InteractiveAsynchronousEvaluation]s */
+    var taskPermutationString by xdStringProp()
+
+    fun permutation() : Map<TeamId, List<Int>>? {
+        val mapper = jacksonObjectMapper()
+
+        return if (taskPermutationString != null) {
+            try {
+                mapper.readValue<Map<TeamId, List<Int>>>(taskPermutationString!!)
+            } catch (e: Exception) { //parsing failed for some reason TODO log
+                null
+            }
+        } else {
+            null
+        }
+    }
+
+    fun initPermutation() {
+        val mapper = jacksonObjectMapper()
+        val permutation = generatePermutation()
+        taskPermutationString = mapper.writeValueAsString(permutation)
+    }
+
+    private fun generatePermutation(): Map<TeamId, List<Int>> =
+        if (shuffleTasks) {
+            template.teams.asSequence().associate { it.id to makeLoop(template.tasks.size()) }
+        } else {
+            template.teams.asSequence().associate { it.id to template.tasks.asSequence().toList().indices.toList() }
+        }
+
+    /**
+     * generates a sequence of tasks that loops through all tasks exactly once
+     */
+    private fun makeLoop(length: Int): List<Int> {
+        if (length <= 0) {
+            return emptyList()
+        }
+        val positions = (0 until length).shuffled()
+        val array = IntArray(length) { -1 }
+
+        fun recursionStep(open: List<Int>, idx: Int): Boolean {
+
+            //nothing left to do
+            if (open.isEmpty()) {
+                return true
+            }
+
+            //invalid state, need to backtrack
+            if (array[idx] != -1) {
+                return false
+            }
+
+            //for all remaining options...
+            for (nextPosition in open) {
+                //...assign the next one...
+                array[idx] = nextPosition
+                //...and continue recursively
+                if (recursionStep(
+                        (open - nextPosition), //without the last assigned value
+                        (nextPosition + 1) % array.size
+                    ) //at the index after the last assigned position
+                ) {
+                    //assignment succeeded
+                    return true
+                }
+            }
+
+            //there was no valid assignment in the given options, need to back track
+            array[idx] = -1
+            return false
+        }
+
+        if (!recursionStep(positions, 0)) {
+            error("Error during generation of task sequence")
+        }
+
+        return array.toList()
+    }
+
 
     /**
      * Converts this [DbEvaluation] to a RESTful API representation [ApiEvaluation].
@@ -89,9 +174,9 @@ class DbEvaluation(entity: Entity) : PersistentEntity(entity), Evaluation {
      *
      * @return [EvaluationRun]
      */
-    fun toRun(): EvaluationRun = when(this.type) {
+    fun toRun(): EvaluationRun = when (this.type) {
         DbEvaluationType.INTERACTIVE_SYNCHRONOUS -> InteractiveSynchronousEvaluation(this)
-        DbEvaluationType.INTERACTIVE_ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(this, emptyMap()) /* TODO: Not sure about semantics here. */
+        DbEvaluationType.INTERACTIVE_ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(this)
         DbEvaluationType.NON_INTERACTIVE -> NonInteractiveEvaluation(this)
         else -> throw IllegalArgumentException("Unsupported run type ${this.type.description}. This is a programmer's error!")
     }

@@ -1,3 +1,4 @@
+import dev.dres.DRES
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.api.rest.handler.evaluation.viewer.AbstractEvaluationViewerHandler
@@ -22,6 +23,7 @@ import kotlinx.dnq.query.asSequence
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 
@@ -124,19 +126,33 @@ class GetTaskHintHandler(store: TransientEntityStore, private val cache: CacheMa
     private fun DbHint.toContentElement(): ApiContentElement {
         val content = when (this.type) {
             DbHintType.IMAGE -> {
-                val item = this.item ?: throw IllegalStateException("DbHint of type IMAGE is expected to hold a valid media item but doesn't! This is a programmer's error!")
-                val path = this@GetTaskHintHandler.cache.asyncPreviewImage(item).get() /* This should return immediately, since the previews have been prepared. */
-                if (Files.exists(path)) {
-                    Base64.getEncoder().encodeToString(Files.readAllBytes(path))
+                val path = if (this.item != null) {
+                    this@GetTaskHintHandler.cache.asyncPreviewImage(this.item!!).get() /* This should return immediately, since the previews have been prepared. */
+                } else {
+                    DRES.EXTERNAL_ROOT.resolve(
+                        this.path ?: throw IllegalStateException("DbHint of type IMAGE is expected to hold a valid media item or external path but it doesn't! This is a programmer's error!")
+                    )
+                }
+               if (Files.exists(path)) {
+                   if (path.toString().endsWith(".jpg", ignoreCase = true)) {
+                       Base64.getEncoder().encodeToString(Files.readAllBytes(path))
+                   } else { //convert to jpg
+                       null
+                   }
                 } else {
                     null
                 }
             }
             DbHintType.VIDEO -> {
-                val item = this.item ?: throw IllegalStateException("DbHint of type IMAGE is expected to hold a valid media item but doesn't! This is a programmer's error!")
-                val start = this.temporalRangeStart ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid start timestamp but doesn't! This is a programmer's error!")
-                val end = this.temporalRangeEnd ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid end timestamp but doesn't!! This is a programmer's error!")
-                val path = this@GetTaskHintHandler.cache.asyncPreviewVideo(item, start, end).get() /* This should return immediately, since the previews have been prepared. */
+                val path = if (this.item != null) {
+                    val start = this.temporalRangeStart ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid start timestamp but doesn't! This is a programmer's error!")
+                    val end = this.temporalRangeEnd ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid end timestamp but doesn't!! This is a programmer's error!")
+                    this@GetTaskHintHandler.cache.asyncPreviewVideo(this.item!!, start, end).get() /* This should return immediately, since the previews have been prepared. */
+                } else {
+                    DRES.EXTERNAL_ROOT.resolve(
+                        this.path ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid media item or external path but it doesn't! This is a programmer's error!")
+                    )
+                }
                 if (Files.exists(path)) {
                     Base64.getEncoder().encodeToString(Files.readAllBytes(path))
                 } else {

@@ -119,7 +119,11 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
    * Handler for (+) button for query target form component.
    */
   public addQueryTarget(targetType: ApiTargetOption) {
-    this.formBuilder.addTargetForm(targetType);
+    if(targetType){
+      this.formBuilder.addTargetForm(targetType);
+    }else{
+      this.formBuilder.addTargetForm(this.taskType.targetOption)
+    }
   }
 
   /**

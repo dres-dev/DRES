@@ -17,19 +17,19 @@
         </div>
       </div>
       <div class="flex-none">
-        <button mat-button aria-label="Close the editor" matTooltip="Close the editor" (click)="close()">
+        <button mat-icon-button aria-label="Close the editor" matTooltip="Close the editor" (click)="close()">
           <mat-icon>close</mat-icon>
         </button>
       </div>
     </div>
 
-    <p>
-      <mat-form-field style="width: 50%">
+    <p class="flex flex-row content-between align-stretch">
+      <mat-form-field class="flex-40">
         <mat-label>Name</mat-label>
         <input type="text" matInput placeholder="Name" [formControl]="form.get('name')"/>
       </mat-form-field>
 
-      <mat-form-field style="width: 40%" *ngIf="form.get('mediaCollection')">
+      <mat-form-field class="flex-40" *ngIf="form.get('mediaCollection')">
         <mat-select
           [placeholder]="(taskType.targetOption === 'JUDGEMENT' ? 'Default ' : '') + 'Media Collection'"
           [formControl]="form.get('mediaCollection')"
@@ -41,7 +41,7 @@
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field style="width: 10%">
+      <mat-form-field class="flex-20">
         <mat-label>Duration [s]</mat-label>
         <input type="number" matInput placeholder="Duration" [formControl]="form.get('duration')"/>
       </mat-form-field>
@@ -50,16 +50,14 @@
     <div *ngIf="form.get('mediaCollection').value">
       <h2>
         Target
-        <!-- TODO re-add
         <button
-          *ngIf="taskType.targetOption == 'MULTIPLE_MEDIA_ITEMS'"
           mat-button
           aria-label="Add query target."
           matTooltip="Add query target."
           (click)="addQueryTarget('SINGLE_MEDIA_ITEM')"
         >
           <mat-icon>add</mat-icon>
-        </button> -->
+        </button>
         <button
           *ngIf="taskType.targetOption == 'TEXT'"
           mat-button
@@ -69,9 +67,7 @@
         >
           <mat-icon>add</mat-icon>
         </button>
-        <!-- TODO Re-add
         <mat-button-toggle-group
-          *ngIf="taskType.targetOption == 'MULTIPLE_MEDIA_ITEMS'"
           #group="matButtonToggleGroup"
           [(value)]="viewLayout"
         >
@@ -81,17 +77,18 @@
           <mat-button-toggle value="grid" aria-label="Display targets as grid">
             <mat-icon>grid_on</mat-icon>
           </mat-button-toggle>
-        </mat-button-toggle-group>-->
-        <!-- TODO re-add
+        </mat-button-toggle-group>
+        <!--
+        TODO Properly re-add
         <button
-          *ngIf="taskType.targetOption == 'MULTIPLE_MEDIA_ITEMS'"
           mat-button
           aria-label="Batch Target Add"
           matTooltip="Batch Target Add"
           (click)="batchAddTargets()"
         >
           <mat-icon>library_add</mat-icon>
-        </button> -->
+        </button>
+        -->
       </h2>
       <div *ngIf="viewLayout === 'grid'">
         <mat-grid-list
@@ -235,9 +232,12 @@
         </mat-grid-list>
       </div>
       <div *ngIf="viewLayout === 'list'">
-        <div *ngFor="let target of form.get('target')['controls']; let i = index" style="display: flex">
-          <div class="flex-grow">
-            <p>
+        <div *ngFor="let target of form.get('target')['controls']; let i = index"
+          class="flex flex-row content-between align-stretch"
+        >
+          <!-- follwing must not be flex, otherwise messes up layout heavily -->
+          <div class="flex-90 flex-row content-between align-stretch" style="width: 100%;">
+            <p [class]="target.get('mediaItem') && taskType.targetOption == 'TEXT' ? 'flex-100' : 'flex-33'">
               <mat-form-field
                 *ngIf="target.get('mediaItem') && taskType.targetOption != 'TEXT'"
                 [style]="isImageMediaItem(target.get('mediaItem').value) ? 'width: 95%;' : 'width: 100%;'"
@@ -274,7 +274,7 @@
               </mat-form-field>
               <mat-form-field
                 *ngIf="target.get('mediaItem') && taskType.targetOption == 'TEXT'"
-                [style]="'width: 100%;'"
+                style="width: 100%"
               >
                 <input
                   type="text"
@@ -286,7 +286,7 @@
               </mat-form-field>
               <button
                 *ngIf="target.get('mediaItem') && isImageMediaItem(target.get('mediaItem').value)"
-                style="width: 5%"
+                class="flex-none"
                 mat-icon-button
                 aria-label="Show media item."
                 matTooltip="Show media item."
@@ -296,8 +296,9 @@
               </button>
             </p>
 
-            <p *ngIf="target.get('segment_start') && target.get('segment_end')">
-              <mat-form-field style="width: 30%">
+            <p class="flex-66" *ngIf="target.get('segment_start') && target.get('segment_end')" style="max-width: 100%;">
+              <span class="flex-inline flex-row content-between align-stretch">
+                <mat-form-field class="flex-30">
                 <input
                   #targetListStart
                   [type]="target.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'"
@@ -306,7 +307,7 @@
                   [formControl]="target.get('segment_start')"
                 />
               </mat-form-field>
-              <mat-form-field style="width: 30%">
+              <mat-form-field class="flex-30">
                 <input
                   #targetListEnd
                   [type]="target.get('segment_time_unit') === 'TIMECODE' ? 'text' : 'number'"
@@ -315,7 +316,7 @@
                   [formControl]="target.get('segment_end')"
                 />
               </mat-form-field>
-              <mat-form-field style="width: 30%">
+              <mat-form-field class="flex-30">
                 <mat-select
                   [formControl]="target.get('segment_time_unit')"
                   (selectionChange)="timeUnitChanged($event, targetListStart, targetListEnd)"
@@ -341,8 +342,9 @@
                   </button>
                 </span>
               </mat-form-field>
-              <button
-                style="width: 10%"
+              <span class="spacer-flex"></span>
+                <button
+
                 mat-icon-button
                 aria-label="Show media item."
                 matTooltip="Show media item."
@@ -357,6 +359,8 @@
               >
                 <mat-icon>remove_red_eye</mat-icon>
               </button>
+              </span>
+
             </p>
             <p *ngIf="isPreviewActive(i)" style="width: 100%">
               <img
@@ -374,8 +378,8 @@
               ></app-video-player-segment-builder>
             </div>
           </div>
-          <!-- TODO Re-add MULTIPLE as OR in condition -->
-          <div *ngIf="taskType.targetOption == 'TEXT'">
+          <div class="spacer-flex"></div>
+          <div class="flex-none">
             <button
               mat-icon-button
               (click)="removeQueryTarget(i)"
@@ -410,18 +414,18 @@
       <div *ngIf="form.get('components').invalid" class="validation-error">
         <div *ngIf="form.get('components').errors?.required">At least one query component is required!</div>
       </div>
-      <div *ngFor="let description of form.get('components')['controls']; let i = index" style="display: flex">
-        <div style="flex-basis: 100%; flex-grow: 1">
-          <p>
-            <mat-form-field style="width: 7.5%">
+      <div *ngFor="let description of form.get('components')['controls']; let i = index" class="flex flex-row content-between align-stretch">
+        <div class="flex-80">
+          <p class="flex flex-row content-between align-stretch">
+            <mat-form-field class="flex-10">
               <input type="number" matInput placeholder="Start" [formControl]="description.get('start')"/>
             </mat-form-field>
-            <mat-form-field style="width: 7.5%">
+            <mat-form-field class="flex-10">
               <input type="number" matInput placeholder="End" [formControl]="description.get('end')"/>
             </mat-form-field>
 
-            <span *ngIf="description.get('type').value === 'IMAGE' && !description.get('external')">
-              <mat-form-field style="width: 85%" *ngIf="description.get('mediaItem')">
+            <span class="flex-80" *ngIf="description.get('type').value === 'IMAGE' && !description.get('external')">
+              <mat-form-field *ngIf="description.get('mediaItem')">
                 <input
                   type="text"
                   matInput
@@ -447,7 +451,7 @@
               </button>
             </span>
 
-            <span
+            <span class="flex-80"
               *ngIf="description.get('external')"
             >
               <mat-form-field [style.width]="description.get('type').value === 'VIDEO' ? '45%' : '85%'" *ngIf="description.get('path')">
@@ -516,14 +520,14 @@
               </ng-container>
             </span>
 
-            <span *ngIf="description.get('type').value === 'TEXT'">
-              <mat-form-field style="width: 85%">
+            <span class="flex-80" *ngIf="description.get('type').value === 'TEXT'">
+              <mat-form-field style="width: 100%">
                 <textarea matInput placeholder="Textual description"
                           [formControl]="description.get('description')"></textarea>
               </mat-form-field>
             </span>
 
-            <span *ngIf="description.get('type').value === 'VIDEO' && !description.get('external')">
+            <span class="flex-80" *ngIf="description.get('type').value === 'VIDEO' && !description.get('external')">
               <mat-form-field style="width: 45%" *ngIf="description.get('mediaItem')">
                 <input
                   type="text"

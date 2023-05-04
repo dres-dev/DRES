@@ -98,7 +98,7 @@ dependencies {
     ////// Log4J
     implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: version_log4j
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: version_log4j
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: version_log4j
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j2-impl', version: version_log4j
     implementation group: 'org.apache.logging.log4j', name: 'log4j-jul', version: version_log4j
 
     ////// FastUtil

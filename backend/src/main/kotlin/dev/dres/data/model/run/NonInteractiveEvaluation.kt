@@ -4,13 +4,19 @@ import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.run.interfaces.TaskRun
+import dev.dres.data.model.template.task.options.DbConfiguredOption
+import dev.dres.data.model.template.task.options.DbScoreOption
 import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.data.model.template.team.TeamId
+import dev.dres.run.filter.AllSubmissionFilter
 import dev.dres.run.filter.SubmissionFilter
+import dev.dres.run.filter.SubmissionFilterAggregator
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
+import dev.dres.run.score.scorer.AvsTaskScorer
 import dev.dres.run.score.scorer.CachingTaskScorer
+import dev.dres.run.score.scorer.KisTaskScorer
 import dev.dres.run.score.scorer.TaskScorer
 import dev.dres.run.transformer.MapToSegmentTransformer
 import dev.dres.run.transformer.SubmissionTaskMatchFilter
@@ -65,7 +71,13 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
             get() = this@NonInteractiveEvaluation.tasks.indexOf(this)
 
         /** The [CachingTaskScorer] instance used by this [NITaskRun]. */
-        override val scorer: CachingTaskScorer = TODO("Will we have the same scorers for non-interactive tasks.")
+        override val scorer: CachingTaskScorer = CachingTaskScorer(
+            when(val scoreOption = this.template.taskGroup.type.score) {
+                DbScoreOption.KIS -> throw IllegalStateException("KIS task scorer is not applicable to non-interactive evaluations")
+                DbScoreOption.AVS -> AvsTaskScorer(this)
+                else -> throw IllegalStateException("The task score option $scoreOption is currently not supported.")
+            }
+        )
 
         override val transformer: SubmissionTransformer = if (this.template.taskGroup.type.options.filter { it eq DbTaskOption.MAP_TO_SEGMENT }.any()) {
             SubmissionTransformerAggregator(
@@ -79,7 +91,21 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
         }
 
         /** The [SubmissionFilter] instance used by this [NITaskRun]. */
-        override val filter: SubmissionFilter = TODO("Can there be submission filters for non-interactive tasks?")
+        override val filter: SubmissionFilter;
+
+        init{
+            if (this.template.taskGroup.type.submission.isEmpty) {
+                this.filter = AllSubmissionFilter
+            } else {
+                this.filter = SubmissionFilterAggregator(
+                    this.template.taskGroup.type.submission.asSequence().map { option ->
+                        val parameters = this.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq option.description)
+                            .asSequence().map { it.key to it.value }.toMap()
+                        option.newFilter(parameters)
+                    }.toList()
+                )
+            }
+        }
 
         /** List of [TeamId]s that work on this [NITaskRun]. */
         override val teams: List<TeamId> = this@NonInteractiveEvaluation.description.teams.asSequence().map { it.teamId }.toList()

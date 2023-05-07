@@ -239,6 +239,10 @@ object RestApi {
                 )
             )
 
+            it.plugins.register(
+                ClientSwaggerPlugin()
+            )
+
             it.http.defaultContentType = "application/json"
             it.http.prefer405over404 = true
             it.jetty.server { setupHttpServer() }

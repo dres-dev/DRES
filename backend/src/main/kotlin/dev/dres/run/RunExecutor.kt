@@ -276,7 +276,7 @@ object RunExecutor : Consumer<WsConfig> {
      *
      * @param competition [EvaluationRun] that should be dumped.
      */
-    fun dump(competition: EvaluationRun) {
+    fun dump(competition: EvaluationRun) { //FIXME can no longer properly dump things, since they refer to dnq objects
         try {
             val file = File("run_dump_${competition.id}.json")
             jacksonObjectMapper().writeValue(file, competition)

@@ -20,7 +20,14 @@ class ClientOpenApiPlugin : OpenApiPlugin(OpenApiConfiguration().apply {
             "/mediaItem",
             "/score",
             "/user/list",
-            "/user/session/"
+            "/user/session/",
+            "/evaluation/admin",
+            "/evaluation/template",
+            "/evaluation/{evaluationId}/judge",
+            "/evaluation/{evaluationId}/vote",
+            "/download",
+            "/mediaitem",
+            "/template"
         )
 
         val relevantRoutes = doc["paths"].fields().asSequence().filter { blacklist.none { b -> it.key.contains(b) } }.map { it.key }.toList()

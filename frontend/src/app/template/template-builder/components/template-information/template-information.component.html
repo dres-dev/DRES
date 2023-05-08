@@ -13,7 +13,7 @@
             </mat-form-field>
         </p>
         <p>
-            <mat-form-field style="width: 100%">
+            <mat-form-field style="width: 50%" matTooltip="By default the most used collection">
                 <mat-label>Default collection for tasks within this evaluation template</mat-label>
                 <mat-select
                   [placeholder]="'Default Media Collection'"
@@ -24,6 +24,13 @@
                         <span>{{ mediaCollection.name }}</span> (ID: {{ mediaCollection.id }})
                     </mat-option>
                 </mat-select>
+            </mat-form-field>
+            <mat-form-field style="width: 50%">
+                <mat-label>Default length of a random segment in seconds. If set to zero this causes random length.</mat-label>
+                <input type="number" matInput
+                       [placeholder]="'Default segment length'"
+                       formControlName="defaultRandomLength"
+                >
             </mat-form-field>
         </p>
     </form>

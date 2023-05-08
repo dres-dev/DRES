@@ -218,9 +218,19 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
   public pickRandomSegment(item: ApiMediaItem, startControl: UntypedFormControl, endControl: UntypedFormControl, unitControl: UntypedFormControl) {
     const start = TaskTemplateEditorComponent.randInt(1, item.durationMs / 1000 / 2); // always in first half
     let end = 1;
-    do {
-      end = start + TaskTemplateEditorComponent.randInt(5, item.durationMs / 1000); // Arbitrary 5 seconds minimal length
-    } while (end > item.durationMs / 1000);
+    if(this.builderService.defaultSegmentLength === 0){
+      console.log("Using random length for random segment")
+      do {
+        end = start + TaskTemplateEditorComponent.randInt(5, item.durationMs / 1000); // Arbitrary 5 seconds minimal length
+      } while (end > item.durationMs / 1000);
+    }else{
+      console.log("Using default length for random segment (start, defaultLength)", start, this.builderService.defaultSegmentLength)
+      end = start + this.builderService.defaultSegmentLength;
+      if(end > item.durationMs / 1000){
+        end = (item.durationMs / 1000) - start;
+      }
+    }
+
     startControl.setValue(start);
     endControl.setValue(end);
     unitControl.setValue('SECONDS');

@@ -19,6 +19,14 @@ export class TemplateBuilderService {
     return this._defaultCollection;
   }
   private _defaultCollection: string = '';
+
+  set defaultSegmentLength(value: number){
+    this._defaultSegmentLength = value;
+  }
+  get defaultSegmentLength():number{
+    return this._defaultSegmentLength;
+  }
+  private _defaultSegmentLength: number = 0;
   get selectedTaskGroup(): ApiTaskGroup {
     return this._selectedTaskGroup;
   }

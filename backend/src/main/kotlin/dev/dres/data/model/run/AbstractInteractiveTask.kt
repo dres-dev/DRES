@@ -28,11 +28,6 @@ abstract class AbstractInteractiveTask(task: DbTask): AbstractTask(task) {
     /** The total duration in milliseconds of this task. Usually determined by the [DbTaskTemplate] but can be adjusted! */
     override abstract var duration: Long
 
-    /** Map of [TeamGroupId] to [TeamAggregatorImpl]. */
-    val teamGroupAggregators: Map<TeamGroupId, TeamAggregatorImpl> by lazy {
-        this.competition.description.teamGroups.asSequence().associate { it.id to it.newAggregator() }
-    }
-
     /** The [AnswerSetValidator] used to validate [DbSubmission]s. */
     final override val validator: AnswerSetValidator
 
@@ -61,12 +56,4 @@ abstract class AbstractInteractiveTask(task: DbTask): AbstractTask(task) {
         }
     }
 
-    /**
-     * Updates the per-team aggregation for this [AbstractInteractiveTask].
-     *
-     * @param teamScores Map of team scores.
-     */
-    internal fun updateTeamAggregation(teamScores: Map<TeamId, Double>) {
-        this.teamGroupAggregators.values.forEach { it.aggregate(teamScores) }
-    }
 }

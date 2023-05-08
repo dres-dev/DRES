@@ -6,6 +6,9 @@ import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.template.TemplateId
+import dev.dres.data.model.template.team.TeamAggregatorImpl
+import dev.dres.data.model.template.team.TeamGroupId
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.transformer.SubmissionTransformer
 import dev.dres.run.validation.interfaces.AnswerSetValidator
@@ -146,4 +149,18 @@ abstract class AbstractTask(task: DbTask): TaskRun {
     }.mapDistinct {
         it.submission
     }.asSequence()
+
+    /** Map of [TeamGroupId] to [TeamAggregatorImpl]. */
+    val teamGroupAggregators: Map<TeamGroupId, TeamAggregatorImpl> by lazy {
+        this.competition.description.teamGroups.asSequence().associate { it.id to it.newAggregator() }
+    }
+
+    /**
+     * Updates the per-team aggregation for this [AbstractInteractiveTask].
+     *
+     * @param teamScores Map of team scores.
+     */
+    internal fun updateTeamAggregation(teamScores: Map<TeamId, Double>) {
+        this.teamGroupAggregators.values.forEach { it.aggregate(teamScores) }
+    }
 }

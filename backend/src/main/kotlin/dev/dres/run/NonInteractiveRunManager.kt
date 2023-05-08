@@ -9,8 +9,10 @@ import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.*
 import dev.dres.data.model.template.team.TeamId
+import dev.dres.run.filter.SubmissionRejectedException
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.ScoreboardsUpdatable
+import dev.dres.run.updatables.ScoresUpdatable
 import dev.dres.run.validation.interfaces.JudgementValidator
 import jetbrains.exodus.database.TransientEntityStore
 import org.slf4j.LoggerFactory
@@ -18,6 +20,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation, override val store: TransientEntityStore) : RunManager {
 
@@ -43,6 +46,9 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
     /** The [DbEvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
     override val template: DbEvaluationTemplate
         get() = this.evaluation.description
+
+    /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
+    private val scoresUpdatable = ScoresUpdatable(this)
 
     /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
     private val scoreboardsUpdatable = ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_MS) //TODO requires some changes
@@ -152,7 +158,7 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
             }
 
 
-            Thread.sleep(100)
+            Thread.sleep(1000)
 
         }
 
@@ -167,7 +173,56 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
      */
     override fun tasks(context: RunActionContext): List<AbstractNonInteractiveTask> = this.evaluation.tasks
 
+    private val taskMap = this.evaluation.tasks.associateBy { it.taskId }
+
     override fun postSubmission(context: RunActionContext, submission: ApiSubmission) {
+
+        val submissionByTask = submission.answers.groupBy { it.taskId }.mapValues { submission.copy(answers = it.value) }
+
+        if (submissionByTask.keys.any { !taskMap.containsKey(it) }) {
+            throw IllegalStateException("Unknown task")
+        }
+
+        this.stateLock.write {
+
+            submissionByTask.forEach { (taskId, submission) ->
+
+                val task = taskMap[taskId] ?: throw IllegalStateException("Unknown task $taskId")
+
+                try{
+
+                    /* Check if ApiSubmission meets formal requirements. */
+                    task.filter.acceptOrThrow(submission)
+
+                    /* Apply transformations to submissions */
+                    val transformedSubmission = task.transformer.transform(submission)
+
+                    /* Check if there are answers left after transformation */
+                    if (transformedSubmission.answers.isEmpty()) {
+                        return@forEach
+                    }
+
+                    /* At this point, the submission is considered valid and is persisted */
+                    /* Validator is applied to each answer set */
+                    transformedSubmission.answerSets().forEach {
+                        task.validator.validate(it)
+                    }
+
+                    /* Persist the submission. */
+                    transformedSubmission.toNewDb()
+
+                    /* Enqueue submission for post-processing. */
+                    this.scoresUpdatable.enqueue(task)
+
+                } catch (e: SubmissionRejectedException) {
+                    //TODO give feedback about parts of submissions that have been rejected somehow
+                }
+
+
+            }
+
+        }
+
         TODO("Not yet implemented")
     }
 

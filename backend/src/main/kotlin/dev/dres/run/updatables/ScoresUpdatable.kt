@@ -3,6 +3,7 @@ package dev.dres.run.updatables
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
 import dev.dres.data.model.run.AbstractInteractiveTask
+import dev.dres.data.model.run.AbstractTask
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbAnswerSet
@@ -31,7 +32,7 @@ class ScoresUpdatable(private val manager: RunManager): Updatable {
     }
 
     /** Internal list of [DbAnswerSet] that pend processing. */
-    private val set = LinkedHashSet<AbstractInteractiveTask>()
+    private val set = LinkedHashSet<AbstractTask>()
 
     /** The [Phase] this [ScoresUpdatable] belongs to. */
     override val phase: Phase = Phase.MAIN
@@ -42,7 +43,7 @@ class ScoresUpdatable(private val manager: RunManager): Updatable {
      * @param task The [AbstractInteractiveTask] tha requires score re-calculation.
      */
     @Synchronized
-    fun enqueue(task: AbstractInteractiveTask) = this.set.add(task)
+    fun enqueue(task: AbstractTask) = this.set.add(task)
 
     @Synchronized
     override fun update(status: RunManagerStatus) {

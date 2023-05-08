@@ -17,6 +17,9 @@ import {
   TemplateService
 } from '../../../../openapi';
 
+/**
+ * @deprecated Replaced by TemplateList
+ */
 @Component({
   selector: 'app-competition-list',
   templateUrl: './competition-list.component.html',

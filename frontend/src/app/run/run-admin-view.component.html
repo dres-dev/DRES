@@ -70,13 +70,12 @@
               *ngFor="let viewer of viewers | async; let i = index; trackBy: resolveViewerById"
               [style.color]="viewer.ready ? 'darkgreen' : 'darkred'"
               (click)="forceViewer(viewer.viewersId)"
-              class="outline-white"
             >
               <div class="p4" mat-line>
-                <strong>{{ viewer.viewersId }}</strong>
+                <span>{{ viewer.viewersId }}</span>
               </div>
               <div class="p4" mat-line>
-                <strong>User:</strong> {{ viewer.username }}, <strong>Address:</strong> {{ viewer.host }}
+                <span>User:</span> {{ viewer.username }}, <span>Address:</span> {{ viewer.host }}
               </div>
             </mat-list-item>
           </mat-action-list>

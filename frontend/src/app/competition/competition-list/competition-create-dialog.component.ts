@@ -3,6 +3,9 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import {ApiCreateEvaluation} from '../../../../openapi';
 
+/**
+ * @deprecated Replaced by TemplateCreateDialog
+ */
 @Component({
   selector: 'app-competition-create-dialog',
   templateUrl: 'competition-create-dialog.component.html',

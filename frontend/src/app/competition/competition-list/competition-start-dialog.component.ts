@@ -12,6 +12,9 @@ export interface CompetitionStartDialogResult {
   limit: Number;
 }
 
+/**
+ * @deprecated Replaced by TemplateStart
+ */
 @Component({
   selector: 'app-competition-start-dialog',
   templateUrl: 'competition-start-dialog.component.html',

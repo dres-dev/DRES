@@ -70,7 +70,7 @@ object RunExecutor : Consumer<WsConfig> {
      */
     fun init(config: Config, store: TransientEntityStore, cache: CacheManager) {
         store.transactional {
-            DbEvaluation.filter { (it.started) ne null and (it.ended eq null) }.asSequence().forEach {e ->
+            DbEvaluation.filter { (it.ended eq null) }.asSequence().forEach {e ->
                 this.schedule(e.toRunManager(store))  /* Re-schedule evaluations. */
             }
         }

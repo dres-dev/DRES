@@ -11,6 +11,7 @@ import dev.dres.data.model.run.InteractiveAsynchronousEvaluation
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.mgmt.cache.CacheManager
+import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.InteractiveSynchronousRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManagerStatus
@@ -62,7 +63,7 @@ class CreateEvaluationHandler(store: TransientEntityStore, private val cache: Ca
         }
 
         /* Prepare run manager. */
-        val evaluationId = this.store.transactional {
+        val manager = this.store.transactional {
             val template = DbEvaluationTemplate.query((DbEvaluationTemplate::id eq message.templateId) and (DbEvaluationTemplate::instance eq false)).firstOrNull()
                 ?: throw ErrorStatusException(404, "Evaluation template with ID ${message.templateId} could not be found.'", ctx)
 
@@ -76,12 +77,13 @@ class CreateEvaluationHandler(store: TransientEntityStore, private val cache: Ca
 
             /* Check and prepare videos */
             val segmentTasks = template.getAllVideos()
-            val await = segmentTasks.map {
+            val await = segmentTasks.mapNotNull {
                 val item = it.first
                 val path = item.pathToOriginal()
                 if (!Files.exists(path)) {
                     logger.error("Required media file $path not found for item ${item.name}.")
-                    throw ErrorStatusException(500, "Required media file $path not found for item ${item.name}.", ctx)
+                    //throw ErrorStatusException(500, "Required media file $path not found for item ${item.name}.", ctx)
+                    return@mapNotNull null
                 }
 
                 /** Schedule request for preparing required preview. */
@@ -108,16 +110,12 @@ class CreateEvaluationHandler(store: TransientEntityStore, private val cache: Ca
                 initPermutation()
             }
 
-            /* Try to flush change prior to scheduling it. */
-            RunExecutor.schedule(when (message.type) {
-                ApiEvaluationType.ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(evaluation)
-                ApiEvaluationType.SYNCHRONOUS -> InteractiveSynchronousEvaluation(evaluation)
-                ApiEvaluationType.NON_INTERACTIVE -> TODO()
-            }, this.store)
-            evaluation.id
+            /* Create evaluation + run manager and end transaction. */
+            evaluation.toRunManager(this.store)
         }
 
-        /* Schedule newly created run manager. */
-        return SuccessStatus("Evaluation '${message.name}' was started and is running with ID $evaluationId.")
+        /* Schedule newly created run manager. IMPORTANT: This MUST take place outside the previous transaction context. */
+        RunExecutor.schedule(manager)
+        return SuccessStatus("Evaluation '${message.name}' was started and is running with ID ${manager.id}.")
     }
 }

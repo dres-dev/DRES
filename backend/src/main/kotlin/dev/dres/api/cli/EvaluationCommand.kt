@@ -275,27 +275,37 @@ class EvaluationCommand(internal val store: TransientEntityStore) : NoOpCliktCom
         /** [EvaluationId] of the [DbEvaluation] that should be reactivated. .*/
         private val id: EvaluationId by option("-i", "--id").required()
 
-        override fun run() = this@EvaluationCommand.store.transactional(true) {
-            val evaluation = DbEvaluation.query(DbEvaluation::id eq this.id).firstOrNull()
-            if (evaluation == null) {
-                println("Evaluation ${this.id} does not seem to exist.")
-                return@transactional
+        override fun run() {
+            val run = this@EvaluationCommand.store.transactional {
+                val evaluation = DbEvaluation.query(DbEvaluation::id eq this.id).firstOrNull()
+                if (evaluation == null) {
+                    println("Evaluation ${this.id} does not seem to exist.")
+                    return@transactional null
+                }
+
+                if (evaluation.ended == null) {
+                    println("Evaluation has not ended yet.")
+                    return@transactional null
+                }
+
+                if (RunExecutor.managers().any { it.id == evaluation.id }) {
+                    println("Evaluation is already active.")
+                    return@transactional null
+                }
+
+                /* Create run and reactivate. */
+                val manager = evaluation.toRunManager(this@EvaluationCommand.store)
+                manager.evaluation.reactivate()
+                manager
             }
 
-            if (evaluation.ended == null) {
-                println("Evaluation has not ended yet.")
-                return@transactional
+            if (run != null) {
+                this@EvaluationCommand.store.transactional {
+                    RunExecutor.schedule(run)
+                }
             }
 
-            if (RunExecutor.managers().any { it.id == evaluation.id }) {
-                println("Evaluation is already active.")
-                return@transactional
-            }
 
-            /* Create run and reactivate. */
-            val run = evaluation.toRun()
-            run.reactivate()
-            RunExecutor.schedule(run, this@EvaluationCommand.store)
             println("Evaluation ${this.id} was reactivated.")
         }
     }

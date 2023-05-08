@@ -8,6 +8,11 @@ import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.template.team.TeamId
+import dev.dres.run.InteractiveAsynchronousRunManager
+import dev.dres.run.InteractiveSynchronousRunManager
+import dev.dres.run.NonInteractiveRunManager
+import dev.dres.run.RunManager
+import jetbrains.exodus.database.TransientEntityStore
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
@@ -170,14 +175,14 @@ class DbEvaluation(entity: Entity) : PersistentEntity(entity), Evaluation {
     )
 
     /**
-     * Generates and returns an [EvaluationRun] instance for this [DbEvaluation].
+     * Generates and returns an [RunManager] instance for this [DbEvaluation].
      *
      * @return [EvaluationRun]
      */
-    fun toRun(): EvaluationRun = when (this.type) {
-        DbEvaluationType.INTERACTIVE_SYNCHRONOUS -> InteractiveSynchronousEvaluation(this)
-        DbEvaluationType.INTERACTIVE_ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(this)
-        DbEvaluationType.NON_INTERACTIVE -> NonInteractiveEvaluation(this)
+    fun toRunManager(store: TransientEntityStore): RunManager = when (this.type) {
+        DbEvaluationType.INTERACTIVE_SYNCHRONOUS -> InteractiveSynchronousRunManager(InteractiveSynchronousEvaluation(this), store)
+        DbEvaluationType.INTERACTIVE_ASYNCHRONOUS -> InteractiveAsynchronousRunManager(InteractiveAsynchronousEvaluation(this), store)
+        DbEvaluationType.NON_INTERACTIVE -> NonInteractiveRunManager(NonInteractiveEvaluation(this), store)
         else -> throw IllegalArgumentException("Unsupported run type ${this.type.description}. This is a programmer's error!")
     }
 }

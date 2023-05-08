@@ -1,5 +1,6 @@
 package dev.dres.run
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
@@ -525,15 +526,23 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     }
 
     /**
-     * Internal method that orchestrates the internal progression of the [InteractiveSynchronousEvaluation].
+     * Method that orchestrates the internal progression of the [InteractiveSynchronousEvaluation].
+     *
+     * Implements the main run-loop.
      */
     override fun run() {
-        /** Sort list of by [Phase] in ascending order. */
-        this.updatables.sortBy { it.phase }
+        /* Preparation . */
+        this.stateLock.read {
+            this.store.transactional {
+                this.updatables.sortBy { it.phase } /* Sort list of by [Phase] in ascending order. */
+                AccessManager.registerRunManager(this) /* Register the run manager with the access manager. */
+            }
+        }
 
+        /* Initialize error counter. */
         var errorCounter = 0
 
-        /** Start [InteractiveSynchronousRunManager] . */
+        /* Start [InteractiveSynchronousRunManager]; main run-loop. */
         while (this.status != RunManagerStatus.TERMINATED) {
             try {
                 /* Obtain lock on current state. */
@@ -550,7 +559,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 /* 3) Yield to other threads. */
                 Thread.sleep(500)
 
-                /* Reset error counter. */
+                /* 4) Reset error counter and yield to other threads. */
                 errorCounter = 0
             } catch (ie: InterruptedException) {
                 LOGGER.info("Interrupted SynchronousRunManager, exiting")
@@ -568,9 +577,12 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             }
         }
 
-        /** Invoke [Updatable]s one last time. */
+        /* Finalization. */
         this.stateLock.read {
-            this.invokeUpdatables()
+            this.store.transactional {
+                this.invokeUpdatables() /* Invoke [Updatable]s one last time. */
+                AccessManager.deregisterRunManager(this) /* De-register this run manager with the access manager. */
+            }
         }
 
         LOGGER.info("SynchronousRunManager ${this.id} reached end of run logic.")

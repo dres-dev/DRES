@@ -1,5 +1,6 @@
 package dev.dres.run
 
+import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.evaluation.ApiSubmission
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
@@ -106,8 +107,9 @@ class InteractiveAsynchronousRunManager(
     } else {
         RunManagerStatus.CREATED
     }
-        private set
+    private set
 
+    /** Returns list [JudgementValidator]s associated with this [InteractiveAsynchronousRunManager]. May be empty! */
     override val judgementValidators: List<JudgementValidator>
         get() = this.evaluation.tasks.mapNotNull { if (it.hasStarted && it.validator is JudgementValidator) it.validator else null }
 
@@ -649,27 +651,40 @@ class InteractiveAsynchronousRunManager(
     }
 
     /**
+     * Method that orchestrates the internal progression of the [InteractiveSynchronousEvaluation].
      *
+     * Implements the main run-loop.
      */
     override fun run() {
-        /** Sort list of by [Phase] in ascending order. */
-        this.updatables.sortBy { it.phase }
+        /* Preparation / Phase: PREPARE. */
+        this.stateLock.read {
+            this.store.transactional {
+                this.updatables.sortBy { it.phase } /* Sort list of by [Phase] in ascending order. */
+                AccessManager.registerRunManager(this) /* Register the run manager with the access manager. */
+            }
+        }
 
-        /** Start [InteractiveSynchronousRunManager] . */
+        /* Initialize error counter. */
         var errorCounter = 0
+
+        /* Start [InteractiveSynchronousRunManager]; main run-loop. */
         while (this.status != RunManagerStatus.TERMINATED) {
             try {
                 this.stateLock.read {
-                    /* 1) Invoke all relevant [Updatable]s. */
-                    this.invokeUpdatables()
+                    this.store.transactional {
+                        /* 1) Invoke all relevant [Updatable]s. */
+                        this.invokeUpdatables()
 
-                    /* 2) Process internal state updates (if necessary). */
-                    this.internalStateUpdate()
-
-                    /* 3) Reset error counter and yield to other threads. */
-                    errorCounter = 0
+                        /* 2) Process internal state updates (if necessary). */
+                        this.internalStateUpdate()
+                    }
                 }
+
+                /* 3) Yield to other threads. */
                 Thread.sleep(250)
+
+                /* 4) Reset error counter and yield to other threads. */
+                errorCounter = 0
             } catch (ie: InterruptedException) {
                 LOGGER.info("Interrupted run manager thread; exiting...")
                 return
@@ -690,8 +705,14 @@ class InteractiveAsynchronousRunManager(
             }
         }
 
-        /** Invoke [Updatable]s one last time. */
-        this.invokeUpdatables()
+        /* Finalization. */
+        this.stateLock.read {
+            this.store.transactional {
+                this.invokeUpdatables() /* Invoke [Updatable]s one last time. */
+                AccessManager.deregisterRunManager(this) /* De-register this run manager with the access manager. */
+            }
+        }
+
         LOGGER.info("Run manager ${this.id} has reached end of run logic.")
     }
 
@@ -716,37 +737,35 @@ class InteractiveAsynchronousRunManager(
      */
     private fun internalStateUpdate() = this.stateLock.read {
         for (teamId in teamIds) {
-            this.store.transactional {
-                if (teamHasRunningTask(teamId)) { //FIXME DbTaskTemplate[...] was removed.
-                    this.stateLock.write {
-                        val task = this.evaluation.currentTaskForTeam(teamId)
-                            ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
-                        val timeLeft = max(
-                            0L,
-                            task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
-                        )
-                        if (timeLeft <= 0) {
-                            task.end()
-                            DbAuditLogger.taskEnd(this.id, task.taskId, DbAuditLogSource.INTERNAL, null)
+            if (teamHasRunningTask(teamId)) { //FIXME DbTaskTemplate[...] was removed.
+                this.stateLock.write {
+                    val task = this.evaluation.currentTaskForTeam(teamId)
+                        ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
+                    val timeLeft = max(
+                        0L,
+                        task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION
+                    )
+                    if (timeLeft <= 0) {
+                        task.end()
+                        DbAuditLogger.taskEnd(this.id, task.taskId, DbAuditLogSource.INTERNAL, null)
 
-                            /* Enqueue WS message for sending */
-                            RunExecutor.broadcastWsMessage(
-                                teamId,
-                                ServerMessage(this.id, ServerMessageType.TASK_END, task.taskId)
-                            )
-                        }
-                    }
-                } else if (teamHasPreparingTask(teamId)) {
-                    this.stateLock.write {
-                        val task = this.evaluation.currentTaskForTeam(teamId)
-                            ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
-                        task.start()
-                        DbAuditLogger.taskStart(this.id, task.teamId, task.template, DbAuditLogSource.REST, null)
+                        /* Enqueue WS message for sending */
                         RunExecutor.broadcastWsMessage(
                             teamId,
-                            ServerMessage(this.id, ServerMessageType.TASK_START, task.taskId)
+                            ServerMessage(this.id, ServerMessageType.TASK_END, task.taskId)
                         )
                     }
+                }
+            } else if (teamHasPreparingTask(teamId)) {
+                this.stateLock.write {
+                    val task = this.evaluation.currentTaskForTeam(teamId)
+                        ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
+                    task.start()
+                    DbAuditLogger.taskStart(this.id, task.teamId, task.template, DbAuditLogSource.REST, null)
+                    RunExecutor.broadcastWsMessage(
+                        teamId,
+                        ServerMessage(this.id, ServerMessageType.TASK_START, task.taskId)
+                    )
                 }
             }
         }

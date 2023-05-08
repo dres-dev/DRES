@@ -32,7 +32,7 @@ import java.util.function.Consumer
  * The execution environment for [RunManager]s
  *
  * @author Ralph Gasser
- * @version 1.2.0
+ * @version 1.3.0
  */
 object RunExecutor : Consumer<WsConfig> {
 
@@ -71,35 +71,9 @@ object RunExecutor : Consumer<WsConfig> {
     fun init(config: Config, store: TransientEntityStore, cache: CacheManager) {
         store.transactional {
             DbEvaluation.filter { (it.started) ne null and (it.ended eq null) }.asSequence().forEach {e ->
-                /* Force-end tasks that are still running. */
-                e.tasks.filter { t -> (t.ended eq null) }.asSequence().forEach { t ->
-                    t.ended = System.currentTimeMillis()
-                }
-
-                this.schedule(when (e.type) {
-                    DbEvaluationType.INTERACTIVE_SYNCHRONOUS -> InteractiveSynchronousEvaluation(e)
-                    DbEvaluationType.INTERACTIVE_ASYNCHRONOUS -> InteractiveAsynchronousEvaluation(e)
-                    DbEvaluationType.NON_INTERACTIVE -> TODO()
-                    else -> throw IllegalStateException("Unsupported evaluation type ${e.type}.")
-                }, store)
+                this.schedule(e.toRunManager(store))  /* Re-schedule evaluations. */
             }
         }
-    }
-
-    /**
-     * Schedules a new [EvaluationRun] with this [RunExecutor].
-     *
-     * @param evaluation [EvaluationRun] to execute.
-     * @param store [TransientEntityStore] instanced used to interact with database.
-     */
-    fun schedule(evaluation: EvaluationRun, store: TransientEntityStore) {
-        val run = when(evaluation) {
-            is InteractiveSynchronousEvaluation -> InteractiveSynchronousRunManager(evaluation, store)
-            is InteractiveAsynchronousEvaluation -> InteractiveAsynchronousRunManager(evaluation, store)
-            is NonInteractiveEvaluation -> NonInteractiveRunManager(evaluation, store)
-            else -> throw NotImplementedError("No matching run manager found for $evaluation")
-        }
-        this.schedule(run)
     }
 
     /**
@@ -107,13 +81,10 @@ object RunExecutor : Consumer<WsConfig> {
      *
      * @param manager [RunManager] to execute.
      */
-    private fun schedule(manager: RunManager) = this.runManagerLock.write {
+    fun schedule(manager: RunManager) = this.runManagerLock.write {
         if (this.runManagers.containsKey(manager.id)) {
             throw IllegalArgumentException("This RunExecutor already runs a RunManager with the given ID ${manager.id}. The same RunManager cannot be executed twice!")
         }
-
-        /* Register [RunManager] with AccessManager. */
-        AccessManager.registerRunManager(manager)
 
         /* Setup all the required data structures. */
         this.runManagers[manager.id] = manager
@@ -133,9 +104,6 @@ object RunExecutor : Consumer<WsConfig> {
                         logger.info("RunManager $v (done = ${k.isDone}, cancelled = ${k.isCancelled}) will be removed!")
                         stamp = this@RunExecutor.runManagerLock.tryConvertToWriteLock(stamp)
                         if (stamp > -1L) {
-                            /* Deregister the RunManager. */
-                            AccessManager.deregisterRunManager(this@RunExecutor.runManagers[v]!!)
-
                             /* Cleanup. */
                             this@RunExecutor.runManagers.remove(v)
                             this@RunExecutor.observingClients.remove(v)

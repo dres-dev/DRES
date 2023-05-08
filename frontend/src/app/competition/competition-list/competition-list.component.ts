@@ -29,7 +29,7 @@ export class CompetitionListComponent implements AfterViewInit {
   /** */
   displayedColumns = ['actions', 'id', 'name', 'description', 'taskCount', 'teamCount'];
   competitions: ApiEvaluationOverview[] = [];
-  waitingForRun = false;
+  waitingForRun = new Map<string, boolean>()
 
   constructor(
     private evaluationService: TemplateService,
@@ -67,7 +67,7 @@ export class CompetitionListComponent implements AfterViewInit {
       .afterClosed()
       .pipe(
         filter((r) => r != null),
-        tap((r) => (this.waitingForRun = true)),
+        tap((r) => (this.waitingForRun[id] = true)),
         flatMap((r: CompetitionStartDialogResult) => {
           const properties = {
             participantCanView: r.participantCanView,
@@ -86,11 +86,11 @@ export class CompetitionListComponent implements AfterViewInit {
       .subscribe(
         (r: SuccessStatus) => {
           this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
-          this.waitingForRun = false;
+          this.waitingForRun[id] = false;
         },
         (r) => {
           this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
-          this.waitingForRun = false;
+          this.waitingForRun[id] = false;
         }
       );
   }

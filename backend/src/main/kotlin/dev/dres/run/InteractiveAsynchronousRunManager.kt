@@ -13,6 +13,10 @@ import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.*
+import dev.dres.data.model.template.task.options.DbSubmissionOption
+import dev.dres.data.model.template.task.options.DbTaskOption
+import dev.dres.data.model.template.task.options.Defaults
+import dev.dres.data.model.template.task.options.Parameters
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
@@ -23,6 +27,7 @@ import dev.dres.run.updatables.*
 import dev.dres.run.validation.interfaces.JudgementValidator
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
+import kotlinx.dnq.query.FilteringContext.eq
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -119,10 +124,10 @@ class InteractiveAsynchronousRunManager(
         this.updatables.add(this.scoresUpdatable)
         this.updatables.add(this.scoreboardsUpdatable)
 
-        this.teamIds.forEach {
-            val teamContext = RunActionContext("<EMPTY>", it, setOf(DbRole.ADMIN))
-            this.updatables.add(EndTaskUpdatable(this, teamContext))
+        /* Loads optional updatable. */
+        this.registerOptionalUpdatables()
 
+        this.teamIds.forEach {
             /* Initialize map and set all tasks pointers to the first task. */
             this.statusMap[it] = if (this.evaluation.hasStarted) {
                 RunManagerStatus.ACTIVE
@@ -694,21 +699,15 @@ class InteractiveAsynchronousRunManager(
      * Invokes all [Updatable]s registered with this [InteractiveSynchronousRunManager].
      */
     private fun invokeUpdatables() = this.stateLock.read {
-        this.statusMap.values.toSet()
-            .forEach { status -> //call update once for every possible status which is currently set for any team
-                this.updatables.forEach {
-                    if (it.shouldBeUpdated(status)) {
-                        try {
-                            it.update(status)
-                        } catch (e: Throwable) {
-                            LOGGER.error(
-                                "Uncaught exception while updating ${it.javaClass.simpleName} for competition run ${this.id}. Loop will continue to work but this error should be handled!",
-                                e
-                            )
-                        }
-                    }
+        for (teamId in this.teamIds) {
+            val runStatus = this.statusMap[teamId] ?: throw IllegalStateException("Run status for team $teamId is not set. This is a programmers error!")
+            val taskStatus = this.evaluation.currentTaskForTeam(teamId)?.status?.toApi()
+            for (updatable in this.updatables) {
+                if (updatable.shouldBeUpdated(runStatus, taskStatus)) {
+                    updatable.update(runStatus, taskStatus, RunActionContext(null, teamId, setOf(DbRole.ADMIN)))
                 }
             }
+        }
     }
 
     /**
@@ -716,7 +715,6 @@ class InteractiveAsynchronousRunManager(
      * i.e., status updates that are not triggered by an outside interaction.
      */
     private fun internalStateUpdate() = this.stateLock.read {
-
         for (teamId in teamIds) {
             this.store.transactional {
                 if (teamHasRunningTask(teamId)) { //FIXME DbTaskTemplate[...] was removed.
@@ -751,6 +749,17 @@ class InteractiveAsynchronousRunManager(
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Applies the [DbSubmissionOption.LIMIT_CORRECT_PER_TEAM].
+     */
+    private fun registerOptionalUpdatables() {
+        /* Determine if task should be ended once submission threshold per team is reached. */
+        val endOnSubmit = this.template.taskGroups.mapDistinct { it.type }.flatMapDistinct { it.options }.filter { it.description eq DbSubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.any()
+        if (endOnSubmit) {
+            this.updatables.add(EndOnSubmitUpdatable(this))
         }
     }
 

@@ -38,7 +38,7 @@ openApiGenerate {
     ]
 }
 
-task generateOAS(type: Download) {
+tasks.register('generateOAS', Download) {
     /* Requires DRES running on default port */
     def f = new File(oasFile)
     src fullOAS

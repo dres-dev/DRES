@@ -13,9 +13,8 @@ import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.*
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
+import dev.dres.data.model.template.task.options.DbSubmissionOption
 import dev.dres.data.model.template.task.options.DbTaskOption
-import dev.dres.data.model.template.task.options.Defaults
-import dev.dres.data.model.template.task.options.Parameters
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
@@ -97,12 +96,8 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
     private val scoresUpdatable = ScoresUpdatable(this)
 
-    /** The internal [EndTaskUpdatable] used to end a task once no more submissions are possible */
-    private val endTaskUpdatable = EndTaskUpdatable(this, RunActionContext.INTERNAL)
-
     /** List of [Updatable] held by this [InteractiveSynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
-
 
     /** A lock for state changes to this [InteractiveSynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
@@ -113,12 +108,14 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     }
 
     init {
-        /* Register relevant Updatables. */
+        /* Register relevant updatable (these are always required). */
         this.updatables.add(this.scoresUpdatable)
         this.updatables.add(this.scoreboardsUpdatable)
-        this.updatables.add(this.endTaskUpdatable)
 
-        /** End ongoing tasks upon initialization (in case server crashed during task execution). */
+        /* Loads optional updatable. */
+        this.registerOptionalUpdatables()
+
+        /* End ongoing tasks upon initialization (in case server crashed during task execution). */
         for (task in this.evaluation.tasks) {
             if (task.isRunning || task.status == DbTaskStatus.RUNNING) {
                 task.end()
@@ -480,11 +477,6 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         /* Persist the submission. */
         transformedSubmission.toNewDb()
 
-        /** Checks for the presence of the [DbTaskOption.PROLONG_ON_SUBMISSION] and applies it. */
-        if (task.template.taskGroup.type.options.contains(DbTaskOption.PROLONG_ON_SUBMISSION)) {
-            this.prolongOnSubmit(context, transformedSubmission)
-        }
-
         /* Enqueue submission for post-processing. */
         this.scoresUpdatable.enqueue(task)
 
@@ -588,9 +580,11 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      * Invokes all [Updatable]s registered with this [InteractiveSynchronousRunManager].
      */
     private fun invokeUpdatables() {
+        val runStatus =  this.status
+        val taskStatus = this.evaluation.currentTask?.status?.toApi()
         this.updatables.forEach {
-            if (it.shouldBeUpdated(this.status)) {
-                it.update(this.status)
+            if (it.shouldBeUpdated(runStatus, taskStatus)) {
+                it.update(runStatus, taskStatus)
             }
         }
     }
@@ -629,30 +623,19 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     }
 
     /**
-     * Applies the [DbTaskOption.PROLONG_ON_SUBMISSION].
-     *
-     * @param context [RunActionContext] used for invocation.
-     * @param sub The [Submission] to apply the [DbTaskOption] for.
+     * Applies the [DbTaskOption.PROLONG_ON_SUBMISSION] and [DbSubmissionOption.LIMIT_CORRECT_PER_TEAM] options.
      */
-    private fun prolongOnSubmit(context: RunActionContext, sub: Submission) {
-        val option = this.evaluation.currentTask?.template?.taskGroup?.type?.options?.filter { it.description eq DbTaskOption.PROLONG_ON_SUBMISSION.description }?.any()
-        if (option == true) {
-            val limit = this.evaluation.currentTask?.template?.taskGroup?.type?.configurations?.filter {
-                it.key eq Parameters.PROLONG_ON_SUBMISSION_LIMIT_PARAM
-            }?.firstOrNull()?.value?.toIntOrNull() ?: Defaults.PROLONG_ON_SUBMISSION_LIMIT_DEFAULT
-            val prolongBy = this.evaluation.currentTask?.template?.taskGroup?.type?.configurations?.filter {
-                it.key eq Parameters.PROLONG_ON_SUBMISSION_BY_PARAM
-            }?.firstOrNull()?.value?.toIntOrNull() ?: Defaults.PROLONG_ON_SUBMISSION_BY_DEFAULT
-            val correctOnly = this.evaluation.currentTask?.template?.taskGroup?.type?.configurations?.filter {
-                it.key eq Parameters.PROLONG_ON_SUBMISSION_CORRECT_PARAM
-            }?.firstOrNull()?.value?.toBooleanStrictOrNull() ?: Defaults.PROLONG_ON_SUBMISSION_CORRECT_DEFAULT
-            if (correctOnly && sub.answerSets().all { it.status() != VerdictStatus.CORRECT }) {
-                return
-            }
-            val timeLeft = Math.floorDiv(this.timeLeft(context), 1000)
-            if (timeLeft in 0 until limit) {
-                this.adjustDuration(context, prolongBy)
-            }
+    private fun registerOptionalUpdatables() {
+        /* Determine if any task should be prolonged upon submission. */
+        val prolongOnSubmit = this.template.taskGroups.mapDistinct { it.type }.flatMapDistinct { it.options }.filter { it.description eq DbTaskOption.PROLONG_ON_SUBMISSION.description }.any()
+        if (prolongOnSubmit) {
+            this.updatables.add(ProlongOnSubmitUpdatable(this))
+        }
+
+        /* Determine if any task should be ended once submission threshold per team is reached. */
+        val endOnSubmit = this.template.taskGroups.mapDistinct { it.type }.flatMapDistinct { it.submission }.filter { it.description eq DbSubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.any()
+        if (endOnSubmit) {
+            this.updatables.add(EndOnSubmitUpdatable(this))
         }
     }
 

@@ -1,5 +1,8 @@
 package dev.dres.run.updatables
 
+import dev.dres.api.rest.types.evaluation.ApiEvaluationState
+import dev.dres.api.rest.types.evaluation.ApiTaskStatus
+import dev.dres.data.model.run.RunActionContext
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
 import dev.dres.run.score.ScoreTimePoint
@@ -11,17 +14,14 @@ import java.util.*
  * Implements the [Updatable] interface.
  *
  * @author Ralph Gasser & Luca Rossetto
- * @version 1.1.0
+ * @version 1.1.1
  */
 class ScoreboardsUpdatable(val manager: RunManager, private val updateIntervalMs: Long): StatefulUpdatable {
-
-    companion object {
-       private val ELIGIBLE_STATUS = arrayOf(RunManagerStatus.ACTIVE)
-    }
 
     /** The [Phase] this [ScoreboardsUpdatable] belongs to. */
     override val phase: Phase = Phase.MAIN
 
+    /** Indicates, that this [ScoreboardsUpdatable] has unprocessed changes. */
     @Volatile
     override var dirty: Boolean = true
 
@@ -34,7 +34,7 @@ class ScoreboardsUpdatable(val manager: RunManager, private val updateIntervalMs
     val timeSeries: List<ScoreTimePoint>
         get() = this._timeSeries
 
-    override fun update(status: RunManagerStatus) {
+    override fun update(runStatus: RunManagerStatus, taskStatus: ApiTaskStatus?, context: RunActionContext) {
         val now = System.currentTimeMillis()
         if (this.dirty && (now - lastUpdate) > this.updateIntervalMs) {
             this.dirty = false
@@ -48,5 +48,14 @@ class ScoreboardsUpdatable(val manager: RunManager, private val updateIntervalMs
         }
     }
 
-    override fun shouldBeUpdated(status: RunManagerStatus): Boolean = ELIGIBLE_STATUS.contains(status)
+    /**
+     * Returns true, if the [ScoreboardsUpdatable] should be updated given the [RunManagerStatus]
+     * and the [ApiEvaluationState]. The [ScoreboardsUpdatable] is always triggered if the run is ongoing.
+     *
+     * @param runStatus The [RunManagerStatus] to check.
+     * @param taskStatus The [ApiTaskStatus] to check. Can be null
+     * @return True if update is required, which is while a task is running.
+     */
+    override fun shouldBeUpdated(runStatus: RunManagerStatus, taskStatus: ApiTaskStatus?): Boolean
+        = runStatus == RunManagerStatus.ACTIVE
 }

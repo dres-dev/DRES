@@ -7,6 +7,7 @@ import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.util.MimeTypeHelper
 import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.run.interfaces.EvaluationId
+import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
@@ -14,6 +15,7 @@ import io.javalin.http.Context
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.flatMapDistinct
 import kotlinx.dnq.query.isEmpty
+import kotlinx.dnq.query.isNotEmpty
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -124,27 +126,21 @@ fun Context.activeManagerForUser(): RunManager {
  *
  * @return [RunManager]
  */
-fun Context.eligibleManagerForId(): RunManager {
+inline fun <reified T: RunManager> Context.eligibleManagerForId(): T {
     val userId = this.userId()
     val evaluationId = this.evaluationId()
-    val manager = RunExecutor.managerForId(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found.", this)
-    if (this.isJudge()) {
-        if (manager.template.judges.filter { it.userId eq userId }.isEmpty) {
-            throw ErrorStatusException(401, "Current user is not allowed to access evaluation $evaluationId as judge.", this)
-        }
-    }
-    if (this.isParticipant()) {
-        if (manager.template.teams.flatMapDistinct { it.users }.filter { it.userId eq userId }.isEmpty) {
-            throw ErrorStatusException(401, "Current user is not allowed to access evaluation $evaluationId as participant.", this)
-        }
-    }
-
-    if (this.isAdmin()) {
+    val manager = RunExecutor.managerForId(evaluationId) as? T ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found.", this)
+    if (this.isJudge() && manager.template.judges.filter { it.userId eq userId }.isNotEmpty) {
         return manager
+    } else if (this.isParticipant() && manager.template.teams.flatMapDistinct { it.users }.filter { it.userId eq userId }.isNotEmpty) {
+        return manager
+    } else if (this.isAdmin()) {
+        return manager
+    } else {
+        throw ErrorStatusException(401, "Current user is not allowed to access evaluation $evaluationId as participant.", this)
     }
-
-    throw ErrorStatusException(401, "Current user is not allowed to access evaluation $evaluationId as participant.", this)
 }
+
 /**
  * Checks uf user associated with current [Context] has [ApiRole.PARTICIPANT].
  *

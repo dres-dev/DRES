@@ -37,8 +37,8 @@ class ListScoreSeriesHandler(store: TransientEntityStore) : AbstractScoreHandler
     )
     override fun doGet(ctx: Context): List<ApiScoreSeries> {
         val scoreboard = ctx.pathParamMap().getOrElse("scoreboard") { throw ErrorStatusException(400, "Parameter 'scoreboard' is missing!'", ctx) }
-        val manager = ctx.eligibleManagerForId() as? InteractiveRunManager ?: throw ErrorStatusException(400, "Specified evaluation ${ctx.evaluationId()} does not have a score history.'", ctx)
         return this.store.transactional(true) {
+            val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
             manager.scoreHistory
                 .filter { it.name == scoreboard }
                 .groupBy { it.team }

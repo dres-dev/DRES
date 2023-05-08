@@ -46,11 +46,7 @@ class CurrentTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandle
     )
     override fun doGet(ctx: Context): ApiScoreOverview = this.store.transactional(true) {
 
-        val manager = ctx.eligibleManagerForId() as? InteractiveRunManager ?: throw ErrorStatusException(
-            400,
-            "Specified evaluation ${ctx.evaluationId()} does not scores for a current task.",
-            ctx
-        )
+        val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
         if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }

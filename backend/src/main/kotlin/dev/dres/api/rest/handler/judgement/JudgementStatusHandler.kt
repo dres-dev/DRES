@@ -5,6 +5,7 @@ import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.api.rest.types.judgement.ApiJudgementValidatorStatus
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.status.ErrorStatus
+import dev.dres.run.RunManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -35,12 +36,10 @@ class JudgementStatusHandler(store: TransientEntityStore): AbstractJudgementHand
             ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): List<ApiJudgementValidatorStatus> {
-        val evaluationManager = ctx.eligibleManagerForId()
-        return this.store.transactional(true) {
-            checkEligibility(ctx, evaluationManager)
-            evaluationManager.judgementValidators.map { ApiJudgementValidatorStatus(it.id, it.pending, it.open) }
-        }
+    override fun doGet(ctx: Context): List<ApiJudgementValidatorStatus> = this.store.transactional(true) {
+        val evaluationManager = ctx.eligibleManagerForId<RunManager>()
+        checkEligibility(ctx, evaluationManager)
+        evaluationManager.judgementValidators.map { ApiJudgementValidatorStatus(it.id, it.pending, it.open) }
     }
 }
 

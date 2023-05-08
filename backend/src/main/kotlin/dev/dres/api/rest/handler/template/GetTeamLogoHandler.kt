@@ -39,7 +39,6 @@ class GetTeamLogoHandler(store: TransientEntityStore) : AbstractEvaluationTempla
     override fun get(ctx: Context) {
         /* Extract logoId. */
         val teamId = ctx.pathParamMap()["teamId"]  ?: throw ErrorStatusException(400, "Parameter 'teamId' is missing!'", ctx)
-
         this.store.transactional(true) {
             val logo = DbTeam.query(DbTeam::id eq teamId).firstOrNull()?.logo
             if (logo != null) {

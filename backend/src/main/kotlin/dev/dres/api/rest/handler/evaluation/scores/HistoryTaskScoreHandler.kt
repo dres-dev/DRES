@@ -48,11 +48,12 @@ class HistoryTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandle
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): ApiScoreOverview {
-        val manager = ctx.eligibleManagerForId() as? InteractiveRunManager ?: throw ErrorStatusException(400, "Specified evaluation ${ctx.evaluationId()} does not have a score history.'", ctx)
         val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskId' is missing!'", ctx)
         if (!ctx.isAdmin()) throw ErrorStatusException(403, "Access denied.", ctx)
 
         return this.store.transactional(true) {
+            val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
+
             val rac = RunActionContext.runActionContext(ctx, manager)
             val scorer = manager.currentTask(rac)?.scorer ?: throw ErrorStatusException(404, "No task run with ID $taskId in run ${manager.id}.", ctx)
             val scores =  scorer.scoreMapFromCache()

@@ -6,6 +6,9 @@ import dev.dres.utilities.extensions.isParticipant
 import dev.dres.api.rest.types.evaluation.ApiEvaluationInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.run.InteractiveRunManager
+import dev.dres.run.RunManager
+import dev.dres.utilities.extensions.evaluationId
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -31,13 +34,11 @@ class GetEvaluationInfoHandler(store: TransientEntityStore) : AbstractEvaluation
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): ApiEvaluationInfo {
-        val manager = ctx.eligibleManagerForId()
-        return this.store.transactional (true) {
-            if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
-                throw ErrorStatusException(403, "Access Denied", ctx)
-            }
-            ApiEvaluationInfo(manager)
+    override fun doGet(ctx: Context): ApiEvaluationInfo = this.store.transactional (true) {
+        val manager = ctx.eligibleManagerForId<RunManager>()
+        if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
+            throw ErrorStatusException(403, "Access Denied", ctx)
         }
+        ApiEvaluationInfo(manager)
     }
 }

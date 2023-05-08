@@ -3,6 +3,7 @@ package dev.dres.api.rest.handler.evaluation.scores
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.api.rest.types.status.ErrorStatus
+import dev.dres.run.RunManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -29,8 +30,8 @@ class ListScoreboardsHandler(store: TransientEntityStore) : AbstractScoreHandler
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): List<String> {
-        val manager = ctx.eligibleManagerForId()
-        return manager.scoreboards.map { it.name }
+    override fun doGet(ctx: Context): List<String> = this.store.transactional (true) {
+        val manager = ctx.eligibleManagerForId<RunManager>()
+        manager.scoreboards.map { it.name }
     }
 }

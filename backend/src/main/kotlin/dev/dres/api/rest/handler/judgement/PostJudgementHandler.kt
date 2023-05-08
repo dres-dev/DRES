@@ -8,6 +8,7 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.run.RunManager
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.exceptions.JudgementTimeoutException
 import dev.dres.utilities.extensions.eligibleManagerForId
@@ -44,7 +45,6 @@ class PostJudgementHandler(store: TransientEntityStore): AbstractJudgementHandle
     )
     override fun doPost(ctx: Context): SuccessStatus {
         /* Obtain manager and check if any submissions are waiting for judgement. */
-        val evaluationManager = ctx.eligibleManagerForId()
         val judgement = try {
             ctx.bodyAsClass(ApiJudgement::class.java)
         } catch (e: BadRequestResponse) {
@@ -53,6 +53,7 @@ class PostJudgementHandler(store: TransientEntityStore): AbstractJudgementHandle
 
         /* Start transaction. */
         this.store.transactional {
+            val evaluationManager = ctx.eligibleManagerForId<RunManager>()
             checkEligibility(ctx, evaluationManager)
             val validator = evaluationManager.judgementValidators.find { it.id == judgement.validator }
                 ?: throw ErrorStatusException(404, "No matching task found for validator ${judgement.validator}.", ctx)

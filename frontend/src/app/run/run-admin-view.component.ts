@@ -231,8 +231,9 @@ export class RunAdminViewComponent {
   }
 
   public submissionsOf(task) {
+    console.log(task);
     this.runId.subscribe((r) => {
-      this.router.navigateByUrl(`run/admin/submissions/${r}/${task.id}`);
+      this.router.navigateByUrl(`evaluation/admin/submissions/${r}/${task.templateId}`);
     });
   }
 

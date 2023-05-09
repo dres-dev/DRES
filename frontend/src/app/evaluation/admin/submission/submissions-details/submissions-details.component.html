@@ -1,0 +1,44 @@
+<div>
+  <h2>Submissions of {{submission.taskId.substring(0,8)}}</h2>
+</div>
+<table mat-table #submissionTable [dataSource]="submission.submissions" multiTemplateDataRows [trackBy]="trackById">
+  <ng-container matColumnDef="id">
+    <th mat-header-cell *matHeaderCellDef>ID</th>
+    <td mat-cell *matCellDef="let row">{{row.submissionId}}</td>
+  </ng-container>
+  <ng-container matColumnDef="timestamp">
+    <th mat-header-cell *matHeaderCellDef>Timestamp</th>
+    <td mat-cell *matCellDef="let row">{{row.timestamp | epoch2date | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
+  </ng-container>
+  <ng-container matColumnDef="author">
+    <th mat-header-cell *matHeaderCellDef>Submitter</th>
+    <td mat-cell *matCellDef="let row">{{row.memberId}} / {{row.teamId}}</td>
+  </ng-container>
+  <ng-container matColumnDef="nbAnswers">
+    <th mat-header-cell *matHeaderCellDef># Answers</th>
+    <td mat-cell *matCellDef="let row">{{row.answers.length ?? 0}}</td>
+  </ng-container>
+  <ng-container matColumnDef="expand">
+    <th mat-header-cell *matHeaderCellDef aria-label="Row actions">&nbsp;</th>
+    <td mat-cell *matCellDef="let element">
+      <button mat-icon-button aria-label="Expand / collapse row" (click)="(expandedElement = expandedElement === element ? null : element); $event.stopPropagation()">
+        <mat-icon *ngIf="expandedElement !== element">keyboard_arrow_down</mat-icon>
+        <mat-icon *ngIf="expandedElement === element">keyboard_arrow_up</mat-icon>
+      </button>
+    </td>
+  </ng-container>
+
+  <!-- Expanded content -->
+  <ng-container matColumnDef="expandedDetail">
+    <td mat-cell *matCellDef="let element" [attr.colspan]="columnsToDisplayWithExpand.length">
+      <div class="submissions-element-detail" [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
+        <app-answer-set [answerSets]="element.answers"></app-answer-set>
+      </div>
+    </td>
+  </ng-container>
+  <tr mat-header-row *matHeaderRowDef="columnsToDisplayWithExpand"></tr>
+  <tr mat-row *matRowDef="let element; columns: columnsToDisplayWithExpand;" class="submissions-element-row"
+      [class.submissions-expanded-row]="expandedElement === element"
+      (click)="expandedElement = expandedElement === element ? null : element"></tr>
+  <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="submissions-detail-row"></tr>
+</table>

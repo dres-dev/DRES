@@ -145,7 +145,8 @@
                 >
                   <mat-icon>directions</mat-icon>
                 </button>
-                <button *ngIf="(this.submissionsForCurrentTask | async)?.has(task.id) || (this.submissionsForPastTasks | async)?.has(task.id)"
+                <!-- <button *ngIf="(this.submissionsForCurrentTask | async)?.has(task.id) || (this.submissionsForPastTasks | async)?.has(task.id)" -->
+                <button
                   mat-icon-button
                   aria-label="See submissions"
                   matTooltip="See submissions"

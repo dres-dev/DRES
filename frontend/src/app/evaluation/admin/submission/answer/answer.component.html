@@ -1,0 +1,26 @@
+<table #answerTable mat-table [dataSource]="answers" multiTemplateDataRows>
+  <ng-container matColumnDef="type">
+    <th mat-header-cell *matHeaderCellDef>Type</th>
+    <td mat-cell *matCellDef="let row">{{row.type}}</td>
+  </ng-container>
+  <ng-container matColumnDef="text">
+    <th mat-header-cell *matHeaderCellDef >Text</th>
+    <td mat-cell *matCellDef="let row" [attr.colspan]="4">{{row.text}}</td>
+  </ng-container>
+  <ng-container matColumnDef="item">
+    <th mat-header-cell *matHeaderCellDef >Media Item</th>
+    <td mat-cell [attr.colspan]="2" *matCellDef="let row">{{row.item ? row.item.name + ' ('+ row.item.type+')': 'N/A'}}</td>
+  </ng-container>
+  <ng-container matColumnDef="start">
+    <th mat-header-cell *matHeaderCellDef>Start</th>
+    <td mat-cell *matCellDef="let row">{{row.start ? (row.start | formatTime: true) : "N/A"}}</td>
+  </ng-container>
+  <ng-container matColumnDef="end">
+    <th mat-header-cell *matHeaderCellDef>End</th>
+    <td mat-cell *matCellDef="let row">{{row.end ? (row.end | formatTime: true): "N/A"}}</td>
+  </ng-container>
+  <!-- TODO Preview -->
+  <tr mat-header-row *matHeaderRowDef="displayedHeaders"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumnsWithoutText; when: hasNotTextType"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumnsText; when: hasTextType"></tr>
+</table>

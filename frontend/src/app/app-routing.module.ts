@@ -21,6 +21,7 @@ import { NonescapingUrlserializerClass } from './nonescaping-urlserializer.class
 import {ApiRole} from '../../openapi';
 import {TemplateBuilderComponent} from './template/template-builder/template-builder.component';
 import { TemplateListComponent } from "./template/template-list/template-list.component";
+import { SubmissionsListComponent } from "./evaluation/admin/submission/submissions-list/submissions-list.component";
 
 /**
  * The ROUTE for evaluation templates.
@@ -73,7 +74,7 @@ const routes: Routes = [
   },
   {
     path: EVALUATION_ROUTE+'/admin/submissions/:runId/:taskId',
-    component: RunAdminSubmissionsListComponent,
+    component: SubmissionsListComponent,
     canActivate: [AuthenticationGuard],
     data: { roles: [ApiRole.ADMIN] },
   },

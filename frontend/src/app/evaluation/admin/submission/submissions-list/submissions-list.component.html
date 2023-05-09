@@ -1,0 +1,24 @@
+<div class="flex flex-row align-center">
+  <app-back-button></app-back-button>
+  <div>
+    <h1>Submission list for task {{(taskId | async).substring(0,8)}}</h1>
+  </div>
+  <div class="spacer-flex"></div>
+  <button mat-icon-button matTooltip="Refresh submission information." (click)="refreshSubject.next(null)">
+    <mat-icon>refresh</mat-icon>
+  </button>
+  <div class="spacer-tiny"></div>
+  <mat-slide-toggle [(ngModel)]="polling" matTooltip="Toggle polling of submission information">Poll for updates (every {{pollingFrequencyInSeconds}}s</mat-slide-toggle>
+  <div class="spacer-tiny"></div>
+  <mat-slide-toggle [(ngModel)]="anonymize" matTooltip="Toggle anonymization, i.e., switches between shoing detailed submitter info or not.">Anonymize</mat-slide-toggle>
+</div>
+<div>
+  <mat-accordion>
+    <mat-expansion-panel *ngFor="let id of taskRunIds; trackBy: trackBySelf">
+      <mat-expansion-panel-header>
+        <mat-panel-title>Submissions of task run {{id.substring(0,8)}}</mat-panel-title>
+      </mat-expansion-panel-header>
+      <app-submissions-details [submission]="submissionInfosByRunId.get(id)"></app-submissions-details>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>

@@ -127,8 +127,10 @@ export class CompetitionBuilderTeamDialogComponent {
   public teamLogo(): string {
     if (this.form.get('logoData').value != null) {
       return this.form.get('logoData').value;
-    } else {
+    } else if(this.team){
       return this.config.resolveApiUrl(`/template/logo/${this.team.id}`);
+    } else {
+      return "";
     }
   }
 

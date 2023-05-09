@@ -24,6 +24,7 @@ import { SharedModule } from './shared/shared.module';
 import { CollectionModule } from './collection/collection.module';
 import { CompetitionBuilderModule } from './competition/competition-builder/competition-builder.module';
 import {TemplateModule} from './template/template.module';
+import { EvaluationModule } from './evaluation/evaluation.module';
 
 /**
  * Method used to load application config.
@@ -60,7 +61,8 @@ export function initializeApp(appConfig: AppConfig) {
     RunModule,
     CollectionModule,
     JudgementModule,
-    TemplateModule
+    TemplateModule,
+    EvaluationModule
   ],
   providers: [
     AppConfig,

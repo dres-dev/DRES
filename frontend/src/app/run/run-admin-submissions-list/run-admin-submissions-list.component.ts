@@ -10,6 +10,9 @@ import { MatPaginator } from '@angular/material/paginator';
 import { AppConfig } from '../../app.config';
 import { ApiSubmission, ApiSubmissionInfo, ApiVerdictStatus, EvaluationAdministratorService} from 'openapi';
 
+/**
+ * @deprecated Replaced by evaluation/submission/submission-list-component
+ */
 @Component({
   selector: 'app-run-admin-submissions-list',
   templateUrl: './run-admin-submissions-list.component.html',

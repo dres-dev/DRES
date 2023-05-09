@@ -1,6 +1,7 @@
 package dev.dres.api.rest.handler.evaluation.admin
 
 import dev.dres.api.rest.handler.PatchRestHandler
+import dev.dres.api.rest.types.evaluation.ApiOverrideAnswerSetVerdictDto
 import dev.dres.api.rest.types.evaluation.ApiVerdictStatus
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
@@ -40,7 +41,7 @@ class OverrideAnswerSetVerdictHandler(store: TransientEntityStore): AbstractEval
             OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false),
             OpenApiParam("answerSetId", String::class, "The ID of the AnswerSet.", required = true, allowEmptyValue = false)
         ],
-        requestBody = OpenApiRequestBody([OpenApiContent(ApiVerdictStatus::class)]),
+        requestBody = OpenApiRequestBody([OpenApiContent(ApiOverrideAnswerSetVerdictDto::class)]),
         tags = ["Evaluation Administrator"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
@@ -56,7 +57,7 @@ class OverrideAnswerSetVerdictHandler(store: TransientEntityStore): AbstractEval
 
         /* Extract HTTP body. */
         val apiVerdictStatus = try {
-            ctx.bodyAsClass<ApiVerdictStatus>()
+            ctx.bodyAsClass<ApiOverrideAnswerSetVerdictDto>().verdict
         } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }

@@ -19,11 +19,15 @@ export class SubmissionsDetailsComponent {
   @Input()
   public submission: ApiSubmissionInfo;
 
-  public columnsToDisplay = ['id', 'timestamp', 'author', 'nbAnswers'];
+  public columnsToDisplay = ['submission-id', 'timestamp', 'author', 'nbAnswers'];
   public columnsToDisplayWithExpand = [...this.columnsToDisplay, 'expand']
   public expandedElement: ApiSubmission | null;
 
   trackById(_:number, item: ApiSubmission){
     return item.submissionId;
+  }
+
+  update(element: any, value: any){
+    console.log("UPDATE", element, value);
   }
 }

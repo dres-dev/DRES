@@ -2,9 +2,9 @@
   <h2>Submissions of {{submission.taskId.substring(0,8)}}</h2>
 </div>
 <table mat-table #submissionTable [dataSource]="submission.submissions" multiTemplateDataRows [trackBy]="trackById">
-  <ng-container matColumnDef="id">
-    <th mat-header-cell *matHeaderCellDef>ID</th>
-    <td mat-cell *matCellDef="let row">{{row.submissionId}}</td>
+  <ng-container matColumnDef="submission-id">
+    <th mat-header-cell *matHeaderCellDef>Submission ID</th>
+    <td mat-cell *matCellDef="let row">{{row.submissionId.substring(0,8)}}</td>
   </ng-container>
   <ng-container matColumnDef="timestamp">
     <th mat-header-cell *matHeaderCellDef>Timestamp</th>
@@ -30,9 +30,9 @@
 
   <!-- Expanded content -->
   <ng-container matColumnDef="expandedDetail">
-    <td mat-cell *matCellDef="let element" [attr.colspan]="columnsToDisplayWithExpand.length">
-      <div class="submissions-element-detail" [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
-        <app-answer-set [answerSets]="element.answers"></app-answer-set>
+    <td mat-cell *matCellDef="let element" [attr.colspan]="columnsToDisplayWithExpand.length" [style.padding-bottom]="element == expandedElement ? '1em' : '0'">
+      <div class="submissions-element-detail mat-elevation-z8" [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
+        <app-answer-set [answerSets]="element.answers" [evaluationId]="element.evaluationId"></app-answer-set>
       </div>
     </td>
   </ng-container>

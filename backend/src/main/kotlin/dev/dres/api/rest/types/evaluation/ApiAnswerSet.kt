@@ -5,6 +5,7 @@ import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.run.Task
 import dev.dres.data.model.run.TaskId
 import dev.dres.data.model.submissions.*
+import io.javalin.openapi.OpenApiIgnore
 import kotlinx.dnq.query.addAll
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.first

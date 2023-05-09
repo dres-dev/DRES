@@ -1182,7 +1182,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/ApiVerdictStatus"
+                "$ref" : "#/components/schemas/ApiOverrideAnswerSetVerdictDto"
               }
             }
           },
@@ -5576,6 +5576,16 @@
       "ApiEvaluationType" : {
         "type" : "string",
         "enum" : [ "SYNCHRONOUS", "ASYNCHRONOUS", "NON_INTERACTIVE" ]
+      },
+      "ApiOverrideAnswerSetVerdictDto" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "verdict" : {
+            "$ref" : "#/components/schemas/ApiVerdictStatus"
+          }
+        },
+        "required" : [ "verdict" ]
       },
       "ApiSubmission" : {
         "type" : "object",

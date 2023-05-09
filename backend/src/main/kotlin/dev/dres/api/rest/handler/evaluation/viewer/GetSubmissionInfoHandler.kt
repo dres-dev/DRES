@@ -38,25 +38,23 @@ class GetSubmissionInfoHandler(store: TransientEntityStore): AbstractEvaluationV
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): List<ApiSubmission> {
-        val manager = ctx.eligibleManagerForId() as? InteractiveRunManager ?: throw ErrorStatusException(400, "Specified evaluation ${ctx.evaluationId()} does not have an evaluation state.'", ctx)
-        return this.store.transactional (true) {
-            val rac = RunActionContext.runActionContext(ctx, manager)
+    override fun doGet(ctx: Context): List<ApiSubmission> = this.store.transactional (true) {
+        val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
+        val rac = RunActionContext.runActionContext(ctx, manager)
 
-            if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
-                throw ErrorStatusException(403, "Access denied.", ctx)
-            }
+        if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
+            throw ErrorStatusException(403, "Access denied.", ctx)
+        }
 
-            val limit = manager.runProperties.limitSubmissionPreviews
-            val currentTask = manager.currentTask(rac) ?: throw ErrorStatusException(404, "No active task.", ctx)
-            val blind = currentTask.template.taskGroup.type.options.contains(DbTaskOption.HIDDEN_RESULTS) && currentTask.isRunning
+        val limit = manager.runProperties.limitSubmissionPreviews
+        val currentTask = manager.currentTask(rac) ?: throw ErrorStatusException(404, "No active task.", ctx)
+        val blind = currentTask.template.taskGroup.type.options.contains(DbTaskOption.HIDDEN_RESULTS) && currentTask.isRunning
 
-            /* Obtain current task run and check status. */
-            if (limit > 0) {
-                limitSubmissions(manager.currentSubmissions(rac), limit, blind)
-            } else {
-                manager.currentSubmissions(rac).map { it.toApi(blind) }
-            }
+        /* Obtain current task run and check status. */
+        if (limit > 0) {
+            limitSubmissions(manager.currentSubmissions(rac), limit, blind)
+        } else {
+            manager.currentSubmissions(rac).map { it.toApi(blind) }
         }
     }
 

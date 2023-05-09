@@ -35,7 +35,7 @@ const EVALUATION_ROUTE = 'evaluation';
 
 const routes: Routes = [
   {
-    path: TEMPLATE_ROUTE+'/list',
+    path: TEMPLATE_ROUTE + '/list',
     component: TemplateListComponent,
     canActivate: [AuthenticationGuard],
     data: { roles: [ApiRole.ADMIN] },

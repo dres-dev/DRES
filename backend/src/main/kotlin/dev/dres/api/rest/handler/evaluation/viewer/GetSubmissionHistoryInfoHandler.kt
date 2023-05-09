@@ -37,25 +37,23 @@ class GetSubmissionHistoryInfoHandler(store: TransientEntityStore): AbstractEval
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): List<ApiSubmission> {
-        val manager = ctx.eligibleManagerForId() as? InteractiveRunManager ?: throw ErrorStatusException(400, "Specified evaluation ${ctx.evaluationId()} does not have an evaluation state.'", ctx)
-        return this.store.transactional (true) {
-            val rac = RunActionContext.runActionContext(ctx, manager)
-            if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
-                throw ErrorStatusException(403, "Access denied.", ctx)
-            }
-            val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(404, "Missing task id", ctx)
-            val task = manager.currentTask(rac)
-            if (task?.template?.id == taskId && task.isRunning) {
-                if (task.isRunning) {
-                    val hidden = manager.currentTaskTemplate(rac).taskGroup.type.options.filter { it eq  DbTaskOption.HIDDEN_RESULTS }.any()
-                    manager.currentSubmissions(rac).map { it.toApi(hidden) }
-                } else {
-                    manager.taskForId(rac, taskId)?.getSubmissions()?.map { it.toApi() }?.toList() ?: emptyList()
-                }
-            }
-            emptyList()
+    override fun doGet(ctx: Context): List<ApiSubmission> = this.store.transactional (true) {
+        val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
+        val rac = RunActionContext.runActionContext(ctx, manager)
+        if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
+            throw ErrorStatusException(403, "Access denied.", ctx)
         }
+        val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(404, "Missing task id", ctx)
+        val task = manager.currentTask(rac)
+        if (task?.template?.id == taskId && task.isRunning) {
+            if (task.isRunning) {
+                val hidden = manager.currentTaskTemplate(rac).taskGroup.type.options.filter { it eq  DbTaskOption.HIDDEN_RESULTS }.any()
+                manager.currentSubmissions(rac).map { it.toApi(hidden) }
+            } else {
+                manager.taskForId(rac, taskId)?.getSubmissions()?.map { it.toApi() }?.toList() ?: emptyList()
+            }
+        }
+        emptyList()
     }
 }
 

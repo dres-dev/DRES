@@ -2,9 +2,11 @@ package dev.dres.api.rest.handler.template
 
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.template.team.DbTeam
 import io.javalin.http.Context
 import io.javalin.openapi.*
+import io.javalin.security.RouteRole
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.firstOrNull
@@ -26,6 +28,9 @@ class GetTeamLogoHandler(store: TransientEntityStore) : AbstractEvaluationTempla
     //not used
     override fun doGet(ctx: Context): Any = ""
 
+    /** All authorised users can access the team logo. */
+    override val permittedRoles: Set<RouteRole> = setOf(ApiRole.PARTICIPANT, ApiRole.VIEWER, ApiRole.JUDGE, ApiRole.ADMIN)
+
     @OpenApi(
         summary = "Returns the logo for the given team ID.",
         path = "/api/v2/template/logo/{teamId}",
@@ -39,7 +44,6 @@ class GetTeamLogoHandler(store: TransientEntityStore) : AbstractEvaluationTempla
     override fun get(ctx: Context) {
         /* Extract logoId. */
         val teamId = ctx.pathParamMap()["teamId"]  ?: throw ErrorStatusException(400, "Parameter 'teamId' is missing!'", ctx)
-
         this.store.transactional(true) {
             val logo = DbTeam.query(DbTeam::id eq teamId).firstOrNull()?.logo
             if (logo != null) {

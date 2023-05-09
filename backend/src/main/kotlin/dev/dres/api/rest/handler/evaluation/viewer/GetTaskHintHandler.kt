@@ -63,8 +63,8 @@ class GetTaskHintHandler(store: TransientEntityStore, private val cache: CacheMa
     )
     override fun doGet(ctx: Context): ApiHintContent {
         val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskId' not specified.", ctx)
-        val manager = ctx.eligibleManagerForId() as? InteractiveRunManager ?: throw ErrorStatusException(400, "Specified evaluation ${ctx.evaluationId()} does not have an evaluation state.'", ctx)
         return this.store.transactional (true) {
+            val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
             if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
                 throw ErrorStatusException(403, "Access Denied", ctx)
             }

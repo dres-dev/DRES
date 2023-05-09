@@ -46,14 +46,12 @@ class GetCurrentTaskHandler(store: TransientEntityStore): AbstractEvaluationView
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): ApiTaskTemplateInfo {
-        val manager = ctx.eligibleManagerForId() as? InteractiveRunManager ?: throw ErrorStatusException(400, "Specified evaluation ${ctx.evaluationId()} does not have a current task.'", ctx)
-        return this.store.transactional (true) {
-            if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
-                throw ErrorStatusException(403, "Access denied.", ctx)
-            }
-            val rac = RunActionContext.runActionContext(ctx, manager)
-            ApiTaskTemplateInfo(manager.currentTaskTemplate(rac))
+    override fun doGet(ctx: Context): ApiTaskTemplateInfo = this.store.transactional (true) {
+        val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
+        if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
+            throw ErrorStatusException(403, "Access denied.", ctx)
         }
+        val rac = RunActionContext.runActionContext(ctx, manager)
+        ApiTaskTemplateInfo(manager.currentTaskTemplate(rac))
     }
 }

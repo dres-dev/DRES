@@ -5,6 +5,7 @@ import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.api.rest.handler.evaluation.scores.AbstractScoreHandler
 import dev.dres.api.rest.types.evaluation.scores.ApiScoreOverview
 import dev.dres.api.rest.types.status.ErrorStatus
+import dev.dres.run.RunManager
 import dev.dres.run.score.scoreboard.ScoreOverview
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -34,10 +35,8 @@ class ListEvaluationScoreHandler(store: TransientEntityStore) : AbstractScoreHan
             ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): List<ApiScoreOverview> {
-        val manager = ctx.eligibleManagerForId()
-        return this.store.transactional (true) {
-            manager.scoreboards.map { it.overview().toApi() }
-        }
+    override fun doGet(ctx: Context): List<ApiScoreOverview> = this.store.transactional (true) {
+        val manager = ctx.eligibleManagerForId<RunManager>()
+        manager.scoreboards.map { it.overview().toApi() }
     }
 }

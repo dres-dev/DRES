@@ -27,7 +27,9 @@ export class TemplateListComponent implements AfterViewInit{
 
   displayedColumns = ['actions', 'id', 'name', 'description', 'nbTasks', 'nbTeams']
   templates: ApiEvaluationOverview[] = [];
-  waitingForRun = false;
+
+  /** Map of runs that are currently being generated. */
+  public waitingForRun = new Map<string, boolean>()
 
   constructor(
     private templateService: TemplateService,
@@ -104,7 +106,7 @@ export class TemplateListComponent implements AfterViewInit{
     const dialogRef = this.dialog.open(EvaluationStartDialogComponent, {width: '500px'});
     dialogRef.afterClosed().pipe(
       filter((r) => r!= null),
-      tap((r) => (this.waitingForRun = true)),
+      tap((r) => (this.waitingForRun[templateId] = true)),
       flatMap((r: EvaluationStartDialogResult) => {
         return this.evaluationAdminService.postApiV2EvaluationAdminCreate({
           templateId: templateId,
@@ -120,10 +122,10 @@ export class TemplateListComponent implements AfterViewInit{
       })
     ).subscribe((r: SuccessStatus) => {
       this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
-      this.waitingForRun = false;
+      this.waitingForRun[templateId] = false;
     },(r) => {
       this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
-      this.waitingForRun = false;
+      this.waitingForRun[templateId] = false;
     });
   }
 

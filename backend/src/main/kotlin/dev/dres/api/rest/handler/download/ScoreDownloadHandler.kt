@@ -3,6 +3,7 @@ package dev.dres.api.rest.handler.download
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.run.RunManager
 import dev.dres.utilities.extensions.eligibleManagerForId
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -36,24 +37,23 @@ class ScoreDownloadHandler(store: TransientEntityStore) : AbstractDownloadHandle
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): String {
-        val manager = ctx.eligibleManagerForId()
+    override fun doGet(ctx: Context): String = this.store.transactional(true) {
+        val manager = ctx.eligibleManagerForId<RunManager>()
+        val rac = RunActionContext.runActionContext(ctx, manager)
 
         /* Update response header. */
         ctx.contentType("text/csv")
         ctx.header("Content-Disposition", "attachment; filename=\"scores-${manager.id}.csv\"")
 
-        return this.store.transactional(true) {
-            val rac = RunActionContext.runActionContext(ctx, manager)
-            "startTime,task,group,team,score\n" + manager.tasks(rac).filter {
-                it.started != null
-            }.sortedBy {
-                it.started
-            }
-            .flatMap { task ->
-                task.scorer.scoreListFromCache().map { "${task.started},\"${task.template.name}\",\"${task.template.taskGroup.name}\",\"${manager.template.teams.filter { t -> t.id eq it.first }.firstOrNull()?.name ?: "???"}\",${it.third}" }
-            }.joinToString(separator = "\n")
+        /* Prepare and return response. */
+        "startTime,task,group,team,score\n" + manager.tasks(rac).filter {
+            it.started != null
+        }.sortedBy {
+            it.started
         }
+        .flatMap { task ->
+            task.scorer.scoreListFromCache().map { "${task.started},\"${task.template.name}\",\"${task.template.taskGroup.name}\",\"${manager.template.teams.filter { t -> t.id eq it.first }.firstOrNull()?.name ?: "???"}\",${it.third}" }
+        }.joinToString(separator = "\n")
     }
 
 }

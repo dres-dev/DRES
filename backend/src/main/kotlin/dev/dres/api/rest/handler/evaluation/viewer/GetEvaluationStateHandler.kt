@@ -34,14 +34,12 @@ class GetEvaluationStateHandler(store: TransientEntityStore): AbstractEvaluation
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): ApiEvaluationState {
-        val manager = ctx.eligibleManagerForId() as? InteractiveRunManager ?: throw ErrorStatusException(400, "Specified evaluation ${ctx.evaluationId()} does not have an evaluation state.'", ctx)
-        return this.store.transactional (true) {
-            if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
-                throw ErrorStatusException(403, "Access Denied", ctx)
-            }
-            val rac = RunActionContext.runActionContext(ctx, manager)
-            ApiEvaluationState(manager, rac)
+    override fun doGet(ctx: Context): ApiEvaluationState = this.store.transactional (true) {
+        val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
+        if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
+            throw ErrorStatusException(403, "Access Denied", ctx)
         }
+        val rac = RunActionContext.runActionContext(ctx, manager)
+        ApiEvaluationState(manager, rac)
     }
 }

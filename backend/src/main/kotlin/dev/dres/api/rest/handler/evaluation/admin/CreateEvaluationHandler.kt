@@ -82,8 +82,7 @@ class CreateEvaluationHandler(store: TransientEntityStore, private val cache: Ca
                 val path = item.pathToOriginal()
                 if (!Files.exists(path)) {
                     logger.error("Required media file $path not found for item ${item.name}.")
-                    //throw ErrorStatusException(500, "Required media file $path not found for item ${item.name}.", ctx)
-                    return@mapNotNull null
+                    throw ErrorStatusException(500, "Required media file $path not found for item ${item.name}.", ctx)
                 }
 
                 /** Schedule request for preparing required preview. */

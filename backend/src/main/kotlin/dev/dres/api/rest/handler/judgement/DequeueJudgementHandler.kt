@@ -8,6 +8,7 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.submissions.AnswerType
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbAnswerType
+import dev.dres.run.RunManager
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
@@ -41,11 +42,9 @@ class DequeueJudgementHandler(store: TransientEntityStore) : AbstractJudgementHa
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): ApiJudgementRequest {
-        /* Obtain manager and check if any submissions are waiting for judgement. */
-        val evaluationManager = ctx.eligibleManagerForId()
-
         /* Start transaction. */
-        val request = this.store.transactional {
+        val request = this.store.transactional(true) {
+            val evaluationManager = ctx.eligibleManagerForId<RunManager>()
             checkEligibility(ctx, evaluationManager)
             do {
                 val validator = evaluationManager.judgementValidators.find { it.hasOpen } ?: break

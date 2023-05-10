@@ -1,0 +1,14 @@
+<ng-container *ngIf="item">
+  <p><span class="strong">Name</span>{{item.name}} <span class="strong">ID</span>{{item.mediaItemId.substring(0,8)}}</p>
+  <ng-container [ngSwitch]="item.type">
+    <ng-container *ngSwitchCase="'IMAGE'">
+      <img style="max-width: 100%;" [src]="item | resolveMediaItemUrl" alt="The image media item">
+    </ng-container>
+    <ng-container *ngSwitchCase="'VIDEO'">
+      <video style="max-width: 100%;"#videoPlayer controls loop autoplay [src]="item | resolveMediaItemUrl: range ? {range: range} : {}"></video>
+    </ng-container>
+    <ng-container *ngSwitchCase="'TEXT'">
+      (Text:) {{item.name}}
+    </ng-container>
+  </ng-container>
+</ng-container>

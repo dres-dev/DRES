@@ -66,6 +66,10 @@ export class AppConfig {
     return `${this.baseUrl}/api/${version}${path.startsWith('/') ? '' : '/'}${path}`;
   }
 
+  public resolveMediaItemUrl(mediaItemId: string, version: string = "v2"): string{
+    return this.resolveApiUrl(`/media/${mediaItemId}`, version);
+  }
+
   /**
    * (Re-)loads the default configuration from a JSON file.
    */

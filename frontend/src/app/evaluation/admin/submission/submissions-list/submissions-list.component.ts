@@ -4,7 +4,13 @@ import { MatButtonToggleGroup } from "@angular/material/button-toggle";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute } from "@angular/router";
-import { ApiSubmission, ApiSubmissionInfo, EvaluationAdministratorService } from "../../../../../../openapi";
+import {
+  ApiSubmission,
+  ApiSubmissionInfo, ApiTaskTemplate,
+  EvaluationAdministratorService,
+  EvaluationService,
+  TemplateService
+} from "../../../../../../openapi";
 import { AppConfig } from "../../../../app.config";
 import { catchError, filter, map, switchMap, withLatestFrom } from "rxjs/operators";
 
@@ -31,13 +37,20 @@ export class SubmissionsListComponent implements AfterViewInit, OnDestroy{
    public taskRunIds: string[] = [];
    public submissionInfosByRunId: Map<string, ApiSubmissionInfo> = new Map();
 
+   public taskTemplate: ApiTaskTemplate;
+
    private subscription: Subscription;
+
+   private sub: Subscription;
+
 
    constructor(
      private snackBar: MatSnackBar,
      private dialog: MatDialog,
      private activeRoute: ActivatedRoute,
+     private evalService: EvaluationService,
      private evaluationService: EvaluationAdministratorService,
+     private templateService: TemplateService,
      public config: AppConfig,
    ) {
      this.runId = this.activeRoute.paramMap.pipe(map((params) => params.get('runId')));
@@ -65,11 +78,26 @@ export class SubmissionsListComponent implements AfterViewInit, OnDestroy{
            this.submissionInfosByRunId.set(si.taskId, si);
          })
        })
+    this.sub = this.runId.pipe(
+      switchMap((r) => this.evalService.getApiV2EvaluationByEvaluationIdInfo(r)),
+      catchError((error, o) => {
+        console.log(`[SubmissionList] Error occurred while loading template information: ${error?.message}`);
+        this.snackBar.open(`Error: Couldn't load template information: ${error?.message}`, null, {duration: 5000});
+        return of(null);
+      }),
+      filter((r) => r != null),
+      switchMap((evalInfo) => this.templateService.getApiV2TemplateByTemplateIdTaskList(evalInfo.templateId)),
+      withLatestFrom(this.taskId)
+    ).subscribe(([taskList, taskId]) => {
+      this.taskTemplate = taskList.find((t) => t.id === taskId)
+    });
   }
 
   ngOnDestroy(): void {
      this.subscription?.unsubscribe();
      this.subscription = null;
+     this.sub?.unsubscribe();
+     this.sub = null;
   }
 
   trackById(_: number, item: ApiSubmissionInfo){

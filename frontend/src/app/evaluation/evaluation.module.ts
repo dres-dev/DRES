@@ -12,6 +12,7 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatExpansionModule } from "@angular/material/expansion";
 import { FormsModule } from "@angular/forms";
 import { MatCardModule } from "@angular/material/card";
+import { TemplateInfoComponent } from './admin/submission/template-info/template-info.component';
 
 
 
@@ -21,6 +22,7 @@ import { MatCardModule } from "@angular/material/card";
     AnswerSetComponent,
     SubmissionsDetailsComponent,
     SubmissionsListComponent,
+    TemplateInfoComponent,
   ],
   imports: [
     CommonModule,

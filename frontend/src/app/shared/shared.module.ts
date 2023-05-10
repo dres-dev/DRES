@@ -14,6 +14,8 @@ import { DynamicTableComponent } from './dynamic-table/dynamic-table.component';
 import {MatTableModule} from '@angular/material/table';
 import { ActionableDynamicTable } from './actionable-dynamic-table/actionable-dynamic-table.component';
 import { ServerInfoComponent } from './server-info/server-info.component';
+import { TargetMediaViewerComponent } from './target-media-viewer/target-media-viewer.component';
+import { MediaItemViewerComponent } from './media-item-viewer/media-item-viewer.component';
 
 @NgModule({
   declarations: [
@@ -25,6 +27,8 @@ import { ServerInfoComponent } from './server-info/server-info.component';
     DynamicTableComponent,
     ActionableDynamicTable,
     ServerInfoComponent,
+    TargetMediaViewerComponent,
+    MediaItemViewerComponent,
   ],
   exports: [
     BackButtonComponent,
@@ -34,7 +38,8 @@ import { ServerInfoComponent } from './server-info/server-info.component';
     ApiStatusComponent,
     DownloadButtonComponent,
     UploadJsonButtonComponent,
-    ActionableDynamicTable
+    ActionableDynamicTable,
+    TargetMediaViewerComponent
   ],
   imports: [CommonModule, MatButtonModule, ServicesModule, MatIconModule, MatTooltipModule, MatDialogModule, MatTableModule]
 })

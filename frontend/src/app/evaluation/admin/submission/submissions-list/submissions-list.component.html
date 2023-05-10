@@ -1,7 +1,7 @@
 <div class="flex flex-row align-center">
   <app-back-button></app-back-button>
   <div>
-    <h1>Submission list for task {{(taskId | async).substring(0,8)}}</h1>
+    <h1>Submission list for task {{(taskId | async).substring(0,8)}} | {{taskTemplate?.name ?? "N/A"}}</h1>
   </div>
   <div class="spacer-flex"></div>
   <button mat-icon-button matTooltip="Refresh submission information." (click)="refreshSubject.next(null)">
@@ -11,6 +11,9 @@
   <mat-slide-toggle [(ngModel)]="polling" matTooltip="Toggle polling of submission information">Poll for updates (every {{pollingFrequencyInSeconds}}s</mat-slide-toggle>
   <div class="spacer-tiny"></div>
   <mat-slide-toggle [(ngModel)]="anonymize" matTooltip="Toggle anonymization, i.e., switches between shoing detailed submitter info or not.">Anonymize</mat-slide-toggle>
+</div>
+<div *ngIf="taskTemplate">
+  <app-template-info [template]="taskTemplate"></app-template-info>
 </div>
 <div>
   <mat-accordion>

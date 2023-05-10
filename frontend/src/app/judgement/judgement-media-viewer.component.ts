@@ -234,7 +234,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
 
   private resolvePath(req: ApiJudgementRequest, time = true): string {
     const timeSuffix = time ? `#t=${this.startInSeconds},${this.endInSeconds}` : '';
-    return this.config.resolveApiUrl(`/media/${req.collection}/${req.item}${timeSuffix}`);
+    return this.config.resolveApiUrl(`/media/${req.item}${timeSuffix}`);
   }
 
   ngAfterViewChecked(): void {

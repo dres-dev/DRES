@@ -13,6 +13,10 @@ import { ResolveTeamPipe } from './pipes/resolve-team.pipe';
 import { EnhanceTaskSubmissionInfoPipe } from './pipes/enhance-task-submission-info.pipe';
 import {ApiModule, Configuration} from '../../../openapi';
 import { SpaceToNewlinePipe } from './pipes/space-to-newline.pipe';
+import { FormatTemporalUnitPipe } from './pipes/format-temporal-unit.pipe';
+import { FormatTemporalPointPipe } from './pipes/format-temporal-point.pipe';
+import { ResolveMediaItemPipe } from './pipes/resolve-mediaitem.pipe';
+import { ResolveMediaItemUrlPipe } from './pipes/resolve-media-item-url.pipe';
 
 /**
  * Provides the {@link AppConfig} reference.
@@ -40,7 +44,10 @@ export function initializeApiConfig(appConfig: AppConfig) {
     EnhanceTaskPastInfoPipe,
     ResolveTeamPipe,
     EnhanceTaskSubmissionInfoPipe,
-    SpaceToNewlinePipe
+    SpaceToNewlinePipe,
+    FormatTemporalPointPipe,
+    ResolveMediaItemPipe,
+    ResolveMediaItemUrlPipe
   ],
   declarations: [
     RoundPipePipe,
@@ -52,7 +59,11 @@ export function initializeApiConfig(appConfig: AppConfig) {
     ResolveTeamPipe,
     EnhanceTaskSubmissionInfoPipe,
     SpaceToNewlinePipe,
+    FormatTemporalUnitPipe,
+    FormatTemporalPointPipe,
+    ResolveMediaItemPipe,
+    ResolveMediaItemUrlPipe,
   ],
-  providers: [AuthenticationService, NavigationService, CanDeactivateGuard],
+  providers: [AuthenticationService, NavigationService, CanDeactivateGuard, FormatTemporalPointPipe, FormatTemporalUnitPipe, FormatTimePipePipe, Epoch2DatePipePipe],
 })
 export class ServicesModule {}

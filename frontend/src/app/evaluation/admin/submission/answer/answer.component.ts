@@ -11,9 +11,9 @@ export class AnswerComponent {
   @Input()
   public answers: ApiAnswer[];
 
-  public displayedColumnsWithoutText = ['type', 'item', 'start', 'end']
+  public displayedColumnsWithoutText = ['type', 'item', 'start', 'end', 'preview']
   public displayedColumnsText = ['type', 'text']
-  public displayedHeaders = ['type', 'text', 'item', 'start', 'end']
+  public displayedHeaders = ['type', 'text', 'item', 'start', 'end', 'preview']
 
   public hasTextType = (index: number, rowData: ApiAnswer) => rowData.type === ApiAnswerType.TEXT;
 

@@ -21,24 +21,23 @@
   <ng-container matColumnDef="expand">
     <th mat-header-cell *matHeaderCellDef aria-label="Row actions">&nbsp;</th>
     <td mat-cell *matCellDef="let element">
-      <button mat-icon-button aria-label="Expand / collapse row" (click)="(expandedElement = expandedElement === element ? null : element); $event.stopPropagation()">
-        <mat-icon *ngIf="expandedElement !== element">keyboard_arrow_down</mat-icon>
-        <mat-icon *ngIf="expandedElement === element">keyboard_arrow_up</mat-icon>
+      <button mat-icon-button aria-label="Expand / collapse row" (click)="toggleExpanded(element); $event.stopPropagation()">
+        <mat-icon>keyboard_arrow_{{isExpanded(element) ? 'up' : 'down'}}keyboard_arrow_down</mat-icon>
       </button>
     </td>
   </ng-container>
 
   <!-- Expanded content -->
   <ng-container matColumnDef="expandedDetail">
-    <td mat-cell *matCellDef="let element" [attr.colspan]="columnsToDisplayWithExpand.length" [style.padding-bottom]="element == expandedElement ? '1em' : '0'">
-      <div class="submissions-element-detail mat-elevation-z8" [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
+    <td mat-cell *matCellDef="let element" [attr.colspan]="columnsToDisplayWithExpand.length" [style.padding-bottom]="isExpanded(element) ? '1em' : '0'">
+      <div class="submissions-element-detail mat-elevation-z8" [@detailExpand]="isExpanded(element) ? 'expanded' : 'collapsed'">
         <app-answer-set [answerSets]="element.answers" [evaluationId]="element.evaluationId"></app-answer-set>
       </div>
     </td>
   </ng-container>
   <tr mat-header-row *matHeaderRowDef="columnsToDisplayWithExpand"></tr>
   <tr mat-row *matRowDef="let element; columns: columnsToDisplayWithExpand;" class="submissions-element-row"
-      [class.submissions-expanded-row]="expandedElement === element"
-      (click)="expandedElement = expandedElement === element ? null : element"></tr>
+      [class.submissions-expanded-row]="isExpanded(element)"
+      (click)="toggleExpanded(element)"></tr>
   <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="submissions-detail-row"></tr>
 </table>

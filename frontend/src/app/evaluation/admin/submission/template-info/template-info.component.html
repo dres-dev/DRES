@@ -1,6 +1,6 @@
 <h2>Target Information</h2>
 <div class="flex flex-row content-between pb1e">
-  <div class="flex-48">
+  <div class="flex-66">
     <div class="pb1e">
       <span class="strong">Task Type:</span> {{template.taskType}}, <span class="strong">Task Group:</span> {{template.taskGroup}}</div>
     <table mat-table [dataSource]="template.targets">
@@ -47,7 +47,7 @@
       <tr mat-row *matRowDef="let row; columns: ['type', 'target', 'aux', 'show']"></tr>
     </table>
   </div>
-  <div class="flex-48">
+  <div class="flex-33">
     <app-target-media-viewer [target]="shownElement" style="max-width: 100%; max-height: 8em;"></app-target-media-viewer>
   </div>
 </div>

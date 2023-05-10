@@ -1,5 +1,5 @@
 <ng-container *ngIf="item">
-  <p><span class="strong">Name</span>{{item.name}} <span class="strong">ID</span>{{item.mediaItemId.substring(0,8)}}</p>
+  <p><span class="strong">Name:</span> {{item.name}} ({{item.mediaItemId.substring(0,8)}})</p>
   <ng-container [ngSwitch]="item.type">
     <ng-container *ngSwitchCase="'IMAGE'">
       <img style="max-width: 100%;" [src]="item | resolveMediaItemUrl" alt="The image media item">

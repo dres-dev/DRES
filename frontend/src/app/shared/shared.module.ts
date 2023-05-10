@@ -39,7 +39,8 @@ import { MediaItemViewerComponent } from './media-item-viewer/media-item-viewer.
     DownloadButtonComponent,
     UploadJsonButtonComponent,
     ActionableDynamicTable,
-    TargetMediaViewerComponent
+    TargetMediaViewerComponent,
+    MediaItemViewerComponent
   ],
   imports: [CommonModule, MatButtonModule, ServicesModule, MatIconModule, MatTooltipModule, MatDialogModule, MatTableModule]
 })

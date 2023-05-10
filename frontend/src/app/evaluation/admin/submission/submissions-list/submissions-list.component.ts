@@ -71,12 +71,15 @@ export class SubmissionsListComponent implements AfterViewInit, OnDestroy{
          })
        )
        .subscribe((s: ApiSubmissionInfo[]) => {
-         this.taskRunIds = [];
-         this.submissionInfosByRunId.clear();
-         s.forEach((si) => {
-           this.taskRunIds.push(si.taskId);
-           this.submissionInfosByRunId.set(si.taskId, si);
-         })
+         /* The assumption here is, that task runs do not magically disappear */
+         if(this.taskRunIds.length < s.length){
+           s.forEach((si) => {
+             if(!this.taskRunIds.includes(si.taskId)){
+               this.taskRunIds.push(si.taskId);
+               this.submissionInfosByRunId.set(si.taskId, si);
+             }
+           })
+         }
        })
     this.sub = this.runId.pipe(
       switchMap((r) => this.evalService.getApiV2EvaluationByEvaluationIdInfo(r)),

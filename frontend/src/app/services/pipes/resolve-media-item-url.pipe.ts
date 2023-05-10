@@ -21,16 +21,12 @@ export class ResolveMediaItemUrlPipe implements PipeTransform {
   }
 
   transform(value: ApiMediaItem, ...args: unknown[]): string {
-    console.log('[ResolveMediaItemUrlPipe] item and args', value, args)
     let suffix = '';
     if(args && args.length > 0){
-      console.log("Args given", typeof(args[0]))
       if(args[0] && isOptions(args[0])){
-        console.log("args 0 is options")
         const range = args[0].range;
         const startInSeconds = TimeUtilities.point2Milliseconds(range.start, value.fps) / 1000;
         const endInSeconds = TimeUtilities.point2Milliseconds(range.end, value.fps) / 1000;
-
         suffix = `#t=${startInSeconds},${endInSeconds}`;
       }
     }

@@ -23,6 +23,20 @@ export class SubmissionsDetailsComponent {
   public columnsToDisplayWithExpand = [...this.columnsToDisplay, 'expand']
   public expandedElement: ApiSubmission | null;
 
+  public expandedElements: ApiSubmission[] = [];
+
+  public isExpanded(element: ApiSubmission){
+    return this.expandedElements.includes(element);
+  }
+
+  public toggleExpanded(element: ApiSubmission){
+    if(this.isExpanded(element)){
+      this.expandedElements.splice(this.expandedElements.indexOf(element), 1);
+    }else{
+      this.expandedElements.push(element);
+    }
+  }
+
   trackById(_:number, item: ApiSubmission){
     return item.submissionId;
   }

@@ -1,5 +1,8 @@
 #!/bin/sh
 
+. "$(dirname "$0")/_/husky.sh"
+. "$(dirname "$0")/common.sh"
+
 # Inspired by https://stackoverflow.com/a/16853458
 
 CHANGED=`git diff $1 $2 --stat -- $GIT_DIR/../docs/oas.json | wc -l `

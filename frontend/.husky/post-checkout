@@ -5,7 +5,7 @@
 
 # Inspired by https://stackoverflow.com/a/16853458
 
-CHANGED=`git diff $1 $2 --stat -- docs/oas.json | wc -l `
+CHANGED=`git diff $1 $2 --stat -- doc/oas.json | wc -l `
 if [ $CHANGED -gt 0 ];
 then
   echo "OpenApi specifications changed. Regenerating client bindings."

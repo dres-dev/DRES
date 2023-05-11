@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Inspired by https://stackoverflow.com/a/16853458
+
+CHANGED=`git diff $1 $2 --stat -- $GIT_DIR/../docs/oas.json | wc -l `
+if [ $CHANGED -gt 0 ];
+  echo "OpenApi specifications changed. Regenerating client bindings."
+  gradlew openApiGenerate
+fi

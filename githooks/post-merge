@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Inspired by https://stackoverflow.com/a/16853458
+
+CHANGED=`git diff HEAD#{1} --stat -- $GIT_DIR/../docs/oas.json | wc -l`
+if [ $CHANGED -gt 0 ];
+then
+  echo "OpenApi specifications changed. Regenerating client bindings"
+  $GIT_DIR/../gradlew openApiGenerate
+fi

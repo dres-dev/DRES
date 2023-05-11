@@ -4,6 +4,9 @@
 
 CHANGED=`git diff $1 $2 --stat -- $GIT_DIR/../docs/oas.json | wc -l `
 if [ $CHANGED -gt 0 ];
+then
   echo "OpenApi specifications changed. Regenerating client bindings."
   gradlew openApiGenerate
+else
+  echo "OpenApi specifications not changed."
 fi

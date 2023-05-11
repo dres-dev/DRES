@@ -7,4 +7,6 @@ if [ $CHANGED -gt 0 ];
 then
   echo "OpenApi specifications changed. Regenerating client bindings"
   $GIT_DIR/../gradlew openApiGenerate
+else
+  echo "No changes in OpenApi specifications"
 fi

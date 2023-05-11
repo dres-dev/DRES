@@ -9,6 +9,11 @@ import { AppConfig } from "../../app.config";
 })
 export class MediaItemViewerComponent {
 
+  @Input()
+  public toggleable: boolean = false;
+
+  @Input()
+  public showing: boolean = true;
 
   @Input()
   public displayNameAndId: boolean = true;

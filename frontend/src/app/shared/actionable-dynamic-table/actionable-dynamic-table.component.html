@@ -12,10 +12,10 @@
                     <ng-container *ngFor="let action of column.actions">
                         <ng-container [ngSwitch]="action">
                             <button *ngSwitchCase="'edit'" mat-icon-button aria-label="Edit this element" matTooltip="Edit this element" (click)="onEdit(element)">
-                                <mat-icon>edit</mat-icon>
+                                <mat-icon>{{editIcon}}</mat-icon>
                             </button>
                             <button *ngSwitchCase="'remove'" mat-icon-button aria-label="Remove this element" matTooltip="Remove this element" (click)="onRemove(element)">
-                                <mat-icon>remove</mat-icon>
+                                <mat-icon>{{removeIcon}}</mat-icon>
                             </button>
                         </ng-container>
                     </ng-container>

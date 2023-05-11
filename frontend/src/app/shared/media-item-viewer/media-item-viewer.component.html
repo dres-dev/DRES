@@ -1,4 +1,9 @@
-<ng-container *ngIf="item">
+<ng-container *ngIf="toggleable">
+  <button mat-icon-button (click)="(showing = !showing); $event.stopPropagation()">
+    <mat-icon>visibility{{showing ? '_off' : ''}}</mat-icon>
+  </button>
+</ng-container>
+<ng-container *ngIf="item && showing">
   <p *ngIf="displayNameAndId"><span class="strong">Name:</span> {{item.name}} ({{item.mediaItemId.substring(0,8)}})</p>
   <ng-container [ngSwitch]="item.type">
     <ng-container *ngSwitchCase="'IMAGE'">

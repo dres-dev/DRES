@@ -49,6 +49,13 @@ export class ActionableDynamicTable<T> {
   public trackByProperty?: string;
 
   @Input()
+  public addIcon = 'add';
+  @Input()
+  public removeIcon = 'delete';
+  @Input()
+  public editIcon = 'edit';
+
+  @Input()
   public onEdit?: (element: T) => void;
 
   @Input()

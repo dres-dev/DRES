@@ -1,5 +1,5 @@
-import {Component, Input, OnInit, ViewChild} from '@angular/core';
-import {MatTable} from '@angular/material/table';
+import { AfterContentInit, Component, ContentChildren, Input, OnInit, QueryList, ViewChild } from "@angular/core";
+import { MatColumnDef, MatTable } from "@angular/material/table";
 
 export class ActionableDynamicTableColumnDefinition {
   key: string;
@@ -8,10 +8,6 @@ export class ActionableDynamicTableColumnDefinition {
   property?: string;
 
   actions?: ActionableDynamicTableActionType[]
-  /**
-   * The name of the template to use in case this has the type CUSTOM
-   */
-  customName?: string;
 }
 
 export enum ActionableDynamicTableColumnType {
@@ -31,7 +27,7 @@ export enum ActionableDynamicTableActionType{
   templateUrl: './actionable-dynamic-table.component.html',
   styleUrls: ['./actionable-dynamic-table.component.scss']
 })
-export class ActionableDynamicTable<T> {
+export class ActionableDynamicTable<T> implements AfterContentInit{
 
   @Input()
   public dataSource: Array<T>;
@@ -61,9 +57,10 @@ export class ActionableDynamicTable<T> {
   @Input()
   public onRemove?: (element: T) => void;
 
+  @ContentChildren(MatColumnDef)
+  columnDefs: QueryList<MatColumnDef>
 
-
-  @ViewChild('table')
+  @ViewChild('table', {static: true})
   table: MatTable<T>
 
   constructor() { }
@@ -87,5 +84,16 @@ export class ActionableDynamicTable<T> {
     this.table.renderRows();
   }
 
+  customColumns(): ActionableDynamicTableColumnDefinition[]{
+    return this.columnSchema.filter(cs => cs.type === ActionableDynamicTableColumnType.CUSTOM)
+  }
+
+  nonCustonColumns(): ActionableDynamicTableColumnDefinition[]{
+    return this.columnSchema.filter(cs => cs.type !== ActionableDynamicTableColumnType.CUSTOM)
+}
+
+  ngAfterContentInit(): void {
+    this.columnDefs.forEach(cd => this.table.addColumnDef(cd));
+  }
 
 }

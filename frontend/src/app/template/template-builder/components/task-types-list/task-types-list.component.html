@@ -5,19 +5,57 @@
   [displayedColumns]="displayedColumns"
   [onRemove]="remove"
   tableTitle="Task types"
+  style="min-width: 100%;"
 >
-  <button mat-button aria-label="Add new task type." matTooltip="Add new task type." [matMenuTriggerFor]="taskTypeMenu">
-    <mat-icon>add</mat-icon>Add task type
-  </button>
-  <mat-menu #taskTypeMenu="matMenu">
-    <button mat-menu-item (click)="addTaskType()">New ...</button>
-    <button mat-menu-item [matMenuTriggerFor]="taskTypePresets">Presets</button>
-  </mat-menu>
+  <ng-container addbtn>
+    <button mat-button aria-label="Add new task type." matTooltip="Add new task type."
+            [matMenuTriggerFor]="taskTypeMenu">
+      <mat-icon>add</mat-icon>
+      Add task type
+    </button>
+    <mat-menu #taskTypeMenu="matMenu">
+      <button mat-menu-item (click)="addTaskType()">New ...</button>
+      <button mat-menu-item [matMenuTriggerFor]="taskTypePresets">Presets</button>
+    </mat-menu>
 
-  <mat-menu #taskTypePresets="matMenu">
-    <button mat-menu-item (click)="addTaskType(tkisPreset)">Textual known item search</button>
-    <button mat-menu-item (click)="addTaskType(vkisPreset)">Visual known item search</button>
-    <button mat-menu-item (click)="addTaskType(avsPreset)">Ad-hoc video search</button>
-    <button mat-menu-item (click)="addTaskType(lscPreset)">Lifelog Search Challenge</button>
-  </mat-menu>
+    <mat-menu #taskTypePresets="matMenu">
+      <button mat-menu-item (click)="addTaskType(tkisPreset)">Textual known item search</button>
+      <button mat-menu-item (click)="addTaskType(vkisPreset)">Visual known item search</button>
+      <button mat-menu-item (click)="addTaskType(avsPreset)">Ad-hoc video search</button>
+      <button mat-menu-item (click)="addTaskType(lscPreset)">Lifelog Search Challenge</button>
+    </mat-menu>
+  </ng-container>
+  <ng-container matColumnDef="hints">
+    <th mat-header-cell *matHeaderCellDef>Hint Options</th>
+    <td mat-cell *matCellDef="let element">
+      <ng-container *ngIf="element.hintOptions.length > 1; else singleHint">
+        <ul>
+          <li *ngFor="let hint of element.hintOptions">{{hint}}</li>
+        </ul>
+      </ng-container>
+      <ng-template #singleHint>{{element.hintOptions[0]}}</ng-template>
+    </td>
+  </ng-container>
+  <ng-container matColumnDef="submissions">
+    <th mat-header-cell *matHeaderCellDef>Submission Options</th>
+    <td mat-cell *matCellDef="let element">
+      <ng-container *ngIf="element.submissionOptions.length > 1; else singleSubmission">
+        <ul>
+          <li *ngFor="let elem of element.submissionOptions">{{elem}}</li>
+        </ul>
+      </ng-container>
+      <ng-template #singleSubmission>{{element.submissionOptions[0]}}</ng-template>
+    </td>
+  </ng-container>
+  <ng-container matColumnDef="tasks">
+    <th mat-header-cell *matHeaderCellDef>Task Options</th>
+    <td mat-cell *matCellDef="let element">
+      <ng-container *ngIf="element.taskOptions.length > 1; else singleTask">
+        <ul>
+          <li *ngFor="let hint of element.taskOptions">{{hint}}</li>
+        </ul>
+      </ng-container>
+      <ng-template #singleTask>{{element.taskOptions[0]}}</ng-template>
+    </td>
+  </ng-container>
 </app-actionable-dynamic-table>

@@ -2,8 +2,7 @@ import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { AbstractTemplateBuilderComponent } from "../abstract-template-builder.component";
 import { TemplateBuilderService } from "../../template-builder.service";
 import { MatDialog } from "@angular/material/dialog";
-import { MatSnackBar } from "@angular/material/snack-bar";
-import { ApiTaskGroup, ApiTaskType } from "../../../../../../openapi";
+import { ApiTaskType } from "../../../../../../openapi";
 import { Observable } from "rxjs";
 import { filter, map } from "rxjs/operators";
 import {
@@ -77,11 +76,14 @@ export class TaskTypesListComponent extends AbstractTemplateBuilderComponent imp
     {key: 'name', header: 'Name', property: 'name', type: ActionableDynamicTableColumnType.TEXT},
     {key: 'duration', header: 'Duration', property: 'duration', type: ActionableDynamicTableColumnType.TEXT},
     {key: 'target', header: 'Target', property: 'targetOption', type: ActionableDynamicTableColumnType.TEXT},
+    {key: 'hints', header: 'Hint Options', type: ActionableDynamicTableColumnType.CUSTOM},
+    {key: 'submissions', header: 'Submission Options', type: ActionableDynamicTableColumnType.CUSTOM},
+    {key: 'tasks', header: 'Task Options', type: ActionableDynamicTableColumnType.CUSTOM},
     {key: 'score', header: 'Score', property: 'scoreOption', type: ActionableDynamicTableColumnType.TEXT},
     {key: 'actions', header: 'Actions', type: ActionableDynamicTableColumnType.ACTION, actions: [ActionableDynamicTableActionType.REMOVE],}
   ];
 
-  displayedColumns= ['name', 'duration', 'target', 'score', 'actions'];
+  displayedColumns= ['name', 'duration', 'target', 'hints','submissions', 'tasks','score', 'actions'];
 
   @ViewChild("typesTable") table: ActionableDynamicTable<ApiTaskType>;
 

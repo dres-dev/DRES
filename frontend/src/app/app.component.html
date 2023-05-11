@@ -65,6 +65,10 @@
   </div>
 </mat-toolbar>
 
-<div id="container">
+<div *ngIf="(loggedIn | async); else login" id="container">
   <router-outlet></router-outlet>
 </div>
+
+<ng-template #login>
+  <app-login-component></app-login-component>
+</ng-template>

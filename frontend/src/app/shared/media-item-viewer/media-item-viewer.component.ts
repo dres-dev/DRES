@@ -11,6 +11,9 @@ export class MediaItemViewerComponent {
 
 
   @Input()
+  public displayNameAndId: boolean = true;
+
+  @Input()
   public item: ApiMediaItem;
 
   @Input()

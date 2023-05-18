@@ -85,4 +85,8 @@ for testing at e.g. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
   static timeCode2Milliseconds24fps(timecode: string): number {
     return this.timeCode2Milliseconds(timecode, 24);
   }
+
+  static temporalPointEquals(a: ApiTemporalPoint, b: ApiTemporalPoint){
+    return a.value === b.value && a.unit === b.unit
+  }
 }

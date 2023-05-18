@@ -5,6 +5,7 @@ import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.run.Task
 import dev.dres.data.model.run.TaskId
 import dev.dres.data.model.submissions.*
+import io.javalin.openapi.OpenApi
 import io.javalin.openapi.OpenApiIgnore
 import kotlinx.dnq.query.addAll
 import kotlinx.dnq.query.filter
@@ -27,6 +28,7 @@ data class ApiAnswerSet(
 ) : AnswerSet {
 
     @JsonIgnore
+    @get: OpenApiIgnore
     override lateinit var submission: ApiSubmission
     internal set
 

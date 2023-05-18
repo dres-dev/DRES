@@ -4,11 +4,12 @@ import { AppConfig } from "../../app.config";
 import { TimeUtilities } from "../../utilities/time.utilities";
 
 export interface MediaItemUrlOptions {
-  range: ApiTemporalRange
+  time?: number
+  range?: ApiTemporalRange
 }
 
-function isOptions(obj: any): obj is MediaItemUrlOptions{
-  return 'range' in obj;
+export function isMediaItemUrlOptions(obj: any): obj is MediaItemUrlOptions{
+  return 'range' in obj || 'time' in obj;
 }
 
 @Pipe({
@@ -23,7 +24,7 @@ export class ResolveMediaItemUrlPipe implements PipeTransform {
   transform(value: ApiMediaItem, ...args: unknown[]): string {
     let suffix = '';
     if(args && args.length > 0){
-      if(args[0] && isOptions(args[0])){
+      if(args[0] && isMediaItemUrlOptions(args[0]) && args[0].range){
         const range = args[0].range;
         const startInSeconds = TimeUtilities.point2Milliseconds(range.start, value.fps) / 1000;
         const endInSeconds = TimeUtilities.point2Milliseconds(range.end, value.fps) / 1000;

@@ -70,6 +70,10 @@ export class AppConfig {
     return this.resolveApiUrl(`/media/${mediaItemId}`, version);
   }
 
+  public resolveImagePreviewUrl(mediaItemId: string, timeInMs?:string,version: string = "v2"): string{
+    return this.resolveApiUrl(`/preview/${mediaItemId}${timeInMs ? `/${timeInMs}` : ''}`, version)
+  }
+
   /**
    * (Re-)loads the default configuration from a JSON file.
    */

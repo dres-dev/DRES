@@ -35,7 +35,6 @@ class PreviewVideoHandler(store: TransientEntityStore, cache: CacheManager) : Ab
             OpenApiResponse("400"),
             OpenApiResponse("404")
         ],
-        ignore = true,
         methods = [HttpMethod.GET]
     )
     override fun get(ctx: Context) {

@@ -10,7 +10,12 @@
       <img style="max-width: 100%;" [src]="item | resolveMediaItemUrl" alt="The image media item">
     </ng-container>
     <ng-container *ngSwitchCase="'VIDEO'">
-      <video style="max-width: 100%;"#videoPlayer controls loop autoplay [src]="item | resolveMediaItemUrl: range ? {range: range} : {}"></video>
+      <ng-container *ngIf="isRangeSingular; else video">
+        <img style="max-width: 100%;" [src]="item | resolveMediaItemPreview: {time: time()}" alt="A preview image of the media item">
+      </ng-container>
+      <ng-template #video>
+        <video style="max-width: 100%;"#videoPlayer controls loop autoplay [src]="item | resolveMediaItemUrl: range ? {range: range} : {}"></video>
+      </ng-template>
     </ng-container>
     <ng-container *ngSwitchCase="'TEXT'">
       (Text:) {{item.name}}

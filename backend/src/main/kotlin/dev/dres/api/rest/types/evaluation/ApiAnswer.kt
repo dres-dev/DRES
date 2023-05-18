@@ -3,9 +3,12 @@ package dev.dres.api.rest.types.evaluation
 import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.MediaItem
+import dev.dres.data.model.media.time.TemporalRange
 import dev.dres.data.model.submissions.Answer
 import dev.dres.data.model.submissions.AnswerType
 import dev.dres.data.model.submissions.DbAnswer
+import io.javalin.openapi.OpenApiContentProperty
+import io.javalin.openapi.OpenApiIgnore
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.firstOrNull
 
@@ -13,9 +16,13 @@ data class ApiAnswer(
     val type: ApiAnswerType,
     override val item: ApiMediaItem?,
     override val text: String?,
-    override val start: Long?,
-    override val end: Long?
+
+    override val start: Long?, // ms
+    override val end: Long? // ms
     ) : Answer {
+
+    override val temporalRange: TemporalRange?
+        @OpenApiIgnore get() = super.temporalRange // Do not leak temporal range into api
 
     /**
      * Creates a new [DbAnswer] for this [ApiAnswer]. Requires an ongoing transaction.

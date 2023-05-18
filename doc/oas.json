@@ -5,8 +5,16 @@
     "summary" : null,
     "description" : "API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0",
     "termsOfService" : null,
-    "contact" : null,
-    "license" : null,
+    "contact" : {
+      "name" : "The DRES Dev Team",
+      "url" : "https://dres.dev",
+      "email" : null
+    },
+    "license" : {
+      "name" : "MIT",
+      "identifier" : "MIT",
+      "url" : null
+    },
     "version" : "2.0.0"
   },
   "paths" : {
@@ -5469,9 +5477,6 @@
           "end" : {
             "type" : "integer",
             "format" : "int64"
-          },
-          "temporalRange" : {
-            "$ref" : "#/components/schemas/TemporalRange"
           }
         },
         "required" : [ "type" ]
@@ -5494,12 +5499,9 @@
             "items" : {
               "$ref" : "#/components/schemas/ApiAnswer"
             }
-          },
-          "submission" : {
-            "$ref" : "#/components/schemas/ApiSubmission"
           }
         },
-        "required" : [ "id", "status", "taskId", "answers", "submission" ]
+        "required" : [ "id", "status", "taskId", "answers" ]
       },
       "ApiAnswerType" : {
         "type" : "string",
@@ -6180,28 +6182,6 @@
           }
         },
         "required" : [ "timestamp", "sortType", "resultSetAvailability", "results", "events", "serverTimeStamp$backend" ]
-      },
-      "TemporalPoint" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : { }
-      },
-      "TemporalRange" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "start" : {
-            "$ref" : "#/components/schemas/TemporalPoint"
-          },
-          "end" : {
-            "$ref" : "#/components/schemas/TemporalPoint"
-          },
-          "center" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        },
-        "required" : [ "start", "end", "center" ]
       },
       "RunProperties" : {
         "type" : "object",

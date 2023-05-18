@@ -97,6 +97,22 @@ Flex items
   min-width: 100%;
 }
 
+.flex-tiny-gap {
+  gap: 0.25em;
+}
+
+.flex-small-gap {
+  gap: 0.5em;
+}
+
+.flex-gap {
+  gap: 1em;
+}
+
+.flex-large-gap {
+  gap: 2em;
+}
+
 $growFlex: 1,2,3,4,5;
 
 @each $f in $growFlex {

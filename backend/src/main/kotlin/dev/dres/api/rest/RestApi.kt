@@ -42,6 +42,8 @@ import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.staticfiles.Location
 import io.javalin.community.ssl.SSLPlugin
 import io.javalin.openapi.CookieAuth
+import io.javalin.openapi.OpenApiContact
+import io.javalin.openapi.OpenApiLicense
 import io.javalin.openapi.plugin.*
 import io.javalin.openapi.plugin.swagger.SwaggerConfiguration
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin
@@ -218,6 +220,14 @@ object RestApi {
                                 t.title = "DRES API"
                                 t.version = DRES.VERSION
                                 t.description = "API for DRES (Distributed Retrieval Evaluation Server), Version ${DRES.VERSION}"
+                                val contact = OpenApiContact()
+                                contact.url = "https://dres.dev"
+                                contact.name = "The DRES Dev Team"
+                                t.contact = contact
+                                val license = OpenApiLicense()
+                                license.name = "MIT"
+                                license.identifier = "MIT"
+                                t.license = license
                             }
                             u.withSecurity(SecurityComponentConfiguration()
                                 .withSecurityScheme("CookieAuth", CookieAuth(AccessManager.SESSION_COOKIE_NAME))

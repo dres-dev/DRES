@@ -17,6 +17,7 @@ import { FormatTemporalUnitPipe } from './pipes/format-temporal-unit.pipe';
 import { FormatTemporalPointPipe } from './pipes/format-temporal-point.pipe';
 import { ResolveMediaItemPipe } from './pipes/resolve-mediaitem.pipe';
 import { ResolveMediaItemUrlPipe } from './pipes/resolve-media-item-url.pipe';
+import { ResolveMediaItemPreviewPipe } from './pipes/resolve-media-item-preview.pipe';
 
 /**
  * Provides the {@link AppConfig} reference.
@@ -47,7 +48,8 @@ export function initializeApiConfig(appConfig: AppConfig) {
     SpaceToNewlinePipe,
     FormatTemporalPointPipe,
     ResolveMediaItemPipe,
-    ResolveMediaItemUrlPipe
+    ResolveMediaItemUrlPipe,
+    ResolveMediaItemPreviewPipe
   ],
   declarations: [
     RoundPipePipe,
@@ -63,6 +65,7 @@ export function initializeApiConfig(appConfig: AppConfig) {
     FormatTemporalPointPipe,
     ResolveMediaItemPipe,
     ResolveMediaItemUrlPipe,
+    ResolveMediaItemPreviewPipe,
   ],
   providers: [AuthenticationService, NavigationService, CanDeactivateGuard, FormatTemporalPointPipe, FormatTemporalUnitPipe, FormatTimePipePipe, Epoch2DatePipePipe],
 })

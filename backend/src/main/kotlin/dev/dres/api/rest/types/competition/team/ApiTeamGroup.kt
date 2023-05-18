@@ -9,4 +9,9 @@ import dev.dres.data.model.template.team.TeamGroupId
  * @author Loris Sauter
  * @version 1.0.0
  */
-data class ApiTeamGroup(val id: TeamGroupId? = null, val name: String? = null, val teams: List<ApiTeam> = emptyList(), val aggregation: String? = null)
+data class ApiTeamGroup(
+    val id: TeamGroupId? = null,
+    val name: String? = null,
+    val teams: List<ApiTeam> = emptyList(),
+    val aggregation: String? = null
+)

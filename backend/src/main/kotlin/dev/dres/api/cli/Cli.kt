@@ -49,7 +49,8 @@ object Cli {
             EvaluationCommand(store),
             OpenApiCommand(),
             ExecutionCommand(),
-            AuditCommand(store)
+            AuditCommand(store),
+            ConfigCommand()
         )
 
         val terminal = try {

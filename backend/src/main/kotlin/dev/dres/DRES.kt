@@ -56,6 +56,9 @@ object DRES {
     val EXTERNAL_ROOT: Path
         get() = DATA_ROOT.resolve("external")
 
+    lateinit var CONFIG : Config
+        internal set
+
     init {
         //redirect log of JLine3 from jdk logger to log4j
         System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager")
@@ -63,7 +66,7 @@ object DRES {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val config = if (args.isNotEmpty()) {
+        CONFIG = if (args.isNotEmpty()) {
             val configPath = Paths.get(args[0])
             val config = Config.read(configPath)
             DATA_ROOT = configPath.absolute().parent
@@ -76,27 +79,27 @@ object DRES {
         println("Initializing...")
 
         /* Initialize Xodus based data store. */
-        val store = this.prepareDatabase(config)
+        val store = this.prepareDatabase(CONFIG)
 
         /* Initialize the global Cache Manager. */
-        val global = CacheManager(config, store)
+        val global = CacheManager(CONFIG, store)
 
         /* Initialize RunExecutor. */
-        RunExecutor.init(config, store, global)
+        RunExecutor.init(CONFIG, store, global)
 
         /* Initialize EventStreamProcessor */
         EventStreamProcessor.register( /* Add handlers here */)
         EventStreamProcessor.init()
 
         /* Initialize Rest API. */
-        RestApi.init(config, store, global)
+        RestApi.init(CONFIG, store, global)
 
         println("Initialization complete!")
 
         if (args.isNotEmpty() && args.first() == "openapi") {
             OpenApiCommand().parse(args)
         } else {
-            Cli.loop(config, store, global) //blocks until quit command is given
+            Cli.loop(CONFIG, store, global) //blocks until quit command is given
         }
 
         /* Stop. */

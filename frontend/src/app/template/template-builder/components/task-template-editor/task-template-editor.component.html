@@ -240,7 +240,7 @@
             <p [class]="target.get('mediaItem') && taskType.targetOption == 'TEXT' ? 'flex-100' : 'flex-33'">
               <mat-form-field
                 *ngIf="target.get('mediaItem') && taskType.targetOption != 'TEXT'"
-                [style]="isImageMediaItem(target.get('mediaItem').value) ? 'width: 95%;' : 'width: 100%;'"
+                [style]="isImageMediaItem(target.get('mediaItem').value) ? 'width: 90%;' : 'width: 100%;'"
               >
                 <input
                   type="text"
@@ -365,7 +365,7 @@
             <p *ngIf="isPreviewActive(i)" style="width: 100%">
               <img
                 style="max-width: 100%"
-                [src]="getImageUrl(target.get('mediaItem').value)"
+                [src]="target.get('mediaItem').value | resolveMediaItemUrl"
                 [alt]="'Preview of ' + target.get('mediaItem').value?.name"
               />
             </p>

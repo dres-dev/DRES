@@ -5,9 +5,14 @@ import { ApiEvaluationTemplate, ApiHint, ApiTarget, ApiTaskGroup, ApiTaskTemplat
 import { MatTable } from "@angular/material/table";
 import { Observable, Subscription } from "rxjs";
 import { SelectionModel } from "@angular/cdk/collections";
-import { map, tap } from "rxjs/operators";
+import { map, switchMap, tap } from "rxjs/operators";
+import {
+  ConfirmationDialogComponent,
+  ConfirmationDialogComponentData
+} from "../../../../shared/confirmation-dialog/confirmation-dialog.component";
+import { MatDialog } from "@angular/material/dialog";
 
-export interface TaskTemplateEditorLauncher{
+export interface TaskTemplateEditorLauncher {
   editTask(taskType: ApiTaskType, taskGroup: ApiTaskGroup, task?: ApiTaskTemplate);
 }
 
@@ -19,23 +24,23 @@ export interface TaskTemplateEditorLauncher{
 export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy {
 
   @Input()
-  editorLauncher: TaskTemplateEditorLauncher
+  editorLauncher: TaskTemplateEditorLauncher;
 
   // TODO After dynact table fanciness (conditional multi component projection), rewrite to use dynact table
 
-  @ViewChild('taskTable')
+  @ViewChild("taskTable")
   taskTable: MatTable<ApiTaskTemplate>;
   tasks: Observable<ApiTaskTemplate[]>;
-  displayedColumns = ['name', 'group', 'type', 'duration', 'actions'];
+  displayedColumns = ["name", "group", "type", "duration", "actions"];
 
-  groups : Observable<ApiTaskGroup[]>;
+  groups: Observable<ApiTaskGroup[]>;
 
   selection = new SelectionModel(false, [], false);
 
 
   private selectedTaskSub: Subscription;
 
-  constructor(builder: TemplateBuilderService) {
+  constructor(builder: TemplateBuilderService, private dialog: MatDialog) {
     super(builder);
   }
 
@@ -44,21 +49,21 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
     this.tasks = this.builderService.taskTemplatesAsObservable();
     this.groups = this.builderService.taskGroupsAsObservable();
     this.selectedTaskSub = this.builderService.selectedTaskTemplateAsObservable().subscribe((t) => {
-      if(!t){
+      if (!t) {
         this.selection.clear();
       }
-    })
+    });
   }
 
   ngOnDestroy(): void {
     this.onDestroy();
   }
 
-  public logTasks(){
-    console.log("TRIGGER", this.builderService.getTemplate().tasks)
+  public logTasks() {
+    console.log("TRIGGER", this.builderService.getTemplate().tasks);
   }
 
-  public addTask(group: ApiTaskGroup){
+  public addTask(group: ApiTaskGroup) {
     const newTask = new class implements ApiTaskTemplate {
       collectionId: string;
       duration: number;
@@ -77,14 +82,14 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
     this.selection.toggle(newTask);
   }
 
-  public editTask(task: ApiTaskTemplate){
+  public editTask(task: ApiTaskTemplate) {
     this.builderService.selectTaskTemplate(task);
     this.selection.toggle(task);
   }
 
-  public moveTaskUp(task: ApiTaskTemplate){
+  public moveTaskUp(task: ApiTaskTemplate) {
     const oldIndex = this.builderService.getTemplate().tasks.indexOf(task);
-    if(oldIndex > 0){
+    if (oldIndex > 0) {
       const buffer = this.builderService.getTemplate().tasks[oldIndex - 1];
       this.builderService.getTemplate().tasks[oldIndex - 1] = task;
       this.builderService.getTemplate().tasks[oldIndex] = buffer;
@@ -93,9 +98,9 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
     }
   }
 
-  public moveTaskDown(task: ApiTaskTemplate){
+  public moveTaskDown(task: ApiTaskTemplate) {
     const oldIndex = this.builderService.getTemplate().tasks.indexOf(task);
-    if(oldIndex < this.builderService.getTemplate().tasks.length - 1){
+    if (oldIndex < this.builderService.getTemplate().tasks.length - 1) {
       const buffer = this.builderService.getTemplate().tasks[oldIndex + 1];
       this.builderService.getTemplate().tasks[oldIndex + 1] = task;
       this.builderService.getTemplate().tasks[oldIndex] = buffer;
@@ -104,12 +109,23 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
     }
   }
 
-  public tasksLength(){
+  public tasksLength() {
     return this.builderService.getTemplate().tasks.length;
   }
 
-  public removeTask(task: ApiTaskTemplate){
-    this.builderService.removeTask(task);
+  public removeTask(task: ApiTaskTemplate) {
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      data: {
+        text: "Really want to delete this task template?",
+        color: "warn"
+      } as ConfirmationDialogComponentData
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.builderService.removeTask(task);
+      }
+    });
+
   }
 
   onChange() {

@@ -229,6 +229,9 @@ export class TemplateBuilderService {
   public removeTask(task: ApiTaskTemplate){
     this.getTemplate().tasks.splice(this.getTemplate().tasks.indexOf(task), 1);
     this.update(this.getTemplate());
+    if(this.getSelectedTaskTemplate() == task){
+      this.selectTaskTemplate(null);
+    }
   }
 
 }

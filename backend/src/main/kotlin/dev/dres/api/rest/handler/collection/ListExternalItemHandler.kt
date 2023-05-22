@@ -7,6 +7,7 @@ import io.javalin.http.Context
 import io.javalin.openapi.*
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
+import java.util.stream.Collectors
 import kotlin.io.path.name
 import kotlin.streams.toList
 
@@ -41,9 +42,22 @@ class ListExternalItemHandler : GetRestHandler<List<String>> {
     override fun doGet(ctx: Context): List<String> {
         // TODO https://github.com/javalin/javalin-openapi/issues/178 Apparently, we cannot use the slash-included notation here (https://javalin.io/documentation#endpoint-handlers)
         val startsWith = ctx.pathParamMap()["startsWith"] ?: ""
-        return Files.walk(DRES.EXTERNAL_ROOT, 1, FileVisitOption.FOLLOW_LINKS).filter {
-            Files.isRegularFile(it) && it.name.startsWith(startsWith) && (it.name.endsWith(".jpg", ignoreCase = true) || it.name.endsWith(".mkv", ignoreCase = true) || it.name.endsWith(".mp4", ignoreCase = true))
-        }.sorted { o1, o2 -> o1.name.length - o2.name.length }.limit(50).map { it.toFile().name }.toList()
+        val files = Files.walk(DRES.EXTERNAL_ROOT, 1, FileVisitOption.FOLLOW_LINKS)
+        val list = files
+            .filter {
+                Files.isRegularFile(it) &&
+                        it.name.startsWith(startsWith) &&
+                        (
+                                it.name.endsWith(".jpg", ignoreCase = true) ||
+                                        it.name.endsWith(".mkv", ignoreCase = true) ||
+                                        it.name.endsWith(".mp4", ignoreCase = true)
+                                )
+            }.sorted { o1, o2 -> o1.name.length - o2.name.length }
+            .limit(50)
+
+        return list.map { it.toFile().name }.collect(Collectors.toList())
+
+
     }
 
     override val route: String = "external/{startsWith}"

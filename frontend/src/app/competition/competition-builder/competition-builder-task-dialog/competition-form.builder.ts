@@ -574,17 +574,20 @@ export class CompetitionFormBuilder {
 
     /* Initialize start, end and time unit based on target. */
     // fetch target time unit
-    const targetTimeUnit = (this.form.get('target') as UntypedFormArray).controls[0].get('segment_time_unit').value;
-    if (targetTimeUnit && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
-      group.get('segment_time_unit').setValue(targetTimeUnit, {emitEvent: false});
-    }
+    const targetTimeUnit = (this.form.get('target') as UntypedFormArray).controls[0]?.get('segment_time_unit')?.value ?? undefined;
+    // Wrap fetching of target temporal information only when such information is present
+    if(targetTimeUnit){
+      if (targetTimeUnit && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
+        group.get('segment_time_unit').setValue(targetTimeUnit, {emitEvent: false});
+      }
 
-    if (!group.get('segment_start').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
-      group.get('segment_start').setValue((this.form.get('target') as UntypedFormArray).controls[0].get('segment_start').value, {emitEvent: false});
-    }
+      if (!group.get('segment_start').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
+        group.get('segment_start').setValue((this.form.get('target') as UntypedFormArray).controls[0].get('segment_start').value, {emitEvent: false});
+      }
 
-    if (!group.get('segment_end').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
-      group.get('segment_end').setValue((this.form.get('target') as UntypedFormArray).controls[0].get('segment_end').value, {emitEvent: false});
+      if (!group.get('segment_end').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
+        group.get('segment_end').setValue((this.form.get('target') as UntypedFormArray).controls[0].get('segment_end').value, {emitEvent: false});
+      }
     }
 
     /* Manually setting the duration of the hint equal to the duration of the task, this way the validators are happy */
@@ -691,20 +694,6 @@ export class CompetitionFormBuilder {
         Validators.required
       ),
     });
-    /* Initialize start, end and time unit based on target. */
-    // fetch target time unit
-    const targetTimeUnit = (this.form.get('target') as UntypedFormArray).controls[0].get('segment_time_unit').value;
-    if (targetTimeUnit && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
-      group.get('segment_time_unit').setValue(targetTimeUnit, {emitEvent: false});
-    }
-
-    if (!group.get('segment_start').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
-      group.get('segment_start').setValue((this.form.get('target') as UntypedFormArray).controls[0].get('segment_start').value, {emitEvent: false});
-    }
-
-    if (!group.get('segment_end').value && this.taskType.targetOption === 'SINGLE_MEDIA_SEGMENT') {
-      group.get('segment_end').setValue((this.form.get('target') as UntypedFormArray).controls[0].get('segment_end').value, {emitEvent: false});
-    }
 
     /* Manually setting the duration of the hint equal to the duration of the task, this way the validators are happy */
     group.get('end').setValue(this.taskType.duration, {emitEvent: false});

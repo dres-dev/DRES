@@ -66,13 +66,34 @@ export class AppConfig {
     return `${this.baseUrl}/api/${version}${path.startsWith('/') ? '' : '/'}${path}`;
   }
 
+  /**
+   * Resolves the given media item's url so to fetch the actual content. Provides a URL compliant with the GetMediaHandler (backend)
+   * @param mediaItemId The media item's id to resolve the url for
+   * @param version The API version
+   */
   public resolveMediaItemUrl(mediaItemId: string, version: string = "v2"): string{
     return this.resolveApiUrl(`/media/${mediaItemId}`, version);
   }
 
+  /**
+   * Resolves the given media item's PREVIEW url so to fetch the actual content. Provides a URL compliant with the PreviewImageHandler (backend)
+   * @param mediaItemId The media item's id to resolve the PREVIEW url for
+   * @param version The API version
+   */
   public resolveImagePreviewUrl(mediaItemId: string, timeInMs?:string,version: string = "v2"): string{
     return this.resolveApiUrl(`/preview/${mediaItemId}${timeInMs ? `/${timeInMs}` : ''}`, version)
   }
+
+  /**
+   * Resolves the given external file URL. Provides a URL compliant with the GetExternalMediaHandler (backend)
+   * @param file The file including extension to resolve the URL for
+   * @param version The API version
+   */
+  public resolveExternalUrl(file: string, version: string= "v2"): string {
+    return this.resolveApiUrl(`/media/external/${file}`, version)
+  }
+
+
 
   /**
    * (Re-)loads the default configuration from a JSON file.

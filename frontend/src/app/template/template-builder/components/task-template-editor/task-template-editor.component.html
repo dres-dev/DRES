@@ -102,7 +102,7 @@
             <!-- <p *ngIf="isImageMediaItem(target.get('mediaItem').value)" style="width: 100%;"> -->
             <img
               style="max-width: 100%"
-              [src]="getImageUrl(target.get('mediaItem').value)"
+              [src]="target.get('mediaItem').value | resolveMediaItemUrl"
               [alt]="'Preview of ' + target.get('mediaItem').value?.name"
             />
             <!-- form stuff -->
@@ -450,7 +450,7 @@
                 <mat-icon>remove_red_eye</mat-icon>
               </button>
             </span>
-
+            <!-- EXTERNAL HINT -->
             <span class="flex-80"
               *ngIf="description.get('external')"
             >
@@ -472,52 +472,49 @@
                   </mat-error>
                 </mat-autocomplete>
               </mat-form-field>
+              <!-- Temporal settings of video -->
               <ng-container *ngIf="description.get('type').value == 'VIDEO'">
-              <mat-form-field style="width: 10%">
-                <input
-                  #descStart
-                  [type]="'text'"
-                  matInput
-                  placeholder="Segment start"
-                  [formControl]="description.get('segment_start')"
-                />
-              </mat-form-field>
-              <mat-form-field style="width: 10%">
-                <input
-                  #descEnd
-                  [type]="'text'"
-                  matInput
-                  placeholder="Segment end"
-                  [formControl]="description.get('segment_end')"
-                />
-              </mat-form-field>
-              <mat-form-field style="width: 20%">
-                <mat-select
-                  [formControl]="description.get('segment_time_unit')"
-                  (selectionChange)="timeUnitChanged($event, descStart, descEnd)"
-                >
-                  <!--  -->
-                  <mat-option *ngFor="let unit of units" [value]="unit">{{ unit }}</mat-option>
-                </mat-select>
-                <!--TODO External Video Preview<span matSuffix>
-                  <button
-                    mat-icon-button
-                    aria-label="Show media item."
-                    matTooltip="Show media item."
-                    (click)="
-                      toggleVideoPlayer(
-                        description.get('mediaItem').value,
+                <mat-form-field style="width: 10%">
+                  <input
+                    #descStart
+                    [type]="'text'"
+                    matInput
+                    placeholder="Segment start"
+                    [formControl]="description.get('segment_start')"
+                  />
+                </mat-form-field>
+                <mat-form-field style="width: 10%">
+                  <input
+                    #descEnd
+                    [type]="'text'"
+                    matInput
+                    placeholder="Segment end"
+                    [formControl]="description.get('segment_end')"
+                  />
+                </mat-form-field>
+                <mat-form-field style="width: 20%">
+                  <mat-select
+                    [formControl]="description.get('segment_time_unit')"
+                    (selectionChange)="timeUnitChanged($event, descStart, descEnd)"
+                  >
+                    <mat-option *ngFor="let unit of units" [value]="unit">{{ unit }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </ng-container>
+              <span class="spacer-small"></span>
+              <button mat-icon-button
+                      aria-label="Show or hide external hint component"
+                      matTooltip="Show or hide external hint component"
+                      (click)=" description.get('type').value == 'VIDEO' ?
+                      toggleExternalVideoPreview(
+                        description.get('path').value,
                         description.get('segment_start'),
                         description.get('segment_end'),
                         description.get('segment_time_unit')
-                      )
-                    "
-                  >
-                    <mat-icon>remove_red_eye</mat-icon>
-                  </button>
-                </span>-->
-              </mat-form-field>
-              </ng-container>
+                      ) : toggleExternalImagePreview(description.get('path').value)"
+              >
+                <mat-icon>{{externalPreviewActive() ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
             </span>
 
             <span class="flex-80" *ngIf="description.get('type').value === 'TEXT'">
@@ -618,6 +615,8 @@
           </button>
         </div>
       </div>
+      <img *ngIf="externalImagePreviewActive" [src]="externalImagePreviewUrl" />
+      <app-video-player-segment-builder *ngIf="externalVideoPreviewActive"></app-video-player-segment-builder>
     </div>
   </form>
 </ng-template>

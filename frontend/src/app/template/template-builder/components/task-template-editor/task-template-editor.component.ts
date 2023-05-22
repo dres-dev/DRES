@@ -54,6 +54,11 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
   showVideo = false;
   videoSegmentData: VideoPlayerSegmentBuilderData;
 
+  externalImagePreviewActive = false;
+  externalImagePreviewUrl = ''
+  externalVideoPreviewActive = false;
+  externalVideoData: VideoPlayerSegmentBuilderData
+
   private imagePreviewMap = new Set<number>();
   private taskSub: Subscription;
   
@@ -236,6 +241,24 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
     unitControl.setValue('SECONDS');
   }
 
+  toggleExternalVideoPreview(path: string, startControl?: UntypedFormControl, endControl?: UntypedFormControl, unitControl?: UntypedFormControl) {
+
+  }
+
+  externalPreviewActive():boolean{
+    return this.externalImagePreviewActive || this.externalVideoPreviewActive
+  }
+
+  toggleExternalImagePreview(path: string){
+    if(this.externalImagePreviewActive){
+      this.externalImagePreviewActive = false
+      this.externalImagePreviewUrl = ''
+    }else{
+      this.externalImagePreviewActive = true
+      this.externalImagePreviewUrl = this.config.resolveExternalUrl(path)
+    }
+  }
+
   toggleVideoPlayer(mediaItem: ApiMediaItem, startControl?: UntypedFormControl, endControl?: UntypedFormControl, unitControl?: UntypedFormControl) {
     /* Add to toggleVideoPlayer button if
         [disabled]="!target.get('mediaItem').value && !target.get('segment_start').value && !target.get('segment_end').value"
@@ -310,13 +333,6 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
     } else {
       this.imagePreviewMap.add(index);
     }
-  }
-
-  getImageUrl(mi: ApiMediaItem) {
-    if (mi && mi.type === 'IMAGE') {
-      return this.config.resolveApiUrl(`/media/${mi.collectionId}/${mi.mediaItemId}`);
-    }
-    return '';
   }
 
 

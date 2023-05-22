@@ -20,6 +20,7 @@ import dev.dres.api.rest.handler.evaluation.viewer.*
 import dev.dres.api.rest.handler.judgement.*
 import dev.dres.api.rest.handler.log.QueryLogHandler
 import dev.dres.api.rest.handler.log.ResultLogHandler
+import dev.dres.api.rest.handler.preview.GetExternalMediaHandler
 import dev.dres.api.rest.handler.template.*
 import dev.dres.api.rest.handler.preview.GetMediaHandler
 import dev.dres.api.rest.handler.preview.PreviewImageHandler
@@ -102,6 +103,7 @@ object RestApi {
             // Media
             PreviewImageHandler(store, cache),
             PreviewVideoHandler(store, cache),
+            GetExternalMediaHandler(), // Must be registered before GetMediaHandler, as route is similar
             GetMediaHandler(store),
 
             // Collection

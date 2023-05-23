@@ -18,6 +18,7 @@ import { FormatTemporalPointPipe } from './pipes/format-temporal-point.pipe';
 import { ResolveMediaItemPipe } from './pipes/resolve-mediaitem.pipe';
 import { ResolveMediaItemUrlPipe } from './pipes/resolve-media-item-url.pipe';
 import { ResolveMediaItemPreviewPipe } from './pipes/resolve-media-item-preview.pipe';
+import { FormatMediaItemPipe } from './pipes/format-media-item.pipe';
 
 /**
  * Provides the {@link AppConfig} reference.
@@ -66,7 +67,16 @@ export function initializeApiConfig(appConfig: AppConfig) {
     ResolveMediaItemPipe,
     ResolveMediaItemUrlPipe,
     ResolveMediaItemPreviewPipe,
+    FormatMediaItemPipe,
   ],
-  providers: [AuthenticationService, NavigationService, CanDeactivateGuard, FormatTemporalPointPipe, FormatTemporalUnitPipe, FormatTimePipePipe, Epoch2DatePipePipe],
+  providers: [
+    AuthenticationService,
+    NavigationService,
+    CanDeactivateGuard,
+    FormatTemporalPointPipe,
+    FormatTemporalUnitPipe,
+    FormatTimePipePipe,
+    Epoch2DatePipePipe,
+    FormatMediaItemPipe],
 })
 export class ServicesModule {}

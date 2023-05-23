@@ -121,7 +121,7 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
       } as ConfirmationDialogComponentData
     });
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
+      if (result === true) {
         this.builderService.removeTask(task);
       }
     });

@@ -1,0 +1,55 @@
+<div>
+  <mat-form-field style="width: 45%;">
+    <input
+      type="text"
+      matInput
+      placeholder="Media item"
+      [formControl]="itemControl"
+      [matAutocomplete]="autoGroup"
+    />
+    <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="displayWithMediaItem">
+      <mat-option
+        *ngFor="let mediaItem of this.formBuilder.dataSource('components.' + index + '.mediaItem') | async"
+        [value]="mediaItem"
+      >
+        <span>{{ mediaItem.name }}</span> |
+        <small>Type: {{ mediaItem.type }}, ID: {{ mediaItem.mediaItemId }}</small>
+      </mat-option>
+      <mat-error *ngIf="itemControl.hasError('incorrect')">
+        Please select a valid media item i.e. use the autocomplete to select a value.
+      </mat-error>
+    </mat-autocomplete>
+  </mat-form-field>
+  <mat-form-field style="width: 10%">
+    <input
+      #descStart
+      [type]="'text'"
+      matInput
+      placeholder="Segment start"
+      [formControl]="startControl"
+    />
+  </mat-form-field>
+  <mat-form-field style="width: 10%">
+    <input
+      #descEnd
+      [type]="'text'"
+      matInput
+      placeholder="Segment end"
+      [formControl]="endControl"
+    />
+  </mat-form-field>
+  <mat-form-field style="width: 20%">
+    <mat-select
+      [formControl]="unitControl"
+      (selectionChange)="timeUnitChanged($event, descStart, descEnd)"
+    >
+      <!--  -->
+      <mat-option *ngFor="let unit of units" [value]="unit">{{ unit }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <button mat-icon-button aria-label="Toggle preview media item" matTooltip="Toggle preview media item" (click)="showing = !showing; $event.stopPropagation()">
+    <mat-icon>visibility{{showing ? '_off' : ''}}</mat-icon>
+  </button>
+</div>
+<app-video-player-segment-builder *ngIf="showing" style="max-width:100%;" [data]="segmentBuilderData()"
+                                  (rangeChange)="rangeChanged($event)"></app-video-player-segment-builder>

@@ -81,6 +81,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
         this.taskType = null;
       }
     })
+
   }
 
   ngOnDestroy() {
@@ -242,7 +243,28 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
   }
 
   toggleExternalVideoPreview(path: string, startControl?: UntypedFormControl, endControl?: UntypedFormControl, unitControl?: UntypedFormControl) {
+    let start = -1;
+    let end = -1;
+    const unit = unitControl?.value ? (unitControl.value as ApiTemporalUnit) : ApiTemporalUnit.SECONDS;
+    if (startControl && startControl.value) {
+      if (unitControl.value === 'TIMECODE') {
+        start = TimeUtilities.timeCode2Milliseconds24fps(startControl.value) / 1000;
+      } else {
+        start =
+          TimeUtilities.point2Milliseconds24fps({ value: startControl.value, unit } as ApiTemporalPoint) / 1000;
+      }
+    }
+    if (endControl && endControl.value) {
+      if (unitControl.value === 'TIMECODE') {
+        end = TimeUtilities.timeCode2Milliseconds24fps(endControl.value) / 1000;
+      } else {
+        end = TimeUtilities.point2Milliseconds24fps({ value: endControl.value, unit } as ApiTemporalPoint) / 1000;
+      }
+    }
 
+    console.log('Start=' + start + ', End=' + end);
+    this.externalVideoData = { externalPath: path, segmentStart: start, segmentEnd: end } as VideoPlayerSegmentBuilderData;
+    this.externalVideoPreviewActive = !this.externalVideoPreviewActive;
   }
 
   externalPreviewActive():boolean{

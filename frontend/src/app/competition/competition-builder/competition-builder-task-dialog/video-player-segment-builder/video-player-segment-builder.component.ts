@@ -3,11 +3,18 @@ import { Observable, of, Subscription } from 'rxjs';
 import { ApiMediaItem, ApiTemporalPoint, ApiTemporalRange } from '../../../../../../openapi';
 import { AppConfig } from '../../../../app.config';
 
+/**
+ * DTO for [VideoPlayerSegmentBuilder] configuration.
+ * Requires either `mediaItem` or `externalPath` to be set.
+ * `segmentStart` and `segmentEnd` are optional
+ */
 export interface VideoPlayerSegmentBuilderData {
-  mediaItem: ApiMediaItem;
-  segmentStart: number;
-  segmentEnd: number;
+  mediaItem?: ApiMediaItem;
+  segmentStart?: number;
+  segmentEnd?: number;
+  externalPath?:string;
 }
+
 
 @Component({
   selector: 'app-video-player-segment-builder',
@@ -17,6 +24,7 @@ export interface VideoPlayerSegmentBuilderData {
 export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDestroy {
   @Input() data: VideoPlayerSegmentBuilderData;
   @Output() rangeChange = new EventEmitter<ApiTemporalRange>();
+  @Input() showTitle = true
 
   @ViewChild('videoPlayer', { static: false }) video: ElementRef;
   videoUrl: Observable<string>;
@@ -30,11 +38,17 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
 
   private requestSub: Subscription;
 
+  isMediaItemPlayer = false;
+
   constructor(
     public config: AppConfig /*,
                 public dialogRef: MatDialogRef<VideoPlayerSegmentBuilderData>,
                 @Inject(MAT_DIALOG_DATA) public data: VideoPlayerSegmentBuilderData*/
-  ) {}
+  ) {
+    if(this.data){
+      this.isMediaItemPlayer = this.data.mediaItem && !this.data.externalPath;
+    }
+  }
 
   ngAfterViewInit(): void {
     setTimeout(() => {
@@ -42,9 +56,9 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
        * timeout because of value changed after checking thingy
        * https://blog.angular-university.io/angular-debugging/
        */
-      if (this.data.mediaItem) {
+      if (this.data) {
         this.videoUrl = of(
-          this.config.resolveApiUrl(`/media/${this.data?.mediaItem?.mediaItemId}`)
+          this.isMediaItemPlayer ? this.config.resolveMediaItemUrl(this.data.mediaItem.mediaItemId) : this.config.resolveExternalUrl(this.data.externalPath)
         );
       }
       if (this.data.segmentStart) {

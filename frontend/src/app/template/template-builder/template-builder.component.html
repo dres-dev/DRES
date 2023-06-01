@@ -34,21 +34,21 @@
             <app-template-information></app-template-information>
         </mat-tab>
         <mat-tab bodyClass="p2e" label="Teams & Judges">
-            <div class="flex flex-row content-between align-start">
-                <app-teams-list class="flex-68"></app-teams-list>
-                <app-judges-list class="flex-28"></app-judges-list>
+            <div class="tb-container-3col-left">
+                <app-teams-list class="content-left"></app-teams-list>
+                <app-judges-list class="content-right"></app-judges-list>
             </div>
         </mat-tab>
         <mat-tab bodyClass="p2e" label="Task Types & Task Groups">
-            <div class="flex flex-row content-between align-start flex-small-gap">
-                <app-task-types-list class="flex-66"></app-task-types-list>
-                <app-task-groups-list class="flex-33"></app-task-groups-list>
+            <div class="tb-container-3col-left">
+                <app-task-types-list class="content-left"></app-task-types-list>
+                <app-task-groups-list class="content-right"></app-task-groups-list>
             </div>
         </mat-tab>
         <mat-tab bodyClass="p2e" label="Tasks">
-            <div class="flex flex-row content-between align-start">
-                <app-task-templates-list [editorLauncher]="this" class="flex-48"></app-task-templates-list>
-                <app-task-template-editor #taskTemplateEditor class="flex-48"></app-task-template-editor>
+            <div class="tb-container-2col">
+                <app-task-templates-list [editorLauncher]="this" class="content-left"></app-task-templates-list>
+                <app-task-template-editor #taskTemplateEditor class="content-right"></app-task-template-editor>
             </div>
         </mat-tab>
 

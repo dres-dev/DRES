@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from "@angular/core";
 import { Observable, of, Subscription } from 'rxjs';
 import { ApiMediaItem, ApiTemporalPoint, ApiTemporalRange } from '../../../../../../openapi';
 import { AppConfig } from '../../../../app.config';
@@ -21,7 +21,7 @@ export interface VideoPlayerSegmentBuilderData {
   templateUrl: './video-player-segment-builder.component.html',
   styleUrls: ['./video-player-segment-builder.component.scss'],
 })
-export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDestroy {
+export class VideoPlayerSegmentBuilderComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() data: VideoPlayerSegmentBuilderData;
   @Output() rangeChange = new EventEmitter<ApiTemporalRange>();
   @Input() showTitle = true
@@ -45,12 +45,11 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
                 public dialogRef: MatDialogRef<VideoPlayerSegmentBuilderData>,
                 @Inject(MAT_DIALOG_DATA) public data: VideoPlayerSegmentBuilderData*/
   ) {
-    if(this.data){
-      this.isMediaItemPlayer = this.data.mediaItem && !this.data.externalPath;
-    }
   }
 
   ngAfterViewInit(): void {
+    console.log("VIDEO DATA: ",this.data);
+    console.log("MEDIA ITEM", this.isMediaItemPlayer)
     setTimeout(() => {
       /*
        * timeout because of value changed after checking thingy
@@ -166,5 +165,14 @@ export class VideoPlayerSegmentBuilderComponent implements AfterViewInit, OnDest
     } as ApiTemporalRange;
     console.log(`Fetched: ${out}`);
     return out;
+  }
+
+  ngOnInit(): void {
+    if(this.data){
+      if(this.data.mediaItem && this.data.mediaItem.mediaItemId){
+        console.log("media item!")
+        this.isMediaItemPlayer = true;
+      }
+    }
   }
 }

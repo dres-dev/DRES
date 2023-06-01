@@ -1,22 +1,23 @@
 <div>
-  <mat-form-field style="width: 100%;">
-  <input type="text" matInput placeholder="Media item" [formControl]="itemControl" [matAutocomplete]="autoGroup" />
-  <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="displayWithMediaItem">
-    <mat-option
-      *ngFor="let mediaItem of this.formBuilder.dataSource('components.' + index + '.mediaItem') | async"
-      [value]="mediaItem"
-    >
-      <span>{{ mediaItem.name }}</span> |
-      <small>Type: {{ mediaItem.type }}, ID: {{ mediaItem.mediaItemId }}</small>
-    </mat-option>
+  <mat-form-field style="width: 90%;">
+    <input type="text" matInput placeholder="Media item" [formControl]="itemControl" [matAutocomplete]="autoGroup" />
+    <mat-autocomplete #autoGroup="matAutocomplete" [displayWith]="displayWithMediaItem">
+      <mat-option
+        *ngFor="let mediaItem of this.formBuilder.dataSource('components.' + index + '.mediaItem') | async"
+        [value]="mediaItem"
+      >
+        <span>{{ mediaItem.name }}</span> |
+        <small>Type: {{ mediaItem.type }}, ID: {{ mediaItem.mediaItemId }}</small>
+      </mat-option>
+    </mat-autocomplete>
     <mat-error *ngIf="itemControl.hasError('incorrect')">
       Please select a valid media item, i.e., use the autocomplete to select a value.
     </mat-error>
-  </mat-autocomplete>
-</mat-form-field>
-<button mat-icon-button aria-label="Toggle preview media item" matTooltip="Toggle preview media item" (click)="showing = !showing; $event.stopPropagation()">
-  <mat-icon>visibility{{showing ? '_off' : ''}}</mat-icon>
-</button>
+  </mat-form-field>
+  <button mat-icon-button aria-label="Toggle preview media item" matTooltip="Toggle preview media item"
+          (click)="showing = !showing; $event.stopPropagation()">
+    <mat-icon>visibility{{showing ? '_off' : ''}}</mat-icon>
+  </button>
 </div>
 <app-media-item-viewer *ngIf="showing" [item]="itemControl.value" [toggleable]="false"
                        [displayNameAndId]="false"></app-media-item-viewer>

@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, Injector, Input } from "@angular/core";
 import { UntypedFormControl } from "@angular/forms";
 import {
   CompetitionFormBuilder
@@ -7,24 +7,35 @@ import { FormatMediaItemPipe, MediaItemDisplayOptions } from "../../../../servic
 import { ApiMediaItem } from "../../../../../../openapi";
 
 @Component({
-  selector: 'app-query-description-media-item-form-field',
-  templateUrl: './query-description-media-item-form-field.component.html',
-  styleUrls: ['./query-description-media-item-form-field.component.scss']
+  selector: "app-query-description-media-item-form-field",
+  templateUrl: "./query-description-media-item-form-field.component.html",
+  styleUrls: ["./query-description-media-item-form-field.component.scss"]
 })
 export class QueryDescriptionMediaItemFormFieldComponent {
   @Input()
-  itemControl: UntypedFormControl
+  itemControl: UntypedFormControl;
   @Input()
-  formBuilder: CompetitionFormBuilder
+  formBuilder: CompetitionFormBuilder;
   @Input()
-  index: number
+  index: number;
 
   showing: boolean;
 
-  constructor(private formatMediaItem: FormatMediaItemPipe) {
+  protected formatMediaItemPipe: FormatMediaItemPipe;
+
+  constructor(injector: Injector) {
+    this.formatMediaItemPipe = injector.get(FormatMediaItemPipe);
   }
 
-  public displayWithMediaItem(value: ApiMediaItem): string{
-    return this.formatMediaItem.transform(value, {showType: true} as MediaItemDisplayOptions)
+  public displayWithMediaItem(value: ApiMediaItem): string {
+    if(value){
+      if (this.formatMediaItemPipe) {
+        return this.formatMediaItemPipe.transform(value, { showType: true } as MediaItemDisplayOptions);
+      } else {
+        return `${value.name} (${value.type})`;
+      }
+    }else{
+      return '';
+    }
   }
 }

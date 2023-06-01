@@ -50,7 +50,8 @@ export function initializeApiConfig(appConfig: AppConfig) {
     FormatTemporalPointPipe,
     ResolveMediaItemPipe,
     ResolveMediaItemUrlPipe,
-    ResolveMediaItemPreviewPipe
+    ResolveMediaItemPreviewPipe,
+    FormatMediaItemPipe
   ],
   declarations: [
     RoundPipePipe,

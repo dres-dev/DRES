@@ -1,13 +1,14 @@
-import { Component, Input } from "@angular/core";
+import { Component, Injector, Input } from "@angular/core";
 import {
   QueryDescriptionMediaItemFormFieldComponent
 } from "../query-description-media-item-form-field/query-description-media-item-form-field.component";
 import { UntypedFormControl } from "@angular/forms";
-import { ApiTemporalPoint, ApiTemporalRange, ApiTemporalUnit } from "../../../../../../openapi";
+import { ApiMediaItem, ApiTemporalPoint, ApiTemporalRange, ApiTemporalUnit } from "../../../../../../openapi";
 import {
   VideoPlayerSegmentBuilderData
 } from "../../../../competition/competition-builder/competition-builder-task-dialog/video-player-segment-builder/video-player-segment-builder.component";
 import { TimeUtilities } from "../../../../utilities/time.utilities";
+import { FormatMediaItemPipe, MediaItemDisplayOptions } from "../../../../services/pipes/format-media-item.pipe";
 
 @Component({
   selector: 'app-query-description-media-item-video-form-field',
@@ -23,7 +24,14 @@ export class QueryDescriptionMediaItemVideoFormFieldComponent extends QueryDescr
   @Input()
   unitControl
 
+
+
   units = [ApiTemporalUnit.FRAME_NUMBER, ApiTemporalUnit.MILLISECONDS, ApiTemporalUnit.SECONDS, ApiTemporalUnit.TIMECODE]
+
+
+  constructor(injector: Injector) {
+    super(injector)
+  }
 
   timeUnitChanged($event, start: HTMLInputElement, end: HTMLInputElement){
     const type = $event.value === 'TIMECODE' ? 'text' :'number';

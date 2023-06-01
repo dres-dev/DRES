@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, Injector, Input } from "@angular/core";
 import { UntypedFormControl } from "@angular/forms";
 import {
   CompetitionFormBuilder
@@ -15,6 +15,10 @@ import {
   styleUrls: ['./query-description-media-item-image-form-field.component.scss']
 })
 export class QueryDescriptionMediaItemImageFormFieldComponent extends QueryDescriptionMediaItemFormFieldComponent{
+
+  constructor(injector: Injector) {
+    super(injector)
+  }
 
 
 

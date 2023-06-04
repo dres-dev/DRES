@@ -27,6 +27,7 @@ import dev.dres.api.rest.handler.preview.PreviewImageHandler
 import dev.dres.api.rest.handler.preview.PreviewVideoHandler
 import dev.dres.api.rest.handler.scores.ListEvaluationScoreHandler
 import dev.dres.api.rest.handler.submission.LegacySubmissionHandler
+import dev.dres.api.rest.handler.submission.SubmissionHandler
 import dev.dres.api.rest.handler.system.CurrentTimeHandler
 import dev.dres.api.rest.handler.system.InfoHandler
 import dev.dres.api.rest.handler.system.LoginHandler
@@ -133,6 +134,7 @@ object RestApi {
 
             // Submission
             LegacySubmissionHandler(store, cache),
+            SubmissionHandler(store, config),
 
             // Log
             QueryLogHandler(),

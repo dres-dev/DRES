@@ -8,4 +8,10 @@ object Defaults {
     const val PROLONG_ON_SUBMISSION_BY_DEFAULT = 5
 
     const val PROLONG_ON_SUBMISSION_CORRECT_DEFAULT = false
+
+    /** Default interval for scoreboard updates in ms. TODO: Make configurable. */
+    const val SCOREBOARD_UPDATE_INTERVAL_DEFAULT = 5000L
+
+    /** Default timeout for viewer in ms. TODO: make configurable */
+    const val VIEWER_TIMEOUT_DEFAULT = 30_000L
 }

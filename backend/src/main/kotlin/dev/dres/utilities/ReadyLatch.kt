@@ -78,7 +78,7 @@ class ReadyLatch<T> {
         for (e in this.map.keys) {
             this.map[e] = false
         }
-        this.timeout = if (timeout != null) (1000L * timeout) + System.currentTimeMillis() else null
+        this.timeout = timeout?.let { it + System.currentTimeMillis() }
     }
 
     /**

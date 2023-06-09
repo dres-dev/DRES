@@ -16,16 +16,13 @@ import java.util.*
  * @author Ralph Gasser & Luca Rossetto
  * @version 1.1.1
  */
-class ScoreboardsUpdatable(val manager: RunManager, private val updateIntervalMs: Long): StatefulUpdatable {
+class ScoreboardsUpdatable(val manager: RunManager, private val updateIntervalMs: Long): Updatable {
 
     /** The [Phase] this [ScoreboardsUpdatable] belongs to. */
     override val phase: Phase = Phase.MAIN
 
-    /** Indicates, that this [ScoreboardsUpdatable] has unprocessed changes. */
-    @Volatile
-    override var dirty: Boolean = true
-
     /** Timestamp of the last update. */
+    @Volatile
     private var lastUpdate: Long = System.currentTimeMillis()
 
     /** List of all [ScoreTimePoint]s tracked by this [ScoreboardsUpdatable]. */
@@ -34,10 +31,10 @@ class ScoreboardsUpdatable(val manager: RunManager, private val updateIntervalMs
     val timeSeries: List<ScoreTimePoint>
         get() = this._timeSeries
 
+    @Synchronized
     override fun update(runStatus: RunManagerStatus, taskStatus: ApiTaskStatus?, context: RunActionContext) {
         val now = System.currentTimeMillis()
-        if (this.dirty && (now - lastUpdate) > this.updateIntervalMs) {
-            this.dirty = false
+        if ((now - this.lastUpdate) > this.updateIntervalMs) {
             this.lastUpdate = now
             this.manager.store.transactional(true) {
                 this.manager.scoreboards.forEach {

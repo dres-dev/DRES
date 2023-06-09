@@ -22,6 +22,13 @@ import jetbrains.exodus.database.TransientEntityStore
  * @version 2.0.0
  */
 interface RunManager : Runnable {
+
+    companion object {
+        /** The maximum number of errors that may occur in a run loop befor aborting execution. */
+        const val MAXIMUM_RUN_LOOP_ERROR_COUNT = 5
+    }
+
+
     /** Unique, public [EvaluationId] for this [RunManager]. */
     val id: EvaluationId
 

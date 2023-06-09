@@ -15,10 +15,9 @@ import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.*
 import dev.dres.data.model.template.task.options.DbSubmissionOption
-import dev.dres.data.model.template.task.options.DbTaskOption
-import dev.dres.data.model.template.task.options.Defaults
-import dev.dres.data.model.template.task.options.Parameters
+import dev.dres.data.model.template.task.options.Defaults.SCOREBOARD_UPDATE_INTERVAL_DEFAULT
 import dev.dres.data.model.template.team.TeamId
+import dev.dres.run.RunManager.Companion.MAXIMUM_RUN_LOOP_ERROR_COUNT
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
@@ -28,7 +27,7 @@ import dev.dres.run.updatables.*
 import dev.dres.run.validation.interfaces.JudgementValidator
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
-import kotlinx.dnq.query.FilteringContext.eq
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -45,7 +44,7 @@ import kotlin.math.max
  * can take place at different points in time for different teams and tasks, i.e., the competitions are executed
  * asynchronously.
  *
- * @version 1.0.0
+ * @version 2.0.0
  * @author Ralph Gasser
  */
 class InteractiveAsynchronousRunManager(
@@ -54,9 +53,8 @@ class InteractiveAsynchronousRunManager(
 ) : InteractiveRunManager {
 
     companion object {
+        /** The [Logger] instance used by [InteractiveAsynchronousRunManager]. */
         private val LOGGER = LoggerFactory.getLogger(InteractiveAsynchronousRunManager::class.java)
-        private const val SCOREBOARD_UPDATE_INTERVAL_MS = 1000L // TODO make configurable
-        private const val MAXIMUM_ERROR_COUNT = 5
     }
 
     /** Generates and returns [RunProperties] for this [InteractiveAsynchronousRunManager]. */
@@ -80,7 +78,7 @@ class InteractiveAsynchronousRunManager(
     private val stateLock = ReentrantReadWriteLock()
 
     /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable = ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_MS)
+    private val scoreboardsUpdatable = ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_DEFAULT)
 
     /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
     private val scoresUpdatable = ScoresUpdatable(this)
@@ -296,9 +294,6 @@ class InteractiveAsynchronousRunManager(
         //FIXME since task run and competition run states are separated, this is not actually a state change
         this.statusMap[context.teamId] = RunManagerStatus.ACTIVE
 
-        /* Mark scoreboards for update. */
-        this.scoreboardsUpdatable.dirty = true
-
         /* Enqueue WS message for sending */
         RunExecutor.broadcastWsMessage(
             context.teamId,
@@ -342,9 +337,6 @@ class InteractiveAsynchronousRunManager(
         val currentTaskRun = this.evaluation.IATaskRun(currentTaskTemplate, context.teamId)
         currentTaskRun.prepare()
 
-        /* Mark scoreboards and DAO for update. */
-        this.scoreboardsUpdatable.dirty = true
-
         /* Enqueue WS message for sending */
         RunExecutor.broadcastWsMessage(
             context.teamId,
@@ -373,9 +365,6 @@ class InteractiveAsynchronousRunManager(
         val currentTask = this.currentTask(context)
             ?: throw IllegalStateException("Could not find active task for team ${context.teamId} despite status of the team being ${this.statusMap[context.teamId]}. This is a programmer's error!")
         currentTask.end()
-
-        /* Mark scoreboards and DAO for update. */
-        this.scoreboardsUpdatable.dirty = true
 
         /* Enqueue WS message for sending */
         RunExecutor.broadcastWsMessage(
@@ -695,12 +684,12 @@ class InteractiveAsynchronousRunManager(
                 )
 
                 // oh shit, something went horribly, horribly wrong
-                if (errorCounter >= MAXIMUM_ERROR_COUNT) {
-                    LOGGER.error("Reached maximum consecutive error count of  $MAXIMUM_ERROR_COUNT; terminating loop...")
+                if (errorCounter >= MAXIMUM_RUN_LOOP_ERROR_COUNT) {
+                    LOGGER.error("Reached maximum consecutive error count of  $MAXIMUM_RUN_LOOP_ERROR_COUNT; terminating loop...")
                     RunExecutor.dump(this.evaluation)
                     break
                 } else {
-                    LOGGER.error("This is the ${++errorCounter}-th in a row. Run manager will terminate loop after $MAXIMUM_ERROR_COUNT errors")
+                    LOGGER.error("This is the ${++errorCounter}-th in a row. Run manager will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")
                 }
             }
         }

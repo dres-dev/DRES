@@ -16,6 +16,9 @@ import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.task.options.DbSubmissionOption
 import dev.dres.data.model.template.task.options.DbTaskOption
+import dev.dres.data.model.template.task.options.Defaults.SCOREBOARD_UPDATE_INTERVAL_DEFAULT
+import dev.dres.data.model.template.task.options.Defaults.VIEWER_TIMEOUT_DEFAULT
+import dev.dres.run.RunManager.Companion.MAXIMUM_RUN_LOOP_ERROR_COUNT
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
@@ -27,6 +30,7 @@ import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.ReadyLatch
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -42,14 +46,11 @@ import kotlin.math.max
  */
 class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynchronousEvaluation, override val store: TransientEntityStore) : InteractiveRunManager {
 
-    private val VIEWER_TIME_OUT = 30L //TODO make configurable
 
-    private val SCOREBOARD_UPDATE_INTERVAL_MS = 1000L // TODO make configurable
-
-    private val LOGGER = LoggerFactory.getLogger(this.javaClass)
-
-    /** Number of consecutive errors which have to occur within the main execution loop before it tries to gracefully terminate */
-    private val maxErrorCount = 5
+    companion object {
+        /** The [Logger] instance used by [InteractiveSynchronousRunManager]. */
+        private val LOGGER = LoggerFactory.getLogger(InteractiveSynchronousRunManager::class.java)
+    }
 
     /** Generates and returns [RunProperties] for this [InteractiveAsynchronousRunManager]. */
     override val runProperties: RunProperties
@@ -92,7 +93,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     private val readyLatch = ReadyLatch<WebSocketConnection>()
 
     /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable = ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_MS)
+    private val scoreboardsUpdatable = ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_DEFAULT)
 
     /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
     private val scoresUpdatable = ScoresUpdatable(this)
@@ -218,9 +219,6 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             /* Update active task. */
             this.evaluation.goTo(index)
 
-            /* Mark scoreboards for update. */
-            this.scoreboardsUpdatable.dirty = true
-
             /* Enqueue WS message for sending */
             RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_UPDATE, this.evaluation.currentTask?.taskId))
             LOGGER.info("SynchronousRunManager ${this.id} set to task $index")
@@ -245,11 +243,8 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         /* Update status. */
         this.evaluation.currentTask!!.prepare()
 
-        /* Mark scoreboards and dao for update. */
-        this.scoreboardsUpdatable.dirty = true
-
         /* Reset the ReadyLatch. */
-        this.readyLatch.reset(VIEWER_TIME_OUT)
+        this.readyLatch.reset(VIEWER_TIMEOUT_DEFAULT)
 
         /* Enqueue WS message for sending */
         RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_PREPARE, this.evaluation.currentTask?.taskId))
@@ -264,9 +259,6 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
 
         /* End TaskRun and persist. */
         this.currentTask(context)?.end()
-
-        /* Mark scoreboards and dao for update. */
-        this.scoreboardsUpdatable.dirty = true
 
         /* Enqueue WS message for sending */
         RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_END, this.currentTask(context)?.taskId))
@@ -518,7 +510,6 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
 
             /* Enqueue WS message for sending */
             RunExecutor.broadcastWsMessage(context.teamId!!, ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.taskId))
-
             return true
         }
 
@@ -566,10 +557,10 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 return
             } catch (e: Throwable) {
                 LOGGER.error("Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!", e)
-                LOGGER.error("This is the ${++errorCounter}. in a row, will terminate loop after $maxErrorCount errors")
+                LOGGER.error("This is the ${++errorCounter}. in a row, will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")
 
                 // oh shit, something went horribly, horribly wrong
-                if (errorCounter >= this.maxErrorCount) {
+                if (errorCounter >= MAXIMUM_RUN_LOOP_ERROR_COUNT) {
                     LOGGER.error("Reached maximum consecutive error count, terminating loop")
                     RunExecutor.dump(this.evaluation)
                     break //terminate loop

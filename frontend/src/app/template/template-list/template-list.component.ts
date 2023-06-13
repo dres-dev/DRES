@@ -80,7 +80,7 @@ export class TemplateListComponent implements AfterViewInit{
   }
 
   public edit(templateId: string){
-    this.router.navigate(['/template/builder', templateId]);
+    this.router.navigate(['/template/builder', templateId]).then(s => {});
   }
 
   public delete(templateId: string){

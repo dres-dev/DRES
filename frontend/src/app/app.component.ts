@@ -45,12 +45,12 @@ export class AppComponent {
   public logout() {
     this.authenticationService.logout().subscribe(() => {
       this.snackBar.open(`Logout successful!`, null, { duration: 5000 });
-      this.router.navigate(['/']);
+      this.router.navigate(['/']).then(r => {});
     });
   }
 
   public profile() {
-    this.router.navigate(['/user']);
+    this.router.navigate(['/user']).then(r => {});
   }
 
   public openInfoDialog(){

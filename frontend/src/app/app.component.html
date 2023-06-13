@@ -60,7 +60,7 @@
     </mat-menu>
     <button mat-button [matMenuTriggerFor]="userMenu">
       <mat-icon>person</mat-icon>
-      {{ (user | async).username }}
+      {{ (user | async)?.username }}
     </button>
   </div>
 </mat-toolbar>

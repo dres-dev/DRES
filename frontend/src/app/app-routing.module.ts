@@ -1,8 +1,6 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes, UrlSerializer } from '@angular/router';
-import { CompetitionListComponent } from './competition/competition-list/competition-list.component';
+import {RouterModule, Routes, UrlSerializer} from '@angular/router';
 import { LoginComponent } from './user/login/login.component';
-import { AuthenticationGuard } from './services/session/authentication.guard';
 import { RunViewerComponent } from './viewer/run-viewer.component';
 import { ProfileComponent } from './user/profile/profile.component';
 import { AdminUserListComponent } from './user/admin-user-list/admin-user-list.component';
@@ -13,15 +11,19 @@ import { CollectionListComponent } from './collection/collection-list/collection
 import { CollectionViewerComponent } from './collection/collection-viewer/collection-viewer.component';
 import { AdminAuditlogOverviewComponent } from './auditlog/admin-auditlog-overview/admin-auditlog-overview.component';
 import { CanDeactivateGuard } from './services/can-deactivate.guard';
-import { RunAdminSubmissionsListComponent } from './run/run-admin-submissions-list/run-admin-submissions-list.component';
 import { RunScoreHistoryComponent } from './run/score-history/run-score-history.component';
 import { JudgementVotingViewerComponent } from './judgement/judgement-voting-viewer.component';
 import { RunAsyncAdminViewComponent } from './run/run-async-admin-view/run-async-admin-view.component';
-import { NonescapingUrlserializerClass } from './nonescaping-urlserializer.class';
-import {ApiRole} from '../../openapi';
 import {TemplateBuilderComponent} from './template/template-builder/template-builder.component';
 import { TemplateListComponent } from "./template/template-list/template-list.component";
 import { SubmissionsListComponent } from "./evaluation/admin/submission/submissions-list/submissions-list.component";
+import {
+  canActivateAdministrator,
+  canActivateAnyRole,
+  canActivateJudge,
+  canActivatePublicVote
+} from "./services/session/guard";
+import {NonescapingUrlserializerClass} from "./nonescaping-urlserializer.class";
 
 /**
  * The ROUTE for evaluation templates.
@@ -38,107 +40,89 @@ const routes: Routes = [
   {
     path: TEMPLATE_ROUTE + '/list',
     component: TemplateListComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [ApiRole.ADMIN] },
+    canActivate: [canActivateAdministrator]
   },
   {
     path: TEMPLATE_ROUTE+'/builder/:templateId',
     component: TemplateBuilderComponent,
-    canActivate: [AuthenticationGuard],
-    canDeactivate: [CanDeactivateGuard],
-    data: { roles: [ApiRole.ADMIN] },
+    canActivate: [canActivateAdministrator],
+    canDeactivate: [CanDeactivateGuard]
   },
   {
     path: EVALUATION_ROUTE+'/list',
     component: RunListComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [ApiRole.ADMIN, ApiRole.VIEWER, ApiRole.PARTICIPANT, ApiRole.JUDGE] },
+    canActivate: [canActivateAnyRole]
   },
   {
     path: EVALUATION_ROUTE+'/admin/:runId',
     component: RunAdminViewComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [ApiRole.ADMIN] },
+    canActivate: [canActivateAdministrator]
   },
   {
     path: EVALUATION_ROUTE+'/scores/:runId',
     component: RunScoreHistoryComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [ApiRole.ADMIN] },
+    canActivate: [canActivateAdministrator]
   },
   {
     path: EVALUATION_ROUTE+'/admin/async/:runId',
     component: RunAsyncAdminViewComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [ApiRole.ADMIN] },
+    canActivate: [canActivateAdministrator]
   },
   {
     path: EVALUATION_ROUTE+'/admin/submissions/:runId/:taskId',
     component: SubmissionsListComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [ApiRole.ADMIN] },
+    canActivate: [canActivateAdministrator]
   },
   {
     path: EVALUATION_ROUTE+'/viewer/:runId',
     component: RunViewerComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [ApiRole.ADMIN, ApiRole.VIEWER, ApiRole.PARTICIPANT, ApiRole.JUDGE] },
+    canActivate: [canActivateAnyRole]
   },
   {
     path: 'judge/:runId',
     component: JudgementViewerComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [ApiRole.ADMIN, ApiRole.JUDGE] },
+    canActivate: [canActivateJudge]
   },
   {
     path: 'vote/:runId',
     component: JudgementVotingViewerComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [ApiRole.ADMIN, ApiRole.JUDGE, ApiRole.VIEWER] },
+    canActivate: [canActivatePublicVote]
   },
-
-  { path: 'login', component: LoginComponent },
 
   {
     path: 'user',
     component: ProfileComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [ApiRole.ADMIN, ApiRole.VIEWER, ApiRole.JUDGE, ApiRole.PARTICIPANT] },
+    canActivate: [canActivateAnyRole]
   },
 
   {
     path: 'user/list',
     component: AdminUserListComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [ApiRole.ADMIN] },
+    canActivate: [canActivateAdministrator]
   },
   {
     path: 'collection/list',
     component: CollectionListComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [ApiRole.ADMIN] },
+    canActivate: [canActivateAdministrator]
   },
   {
     path: 'collection/:collectionId',
     component: CollectionViewerComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [ApiRole.ADMIN] },
+    canActivate: [canActivateAdministrator]
   },
 
   {
     path: 'logs/list',
     component: AdminAuditlogOverviewComponent,
-    canActivate: [AuthenticationGuard],
-    data: { roles: [ApiRole.ADMIN] },
+    canActivate: [canActivateAdministrator]
   },
 
-  // otherwise redirect to home
-  { path: '**', redirectTo: '' },
+  { path: 'login', component: LoginComponent }
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes, { enableTracing: false })], // enable tracing for debugging
   exports: [RouterModule],
-  providers: [{ provide: UrlSerializer, useClass: NonescapingUrlserializerClass }],
+  providers: [{ provide: UrlSerializer, useClass: NonescapingUrlserializerClass }]
 })
 export class AppRoutingModule {}

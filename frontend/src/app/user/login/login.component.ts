@@ -30,7 +30,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.returnUrl = this.route.snapshot.queryParams.returnUrl || '/';
     this.authenticationServiceSubscription = this.authenticationService.isLoggedIn.subscribe((b) => {
       if (b) {
-        this.router.navigate([this.returnUrl]);
+        this.router.navigate([this.returnUrl]).then(r => {})
       }
     });
   }

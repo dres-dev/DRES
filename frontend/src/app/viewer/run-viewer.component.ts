@@ -85,7 +85,6 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Reference to the overlay template. Only available once view has been loaded. */
   private overlaySubscription: Subscription;
 
-
   /** Internal WebSocket subscription for pinging the server. */
   private pingSubscription: Subscription;
 

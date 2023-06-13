@@ -34,7 +34,7 @@ export class NavigationService {
         destination = this.history.pop();
       }
     }
-    this.router.navigateByUrl(destination);
+    this.router.navigateByUrl(destination).then(r => {});
   }
 
   /**
@@ -42,7 +42,7 @@ export class NavigationService {
    */
   forward(): void {
     if (this.alternateHistory.length > 0) {
-      this.router.navigateByUrl(this.alternateHistory.pop());
+      this.router.navigateByUrl(this.alternateHistory.pop()).then(r => {});
     } // Else: there is no forward anymore.
   }
 }

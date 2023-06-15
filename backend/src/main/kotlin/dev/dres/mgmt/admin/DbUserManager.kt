@@ -11,7 +11,7 @@ import java.util.*
  * User management class of DRES. Requires transaction context.
  *
  * @author Loris Sauter
- * @version 2.0.0
+ * @version 2.0.1
  */
 object DbUserManager {
 
@@ -26,7 +26,7 @@ object DbUserManager {
     fun create(username: String, password: Password.Hashed, role: DbRole): Boolean {
         try {
                 DbUser.new {
-                    this.username = username
+                    this.username = username.lowercase()
                     this.password = password.password
                     this.role = role
                 }
@@ -76,7 +76,7 @@ object DbUserManager {
             null
         }
         if (user == null) return false
-        if (username != null) user.username = username
+        if (username != null) user.username = username.lowercase()
         if (password != null) user.password = password.password
         if (role != null) user.role = role
         return true
@@ -113,7 +113,7 @@ object DbUserManager {
         val user = if (id != null) {
             DbUser.query(DbUser::id eq id).firstOrNull()
         } else if (username != null) {
-            DbUser.query(DbUser::username eq username).firstOrNull()
+            DbUser.query(DbUser::username eq username.lowercase()).firstOrNull()
         } else {
             null
         }
@@ -143,7 +143,7 @@ object DbUserManager {
         return if (id != null) {
             DbUser.query(DbUser::id eq id).isNotEmpty
         } else if (username != null) {
-            DbUser.query(DbUser::username eq username).isNotEmpty
+            DbUser.query(DbUser::username eq username.lowercase()).isNotEmpty
         } else {
             throw IllegalArgumentException("Either user ID or username must be non-null!")
         }
@@ -160,7 +160,7 @@ object DbUserManager {
             DbUser.query(DbUser::id eq id).firstOrNull()
         } else if (username != null) {
             // Note: during after create, the query below is empty within a readonly transaction (unexpected), but non-empty out of the transaction
-            DbUser.query(DbUser::username eq username).firstOrNull()
+            DbUser.query(DbUser::username eq username.lowercase()).firstOrNull()
         } else {
             null
         }

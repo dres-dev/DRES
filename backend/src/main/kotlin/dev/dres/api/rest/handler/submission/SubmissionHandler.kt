@@ -12,9 +12,13 @@ import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.config.Config
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.media.DbMediaCollection
+import dev.dres.data.model.run.NonInteractiveEvaluation
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.submissions.AnswerType
+import dev.dres.run.InteractiveAsynchronousRunManager
+import dev.dres.run.InteractiveRunManager
+import dev.dres.run.RunManager
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
@@ -71,7 +75,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
             }
 
             val apiSubmission = try {
-                transformClientSubmission(apiClientSubmission, runManager.evaluation, rac)
+                transformClientSubmission(apiClientSubmission, runManager, rac)
             } catch (e: Exception) {
                 throw ErrorStatusException(400, "Invalid submission: ${e.message}", ctx)
             }
@@ -98,20 +102,30 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
 
     }
 
-    private fun transformClientSubmission(apiClientSubmission: ApiClientSubmission, evaluationRun: EvaluationRun, rac: RunActionContext) : ApiSubmission{
+    private fun transformClientSubmission(apiClientSubmission: ApiClientSubmission, runManager: RunManager, rac: RunActionContext) : ApiSubmission{
 
         if (rac.userId == null || rac.teamId == null) {
             throw Exception("Invalid association between user and evaluation")
         }
 
+        val evaluationRun = runManager.evaluation
+
         val errorBuffer = StringBuffer()
 
         val answerSets = apiClientSubmission.answerSets.mapNotNull mapClientAnswerSet@{ clientAnswerSet ->
 
-            val task = evaluationRun.tasks.find { it.template.name == clientAnswerSet.taskName }
+            val task = if (runManager is InteractiveRunManager) {
+                runManager.currentTask(rac) //only accept submissions for current task in interactive runs
+            } else {
+                evaluationRun.tasks.find { it.template.name == clientAnswerSet.taskName } //look up task by name
+            }
 
             if (task == null) {
-                errorBuffer.append("task '${clientAnswerSet.taskName}' not found\n")
+                if (runManager is InteractiveRunManager) {
+                    errorBuffer.append("No active task\n")
+                } else {
+                    errorBuffer.append("task '${clientAnswerSet.taskName}' not found\n")
+                }
                 return@mapClientAnswerSet null
             }
 

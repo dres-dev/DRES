@@ -9,16 +9,13 @@ import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.audit.DbAuditLogEntry
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.audit.DbAuditLogType
+import dev.dres.data.model.media.*
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.*
 import dev.dres.data.model.template.task.options.*
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.DbTeamAggregator
 import dev.dres.data.model.template.team.DbTeamGroup
-import dev.dres.data.model.media.DbMediaCollection
-import dev.dres.data.model.media.DbMediaItem
-import dev.dres.data.model.media.DbMediaSegment
-import dev.dres.data.model.media.DbMediaType
 import dev.dres.data.model.run.*
 import dev.dres.data.model.submissions.*
 import dev.dres.mgmt.cache.CacheManager
@@ -130,6 +127,7 @@ object DRES {
             DbMediaType,
             DbMediaCollection,
             DbMediaItem,
+            DbMediaItemMetaDataEntry,
             DbMediaSegment,
             DbRole,
             DbScoreOption,

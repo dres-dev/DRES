@@ -1065,6 +1065,113 @@
         "security" : [ ]
       }
     },
+    "/api/v2/preview/{mediaItemId}/{start}/{end}" : {
+      "get" : {
+        "tags" : [ "Media" ],
+        "summary" : "Returns a preview video from a media item. ",
+        "operationId" : "getApiV2PreviewByMediaItemIdByStartByEnd",
+        "parameters" : [ {
+          "name" : "mediaItemId",
+          "in" : "path",
+          "description" : "Unique ID of the media item. Must be a video.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "start",
+          "in" : "path",
+          "description" : "Start timestamp into the video in milliseconds.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "end",
+          "in" : "path",
+          "description" : "End timestamp into the video in milliseconds.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "video/mp4" : { }
+            }
+          },
+          "202" : {
+            "description" : "Accepted"
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "description" : "Not Found"
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/preview/{mediaItemId}/{time}" : {
+      "get" : {
+        "tags" : [ "Media" ],
+        "summary" : "Returns a preview image from a media item.",
+        "operationId" : "getApiV2PreviewByMediaItemIdByTime",
+        "parameters" : [ {
+          "name" : "mediaItemId",
+          "in" : "path",
+          "description" : "Unique ID of the media item.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "timestamp",
+          "in" : "path",
+          "description" : "Time into the video in milliseconds (for videos only).",
+          "required" : false,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "image/jpeg" : { }
+            }
+          },
+          "202" : {
+            "description" : "Accepted"
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "404" : {
+            "description" : "Not Found"
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
     "/api/v2/status/info" : {
       "get" : {
         "tags" : [ "Status" ],
@@ -1110,6 +1217,78 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/CurrentTime"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      }
+    },
+    "/api/v2/submit/{evaluationId}" : {
+      "get" : {
+        "tags" : [ "Submission" ],
+        "summary" : "Endpoint to accept submissions",
+        "operationId" : "getApiV2SubmitByEvaluationId",
+        "parameters" : [ ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ApiClientSubmission"
+              }
+            }
+          },
+          "required" : false
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessStatus"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "412" : {
+            "description" : "Precondition Failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
                 }
               }
             }
@@ -1541,9 +1720,28 @@
           "fps" : {
             "type" : "number",
             "format" : "float"
+          },
+          "metadata" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiMediaItemMetaDataEntry"
+            }
           }
         },
-        "required" : [ "mediaItemId", "name", "type", "collectionId", "location" ]
+        "required" : [ "mediaItemId", "name", "type", "collectionId", "location", "metadata" ]
+      },
+      "ApiMediaItemMetaDataEntry" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "key" : {
+            "type" : "string"
+          },
+          "value" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "key", "value" ]
       },
       "ApiMediaType" : {
         "type" : "string",
@@ -1972,9 +2170,6 @@
           "end" : {
             "type" : "integer",
             "format" : "int64"
-          },
-          "temporalRange" : {
-            "$ref" : "#/components/schemas/TemporalRange"
           }
         },
         "required" : [ "type" ]
@@ -1997,16 +2192,65 @@
             "items" : {
               "$ref" : "#/components/schemas/ApiAnswer"
             }
-          },
-          "submission" : {
-            "$ref" : "#/components/schemas/ApiSubmission"
           }
         },
-        "required" : [ "id", "status", "taskId", "answers", "submission" ]
+        "required" : [ "id", "status", "taskId", "answers" ]
       },
       "ApiAnswerType" : {
         "type" : "string",
         "enum" : [ "ITEM", "TEMPORAL", "TEXT" ]
+      },
+      "ApiClientAnswer" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "text" : {
+            "type" : "string"
+          },
+          "itemName" : {
+            "type" : "string"
+          },
+          "itemCollectionName" : {
+            "type" : "string"
+          },
+          "start" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "end" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "ApiClientAnswerSet" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "taskName" : {
+            "type" : "string"
+          },
+          "answers" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiClientAnswer"
+            }
+          }
+        },
+        "required" : [ "answers" ]
+      },
+      "ApiClientSubmission" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "answerSets" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiClientAnswerSet"
+            }
+          }
+        },
+        "required" : [ "answerSets" ]
       },
       "ApiEvaluationInfo" : {
         "type" : "object",
@@ -2683,28 +2927,6 @@
           }
         },
         "required" : [ "timestamp", "sortType", "resultSetAvailability", "results", "events", "serverTimeStamp$backend" ]
-      },
-      "TemporalPoint" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : { }
-      },
-      "TemporalRange" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "start" : {
-            "$ref" : "#/components/schemas/TemporalPoint"
-          },
-          "end" : {
-            "$ref" : "#/components/schemas/TemporalPoint"
-          },
-          "center" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        },
-        "required" : [ "start", "end", "center" ]
       },
       "RunProperties" : {
         "type" : "object",

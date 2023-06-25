@@ -21,7 +21,7 @@ data class ApiMediaItem(
     val location: String,
     val durationMs: Long? = null,
     val fps: Float? = null,
-    val metadata: List<ApiMediaItemMetaDataEntry>
+    val metadata: List<ApiMediaItemMetaDataEntry> = emptyList()
 ) : MediaItem {
     init {
         if (this.type == ApiMediaType.VIDEO) {

@@ -4064,11 +4064,21 @@
       }
     },
     "/api/v2/submit/{evaluationId}" : {
-      "get" : {
+      "post" : {
         "tags" : [ "Submission" ],
         "summary" : "Endpoint to accept submissions",
-        "operationId" : "getApiV2SubmitByEvaluationId",
-        "parameters" : [ ],
+        "operationId" : "postApiV2SubmitByEvaluationId",
+        "parameters" : [ {
+          "name" : "evaluationId",
+          "in" : "path",
+          "description" : "The evaluation ID.",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
         "requestBody" : {
           "content" : {
             "application/json" : {

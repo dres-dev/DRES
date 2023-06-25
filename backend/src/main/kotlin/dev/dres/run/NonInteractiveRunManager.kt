@@ -22,7 +22,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation, override val store: TransientEntityStore) : RunManager {
+class NonInteractiveRunManager(
+    override val evaluation: NonInteractiveEvaluation,
+    override val store: TransientEntityStore
+) : RunManager {
 
     private val SCOREBOARD_UPDATE_INTERVAL_MS = 10_000L // TODO make configurable
 
@@ -30,7 +33,12 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
 
     /** Generates and returns [RunProperties] for this [InteractiveAsynchronousRunManager]. */
     override val runProperties: RunProperties
-        get() = RunProperties(this.evaluation.participantCanView, false, this.evaluation.allowRepeatedTasks, this.evaluation.limitSubmissionPreviews)
+        get() = RunProperties(
+            this.evaluation.participantCanView,
+            false,
+            this.evaluation.allowRepeatedTasks,
+            this.evaluation.limitSubmissionPreviews
+        )
 
     /** A lock for state changes to this [InteractiveSynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
@@ -51,7 +59,8 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
     private val scoresUpdatable = ScoresUpdatable(this)
 
     /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable = ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_MS) //TODO requires some changes
+    private val scoreboardsUpdatable =
+        ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_MS) //TODO requires some changes
 
     /** The [List] of [Scoreboard]s maintained by this [NonInteractiveRunManager]. */
     override val scoreboards: List<Scoreboard>
@@ -63,7 +72,7 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
     } else {
         RunManagerStatus.CREATED
     }
-    private set
+        private set
 
     /** */
     override val judgementValidators: List<JudgementValidator>
@@ -123,50 +132,25 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
 
             try {
                 this.stateLock.read {
-                    while (updatedTasks.isNotEmpty()) {
-                        val idNamePair = updatedTasks.poll(1, TimeUnit.SECONDS)
 
-                        if (idNamePair == null) {
-                            LOGGER.error("Unable to retrieve task id from queue despite it being indicated not to be empty")
-                            break
-                        }
+                    scoresUpdatable.update(this.status)
 
-                        val task = this.evaluation.tasks.find { it.taskId == idNamePair.first }
-
-                        if (task == null) {
-                            LOGGER.error("Unable to retrieve task with changed id ${idNamePair.first}")
-                            break
-                        }
+                    scoreboardsUpdatable.update(this.status)
 
 
-                        /* TODO: Redo. */
-                        /*val batches = idNamePair.second.mapNotNull { task.submissions[it] }
-
-                        val validator = task.validator
-                        val scorer = task.scorer
-
-                        batches.forEach {
-                            validator.validate(it)
-                            scorer.computeScores(it)
-                        }*/
-                        scoreboardsUpdatable.update(this.status)
-                    }
                 }
             } catch (ie: InterruptedException) {
                 LOGGER.info("Interrupted NonInteractiveRunManager, exiting")
                 return
             }
 
-
             Thread.sleep(1000)
-
         }
 
         LOGGER.info("NonInteractiveRunManager ${this.id} reached end of run logic.")
 
     }
 
-    private val updatedTasks = LinkedBlockingQueue<Pair<TaskId, List<Pair<TeamId, String>>>>()
 
     /**
      *
@@ -177,7 +161,8 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
 
     override fun postSubmission(context: RunActionContext, submission: ApiSubmission) {
 
-        val submissionByTask = submission.answers.groupBy { it.taskId }.mapValues { submission.copy(answers = it.value) }
+        val submissionByTask =
+            submission.answers.groupBy { it.taskId }.mapValues { submission.copy(answers = it.value) }
 
         if (submissionByTask.keys.any { !taskMap.containsKey(it) }) {
             throw IllegalStateException("Unknown task")
@@ -185,11 +170,13 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
 
         this.stateLock.write {
 
+            val errorBuffer = StringBuilder()
+
             submissionByTask.forEach { (taskId, submission) ->
 
                 val task = taskMap[taskId] ?: throw IllegalStateException("Unknown task $taskId")
 
-                try{
+                try {
 
                     /* Check if ApiSubmission meets formal requirements. */
                     task.filter.acceptOrThrow(submission)
@@ -215,10 +202,13 @@ class NonInteractiveRunManager(override val evaluation: NonInteractiveEvaluation
                     this.scoresUpdatable.enqueue(task)
 
                 } catch (e: SubmissionRejectedException) {
-                    //TODO give feedback about parts of submissions that have been rejected somehow
+                    errorBuffer.append(e.message)
+                    errorBuffer.append('\n')
                 }
+            }
 
-
+            if (errorBuffer.isNotBlank()) {
+                throw SubmissionRejectedException(submission, errorBuffer.toString())
             }
 
         }

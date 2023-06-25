@@ -34,7 +34,8 @@ import kotlinx.dnq.query.first
 import kotlinx.dnq.query.firstOrNull
 import org.slf4j.LoggerFactory
 
-class SubmissionHandler(private val store: TransientEntityStore, private val config: Config): PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
+class SubmissionHandler(private val store: TransientEntityStore, private val config: Config) :
+    PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
 
     override val permittedRoles = setOf(ApiRole.PARTICIPANT)
 
@@ -47,8 +48,12 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
     @OpenApi(
         summary = "Endpoint to accept submissions",
         path = "/api/v2/submit/{evaluationId}",
+        methods = [HttpMethod.POST],
         operationId = OpenApiOperation.AUTO_GENERATE,
         requestBody = OpenApiRequestBody([OpenApiContent(ApiClientSubmission::class)]),
+        pathParams = [
+            OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true),
+        ],
         responses = [
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
@@ -57,14 +62,23 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
             OpenApiResponse("412", [OpenApiContent(ErrorStatus::class)])
         ],
         tags = ["Submission"]
-        )
+    )
     override fun doPost(ctx: Context): SuccessStatus {
 
         return this.store.transactional {
 
-            val userId = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(401, "Authorization required.", ctx)
+            val userId = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(
+                401,
+                "Authorization required.",
+                ctx
+            )
             val evaluationId = ctx.pathParam("evaluationId")
-            val runManager = AccessManager.getRunManagerForUser(userId).find { it.id == evaluationId } ?: throw ErrorStatusException(404, "Evaluation with id '$evaluationId' not found.", ctx)
+            val runManager =
+                AccessManager.getRunManagerForUser(userId).find { it.id == evaluationId } ?: throw ErrorStatusException(
+                    404,
+                    "Evaluation with id '$evaluationId' not found.",
+                    ctx
+                )
 
             val rac = RunActionContext.runActionContext(ctx, runManager)
 
@@ -86,7 +100,11 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
                 throw ErrorStatusException(412, e.message ?: "Submission rejected by submission filter.", ctx)
             } catch (e: IllegalRunStateException) {
                 logger.info("Submission was received while run manager was not accepting submissions.")
-                throw ErrorStatusException(400, "Run manager is in wrong state and cannot accept any more submission.", ctx)
+                throw ErrorStatusException(
+                    400,
+                    "Run manager is in wrong state and cannot accept any more submission.",
+                    ctx
+                )
             } catch (e: IllegalTeamIdException) {
                 logger.info("Submission with unknown team id '${rac.teamId}' was received.")
                 throw ErrorStatusException(400, "Run manager does not know the given teamId ${rac.teamId}.", ctx)
@@ -102,7 +120,11 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
 
     }
 
-    private fun transformClientSubmission(apiClientSubmission: ApiClientSubmission, runManager: RunManager, rac: RunActionContext) : ApiSubmission{
+    private fun transformClientSubmission(
+        apiClientSubmission: ApiClientSubmission,
+        runManager: RunManager,
+        rac: RunActionContext
+    ): ApiSubmission {
 
         if (rac.userId == null || rac.teamId == null) {
             throw Exception("Invalid association between user and evaluation")
@@ -115,7 +137,11 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
         val answerSets = apiClientSubmission.answerSets.mapNotNull mapClientAnswerSet@{ clientAnswerSet ->
 
             val task = if (runManager is InteractiveRunManager) {
-                runManager.currentTask(rac) //only accept submissions for current task in interactive runs
+                val currentTask = runManager.currentTask(rac) //only accept submissions for current task in interactive runs
+                if (currentTask?.isRunning != true) {
+                    throw Exception("No active task")
+                }
+                currentTask
             } else {
                 evaluationRun.tasks.find { it.template.name == clientAnswerSet.taskName } //look up task by name
             }
@@ -142,7 +168,7 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
                     null
                 }?.toApi()
 
-                return@mapClientAnswers when(clientAnswer.type()) {
+                return@mapClientAnswers when (clientAnswer.type()) {
                     AnswerType.ITEM -> {
                         if (item == null) {
                             errorBuffer.append("item for answer $clientAnswer not found")
@@ -150,14 +176,29 @@ class SubmissionHandler(private val store: TransientEntityStore, private val con
                         }
                         ApiAnswer(type = ApiAnswerType.ITEM, item = item, start = null, end = null, text = null)
                     }
+
                     AnswerType.TEMPORAL -> {
                         if (item == null) {
                             errorBuffer.append("item for answer $clientAnswer not found")
                             return@mapClientAnswers null
                         }
-                        ApiAnswer(type = ApiAnswerType.TEMPORAL, item = item, start = clientAnswer.start, end = clientAnswer.end, text = null)
+                        ApiAnswer(
+                            type = ApiAnswerType.TEMPORAL,
+                            item = item,
+                            start = clientAnswer.start,
+                            end = clientAnswer.end,
+                            text = null
+                        )
                     }
-                    AnswerType.TEXT -> ApiAnswer(type = ApiAnswerType.TEXT, text = clientAnswer.text, item = null, start = null, end = null)
+
+                    AnswerType.TEXT -> ApiAnswer(
+                        type = ApiAnswerType.TEXT,
+                        text = clientAnswer.text,
+                        item = null,
+                        start = null,
+                        end = null
+                    )
+
                     null -> {
                         errorBuffer.append("could not determine AnswerType of answer $clientAnswer\n")
                         null

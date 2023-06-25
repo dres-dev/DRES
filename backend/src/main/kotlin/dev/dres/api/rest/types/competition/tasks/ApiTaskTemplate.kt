@@ -19,5 +19,6 @@ class ApiTaskTemplate(
     val duration: Long,
     val collectionId: CollectionId,
     val targets: List<ApiTarget>,
-    val hints: List<ApiHint>
+    val hints: List<ApiHint>,
+    val comment: String = ""
 )

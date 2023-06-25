@@ -5547,9 +5547,12 @@
             "items" : {
               "$ref" : "#/components/schemas/ApiHint"
             }
+          },
+          "comment" : {
+            "type" : "string"
           }
         },
-        "required" : [ "name", "taskGroup", "taskType", "duration", "collectionId", "targets", "hints" ]
+        "required" : [ "name", "taskGroup", "taskType", "duration", "collectionId", "targets", "hints", "comment" ]
       },
       "ApiTaskType" : {
         "type" : "object",

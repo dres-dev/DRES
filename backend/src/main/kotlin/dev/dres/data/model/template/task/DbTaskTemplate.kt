@@ -32,7 +32,7 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), TaskTemplate {
         get() = this.id
         set(value) { this.id = value }
 
-    /** The name held by this [DbTeam]. Must be unique!*/
+    /** The name held by this [DbTeam]. Must be unique per evaluation*/
     var name by xdRequiredStringProp(unique = false, trimmed = true)
 
     /** The [DbTaskGroup] this [DbTaskTemplate] belongs to. */
@@ -53,6 +53,9 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), TaskTemplate {
     /** The [DbHint]s that act as clues to find the target media. */
     val hints by xdChildren0_N<DbTaskTemplate,DbHint>(DbHint::task)
 
+    /** Optional comment to be used by evaluation administrators */
+    var comment by xdStringProp()
+
     /**
      * Creates a [DbTaskTemplate] instance and returns it.
      *
@@ -67,6 +70,7 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), TaskTemplate {
             this.collection = this@DbTaskTemplate.collection
             this.duration = this@DbTaskTemplate.duration
             this.taskGroup = forEvaluation.taskGroups.query(DbTaskGroup::name eq this@DbTaskTemplate.taskGroup.name).first()
+            this.comment = this@DbTaskTemplate.comment
         }
 
         /* Copy task targets. */
@@ -123,7 +127,8 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), TaskTemplate {
         this.duration,
         this.collection.id,
         this.targets.asSequence().map { it.toApi() }.toList(),
-        this.hints.asSequence().map { it.toApi() }.toList()
+        this.hints.asSequence().map { it.toApi() }.toList(),
+        this.comment ?: ""
     )
 
     /**

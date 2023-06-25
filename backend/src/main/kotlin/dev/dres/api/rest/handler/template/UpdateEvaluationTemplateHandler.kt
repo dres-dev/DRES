@@ -164,6 +164,7 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 t.collection =
                     DbMediaCollection.query(DbMediaCollection::id eq task.collectionId).first()
                 t.taskGroup = DbTaskGroup.query(DbTaskGroup::name eq task.taskGroup).first()
+                t.comment = task.comment
 
                 /* Update task targets. */
                 t.targets.clear()

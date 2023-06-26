@@ -3632,11 +3632,11 @@
         "security" : [ ]
       }
     },
-    "/api/v2/preview/{mediaItemId}/{time}" : {
+    "/api/v2/preview/{mediaItemId}/{timestamp}" : {
       "get" : {
         "tags" : [ "Media" ],
         "summary" : "Returns a preview image from a media item.",
-        "operationId" : "getApiV2PreviewByMediaItemIdByTime",
+        "operationId" : "getApiV2PreviewByMediaItemIdByTimestamp",
         "parameters" : [ {
           "name" : "mediaItemId",
           "in" : "path",

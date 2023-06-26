@@ -73,6 +73,7 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
       targets: Array<ApiTarget>;
       taskGroup: string;
       taskType: string;
+      comment: string;
     };
     newTask.taskGroup = group.name;
     newTask.targets = [];

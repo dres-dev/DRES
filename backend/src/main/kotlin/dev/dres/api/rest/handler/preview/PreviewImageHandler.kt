@@ -21,7 +21,7 @@ class PreviewImageHandler(store: TransientEntityStore, cache: CacheManager) : Ab
     override val route: String = "preview/{mediaItemId}/{timestamp}"
     @OpenApi(
         summary = "Returns a preview image from a media item.",
-        path = "/api/v2/preview/{mediaItemId}/{time}",
+        path = "/api/v2/preview/{mediaItemId}/{timestamp}",
         operationId = OpenApiOperation.AUTO_GENERATE,
         pathParams = [
             OpenApiParam("mediaItemId", String::class, "Unique ID of the media item.", required = true, allowEmptyValue = false),

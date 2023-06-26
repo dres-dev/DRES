@@ -58,6 +58,15 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
   plotOptions: ApexPlotOptions = {
     bar: {
       horizontal: true,
+      dataLabels: {
+        total: { 
+          enabled: this.competitionOverview, //show total when bars are stacked
+          offsetX: 5,
+          style: {
+            color: '#fff'
+          }
+        },
+      }
     },
   } as ApexPlotOptions;
 

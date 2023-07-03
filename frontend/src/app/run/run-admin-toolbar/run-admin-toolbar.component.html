@@ -1,7 +1,7 @@
 <mat-toolbar class="flex flex-row content-between align-center" style="margin-bottom: 2rem">
   <div class="flex-inline">
     <app-back-button></app-back-button>
-    <span>
+    <span style="align-self: center">
       {{ (run | async)?.runInfo?.type === 'ASYNCHRONOUS' ? 'Asynchronous' : 'Synchronous' }}
       Run: {{ (run | async)?.runInfo?.name }}
       <span>({{ (run | async)?.runInfo?.id?.substring(0, 8) }})</span>

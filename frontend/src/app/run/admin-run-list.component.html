@@ -63,6 +63,16 @@
           <mat-icon>play_arrow</mat-icon>
         </button>
 
+        <button
+          *ngIf="row.runStatus == 'CREATED' || row.runStatus == 'ACTIVE'"
+          mat-icon-button
+          aria-label="Terminate competition run."
+          matTooltip="Terminate competition run."
+          (click)="terminate(row.id)"
+        >
+          <mat-icon>stop</mat-icon>
+        </button>
+
         <app-download-button
           [name]="''"
           [icon]="'file_download'"
@@ -74,55 +84,8 @@
         >
         </app-download-button>
 
-        <button
-          *ngIf="row.runStatus == 'ACTIVE' && row.taskRunStatus != 'PREPARING' && row.taskRunStatus != 'RUNNING'"
-          mat-icon-button
-          aria-label="Previous task."
-          matTooltip="Got to previous task."
-          (click)="previousTask(row.id)"
-        >
-          <mat-icon>skip_previous</mat-icon>
-        </button>
 
-        <button
-          *ngIf="row.runStatus == 'ACTIVE' && row.taskRunStatus != 'PREPARING' && row.taskRunStatus != 'RUNNING'"
-          mat-icon-button
-          aria-label="Next task."
-          matTooltip="Go to next task."
-          (click)="nextTask(row.id)"
-        >
-          <mat-icon>skip_next</mat-icon>
-        </button>
 
-        <button
-          *ngIf="row.runStatus == 'ACTIVE' && row.taskRunStatus != 'PREPARING' && row.taskRunStatus != 'RUNNING'"
-          mat-icon-button
-          aria-label="Start task."
-          matTooltip="Start task."
-          (click)="startTask(row.id)"
-        >
-          <mat-icon>play_circle_outline</mat-icon>
-        </button>
-
-        <button
-          *ngIf="row.taskRunStatus == 'PREPARING' || row.taskRunStatus == 'RUNNING'"
-          mat-icon-button
-          aria-label="Abort running task."
-          matTooltip="Abort running task '{{ row.currentTask.name }}'."
-          (click)="abortTask(row.id)"
-        >
-          <mat-icon>cancel</mat-icon>
-        </button>
-
-        <button
-          *ngIf="row.runStatus == 'CREATED' || row.runStatus == 'ACTIVE'"
-          mat-icon-button
-          aria-label="Terminate competition run."
-          matTooltip="Terminate competition run."
-          (click)="terminate(row.id)"
-        >
-          <mat-icon>stop</mat-icon>
-        </button>
         <app-download-button
           [name]="''"
           [fileName]="fileProvider(row.name)"

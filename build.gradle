@@ -45,7 +45,7 @@ tasks.register('generateOAS', Download) {
     dest f
 }
 
-task generateClientOAS(type: Download){
+tasks.register('generateClientOAS', Download) {
     def f = new File(clientOasFile)
     src clientOAS
     dest f

@@ -11,12 +11,14 @@ class ClientSwaggerPlugin : Plugin {
         val swaggerHandler = SwaggerHandler(
             title = "DRES Client API",
             documentationPath = "/client-oas",
-            swaggerVersion = "4.10.3",
+            swaggerVersion = SwaggerConfiguration().version,
             validatorUrl = "https://validator.swagger.io/validator",
             routingPath = app.cfg.routing.contextPath,
             basePath = null,
             tagsSorter = "'alpha'",
-            operationsSorter = "'alpha'"
+            operationsSorter = "'alpha'",
+            customJavaScriptFiles = emptyList(),
+            customStylesheetFiles = emptyList()
         )
 
         app.get("/swagger-client", swaggerHandler)

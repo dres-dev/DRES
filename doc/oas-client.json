@@ -2,11 +2,7 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "DRES Client API",
-    "summary" : null,
     "description" : "Client API for DRES (Distributed Retrieval Evaluation Server), Version 2.0.0",
-    "termsOfService" : null,
-    "contact" : null,
-    "license" : null,
     "version" : "2.0.0"
   },
   "paths" : {
@@ -2968,8 +2964,8 @@
     },
     "securitySchemes" : {
       "CookieAuth" : {
-        "name" : "SESSIONID",
         "in" : "cookie",
+        "name" : "SESSIONID",
         "type" : "apiKey"
       }
     }

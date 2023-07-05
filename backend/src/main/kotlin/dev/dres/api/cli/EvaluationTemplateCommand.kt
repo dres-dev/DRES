@@ -15,6 +15,7 @@ import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.mgmt.cache.CacheManager
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
+import org.joda.time.DateTime
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -73,6 +74,8 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
                 DbEvaluationTemplate.new {
                     this.name = this@Create.name
                     this.description = this@Create.description
+                    this.created = DateTime.now()
+                    this.modified = DateTime.now()
                 }.toApi()
             }
             println("New template '$newCompetition' created with ID = ${newCompetition.id}.")

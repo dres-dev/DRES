@@ -19,11 +19,13 @@ data class ApiEvaluationTemplate(
     val id: TemplateId,
     val name: String,
     val description: String?,
+    val created: Long?,
+    val modified: Long?,
     val taskTypes: List<ApiTaskType>,
     val taskGroups: List<ApiTaskGroup>,
     val tasks: List<ApiTaskTemplate>,
     val teams: List<ApiTeam>,
     val teamGroups: List<ApiTeamGroup>,
-    val judges: List<String>
+    val judges: List<String>,
 )
 

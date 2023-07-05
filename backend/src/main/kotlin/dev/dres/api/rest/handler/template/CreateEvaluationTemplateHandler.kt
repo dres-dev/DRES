@@ -11,6 +11,7 @@ import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
+import org.joda.time.DateTime
 import java.util.*
 
 /**
@@ -49,10 +50,12 @@ class CreateEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEva
         val newId = UUID.randomUUID().toString()
         this.store.transactional {
             DbEvaluationTemplate.new {
-                id = newId
-                instance = false
-                name = createRequest.name
-                description = createRequest.description
+                this.id = newId
+                this.instance = false
+                this.name = createRequest.name
+                this.description = createRequest.description
+                this.created = DateTime.now()
+                this.modified = DateTime.now()
             }
         }
         return SuccessStatus("Competition description with ID $newId was created successfully.")

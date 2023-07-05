@@ -1,52 +1,44 @@
-<h1 mat-dialog-title>Add team</h1>
+<h1 mat-dialog-title xmlns="http://www.w3.org/1999/html">Add team</h1>
 <div mat-dialog-content>
   <form [formGroup]="form">
-    <mat-form-field style="width: 100%">
-      <mat-label>Name</mat-label>
-      <input type="text" matInput placeholder="Name" formControlName="name" />
-    </mat-form-field>
-
-    <mat-form-field class="user-chip-list">
-      <mat-chip-grid #chipList aria-label="Users">
-        <mat-chip-row
-          *ngFor="let user of form.get('users').value"
-          [removable]="true"
-          (removed)="removeUser(user)"
-        >
-          {{ user.username }}
-          <mat-icon matChipRemove>cancel</mat-icon>
-        </mat-chip-row>
-        <input placeholder="New user..." [matAutocomplete]="auto" [matChipInputFor]="chipList" />
-      </mat-chip-grid>
-      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addUser($event)">
-        <mat-option *ngFor="let user of availableUsers | async" [value]="user">
-          {{ user.username }}
-        </mat-option>
-      </mat-autocomplete>
-    </mat-form-field>
-
-    <p>
-      <label
-        >Team color:
-        <span
-          [style.background]="form.get('color').value"
-          [style.width]="'50px'"
-          [style.height]="'20px'"
-          [style.display]="'inline-block'"
-          [colorPicker]="form.get('color').value"
-          [cpPresetColors]="colorPalette"
-          (colorPickerChange)="onColorChange($event)"
-        >
+    <div class="team-grid">
+      <div class="grid-element-logo">
+        <span style="text-align: center" [style.text-align]="'center'">
+            <img [src]="teamLogo()" alt="The logo of the team" style="max-height: 75px; max-width: 150px"  [style.width]="'100px'" [style.height]="'100px'" [style.object-fit]="'contain'"/>
         </span>
-      </label>
-      <label>
-        <button type="button" mat-button (click)="logoInput.click()">Select logo</button>
         <input hidden type="file" #logoInput formControlName="logoData" (change)="processImage($event)" />
-        <span style="text-align: center">
-          <img [src]="teamLogo()" alt="The logo of the team" style="max-height: 75px; max-width: 150px" />
-        </span>
-      </label>
-    </p>
+        <button type="button" mat-button (click)="logoInput.click()">Select logo</button>
+      </div>
+      <div class="grid-element-form">
+        <mat-form-field [style.width]="'100%'">
+          <mat-label>Team Name</mat-label>
+          <input type="text" matInput placeholder="Name" formControlName="name" />
+          <mat-error *ngIf="form.get('name')?.invalid">Name must consist of at least three characters.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field class="user-chip-list" [style.width]="'100%'">
+          <mat-label>Team Members (Users)</mat-label>
+          <mat-chip-grid #chipList aria-label="Users">
+            <mat-chip-row *ngFor="let user of form.get('users').value" [removable]="true" (removed)="removeUser(user)">
+              {{ user.username }}
+              <mat-icon matChipRemove>cancel</mat-icon>
+            </mat-chip-row>
+            <input placeholder="New user..." [matAutocomplete]="auto" [matChipInputFor]="chipList" />
+          </mat-chip-grid>
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addUser($event)">
+            <mat-option *ngFor="let user of availableUsers | async" [value]="user">
+              {{ user.username }}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <mat-form-field [style.width]="'100%'">
+          <mat-label>Team Color</mat-label>
+          <input type="color" matInput formControlName="color" />
+        </mat-form-field>
+
+      </div>
+    </div>
   </form>
 </div>
 <div mat-dialog-actions>

@@ -1,5 +1,5 @@
 import { Component, Inject } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import {FormControl, FormGroup, Validators} from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { map, shareReplay } from 'rxjs/operators';
@@ -10,9 +10,10 @@ import {ApiTeam, ApiUser, UserService} from '../../../../../openapi';
 @Component({
   selector: 'app-competition-builder-add-team-dialog',
   templateUrl: './competition-builder-team-dialog.component.html',
+  styleUrls: ['./competition-builder-team-dialog.component.scss']
 })
 export class CompetitionBuilderTeamDialogComponent {
-  form: UntypedFormGroup;
+  form: FormGroup;
   logoName = '';
   availableUsers: Observable<ApiUser[]>;
   colorPalette = [
@@ -35,7 +36,6 @@ export class CompetitionBuilderTeamDialogComponent {
     '#9800BF',
     '#BF00AC',
     '#BF0072',
-    '#BF0039',
   ];
 
   constructor(
@@ -44,37 +44,22 @@ export class CompetitionBuilderTeamDialogComponent {
     private config: AppConfig,
     @Inject(MAT_DIALOG_DATA) private team?: ApiTeam
   ) {
-    console.log("TEAM", team);
-    this.form = new UntypedFormGroup({
-      id: new UntypedFormControl(team?.id),
-      name: new UntypedFormControl(team?.name, [Validators.required, Validators.minLength(3)]),
-      color: new UntypedFormControl(team?.color ? team.color : CompetitionBuilderTeamDialogComponent.randomColor(), [
+    this.form = new FormGroup({
+      id: new FormControl(team?.id),
+      name: new FormControl(team?.name, [Validators.required, Validators.minLength(3)]),
+      color: new FormControl(team?.color || this.colorPalette[Math.floor(Math.random() * this.colorPalette.length)], [
         Validators.required,
         Validators.minLength(7),
         Validators.maxLength(7),
       ]),
-      logoData: new UntypedFormControl(team?.logoData),
-      users: new UntypedFormControl(team?.users != null ? team.users : []),
-      userInput: new UntypedFormControl(''),
+      logoData: new FormControl(team?.logoData),
+      users: new FormControl(team?.users || []),
+      userInput: new FormControl(''),
     });
     this.availableUsers = this.userService.getApiV2UserList().pipe(
-      map((value) => {
-        return value.filter((user) => user.role !== 'JUDGE' && user.role !== 'VIEWER');
-      }),
+      map((value) => value.filter((user) => user.role !== 'JUDGE' && user.role !== 'VIEWER')),
       shareReplay(1)
     );
-  }
-
-  /**
-   * Generates a random HTML color.
-   */
-  private static randomColor(): string {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
   }
 
   fileProvider = () => (this.fetchData()?.name ? this.fetchData().name : 'team-download.json');
@@ -101,15 +86,6 @@ export class CompetitionBuilderTeamDialogComponent {
     if (index >= 0) {
       this.form.get('users').value.splice(index, 1);
     }
-  }
-
-  /**
-   * Called by the color picker when the selected color changes.
-   *
-   * @param color New color value (hex RGB).
-   */
-  public onColorChange(color: string) {
-    this.form.get('color').setValue(color);
   }
 
   /**

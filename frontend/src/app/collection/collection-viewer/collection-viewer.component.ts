@@ -38,7 +38,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
   collection: Observable<ApiPopulatedMediaCollection>;
 
   /** A subject used to trigger refrehs of the list. */
-  refreshSubject: Subject<null> = new BehaviorSubject(null);
+  refreshSubject: Subject<void> = new BehaviorSubject(null);
 
   /** Reference to the subscription held by this component. */
   private subscription: Subscription;

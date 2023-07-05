@@ -13,7 +13,7 @@
   <ng-container matColumnDef="logo">
     <th mat-header-cell *matHeaderCellDef>Logo</th>
     <td mat-cell *matCellDef="let team">
-      <img matListAvatar src="{{ teamLogo(team) }}" [style.width]="'90px'" alt="The {{team.name}}'s logo"/>
+      <img src="{{ teamLogo(team) }}" [style.width]="'75px'" [style.height]="'75px'" [style.object-fit]="'contain'" alt="The {{team.name}}'s logo."/>
     </td>
   </ng-container>
 

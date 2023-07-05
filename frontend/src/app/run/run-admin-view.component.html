@@ -1,4 +1,4 @@
-<app-run-admin-toolbar [runId]="runIdAsSubject" [run]="runOverview" [update]="update">
+<app-run-admin-toolbar [runId]="runIdAsSubject" [run]="runOverview" [refreshSubject]="refreshSubject">
   <button
     *ngIf="(run | async)?.state.taskStatus !== 'PREPARING' && (run | async)?.state.taskStatus !== 'RUNNING'"
     mat-icon-button

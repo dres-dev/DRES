@@ -42,7 +42,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
   public start(runId: string) {
     this.runAdminService.postApiV2EvaluationAdminByEvaluationIdStart(runId).subscribe(
       (r) => {
-        this.update.next();
+        this.refreshSubject.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
       },
       (r) => {
@@ -62,7 +62,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
       if (result) {
         this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTerminate(runId).subscribe(
           (r) => {
-            this.update.next();
+            this.refreshSubject.next();
             this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
           },
           (r) => {
@@ -76,7 +76,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
   public previousTask(runId: string) {
     this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskPrevious(runId).subscribe(
       (r) => {
-        this.update.next();
+        this.refreshSubject.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
       },
       (r) => {
@@ -96,7 +96,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
       if (result) {
         this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskAbort(runId).subscribe(
           (r) => {
-            this.update.next();
+            this.refreshSubject.next();
             this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
           },
           (r) => {
@@ -108,7 +108,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
   }
 
   protected initStateUpdates() {
-    this.runs = merge(timer(0, this.updateInterval), this.update).pipe(
+    this.runs = merge(timer(0, this.updateInterval), this.refreshSubject).pipe(
       flatMap((t) => this.runService.getApiV2EvaluationInfoList()),
       map((runInfo) =>
         runInfo.map((run) =>

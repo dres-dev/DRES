@@ -10,7 +10,7 @@
     [muted]="(config.configAsObservable | async).effects.mute"
   ></video>
   <div class="controls-container flex flex-row content-between align-center fill" *ngIf="mediaUrl | async">
-    <div class="flex-10">
+    <div class="flex-5">
       <button
         mat-flat-button
         color="primary"
@@ -20,12 +20,16 @@
         <mat-icon>{{ videoPlayer.paused ? 'play_arrow' : 'pause' }}</mat-icon>
       </button>
     </div>
-    <div class="flex-1">
+    <div class="flex-70">
       <mat-progress-bar
         mode="determinate"
         [value]="playtimeRelative | async"
         matTooltip="Time relative to the submission, inclusive some temporal context."
       ></mat-progress-bar>
+    </div>
+    <div class="flex-15">
+
+      Temporal Context: <mat-slide-toggle [(ngModel)]="hasTemporalPadding" (change)="onTemporalContextToggle($event)"></mat-slide-toggle>
     </div>
   </div>
 </ng-container>

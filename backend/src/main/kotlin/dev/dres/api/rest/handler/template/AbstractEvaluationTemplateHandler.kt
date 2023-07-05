@@ -10,6 +10,7 @@ import dev.dres.data.model.template.TemplateId
 import io.javalin.http.Context
 import io.javalin.security.RouteRole
 import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.and
 import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
@@ -42,5 +43,5 @@ abstract class AbstractEvaluationTemplateHandler(protected val store: TransientE
 
     /** Convenience method to extract [DbEvaluationTemplate] by ID. */
     protected fun evaluationTemplateById(id: TemplateId, ctx: Context): DbEvaluationTemplate
-        = DbEvaluationTemplate.query(DbEvaluationTemplate::id eq id).firstOrNull() ?: throw ErrorStatusException(404, "Competition with ID $id not found.'", ctx)
+        = DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq id and (DbEvaluationTemplate::instance eq false)).firstOrNull() ?: throw ErrorStatusException(404, "Competition with ID $id not found.'", ctx)
 }

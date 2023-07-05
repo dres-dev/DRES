@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnDestroy, OnInit } from "@angular/core";
 import { AbstractTemplateBuilderComponent } from "../abstract-template-builder.component";
-import { FormControl, UntypedFormControl, UntypedFormGroup, Validators } from "@angular/forms";
+import {FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators} from "@angular/forms";
 import { Observable, Subscription } from "rxjs";
 import { ApiMediaCollection, CollectionService, TemplateService } from "../../../../../../openapi";
 import { TemplateBuilderService } from "../../template-builder.service";
@@ -12,11 +12,13 @@ import { TemplateBuilderService } from "../../template-builder.service";
 })
 export class TemplateInformationComponent extends AbstractTemplateBuilderComponent implements OnInit, OnDestroy, AfterViewInit {
 
-  form: UntypedFormGroup = new UntypedFormGroup({
-    name: new UntypedFormControl(""),
-    description: new UntypedFormControl(""),
-    collection: new UntypedFormControl(""),
-    defaultRandomLength: new FormControl<number>(20, [Validators.min(0)])
+  form: FormGroup = new UntypedFormGroup({
+    name: new FormControl("", [Validators.required]),
+    description: new FormControl(""),
+    collection: new FormControl(""),
+    defaultRandomLength: new FormControl<number>(20, [Validators.min(0)]),
+    created: new FormControl('', [Validators.required]),
+    modified: new FormControl('', [Validators.required])
   });
 
   private changeSub: Subscription;
@@ -35,8 +37,8 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
 
   ngAfterViewInit(): void {
     // builderService is not yet initialised ?!?
-        this.form.get('collection').setValue(this.getMostUsedCollection(), {emitEvent: false});
-    }
+      this.form.get('collection').setValue(this.getMostUsedCollection(), {emitEvent: false});
+  }
 
   ngOnInit(): void {
     this.onInit();
@@ -107,12 +109,16 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
       if (this.form.get("description").value !== this.builderService.getTemplate().description) {
         this.form.get("description").setValue(this.builderService.getTemplate().description, { emitEvent: !this.initOngoing });
       }
+      if (this.form.get("created").value !== this.builderService.getTemplate().created) {
+        this.form.get("created").setValue(this.builderService.getTemplate().created, { emitEvent: !this.initOngoing });
+      }
+      if (this.form.get("modified").value !== this.builderService.getTemplate().modified) {
+        this.form.get("modified").setValue(this.builderService.getTemplate().modified, { emitEvent: !this.initOngoing });
+      }
       // We need to check the end of init here
       if (this.initOngoing) {
         this.initOngoing = false;
       }
     }
   }
-
-
 }

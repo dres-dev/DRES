@@ -71,6 +71,12 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
     /** The [DbTaskTemplate]s contained in this [DbEvaluationTemplate]*/
     val tasks by xdChildren0_N<DbEvaluationTemplate, DbTaskTemplate>(DbTaskTemplate::evaluation)
 
+    /** A creation timestamp. */
+    var created by xdDateTimeProp()
+
+    /** A modification timestamp*/
+    var modified by xdDateTimeProp()
+
     /**
      * Converts this [DbEvaluationTemplate] to a RESTful API representation [ApiEvaluationTemplate].
      *
@@ -82,6 +88,8 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
         id = this.id,
         name = this.name,
         description = this.description,
+        created = this.created?.millis,
+        modified = this.modified?.millis,
         taskTypes = this.taskTypes.asSequence().map { it.toApi() }.toList(),
         taskGroups = this.taskGroups.asSequence().map { it.toApi() }.toList(),
         teamGroups = this.teamGroups.asSequence().map { it.toApi() }.toList(),
@@ -100,6 +108,8 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
             instance = true
             name = this@DbEvaluationTemplate.name
             description = this@DbEvaluationTemplate.description
+            created = this@DbEvaluationTemplate.created
+            modified = this@DbEvaluationTemplate.modified
             judges.addAll(this@DbEvaluationTemplate.judges)
         }
 

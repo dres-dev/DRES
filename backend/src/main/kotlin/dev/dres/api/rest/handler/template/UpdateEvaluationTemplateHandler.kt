@@ -19,9 +19,11 @@ import dev.dres.data.model.media.DbMediaItem
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
+import io.javalin.plugin.bundled.RouteOverviewUtil.metaInfo
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.creator.findOrNew
 import kotlinx.dnq.query.*
+import org.joda.time.DateTime
 
 /**
  * A [AbstractEvaluationTemplateHandler] that can be used to create a new [DbEvaluationTemplate].
@@ -54,7 +56,8 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
             OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
-            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
+            OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
+            OpenApiResponse("409", [OpenApiContent(ErrorStatus::class)])
         ]
     )
     override fun doPatch(ctx: Context): SuccessStatus {
@@ -67,10 +70,14 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
         /* Store change. */
         this.store.transactional {
             val existing = this.evaluationTemplateById(apiValue.id, ctx)
+            if (existing.modified?.millis != apiValue.modified) {
+                throw ErrorStatusException(409, "Evaluation template ${apiValue.id} has been modified in the meantime. Reload and try again!", ctx)
+            }
 
             /* Update core information. */
             existing.name = apiValue.name
             existing.description = apiValue.description
+            existing.modified = DateTime.now()
 
             /* Update task type information. */
             val taskTypes = apiValue.taskTypes.map { it.name }.toTypedArray()
@@ -171,10 +178,8 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 for (target in task.targets) {
                     t.targets.add(DbTaskTemplateTarget.new {
                         this.type = target.type.toDb()
-                        this.start = target.range?.start?.toTemporalPoint(item?.fps ?: 0.0f)
-                            ?.toMilliseconds()
-                        this.end =
-                            target.range?.end?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
+                        this.start = target.range?.start?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
+                        this.end = target.range?.end?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
                     }.also {
                         when (target.type) {
                             ApiTargetType.TEXT -> it.text = target.target

@@ -28,6 +28,6 @@ export const canActivatePublicVote: CanActivateFn = (route: ActivatedRouteSnapsh
 /**
  * Guard used to determine if a view can be activated that requires the user to hold any role.
  */
-export const canActivateAnyRole: CanActivateFn = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
+export const canActivateAnyRole: CanActivateFn = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot)  => {
     return inject(AuthenticationService).canActivate([ApiRole.ADMIN, ApiRole.VIEWER, ApiRole.JUDGE, ApiRole.PARTICIPANT], route, state);
 };

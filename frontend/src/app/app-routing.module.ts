@@ -24,6 +24,8 @@ import {
   canActivatePublicVote
 } from "./services/session/guard";
 import {NonescapingUrlserializerClass} from "./nonescaping-urlserializer.class";
+import {ForbiddenComponent} from "./error/forbidden.component";
+import {NotFoundComponent} from "./error/not-found.component";
 
 /**
  * The ROUTE for evaluation templates.
@@ -117,7 +119,13 @@ const routes: Routes = [
     canActivate: [canActivateAdministrator]
   },
 
-  { path: 'login', component: LoginComponent }
+  /* The login + forbidden page is always accessible. */
+  { path: 'login', component: LoginComponent },
+  { path: 'forbidden', component: ForbiddenComponent},
+
+  /* Two important 'catch-all's. */
+  { path: '', redirectTo: 'evaluation/list', pathMatch: 'full' },
+  { path: '**', component: NotFoundComponent }
 ];
 
 @NgModule({

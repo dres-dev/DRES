@@ -23,8 +23,9 @@ import { AuditlogModule } from './auditlog/auditlog.module';
 import { SharedModule } from './shared/shared.module';
 import { CollectionModule } from './collection/collection.module';
 import { CompetitionBuilderModule } from './competition/competition-builder/competition-builder.module';
-import {TemplateModule} from './template/template.module';
+import { TemplateModule } from './template/template.module';
 import { EvaluationModule } from './evaluation/evaluation.module';
+import { ErrorModule } from "./error/error.module";
 
 /**
  * Method used to load application config.
@@ -62,7 +63,8 @@ export function initializeApp(appConfig: AppConfig) {
     CollectionModule,
     JudgementModule,
     TemplateModule,
-    EvaluationModule
+    EvaluationModule,
+    ErrorModule
   ],
   providers: [
     AppConfig,

@@ -53,7 +53,7 @@
   <div *ngIf="!(loggedIn | async)">
     <button mat-button routerLink="/login">Login</button>
   </div>
-  <div *ngIf="loggedIn | async">
+  <div *ngIf="(loggedIn | async)">
     <mat-menu #userMenu="matMenu">
       <button mat-menu-item (click)="profile()">User profile</button>
       <button mat-menu-item (click)="logout()">Logout</button>
@@ -65,10 +65,4 @@
   </div>
 </mat-toolbar>
 
-<div *ngIf="(loggedIn | async); else login" id="container">
-  <router-outlet></router-outlet>
-</div>
-
-<ng-template #login>
-  <app-login-component></app-login-component>
-</ng-template>
+<router-outlet></router-outlet>

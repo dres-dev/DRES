@@ -16,7 +16,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     password: new UntypedFormControl(''),
   });
 
-  private returnUrl = '/';
+  private returnUrl = '/evaluation/list';
   private authenticationServiceSubscription: Subscription;
 
   constructor(
@@ -27,11 +27,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.returnUrl = this.route.snapshot.queryParams.returnUrl || '/';
+    this.returnUrl = this.route.snapshot.queryParams.returnUrl || '/evaluation/list';
     this.authenticationServiceSubscription = this.authenticationService.isLoggedIn.subscribe((b) => {
-      if (b) {
-        this.router.navigate([this.returnUrl]).then(r => {})
-      }
+      if (b) this.router.navigate([this.returnUrl]).then(r => {})
     });
   }
 
@@ -43,16 +41,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   public submit() {
     if (this.form.valid) {
       this.authenticationService.login(this.form.controls.username.value, this.form.controls.password.value).subscribe(
-        (r) => {
-          this.snackBar.open(`Login successful!`, null, { duration: 5000 });
-        },
-        (err) => {
-          if (err?.error) {
-            this.snackBar.open(`Login failed: ${err?.error?.description}!`, null, { duration: 5000 });
-          } else {
-            this.snackBar.open(`Login failed due to a connection issue!`, null, { duration: 5000 });
-          }
-        }
+        (r) => this.router.navigateByUrl(this.returnUrl).then(r => this.snackBar.open(`Login successful!`, null, { duration: 5000 })),
+        (err) => this.snackBar.open(`Login failed due to error: ${err?.error?.description}!`, null, { duration: 5000 })
       );
     }
   }

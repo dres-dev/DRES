@@ -25,7 +25,7 @@ import {
   ApiRole, ApiTaskGroup, ApiTaskTemplate, ApiTaskType, ApiTeam,
   ApiUser,
   DownloadService,
-  EvaluationService, SuccessStatus,
+  SuccessStatus,
   TemplateService,
   UserService
 } from '../../../../openapi';

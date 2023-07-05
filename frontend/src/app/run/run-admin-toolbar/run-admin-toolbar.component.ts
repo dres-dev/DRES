@@ -27,7 +27,7 @@ import {
 export class RunAdminToolbarComponent implements OnInit {
   @Input() runId: BehaviorSubject<string> = new BehaviorSubject<string>('');
   @Input() run: Observable<RunInfoOverviewTuple>;
-  @Input() update = new Subject();
+  @Input() refreshSubject: Subject<void> = new Subject();
 
   constructor(
     private router: Router,
@@ -47,7 +47,7 @@ export class RunAdminToolbarComponent implements OnInit {
     const runId = this.runId.value;
     this.runAdminService.postApiV2EvaluationAdminByEvaluationIdStart(runId).subscribe(
       (r) => {
-        this.update.next();
+        this.refreshSubject.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
       },
       (r) => {
@@ -70,7 +70,7 @@ export class RunAdminToolbarComponent implements OnInit {
           const runId = this.runId.value;
           this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTerminate(runId).subscribe(
             (r) => {
-              this.update.next();
+              this.refreshSubject.next();
               this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
               this.navigation.back();
             },

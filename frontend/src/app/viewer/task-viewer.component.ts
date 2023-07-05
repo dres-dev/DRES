@@ -1,10 +1,9 @@
 import { AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
-import { BehaviorSubject, combineLatest, interval, merge, Observable, of, Subscription } from 'rxjs';
+import {BehaviorSubject, combineLatest, from, interval, merge, mergeMap, Observable, of, Subscription} from 'rxjs';
 import {
   catchError,
   delayWhen,
   filter,
-  flatMap,
   map,
   repeat,
   sampleTime,
@@ -20,13 +19,12 @@ import { IWsClientMessage } from '../model/ws/ws-client-message.interface';
 import { WebSocketSubject } from 'rxjs/webSocket';
 import { AppConfig } from '../app.config';
 import { AudioPlayerUtilities } from '../utilities/audio-player.utilities';
-import { fromArray } from 'rxjs/internal/observable/fromArray';
 import {
   ApiContentElement, ApiContentType,
   ApiEvaluationState,
   ApiHintContent,
   ApiTargetContent,
-  ApiTaskStatus, ApiTaskTemplateInfo,
+  ApiTaskTemplateInfo,
   EvaluationService
 } from '../../../openapi';
 
@@ -121,7 +119,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
      *
      * Implicitly, this Observable is only used when a task is running due to how it is used in the template!
      */
-    const polledState = merge(interval(1000).pipe(flatMap(() => this.evaluationId)), this.state).pipe(
+    const polledState = merge(interval(1000).pipe(mergeMap(() => this.evaluationId)), this.state).pipe(
       sampleTime(1000) /* This is again sampled to only ever emit once every second. */,
       switchMap((s) => {
         if (typeof s === 'string') {
@@ -176,11 +174,11 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
 
     /** Map task target to representation used by viewer. */
     this.currentTaskTarget = currentTaskTarget.pipe(
-      flatMap((h: ApiHintContent) => {
+      mergeMap((h: ApiHintContent) => {
         if (!h) {
-          return fromArray([]);
+          return from([]);
         }
-        return fromArray(h.sequence).pipe(
+        return from(h.sequence).pipe(
           delayWhen<ApiContentElement>((c: ApiContentElement) => interval(1000 * c.offset)),
           repeat(-1)
         );
@@ -189,10 +187,10 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
 
     /* Map task hint to representation used by viewer. */
     this.currentTaskHint = currentTaskHint.pipe(
-      flatMap((hint) => {
+      mergeMap((hint) => {
         return this.timeElapsed.pipe(
           take(1),
-          flatMap((timeElapsed) => {
+            mergeMap((timeElapsed) => {
             const actualTimeElapsed = Math.max(timeElapsed, 0);
             const sequence = [];
             if (hint) {
@@ -211,7 +209,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
               });
             }
 
-            return fromArray(sequence).pipe(
+            return from(sequence).pipe(
               delayWhen<any>((c) => interval(Math.max(0, 1000 * (c.offset - actualTimeElapsed)))),
               map((t, index) => {
                 if (index > 0) {

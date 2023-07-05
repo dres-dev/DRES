@@ -28,7 +28,7 @@ export class AbstractRunListComponent {
   displayedColumns = ['actions', 'id', 'name', 'status', 'currentTask', 'timeLeft', 'description', 'teamCount'];
   runs: Observable<RunInfoWithState[]>;
   updateInterval = 5000; /* TODO: Make configurable. */
-  update = new Subject();
+  refreshSubject: Subject<void> = new Subject();
 
   constructor(
     protected runService: EvaluationService,
@@ -109,7 +109,7 @@ export class AbstractRunListComponent {
   public nextTask(runId: string) {
     this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskNext(runId).subscribe(
       (r) => {
-        this.update.next();
+        this.refreshSubject.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
       },
       (r) => {
@@ -121,7 +121,7 @@ export class AbstractRunListComponent {
   public startTask(runId: string) {
     this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskStart(runId).subscribe(
       (r) => {
-        this.update.next();
+        this.refreshSubject.next();
         this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
       },
       (r) => {
@@ -159,7 +159,7 @@ export class AbstractRunListComponent {
      * state whenever a manual update is triggered.
      */
     const query = combineLatest([this.runService.getApiV2EvaluationInfoList(), this.runService.getApiV2EvaluationStateList()]);
-    this.runs = merge(timer(0, this.updateInterval), this.update).pipe(
+    this.runs = merge(timer(0, this.updateInterval), this.refreshSubject).pipe(
       flatMap((t) => query),
       map(([info, state]) => {
         return info.map((v, i) => {

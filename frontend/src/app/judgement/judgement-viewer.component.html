@@ -19,7 +19,7 @@
     </div>
   </div>
   <div class="body">
-    <app-judgement-media-viewer id="judge-media-viewer" [req]="observableJudgementRequest"></app-judgement-media-viewer>
+    <app-judgement-media-viewer *ngFor="let item of allAnswers(); let idx = index" id="judge-media-viewer" [req]="observableJudgementRequest" answerIndex="{{idx}}"></app-judgement-media-viewer>
     <div
       [@newDescBg]="isNewJudgementDesc ? 'fresh' : 'known'"
       *ngIf="isJudgmentAvailable"

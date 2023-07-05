@@ -1,7 +1,7 @@
 import { AfterViewChecked, AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { AppConfig } from '../app.config';
-import {ApiJudgementRequest} from '../../../openapi';
+import { ApiAnswerType, ApiJudgementRequest } from "../../../openapi";
 
 @Component({
   selector: 'app-judgement-media-viewer',
@@ -9,6 +9,11 @@ import {ApiJudgementRequest} from '../../../openapi';
   styleUrls: ['./judgement-media-viewer.component.scss'],
 })
 export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, AfterViewChecked {
+
+  /**
+   * The zero-based index in the answerset to which this viewer is for
+   */
+  @Input() answerIndex = 0;
   /**
    * The observable holding the currently judged request (i.e. the submission to judge)
    */
@@ -31,7 +36,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
   mediaUrl: Observable<string>;
   videoUrlDebug: Observable<string>;
   playtimeRelative: Observable<number>;
-  activeType: BehaviorSubject<string> = new BehaviorSubject<string>('undefined');
+  activeType: BehaviorSubject<ApiAnswerType> = new BehaviorSubject<ApiAnswerType>(null);
   /** Current text to display. */
   currentText: Observable<string>;
   /** Font size in em. TODO: Make configurable. */
@@ -53,12 +58,9 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     console.log(`[JudgeMedia] ${msg}`);
   }
 
-  private static detectType(req: ApiJudgementRequest) {
-    if (req?.startTime) {
-      return 'segment';
-    } else {
-      return req.mediaType.toLowerCase();
-    }
+  private static detectType(req: ApiJudgementRequest, index: number): ApiAnswerType {
+    console.log("Detect type: ", index)
+    return req?.answerSet?.answers[index]?.type
   }
 
   ngAfterViewInit(): void {
@@ -66,17 +68,16 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     this.requestSub = this.req.subscribe((req) => {
       if (req != null) {
         JudgementMediaViewerComponent.log(`Request=${JSON.stringify(req)}`);
-        this.activeType.next(JudgementMediaViewerComponent.detectType(req));
+        this.activeType.next(JudgementMediaViewerComponent.detectType(req, this.answerIndex));
         switch (this.activeType.value) {
-          case 'text':
-            this.initText(req);
+          case "ITEM":
+            this.initItem(req);
             break;
-          case 'segment':
+          case "TEMPORAL":
             this.initSegment(req);
             break;
-          case 'video':
-          case 'image':
-            this.initItem(req);
+          case "TEXT":
+            this.initText(req);
             break;
         }
       }
@@ -121,7 +122,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
 
   private initSegment(req: ApiJudgementRequest) {
     this.calculateTime(req);
-    const url = this.resolvePath(req);
+    const url = this.resolvePath(req, this.answerIndex);
     this.mediaUrl = new Observable<string>((sub) => sub.next(url));
     this.videoUrlDebug = new Observable<string>((sub) => sub.next(url)); // TODO Debug only
     this.initVideoPlayerHandling();
@@ -131,13 +132,13 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
   }
 
   private initItem(req: ApiJudgementRequest) {
-    const url = this.resolvePath(req, false);
+    const url = this.resolvePath(req, this.answerIndex, false);
     this.mediaUrl = new Observable<string>((sub) => sub.next(url));
     this.videoUrlDebug = new Observable<string>((sub) => sub.next(url)); // TODO Debug only
   }
 
   private initText(req: ApiJudgementRequest) {
-    this.currentText = new Observable<string>((sub) => sub.next(req.item));
+    this.currentText = new Observable<string>((sub) => sub.next(req.answerSet.answers[this.answerIndex].text));
   }
 
   private initVideoPlayerHandling() {
@@ -215,12 +216,12 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     JudgementMediaViewerComponent.log('Calculating time');
     this.startInSeconds = 0;
     /* Parse start time, given in millis */
-    if (req.startTime) {
-      this.startInSeconds = Math.floor(req.startTime/ 1000);
+    if (req.answerSet.answers[this.answerIndex].start) {
+      this.startInSeconds = Math.floor(req.answerSet.answers[this.answerIndex].start/ 1000);
     }
     /* Parse end time, given in millis */
-    if (req.endTime) {
-      this.endInSeconds = Math.ceil(req.endTime / 1000);
+    if (req.answerSet.answers[this.answerIndex].end) {
+      this.endInSeconds = Math.ceil(req.answerSet.answers[this.answerIndex].end / 1000);
     }
     this.originalLengthInSeconds = this.endInSeconds - this.startInSeconds;
     JudgementMediaViewerComponent.log(`Length: ${this.originalLengthInSeconds}, Threshold: ${this.tooShortThreshold}`);
@@ -247,9 +248,9 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     this.ngAfterViewInit();
   }
 
-  private resolvePath(req: ApiJudgementRequest, time = true): string {
+  private resolvePath(req: ApiJudgementRequest,index: number, time = true): string {
     const timeSuffix = time ? `#t=${this.startInSeconds},${this.endInSeconds}` : '';
-    return this.config.resolveApiUrl(`/media/${req.item}${timeSuffix}`);
+    return this.config.resolveApiUrl(`/media/${req.answerSet.answers[index].item.mediaItemId}${timeSuffix}`);
   }
 
   ngAfterViewChecked(): void {

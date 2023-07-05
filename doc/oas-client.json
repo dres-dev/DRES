@@ -1860,6 +1860,14 @@
           "description" : {
             "type" : "string"
           },
+          "created" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "modified" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
           "taskTypes" : {
             "type" : "array",
             "items" : {
@@ -2620,31 +2628,17 @@
           "token" : {
             "type" : "string"
           },
-          "mediaType" : {
-            "$ref" : "#/components/schemas/ApiMediaType"
-          },
           "validator" : {
-            "type" : "string"
-          },
-          "collection" : {
-            "type" : "string"
-          },
-          "item" : {
             "type" : "string"
           },
           "taskDescription" : {
             "type" : "string"
           },
-          "startTime" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "endTime" : {
-            "type" : "integer",
-            "format" : "int64"
+          "answerSet" : {
+            "$ref" : "#/components/schemas/ApiAnswerSet"
           }
         },
-        "required" : [ "mediaType", "validator", "collection", "item", "taskDescription" ]
+        "required" : [ "validator", "taskDescription", "answerSet" ]
       },
       "ApiJudgementValidatorStatus" : {
         "type" : "object",

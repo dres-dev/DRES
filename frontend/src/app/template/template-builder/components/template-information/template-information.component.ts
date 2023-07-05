@@ -67,6 +67,8 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
         this.builderService.defaultSegmentLength = value.defaultRandomLength;
       }
       if (isDirty) {
+        this.builderService.getTemplate().name = value.name;
+        this.builderService.getTemplate().description = value.description;
         this.builderService.markDirty();
       }
     });

@@ -1,5 +1,5 @@
 import { NgModule } from "@angular/core";
-import { CommonModule } from "@angular/common";
+import {CommonModule, NgOptimizedImage} from "@angular/common";
 import { TemplateInformationComponent } from "./template-information/template-information.component";
 import { ReactiveFormsModule } from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -63,24 +63,25 @@ import {
     QueryDescriptionExternalVideoFormFieldComponent,
     QueryDescriptionExternalImageFormFieldComponent
   ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatTooltipModule,
-    MatIconModule,
-    MatMenuModule,
-    MatAutocompleteModule,
-    MatTableModule,
-    MatListModule,
-    SharedModule,
-    MatSelectModule,
-    MatButtonToggleModule,
-    MatGridListModule,
-    CompetitionBuilderModule,
-  ],
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatTooltipModule,
+        MatIconModule,
+        MatMenuModule,
+        MatAutocompleteModule,
+        MatTableModule,
+        MatListModule,
+        SharedModule,
+        MatSelectModule,
+        MatButtonToggleModule,
+        MatGridListModule,
+        CompetitionBuilderModule,
+        NgOptimizedImage,
+    ],
   exports: [TemplateInformationComponent,
     JudgesListComponent,
     TeamsListComponent,

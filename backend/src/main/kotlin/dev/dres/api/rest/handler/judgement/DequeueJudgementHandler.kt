@@ -43,7 +43,7 @@ class DequeueJudgementHandler(store: TransientEntityStore) : AbstractJudgementHa
     )
     override fun doGet(ctx: Context): ApiJudgementRequest {
         /* Start transaction. */
-        val request = this.store.transactional(true) {
+        val request = this.store.transactional(false) {
             val evaluationManager = ctx.eligibleManagerForId<RunManager>()
             checkEligibility(ctx, evaluationManager)
             do {

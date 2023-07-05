@@ -36,14 +36,16 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
   currentText: Observable<string>;
   /** Font size in em. TODO: Make configurable. */
   fontSize = 2.5;
+
+  hasTemporalPadding = false;
+
   private startInSeconds: number;
   private endInSeconds: number;
   private requestSub: Subscription;
-  private offset = 5;
-  private paddingEnabled: boolean;
   private startPaddingApplied: boolean;
   private relativePlaytimeSeconds = 0;
   private originalLengthInSeconds: number;
+
 
   constructor(public config: AppConfig) {}
 
@@ -150,7 +152,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
           this.relativePlaytimeSeconds = Math.round(this.video.nativeElement.currentTime) - this.startInSeconds;
           // JudgementMediaViewerComponent.log(`t=${this.relativePlaytimeSeconds}, ol=${this.originalLengthInSeconds}, ct=${this.video.nativeElement.currentTime}`);
           if (
-            this.paddingEnabled &&
+            this.hasTemporalPadding &&
             this.startPaddingApplied &&
             this.video.nativeElement.currentTime < this.startInSeconds + this.padding
           ) {
@@ -158,7 +160,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
             JudgementMediaViewerComponent.log('Start padding');
             this.addTemporalContextClass();
           } else if (
-            this.paddingEnabled &&
+            this.hasTemporalPadding &&
             this.video.nativeElement.currentTime >
               this.startInSeconds + (this.startPaddingApplied ? this.padding : 0) + this.originalLengthInSeconds
           ) {
@@ -215,21 +217,26 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     this.originalLengthInSeconds = this.endInSeconds - this.startInSeconds;
     JudgementMediaViewerComponent.log(`Length: ${this.originalLengthInSeconds}, Threshold: ${this.tooShortThreshold}`);
     /* If only a frame is given OR too short is shown, add padding */
-    if (this.originalLengthInSeconds < this.tooShortThreshold) {
-      JudgementMediaViewerComponent.log(
-        `Start: ${this.startInSeconds}, Padding: ${this.padding}, diff: ${this.startInSeconds - this.padding}`
-      );
-      if (this.startInSeconds - this.padding < 0) {
-        this.startInSeconds = 0;
-      } else {
-        this.startInSeconds = this.startInSeconds - this.padding;
-        this.startPaddingApplied = true;
+    if(this.hasTemporalPadding){
+      if (this.originalLengthInSeconds < this.tooShortThreshold) {
+        JudgementMediaViewerComponent.log(
+          `Start: ${this.startInSeconds}, Padding: ${this.padding}, diff: ${this.startInSeconds - this.padding}`
+        );
+        if (this.startInSeconds - this.padding < 0) {
+          this.startInSeconds = 0;
+        } else {
+          this.startInSeconds = this.startInSeconds - this.padding;
+          this.startPaddingApplied = true;
+        }
+        this.endInSeconds = this.endInSeconds + this.padding;
       }
-      this.endInSeconds = this.endInSeconds + this.padding;
-      this.paddingEnabled = true;
-      JudgementMediaViewerComponent.log(`Padding: ${this.paddingEnabled}`);
     }
-    // JudgementMediaViewerComponent.log(`time=[${this.startInSeconds},${this.endInSeconds}] - original=${this.originalLengthInSeconds}`);
+  }
+
+  onTemporalContextToggle(event){
+    /* Reload everything to correctly recalculate the temporal context (either if its enabled or disabled) */
+    this.stop();
+    this.ngAfterViewInit();
   }
 
   private resolvePath(req: ApiJudgementRequest, time = true): string {

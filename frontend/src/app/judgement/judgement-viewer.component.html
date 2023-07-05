@@ -21,7 +21,7 @@
   <div class="body">
     <app-judgement-media-viewer id="judge-media-viewer" [req]="observableJudgementRequest"></app-judgement-media-viewer>
     <div
-      [@newDesc]="isNewJudgementDesc ? 'fresh' : 'known'"
+      [@newDescBg]="isNewJudgementDesc ? 'fresh' : 'known'"
       *ngIf="isJudgmentAvailable"
       class="controls-container flex flex-row content-evenly align-center"
     >

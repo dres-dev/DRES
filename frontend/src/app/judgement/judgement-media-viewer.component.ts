@@ -185,8 +185,16 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
       /* custom handler to force-start when loaded. */
       this.video.nativeElement.addEventListener('loadeddata', () => {
         JudgementMediaViewerComponent.log('Event loadeddata fired.');
-        this.video.nativeElement.currentTime = this.startInSeconds;
-        this.video.nativeElement.play().then((r) => JudgementMediaViewerComponent.log('Playing video after event fired'));
+        if(this.startInSeconds === undefined){
+          this.req.subscribe((req) => {
+            this.calculateTime(req);
+            this.video.nativeElement.currentTime = this.startInSeconds;
+            this.video.nativeElement.play().then((r) => JudgementMediaViewerComponent.log('Playing video after event fired, recalc done'))
+          })
+        }else{
+          this.video.nativeElement.currentTime = this.startInSeconds;
+          this.video.nativeElement.play().then((r) => JudgementMediaViewerComponent.log('Playing video after event fired'));
+        }
       });
     }
   }

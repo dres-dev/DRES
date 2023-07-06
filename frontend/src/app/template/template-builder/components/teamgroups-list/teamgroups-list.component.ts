@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { AbstractTemplateBuilderComponent } from "../abstract-template-builder.component";
 import { TemplateBuilderService } from "../../template-builder.service";
-import { ApiTeam, ApiTeamGroup } from "../../../../../../openapi";
+import { ApiTaskType, ApiTeam, ApiTeamGroup } from "../../../../../../openapi";
 import { Observable } from "rxjs";
 import { filter, map } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
@@ -59,7 +59,10 @@ export class TeamgroupsListComponent extends AbstractTemplateBuilderComponent im
     );
   }
 
-  public remove(teamGroup: ApiTeamGroup){
+  public remove = (teamGroup: ApiTeamGroup) => this.removeTeamGroup(teamGroup);
+
+  public edit = (teamGroup: ApiTeamGroup) => this.editTeamGroup(teamGroup);
+  public removeTeamGroup(teamGroup: ApiTeamGroup){
     this.builderService.removeTeamGroup(teamGroup);
     this.table?.renderRows();
   }
@@ -77,12 +80,12 @@ export class TeamgroupsListComponent extends AbstractTemplateBuilderComponent im
     })
   }
 
-  public edit(teamGroup: ApiTeamGroup){
+  public editTeamGroup(teamGroup: ApiTeamGroup){
     const index = this.builderService.getTemplate().teamGroups.indexOf(teamGroup);
     if(index > -1){
       const dialogRef = this.dialog.open(TeamgroupsDialogComponent, {data: teamGroup, width: '600px'});
       dialogRef.afterClosed().pipe(filter((t) => t != null)).subscribe((t) => {
-        this.builderService.getTemplate().teamGroups[index] = teamGroup;
+        this.builderService.getTemplate().teamGroups[index] = t;
         this.builderService.update();
         this.table.renderRows();
       })

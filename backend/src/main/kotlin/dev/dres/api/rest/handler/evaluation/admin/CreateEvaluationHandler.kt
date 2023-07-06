@@ -1,17 +1,14 @@
 package dev.dres.api.rest.handler.evaluation.admin
 
 import dev.dres.api.rest.handler.PostRestHandler
-import dev.dres.api.rest.types.competition.ApiEvaluationStartMessage
+import dev.dres.api.rest.types.template.ApiEvaluationStartMessage
 import dev.dres.api.rest.types.evaluation.ApiEvaluationType
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.run.DbEvaluation
-import dev.dres.data.model.run.InteractiveAsynchronousEvaluation
 import dev.dres.data.model.template.DbEvaluationTemplate
-import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.mgmt.cache.CacheManager
-import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.InteractiveSynchronousRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManagerStatus

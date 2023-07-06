@@ -1,7 +1,7 @@
 package dev.dres.data.model.template.task
 
-import dev.dres.api.rest.types.competition.tasks.*
-import dev.dres.api.rest.types.competition.team.ApiTeam
+import dev.dres.api.rest.types.template.tasks.*
+import dev.dres.api.rest.types.template.team.ApiTeam
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.media.DbMediaCollection

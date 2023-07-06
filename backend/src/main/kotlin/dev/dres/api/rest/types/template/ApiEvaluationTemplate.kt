@@ -1,10 +1,10 @@
-package dev.dres.api.rest.types.competition
+package dev.dres.api.rest.types.template
 
-import dev.dres.api.rest.types.competition.tasks.ApiTaskTemplate
-import dev.dres.api.rest.types.competition.tasks.ApiTaskGroup
-import dev.dres.api.rest.types.competition.tasks.ApiTaskType
-import dev.dres.api.rest.types.competition.team.ApiTeam
-import dev.dres.api.rest.types.competition.team.ApiTeamGroup
+import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
+import dev.dres.api.rest.types.template.tasks.ApiTaskGroup
+import dev.dres.api.rest.types.template.tasks.ApiTaskType
+import dev.dres.api.rest.types.template.team.ApiTeam
+import dev.dres.api.rest.types.template.team.ApiTeamGroup
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.TemplateId
 

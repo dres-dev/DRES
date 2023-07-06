@@ -1,4 +1,4 @@
-package dev.dres.api.rest.types.competition.team
+package dev.dres.api.rest.types.template.team
 
 import dev.dres.data.model.template.team.DbTeamGroup
 import dev.dres.data.model.template.team.TeamGroupId

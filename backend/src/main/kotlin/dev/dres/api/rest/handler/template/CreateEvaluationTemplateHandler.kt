@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.template
 
 import dev.dres.api.rest.handler.PostRestHandler
-import dev.dres.api.rest.types.competition.ApiCreateEvaluation
+import dev.dres.api.rest.types.template.ApiCreateEvaluation
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus

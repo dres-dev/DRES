@@ -1,6 +1,6 @@
 package dev.dres.data.model.template.team
 
-import dev.dres.api.rest.types.competition.team.ApiTeam
+import dev.dres.api.rest.types.template.team.ApiTeam
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.template.DbEvaluationTemplate

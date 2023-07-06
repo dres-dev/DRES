@@ -1,6 +1,6 @@
 package dev.dres.data.model.template.task
 
-import dev.dres.api.rest.types.competition.tasks.ApiTargetType
+import dev.dres.api.rest.types.template.tasks.ApiTargetType
 import dev.dres.data.model.template.task.options.DbScoreOption
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity

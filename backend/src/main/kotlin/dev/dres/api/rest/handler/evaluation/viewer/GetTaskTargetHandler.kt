@@ -2,9 +2,8 @@ package dev.dres.api.rest.handler.evaluation.viewer
 
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.utilities.extensions.eligibleManagerForId
-import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.isParticipant
-import dev.dres.api.rest.types.competition.tasks.ApiTargetContent
+import dev.dres.api.rest.types.template.tasks.ApiTargetContent
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.task.ApiContentElement

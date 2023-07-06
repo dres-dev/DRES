@@ -1,6 +1,6 @@
 package dev.dres.api.rest.types.evaluation
 
-import dev.dres.api.rest.types.competition.ApiEvaluationTemplate
+import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.data.model.run.DbEvaluation
 import dev.dres.data.model.run.interfaces.Evaluation
 import dev.dres.data.model.run.interfaces.EvaluationId

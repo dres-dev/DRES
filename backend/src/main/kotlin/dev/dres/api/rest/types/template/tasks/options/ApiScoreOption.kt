@@ -1,4 +1,4 @@
-package dev.dres.api.rest.types.competition.tasks.options
+package dev.dres.api.rest.types.template.tasks.options
 
 import dev.dres.data.model.template.task.options.DbScoreOption
 

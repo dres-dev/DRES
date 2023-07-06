@@ -1,0 +1,43 @@
+<h1 mat-dialog-title>Add team group</h1>
+<div mat-dialog-content>
+  <form [formGroup]="form">
+    <div>
+      <p>
+        <mat-form-field>
+          <mat-label>Team Group Name</mat-label>
+          <input type="text" matInput placeholder="Name" formControlName="name" />
+          <mat-error *ngIf="form.get('name')?.invalid">Name must consist of at least three characters.</mat-error>
+        </mat-form-field>
+      </p>
+      <p>
+        <mat-form-field>
+          <mat-label>Aggregation</mat-label>
+          <input type="text" matInput placeholder="Aggregation" formControlName="aggregation" />
+          <mat-error *ngIf="form.get('aggregation')?.invalid">Aggregation must consist of at least three characters.</mat-error>
+        </mat-form-field>
+      </p>
+      <p>
+        <mat-form-field class="team-chip-list" [style.width]="'100%'">
+          <mat-label>Members (Teams)</mat-label>
+          <mat-chip-grid #chipList aria-label="Teams">
+            <mat-chip-row *ngFor="let team of form.get('teams').value" [removable]="true" (removed)="removeTeam(team)">
+              {{team.name}}
+              <mat-icon matChipRemove>cancel</mat-icon>
+            </mat-chip-row>
+            <input placeholder="Add team..." [matAutocomplete]="auto" [matChipInputFor]="chipList" />
+          </mat-chip-grid>
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addTeam($event)">
+            <mat-option *ngFor="let team of availableTeams | async" [value]="team">
+              {{team.name}}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-error *ngIf="form.get('teams')?.invalid">There must be at least one team</mat-error>
+        </mat-form-field>
+      </p>
+    </div>
+  </form>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="close()">Cancel</button>
+  <button mat-button (click)="save()">Save</button>
+</div>

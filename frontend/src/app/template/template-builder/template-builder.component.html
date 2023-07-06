@@ -9,11 +9,11 @@
     <div class="spacer-flex"></div>
 
     <div>
-        <button *ngIf="!isSaving" mat-icon-button aria-label="Save changes to competition." matTooltip="Save changes to competition."
-                (click)="save()">
-            <mat-icon>save</mat-icon>
+        <button  mat-icon-button aria-label="Save changes to competition." matTooltip="Save changes to competition."
+                (click)="save()" [disabled]="isSaving">
+            <mat-icon *ngIf="!isSaving">save</mat-icon>
+            <mat-spinner diameter="20" color="accent" *ngIf="isSaving"></mat-spinner>
         </button>
-        <mat-spinner diameter="20" color="accent" *ngIf="isSaving"></mat-spinner>
     </div>
     <div>
         <button mat-icon-button aria-label="Refresh competition (changes will be lost)."
@@ -35,8 +35,9 @@
             <app-template-information></app-template-information>
         </mat-tab>
         <mat-tab bodyClass="p2e" label="Teams & Judges">
-            <div class="tb-container-3col-left">
+            <div class="tb-container-2col-1col-1col">
                 <app-teams-list class="content-left"></app-teams-list>
+                <app-teamgroups-list class="content-center"></app-teamgroups-list>
                 <app-judges-list class="content-right"></app-judges-list>
             </div>
         </mat-tab>

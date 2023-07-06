@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {ApiEvaluationTemplate, ApiTaskGroup, ApiTaskTemplate, ApiTaskType} from '../../../../openapi';
+import { ApiEvaluationTemplate, ApiTaskGroup, ApiTaskTemplate, ApiTaskType, ApiTeamGroup } from "../../../../openapi";
 import { BehaviorSubject, Observable } from "rxjs";
 import { map } from "rxjs/operators";
 
@@ -234,4 +234,8 @@ export class TemplateBuilderService {
     }
   }
 
+  removeTeamGroup(teamGroup: ApiTeamGroup) {
+    this.getTemplate().teamGroups.splice(this.getTemplate().teamGroups.indexOf(teamGroup), 1);
+    this.update(this.getTemplate());
+  }
 }

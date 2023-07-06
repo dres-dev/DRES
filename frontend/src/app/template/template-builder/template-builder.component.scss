@@ -6,6 +6,10 @@
   grid-area: right;
 }
 
+.content-center {
+  grid-area: center;
+}
+
 .tb-container-2col {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -43,3 +47,13 @@
   }
 }
 
+.tb-container-2col-1col-1col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-areas: "left left center right";
+  column-gap: 1em;
+
+  > * {
+    min-width: 0;
+  }
+}

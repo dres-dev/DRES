@@ -12,11 +12,17 @@ import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import { MatSelectModule } from "@angular/material/select";
 import { CompetitionBuilderModule } from "../../competition/competition-builder/competition-builder.module";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { TeamgroupsListComponent } from './components/teamgroups-list/teamgroups-list.component';
+import { TeamgroupsDialogComponent } from './components/teamgroups-dialog/teamgroups-dialog.component';
+import { MatDialogModule } from "@angular/material/dialog";
+import { MatChipsModule } from "@angular/material/chips";
 
 
 @NgModule({
   declarations: [
-    TemplateBuilderComponent
+    TemplateBuilderComponent,
+    TeamgroupsListComponent,
+    TeamgroupsDialogComponent
 
   ],
   imports: [
@@ -31,7 +37,9 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
     MatSelectModule,
     CompetitionBuilderModule,
     TemplateBuilderComponentsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatDialogModule,
+    MatChipsModule
   ],
   exports: [TemplateBuilderComponent]
 })

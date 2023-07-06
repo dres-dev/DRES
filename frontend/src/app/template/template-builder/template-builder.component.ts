@@ -81,6 +81,7 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
       this.refresh();
     }, (r) => {
       this.snackBar.open(`Error: ${r?.error?.description}`, null, {duration: 5000})
+      //this.isSaving = false
     }, () => {
       this.isSaving = false
     });

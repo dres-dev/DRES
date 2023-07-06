@@ -1,5 +1,6 @@
 package dev.dres.data.model.template.team
 
+import dev.dres.api.rest.types.template.team.ApiTeamAggregatorType
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity
 import kotlinx.dnq.XdEnumEntityType
@@ -38,4 +39,6 @@ class DbTeamAggregator(entity: Entity) : XdEnumEntity(entity) {
     }
 
     override fun toString() = this.description
+
+    fun toApi(): ApiTeamAggregatorType = ApiTeamAggregatorType.values().find { it.toDb() == this } ?: throw IllegalStateException("TeamAggregator ${this.description} is not supported.")
 }

@@ -286,7 +286,7 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                     "Team group name must be specified.",
                     ctx
                 )
-
+                t.defaultAggregator = teamGroup.aggregation.toDb()
 
                 t.teams.clear()
                 t.teams.addAll(DbTeam.query(DbTeam::id.containsIn(*teamGroup.teams.map { it.id }

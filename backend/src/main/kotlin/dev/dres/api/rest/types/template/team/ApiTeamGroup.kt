@@ -13,5 +13,5 @@ data class ApiTeamGroup(
     val id: TeamGroupId? = null,
     val name: String? = null,
     val teams: List<ApiTeam> = emptyList(),
-    val aggregation: String? = null
+    val aggregation: ApiTeamAggregatorType
 )

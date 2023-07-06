@@ -10,9 +10,13 @@
         </mat-form-field>
       </p>
       <p>
-        <mat-form-field>
+        <mat-form-field appearance="fill">
           <mat-label>Aggregation</mat-label>
-          <input type="text" matInput placeholder="Aggregation" formControlName="aggregation" />
+          <mat-select placeholder="Aggregation" formControlName="aggregation">
+            <mat-option *ngFor="let type of aggregatorTypes" [value]="type">
+              {{ type }}
+            </mat-option>
+          </mat-select>
           <mat-error *ngIf="form.get('aggregation')?.invalid">Aggregation must consist of at least three characters.</mat-error>
         </mat-form-field>
       </p>

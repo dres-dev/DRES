@@ -1,6 +1,6 @@
 import { Component, Inject } from "@angular/core";
 import { FormControl, FormGroup, UntypedFormGroup, Validators } from "@angular/forms";
-import { ApiTeam, ApiTeamGroup } from "../../../../../../openapi";
+import { ApiTeam, ApiTeamAggregatorType, ApiTeamGroup } from "../../../../../../openapi";
 import { Observable } from "rxjs";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { TemplateBuilderService } from "../../template-builder.service";
@@ -17,6 +17,8 @@ export class TeamgroupsDialogComponent {
 
   form: UntypedFormGroup;
   availableTeams: Observable<ApiTeam[]>;
+
+  aggregatorTypes = Object.values(ApiTeamAggregatorType)
 
   constructor(
     private dialogRef: MatDialogRef<TeamgroupsDialogComponent>,

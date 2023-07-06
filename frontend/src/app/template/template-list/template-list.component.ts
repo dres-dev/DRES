@@ -1,7 +1,7 @@
 import { AfterViewInit, Component } from "@angular/core";
 import {
   ApiCreateEvaluation,
-  ApiEvaluationOverview, ApiEvaluationStartMessage,
+  ApiEvaluationOverview, ApiEvaluationStartMessage, ApiEvaluationTemplateOverview,
   DownloadService,
   EvaluationAdministratorService, RunProperties, SuccessStatus,
   TemplateService
@@ -26,7 +26,7 @@ export class TemplateListComponent implements AfterViewInit{
 
 
   displayedColumns = ['actions', 'id', 'name', 'description', 'nbTasks', 'nbTeams']
-  templates: ApiEvaluationOverview[] = [];
+  templates: ApiEvaluationTemplateOverview[] = [];
 
   /** Map of runs that are currently being generated. */
   public waitingForRun = new Map<string, boolean>()
@@ -62,7 +62,7 @@ export class TemplateListComponent implements AfterViewInit{
 
   public refresh(){
     this.templateService.getApiV2TemplateList().subscribe(
-      (results: ApiEvaluationOverview[]) => {
+      (results: ApiEvaluationTemplateOverview[]) => {
         this.templates = results;
       },
       (err) => {

@@ -68,6 +68,11 @@ class AuditCommand(private val store: TransientEntityStore) : NoOpCliktCommand(n
             DateTime.parse(it, pattern)
         }.default(DateTime(Long.MAX_VALUE))
 
+        private val evaluationId: String? by option(
+            "-e", "--evaluation",
+            help = "Optional evaluation Id"
+        )
+
         override fun run() {
             val writer = output.printWriter(Charsets.UTF_8)
             val mapper = jacksonObjectMapper()
@@ -75,7 +80,12 @@ class AuditCommand(private val store: TransientEntityStore) : NoOpCliktCommand(n
             var counter = 0
 
             this@AuditCommand.store.transactional(readonly = true) {
-                DbAuditLogEntry.query((DbAuditLogEntry::timestamp ge startTimeStamp) and (DbAuditLogEntry::timestamp le endTimeStamp))
+                val baseQuery = DbAuditLogEntry.query((DbAuditLogEntry::timestamp ge startTimeStamp) and (DbAuditLogEntry::timestamp le endTimeStamp))
+                        if(evaluationId != null) {
+                            baseQuery.query(DbAuditLogEntry::evaluationId eq evaluationId!!)
+                        } else {
+                            baseQuery
+                        }
                     .sortedBy(DbAuditLogEntry::timestamp, asc = true)
                     .asSequence().forEach {
                         writer.println(mapper.writeValueAsString(it.toApi()))

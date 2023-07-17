@@ -49,8 +49,8 @@ class ProlongOnSubmitUpdatable(private val manager: InteractiveRunManager): Upda
                 }.firstOrNull()?.value?.toBooleanStrictOrNull() ?: Defaults.PROLONG_ON_SUBMISSION_CORRECT_DEFAULT
 
                 /* Apply prolongation if necessary. */
-                val submission: DbSubmission = this.manager.currentSubmissions(context).last()
-                if (correctOnly && submission.answerSets().all { it.status() != VerdictStatus.CORRECT }) {
+                val submission: DbSubmission? = this.manager.currentSubmissions(context).lastOrNull()
+                if (submission == null || (correctOnly && submission.answerSets().all { it.status() != VerdictStatus.CORRECT })) {
                     return
                 }
                 val timeLeft = Math.floorDiv(this.manager.timeLeft(context), 1000)

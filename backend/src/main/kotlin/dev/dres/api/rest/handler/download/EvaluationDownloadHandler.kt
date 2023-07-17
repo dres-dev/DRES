@@ -41,7 +41,7 @@ class EvaluationDownloadHandler(store: TransientEntityStore) : AbstractDownloadH
     )
     override fun doGet(ctx: Context): String {
         /* Obtain run id and run. */
-        val evaluationId = ctx.pathParamMap().getOrElse("runId") { throw ErrorStatusException(400, "Parameter 'evaluationId' is missing!'", ctx) }
+        val evaluationId = ctx.pathParamMap().getOrElse("evaluationId") { throw ErrorStatusException(400, "Parameter 'evaluationId' is missing!'", ctx) }
         val evaluation = this.store.transactional(true) {
             DbEvaluation.query(DbEvaluation::id eq evaluationId).firstOrNull()?.toApi()
                 ?: throw ErrorStatusException(404, "Run $evaluationId not found", ctx)

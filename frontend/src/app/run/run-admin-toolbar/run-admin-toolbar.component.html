@@ -11,8 +11,8 @@
     <button
       *ngIf="(run | async)?.overview?.state === 'CREATED'"
       mat-icon-button
-      aria-label="Start the competition run."
-      matTooltip="Start the competition run."
+      aria-label="Start the evaluation run."
+      matTooltip="Start the evaluation run."
       (click)="start()"
     >
       <mat-icon>play_arrow</mat-icon>
@@ -20,16 +20,16 @@
     <button
       *ngIf="(run | async)?.overview?.state === 'ACTIVE'"
       mat-icon-button
-      aria-label="Terminate the competition run."
-      matTooltip="Terminate the competition run."
+      aria-label="Terminate the evaluation run."
+      matTooltip="Terminate the evaluation run."
       (click)="terminate()"
     >
       <mat-icon>stop</mat-icon>
     </button>
     <button
       mat-icon-button
-      aria-label="Go to competition viewer."
-      matTooltip="Go to competition viewer."
+      aria-label="Go to evaluation viewer."
+      matTooltip="Go to evaluation viewer."
       (click)="navigateToViewer()"
     >
       <mat-icon>visibility</mat-icon>

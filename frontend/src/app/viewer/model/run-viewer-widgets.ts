@@ -6,7 +6,7 @@ export class Widget {
 
   public static DEFAULTS = {
     center: 'player',
-    left: 'competition_score',
+    left: 'evaluation_score',
     right: 'task_type_score',
     bottom: 'team_score',
   };
@@ -14,7 +14,7 @@ export class Widget {
   /** The {@link Widget}s available at the center of the viewer. */
   public static CENTER_WIDGETS: Array<Widget> = [
     new Widget('player', 'Player'),
-    new Widget('competition_score', 'Normalized Competition Scores'),
+    new Widget('evaluation_score', 'Normalized Competition Scores'),
     new Widget('task_type_score', 'Task Type Score'),
   ];
 

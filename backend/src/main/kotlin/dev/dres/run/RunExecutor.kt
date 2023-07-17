@@ -50,7 +50,7 @@ object RunExecutor : Consumer<WsConfig> {
     /** List of [WsContext] that are currently connected. */
     private val connectedClients = HashMap<String,WebSocketConnection>()
 
-    /** List of session IDs that are currently observing a competition. */
+    /** List of session IDs that are currently observing an evaluation. */
     private val observingClients = HashMap<EvaluationId, MutableSet<WebSocketConnection>>()
 
     /** Lock for accessing and changing all data structures related to WebSocket clients. */
@@ -238,19 +238,4 @@ object RunExecutor : Consumer<WsConfig> {
         this.executor.shutdownNow()
     }
 
-
-    /**
-     * Dumps the given [EvaluationRun] to a file.
-     *
-     * @param competition [EvaluationRun] that should be dumped.
-     */
-    fun dump(competition: EvaluationRun) { //FIXME can no longer properly dump things, since they refer to dnq objects
-        try {
-            val file = File("run_dump_${competition.id}.json")
-            jacksonObjectMapper().writeValue(file, competition)
-            this.logger.info("Wrote current run state to ${file.absolutePath}")
-        } catch (e: Exception){
-            this.logger.error("Could not write run to disk: ", e)
-        }
-    }
 }

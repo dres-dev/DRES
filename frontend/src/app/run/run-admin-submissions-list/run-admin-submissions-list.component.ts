@@ -27,7 +27,7 @@ export class RunAdminSubmissionsListComponent implements AfterViewInit, OnDestro
 
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
 
-  /** ID of the competition run shown by this {@link RunAdminSubmissionsListComponent}. */
+  /** ID of the evaluation run shown by this {@link RunAdminSubmissionsListComponent}. */
   public runId: Observable<string>;
 
   /** ID of the task shown by this {@link RunAdminSubmissionsListComponent}. */

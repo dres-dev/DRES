@@ -562,7 +562,6 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 // oh shit, something went horribly, horribly wrong
                 if (errorCounter >= MAXIMUM_RUN_LOOP_ERROR_COUNT) {
                     LOGGER.error("Reached maximum consecutive error count, terminating loop")
-                    RunExecutor.dump(this.evaluation)
                     break //terminate loop
                 }
             }

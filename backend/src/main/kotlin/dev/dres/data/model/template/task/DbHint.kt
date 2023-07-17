@@ -1,7 +1,7 @@
 package dev.dres.data.model.template.task
 
 import dev.dres.api.rest.types.collection.time.ApiTemporalRange
-import dev.dres.api.rest.types.competition.tasks.ApiHint
+import dev.dres.api.rest.types.template.tasks.ApiHint
 import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.media.time.TemporalRange

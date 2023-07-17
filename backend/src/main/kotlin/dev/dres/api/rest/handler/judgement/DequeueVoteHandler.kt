@@ -11,6 +11,7 @@ import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbAnswerType
 import dev.dres.run.RunManager
 import dev.dres.run.validation.interfaces.VoteValidator
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -40,31 +41,26 @@ class DequeueVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): ApiJudgementRequest = this.store.transactional(true) {//TODO needs adjustment to deal with answerSets
-    val evaluationManager = ctx.eligibleManagerForId<RunManager>()
-        do {
-            val validator = evaluationManager.judgementValidators.filterIsInstance<VoteValidator>().find {  it.isActive } ?: break
-            val next = validator.nextSubmissionToVoteOn() ?: break
-            val taskDescription = next.task().template.textualDescription()
-            when (next.answers().firstOrNull()?.type()) {
-                AnswerType.TEXT -> {
-                    val text = next.answers().firstOrNull()?.text ?: continue
-                    return@transactional ApiJudgementRequest(null, ApiMediaType.TEXT, validator.id, "text", text, taskDescription, null, null)
-                }
-                AnswerType.ITEM -> {
-                    val item = next.answers().firstOrNull()?.item ?: continue
-                    return@transactional ApiJudgementRequest(null, item.type().toApi(), validator.id, item.dbCollection().id, item.mediaItemId, taskDescription, null, null)
-                }
-                AnswerType.TEMPORAL -> {
-                    val answer = next.answers().firstOrNull() ?: continue
-                    val item = answer.item ?: continue
-                    val start = answer.start ?: continue
-                    val end = answer.end ?: continue
-                    return@transactional ApiJudgementRequest(null, item.type().toApi(), validator.id, item.dbCollection().id, item.mediaItemId, taskDescription, start, end)
-                }
-                else -> continue
-            }
-        } while (true)
-        throw ErrorStatusException(202, "There is currently no voting going on in evaluation ${evaluationManager.id}.", ctx, true)
+    override fun doGet(ctx: Context): ApiJudgementRequest {
+        val request = this.store.transactional(false) {//TODO needs adjustment to deal with answerSets
+            val evaluationManager = ctx.eligibleManagerForId<RunManager>()
+
+            val validator = evaluationManager.judgementValidators.filterIsInstance<VoteValidator>().find {  it.isActive } ?: return@transactional null
+            val next = validator?.next(ctx.sessionToken()!!)
+                ?: /* No submission awaiting judgement */
+                return@transactional null
+            val taskDescription = next.second.task().template.textualDescription()
+            return@transactional ApiJudgementRequest(
+                token = next.first,
+                validator = validator.id,
+                taskDescription = taskDescription,
+                answerSet = next.second.toApi(false)
+            )
+        }
+        return request ?: throw ErrorStatusException(
+            202,
+            "There is currently no submission awaiting judgement.",
+            ctx
+        )
     }
 }

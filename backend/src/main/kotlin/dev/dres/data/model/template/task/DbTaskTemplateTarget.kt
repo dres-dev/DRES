@@ -1,10 +1,9 @@
 package dev.dres.data.model.template.task
 
 import dev.dres.api.rest.types.collection.time.ApiTemporalRange
-import dev.dres.api.rest.types.competition.tasks.ApiTarget
-import dev.dres.api.rest.types.competition.tasks.ApiTaskTemplate
+import dev.dres.api.rest.types.template.tasks.ApiTarget
+import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.data.model.media.DbMediaItem
-import dev.dres.data.model.media.DbMediaType
 import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.media.time.TemporalRange
 import jetbrains.exodus.entitystore.Entity

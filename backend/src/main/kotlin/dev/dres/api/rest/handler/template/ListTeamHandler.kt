@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.template
 
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.types.competition.team.ApiTeam
+import dev.dres.api.rest.types.template.team.ApiTeam
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.model.template.team.DbTeam
 import io.javalin.http.Context

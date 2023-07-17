@@ -1,9 +1,8 @@
 package dev.dres.api.rest.handler.template
 
 import dev.dres.api.rest.handler.PatchRestHandler
-import dev.dres.api.rest.types.competition.ApiEvaluationTemplate
-import dev.dres.api.rest.types.competition.tasks.ApiTarget
-import dev.dres.api.rest.types.competition.tasks.ApiTargetType
+import dev.dres.api.rest.types.template.ApiEvaluationTemplate
+import dev.dres.api.rest.types.template.tasks.ApiTargetType
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -19,7 +18,6 @@ import dev.dres.data.model.media.DbMediaItem
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import io.javalin.plugin.bundled.RouteOverviewUtil.metaInfo
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.creator.findOrNew
 import kotlinx.dnq.query.*
@@ -283,6 +281,12 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 } else {
                     DbTeamGroup.new()
                 }
+                t.name = teamGroup.name ?: throw ErrorStatusException(
+                    404,
+                    "Team group name must be specified.",
+                    ctx
+                )
+                t.defaultAggregator = teamGroup.aggregation.toDb()
 
                 t.teams.clear()
                 t.teams.addAll(DbTeam.query(DbTeam::id.containsIn(*teamGroup.teams.map { it.id }

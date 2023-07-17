@@ -1,6 +1,6 @@
 package dev.dres.data.model.template.task.options
 
-import dev.dres.api.rest.types.competition.tasks.options.ApiHintOption
+import dev.dres.api.rest.types.template.tasks.options.ApiHintOption
 import dev.dres.data.model.template.task.DbTaskTemplate
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity

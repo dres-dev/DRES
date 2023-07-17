@@ -1,6 +1,6 @@
 package dev.dres.data.model.template
 
-import dev.dres.api.rest.types.competition.ApiEvaluationTemplate
+import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.template.task.DbTaskTemplate
@@ -11,16 +11,10 @@ import dev.dres.data.model.template.task.DbTaskType
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.DbTeamGroup
 import dev.dres.data.model.media.time.TemporalRange
-import dev.dres.data.model.run.DbEvaluation
-import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.template.interfaces.EvaluationTemplate
 import dev.dres.data.model.template.task.options.DbConfiguredOption
-import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
-import dev.dres.run.score.scoreboard.Scoreboard
-import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
-import kotlinx.dnq.creator.findOrNew
 import kotlinx.dnq.link.OnDeletePolicy
 import kotlinx.dnq.query.*
 import java.lang.IllegalStateException

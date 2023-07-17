@@ -1,6 +1,6 @@
 package dev.dres.data.model.template.task.options
 
-import dev.dres.api.rest.types.competition.tasks.options.ApiSubmissionOption
+import dev.dres.api.rest.types.template.tasks.options.ApiSubmissionOption
 import dev.dres.run.filter.*
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity

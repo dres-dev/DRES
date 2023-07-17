@@ -1,4 +1,4 @@
-package dev.dres.api.rest.types.competition.team
+package dev.dres.api.rest.types.template.team
 
 import dev.dres.data.model.template.team.DbTeamGroup
 import dev.dres.data.model.template.team.TeamGroupId
@@ -13,5 +13,5 @@ data class ApiTeamGroup(
     val id: TeamGroupId? = null,
     val name: String? = null,
     val teams: List<ApiTeam> = emptyList(),
-    val aggregation: String? = null
+    val aggregation: ApiTeamAggregatorType
 )

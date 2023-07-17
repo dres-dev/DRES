@@ -112,7 +112,6 @@ export class TaskTypesListComponent extends AbstractTemplateBuilderComponent imp
     }));
   }
 
-  //public remove = (type: ApiTaskType) => this.remove(type);
 
   public addTaskType(type?: ApiTaskType) {
     const dialogRef = this.dialog.open(CompetitionBuilderTaskTypeDialogComponent, { data: type ?? null, width: "750px" });
@@ -125,7 +124,9 @@ export class TaskTypesListComponent extends AbstractTemplateBuilderComponent imp
       });
   }
 
-  public remove(taskType: ApiTaskType) {
+  public remove = (taskType: ApiTaskType) => this.removeTaskType(taskType);
+
+  public removeTaskType(taskType: ApiTaskType) {
     this.builderService.removeTaskType(taskType);
     this.table?.renderRows();
   }

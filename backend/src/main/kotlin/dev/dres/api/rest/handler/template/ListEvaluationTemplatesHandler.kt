@@ -1,7 +1,7 @@
 package dev.dres.api.rest.handler.template
 
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.types.competition.ApiEvaluationOverview
+import dev.dres.api.rest.types.template.ApiEvaluationTemplateOverview
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.model.template.DbEvaluationTemplate
 import io.javalin.http.Context
@@ -20,7 +20,7 @@ import kotlinx.dnq.query.size
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ListEvaluationTemplatesHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), GetRestHandler<List<ApiEvaluationOverview>> {
+class ListEvaluationTemplatesHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), GetRestHandler<List<ApiEvaluationTemplateOverview>> {
     override val route: String = "template/list"
 
     @OpenApi(
@@ -29,14 +29,14 @@ class ListEvaluationTemplatesHandler(store: TransientEntityStore) : AbstractEval
         operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Template"],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(Array<ApiEvaluationOverview>::class)]),
+            OpenApiResponse("200", [OpenApiContent(Array<ApiEvaluationTemplateOverview>::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
         ],
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context) = this.store.transactional(true) {
         DbEvaluationTemplate.query(DbEvaluationTemplate::instance eq false).asSequence().map {
-            ApiEvaluationOverview(it.id, it.name, it.description, it.tasks.size(), it.teams.size())
+            ApiEvaluationTemplateOverview(it.id, it.name, it.description, it.tasks.size(), it.teams.size())
         }.toList()
     }
 }

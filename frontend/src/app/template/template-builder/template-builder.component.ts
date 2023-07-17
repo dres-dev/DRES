@@ -25,7 +25,7 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
   routeSub: Subscription;
   changeSub: Subscription;
 
-
+  isSaving=false;
   constructor(
       private templateService: TemplateService,
       private userService: UserService,
@@ -72,12 +72,19 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
 
   public save(){
     // FIXME re-enable form validation. possibly on the form-builder?
+    this.isSaving = true;
     console.log("save")
     this.templateService.patchApiV2TemplateByTemplateId(this.builderService.getTemplate().id, this.builderService.getTemplateCleaned()).subscribe((s) => {
       this.snackBar.open(s.description, null, {duration: 5000});
       this.builderService.unmarkDirty();
       console.log("TemplateBuilder: Saved successfully", this.builderService.isDirty())
-    }, (r) => this.snackBar.open(`Error: ${r?.error?.description}`, null, {duration: 5000}));
+      this.refresh();
+    }, (r) => {
+      this.snackBar.open(`Error: ${r?.error?.description}`, null, {duration: 5000})
+      //this.isSaving = false
+    }, () => {
+      this.isSaving = false
+    });
   }
 
   public back(){

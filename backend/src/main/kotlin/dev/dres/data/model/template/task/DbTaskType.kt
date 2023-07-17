@@ -1,6 +1,6 @@
 package dev.dres.data.model.template.task
 
-import dev.dres.api.rest.types.competition.tasks.ApiTaskType
+import dev.dres.api.rest.types.template.tasks.ApiTaskType
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.options.*
 import dev.dres.data.model.template.task.options.DbConfiguredOption

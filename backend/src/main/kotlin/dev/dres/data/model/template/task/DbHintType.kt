@@ -1,6 +1,6 @@
 package dev.dres.data.model.template.task
 
-import dev.dres.api.rest.types.competition.tasks.ApiHintType
+import dev.dres.api.rest.types.template.tasks.ApiHintType
 import dev.dres.api.rest.types.task.ApiContentType
 import dev.dres.data.model.template.task.options.DbScoreOption
 import jetbrains.exodus.entitystore.Entity

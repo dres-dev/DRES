@@ -203,6 +203,10 @@ export class JudgementViewerComponent implements AfterViewInit, OnDestroy {
             });
     }
 
+    allAnswers(){
+        return this.observableJudgementRequest?.value?.answerSet?.answers || []
+    }
+
     /**
      *
      */

@@ -1,4 +1,4 @@
-package dev.dres.api.rest.types.competition.tasks
+package dev.dres.api.rest.types.template.tasks
 
 import dev.dres.data.model.template.task.DbHintType
 

@@ -1,4 +1,4 @@
-import { AfterContentInit, Component, ContentChildren, Input, OnInit, QueryList, ViewChild } from "@angular/core";
+import { AfterContentInit, Component, ContentChildren, Input, OnInit, QueryList, TrackByFunction, ViewChild } from "@angular/core";
 import { MatColumnDef, MatTable } from "@angular/material/table";
 
 export class ActionableDynamicTableColumnDefinition {
@@ -57,6 +57,9 @@ export class ActionableDynamicTable<T> implements AfterContentInit{
   @Input()
   public onRemove?: (element: T) => void;
 
+  @Input()
+  public trackedBy?: TrackByFunction<T>
+
   @ContentChildren(MatColumnDef)
   columnDefs: QueryList<MatColumnDef>
 
@@ -94,6 +97,9 @@ export class ActionableDynamicTable<T> implements AfterContentInit{
 
   ngAfterContentInit(): void {
     this.columnDefs.forEach(cd => this.table.addColumnDef(cd));
+    if(this.trackedBy){
+      this.table.trackBy = this.trackedBy
+    }
   }
 
 }

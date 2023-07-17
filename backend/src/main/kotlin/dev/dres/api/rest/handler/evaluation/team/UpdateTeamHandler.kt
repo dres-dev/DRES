@@ -2,7 +2,7 @@ package dev.dres.api.rest.handler.evaluation.team
 
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.PatchRestHandler
-import dev.dres.api.rest.types.competition.team.ApiTeam
+import dev.dres.api.rest.types.template.team.ApiTeam
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
@@ -16,7 +16,6 @@ import io.javalin.openapi.*
 import io.javalin.security.RouteRole
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
-import kotlinx.dnq.query.FilteringContext.eq
 
 class UpdateTeamHandler(private val store: TransientEntityStore) : PatchRestHandler<SuccessStatus>, AccessManagedRestHandler {
 

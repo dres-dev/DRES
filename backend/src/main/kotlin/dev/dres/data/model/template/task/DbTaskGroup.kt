@@ -1,7 +1,7 @@
 package dev.dres.data.model.template.task
 
-import dev.dres.api.rest.types.competition.tasks.ApiTargetType
-import dev.dres.api.rest.types.competition.tasks.ApiTaskGroup
+import dev.dres.api.rest.types.template.tasks.ApiTargetType
+import dev.dres.api.rest.types.template.tasks.ApiTaskGroup
 import dev.dres.data.model.template.DbEvaluationTemplate
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*

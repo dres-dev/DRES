@@ -1,4 +1,4 @@
-package dev.dres.api.rest.types.competition
+package dev.dres.api.rest.types.template
 
 import dev.dres.api.rest.types.evaluation.ApiEvaluationType
 import dev.dres.data.model.run.RunProperties

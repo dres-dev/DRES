@@ -392,10 +392,10 @@
       }
     },
     "/api/v2/collection" : {
-      "patch" : {
+      "post" : {
         "tags" : [ "Collection" ],
-        "summary" : "Updates a media collection",
-        "operationId" : "patchApiV2Collection",
+        "summary" : "Adds a new media collection.",
+        "operationId" : "postApiV2Collection",
         "parameters" : [ ],
         "requestBody" : {
           "content" : {
@@ -442,10 +442,10 @@
         "deprecated" : false,
         "security" : [ ]
       },
-      "post" : {
+      "patch" : {
         "tags" : [ "Collection" ],
-        "summary" : "Adds a new media collection.",
-        "operationId" : "postApiV2Collection",
+        "summary" : "Updates a media collection",
+        "operationId" : "patchApiV2Collection",
         "parameters" : [ ],
         "requestBody" : {
           "content" : {
@@ -529,56 +529,6 @@
       }
     },
     "/api/v2/collection/{collectionId}" : {
-      "get" : {
-        "tags" : [ "Collection" ],
-        "summary" : "Shows the content of the specified media collection.",
-        "operationId" : "getApiV2CollectionByCollectionId",
-        "parameters" : [ {
-          "name" : "collectionId",
-          "in" : "path",
-          "description" : "Collection ID",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiPopulatedMediaCollection"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      },
       "delete" : {
         "tags" : [ "Collection" ],
         "summary" : "Deletes a media collection identified by a collection id.",
@@ -617,6 +567,56 @@
           },
           "401" : {
             "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "get" : {
+        "tags" : [ "Collection" ],
+        "summary" : "Shows the content of the specified media collection.",
+        "operationId" : "getApiV2CollectionByCollectionId",
+        "parameters" : [ {
+          "name" : "collectionId",
+          "in" : "path",
+          "description" : "Collection ID",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiPopulatedMediaCollection"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -4217,7 +4217,7 @@
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/ApiEvaluationOverview"
+                    "$ref" : "#/components/schemas/ApiEvaluationTemplateOverview"
                   }
                 }
               }
@@ -4428,10 +4428,10 @@
       }
     },
     "/api/v2/template/{templateId}" : {
-      "get" : {
+      "delete" : {
         "tags" : [ "Template" ],
-        "summary" : "Loads the detailed definition of a specific evaluation template.",
-        "operationId" : "getApiV2TemplateByTemplateId",
+        "summary" : "Deletes the evaluation template with the given template ID.",
+        "operationId" : "deleteApiV2TemplateByTemplateId",
         "parameters" : [ {
           "name" : "templateId",
           "in" : "path",
@@ -4449,7 +4449,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ApiEvaluationTemplate"
+                  "$ref" : "#/components/schemas/SuccessStatus"
                 }
               }
             }
@@ -4488,10 +4488,10 @@
         "deprecated" : false,
         "security" : [ ]
       },
-      "delete" : {
+      "get" : {
         "tags" : [ "Template" ],
-        "summary" : "Deletes the evaluation template with the given template ID.",
-        "operationId" : "deleteApiV2TemplateByTemplateId",
+        "summary" : "Loads the detailed definition of a specific evaluation template.",
+        "operationId" : "getApiV2TemplateByTemplateId",
         "parameters" : [ {
           "name" : "templateId",
           "in" : "path",
@@ -4509,7 +4509,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
+                  "$ref" : "#/components/schemas/ApiEvaluationTemplate"
                 }
               }
             }
@@ -4760,36 +4760,6 @@
       }
     },
     "/api/v2/user" : {
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Get information about the current user.",
-        "operationId" : "getApiV2User",
-        "parameters" : [ ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiUser"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      },
       "post" : {
         "tags" : [ "User" ],
         "summary" : "Creates a new user, if the username is not already taken. Requires ADMIN privileges",
@@ -4822,6 +4792,36 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Get information about the current user.",
+        "operationId" : "getApiV2User",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiUser"
                 }
               }
             }
@@ -4994,56 +4994,6 @@
         "deprecated" : false,
         "security" : [ ]
       },
-      "get" : {
-        "tags" : [ "User" ],
-        "summary" : "Gets details of the user with the given id.",
-        "operationId" : "getApiV2UserByUserId",
-        "parameters" : [ {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "User's UID",
-          "required" : true,
-          "deprecated" : false,
-          "allowEmptyValue" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ApiUser"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "If the user could not be found.",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          },
-          "500" : {
-            "description" : "Server Error",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorStatus"
-                }
-              }
-            }
-          }
-        },
-        "deprecated" : false,
-        "security" : [ ]
-      },
       "patch" : {
         "tags" : [ "User" ],
         "summary" : "Updates the specified user, if it exists. Anyone is allowed to update their data, however only ADMINs are allowed to update anyone.",
@@ -5092,6 +5042,56 @@
           },
           "404" : {
             "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorStatus"
+                }
+              }
+            }
+          }
+        },
+        "deprecated" : false,
+        "security" : [ ]
+      },
+      "get" : {
+        "tags" : [ "User" ],
+        "summary" : "Gets details of the user with the given id.",
+        "operationId" : "getApiV2UserByUserId",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "description" : "User's UID",
+          "required" : true,
+          "deprecated" : false,
+          "allowEmptyValue" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiUser"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "If the user could not be found.",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -5314,374 +5314,6 @@
         "type" : "string",
         "enum" : [ "FRAME_NUMBER", "SECONDS", "MILLISECONDS", "TIMECODE" ]
       },
-      "ApiCreateEvaluation" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "name" : {
-            "type" : "string"
-          },
-          "description" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "name", "description" ]
-      },
-      "ApiEvaluationOverview" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "state" : {
-            "$ref" : "#/components/schemas/RunManagerStatus"
-          },
-          "teamOverviews" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiTeamTaskOverview"
-            }
-          }
-        },
-        "required" : [ "state", "teamOverviews" ]
-      },
-      "ApiEvaluationStartMessage" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "templateId" : {
-            "type" : "string"
-          },
-          "name" : {
-            "type" : "string"
-          },
-          "type" : {
-            "$ref" : "#/components/schemas/ApiEvaluationType"
-          },
-          "properties" : {
-            "$ref" : "#/components/schemas/RunProperties"
-          }
-        },
-        "required" : [ "templateId", "name", "type", "properties" ]
-      },
-      "ApiEvaluationTemplate" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "id" : {
-            "type" : "string"
-          },
-          "name" : {
-            "type" : "string"
-          },
-          "description" : {
-            "type" : "string"
-          },
-          "created" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "modified" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "taskTypes" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiTaskType"
-            }
-          },
-          "taskGroups" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiTaskGroup"
-            }
-          },
-          "tasks" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiTaskTemplate"
-            }
-          },
-          "teams" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiTeam"
-            }
-          },
-          "teamGroups" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiTeamGroup"
-            }
-          },
-          "judges" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          }
-        },
-        "required" : [ "id", "name", "taskTypes", "taskGroups", "tasks", "teams", "teamGroups", "judges" ]
-      },
-      "ApiHint" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "type" : {
-            "$ref" : "#/components/schemas/ApiHintType"
-          },
-          "start" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "end" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "description" : {
-            "type" : "string"
-          },
-          "path" : {
-            "type" : "string"
-          },
-          "dataType" : {
-            "type" : "string"
-          },
-          "mediaItem" : {
-            "type" : "string"
-          },
-          "range" : {
-            "$ref" : "#/components/schemas/ApiTemporalRange"
-          }
-        },
-        "required" : [ "type" ]
-      },
-      "ApiHintContent" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "taskId" : {
-            "type" : "string"
-          },
-          "sequence" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiContentElement"
-            }
-          },
-          "loop" : {
-            "type" : "boolean"
-          }
-        },
-        "required" : [ "taskId", "sequence", "loop" ]
-      },
-      "ApiHintType" : {
-        "type" : "string",
-        "enum" : [ "EMPTY", "TEXT", "VIDEO", "IMAGE" ]
-      },
-      "ApiTarget" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "type" : {
-            "$ref" : "#/components/schemas/ApiTargetType"
-          },
-          "target" : {
-            "type" : "string"
-          },
-          "range" : {
-            "$ref" : "#/components/schemas/ApiTemporalRange"
-          }
-        },
-        "required" : [ "type" ]
-      },
-      "ApiTargetContent" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "taskId" : {
-            "type" : "string"
-          },
-          "sequence" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiContentElement"
-            }
-          }
-        },
-        "required" : [ "taskId", "sequence" ]
-      },
-      "ApiTargetType" : {
-        "type" : "string",
-        "enum" : [ "JUDGEMENT", "JUDGEMENT_WITH_VOTE", "MEDIA_ITEM", "MEDIA_ITEM_TEMPORAL_RANGE", "TEXT" ]
-      },
-      "ApiTaskGroup" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "name" : {
-            "type" : "string"
-          },
-          "type" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "name", "type" ]
-      },
-      "ApiTaskTemplate" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "id" : {
-            "type" : "string"
-          },
-          "name" : {
-            "type" : "string"
-          },
-          "taskGroup" : {
-            "type" : "string"
-          },
-          "taskType" : {
-            "type" : "string"
-          },
-          "duration" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "collectionId" : {
-            "type" : "string"
-          },
-          "targets" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiTarget"
-            }
-          },
-          "hints" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiHint"
-            }
-          },
-          "comment" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "name", "taskGroup", "taskType", "duration", "collectionId", "targets", "hints", "comment" ]
-      },
-      "ApiTaskType" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "name" : {
-            "type" : "string"
-          },
-          "duration" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "targetOption" : {
-            "$ref" : "#/components/schemas/ApiTargetOption"
-          },
-          "hintOptions" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiHintOption"
-            }
-          },
-          "submissionOptions" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiSubmissionOption"
-            }
-          },
-          "taskOptions" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiTaskOption"
-            }
-          },
-          "scoreOption" : {
-            "$ref" : "#/components/schemas/ApiScoreOption"
-          },
-          "configuration" : {
-            "type" : "object",
-            "additionalProperties" : {
-              "type" : "string"
-            }
-          }
-        },
-        "required" : [ "name", "duration", "targetOption", "hintOptions", "submissionOptions", "taskOptions", "scoreOption", "configuration" ]
-      },
-      "ApiHintOption" : {
-        "type" : "string",
-        "enum" : [ "IMAGE_ITEM", "VIDEO_ITEM_SEGMENT", "TEXT", "EXTERNAL_IMAGE", "EXTERNAL_VIDEO" ]
-      },
-      "ApiScoreOption" : {
-        "type" : "string",
-        "enum" : [ "KIS", "AVS" ]
-      },
-      "ApiSubmissionOption" : {
-        "type" : "string",
-        "enum" : [ "NO_DUPLICATES", "LIMIT_CORRECT_PER_TEAM", "LIMIT_WRONG_PER_TEAM", "LIMIT_TOTAL_PER_TEAM", "LIMIT_CORRECT_PER_MEMBER", "TEMPORAL_SUBMISSION", "TEXTUAL_SUBMISSION", "ITEM_SUBMISSION", "MINIMUM_TIME_GAP" ]
-      },
-      "ApiTargetOption" : {
-        "type" : "string",
-        "enum" : [ "SINGLE_MEDIA_ITEM", "SINGLE_MEDIA_SEGMENT", "JUDGEMENT", "VOTE", "TEXT" ]
-      },
-      "ApiTaskOption" : {
-        "type" : "string",
-        "enum" : [ "HIDDEN_RESULTS", "MAP_TO_SEGMENT", "PROLONG_ON_SUBMISSION" ]
-      },
-      "ApiTeam" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "id" : {
-            "type" : "string"
-          },
-          "name" : {
-            "type" : "string"
-          },
-          "color" : {
-            "type" : "string"
-          },
-          "users" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiUser"
-            }
-          },
-          "logoData" : {
-            "type" : "string"
-          },
-          "teamId" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "users", "teamId" ]
-      },
-      "ApiTeamGroup" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "id" : {
-            "type" : "string"
-          },
-          "name" : {
-            "type" : "string"
-          },
-          "teams" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiTeam"
-            }
-          },
-          "aggregation" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "teams" ]
-      },
       "ApiAnswer" : {
         "type" : "object",
         "additionalProperties" : false,
@@ -5820,6 +5452,22 @@
           }
         },
         "required" : [ "id", "name", "templateId", "type", "properties", "teams", "tasks" ]
+      },
+      "ApiEvaluationOverview" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "state" : {
+            "$ref" : "#/components/schemas/RunManagerStatus"
+          },
+          "teamOverviews" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTeamTaskOverview"
+            }
+          }
+        },
+        "required" : [ "state", "teamOverviews" ]
       },
       "ApiEvaluationState" : {
         "type" : "object",
@@ -6143,31 +5791,17 @@
           "token" : {
             "type" : "string"
           },
-          "mediaType" : {
-            "$ref" : "#/components/schemas/ApiMediaType"
-          },
           "validator" : {
-            "type" : "string"
-          },
-          "collection" : {
-            "type" : "string"
-          },
-          "item" : {
             "type" : "string"
           },
           "taskDescription" : {
             "type" : "string"
           },
-          "startTime" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "endTime" : {
-            "type" : "integer",
-            "format" : "int64"
+          "answerSet" : {
+            "$ref" : "#/components/schemas/ApiAnswerSet"
           }
         },
-        "required" : [ "mediaType", "validator", "collection", "item", "taskDescription" ]
+        "required" : [ "validator", "taskDescription", "answerSet" ]
       },
       "ApiJudgementValidatorStatus" : {
         "type" : "object",
@@ -6317,6 +5951,386 @@
       "ApiContentType" : {
         "type" : "string",
         "enum" : [ "EMPTY", "TEXT", "VIDEO", "IMAGE" ]
+      },
+      "ApiCreateEvaluation" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name", "description" ]
+      },
+      "ApiEvaluationStartMessage" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "templateId" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/ApiEvaluationType"
+          },
+          "properties" : {
+            "$ref" : "#/components/schemas/RunProperties"
+          }
+        },
+        "required" : [ "templateId", "name", "type", "properties" ]
+      },
+      "ApiEvaluationTemplate" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "created" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "modified" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "taskTypes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTaskType"
+            }
+          },
+          "taskGroups" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTaskGroup"
+            }
+          },
+          "tasks" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTaskTemplate"
+            }
+          },
+          "teams" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTeam"
+            }
+          },
+          "teamGroups" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTeamGroup"
+            }
+          },
+          "judges" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "id", "name", "taskTypes", "taskGroups", "tasks", "teams", "teamGroups", "judges" ]
+      },
+      "ApiEvaluationTemplateOverview" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "taskCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "teamCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "id", "name", "taskCount", "teamCount" ]
+      },
+      "ApiHint" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/ApiHintType"
+          },
+          "start" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "end" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "path" : {
+            "type" : "string"
+          },
+          "dataType" : {
+            "type" : "string"
+          },
+          "mediaItem" : {
+            "type" : "string"
+          },
+          "range" : {
+            "$ref" : "#/components/schemas/ApiTemporalRange"
+          }
+        },
+        "required" : [ "type" ]
+      },
+      "ApiHintContent" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "taskId" : {
+            "type" : "string"
+          },
+          "sequence" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiContentElement"
+            }
+          },
+          "loop" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "taskId", "sequence", "loop" ]
+      },
+      "ApiHintType" : {
+        "type" : "string",
+        "enum" : [ "EMPTY", "TEXT", "VIDEO", "IMAGE" ]
+      },
+      "ApiTarget" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/ApiTargetType"
+          },
+          "target" : {
+            "type" : "string"
+          },
+          "range" : {
+            "$ref" : "#/components/schemas/ApiTemporalRange"
+          }
+        },
+        "required" : [ "type" ]
+      },
+      "ApiTargetContent" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "taskId" : {
+            "type" : "string"
+          },
+          "sequence" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiContentElement"
+            }
+          }
+        },
+        "required" : [ "taskId", "sequence" ]
+      },
+      "ApiTargetType" : {
+        "type" : "string",
+        "enum" : [ "JUDGEMENT", "JUDGEMENT_WITH_VOTE", "MEDIA_ITEM", "MEDIA_ITEM_TEMPORAL_RANGE", "TEXT" ]
+      },
+      "ApiTaskGroup" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name", "type" ]
+      },
+      "ApiTaskTemplate" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "taskGroup" : {
+            "type" : "string"
+          },
+          "taskType" : {
+            "type" : "string"
+          },
+          "duration" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "collectionId" : {
+            "type" : "string"
+          },
+          "targets" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTarget"
+            }
+          },
+          "hints" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiHint"
+            }
+          },
+          "comment" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name", "taskGroup", "taskType", "duration", "collectionId", "targets", "hints", "comment" ]
+      },
+      "ApiTaskType" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "duration" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "targetOption" : {
+            "$ref" : "#/components/schemas/ApiTargetOption"
+          },
+          "hintOptions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiHintOption"
+            }
+          },
+          "submissionOptions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiSubmissionOption"
+            }
+          },
+          "taskOptions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTaskOption"
+            }
+          },
+          "scoreOption" : {
+            "$ref" : "#/components/schemas/ApiScoreOption"
+          },
+          "configuration" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "name", "duration", "targetOption", "hintOptions", "submissionOptions", "taskOptions", "scoreOption", "configuration" ]
+      },
+      "ApiHintOption" : {
+        "type" : "string",
+        "enum" : [ "IMAGE_ITEM", "VIDEO_ITEM_SEGMENT", "TEXT", "EXTERNAL_IMAGE", "EXTERNAL_VIDEO" ]
+      },
+      "ApiScoreOption" : {
+        "type" : "string",
+        "enum" : [ "KIS", "AVS" ]
+      },
+      "ApiSubmissionOption" : {
+        "type" : "string",
+        "enum" : [ "NO_DUPLICATES", "LIMIT_CORRECT_PER_TEAM", "LIMIT_WRONG_PER_TEAM", "LIMIT_TOTAL_PER_TEAM", "LIMIT_CORRECT_PER_MEMBER", "TEMPORAL_SUBMISSION", "TEXTUAL_SUBMISSION", "ITEM_SUBMISSION", "MINIMUM_TIME_GAP" ]
+      },
+      "ApiTargetOption" : {
+        "type" : "string",
+        "enum" : [ "SINGLE_MEDIA_ITEM", "SINGLE_MEDIA_SEGMENT", "JUDGEMENT", "VOTE", "TEXT" ]
+      },
+      "ApiTaskOption" : {
+        "type" : "string",
+        "enum" : [ "HIDDEN_RESULTS", "MAP_TO_SEGMENT", "PROLONG_ON_SUBMISSION" ]
+      },
+      "ApiTeam" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "color" : {
+            "type" : "string"
+          },
+          "users" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiUser"
+            }
+          },
+          "logoData" : {
+            "type" : "string"
+          },
+          "teamId" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "users", "teamId" ]
+      },
+      "ApiTeamAggregatorType" : {
+        "type" : "string",
+        "enum" : [ "MIN", "MAX", "MEAN", "LAST" ]
+      },
+      "ApiTeamGroup" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "teams" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTeam"
+            }
+          },
+          "aggregation" : {
+            "$ref" : "#/components/schemas/ApiTeamAggregatorType"
+          }
+        },
+        "required" : [ "teams", "aggregation" ]
       },
       "ApiRole" : {
         "type" : "string",

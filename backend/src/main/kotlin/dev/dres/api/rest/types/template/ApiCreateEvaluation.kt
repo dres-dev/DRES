@@ -1,4 +1,4 @@
-package dev.dres.api.rest.types.competition
+package dev.dres.api.rest.types.template
 
 /**
  * A data class that represents a RESTful request for creating a new [dres.data.model.competition.CompetitionDescription]

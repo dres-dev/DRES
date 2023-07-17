@@ -1,6 +1,6 @@
 package dev.dres.data.model.template.team
 
-import dev.dres.api.rest.types.competition.team.ApiTeamGroup
+import dev.dres.api.rest.types.template.team.ApiTeamGroup
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.template.DbEvaluationTemplate
@@ -16,7 +16,7 @@ typealias TeamGroupId = String
  *
  * Can be used to aggregate score values across [DbTeam]s
  *
- * @author Luca Rossetto
+ * @author Luca Rossetto & Loris Sauter
  * @version 1.0.0
  */
 class DbTeamGroup(entity: Entity) : PersistentEntity(entity) {
@@ -47,7 +47,7 @@ class DbTeamGroup(entity: Entity) : PersistentEntity(entity) {
      *
      * @return [ApiTeamGroup]
      */
-    fun toApi() = ApiTeamGroup(this.teamGroupId, this.name, this.teams.asSequence().map { it.toApi() }.toList(), this.defaultAggregator.name)
+    fun toApi() = ApiTeamGroup(this.teamGroupId, this.name, this.teams.asSequence().map { it.toApi() }.toList(), this.defaultAggregator.toApi())
 
     /**
      * Returns a new [TeamAggregatorImpl] for this [DbTeamGroup].

@@ -2,7 +2,7 @@ package dev.dres.api.rest.handler.evaluation.team
 
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.PostRestHandler
-import dev.dres.api.rest.types.competition.team.ApiTeam
+import dev.dres.api.rest.types.template.team.ApiTeam
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus

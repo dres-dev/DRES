@@ -1,7 +1,6 @@
-package dev.dres.api.rest.types.competition.team
+package dev.dres.api.rest.types.template.team
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.kittinunf.fuel.util.decodeBase64
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.template.team.DbTeam

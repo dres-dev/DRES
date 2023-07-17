@@ -2,9 +2,11 @@ package dev.dres.api.rest.handler.judgement
 
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.collection.ApiMediaType
+import dev.dres.api.rest.types.evaluation.ApiAnswer
 import dev.dres.api.rest.types.judgement.ApiJudgementRequest
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.data.model.submissions.Answer
 import dev.dres.data.model.submissions.AnswerType
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbAnswerType
@@ -22,14 +24,20 @@ import kotlinx.dnq.query.firstOrNull
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class DequeueJudgementHandler(store: TransientEntityStore) : AbstractJudgementHandler(store), GetRestHandler<ApiJudgementRequest> {
+class DequeueJudgementHandler(store: TransientEntityStore) : AbstractJudgementHandler(store),
+    GetRestHandler<ApiJudgementRequest> {
     override val route = "evaluation/{evaluationId}/judge/next"
 
     @OpenApi(
         summary = "Gets the next open submission that is waiting to be judged.",
         path = "/api/v2/evaluation/{evaluationId}/judge/next",
         operationId = OpenApiOperation.AUTO_GENERATE,
-        pathParams = [OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true)],
+        pathParams = [OpenApiParam(
+            "evaluationId",
+            String::class,
+            "The evaluation ID.",
+            required = true
+        )],
         tags = ["Judgement"],
         responses = [
             OpenApiResponse("200", [OpenApiContent(ApiJudgementRequest::class)]),
@@ -46,31 +54,23 @@ class DequeueJudgementHandler(store: TransientEntityStore) : AbstractJudgementHa
         val request = this.store.transactional(false) {
             val evaluationManager = ctx.eligibleManagerForId<RunManager>()
             checkEligibility(ctx, evaluationManager)
-            do {
-                val validator = evaluationManager.judgementValidators.find { it.hasOpen } ?: break
-                val next = validator.next(ctx.sessionToken()!!) ?: break
-                val taskDescription = next.second.task().template.textualDescription()
-                when (next.second.answers().firstOrNull()?.type()) {
-                    AnswerType.TEXT -> {
-                        val text = next.second.answers().firstOrNull()?.text ?: continue
-                        return@transactional ApiJudgementRequest(next.first, ApiMediaType.TEXT, validator.id, "text", text, taskDescription, null, null)
-                    }
-                    AnswerType.ITEM -> {
-                        val item = next.second.answers().firstOrNull()?.item ?: continue
-                        return@transactional ApiJudgementRequest(next.first, item.type().toApi(), validator.id, item.dbCollection().id, item.mediaItemId, taskDescription, null, null)
-                    }
-                    AnswerType.TEMPORAL -> {
-                        val answer = next.second.answers().firstOrNull() ?: continue
-                        val item = answer.item ?: continue
-                        val start = answer.start ?: continue
-                        val end = answer.end ?: continue
-                        return@transactional ApiJudgementRequest(next.first, item.type().toApi(), validator.id, item.dbCollection().id, item.mediaItemId, taskDescription, start, end)
-                    }
-                    else -> continue
-                }
-            } while (true)
-            null
+            val validator = evaluationManager.judgementValidators.find { it.hasOpen }
+                ?: return@transactional null
+            val next = validator?.next(ctx.sessionToken()!!)
+                ?: /* No submission awaiting judgement */
+                return@transactional null
+            val taskDescription = next.second.task().template.textualDescription()
+            return@transactional ApiJudgementRequest(
+                token = next.first,
+                validator = validator.id,
+                taskDescription = taskDescription,
+                answerSet = next.second.toApi(false)
+            )
         }
-        return request ?: throw ErrorStatusException(202, "There is currently no submission awaiting judgement.", ctx)
+        return request ?: throw ErrorStatusException(
+            202,
+            "There is currently no submission awaiting judgement.",
+            ctx
+        )
     }
 }

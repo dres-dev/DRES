@@ -1,5 +1,6 @@
-<ng-container *ngIf="(activeType | async) === 'video' || (activeType | async) === 'segment'"
+<ng-container *ngIf="(activeType | async) === 'TEMPORAL'"
   ><!-- Media Type Video or Segment -->
+  Answer Index: {{answerIndex}}<br>
   <video
     #videoPlayer
     class="video-player"
@@ -33,13 +34,13 @@
     </div>
   </div>
 </ng-container>
-<ng-container *ngIf="(activeType | async) === 'image'"
+<ng-container *ngIf="(activeType | async) === 'ITEM'"
   ><!-- Media Type Image -->
   <div class="image-container" [style.text-align]="'center'">
     <img class="image" style="max-width: 100%" [src]="mediaUrl | async" alt="image" />
   </div>
 </ng-container>
-<ng-container *ngIf="(activeType | async) === 'text'"
+<ng-container *ngIf="(activeType | async) === 'TEXT'"
   ><!-- Media Type Text -->
   <div class="text-container" [style.text-align]="'center'">
     <p class="text" [style.font-size]="fontSize + 'em'" [style.text-align]="'center'" [style.line-height]="'1.5em'">

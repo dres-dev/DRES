@@ -11,11 +11,11 @@ import {
 } from '../../shared/confirmation-dialog/confirmation-dialog.component';
 import {
   ApiCreateEvaluation,
-  ApiEvaluationOverview, ApiEvaluationStartMessage,
+  ApiEvaluationOverview, ApiEvaluationStartMessage, ApiEvaluationTemplateOverview,
   DownloadService,
   EvaluationAdministratorService, RunProperties, SuccessStatus,
   TemplateService
-} from '../../../../openapi';
+} from "../../../../openapi";
 
 /**
  * @deprecated Replaced by TemplateList
@@ -28,7 +28,7 @@ import {
 export class CompetitionListComponent implements AfterViewInit {
   /** */
   displayedColumns = ['actions', 'id', 'name', 'description', 'taskCount', 'teamCount'];
-  competitions: ApiEvaluationOverview[] = [];
+  competitions: ApiEvaluationTemplateOverview[] = [];
   waitingForRun = new Map<string, boolean>()
 
   constructor(
@@ -123,7 +123,7 @@ export class CompetitionListComponent implements AfterViewInit {
 
   public refresh() {
     this.evaluationService.getApiV2TemplateList().subscribe(
-      (results: ApiEvaluationOverview[]) => {
+      (results: ApiEvaluationTemplateOverview[]) => {
         this.competitions = results;
       },
       (r) => {

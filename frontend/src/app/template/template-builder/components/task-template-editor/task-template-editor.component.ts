@@ -186,6 +186,10 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
     }
   }
 
+  public sortMediaItemByName = (itemA: ApiMediaItem, itemB: ApiMediaItem) => {
+    return itemA.name.localeCompare(itemB.name);
+  }
+
 
   /**
    * The form data as json

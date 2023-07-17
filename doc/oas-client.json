@@ -1942,25 +1942,17 @@
         "type" : "object",
         "additionalProperties" : false,
         "properties" : {
-          "id" : {
-            "type" : "string"
+          "state" : {
+            "$ref" : "#/components/schemas/RunManagerStatus"
           },
-          "name" : {
-            "type" : "string"
-          },
-          "description" : {
-            "type" : "string"
-          },
-          "taskCount" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "teamCount" : {
-            "type" : "integer",
-            "format" : "int32"
+          "teamOverviews" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiTeamTaskOverview"
+            }
           }
         },
-        "required" : [ "id", "name", "taskCount", "teamCount" ]
+        "required" : [ "state", "teamOverviews" ]
       },
       "ApiEvaluationState" : {
         "type" : "object",
@@ -2536,6 +2528,30 @@
           }
         },
         "required" : [ "id", "name", "taskTypes", "taskGroups", "tasks", "teams", "teamGroups", "judges" ]
+      },
+      "ApiEvaluationTemplateOverview" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "taskCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "teamCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "id", "name", "taskCount", "teamCount" ]
       },
       "ApiHint" : {
         "type" : "object",

@@ -3,7 +3,7 @@
         <button mat-icon-button (click)="back()">
             <mat-icon>arrow_back</mat-icon>
         </button>
-        <h1>Edit competition {{(builderService.templateAsObservable() | async)?.id}} <span *ngIf="(builderService.dirty() | async)" class="warn-color">(unsaved changes)</span></h1>
+        <h1>Edit evaluation template {{(builderService.templateAsObservable() | async)?.id}} <span *ngIf="(builderService.dirty() | async)" class="warn-color">(unsaved changes)</span></h1>
     </div>
 
     <div class="spacer-flex"></div>
@@ -26,7 +26,8 @@
                 [name]="''"
                 [fileName]="fileProvider"
                 [downloadProvider]="downloadProvider()"
-                matTooltip="Download the entire competition as JSON"></app-download-button>
+                [inline]="true"
+                matTooltip="Download the entire evaluation template as JSON"></app-download-button>
     </div>
 </div>
 <div>

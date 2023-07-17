@@ -19,6 +19,7 @@ import { ResolveMediaItemPipe } from './pipes/resolve-mediaitem.pipe';
 import { ResolveMediaItemUrlPipe } from './pipes/resolve-media-item-url.pipe';
 import { ResolveMediaItemPreviewPipe } from './pipes/resolve-media-item-preview.pipe';
 import { FormatMediaItemPipe } from './pipes/format-media-item.pipe';
+import { OrderByPipe } from './pipes/order-by.pipe';
 
 /**
  * Provides the {@link AppConfig} reference.
@@ -51,7 +52,8 @@ export function initializeApiConfig(appConfig: AppConfig) {
     ResolveMediaItemPipe,
     ResolveMediaItemUrlPipe,
     ResolveMediaItemPreviewPipe,
-    FormatMediaItemPipe
+    FormatMediaItemPipe,
+    OrderByPipe
   ],
   declarations: [
     RoundPipePipe,
@@ -69,6 +71,7 @@ export function initializeApiConfig(appConfig: AppConfig) {
     ResolveMediaItemUrlPipe,
     ResolveMediaItemPreviewPipe,
     FormatMediaItemPipe,
+    OrderByPipe,
   ],
   providers: [
     AuthenticationService,

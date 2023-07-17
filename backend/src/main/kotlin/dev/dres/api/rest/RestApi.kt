@@ -43,6 +43,8 @@ import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.*
 import io.javalin.http.staticfiles.Location
 import io.javalin.community.ssl.SSLPlugin
+import io.javalin.http.Cookie
+import io.javalin.http.SameSite
 import io.javalin.openapi.CookieAuth
 import io.javalin.openapi.OpenApiContact
 import io.javalin.openapi.OpenApiLicense
@@ -282,7 +284,8 @@ object RestApi {
             //check for session cookie
             val cookieId = ctx.cookie(AccessManager.SESSION_COOKIE_NAME)
             if (cookieId != null) {
-                ctx.cookie(AccessManager.SESSION_COOKIE_NAME, cookieId, AccessManager.SESSION_COOKIE_LIFETIME) //update cookie lifetime
+                val cookie = Cookie(AccessManager.SESSION_COOKIE_NAME, cookieId, maxAge = AccessManager.SESSION_COOKIE_LIFETIME, secure = true, sameSite = SameSite.NONE)
+                ctx.cookie(cookie) //update cookie lifetime
                 ctx.attribute("session", cookieId) //store id in attribute for later use
             }
 

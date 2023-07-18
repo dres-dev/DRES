@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../app.config';
 import {BehaviorSubject, combineLatest, merge, mergeMap, Observable, of, Subject, timer} from 'rxjs';
-import { catchError, filter, map, shareReplay, switchMap } from 'rxjs/operators';
+import { catchError, filter, map, shareReplay, switchMap, tap } from "rxjs/operators";
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import {
@@ -30,6 +30,11 @@ export interface CombinedRun {
   styleUrls: ['./run-admin-view.component.scss'],
 })
 export class RunAdminViewComponent {
+
+  private static VIEWER_POLLING_FREQUENCY = 3 * 1000; //ms
+  private static STATE_POLLING_FREQUENCY = 5 * 1000; //ms
+  private static OVERVIEW_POLLING_FREQUENCY = 5 * 1000; //ms
+
   runId: Observable<string>;
   runIdAsSubject: BehaviorSubject<string> = new BehaviorSubject<string>('');
   run: Observable<CombinedRun>;
@@ -71,7 +76,7 @@ export class RunAdminViewComponent {
             }),
             filter((q) => q != null)
           ),
-          merge(timer(0, 1000), this.refreshSubject).pipe(switchMap((index) => this.runService.getApiV2EvaluationByEvaluationIdState(runId))),
+          merge(timer(0, RunAdminViewComponent.STATE_POLLING_FREQUENCY), this.refreshSubject).pipe(switchMap((index) => this.runService.getApiV2EvaluationByEvaluationIdState(runId))),
         ])
       ),
       map(([i, s]) => {
@@ -136,7 +141,7 @@ export class RunAdminViewComponent {
             }),
             filter((q) => q != null)
           ),
-          merge(timer(0, 1000), this.refreshSubject).pipe(
+          merge(timer(0, RunAdminViewComponent.OVERVIEW_POLLING_FREQUENCY), this.refreshSubject).pipe(
             switchMap((index) => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(runId))
           ),
         ])
@@ -148,11 +153,13 @@ export class RunAdminViewComponent {
     );
 
     this.viewers = this.runId.pipe(
-      mergeMap((runId) => timer(0, 1000).pipe(switchMap((i) => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId))))
+      mergeMap((runId) => timer(0, RunAdminViewComponent.VIEWER_POLLING_FREQUENCY).pipe(switchMap((i) => this.runAdminService.getApiV2EvaluationAdminByEvaluationIdViewerList(runId))))
     );
+
 
     this.teams = this.run.pipe(
       switchMap((runAndInfo) => {
+        //return runAndInfo.info.teams
         return this.competitionService.getApiV2TemplateByTemplateIdTeamList(runAndInfo.info.templateId);
       }),
       shareReplay({ bufferSize: 1, refCount: true })

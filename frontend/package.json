@@ -34,7 +34,7 @@
     "angularx-qrcode": "15.x",
     "apexcharts": "3.x",
     "ng-apexcharts": "1.x",
-    "ngx-color-picker": "14.x",
+    "ngx-color-picker": "^14.0.0",
     "rxjs": "7.x",
     "tslib": "2.x",
     "zone.js": "0.13.x"

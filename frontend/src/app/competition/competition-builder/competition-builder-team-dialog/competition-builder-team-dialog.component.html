@@ -19,23 +19,30 @@
         <mat-form-field class="user-chip-list" [style.width]="'100%'">
           <mat-label>Team Members (Users)</mat-label>
           <mat-chip-grid #chipList aria-label="Users">
-            <mat-chip-row *ngFor="let user of form.get('users').value" [removable]="true" (removed)="removeUser(user)">
+            <mat-chip-row *ngFor="let user of form.get('users').value | orderBy:'asc':sortUsersByName" [removable]="true" (removed)="removeUser(user)">
               {{ user.username }}
               <mat-icon matChipRemove>cancel</mat-icon>
             </mat-chip-row>
             <input placeholder="New user..." [matAutocomplete]="auto" [matChipInputFor]="chipList" />
           </mat-chip-grid>
           <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addUser($event)">
-            <mat-option *ngFor="let user of availableUsers | async" [value]="user">
+            <mat-option *ngFor="let user of availableUsers | async | orderBy:'asc':sortUsersByName" [value]="user">
               {{ user.username }}
             </mat-option>
           </mat-autocomplete>
         </mat-form-field>
 
-        <mat-form-field [style.width]="'100%'">
-          <mat-label>Team Color</mat-label>
-          <input type="color" matInput formControlName="color" />
-        </mat-form-field>
+        <p [style.width]="'100%'">
+          <label>Team Color</label> <br />
+          <input [style.background]="form.get('color').value"
+                 [style.height]="'20px'"
+                 [style.display]="'inline-block'"
+                 [colorPicker]="form.get('color').value"
+                 [cpPresetLabel]="'Color Palette'"
+                 [cpPresetColors]="colorPalette"
+                 [cpPosition]="'top-right'"
+                (colorPickerChange)="onColorChange($event)" formControlName="color" />
+        </p>
 
       </div>
     </div>

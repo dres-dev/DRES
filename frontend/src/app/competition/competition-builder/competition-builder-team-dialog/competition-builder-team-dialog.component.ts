@@ -88,6 +88,8 @@ export class CompetitionBuilderTeamDialogComponent {
     }
   }
 
+  public sortUsersByName = (userA: ApiUser, userB: ApiUser) => userA.username.localeCompare(userB.username);
+
   /**
    * Returns the user for the given user id or null
    *
@@ -153,5 +155,14 @@ export class CompetitionBuilderTeamDialogComponent {
     reader.onload = () => {
       this.form.get('logoData').setValue(reader.result);
     };
+  }
+
+  /**
+   * Called by the color picker when the selected color changes.
+   *
+   * @param color New color value (hex RGB).
+   */
+  public onColorChange(color: string) {
+    this.form.get('color').setValue(color);
   }
 }

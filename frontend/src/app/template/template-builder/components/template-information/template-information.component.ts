@@ -16,7 +16,7 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
     name: new FormControl("", [Validators.required]),
     description: new FormControl(""),
     collection: new FormControl(""),
-    defaultRandomLength: new FormControl<number>(20, [Validators.min(0)]),
+    defaultRandomLength: new FormControl<number>(0, [Validators.min(0)]),
     created: new FormControl('', [Validators.required]),
     modified: new FormControl('', [Validators.required])
   });
@@ -37,7 +37,6 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
 
   ngAfterViewInit(): void {
     // builderService is not yet initialised ?!?
-      this.form.get('collection').setValue(this.getMostUsedCollection(), {emitEvent: false});
   }
 
   ngOnInit(): void {
@@ -63,6 +62,7 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
           }
         });
         const highestUsedCollection = [...buckets.entries()].sort((a, b) => b[1] - a[1])[0];
+        console.log("Highest Used Collections", highestUsedCollection)
         this.builderService.defaultCollection = highestUsedCollection[0];
       }
       if (value.defaultRandomLength) {
@@ -78,6 +78,7 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
   }
 
   private getMostUsedCollection() {
+    console.log("template: ", this.builderService.getTemplate())
     console.log("nb Tasks: ", this.builderService?.getTemplate()?.tasks?.length)
     if (this.builderService?.getTemplate()?.tasks?.length > 0) {
       const buckets = new Map<string, number>();
@@ -119,6 +120,9 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
       }
       // We need to check the end of init here
       if (this.initOngoing) {
+        const defaultCollection = this.getMostUsedCollection();
+        this.form.get("collection").setValue(defaultCollection, {emitEvent: false});
+        this.builderService.defaultCollection = defaultCollection;
         this.initOngoing = false;
       }
     }

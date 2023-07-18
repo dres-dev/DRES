@@ -11,8 +11,8 @@
           <div class="flex-grow"><p *ngIf="form.get('id').value"><strong>UID: </strong>{{ form.get('id').value }}</p></div>
           <div class="flex-grow">
             <div class="flex flex-row content-between align-start"></div>
-            <p class="flex-48"><strong>Task group:</strong>{{taskGroup.name}}</p>
-            <p class="flex-48"><strong>Task type:</strong>{{taskType.name}}</p>
+            <p class="flex-48"><strong>Task group: </strong>{{taskGroup.name}}</p>
+            <p class="flex-48"><strong>Task type: </strong>{{taskType.name}}</p>
           </div>
         </div>
       </div>
@@ -47,7 +47,7 @@
       </mat-form-field>
     </p>
 
-    <div *ngIf="form.get('mediaCollection').value">
+    <div *ngIf="form.get('mediaCollection').value && !(taskType.targetOption === 'JUDGEMENT' || taskType.targetOption === 'VOTE')">
       <h2>
         Target
         <button

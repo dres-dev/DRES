@@ -85,7 +85,7 @@ export class RunAdminToolbarComponent implements OnInit {
   public navigateToViewer() {
     const runId = this.runId.value;
     console.log("Navigate (Admin): ", runId)
-    /* TODO: Setup depends on type of competition run. */
+    /* TODO: Setup depends on type of evaluation run. */
     this.router.navigate([
       '/evaluation/viewer',
       runId,

@@ -9,15 +9,15 @@
     <div class="spacer-flex"></div>
 
     <div>
-        <button  mat-icon-button aria-label="Save changes to competition." matTooltip="Save changes to competition."
+        <button  mat-icon-button aria-label="Save changes to evaluation template." matTooltip="Save changes to evaluation template."
                 (click)="save()" [disabled]="isSaving">
             <mat-icon *ngIf="!isSaving">save</mat-icon>
             <mat-spinner diameter="20" color="accent" *ngIf="isSaving"></mat-spinner>
         </button>
     </div>
     <div>
-        <button mat-icon-button aria-label="Refresh competition (changes will be lost)."
-                matTooltip="Refresh competition (changes will be lost)." (click)="refresh()">
+        <button mat-icon-button aria-label="Refresh evaluation template (changes will be lost)."
+                matTooltip="Refresh evaluation template (changes will be lost)." (click)="refresh()">
             <mat-icon>refresh</mat-icon>
         </button>
     </div>

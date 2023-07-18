@@ -11,8 +11,8 @@
       <td mat-cell *matCellDef="let row">
         <button
           mat-icon-button
-          aria-label="Go to competition viewer."
-          matTooltip="Go to competition viewer."
+          aria-label="Go to evaluation viewer."
+          matTooltip="Go to evaluation viewer."
           (click)="navigateToViewer(row.id)"
         >
           <mat-icon>visibility</mat-icon>
@@ -56,8 +56,8 @@
         <button
           *ngIf="row.runStatus == 'CREATED'"
           mat-icon-button
-          aria-label="Start the competition run."
-          matTooltip="Start the competition run."
+          aria-label="Start the evaluation run."
+          matTooltip="Start the evaluation run."
           (click)="start(row.id)"
         >
           <mat-icon>play_arrow</mat-icon>
@@ -66,8 +66,8 @@
         <button
           *ngIf="row.runStatus == 'CREATED' || row.runStatus == 'ACTIVE'"
           mat-icon-button
-          aria-label="Terminate competition run."
-          matTooltip="Terminate competition run."
+          aria-label="Terminate evaluation run."
+          matTooltip="Terminate evaluation run."
           (click)="terminate(row.id)"
         >
           <mat-icon>stop</mat-icon>

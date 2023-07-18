@@ -14,6 +14,10 @@ import {
   ActionableDynamicTableColumnDefinition,
   ActionableDynamicTableColumnType
 } from "../../../../shared/actionable-dynamic-table/actionable-dynamic-table.component";
+import {
+  ConfirmationDialogComponent,
+  ConfirmationDialogComponentData
+} from "../../../../shared/confirmation-dialog/confirmation-dialog.component";
 
 @Component({
   selector: "app-task-types-list",
@@ -124,7 +128,14 @@ export class TaskTypesListComponent extends AbstractTemplateBuilderComponent imp
       });
   }
 
-  public remove = (taskType: ApiTaskType) => this.removeTaskType(taskType);
+  public remove = (taskType: ApiTaskType) => {
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {data: {text: "Are you sure to delete this task type? Deletion of task types causes associated task groups and tasks to be deleted as well."} as ConfirmationDialogComponentData})
+    dialogRef.afterClosed().subscribe((s) => {
+      if(s){
+        this.removeTaskType(taskType);
+      }
+    })
+  }
 
   public removeTaskType(taskType: ApiTaskType) {
     this.builderService.removeTaskType(taskType);

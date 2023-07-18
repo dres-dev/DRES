@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from "@angular
 import { AbstractTemplateBuilderComponent } from "../abstract-template-builder.component";
 import { TemplateBuilderService } from "../../template-builder.service";
 import { MatDialog } from "@angular/material/dialog";
-import { filter, map } from "rxjs/operators";
+import { filter, map, tap } from "rxjs/operators";
 import { Observable } from "rxjs";
 import { ApiTaskGroup } from "../../../../../../openapi";
 import {
@@ -15,6 +15,10 @@ import {
   ActionableDynamicTableColumnDefinition,
   ActionableDynamicTableColumnType,
 } from "../../../../shared/actionable-dynamic-table/actionable-dynamic-table.component";
+import {
+  ConfirmationDialogComponent,
+  ConfirmationDialogComponentData
+} from "../../../../shared/confirmation-dialog/confirmation-dialog.component";
 
 @Component({
   selector: "app-task-groups-list",
@@ -57,10 +61,17 @@ export class TaskGroupsListComponent extends AbstractTemplateBuilderComponent im
       } else {
         return [];
       }
-    }));
+    }), tap((t) => this.groupTable?.renderRows()));
   }
 
-  public remove = (group: ApiTaskGroup) => this.removeTaskGroup(group);
+  public remove = (group: ApiTaskGroup) => {
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {data: {text: "Are you sure to delete this task group? Deletion of task groups causes associated tasks to be deleted as well."} as ConfirmationDialogComponentData})
+    dialogRef.afterClosed().subscribe((s) => {
+      if(s){
+        this.removeTaskGroup(group);
+      }
+    })
+  }
 
   public removeTaskGroup(group: ApiTaskGroup) {
     this.builderService.removeTaskGroup(group);

@@ -9,6 +9,7 @@ import dev.dres.api.rest.handler.audit.ListAuditLogsInRangeHandler
 import dev.dres.api.rest.handler.collection.*
 import dev.dres.api.rest.handler.download.EvaluationDownloadHandler
 import dev.dres.api.rest.handler.download.EvaluationTemplateDownloadHandler
+import dev.dres.api.rest.handler.download.ScoreDownloadHandler
 import dev.dres.api.rest.handler.evaluation.admin.*
 import dev.dres.api.rest.handler.evaluation.client.ClientListEvaluationsHandler
 import dev.dres.api.rest.handler.evaluation.client.ClientTaskInfoHandler
@@ -205,8 +206,8 @@ object RestApi {
 
             // Downloads
             EvaluationDownloadHandler(store),
-            EvaluationTemplateDownloadHandler(store)
-            /* DownloadHandler.CompetitionRunScoreHandler(store), */
+            EvaluationTemplateDownloadHandler(store),
+            ScoreDownloadHandler(store)
         )
 
         javalin = Javalin.create {
@@ -261,6 +262,7 @@ object RestApi {
 
             it.http.defaultContentType = "application/json"
             it.http.prefer405over404 = true
+            it.http.maxRequestSize = 20 * 1024 * 1024 //20mb
             it.jetty.server { setupHttpServer() }
             it.accessManager(AccessManager::manage)
             it.staticFiles.add("html", Location.CLASSPATH)

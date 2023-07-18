@@ -116,8 +116,8 @@ fun Context.activeManagerForUser(): RunManager {
     val managers = AccessManager.getRunManagerForUser(userId).filter {
         it.status != RunManagerStatus.CREATED && it.status != RunManagerStatus.TERMINATED
     }
-    if (managers.isEmpty()) throw ErrorStatusException(404, "There is currently no eligible competition with an active task.", this)
-    if (managers.size > 1) throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.template.name }}", this)
+    if (managers.isEmpty()) throw ErrorStatusException(404, "There is currently no eligible evaluation with an active task.", this)
+    if (managers.size > 1) throw ErrorStatusException(409, "More than one possible evaluation found: ${managers.joinToString { it.template.name }}", this)
     return managers.first()
 }
 

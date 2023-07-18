@@ -58,8 +58,8 @@ class GetExternalMediaHandler : GetRestHandler<Any>, AccessManagedRestHandler {
 
         /* Lookup */
         val path = DRES.EXTERNAL_ROOT.resolve(Path(file))
-        if (path == null || !Files.exists(path)) {
-            ctx.errorResponse(404, "External file with name ${file} was not found")
+        if (!Files.exists(path)) {
+            ctx.errorResponse(404, "External file with name $file was not found")
         }
 
         ctx.contentType(ContentType.getContentTypeByExtension(path.toFile().extension)!!)

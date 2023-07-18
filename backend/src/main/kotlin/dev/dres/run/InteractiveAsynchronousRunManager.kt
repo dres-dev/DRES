@@ -686,7 +686,6 @@ class InteractiveAsynchronousRunManager(
                 // oh shit, something went horribly, horribly wrong
                 if (errorCounter >= MAXIMUM_RUN_LOOP_ERROR_COUNT) {
                     LOGGER.error("Reached maximum consecutive error count of  $MAXIMUM_RUN_LOOP_ERROR_COUNT; terminating loop...")
-                    RunExecutor.dump(this.evaluation)
                     break
                 } else {
                     LOGGER.error("This is the ${++errorCounter}-th in a row. Run manager will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")

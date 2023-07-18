@@ -49,7 +49,7 @@ class ListExternalItemHandler : GetRestHandler<List<String>> {
                         it.name.startsWith(startsWith) &&
                         (
                                 it.name.endsWith(".jpg", ignoreCase = true) ||
-                                        it.name.endsWith(".mkv", ignoreCase = true) ||
+                                        it.name.endsWith(".png", ignoreCase = true) ||
                                         it.name.endsWith(".mp4", ignoreCase = true)
                                 )
             }.sorted { o1, o2 -> o1.name.length - o2.name.length }

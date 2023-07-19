@@ -11,7 +11,6 @@ import {
 import {BehaviorSubject, combineLatest, merge, Observable, of, Subscription} from 'rxjs';
 import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, withLatestFrom,} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
-import {AudioPlayerUtilities} from '../utilities/audio-player.utilities';
 import {animate, keyframes, style, transition, trigger} from '@angular/animations';
 import {
     ApiAnswerType,
@@ -99,8 +98,11 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
   /** Behaviour subject used to reset highlight animation state. */
   resetHighlight: BehaviorSubject<void> = new BehaviorSubject(null);
 
-  /** Reference to the audio file played during countdown. */
-  @ViewChild('audio') audio: ElementRef<HTMLAudioElement>;
+  /** Reference to the audio elements played during countdown. */
+  @ViewChild('audio_correct') correct: ElementRef<HTMLAudioElement>;
+  @ViewChild('audio_wrong') wrong: ElementRef<HTMLAudioElement>;
+  @ViewChild('audio_applause') applause: ElementRef<HTMLAudioElement>;
+  @ViewChild('audio_trombone') trombone: ElementRef<HTMLAudioElement>;
 
   /** Internal subscription for playing sound effect of a task that has ended. */
   taskEndedSoundEffect: Subscription;
@@ -119,6 +121,16 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
       this.ref.detectChanges();
     }, 500);
   }
+
+    private playOnce(audio: HTMLAudioElement) {
+        if (this.config.config.effects.mute) {
+            return
+        }
+        audio
+            .play()
+            .catch((reason) => console.warn('Failed to play audio effects due to an error:', reason))
+            .then(() => {});
+    }
 
   ngAfterViewInit(): void {
     /* Create source observable; list of all submissions.  */
@@ -193,10 +205,10 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
           for (const [key, value] of delta) {
             if (value.correct > value.wrong) {
               highlight.set(key, 'correct');
-              AudioPlayerUtilities.playOnce('/immutable/assets/audio/correct.ogg', this.audio.nativeElement);
+              this.playOnce(this.correct.nativeElement);
             } else if (value.wrong > value.correct) {
               highlight.set(key, 'wrong');
-              AudioPlayerUtilities.playOnce('/immutable/assets/audio/wrong.ogg', this.audio.nativeElement);
+              this.playOnce(this.wrong.nativeElement);
             } else {
               highlight.set(key, 'nohighlight');
             }
@@ -230,13 +242,11 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
         })
       )
       .subscribe((success) => {
-        if (this.audio) {
           if (success) {
-            AudioPlayerUtilities.playOnce('immutable/assets/audio/applause.ogg', this.audio.nativeElement);
+            this.playOnce(this.applause.nativeElement);
           } else {
-            AudioPlayerUtilities.playOnce('immutable/assets/audio/sad_trombone.ogg', this.audio.nativeElement);
+            this.playOnce(this.trombone.nativeElement);
           }
-        }
       });
   }
 

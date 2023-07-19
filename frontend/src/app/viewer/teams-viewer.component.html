@@ -43,7 +43,10 @@
             </div>
           </div>
         </div>
-        <audio #audio [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+        <audio #audio_correct src="/immutable/assets/audio/correct.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+        <audio #audio_wrong src="/immutable/assets/audio/wrong.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+        <audio #audio_applause src="/immutable/assets/audio/applause.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+        <audio #audio_trombone src="/immutable/assets/audio/sad_trombone.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
       </div>
     </div>
   </mat-card-content>

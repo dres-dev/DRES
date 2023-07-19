@@ -42,6 +42,10 @@
       </div>
     </div>
 
-    <audio #audio [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+    <audio #audio_beep_1 src="/immutable/assets/audio/beep_1.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+    <audio #audio_beep_2 src="/immutable/assets/audio/beep_2.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+    <audio #audio_ding src="/immutable/assets/audio/ding.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+    <audio #audio_glass src="/immutable/assets/audio/glass.ogg" [muted]="(config.configAsObservable | async).effects.mute" hidden></audio>
+
   </div>
 </mat-card>

@@ -18,7 +18,6 @@ import { IWsMessage } from '../model/ws/ws-message.interface';
 import { IWsClientMessage } from '../model/ws/ws-client-message.interface';
 import { WebSocketSubject } from 'rxjs/webSocket';
 import { AppConfig } from '../app.config';
-import { AudioPlayerUtilities } from '../utilities/audio-player.utilities';
 import {
   ApiContentElement, ApiContentType,
   ApiEvaluationState,
@@ -74,10 +73,23 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   /** The subscription associated with the current viewer state. */
   viewerStateSubscription: Subscription;
 
-  /** Reference to the audio element used during countdown. */
-  @ViewChild('audio') audio: ElementRef<HTMLAudioElement>;
+  /** Reference to the audio elements used during countdown. */
+  @ViewChild('audio_beep_1') beep1: ElementRef<HTMLAudioElement>;
+  @ViewChild('audio_beep_2') beep2: ElementRef<HTMLAudioElement>;
+  @ViewChild('audio_ding') ding: ElementRef<HTMLAudioElement>;
+  @ViewChild('audio_glass') glass: ElementRef<HTMLAudioElement>;
 
   constructor(protected runService: EvaluationService, public config: AppConfig) {}
+
+  private playOnce(audio: HTMLAudioElement) {
+    if (this.config.config.effects.mute) {
+      return
+    }
+    audio
+        .play()
+        .catch((reason) => console.warn('Failed to play audio effects due to an error:', reason))
+        .then(() => {});
+  }
 
   /**
    * Create a subscription for task changes.
@@ -159,9 +171,9 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
             this.viewerState.next(ViewerState.VIEWER_COUNTDOWN);
             this.taskCountdown.next(countdown);
             if (countdown > 0) {
-              AudioPlayerUtilities.playOnce('/immutable/assets/audio/beep_1.ogg', this.audio.nativeElement);
+              this.playOnce(this.beep1.nativeElement);
             } else {
-              AudioPlayerUtilities.playOnce('/immutable/assets/audio/beep_2.ogg', this.audio.nativeElement);
+              this.playOnce(this.beep2.nativeElement);
             }
           } else {
             this.viewerState.next(ViewerState.VIEWER_PLAYBACK);
@@ -213,7 +225,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
               delayWhen<any>((c) => interval(Math.max(0, 1000 * (c.offset - actualTimeElapsed)))),
               map((t, index) => {
                 if (index > 0) {
-                  AudioPlayerUtilities.playOnce('assets/audio/ding.ogg', this.audio.nativeElement);
+                  this.playOnce(this.ding.nativeElement);
                 }
                 return t;
               })
@@ -229,10 +241,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
       map((s) => s.timeLeft) /* Compensating for added countdown. */,
       tap((t) => {
         if (t === 30 || t === 60) {
-          AudioPlayerUtilities.playOnce(
-            '/immutable/assets/audio/glass.ogg',
-            this.audio.nativeElement
-          ); /* Reminder that time is running out. */
+          this.playOnce(this.glass.nativeElement); /* Reminder that time is running out. */
         }
       })
     );

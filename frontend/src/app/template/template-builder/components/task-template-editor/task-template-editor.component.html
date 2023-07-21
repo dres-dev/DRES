@@ -11,7 +11,6 @@
           <div class="flex-grow"><p *ngIf="form.get('id').value"><strong>UID: </strong>{{ form.get('id').value }}</p></div>
           <div class="flex-grow">
             <div class="flex flex-row content-between align-start"></div>
-            <p class="flex-48"><strong>Task group: </strong>{{taskGroup.name}}</p>
             <p class="flex-48"><strong>Task type: </strong>{{taskType.name}}</p>
           </div>
         </div>
@@ -22,6 +21,19 @@
         </button>
       </div>
     </div>
+
+    <p class="flex flex-row content-between align-stretch">
+      <mat-form-field class="flex-100">
+        <mat-select
+                [placeholder]="'Task Group'"
+                [formControl]="form.get('taskGroup')"
+        >
+          <mat-option *ngFor="let group of taskGroupOptions" [value]="group.name">
+            <span>{{ group.name }}</span>
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </p>
 
     <p class="flex flex-row content-between align-stretch">
       <mat-form-field class="flex-40">

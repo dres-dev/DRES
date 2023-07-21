@@ -92,6 +92,10 @@ export class TemplateBuilderService {
     return this.getTemplate().taskTypes.find((v) => v.name === name);
   }
 
+  public findGroupsByType(type: ApiTaskType) {
+    return this.getTemplate().taskGroups.filter(g => g.type === type.name);
+  }
+
   public initialise(template: ApiEvaluationTemplate){
     this.unmarkDirty();
     this.templateSubject.next(template);

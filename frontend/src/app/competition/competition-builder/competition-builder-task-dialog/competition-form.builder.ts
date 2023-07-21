@@ -20,25 +20,26 @@ export class CompetitionFormBuilder {
   /** The default duration of a query hint. This is currently a hard-coded constant. */
   private static DEFAULT_HINT_DURATION = 30;
 
-  /** The {@link FormGroup} held by this {@link CompetitionFormBuilder}. */
+  /** The {@link UntypedFormGroup} held by this {@link CompetitionFormBuilder}. */
   public form: UntypedFormGroup;
 
   /**
    * Constructor for CompetitionFormBuilder.
    *
-   * @param taskGroup The {@link TaskGroup} to create this {@link CompetitionFormBuilder} for.
-   * @param taskType The {@link TaskType} to create this {@link CompetitionFormBuilder} for.
+   * @param taskGroup The {@link ApiTaskGroup} to create this {@link CompetitionFormBuilder} for.
+   * @param taskType The {@link ApiTaskType} to create this {@link CompetitionFormBuilder} for.
    * @param collectionService The {@link CollectionService} reference used to fetch data through the DRES API.
+   * @param builderService The {@link TemplateBuilderService} reference
    * @param data The {@link ApiTaskTemplate} to initialize the form with.
    */
   constructor(
-    private taskGroup: ApiTaskGroup,
+    taskGroup: ApiTaskGroup,
     private taskType: ApiTaskType,
     private collectionService: CollectionService,
     private builderService: TemplateBuilderService,
     private data?: ApiTaskTemplate
   ) {
-    this.initializeForm();
+    this.initializeForm(taskGroup);
   }
 
   /** List of data sources managed by this CompetitionFormBuilder. */
@@ -58,7 +59,7 @@ export class CompetitionFormBuilder {
   }
 
   /**
-   * Returns the {@link Observable<MediaItem[]>} for the given key.
+   * Returns the {@link Observable<ApiMediaItem[]>} for the given key.
    *
    * @param key Key to fetch the data source for.
    */
@@ -170,8 +171,8 @@ export class CompetitionFormBuilder {
     // FIXME semantic check for the entire fetching
     const data = {
       name: this.form.get('name').value,
-      taskGroup: this.taskGroup.name /* Cannot be edited! */,
-      taskType: this.taskGroup.type /* Cannot be edited! */,
+      taskGroup: this.form.get('taskGroup').value,
+      taskType: this.taskType.name /* Cannot be edited! */,
       duration: this.form.get('duration').value,
       collectionId: this.form.get('mediaCollection').value,
       hints: (this.form.get('components') as UntypedFormArray).controls.map((c) => {
@@ -214,8 +215,8 @@ export class CompetitionFormBuilder {
 
   public storeFormData(){
       this.data.name = this.form.get('name').value;
-      this.data.taskGroup = this.taskGroup.name /* Cannot be edited! */;
-      this.data.taskType = this.taskGroup.type /* Cannot be edited! */;
+      this.data.taskGroup = this.form.get('taskGroup').value;
+      this.data.taskType = this.taskType.name /* Cannot be edited! */;
       this.data.duration= this.form.get('duration').value;
       this.data.collectionId = this.form.get('mediaCollection').value;
       this.data.hints = (this.form.get('components') as UntypedFormArray).controls.map((c) => {
@@ -277,10 +278,11 @@ export class CompetitionFormBuilder {
   /**
    * Initializes the {@link FormGroup}.
    */
-  private initializeForm() {
+  private initializeForm(taskGroup: ApiTaskGroup) {
     this.form = new UntypedFormGroup({
       id: new UntypedFormControl(this.data?.id),
       name: new UntypedFormControl(this.data?.name, [Validators.required]),
+      taskGroup: new UntypedFormControl(taskGroup.name),
       duration: new UntypedFormControl(this.durationInitValue, [Validators.required, Validators.min(1)]),
       mediaCollection: new UntypedFormControl(this.data?.collectionId ?? this.builderService.defaultCollection, [Validators.required]),
     });

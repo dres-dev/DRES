@@ -61,7 +61,8 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
 
   private imagePreviewMap = new Set<number>();
   private taskSub: Subscription;
-  
+
+  taskGroupOptions: ApiTaskGroup[]
 
   constructor(private builderService: TemplateBuilderService,
               public collectionService: CollectionService,
@@ -82,6 +83,9 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
       }
     })
 
+
+
+
   }
 
   ngOnDestroy() {
@@ -94,9 +98,10 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
     this.form = this.formBuilder.form;
     this.form.valueChanges.subscribe(newValue => {
       this.formBuilder.storeFormData();
-      this.builderService.markDirty()
+      this.builderService.markDirty();
     });
     this.mediaCollectionSource = this.collectionService.getApiV2CollectionList();
+    this.taskGroupOptions = this.builderService.findGroupsByType(this.taskType)
     /* Close open video preview */
     this.showVideo = false;
   }

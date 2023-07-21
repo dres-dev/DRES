@@ -7,7 +7,7 @@ import dev.dres.api.rest.types.evaluation.*
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.Scoreable
-import dev.dres.run.score.scorer.NewAvsTaskScorer
+import dev.dres.run.score.scorer.AvsTaskScorer
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 
 class AvsTaskScorerTest {
 
-    private lateinit var scorer: NewAvsTaskScorer
+    private lateinit var scorer: AvsTaskScorer
     private val teams = listOf("team-1", "team-2", "team-3")
     private val defaultTaskDuration = 3 * 60L // 3min
     private val taskStartTime = 100_000L
@@ -57,7 +57,7 @@ class AvsTaskScorerTest {
 
     @BeforeEach
     fun setup(){
-        this.scorer = NewAvsTaskScorer(this.scoreable, penaltyConstant = penalty, maxPointsPerTask)
+        this.scorer = AvsTaskScorer(this.scoreable, penaltyConstant = penalty, maxPointsPerTask)
     }
 
     @Test

@@ -1,50 +1,91 @@
 package dev.dres.run.score.scorer
 
+
+import dev.dres.data.model.submissions.Submission
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.data.model.template.team.TeamId
-import dev.dres.data.model.media.MediaItemType
-import dev.dres.data.model.media.time.TemporalRange
-import dev.dres.data.model.submissions.*
 import dev.dres.run.score.Scoreable
+import java.lang.Double.max
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
+import kotlin.math.abs
 
 /**
- * A [TeamTaskScorer] used for AVS tasks.
- *
- * @author Luca Rossetto
- * @version 1.1.0
+ * The new AVS Scorer.
  */
-class AvsTaskScorer(override val scoreable: Scoreable) : TaskScorer {
+class AvsTaskScorer(override val scoreable: Scoreable, private val penaltyConstant: Double, private val maxPointsPerTask: Double) : TaskScorer {
+
+    private var lastScores: Map<TeamId, Double> = emptyMap()
+    private val lastScoresLock = ReentrantReadWriteLock()
+
+
+    constructor(context: Scoreable, parameters: Map<String, String>) : this(
+        context,
+        abs(parameters.getOrDefault("penalty", "$defaultPenalty").toDoubleOrNull() ?: defaultPenalty),
+        parameters.getOrDefault("maxPointsPerTask", "$defaultMaxPointsPerTask").toDoubleOrNull() ?: defaultMaxPointsPerTask
+    )
+
+    constructor(context: Scoreable) : this(context, defaultPenalty, defaultMaxPointsPerTask)
+
+    companion object {
+        const val defaultPenalty: Double = 0.2
+        private const val defaultMaxPointsPerTask: Double = 1000.0
+
+        /**
+         * Sanitised team scores: Either the team has score 0.0 (no submission) or the calculated score
+         */
+        fun teamScoreMapSanitised(scores: Map<TeamId, Double>, teamIds: Collection<TeamId>): Map<TeamId, Double> {
+
+            val cleanMap = teamIds.associateWith { 0.0 }.toMutableMap()
+
+            scores.forEach { (teamId, score) ->
+                cleanMap[teamId] = max(0.0, score)
+            }
+
+            return cleanMap
+        }
+
+    }
+
     /**
-     * Computes and returns the scores for this [KisTaskScorer]. Requires an ongoing database transaction.
+     * Computes and returns the scores for this [AvsTaskScorer]. Requires an ongoing database transaction.
      *
-     * @param submissions A [Sequence] of [Submission]s to obtain scores for.
      * @return A [Map] of [TeamId] to calculated task score.
      */
     override fun scoreMap(submissions: Sequence<Submission>): Map<TeamId, Double> {
-        val correctSubmissions = submissions.flatMap { s -> s.answerSets().filter { v -> v.status() == VerdictStatus.CORRECT } }
-        val wrongSubmissions = submissions.flatMap { s -> s.answerSets().filter { v -> v.status() == VerdictStatus.WRONG } }
-        val correctSubmissionsPerTeam = correctSubmissions.groupBy { it.submission.teamId }
-        val wrongSubmissionsPerTeam = wrongSubmissions.groupBy { it.submission.teamId }
-        val totalCorrectQuantized = countQuantized(correctSubmissions).toDouble()
+        /* Make necessary calculations. */
+        val distinctCorrectVideos = submissions.flatMap { submission ->
+            submission.answerSets().filter { it.status() == VerdictStatus.CORRECT && it.answers().firstOrNull()?.item != null }
+        }.mapNotNullTo(mutableSetOf()) { it.answers().firstOrNull()?.item }
+            .size
 
-        return this.scoreable.teams.map { teamId ->
-            val correctSubs = correctSubmissionsPerTeam[teamId] ?: return@map teamId to 0.0
-            val correct = correctSubs.size
-            val wrong = wrongSubmissionsPerTeam[teamId]?.size ?: 0
-            teamId to 100.0 * (correct / (correct + wrong / 2.0)) * (countQuantized(correctSubs.asSequence()).toDouble() / totalCorrectQuantized)
-        }.toMap()
-    }
-
-    private fun countQuantized(submissions: Sequence<AnswerSet>): Int = submissions
-        .filter { it.answers().firstOrNull()?.item != null }
-        .groupBy { it.answers().first().item }
-        .map {
-            when (it.key!!.type()) {
-                MediaItemType.IMAGE -> 1
-                MediaItemType.VIDEO -> {
-                    val ranges = it.value.asSequence().map { s -> s.answers().first().temporalRange!! }.toList()
-                    TemporalRange.merge(ranges, overlap = 1).size
-                }
-                else -> throw IllegalStateException("Unsupported media type ${it.key!!.type()} for AVS task scorer.")
+        //no correct submissions yet
+        if (distinctCorrectVideos == 0) {
+            lastScores = this.lastScoresLock.write {
+                teamScoreMapSanitised(mapOf(), this.scoreable.teams)
             }
-        }.sum()
+            this.lastScoresLock.read {
+                return lastScores
+            }
+        }
+
+        return teamScoreMapSanitised(submissions.groupBy { it.teamId }.map { submissionsPerTeam ->
+            val verdicts = submissionsPerTeam.value.sortedBy { it.timestamp }.flatMap {
+                it.answerSets()
+                    .filter { v -> v.answers().firstOrNull()?.item != null && (v.status() == VerdictStatus.CORRECT || v.status() == VerdictStatus.WRONG) }
+            }
+            submissionsPerTeam.key to
+                    max(0.0, //prevent negative total scores
+                        verdicts.groupBy { it.answers().firstOrNull()?.item!! }.map {
+                            val firstCorrectIdx = it.value.indexOfFirst { v -> v.status() == VerdictStatus.CORRECT }
+                            if (firstCorrectIdx < 0) { //no correct submissions, only penalty
+                                it.value.size * -penaltyConstant
+                            } else {  //apply penalty for everything before correct submission
+                                1.0 - firstCorrectIdx * penaltyConstant
+                            }
+                        }.sum() / distinctCorrectVideos * maxPointsPerTask //normalize
+                    )
+        }.toMap(), this.scoreable.teams)
+    }
 }

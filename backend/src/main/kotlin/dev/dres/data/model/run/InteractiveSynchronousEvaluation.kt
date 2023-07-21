@@ -13,7 +13,6 @@ import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.filter.AllSubmissionFilter
 import dev.dres.run.filter.SubmissionFilter
 import dev.dres.run.filter.SubmissionFilterAggregator
-import dev.dres.run.score.Scoreable
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
@@ -25,7 +24,6 @@ import dev.dres.run.transformer.SubmissionTaskMatchFilter
 import dev.dres.run.transformer.SubmissionTransformer
 import dev.dres.run.transformer.SubmissionTransformerAggregator
 import kotlinx.dnq.query.*
-import kotlinx.dnq.query.FilteringContext.le
 import java.lang.IndexOutOfBoundsException
 import java.util.LinkedList
 
@@ -108,7 +106,7 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
 
     /**
      * Represents a concrete [Run] of a [DbTaskTemplate]. [DbTask]s always exist within a [InteractiveSynchronousEvaluation].
-     * As a [InteractiveSynchronousEvaluation], [DbTask]s can be started and ended and they can be used to register [DbSubmission]s.
+     * As a [InteractiveSynchronousEvaluation], [DbTask]s can be started and ended, and they can be used to register [DbSubmission]s.
      */
     inner class ISTaskRun(task: DbTask): AbstractInteractiveTask(task) {
 

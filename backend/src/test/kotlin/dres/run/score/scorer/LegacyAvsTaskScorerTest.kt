@@ -6,7 +6,7 @@ import dev.dres.api.rest.types.evaluation.*
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.Scoreable
-import dev.dres.run.score.scorer.AvsTaskScorer
+import dev.dres.run.score.scorer.LegacyAvsTaskScorer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 
 class LegacyAvsTaskScorerTest {
 
-    private lateinit var scorer: AvsTaskScorer
+    private lateinit var scorer: LegacyAvsTaskScorer
     private val teams = listOf("team-1", "team-2", "team-3")
     private val defaultTaskDuration = 5 * 60L
     private val taskStartTime =  System.currentTimeMillis() - 100_000
@@ -85,7 +85,7 @@ class LegacyAvsTaskScorerTest {
 
     @BeforeEach
     fun setup() {
-        this.scorer = AvsTaskScorer(this.scoreable)
+        this.scorer = LegacyAvsTaskScorer(this.scoreable)
     }
 
     @Test

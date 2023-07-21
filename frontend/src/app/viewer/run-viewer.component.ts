@@ -1,11 +1,10 @@
 import {AfterViewInit, Component, Inject, OnDestroy, OnInit, TemplateRef, ViewChild, ViewContainerRef} from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-import {BehaviorSubject, interval, merge, Observable, of, Subscription, zip} from 'rxjs';
+import {BehaviorSubject, interval, merge, mergeMap, Observable, of, Subscription, zip} from 'rxjs';
 import {
   catchError,
   delay,
   filter,
-  flatMap,
   map,
   pairwise,
   retryWhen,
@@ -181,7 +180,7 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
 
     /* Basic observable for web socket messages received from the DRES server. */
     this.webSocket = this.evaluationId.pipe(
-      flatMap((evaluationId) =>
+      mergeMap((evaluationId) =>
         this.webSocketSubject.multiplex(
             () => {
               return { evaluationId: evaluationId, type: 'REGISTER' } as IWsClientMessage;

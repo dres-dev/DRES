@@ -1,6 +1,6 @@
 import {Inject, Injectable} from '@angular/core';
-import {catchError, filter, flatMap, map, shareReplay, tap, withLatestFrom} from 'rxjs/operators';
-import {BehaviorSubject, Observable, of, Subscription} from 'rxjs';
+import {catchError, filter, map, shareReplay, tap, withLatestFrom} from 'rxjs/operators';
+import {BehaviorSubject, mergeMap, Observable, of, Subscription} from 'rxjs';
 import {ApiRole, ApiUser, LoginRequest, UserRequest, UserService} from '../../../../openapi';
 import {ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree} from "@angular/router";
 
@@ -33,7 +33,7 @@ export class AuthenticationService {
    */
   public login(user: string, pass: string) {
     return this.userService.postApiV2Login({ username: user, password: pass } as LoginRequest).pipe(
-      flatMap(() => this.userService.getApiV2User()),
+      mergeMap(() => this.userService.getApiV2User()),
       tap((data) => {
         this._loggedIn.next(true);
         console.log(`Successfully logged in as '${data.username}'.`)
@@ -61,7 +61,7 @@ export class AuthenticationService {
    */
   public updateUser(user: UserRequest) {
     return this.user.pipe(
-      flatMap((u: ApiUser) => this.userService.patchApiV2UserByUserId(u.id, user))
+      mergeMap((u: ApiUser) => this.userService.patchApiV2UserByUserId(u.id, user))
     );
   }
 
@@ -80,7 +80,7 @@ export class AuthenticationService {
    */
   get user(): Observable<ApiUser |null> {
     return this.isLoggedIn.pipe(
-        flatMap(loggedIn=> {
+        mergeMap(loggedIn=> {
         if (loggedIn) {
           return this.userService.getApiV2User()
         } else {

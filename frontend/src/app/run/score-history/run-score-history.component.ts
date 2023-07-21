@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, filter, flatMap, map, shareReplay, switchMap, tap } from 'rxjs/operators';
-import { combineLatest, concat, interval, Observable, of } from 'rxjs';
+import { catchError, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
 import {
   ApexAxisChartSeries,
   ApexChart,
@@ -175,7 +175,7 @@ export class RunScoreHistoryComponent {
 
     /* Load time series data should be visualized. */
     /*const scores = this.runId.pipe(
-      flatMap((r) =>
+      mergeMap((r) =>
         interval(2000).pipe(
           switchMap((i) => {
             return this.scoreService.getApiV1ScoreRunWithRunidSeriesWithScoreboard(r, this.selectedScoreboard).pipe(

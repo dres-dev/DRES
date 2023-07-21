@@ -1,7 +1,7 @@
 import { AfterViewInit, Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { CompetitionCreateDialogComponent } from './competition-create-dialog.component';
-import { filter, flatMap, take, tap } from 'rxjs/operators';
+import { filter, take, tap } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { CompetitionStartDialogComponent, CompetitionStartDialogResult } from './competition-start-dialog.component';
@@ -16,6 +16,7 @@ import {
   EvaluationAdministratorService, RunProperties, SuccessStatus,
   TemplateService
 } from "../../../../openapi";
+import {mergeMap} from 'rxjs';
 
 /**
  * @deprecated Replaced by TemplateList
@@ -46,7 +47,7 @@ export class CompetitionListComponent implements AfterViewInit {
       .afterClosed()
       .pipe(
         filter((r) => r != null),
-        flatMap((r: ApiCreateEvaluation) => {
+        mergeMap((r: ApiCreateEvaluation) => {
           return this.evaluationService.postApiV2Template(r);
         })
       )
@@ -68,7 +69,7 @@ export class CompetitionListComponent implements AfterViewInit {
       .pipe(
         filter((r) => r != null),
         tap((r) => (this.waitingForRun[id] = true)),
-        flatMap((r: CompetitionStartDialogResult) => {
+        mergeMap((r: CompetitionStartDialogResult) => {
           const properties = {
             participantCanView: r.participantCanView,
             shuffleTasks: r.shuffleTasks,

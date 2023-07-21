@@ -2,8 +2,8 @@ import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
-import { BehaviorSubject, Observable, of, Subject, Subscription } from 'rxjs';
-import { catchError, filter, flatMap, map, retry, shareReplay, switchMap } from 'rxjs/operators';
+import {BehaviorSubject, mergeMap, Observable, of, Subject, Subscription} from 'rxjs';
+import { catchError, filter, map, retry, shareReplay, switchMap } from 'rxjs/operators';
 import { AppConfig } from '../../app.config';
 import {
   MediaItemBuilderData,
@@ -70,7 +70,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
      * IMPORTANT: Unsubscribe OnDestroy!
      */
     this.collection = this.refreshSubject.pipe(
-      flatMap((s) => this.collectionId),
+      mergeMap((s) => this.collectionId),
       switchMap((id) =>
         this.collectionService.getApiV2CollectionByCollectionId(id).pipe(
           retry(3),
@@ -101,15 +101,15 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
 
   delete(id: string) {
     if (confirm(`Do you really want to delete media item with ID ${id}?`)) {
-      this.collectionService.deleteApiV2MediaItemByMediaId(id).subscribe(
-        (r) => {
+      this.collectionService.deleteApiV2MediaItemByMediaId(id).subscribe({
+        next: (r) => {
           this.refreshSubject.next();
-          this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
+          this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
         },
-        (r) => {
-          this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
+        error: (r) => {
+          this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
         }
-      );
+      });
     }
   }
 
@@ -136,7 +136,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
         .afterClosed()
         .pipe(
           filter((r) => r != null),
-          flatMap((r: ApiMediaItem) => {
+          mergeMap((r: ApiMediaItem) => {
             if (id) {
               return this.collectionService.patchApiV2Mediaitem(r);
             } else {
@@ -144,15 +144,15 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
             }
           })
         )
-        .subscribe(
-          (r) => {
+        .subscribe({
+          next: (r) => {
             this.refreshSubject.next();
-            this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
+            this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
           },
-          (r) => {
-            this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
+          error: (r) => {
+            this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
           }
-        );
+        });
     });
   }
 

@@ -8,8 +8,8 @@ import {
     OnDestroy,
     ViewChild,
 } from '@angular/core';
-import {BehaviorSubject, combineLatest, merge, Observable, of, Subscription} from 'rxjs';
-import {catchError, filter, flatMap, map, pairwise, retry, shareReplay, switchMap, withLatestFrom,} from 'rxjs/operators';
+import {BehaviorSubject, combineLatest, merge, mergeMap, Observable, of, Subscription} from 'rxjs';
+import {catchError, filter, map, pairwise, retry, shareReplay, switchMap, withLatestFrom,} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 import {animate, keyframes, style, transition, trigger} from '@angular/animations';
 import {
@@ -217,7 +217,7 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
         })
       ),
       this.resetHighlight.pipe(
-        flatMap(() => this.info),
+        mergeMap(() => this.info),
         map((info) => {
           const hightlight = new Map<string, string>();
           info.teams.forEach((t) => hightlight.set(t.id, 'nohighlight'));

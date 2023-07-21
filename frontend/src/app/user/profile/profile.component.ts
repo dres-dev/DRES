@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { first, flatMap, tap } from 'rxjs/operators';
+import { first } from 'rxjs/operators';
 import { AuthenticationService } from '../../services/session/authentication.sevice';
 import {ApiUser, UserRequest, UserService} from '../../../../openapi';
 
@@ -59,15 +59,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.authenticationService
         .updateUser(usr)
         .pipe(first())
-        .subscribe(
-          (r: ApiUser) => {
+        .subscribe({
+          next: (r: ApiUser) => {
             this.snackBar.open(`Save successful!`, null, { duration: 5000 });
             this.toggleEdit();
           },
-          (error) => {
+          error: (error) => {
             this.snackBar.open(`Save failed: ${error.error.description}!`, null, { duration: 5000 });
           }
-        );
+        });
     }
   }
 

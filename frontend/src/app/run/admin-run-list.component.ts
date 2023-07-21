@@ -7,8 +7,8 @@ import {
   ConfirmationDialogComponent,
   ConfirmationDialogComponentData,
 } from '../shared/confirmation-dialog/confirmation-dialog.component';
-import { forkJoin, merge, timer } from 'rxjs';
-import { flatMap, map, switchMap } from 'rxjs/operators';
+import {forkJoin, merge, mergeMap, timer} from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import {
   ApiEvaluationInfo, ApiEvaluationOverview, ApiTaskStatus,
   DownloadService,
@@ -109,7 +109,7 @@ export class AdminRunListComponent extends AbstractRunListComponent {
 
   protected initStateUpdates() {
     this.runs = merge(timer(0, this.updateInterval), this.refreshSubject).pipe(
-      flatMap((t) => this.runService.getApiV2EvaluationInfoList()),
+      mergeMap((t) => this.runService.getApiV2EvaluationInfoList()),
       map((runInfo) =>
         runInfo.map((run) =>
           this.runAdminService.getApiV2EvaluationAdminByEvaluationIdOverview(run.id).pipe(

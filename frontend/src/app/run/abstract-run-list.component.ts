@@ -1,9 +1,8 @@
-import { combineLatest, merge, Observable, Subject, timer } from 'rxjs';
-import { flatMap, map, take } from 'rxjs/operators';
+import {combineLatest, merge, mergeMap, Observable, Subject, timer} from 'rxjs';
+import { map, take } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
-  ApiEvaluationState,
   ApiTaskStatus, DownloadService,
   EvaluationAdministratorService,
   EvaluationScoresService,
@@ -107,32 +106,32 @@ export class AbstractRunListComponent {
   }
 
   public nextTask(runId: string) {
-    this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskNext(runId).subscribe(
-      (r) => {
+    this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskNext(runId).subscribe({
+      next: (r) => {
         this.refreshSubject.next();
-        this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
+        this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
       },
-      (r) => {
-        this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
+      error: (r) => {
+        this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
       }
-    );
+    });
   }
 
   public startTask(runId: string) {
-    this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskStart(runId).subscribe(
-      (r) => {
+    this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskStart(runId).subscribe({
+      next: (r) => {
         this.refreshSubject.next();
-        this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
+        this.snackBar.open(`Success: ${r.description}`, null, {duration: 5000});
       },
-      (r) => {
-        this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
+      error: (r) => {
+        this.snackBar.open(`Error: ${r.error.description}`, null, {duration: 5000});
       }
-    );
+    });
   }
 
   scoreDownloadProvider = (runId: string) => {
     return this.downloadService
-      .getApiV2DownloadEvaluationByEvaluationIdScores(runId, 'body', false, { httpHeaderAccept: 'text/plain' }) // FIXME was text/css, might require openapi specs adjustement
+      .getApiV2DownloadEvaluationByEvaluationIdScores(runId, 'body', false, { httpHeaderAccept: 'text/plain' }) // FIXME was text/css, might require openapi specs adjustment
       .pipe(take(1));
   };
 
@@ -160,7 +159,7 @@ export class AbstractRunListComponent {
      */
     const query = combineLatest([this.runService.getApiV2EvaluationInfoList(), this.runService.getApiV2EvaluationStateList()]);
     this.runs = merge(timer(0, this.updateInterval), this.refreshSubject).pipe(
-      flatMap((t) => query),
+      mergeMap((t) => query),
       map(([info, state]) => {
         return info.map((v, i) => {
           const s = state.find((_) => _.evaluationId === v.id);

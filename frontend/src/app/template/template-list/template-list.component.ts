@@ -10,12 +10,13 @@ import { Router } from "@angular/router";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { TemplateCreateDialogComponent } from "../template-create-dialog/template-create-dialog.component";
-import { filter, flatMap, take, tap } from "rxjs/operators";
+import { filter, take, tap } from "rxjs/operators";
 import {
   ConfirmationDialogComponent,
   ConfirmationDialogComponentData
 } from "../../shared/confirmation-dialog/confirmation-dialog.component";
 import { EvaluationStartDialogComponent, EvaluationStartDialogResult } from "../evaluation-start-dialog/evaluation-start-dialog.component";
+import {mergeMap} from 'rxjs';
 
 @Component({
   selector: 'app-template-list',
@@ -46,7 +47,7 @@ export class TemplateListComponent implements AfterViewInit{
       .afterClosed()
       .pipe(
         filter((r) => r !=null),
-        flatMap((r: ApiCreateEvaluation) => {
+        mergeMap((r: ApiCreateEvaluation) => {
           return this.templateService.postApiV2Template(r);
         })
       ).subscribe(
@@ -61,15 +62,15 @@ export class TemplateListComponent implements AfterViewInit{
   }
 
   public refresh(){
-    this.templateService.getApiV2TemplateList().subscribe(
-      (results: ApiEvaluationTemplateOverview[]) => {
+    this.templateService.getApiV2TemplateList().subscribe({
+      next: (results: ApiEvaluationTemplateOverview[]) => {
         this.templates = results;
       },
-      (err) => {
+      error: (err) => {
         this.templates = [];
         this.snackBar.open(`Error: ${err?.error?.description}`, null, {duration: 5000})
       }
-    );
+    });
   }
 
   public createEvaluation(id: string){
@@ -107,7 +108,7 @@ export class TemplateListComponent implements AfterViewInit{
     dialogRef.afterClosed().pipe(
       filter((r) => r!= null),
       tap((r) => (this.waitingForRun[templateId] = true)),
-      flatMap((r: EvaluationStartDialogResult) => {
+      mergeMap((r: EvaluationStartDialogResult) => {
         return this.evaluationAdminService.postApiV2EvaluationAdminCreate({
           templateId: templateId,
           name: r.name,

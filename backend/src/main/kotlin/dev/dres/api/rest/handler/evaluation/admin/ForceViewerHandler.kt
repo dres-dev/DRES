@@ -47,12 +47,12 @@ class ForceViewerHandler(store: TransientEntityStore): AbstractEvaluationAdminHa
             val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             try {
                 if (evaluationManager.overrideReadyState(rac, viewerId)) {
-                    SuccessStatus("State for viewer $viewerId forced successfully.")
+                    SuccessStatus("State for viewer $viewerId (evaluation '$evaluationId') forced successfully.")
                 } else {
                     throw ErrorStatusException(404, "Viewer $viewerId does not exist!'", ctx)
                 }
             } catch (e: IllegalStateException) {
-                throw ErrorStatusException(400, "Viewer state for viewer $viewerId (evaluation $evaluationId) could not be enforced because evaluationId is in the wrong state (state = ${evaluationManager.status}).", ctx)
+                throw ErrorStatusException(400, "State for viewer $viewerId (evaluation '$evaluationId') could not be enforced because evaluation is in the wrong state (state = ${evaluationManager.status}).", ctx)
             }
         }
     }

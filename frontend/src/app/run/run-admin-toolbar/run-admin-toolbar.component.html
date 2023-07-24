@@ -67,14 +67,14 @@
       [icon]="'file_download'"
       [contentType]="'text/csv'"
       [fileName]="scoreFileProvider((run | async)?.runInfo?.name)"
-      [downloadProvider]="scoreDownloadProvider(runId | async)"
+      [downloadProvider]="scoreDownloadProvider(runId)"
       [inline]="true"
       matTooltip="Download the scores of this run as CSV"
     >
     </app-download-button>
     <app-download-button
       [fileName]="fileProvider((run | async)?.runInfo?.name)"
-      [downloadProvider]="downloadProvider(runId | async)"
+      [downloadProvider]="downloadProvider(runId)"
       [inline]="true"
       matTooltip="Download the run as JSON"
     >

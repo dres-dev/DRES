@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AppConfig } from '../app.config';
-import {BehaviorSubject, combineLatest, merge, mergeMap, Observable, of, Subject, timer} from 'rxjs';
-import { catchError, filter, map, shareReplay, switchMap, tap } from "rxjs/operators";
+import { combineLatest, merge, mergeMap, Observable, of, Subject, timer} from 'rxjs';
+import { catchError, filter, map, shareReplay, switchMap } from "rxjs/operators";
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import {
@@ -36,7 +36,6 @@ export class RunAdminViewComponent {
   private static OVERVIEW_POLLING_FREQUENCY = 5 * 1000; //ms
 
   runId: Observable<string>;
-  runIdAsSubject: BehaviorSubject<string> = new BehaviorSubject<string>('');
   run: Observable<CombinedRun>;
   runOverview: Observable<RunInfoOverviewTuple>;
   viewers: Observable<ApiViewerInfo[]>;
@@ -57,7 +56,6 @@ export class RunAdminViewComponent {
     private dialog: MatDialog
   ) {
     this.runId = this.activeRoute.params.pipe(map((a) => a.runId));
-    this.runId.subscribe(this.runIdAsSubject);
     this.run = this.runId.pipe(
       switchMap((runId) =>
         combineLatest([
@@ -96,11 +94,12 @@ export class RunAdminViewComponent {
             map((pastTasks: Array<ApiTaskTemplateInfo>) => {
               const map = new Map<string,number>();
               for (let p of pastTasks) {
-                map.set(p.templateId, 0); // FIXME ApiTaskTemplateInfo doesn't have the information about number of submissions anymore
+                map.set(p.templateId, 0);
               }
               return map;
             })
-        ))
+        )),
+        shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading. */
     );
 
     /** Observable for list of submissions for current task. */
@@ -120,7 +119,8 @@ export class RunAdminViewComponent {
               }
               return map;
             })
-        ))
+        )),
+        shareReplay({ bufferSize: 1, refCount: true }) /* Cache last successful loading. */
     )
 
     this.runOverview = this.runId.pipe(

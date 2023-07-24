@@ -25,7 +25,7 @@ import {
   styleUrls: ['./run-admin-toolbar.component.scss'],
 })
 export class RunAdminToolbarComponent implements OnInit {
-  @Input() runId: BehaviorSubject<string> = new BehaviorSubject<string>('');
+  @Input() runId: string;
   @Input() run: Observable<RunInfoOverviewTuple>;
   @Input() refreshSubject: Subject<void> = new Subject();
 
@@ -44,7 +44,7 @@ export class RunAdminToolbarComponent implements OnInit {
   ) {}
 
   public start() {
-    const runId = this.runId.value;
+    const runId = this.runId;
     this.runAdminService.postApiV2EvaluationAdminByEvaluationIdStart(runId).subscribe(
       (r) => {
         this.refreshSubject.next();
@@ -67,7 +67,7 @@ export class RunAdminToolbarComponent implements OnInit {
       .afterClosed()
       .subscribe((result) => {
         if (result) {
-          const runId = this.runId.value;
+          const runId = this.runId;
           this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTerminate(runId).subscribe(
             (r) => {
               this.refreshSubject.next();
@@ -83,7 +83,7 @@ export class RunAdminToolbarComponent implements OnInit {
   }
 
   public navigateToViewer() {
-    const runId = this.runId.value;
+    const runId = this.runId;
     console.log("Navigate (Admin): ", runId)
     /* TODO: Setup depends on type of evaluation run. */
     this.router.navigate([
@@ -99,7 +99,7 @@ export class RunAdminToolbarComponent implements OnInit {
   }
 
   public navigateToJudgement() {
-    const runId = this.runId.value;
+    const runId = this.runId;
     this.router.navigate(['/judge', runId]);
   }
 
@@ -108,7 +108,7 @@ export class RunAdminToolbarComponent implements OnInit {
    *
    */
   public navigateToVoting() {
-    const runId = this.runId.value;
+    const runId = this.runId;
     this.router.navigate(['/vote', runId]);
   }
 
@@ -118,7 +118,7 @@ export class RunAdminToolbarComponent implements OnInit {
    * @param runId ID of the run to navigate to.
    */
   public navigateToAdmin() {
-    const runId = this.runId.value;
+    const runId = this.runId;
     this.router.navigate(['/evaluation/admin', runId]);
   }
 
@@ -128,7 +128,7 @@ export class RunAdminToolbarComponent implements OnInit {
    * @param runId ID of the run to navigate to.
    */
   public navigateToScoreHistory() {
-    const runId = this.runId.value;
+    const runId = this.runId;
     this.router.navigate(['/evaluation/scores', runId]);
   }
 

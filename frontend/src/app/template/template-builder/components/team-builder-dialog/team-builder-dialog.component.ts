@@ -1,20 +1,26 @@
-import { Component, Inject } from '@angular/core';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { map, shareReplay } from 'rxjs/operators';
-import { Observable } from 'rxjs';
-import { AppConfig } from '../../../app.config';
-import {ApiTeam, ApiUser, UserService} from '../../../../../openapi';
+import { Component, ElementRef, Inject, ViewChild } from "@angular/core";
+import { FormControl, FormGroup, Validators } from "@angular/forms";
+import { Observable, startWith } from "rxjs";
+import { ApiTeam, ApiUser, UserService } from "../../../../../../openapi";
+import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { AppConfig } from "../../../../app.config";
+import { map, shareReplay, tap } from "rxjs/operators";
+import { MatAutocompleteSelectedEvent } from "@angular/material/autocomplete";
+import { COMMA, ENTER } from "@angular/cdk/keycodes";
+import { MatChipInput, MatChipInputEvent } from "@angular/material/chips";
 
 @Component({
-  selector: 'app-competition-builder-add-team-dialog',
-  templateUrl: './competition-builder-team-dialog.component.html',
-  styleUrls: ['./competition-builder-team-dialog.component.scss']
+  selector: 'app-team-builder-dialog',
+  templateUrl: './team-builder-dialog.component.html',
+  styleUrls: ['./team-builder-dialog.component.scss']
 })
-export class CompetitionBuilderTeamDialogComponent {
+export class TeamBuilderDialogComponent {
   form: FormGroup;
+  separatorKeyCodes: number[] = [ENTER, COMMA];
+  @ViewChild('userInput') userInput: ElementRef<HTMLInputElement>
+
   logoName = '';
+  users: ApiUser[];
   availableUsers: Observable<ApiUser[]>;
   colorPalette = [
     '#BF0000',
@@ -39,7 +45,7 @@ export class CompetitionBuilderTeamDialogComponent {
   ];
 
   constructor(
-    private dialogRef: MatDialogRef<CompetitionBuilderTeamDialogComponent>,
+    private dialogRef: MatDialogRef<TeamBuilderDialogComponent>,
     private userService: UserService,
     private config: AppConfig,
     @Inject(MAT_DIALOG_DATA) private team?: ApiTeam
@@ -56,9 +62,10 @@ export class CompetitionBuilderTeamDialogComponent {
       users: new FormControl(team?.users || []),
       userInput: new FormControl(''),
     });
-    this.availableUsers = this.userService.getApiV2UserList().pipe(
-      map((value) => value.filter((user) => user.role !== 'JUDGE' && user.role !== 'VIEWER')),
-      shareReplay(1)
+    this.userService.getApiV2UserList().subscribe(value => this.users = value.filter(u => u.role === "PARTICIPANT").filter(user => !this.form.get('users').value.includes(user)));
+    this.availableUsers = this.form.get('userInput').valueChanges.pipe(
+      startWith(''),
+      map(value => this.filterAvailableUsers(value || ''))
     );
   }
 
@@ -71,9 +78,23 @@ export class CompetitionBuilderTeamDialogComponent {
    *
    * @param event @{MatAutocompleteSelectedEvent}
    */
-  public addUser(event: MatAutocompleteSelectedEvent): void {
+  public addUser(event: MatChipInputEvent): void {
+    const value = (event.value || '').trim()
+    if(value){
+      this.form.get('users').value.push(value);
+    }
+
+    event.chipInput!.clear();
+    this.form.get('userInput').setValue(null, {emit: false});
+  }
+
+  /**
+   * Selected user gets added to the list of users
+   */
+  public selectedUser(event: MatAutocompleteSelectedEvent){
     this.form.get('users').value.push(event.option.value);
-    this.form.get('userInput').setValue(null);
+    this.form.get('userInput').setValue(null,{emit: false});
+    this.userInput.nativeElement.value = '';
   }
 
   /**
@@ -164,5 +185,28 @@ export class CompetitionBuilderTeamDialogComponent {
    */
   public onColorChange(color: string) {
     this.form.get('color').setValue(color);
+  }
+
+  /**
+   * Filters available users for the chip input autocomplete.
+   * Teammembers (i.e. users that are part of the team's userlist) are excluded
+   * @param value
+   * @private
+   */
+  private filterAvailableUsers(value: string | ApiUser): ApiUser[] {
+    let users : ApiUser[];
+    if(! (typeof value === 'string')){
+      users = this.users;
+    }else {
+      if (value) {
+        const filterValue = (value as string).toLowerCase();
+
+        users = this.users?.filter(user => user.username.toLowerCase().includes(filterValue));
+      } else {
+        users = this.users;
+      }
+    }
+    /* always exclude members */
+    return users?.filter(user => !this.form.get('users').value.map(u => u.username).includes(user.username))
   }
 }

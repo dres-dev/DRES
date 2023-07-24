@@ -12,7 +12,6 @@ import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
 import { CompetitionBuilderComponent } from './competition-builder.component';
-import { CompetitionBuilderTeamDialogComponent } from './competition-builder-team-dialog/competition-builder-team-dialog.component';
 import { CompetitionBuilderTaskDialogComponent } from './competition-builder-task-dialog/competition-builder-task-dialog.component';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSelectModule } from '@angular/material/select';
@@ -65,7 +64,6 @@ import { ColorPickerModule } from 'ngx-color-picker';
   exports: [CompetitionBuilderComponent, VideoPlayerSegmentBuilderComponent],
   declarations: [
     CompetitionBuilderComponent,
-    CompetitionBuilderTeamDialogComponent,
     CompetitionBuilderTaskDialogComponent,
     CompetitionBuilderTaskGroupDialogComponent,
     CompetitionBuilderTaskTypeDialogComponent,

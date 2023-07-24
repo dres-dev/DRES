@@ -7,9 +7,7 @@ import { TemplateBuilderService } from "../../template-builder.service";
 import { MatDialog } from "@angular/material/dialog";
 import { AppConfig } from "../../../../app.config";
 import { filter, map } from "rxjs/operators";
-import {
-  CompetitionBuilderTeamDialogComponent
-} from "../../../../competition/competition-builder/competition-builder-team-dialog/competition-builder-team-dialog.component";
+import { TeamBuilderDialogComponent } from "../team-builder-dialog/team-builder-dialog.component";
 
 @Component({
   selector: 'app-teams-list',
@@ -69,7 +67,7 @@ export class TeamsListComponent extends AbstractTemplateBuilderComponent impleme
   }
 
   public addTeam(){
-    const dialogRef = this.dialog.open(CompetitionBuilderTeamDialogComponent, {width: '600px'});
+    const dialogRef = this.dialog.open(TeamBuilderDialogComponent, {width: '600px'});
     dialogRef.afterClosed().pipe(filter((t) => t != null)).subscribe((t) => {
       this.builderService.getTemplate().teams.push(t);
       this.builderService.update();
@@ -80,7 +78,7 @@ export class TeamsListComponent extends AbstractTemplateBuilderComponent impleme
   public editTeam(team: ApiTeam){
     const index = this.builderService.getTemplate().teams.indexOf(team);
     if(index > -1){
-      const dialogRef = this.dialog.open(CompetitionBuilderTeamDialogComponent, {data: team, width: '600px'});
+      const dialogRef = this.dialog.open(TeamBuilderDialogComponent, {data: team, width: '600px'});
       dialogRef.afterClosed().pipe(filter((t) => t != null)).subscribe((t)=>{
         this.builderService.getTemplate().teams[index] = t;
         this.builderService.update();

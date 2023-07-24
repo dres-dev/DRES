@@ -5,7 +5,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { CompetitionBuilderTeamDialogComponent } from './competition-builder-team-dialog/competition-builder-team-dialog.component';
 import {
   CompetitionBuilderTaskGroupDialogComponent,
   CompetitionBuilderTaskGroupDialogData,
@@ -420,7 +419,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
   }
 
   public addTeam() {
-    const dialogRef = this.dialog.open(CompetitionBuilderTeamDialogComponent, { width: '500px' });
+    /*const dialogRef = this.dialog.open(CompetitionBuilderTeamDialogComponent, { width: '500px' });
     dialogRef
       .afterClosed()
       .pipe(filter((t) => t != null))
@@ -428,10 +427,11 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
         this.competition.teams.push(t);
         this.dirty = true;
         this.teamTable.renderRows();
-      });
+      });*/
   }
 
   public editTeam(team: ApiTeam) {
+    /*
     const index = this.competition.teams.indexOf(team);
     if (index > -1) {
       const dialogRef = this.dialog.open(CompetitionBuilderTeamDialogComponent, { data: team, width: '500px' });
@@ -443,7 +443,7 @@ export class CompetitionBuilderComponent implements OnInit, OnDestroy, Deactivat
           this.dirty = true;
           this.teamTable.renderRows();
         });
-    }
+    }*/
   }
 
   public removeTeam(team: ApiTeam) {

@@ -43,6 +43,10 @@ import {
 import {
   QueryDescriptionExternalImageFormFieldComponent
 } from "./query-description-external-image-form-field/query-description-external-image-form-field.component";
+import { TeamBuilderDialogComponent } from './team-builder-dialog/team-builder-dialog.component';
+import { MatChipsModule } from "@angular/material/chips";
+import { MatDialogModule } from "@angular/material/dialog";
+import { ColorPickerModule } from "ngx-color-picker";
 
 
 @NgModule({
@@ -61,27 +65,31 @@ import {
     QueryDescriptionMediaItemImageFormFieldComponent,
     QueryDescriptionMediaItemVideoFormFieldComponent,
     QueryDescriptionExternalVideoFormFieldComponent,
-    QueryDescriptionExternalImageFormFieldComponent
+    QueryDescriptionExternalImageFormFieldComponent,
+    TeamBuilderDialogComponent
   ],
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatButtonModule,
-        MatTooltipModule,
-        MatIconModule,
-        MatMenuModule,
-        MatAutocompleteModule,
-        MatTableModule,
-        MatListModule,
-        SharedModule,
-        MatSelectModule,
-        MatButtonToggleModule,
-        MatGridListModule,
-        CompetitionBuilderModule,
-        NgOptimizedImage,
-    ],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatTooltipModule,
+    MatIconModule,
+    MatMenuModule,
+    MatAutocompleteModule,
+    MatTableModule,
+    MatListModule,
+    SharedModule,
+    MatSelectModule,
+    MatButtonToggleModule,
+    MatGridListModule,
+    CompetitionBuilderModule,
+    NgOptimizedImage,
+    MatChipsModule,
+    MatDialogModule,
+    ColorPickerModule
+  ],
   exports: [TemplateInformationComponent,
     JudgesListComponent,
     TeamsListComponent,

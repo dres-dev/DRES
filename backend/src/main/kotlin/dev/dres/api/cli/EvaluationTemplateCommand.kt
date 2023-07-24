@@ -11,6 +11,7 @@ import com.github.ajalt.clikt.parameters.options.validate
 import com.github.ajalt.clikt.parameters.types.path
 import com.jakewharton.picnic.table
 import dev.dres.DRES
+import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.mgmt.cache.CacheManager
 import jetbrains.exodus.database.TransientEntityStore
@@ -19,6 +20,7 @@ import org.joda.time.DateTime
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import java.util.concurrent.TimeUnit
 
 /**
  * A collection of [CliktCommand]s for [DbEvaluationTemplate] management.
@@ -189,18 +191,50 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
             }
 
             /* Fetch all videos in the competition. */
-            val videos = competition.getAllVideos()
-            videos.forEach { item ->
+            val videos = competition.getAllVideos().toList()
+            val await = videos.mapNotNull { source ->
 
-                val path = item.first.pathToOriginal()
-                if (!Files.exists(path)) {
-                    println("ERROR: Media file $path not found for item ${item.first.name}.")
-                    return@forEach
+                when(source) {
+                    is DbEvaluationTemplate.VideoSource.ItemSource -> {
+                        val item = source.item
+                        val path = item.pathToOriginal()
+                        if (!Files.exists(path)) {
+                            println("ERROR: Media file $path not found for item ${item.name}.")
+                            return@mapNotNull null
+                        }
+
+                        println("Rendering ${item.name}$ at ${source.range}")
+                        this@EvaluationTemplateCommand.cache.asyncPreviewVideo(item, source.range.start.toMilliseconds(), source.range.end.toMilliseconds())
+                    }
+                    is DbEvaluationTemplate.VideoSource.PathSource -> {
+                        val path = DRES.EXTERNAL_ROOT.resolve(source.path)
+                        if (!Files.exists(path)) {
+                            println("ERROR: Media file $path not found for external video.")
+                            return@mapNotNull null
+                        }
+
+                        println("Rendering ${path.fileName}$ at ${source.range}")
+                        this@EvaluationTemplateCommand.cache.asyncPreviewVideo(path, source.range.start.toMilliseconds(), source.range.end.toMilliseconds())
+                    }
                 }
-
-                println("Rendering ${item.first.name}$ at ${item.second}")
-                this@EvaluationTemplateCommand.cache.asyncPreviewVideo(item.first, item.second.start.toMilliseconds(), item.second.end.toMilliseconds())
             }
+
+            val success = await.all {
+                try {
+                    it.get(60, TimeUnit.SECONDS)
+                    true
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                    false
+                }
+            }
+
+            if (success) {
+                println("Video preparation completed successfully")
+            } else {
+                println("An error occurred during video preparation")
+            }
+
         }
     }
 

@@ -12,12 +12,14 @@ import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.DbTeamGroup
 import dev.dres.data.model.media.time.TemporalRange
 import dev.dres.data.model.template.interfaces.EvaluationTemplate
+import dev.dres.data.model.template.task.DbHintType
 import dev.dres.data.model.template.task.options.DbConfiguredOption
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.link.OnDeletePolicy
 import kotlinx.dnq.query.*
 import java.lang.IllegalStateException
+import java.nio.file.Path
 import java.util.*
 
 typealias TemplateId = String
@@ -171,25 +173,38 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
     }
 
     /**
-     * Generates and returns a list of all [DbMediaItem] for this [DbEvaluationTemplate].
+     * Generates and returns a collection of all [VideoSource]s for this [DbEvaluationTemplate].
      *
      * This is a convenience method and requires an active transaction context.
      *
-     * @return [List] of [DbMediaItem]s
+     * @return [Set] of [VideoSource]s
      */
-    fun getAllVideos(): List<Pair<DbMediaItem,TemporalRange>> {
+    fun getAllVideos(): Set<VideoSource> {
         val hints = this.tasks
             .flatMapDistinct { it.hints }
-            .filter { (it.item ne null) and (it.item!!.type eq DbMediaType.VIDEO) }.asSequence().map {
-                it.item!!to it.range!!
+            .filter { it.type eq DbHintType.VIDEO }.asSequence().map {
+                if (it.item != null) {
+                    VideoSource.ItemSource(it.item!!, it.range!!)
+                } else {
+                    VideoSource.PathSource(it.path!!, it.range!!)
+                }
             }
 
         val targets = this.tasks
             .flatMapDistinct { it.targets }
-            .filter { (it.item ne null) and (it.item!!.type eq DbMediaType.VIDEO) }.asSequence().map {
-            it.item!! to it.range!!
-        }
+            .filter { (it.item ne null) and (it.item!!.type eq DbMediaType.VIDEO) }.asSequence()
+            .map {
+                VideoSource.ItemSource(it.item!!, it.range!!)
+            }
 
-        return (hints + targets).toList()
+        return (hints + targets).toSet()
+    }
+
+    sealed class VideoSource(val range: TemporalRange) {
+
+        class ItemSource(val item: DbMediaItem, range: TemporalRange) : VideoSource(range)
+        class PathSource(val path: String, range: TemporalRange) : VideoSource(range)
+
+
     }
 }

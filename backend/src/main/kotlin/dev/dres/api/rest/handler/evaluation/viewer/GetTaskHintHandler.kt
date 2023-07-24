@@ -152,18 +152,19 @@ class GetTaskHintHandler(store: TransientEntityStore, private val cache: CacheMa
             }
 
             DbHintType.VIDEO -> {
+                val start = this.temporalRangeStart
+                    ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid start timestamp but doesn't! This is a programmer's error!")
+                val end = this.temporalRangeEnd
+                    ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid end timestamp but doesn't!! This is a programmer's error!")
                 val path = if (this.item != null) {
-                    val start = this.temporalRangeStart
-                        ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid start timestamp but doesn't! This is a programmer's error!")
-                    val end = this.temporalRangeEnd
-                        ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid end timestamp but doesn't!! This is a programmer's error!")
                     this@GetTaskHintHandler.cache.asyncPreviewVideo(this.item!!, start, end)
                         .get() /* This should return immediately, since the previews have been prepared. */
                 } else {
-                    DRES.EXTERNAL_ROOT.resolve(
+                    val source = DRES.EXTERNAL_ROOT.resolve(
                         this.path
                             ?: throw IllegalStateException("DbHint of type VIDEO is expected to hold a valid media item or external path but it doesn't! This is a programmer's error!")
                     )
+                    this@GetTaskHintHandler.cache.asyncPreviewVideo(source, start, end).get()
                 }
                 if (Files.exists(path)) {
                     Base64.getEncoder().encodeToString(Files.readAllBytes(path))

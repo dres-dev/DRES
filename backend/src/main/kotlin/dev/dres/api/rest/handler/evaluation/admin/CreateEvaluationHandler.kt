@@ -1,5 +1,6 @@
 package dev.dres.api.rest.handler.evaluation.admin
 
+import dev.dres.DRES
 import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.template.ApiEvaluationStartMessage
 import dev.dres.api.rest.types.evaluation.ApiEvaluationType
@@ -74,16 +75,30 @@ class CreateEvaluationHandler(store: TransientEntityStore, private val cache: Ca
 
             /* Check and prepare videos */
             val segmentTasks = template.getAllVideos()
-            val await = segmentTasks.mapNotNull {
-                val item = it.first
-                val path = item.pathToOriginal()
-                if (!Files.exists(path)) {
-                    logger.error("Required media file $path not found for item ${item.name}.")
-                    throw ErrorStatusException(500, "Required media file $path not found for item ${item.name}.", ctx)
+            val await = segmentTasks.map {source ->
+
+                when(source) {
+                    is DbEvaluationTemplate.VideoSource.ItemSource -> {
+                        val item = source.item
+                        val path = item.pathToOriginal()
+                        if (!Files.exists(path)) {
+                            logger.error("Required media file $path not found for item ${item.name}.")
+                            throw ErrorStatusException(500, "Required media file $path not found for item ${item.name}.", ctx)
+                        }
+
+                        this@CreateEvaluationHandler.cache.asyncPreviewVideo(item, source.range.start.toMilliseconds(), source.range.end.toMilliseconds())
+                    }
+                    is DbEvaluationTemplate.VideoSource.PathSource -> {
+                        val path = DRES.EXTERNAL_ROOT.resolve(source.path)
+                        if (!Files.exists(path)) {
+                            logger.error("ERROR: Media file $path not found for external video.")
+                            throw ErrorStatusException(500, "Required media file $path not found.", ctx)
+                        }
+
+                        this@CreateEvaluationHandler.cache.asyncPreviewVideo(path, source.range.start.toMilliseconds(), source.range.end.toMilliseconds())
+                    }
                 }
 
-                /** Schedule request for preparing required preview. */
-                this@CreateEvaluationHandler.cache.asyncPreviewVideo(item, it.second.start.toMilliseconds(), it.second.end.toMilliseconds())
             }
             await.all {
                 try {

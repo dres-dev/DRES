@@ -22,7 +22,6 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import { MatGridListModule } from "@angular/material/grid-list";
 import { CompetitionBuilderModule } from "../../../competition/competition-builder/competition-builder.module";
-import { TemplateBuilderModule } from "../template-builder.module";
 import { QueryDescriptionFormFieldComponent } from "./query-description-form-field/query-description-form-field.component";
 import { QueryDescriptionTextFormFieldComponent } from "./query-description-text-form-field/query-description-text-form-field.component";
 import {

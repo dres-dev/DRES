@@ -114,7 +114,7 @@
                 />
                 <mat-autocomplete autoActiveFirstOption #autoGroup="matAutocomplete" [displayWith]="mediaItemToDisplay">
                   <mat-option
-                    *ngFor="let mediaItem of this.formBuilder.dataSource('target.' + i + '.mediaItem') | async | orderBy:'asc':sortMediaItemByName"
+                    *ngFor="let mediaItem of this.formBuilder.dataSource('target.' + i + '.mediaItem') | async | filterNotIn:formBuilder.getTargetMediaItems():'name' | orderBy:'asc':sortMediaItemByName"
                     [value]="mediaItem"
                   >
                     <span>{{ mediaItem.name }}</span> |

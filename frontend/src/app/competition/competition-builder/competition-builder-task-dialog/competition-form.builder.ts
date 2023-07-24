@@ -1,5 +1,5 @@
 import { AbstractControl, UntypedFormArray, UntypedFormControl, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
-import { filter, first, switchMap } from 'rxjs/operators';
+import { filter, first, map, switchMap } from "rxjs/operators";
 import { Observable } from 'rxjs';
 import { RequireMatch } from './require-match';
 import { TimeUtilities } from '../../../utilities/time.utilities';
@@ -65,6 +65,10 @@ export class CompetitionFormBuilder {
    */
   public dataSource(key: string): Observable<ApiMediaItem[] | string[]> {
     return this.dataSources.get(key);
+  }
+
+  public getTargetMediaItems(): ApiMediaItem[]{
+   return this.form.get('target')['controls'].map(it => it.get('mediaItem').value)
   }
 
   /**
@@ -302,10 +306,6 @@ export class CompetitionFormBuilder {
    */
   private formForTarget() {
     switch (this.taskType.targetOption) {
-      case 'SINGLE_MEDIA_ITEM':
-        return new UntypedFormArray([this.singleMediaItemTargetForm(0, this.data?.targets[0] ?? null)]);
-      case 'SINGLE_MEDIA_SEGMENT':
-        return new UntypedFormArray([this.singleMediaSegmentTargetForm(0,this.data?.targets[0] ?? null)]);
       case 'JUDGEMENT':
         return new UntypedFormArray([new UntypedFormGroup({type: new UntypedFormControl(ApiTargetType.JUDGEMENT)})]);
       case 'VOTE':
@@ -319,11 +319,19 @@ export class CompetitionFormBuilder {
           text.push(this.singleTextTargetForm());
         }
         return new UntypedFormArray(text);
-      default:
+      case 'SINGLE_MEDIA_SEGMENT':
+      case 'SINGLE_MEDIA_ITEM':
         // Handling multiple here, since it's the default.
         const content: UntypedFormGroup[] = [];
+        const targetOption = this.taskType.targetOption
         if (this.data?.targets) {
-          this.data?.targets?.forEach((t, i) => content.push(this.singleMediaItemTargetForm(i, t)));
+          this.data?.targets?.forEach((t, i) => {
+            if(targetOption === "SINGLE_MEDIA_ITEM"){
+              content.push(this.singleMediaItemTargetForm(i, t))
+            }else{
+              content.push(this.singleMediaSegmentTargetForm(i, t))
+            }
+          });
         } else {
           content.push(this.singleMediaItemTargetForm(0));
         }

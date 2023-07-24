@@ -84,7 +84,7 @@ export class CompetitionBuilderTaskDialogComponent {
   /**
    * Handler for (+) button for query target form component.
    */
-  public addQueryTarget(targetType: ApiTargetOption | 'MULTI' = 'MULTI') {
+  public addQueryTarget(targetType: ApiTargetOption) {
     this.builder.addTargetForm(targetType);
   }
 

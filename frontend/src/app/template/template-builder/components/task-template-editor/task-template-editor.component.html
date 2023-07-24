@@ -64,18 +64,8 @@
         Target
         <button
           mat-button
-          aria-label="Add query target."
-          matTooltip="Add query target."
-          (click)="addQueryTarget('SINGLE_MEDIA_ITEM')"
-        >
-          <mat-icon>add</mat-icon>
-        </button>
-        <button
-          *ngIf="taskType.targetOption == 'TEXT'"
-          mat-button
-          aria-label="Add target text."
-          matTooltip="Add target text."
-          (click)="addQueryTarget('TEXT')"
+          matTooltip="Add {{taskType.targetOption === 'TEXT' ? 'target text': 'query target'}}"
+          (click)="addQueryTarget(taskType.targetOption)"
         >
           <mat-icon>add</mat-icon>
         </button>

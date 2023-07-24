@@ -122,15 +122,22 @@ export class CompetitionFormBuilder {
    *
    * @param type The {@link TaskType.TargetTypeEnum} to add a {@link FormGroup} for.
    */
-  public addTargetForm(type: ApiTargetOption | 'MULTI') {
+  public addTargetForm(type: ApiTargetOption) {
     const array = this.form.get('target') as UntypedFormArray;
     const newIndex = array.length;
     switch (type) {
-      // FIXME to make compiler happy. obviously this is semantically not appropriate
-      case 'MULTI':
-        const targetForm = this.singleMediaItemTargetForm(newIndex);
+      case "SINGLE_MEDIA_ITEM":
+        const f = this.singleMediaItemTargetForm(newIndex);
+        array.push(f)
+        return f;
+      case "SINGLE_MEDIA_SEGMENT":
+        const targetForm = this.singleMediaSegmentTargetForm(newIndex);
         array.push(targetForm);
         return targetForm;
+      case "JUDGEMENT":
+      case "VOTE":
+        console.warn("Judgement and Vote shouldn't have access to add targets. This is a programmer's error.")
+        break;
       case 'TEXT':
         const form = this.singleTextTargetForm();
         array.push(form);
@@ -298,7 +305,7 @@ export class CompetitionFormBuilder {
       case 'SINGLE_MEDIA_ITEM':
         return new UntypedFormArray([this.singleMediaItemTargetForm(0, this.data?.targets[0] ?? null)]);
       case 'SINGLE_MEDIA_SEGMENT':
-        return new UntypedFormArray([this.singleMediaSegmentTargetForm(this.data?.targets[0] ?? null)]);
+        return new UntypedFormArray([this.singleMediaSegmentTargetForm(0,this.data?.targets[0] ?? null)]);
       case 'JUDGEMENT':
         return new UntypedFormArray([new UntypedFormGroup({type: new UntypedFormControl(ApiTargetType.JUDGEMENT)})]);
       case 'VOTE':
@@ -361,15 +368,16 @@ export class CompetitionFormBuilder {
   /**
    * Returns FormGroup for a single Media Segment Target.
    *
+   * @param index Index of the FormControl
    * @param initialize The optional {RestTaskDescriptionTargetItem} to initialize the form with.
    */
-  private singleMediaSegmentTargetForm(initialize?: ApiTarget) {
+  private singleMediaSegmentTargetForm(index: number, initialize?: ApiTarget) {
     /* Prepare auto complete field. */
     const mediaItemFormControl = new UntypedFormControl(null, [Validators.required, RequireMatch]);
     const typeFormControl = new UntypedFormControl(ApiTargetType.MEDIA_ITEM_TEMPORAL_RANGE);
 
     this.dataSources.set(
-      `target.0.mediaItem`,
+      `target.${index}.mediaItem`,
       mediaItemFormControl.valueChanges.pipe(
         filter((s) => s.length >= 1),
         switchMap((s) =>

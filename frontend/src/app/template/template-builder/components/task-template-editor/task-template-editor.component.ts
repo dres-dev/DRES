@@ -382,7 +382,7 @@ export class TaskTemplateEditorComponent  implements OnInit, OnDestroy {
         const mediaCollectionId = this.formBuilder.form.get('mediaCollection').value;
         this.collectionService.postApiV2CollectionByCollectionIdResolve(mediaCollectionId, r).subscribe((items) => {
           items.forEach((item) => {
-            const form = this.formBuilder.addTargetForm("MULTI");
+            const form = this.formBuilder.addTargetForm("SINGLE_MEDIA_ITEM");
             console.log(`Adding new mediaItem as target ${mediaCollectionId}/${item.name}`);
             form.get('mediaItem').setValue(item);
           });

@@ -8,6 +8,7 @@ import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.filter
 
 /**
  * A [AbstractEvaluationTemplateHandler] that can be used to list all [DbTeam]s.
@@ -36,7 +37,10 @@ class ListTeamHandler(store: TransientEntityStore) : AbstractEvaluationTemplateH
         methods = [HttpMethod.GET]
     )
 
-    override fun doGet(ctx: Context) = this.store.transactional(true) {
-        evaluationTemplateFromContext(ctx).teams.asSequence().map { it.toApi() }.toList()
+    override fun doGet(ctx: Context): List<ApiTeam> {
+        val templateId = ctx.pathParam("templateId")
+        return this.store.transactional(true) {
+            DbTeam.filter { it.evaluation.id eq templateId }.asSequence().map { it.toApi() }.toList()
+        }
     }
 }

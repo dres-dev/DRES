@@ -21,7 +21,9 @@ import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.creator.findOrNew
 import kotlinx.dnq.query.*
+import kotlinx.dnq.util.getSafe
 import org.joda.time.DateTime
+import kotlin.time.ExperimentalTime
 
 /**
  * A [AbstractEvaluationTemplateHandler] that can be used to create a new [DbEvaluationTemplate].
@@ -29,7 +31,7 @@ import org.joda.time.DateTime
  * @author Ralph Gasser
  * @author Luca Rossetto
  * @author Loris Sauter
- * @version 2.0.0
+ * @version 2.1.0
  */
 class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: Config) :
     AbstractEvaluationTemplateHandler(store), PatchRestHandler<SuccessStatus> {
@@ -80,28 +82,23 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
             /* Update task type information. */
             val taskTypes = apiValue.taskTypes.map { it.name }.toTypedArray()
             existing.taskTypes.removeAll(
-                DbTaskType.query(
-                    DbTaskType::evaluation eq existing and not(
-                        DbTaskType::name.containsIn(*taskTypes)
-                    )
-                )
+                DbTaskType.query(DbTaskType::evaluation eq existing and not(DbTaskType::name.containsIn(*taskTypes)))
             )
-            for (type in apiValue.taskTypes) {
-                val t =
-                    DbTaskType.findOrNew(DbTaskType.query((DbTaskType::name eq type.name) and (DbTaskType::evaluation eq existing))) {
-                        this.name = type.name
-                    }
-                t.duration = type.duration
-                t.score = type.scoreOption.toDb()
-                t.target = type.targetOption.toDb()
-                t.hints.clear()
-                t.hints.addAll(type.hintOptions.map { it.toDb() })
-                t.submission.clear()
-                t.submission.addAll(type.submissionOptions.map { it.toDb() })
-                t.options.clear()
-                t.options.addAll(type.taskOptions.map { it.toDb() })
-                t.configurations.clear()
-                t.configurations.addAll(type.configuration.entries.map {
+            for (apiTaskType in apiValue.taskTypes) {
+                val taskType = DbTaskType.findOrNew(DbTaskType.query((DbTaskType::name eq apiTaskType.name) and (DbTaskType::evaluation eq existing))) {
+                    this.name = apiTaskType.name
+                }
+                taskType.duration = apiTaskType.duration
+                taskType.score = apiTaskType.scoreOption.toDb()
+                taskType.target = apiTaskType.targetOption.toDb()
+                taskType.hints.clear()
+                taskType.hints.addAll(apiTaskType.hintOptions.map { it.toDb() })
+                taskType.submission.clear()
+                taskType.submission.addAll(apiTaskType.submissionOptions.map { it.toDb() })
+                taskType.options.clear()
+                taskType.options.addAll(apiTaskType.taskOptions.map { it.toDb() })
+                taskType.configurations.clear()
+                taskType.configurations.addAll(apiTaskType.configuration.entries.map {
                     DbConfiguredOption.new {
                         this.key = it.key
                         this.value = it.value
@@ -109,202 +106,159 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 })
 
                 /* Establish relationship if entry is new. */
-                if (t.isNew) {
-                    existing.taskTypes.add(t)
+                if (taskType.isNew) {
+                    existing.taskTypes.add(taskType)
                 }
             }
 
             /* Update task group information. */
             val taskGroups = apiValue.taskGroups.map { it.name }.toTypedArray()
             existing.taskGroups.removeAll(
-                DbTaskGroup.query(
-                    DbTaskGroup::evaluation eq existing and not(
-                        DbTaskGroup::name.containsIn(*taskGroups)
-                    )
-                )
+                DbTaskGroup.query(DbTaskGroup::evaluation eq existing and not(DbTaskGroup::name.containsIn(*taskGroups)))
             )
-            for (group in apiValue.taskGroups) {
-                val g =
-                    DbTaskGroup.findOrNew(DbTaskGroup.query((DbTaskGroup::name eq group.name) and (DbTaskGroup::evaluation eq existing))) {
-                        this.name = group.name
-                    }
-                g.type =
-                    DbTaskType.query((DbTaskType::name eq group.type) and (DbTaskType::evaluation eq existing))
-                        .firstOrNull() ?: throw ErrorStatusException(
-                        404,
-                        "Unknown task group ${group.type} for evaluation ${apiValue.id}.",
-                        ctx
-                    )
+            for (apiTaskGroup in apiValue.taskGroups) {
+                val taskGroup = DbTaskGroup.findOrNew(DbTaskGroup.query((DbTaskGroup::name eq apiTaskGroup.name) and (DbTaskGroup::evaluation eq existing))) {
+                    this.name = apiTaskGroup.name
+                }
+
+                /* Update task type if it has changed. */
+                if (taskGroup.getSafe(DbTaskGroup::type)?.name != apiTaskGroup.name) {
+                    taskGroup.type = DbTaskType.query((DbTaskType::name eq apiTaskGroup.type) and (DbTaskType::evaluation eq existing)).firstOrNull()
+                        ?: throw ErrorStatusException(404, "Unknown task group ${apiTaskGroup.type} for evaluation ${apiValue.id}.", ctx)
+                }
 
                 /* Establish relationship if entry is new. */
-                if (g.isNew) {
-                    existing.taskGroups.add(g)
+                if (taskGroup.isNew) {
+                    existing.taskGroups.add(taskGroup)
                 }
             }
 
-            /* Update task information. */
+            /* Update task information: Remove deleted tasks. */
             val taskIds = apiValue.tasks.mapNotNull { it.id }.toTypedArray()
-            DbTaskTemplate.query(
-                DbTaskTemplate::evaluation eq existing and not(
-                    DbTaskTemplate::id.containsIn(
-                        *taskIds
-                    )
-                )
-            ).asSequence().forEach {
-                it.delete()
-            }
-            for (task in apiValue.tasks) {
-                val t = if (task.id != null) {
-                    existing.tasks.filter { it.id eq task.id }.firstOrNull()
-                        ?: throw ErrorStatusException(
-                            404,
-                            "Unknown task ${task.id} for evaluation ${apiValue.id}.",
-                            ctx
-                        )
+            existing.tasks.removeAll(DbTaskTemplate.query(DbTaskTemplate::evaluation eq existing and not(DbTaskTemplate::id.containsIn(*taskIds))))
+
+            /*  Update task information: Remaining tasks. */
+            for (apiTask in apiValue.tasks) {
+                val task = if (apiTask.id != null) {
+                    existing.tasks.filter { it.id eq apiTask.id }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown task ${apiTask.id} for evaluation ${apiValue.id}.", ctx)
                 } else {
-                    DbTaskTemplate.new()
+                    val t = DbTaskTemplate.new()
+                    existing.tasks.add(t)
+                    t
                 }
-                t.name = task.name
-                t.duration = task.duration
-                t.collection =
-                    DbMediaCollection.query(DbMediaCollection::id eq task.collectionId).first()
-                t.taskGroup = DbTaskGroup.query(DbTaskGroup::name eq task.taskGroup).first()
-                t.comment = task.comment
+
+                /* Update parameters that do no require lookup. */
+                task.name = apiTask.name
+                task.duration = apiTask.duration
+                task.comment = apiTask.comment
+
+                /* Conditional updating of parameters that do!. */
+                if (task.collection.id != apiTask.collectionId) {
+                    task.collection = DbMediaCollection.query(DbMediaCollection::id eq apiTask.collectionId).first()
+                }
+
+                if (task.taskGroup.name != apiTask.taskGroup) {
+                    task.taskGroup = DbTaskGroup.query(DbTaskGroup::name eq apiTask.taskGroup).first()
+                }
 
                 /* Update task targets. */
-                t.targets.clear()
-                for (target in task.targets) {
-                    t.targets.add(DbTaskTemplateTarget.new {
+                task.targets.clear()
+                for (target in apiTask.targets) {
+                    task.targets.add(DbTaskTemplateTarget.new {
                         this.type = target.type.toDb()
                         this.start = target.range?.start?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
                         this.end = target.range?.end?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
-                    }.also {
                         when (target.type) {
-                            ApiTargetType.TEXT -> it.text = target.target
-                            else -> it.item =
-                                DbMediaItem.query(DbMediaItem::id eq target.target).firstOrNull()
+                            ApiTargetType.TEXT -> this.text = target.target
+                            else -> this.item = target.target?.let { DbMediaItem.query(DbMediaItem::id eq it).firstOrNull() }
                         }
                     })
                 }
 
                 /* Update task hints. */
-                t.hints.clear()
-                for (hint in task.hints) {
-                    val item = DbMediaItem.query(DbMediaItem::id eq hint.mediaItem).firstOrNull()
-                    t.hints.add(DbHint.new {
+                task.hints.clear()
+                for (hint in apiTask.hints) {
+                    task.hints.add(DbHint.new {
                         this.type = hint.type.toDb()
-                        this.item = item
+                        this.item = hint.mediaItem?.let { DbMediaItem.query(DbMediaItem::id eq hint.mediaItem).firstOrNull() }
                         this.text = hint.description
                         this.path = hint.path
                         this.start = hint.start
                         this.end = hint.end
-                        this.temporalRangeStart =
-                            hint.range?.start?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
-                        this.temporalRangeEnd =
-                            hint.range?.end?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
+                        this.temporalRangeStart = hint.range?.start?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
+                        this.temporalRangeEnd = hint.range?.end?.toTemporalPoint(item?.fps ?: 0.0f)?.toMilliseconds()
                     })
-                }
-
-                /* Establish relationship if entry is new. */
-                if (t.isNew) {
-                    existing.tasks.add(t)
                 }
             }
 
             /* Update team information. */
             val teamIds = apiValue.teams.map { it.id }.toTypedArray()
-            existing.teams.removeAll(
-                DbTeam.query(
-                    DbTeam::evaluation eq existing and not(
-                        DbTeam::id.containsIn(
-                            *teamIds
-                        )
-                    )
-                )
-            )
-            for (team in apiValue.teams) {
-                val t = if (team.id != null) {
-                    existing.teams.filter { it.id eq team.id }.firstOrNull()
-                        ?: throw ErrorStatusException(
-                            404,
-                            "Unknown team ${team.id} for evaluation ${apiValue.id}.",
-                            ctx
-                        )
+            existing.teams.removeAll(DbTeam.query(DbTeam::evaluation eq existing and not(DbTeam::id.containsIn(*teamIds))))
+            for (apiTeam in apiValue.teams) {
+                val team = if (apiTeam.id != null) {
+                    existing.teams.filter { it.id eq apiTeam.id }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown team ${apiTeam.id} for evaluation ${apiValue.id}.", ctx)
                 } else {
-                    DbTeam.new()
+                    val t = DbTeam.new()
+                    existing.teams.add(t) /* Establish new relationship. */
+                    t
                 }
 
-                t.name = team.name ?: throw ErrorStatusException(
-                    404,
-                    "Team name must be specified.",
-                    ctx
-                )
-                t.color = team.color ?: throw ErrorStatusException(
-                    404,
-                    "Team colour must be specified.",
-                    ctx
-                )
+                team.name = apiTeam.name ?: throw ErrorStatusException(404, "Team name must be specified.", ctx)
+                team.color = apiTeam.color ?: throw ErrorStatusException(404, "Team colour must be specified.", ctx)
 
                 /* Process logo data. */
-                val logoData = team.logoStream()
+                val logoData = apiTeam.logoStream()
                 if (logoData != null) {
-                    t.logo = logoData
+                    team.logo = logoData
                 }
 
-                t.users.clear()
-                t.users.addAll(DbUser.query(DbUser::id.containsIn(*team.users.map { it.id }
-                    .toTypedArray())))
-
-                /* Establish relationship if entry is new. */
-                if (t.isNew) {
-                    existing.teams.add(t)
+                /* Make association with users. */
+                val userIds = apiTeam.users.map { it.id }.toTypedArray()
+                team.users.removeAll(DbUser.query(not(DbUser::id.containsIn(*userIds))))
+                for (userId in userIds) {
+                    val user = DbUser.filter { it.id eq userId }.firstOrNull()  ?: throw ErrorStatusException(404, "Unknown user $userId for evaluation ${apiValue.id}.", ctx)
+                    if (!team.users.contains(user)) {
+                        team.users.add(user)
+                    }
                 }
             }
 
             /* Update teamGroup information */
             val teamGroupIds = apiValue.teamGroups.map { it.id }.toTypedArray()
-            existing.teamGroups.removeAll(
-                DbTeamGroup.query(
-                    DbTeamGroup::evaluation eq existing and not(
-                        DbTeamGroup::id.containsIn(*teamGroupIds)
-                    )
-                )
-            )
-            for (teamGroup in apiValue.teamGroups) {
-                val t = if (teamGroup.id != null) {
-                    existing.teamGroups.filter { it.id eq teamGroup.id }.firstOrNull()
-                        ?: throw ErrorStatusException(
-                            404,
-                            "Unknown team groum ${teamGroup.id} for evaluation ${apiValue.id}.",
-                            ctx
-                        )
-                } else {
-                    DbTeamGroup.new()
-                }
-                t.name = teamGroup.name ?: throw ErrorStatusException(
-                    404,
-                    "Team group name must be specified.",
-                    ctx
-                )
-                t.defaultAggregator = teamGroup.aggregation.toDb()
+            existing.teamGroups.removeAll(DbTeamGroup.query(DbTeamGroup::evaluation eq existing and not(DbTeamGroup::id.containsIn(*teamGroupIds))))
 
-                t.teams.clear()
-                t.teams.addAll(DbTeam.query(DbTeam::id.containsIn(*teamGroup.teams.map { it.id }
-                    .toTypedArray())))
+            for (apiTeamGroup in apiValue.teamGroups) {
+                val teamGroup = if (apiTeamGroup.id != null) {
+                    existing.teamGroups.filter { it.id eq apiTeamGroup.id }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown team group ${apiTeamGroup.id} for evaluation ${apiValue.id}.", ctx)
+                } else {
+                    val tg = DbTeamGroup.new()
+                    existing.teamGroups.add(tg)
+                    tg
+                }
+                teamGroup.name = apiTeamGroup.name ?: throw ErrorStatusException(404, "Team group name must be specified.", ctx)
+                teamGroup.defaultAggregator = apiTeamGroup.aggregation.toDb()
+
+                teamGroup.teams.clear()
+                teamGroup.teams.addAll(DbTeam.query(DbTeam::id.containsIn(*apiTeamGroup.teams.map { it.id }.toTypedArray())))
 
                 /* Establish relationship if entry is new. */
-                if (t.isNew) {
-                    existing.teamGroups.add(t)
+                if (teamGroup.isNew) {
+                    existing.teamGroups.add(teamGroup)
                 }
             }
 
             /* Update judge information */
-            existing.judges.clear()
-            existing.judges.addAll(DbUser.query(DbUser::id.containsIn(*apiValue.judges.toTypedArray())))
+            val judgeIds = apiValue.judges.toTypedArray()
+            existing.judges.removeAll(DbUser.query(not(DbUser::id.containsIn(*judgeIds))))
+            for (userId in judgeIds) {
+                val user = DbUser.filter { it.id eq userId }.firstOrNull()  ?: throw ErrorStatusException(404, "Unknown user $userId for evaluation ${apiValue.id}.", ctx)
+                if (!existing.judges.contains(user)) {
+                    existing.judges.add(user)
+                }
+            }
         }
         return SuccessStatus("Competition with ID ${apiValue.id} was updated successfully.")
     }
-
 }
 
 

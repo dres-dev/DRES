@@ -16,6 +16,7 @@ class DbScoreOption(entity: Entity) : XdEnumEntity(entity) {
     companion object : XdEnumEntityType<DbScoreOption>() {
         val KIS by enumField { description = "KIS" }
         val AVS by enumField { description = "AVS" }
+        val LEGACY_AVS by enumField {description = "LEGACY_AVS"}
     }
 
     /** Name / description of the [DbScoreOption]. */

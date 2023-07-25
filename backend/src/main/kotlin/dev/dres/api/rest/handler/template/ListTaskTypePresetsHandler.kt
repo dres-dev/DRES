@@ -21,6 +21,12 @@ import kotlin.streams.toList
 
 /**
  * A [GetRestHandler] that can be used to list [ApiTaskType] presets stored on disk.
+ * There are two locations that are checked:
+ * 1. The "shipped with DRES" _internal_ presets (`src/main/resources/dres-type-presets`)
+ * 2. Custom _external_ presets (`$DATA_FOLDER/type-presets`)
+ *
+ * Both lists are lexicographically sorted and in case two presets have the same name, the external
+ * one overrides the internal preset. This way instance-specific defaults can be set.
  *
  * @author Loris Sauter
  * @version 1.0.0
@@ -33,7 +39,7 @@ class ListTaskTypePresetsHandler : AccessManagedRestHandler, GetRestHandler<List
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)
 
     @OpenApi(
-        summary = "Lists the task type presets available.",
+        summary = "Lists the task type presets available. Both, shipped with DRES and custom ones.",
         path = "/api/v2/template/type-presets/list",
         operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Template"],
@@ -57,7 +63,7 @@ class ListTaskTypePresetsHandler : AccessManagedRestHandler, GetRestHandler<List
                     val files = Files.walk(fs.getPath("/${DRES.TASK_TYPE_PRESETS_LOCATION}"))
                         .filter { it.isReadable() and (it.extension == "json") }.toList()
                     LOGGER.trace("Internal preset files (jar): {}", files.toList().toString())
-                    return@use files
+                    return@use files.sortedBy { it.fileName }
                 }
             val list2 = list.map{this.javaClass.getResource(it.toString())}
 
@@ -71,7 +77,7 @@ class ListTaskTypePresetsHandler : AccessManagedRestHandler, GetRestHandler<List
             }
         } else {
             /** IDE handling */
-            val files = Paths.get(uri).listDirectoryEntries("*.json").filter { it.isReadable() }
+            val files = Paths.get(uri).listDirectoryEntries("*.json").filter { it.isReadable() }.sortedBy { it.fileName }
             LOGGER.trace("Internal preset files (dir): {}", files.toString())
             files.map { ApiTaskType.read(it) }
         }
@@ -81,7 +87,7 @@ class ListTaskTypePresetsHandler : AccessManagedRestHandler, GetRestHandler<List
 
         /** External presets second */
         val externalPresets =
-            DRES.TASK_TYPE_PRESETS_EXTERNAL_LOCATION.listDirectoryEntries("*.json").map {
+            DRES.TASK_TYPE_PRESETS_EXTERNAL_LOCATION.listDirectoryEntries("*.json").sortedBy { it.fileName }.map {
                 ApiTaskType.read(it)
             }
         LOGGER.trace("External presets: {}", externalPresets.toString())

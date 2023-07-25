@@ -4430,7 +4430,7 @@
     "/api/v2/template/type-presets/list" : {
       "get" : {
         "tags" : [ "Template" ],
-        "summary" : "Lists the task type presets available.",
+        "summary" : "Lists the task type presets available. Both, shipped with DRES and custom ones.",
         "operationId" : "getApiV2TemplateTypePresetsList",
         "parameters" : [ ],
         "responses" : {
@@ -6319,7 +6319,7 @@
       },
       "ApiScoreOption" : {
         "type" : "string",
-        "enum" : [ "KIS", "AVS" ]
+        "enum" : [ "KIS", "AVS", "LEGACY_AVS" ]
       },
       "ApiSubmissionOption" : {
         "type" : "string",

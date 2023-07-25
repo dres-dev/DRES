@@ -18,6 +18,7 @@ import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
 import dev.dres.run.score.scorer.AvsTaskScorer
 import dev.dres.run.score.scorer.CachingTaskScorer
 import dev.dres.run.score.scorer.KisTaskScorer
+import dev.dres.run.score.scorer.LegacyAvsTaskScorer
 import dev.dres.run.transformer.MapToSegmentTransformer
 import dev.dres.run.transformer.SubmissionTaskMatchFilter
 import dev.dres.run.transformer.SubmissionTransformer
@@ -198,6 +199,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
                         this.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq scoreOption.description).asSequence().map { it.key to it.value }.toMap()
                     )
                     DbScoreOption.AVS -> AvsTaskScorer(this)
+                    DbScoreOption.LEGACY_AVS -> LegacyAvsTaskScorer(this)
                     else -> throw IllegalStateException("The task score option $scoreOption is currently not supported.")
                 }
             )

@@ -2749,7 +2749,7 @@
       },
       "ApiScoreOption" : {
         "type" : "string",
-        "enum" : [ "KIS", "AVS" ]
+        "enum" : [ "KIS", "AVS", "LEGACY_AVS" ]
       },
       "ApiSubmissionOption" : {
         "type" : "string",

@@ -14,10 +14,7 @@ import dev.dres.run.filter.SubmissionFilterAggregator
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
-import dev.dres.run.score.scorer.AvsTaskScorer
-import dev.dres.run.score.scorer.CachingTaskScorer
-import dev.dres.run.score.scorer.KisTaskScorer
-import dev.dres.run.score.scorer.TaskScorer
+import dev.dres.run.score.scorer.*
 import dev.dres.run.transformer.MapToSegmentTransformer
 import dev.dres.run.transformer.SubmissionTaskMatchFilter
 import dev.dres.run.transformer.SubmissionTransformer
@@ -75,6 +72,7 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
             when(val scoreOption = this.template.taskGroup.type.score) {
                 DbScoreOption.KIS -> throw IllegalStateException("KIS task scorer is not applicable to non-interactive evaluations")
                 DbScoreOption.AVS -> AvsTaskScorer(this)
+                DbScoreOption.LEGACY_AVS -> LegacyAvsTaskScorer(this)
                 else -> throw IllegalStateException("The task score option $scoreOption is currently not supported.")
             }
         )

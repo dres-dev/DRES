@@ -1,0 +1,17 @@
+{
+ "name": "Ad-hoc Video Search",
+ "duration": 300,
+ "targetOption": "JUDGEMENT",
+ "hintOptions": [
+  "TEXT"
+ ],
+ "submissionOptions": [
+  "NO_DUPLICATES",
+  "TEMPORAL_SUBMISSION"
+ ],
+ "taskOptions": [
+  "MAP_TO_SEGMENT"
+ ],
+ "scoreOption": "AVS",
+ "configuration": {}
+}

@@ -4,7 +4,7 @@
     <ng-content select="[addbtn]"></ng-content>
 </div>
 <table #table mat-table [dataSource]="dataSource" style="table-layout: fixed; width: 100%;">
-    <ng-container [matColumnDef]="column.key" *ngFor="let column of nonCustonColumns()">
+    <ng-container [matColumnDef]="column.key" *ngFor="let column of nonCustomColumns()">
         <th mat-header-cell *matHeaderCellDef>{{column.header}}</th>
         <td mat-cell *matCellDef="let element">
             <ng-container [ngSwitch]="column.type">
@@ -13,6 +13,9 @@
                         <ng-container [ngSwitch]="action">
                             <button *ngSwitchCase="'edit'" mat-icon-button aria-label="Edit this element" matTooltip="Edit this element" (click)="onEdit(element)">
                                 <mat-icon>{{editIcon}}</mat-icon>
+                            </button>
+                            <button *ngSwitchCase="'download'" mat-icon-button aria-label="Download this element" matTooltip="Download this element" (click)="onDownload(element)">
+                                <mat-icon>{{downloadIcon}}</mat-icon>
                             </button>
                             <button *ngSwitchCase="'remove'" mat-icon-button aria-label="Remove this element" matTooltip="Remove this element" (click)="onRemove(element)">
                                 <mat-icon>{{removeIcon}}</mat-icon>

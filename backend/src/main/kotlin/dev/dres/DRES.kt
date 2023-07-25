@@ -53,6 +53,13 @@ object DRES {
     val EXTERNAL_ROOT: Path
         get() = DATA_ROOT.resolve("external")
 
+    /** Path to the directory that contains task type presets. */
+    val TASK_TYPE_PRESETS_EXTERNAL_LOCATION: Path
+        get() = DATA_ROOT.resolve("type-presets")
+
+    /** Path to the classpath directory that contains task type presets shipped with DRES. */
+    val TASK_TYPE_PRESETS_LOCATION = "dres-type-presets"
+
     lateinit var CONFIG : Config
         internal set
 

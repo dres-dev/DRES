@@ -125,7 +125,7 @@ object RestApi {
             ListMediaItemHandler(store),
             ListExternalItemHandler(),
 
-            // Competition
+            // Template
             ListEvaluationTemplatesHandler(store),
             CreateEvaluationTemplateHandler(store),
             UpdateEvaluationTemplateHandler(store, config),
@@ -133,6 +133,7 @@ object RestApi {
             DeleteEvaluationTemplateHandler(store),
             ListTeamHandler(store),
             ListTasksHandler(store),
+            ListTaskTypePresetsHandler(),
             GetTeamLogoHandler(store),
 
             // Submission

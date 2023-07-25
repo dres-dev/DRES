@@ -84,7 +84,7 @@ export class TaskTypesListComponent extends AbstractTemplateBuilderComponent imp
     {key: 'submissions', header: 'Submission Options', type: ActionableDynamicTableColumnType.CUSTOM},
     {key: 'tasks', header: 'Task Options', type: ActionableDynamicTableColumnType.CUSTOM},
     {key: 'score', header: 'Score', property: 'scoreOption', type: ActionableDynamicTableColumnType.TEXT},
-    {key: 'actions', header: 'Actions', type: ActionableDynamicTableColumnType.ACTION, actions: [ActionableDynamicTableActionType.REMOVE],}
+    {key: 'actions', header: 'Actions', type: ActionableDynamicTableColumnType.ACTION, actions: [ActionableDynamicTableActionType.DOWNLOAD, ActionableDynamicTableActionType.REMOVE],}
   ];
 
   displayedColumns= ['name', 'duration', 'target', 'hints','submissions', 'tasks','score', 'actions'];
@@ -135,6 +135,15 @@ export class TaskTypesListComponent extends AbstractTemplateBuilderComponent imp
         this.removeTaskType(taskType);
       }
     })
+  }
+
+  public download = (taskType: ApiTaskType) => {
+    const file = new Blob([JSON.stringify(taskType, null, ' ')], { type: "application/json" });
+    const fake = document.createElement('a');
+    fake.href = URL.createObjectURL(file);
+    fake.download = `${taskType.name.replace(/\s/g, '-')}.json`
+    fake.click();
+    URL.revokeObjectURL(fake.href);
   }
 
   public removeTaskType(taskType: ApiTaskType) {

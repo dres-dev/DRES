@@ -19,7 +19,8 @@ export enum ActionableDynamicTableColumnType {
 
 export enum ActionableDynamicTableActionType{
   EDIT= 'edit',
-  REMOVE = 'remove'
+  REMOVE = 'remove',
+  DOWNLOAD = 'download'
 }
 
 @Component({
@@ -50,12 +51,17 @@ export class ActionableDynamicTable<T> implements AfterContentInit{
   public removeIcon = 'delete';
   @Input()
   public editIcon = 'edit';
+  @Input()
+  public downloadIcon = 'cloud_download';
 
   @Input()
   public onEdit?: (element: T) => void;
 
   @Input()
   public onRemove?: (element: T) => void;
+
+  @Input()
+  public onDownload?: (element: T) => void;
 
   @Input()
   public trackedBy?: TrackByFunction<T>
@@ -83,6 +89,12 @@ export class ActionableDynamicTable<T> implements AfterContentInit{
     }
   }
 
+  download(element: T){
+    if(this.onDownload){
+      this.onDownload(element);
+    }
+  }
+
   public renderRows(){
     this.table.renderRows();
   }
@@ -91,7 +103,7 @@ export class ActionableDynamicTable<T> implements AfterContentInit{
     return this.columnSchema.filter(cs => cs.type === ActionableDynamicTableColumnType.CUSTOM)
   }
 
-  nonCustonColumns(): ActionableDynamicTableColumnDefinition[]{
+  nonCustomColumns(): ActionableDynamicTableColumnDefinition[]{
     return this.columnSchema.filter(cs => cs.type !== ActionableDynamicTableColumnType.CUSTOM)
 }
 

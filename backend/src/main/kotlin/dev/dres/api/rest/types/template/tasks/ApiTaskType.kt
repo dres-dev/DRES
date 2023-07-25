@@ -1,13 +1,18 @@
 package dev.dres.api.rest.types.template.tasks
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import dev.dres.api.rest.types.template.tasks.options.*
 import dev.dres.data.model.template.task.DbTaskType
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 
 /**
  * The RESTful API equivalent of a [DbTaskType].
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @author Loris Sauter
+ * @version 1.1.0
  */
 data class ApiTaskType(
     val name: String,
@@ -17,5 +22,25 @@ data class ApiTaskType(
     val submissionOptions: List<ApiSubmissionOption>,
     val taskOptions: List<ApiTaskOption>,
     val scoreOption: ApiScoreOption,
-    val configuration: Map<String,String>
-)
+    val configuration: Map<String, String>
+) {
+
+    constructor() : this("Default TaskType DO NOT USE!",
+    300,
+        ApiTargetOption.TEXT, listOf(ApiHintOption.TEXT),
+        listOf(ApiSubmissionOption.TEXTUAL_SUBMISSION),
+        listOf(ApiTaskOption.HIDDEN_RESULTS), ApiScoreOption.KIS, mapOf()
+    )
+
+    companion object {
+        /**
+         * Reads an [ApiTaskType] from the given path
+         *
+         * @param file The path to read from
+         */
+        fun read(file: Path): ApiTaskType =
+            Files.newInputStream(file, StandardOpenOption.READ).use {
+                ObjectMapper().readValue(it, ApiTaskType::class.java)
+            }
+    }
+}

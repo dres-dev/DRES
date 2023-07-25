@@ -239,6 +239,12 @@ export class CompetitionFormBuilder {
     };
   }
 
+  private lessThanOrEqualToDurationValidator(endControl: FormControl): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      return Validators.max(this.form.get('duration').value)
+    };
+  }
+
   /**
    * Initializes the {@link FormGroup}.
    */
@@ -507,9 +513,7 @@ export class CompetitionFormBuilder {
         Validators.max(this.taskType.taskDuration),
       ]),
       end: new FormControl(initialize?.end, [
-        Validators.required,
         Validators.min(0),
-        Validators.max(this.taskType.taskDuration),
       ]),
       type: new FormControl('VIDEO_ITEM_SEGMENT', [Validators.required]),
       mediaItem: mediaItemFormControl,
@@ -520,6 +524,8 @@ export class CompetitionFormBuilder {
         Validators.required
       ),
     });
+    /* Dynamically have the max of the end as the value of duration */
+    group.get('end').addValidators(this.lessThanOrEqualToDurationValidator(group.get('end') as FormControl));
 
     /* Initialize start, end and time unit based on target. */
     // fetch target time unit
@@ -537,7 +543,7 @@ export class CompetitionFormBuilder {
     }
 
     /* Manually setting the duration of the hint equal to the duration of the task, this way the validators are happy */
-    group.get('end').setValue(this.taskType.taskDuration);
+    group.get('end').setValue(this.form.get('duration').value);
 
     group
       .get('segment_start')

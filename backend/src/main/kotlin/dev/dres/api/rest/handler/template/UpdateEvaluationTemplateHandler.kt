@@ -139,7 +139,6 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
 
             /*  Update task information: Remaining tasks. */
             for (apiTask in apiValue.tasks) {
-                val newTask = apiTask.id == null
                 val task = if (apiTask.id != null) {
                     existing.tasks.filter { it.id eq apiTask.id }.firstOrNull() ?: throw ErrorStatusException(404, "Unknown task ${apiTask.id} for evaluation ${apiValue.id}.", ctx)
                 } else {
@@ -154,11 +153,11 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
                 task.comment = apiTask.comment
 
                 /* Conditional updating of parameters that do!. */
-                if (newTask || task.collection.id != apiTask.collectionId) {
+                if (task.isNew || task.collection.id != apiTask.collectionId) {
                     task.collection = DbMediaCollection.query(DbMediaCollection::id eq apiTask.collectionId).first()
                 }
 
-                if (newTask || task.taskGroup.name != apiTask.taskGroup) {
+                if (task.isNew || task.taskGroup.name != apiTask.taskGroup) {
                     task.taskGroup = DbTaskGroup.query(DbTaskGroup::name eq apiTask.taskGroup).first()
                 }
 

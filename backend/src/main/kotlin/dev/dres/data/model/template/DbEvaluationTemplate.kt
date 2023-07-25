@@ -159,7 +159,7 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
                     name = t.name
                     color = t.color
                     logo = t.logo
-                    group = DbTeamGroup.query((DbTeamGroup::name eq t.group?.name)).firstOrNull()
+                    groups.addAll(t.groups)
                     users.addAll(t.users)
                 }
             )

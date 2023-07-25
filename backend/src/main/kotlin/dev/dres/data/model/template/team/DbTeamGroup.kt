@@ -38,7 +38,7 @@ class DbTeamGroup(entity: Entity) : PersistentEntity(entity) {
     val evaluation: DbEvaluationTemplate by xdParent<DbTeamGroup,DbEvaluationTemplate>(DbEvaluationTemplate::teamGroups)
 
     /** The [DbTeam]s that belong to this [DbTeamGroup]. */
-    val teams by xdLink1_N<DbTeamGroup,DbTeam>(DbTeam::group)
+    val teams by xdLink1_N<DbTeamGroup,DbTeam>(DbTeam::groups)
 
     /**
      * Converts this [DbTeamGroup] to a RESTful API representation [ApiTeamGroup].

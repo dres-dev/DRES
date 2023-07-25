@@ -1,11 +1,13 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {MatTable} from '@angular/material/table';
-import {ApiRole, ApiUser, UserService} from '../../../../../../openapi';
+import { ApiRole, ApiUser, TemplateService, UserService } from "../../../../../../openapi";
 import {combineLatest, Observable} from 'rxjs';
 import {AbstractTemplateBuilderComponent} from '../abstract-template-builder.component';
 import {TemplateBuilderService} from '../../template-builder.service';
 import {filter, map, shareReplay, withLatestFrom} from 'rxjs/operators';
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
+import { ActivatedRoute } from "@angular/router";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
     selector: 'app-judges-list',
@@ -23,8 +25,13 @@ export class JudgesListComponent extends AbstractTemplateBuilderComponent implem
 
     judges: Observable<Array<string>> = new Observable<Array<string>>((x) => x.next([]));
 
-    constructor(private userService: UserService, builderService: TemplateBuilderService) {
-        super(builderService);
+    constructor(private userService: UserService,
+                builderService: TemplateBuilderService,
+                route: ActivatedRoute,
+                templateService: TemplateService,
+                snackBar: MatSnackBar,
+    ) {
+        super(builderService,route,templateService,snackBar);
         this.refreshAvailableJudges();
     }
 

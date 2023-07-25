@@ -286,6 +286,16 @@ export class CompetitionFormBuilder {
     };
   }
 
+  private maxDurationValidator(): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: any } | null => {
+      if(control.value > (this.form.get('duration').value as number)){
+        return {max: {max: this.form.get('duration').value as number, actual: control.value as number}}
+      }else{
+        return null;
+      }
+    };
+  }
+
   /**
    * Initializes the {@link FormGroup}.
    */
@@ -520,7 +530,7 @@ export class CompetitionFormBuilder {
         Validators.min(0),
         Validators.max(this.taskType.duration),
       ]),
-      end: new UntypedFormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
+      end: new UntypedFormControl(initialize?.end, [Validators.min(0), this.maxDurationValidator()]),
       type: new UntypedFormControl('IMAGE', [Validators.required]),
       mediaItem: mediaItemFormControl,
     });
@@ -576,9 +586,8 @@ export class CompetitionFormBuilder {
         Validators.max(this.taskType.duration),
       ]),
       end: new UntypedFormControl(initialize?.end, [
-        Validators.required,
         Validators.min(0),
-        Validators.max(this.taskType.duration),
+        this.maxDurationValidator()
       ]),
       type: new UntypedFormControl('VIDEO', [Validators.required]),
       mediaItem: mediaItemFormControl,
@@ -609,7 +618,8 @@ export class CompetitionFormBuilder {
     }
 
     /* Manually setting the duration of the hint equal to the duration of the task, this way the validators are happy */
-    group.get('end').setValue(this.taskType.duration, {emitEvent: false});
+    group.get('end').setValue(this.form.get('duration').value, {emitEvent: false});
+
 
     group
       .get('segment_start')
@@ -637,7 +647,7 @@ export class CompetitionFormBuilder {
         Validators.min(0),
         Validators.max(this.taskType.duration),
       ]),
-      end: new UntypedFormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
+      end: new UntypedFormControl(initialize?.end, [Validators.min(0), this.maxDurationValidator()]),
       type: new UntypedFormControl('TEXT', [Validators.required]),
       description: new UntypedFormControl(initialize?.description, [Validators.required]),
     });
@@ -668,7 +678,7 @@ export class CompetitionFormBuilder {
         Validators.min(0),
         Validators.max(this.taskType.duration),
       ]),
-      end: new UntypedFormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
+      end: new UntypedFormControl(initialize?.end, [Validators.min(0), this.maxDurationValidator()]),
       type: new UntypedFormControl('IMAGE', [Validators.required]),
       external: new UntypedFormControl(true),
       path: pathFormControl,
@@ -701,7 +711,7 @@ export class CompetitionFormBuilder {
         Validators.min(0),
         Validators.max(this.taskType.duration),
       ]),
-      end: new UntypedFormControl(initialize?.end, [Validators.min(0), Validators.max(this.taskType.duration)]),
+      end: new UntypedFormControl(initialize?.end, [Validators.min(0), this.maxDurationValidator()]),
       type: new UntypedFormControl('VIDEO', [Validators.required]),
       external: new UntypedFormControl(true),
       path: pathFormControl,

@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { AbstractTemplateBuilderComponent } from "../abstract-template-builder.component";
-import { ApiTeam, UserService } from "../../../../../../openapi";
+import { ApiTeam, TemplateService, UserService } from "../../../../../../openapi";
 import { MatTable } from "@angular/material/table";
 import { Observable } from "rxjs";
 import { TemplateBuilderService } from "../../template-builder.service";
@@ -8,6 +8,8 @@ import { MatDialog } from "@angular/material/dialog";
 import { AppConfig } from "../../../../app.config";
 import { filter, map } from "rxjs/operators";
 import { TeamBuilderDialogComponent } from "../team-builder-dialog/team-builder-dialog.component";
+import { ActivatedRoute } from "@angular/router";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: 'app-teams-list',
@@ -24,11 +26,14 @@ export class TeamsListComponent extends AbstractTemplateBuilderComponent impleme
   teams: Observable<ApiTeam[]> = new Observable<ApiTeam[]>((o) => o.next([]));
   constructor(
     builderService: TemplateBuilderService,
+    route: ActivatedRoute,
+    templateService: TemplateService,
+    snackBar: MatSnackBar,
     private userService: UserService,
     private dialog: MatDialog,
     private config: AppConfig
   ) {
-    super(builderService);
+    super(builderService, route, templateService, snackBar);
   }
 
   ngOnInit(): void {

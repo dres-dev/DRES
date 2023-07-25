@@ -4,6 +4,8 @@ import {FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators
 import { Observable, Subscription } from "rxjs";
 import { ApiMediaCollection, CollectionService, TemplateService } from "../../../../../../openapi";
 import { TemplateBuilderService } from "../../template-builder.service";
+import { ActivatedRoute } from "@angular/router";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: "app-template-information",
@@ -28,11 +30,13 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
   mediaCollectionSource: Observable<ApiMediaCollection[]>;
 
   constructor(
-    private templateService: TemplateService,
+    templateService: TemplateService,
     private collectionService: CollectionService,
-    builder: TemplateBuilderService
+    builder: TemplateBuilderService,
+    route: ActivatedRoute,
+    snackBar: MatSnackBar,
   ) {
-    super(builder);
+    super(builder, route, templateService, snackBar);
   }
 
   ngAfterViewInit(): void {
@@ -41,6 +45,15 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
 
   ngOnInit(): void {
     this.onInit();
+    this.routeSub = this.route.params.subscribe( (p) => {
+      this.templateService.getApiV2TemplateByTemplateId(p.templateId).subscribe((t) => {
+          /* initialise from route */
+          this.builderService.initialise(t);
+        },
+        (r) => {
+          this.snackBar.open(`Error: ${r?.error?.description}`, null,{duration: 5000});
+        });
+    });
     this.changeSub = this.form.valueChanges.subscribe((value) => {
       let isDirty = false;
       if (value.name !== this.builderService.getTemplate().name) {
@@ -105,7 +118,8 @@ export class TemplateInformationComponent extends AbstractTemplateBuilderCompone
   }
 
   onChange() {
-    if (this.builderService.getTemplate()) {
+    if (this.builderService.getTemplate() && this.getTemplateId() === this.builderService.getTemplate().id) {
+      console.log("Change", this.builderService.getTemplate(), this.form, this.initOngoing)
       if (this.form.get("name").value !== this.builderService.getTemplate().name) {
         this.form.get("name").setValue(this.builderService.getTemplate().name, { emitEvent: !this.initOngoing });
       }

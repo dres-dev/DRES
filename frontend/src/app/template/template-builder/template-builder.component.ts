@@ -22,20 +22,20 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
 
   @ViewChild('taskTemplateEditor', {static: true}) taskEditor: TaskTemplateEditorComponent;
 
-  routeSub: Subscription;
+
   changeSub: Subscription;
 
   isSaving=false;
   constructor(
-      private templateService: TemplateService,
+      templateService: TemplateService,
       private userService: UserService,
       private downloadService: DownloadService,
-      private route: ActivatedRoute,
+      route: ActivatedRoute,
       private router: Router,
-      private snackBar: MatSnackBar,
+      snackBar: MatSnackBar,
       public builderService: TemplateBuilderService
 ) {
-    super(builderService);
+    super(builderService, route, templateService, snackBar);
   }
 
   canDeactivate(nextState?: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
@@ -49,15 +49,8 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
   }
 
   ngOnInit(): void {
-    this.routeSub = this.route.params.subscribe( (p) => {
-      this.templateService.getApiV2TemplateByTemplateId(p.templateId).subscribe((t) => {
-            /* initialise from route */
-            this.builderService.initialise(t);
-          },
-          (r) => {
-            this.snackBar.open(`Error: ${r?.error?.description}`, null,{duration: 5000});
-          });
-    });
+    this.onInit();
+
   }
 
   fileProvider = () => {

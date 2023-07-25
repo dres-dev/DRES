@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { AbstractTemplateBuilderComponent } from "../abstract-template-builder.component";
 import { TemplateBuilderService } from "../../template-builder.service";
-import { ApiTaskType, ApiTeam, ApiTeamGroup } from "../../../../../../openapi";
+import { ApiTaskType, ApiTeam, ApiTeamGroup, TemplateService } from "../../../../../../openapi";
 import { Observable } from "rxjs";
 import { filter, map } from "rxjs/operators";
 import { MatDialog } from "@angular/material/dialog";
@@ -12,6 +12,8 @@ import {
   ActionableDynamicTableColumnType
 } from "../../../../shared/actionable-dynamic-table/actionable-dynamic-table.component";
 import { TeamgroupsDialogComponent } from "../teamgroups-dialog/teamgroups-dialog.component";
+import { ActivatedRoute } from "@angular/router";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: 'app-teamgroups-list',
@@ -34,9 +36,12 @@ export class TeamgroupsListComponent extends AbstractTemplateBuilderComponent im
 
   constructor(
     builderService: TemplateBuilderService,
+    route: ActivatedRoute,
+    templateService: TemplateService,
+    snackBar: MatSnackBar,
     private dialog: MatDialog
   ){
-    super(builderService);
+    super(builderService, route, templateService, snackBar);
   }
 
   ngOnInit() {

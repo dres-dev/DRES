@@ -98,8 +98,8 @@ export class TemplateBuilderService {
 
   public initialise(template: ApiEvaluationTemplate){
     this.unmarkDirty();
-    this.templateSubject.next(template);
     console.log("BuilderService.init", template);
+    this.templateSubject.next(template);
   }
 
   public getTemplate(){

@@ -4,7 +4,7 @@ import { TemplateBuilderService } from "../../template-builder.service";
 import { MatDialog } from "@angular/material/dialog";
 import { filter, map, tap } from "rxjs/operators";
 import { Observable } from "rxjs";
-import { ApiTaskGroup } from "../../../../../../openapi";
+import { ApiTaskGroup, TemplateService } from "../../../../../../openapi";
 import {
   CompetitionBuilderTaskGroupDialogComponent,
   CompetitionBuilderTaskGroupDialogData
@@ -19,6 +19,8 @@ import {
   ConfirmationDialogComponent,
   ConfirmationDialogComponentData
 } from "../../../../shared/confirmation-dialog/confirmation-dialog.component";
+import { ActivatedRoute } from "@angular/router";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: "app-task-groups-list",
@@ -40,9 +42,12 @@ export class TaskGroupsListComponent extends AbstractTemplateBuilderComponent im
 
   constructor(
     builderService: TemplateBuilderService,
+    route: ActivatedRoute,
+    templateService: TemplateService,
+    snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {
-    super(builderService);
+    super(builderService,route,templateService,snackBar);
   }
 
   ngOnInit(): void {

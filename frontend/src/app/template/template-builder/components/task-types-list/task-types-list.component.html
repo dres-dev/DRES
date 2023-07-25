@@ -20,10 +20,7 @@
     </mat-menu>
 
     <mat-menu #taskTypePresets="matMenu">
-      <button mat-menu-item (click)="addTaskType(tkisPreset)">Textual known item search</button>
-      <button mat-menu-item (click)="addTaskType(vkisPreset)">Visual known item search</button>
-      <button mat-menu-item (click)="addTaskType(avsPreset)">Ad-hoc video search</button>
-      <button mat-menu-item (click)="addTaskType(lscPreset)">Lifelog Search Challenge</button>
+      <button *ngFor="let p of (presets | async)" mat-menu-item (click)="addTaskType(p)">{{p.name}}</button>
     </mat-menu>
   </ng-container>
   <ng-container matColumnDef="hints">

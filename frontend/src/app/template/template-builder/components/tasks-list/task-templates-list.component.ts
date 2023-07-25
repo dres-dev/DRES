@@ -1,7 +1,15 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { AbstractTemplateBuilderComponent } from "../abstract-template-builder.component";
 import { TemplateBuilderService } from "../../template-builder.service";
-import { ApiEvaluationTemplate, ApiHint, ApiTarget, ApiTaskGroup, ApiTaskTemplate, ApiTaskType } from "../../../../../../openapi";
+import {
+  ApiEvaluationTemplate,
+  ApiHint,
+  ApiTarget,
+  ApiTaskGroup,
+  ApiTaskTemplate,
+  ApiTaskType,
+  TemplateService
+} from "../../../../../../openapi";
 import { MatTable } from "@angular/material/table";
 import { Observable, Subscription } from "rxjs";
 import { SelectionModel } from "@angular/cdk/collections";
@@ -11,6 +19,8 @@ import {
   ConfirmationDialogComponentData
 } from "../../../../shared/confirmation-dialog/confirmation-dialog.component";
 import { MatDialog } from "@angular/material/dialog";
+import { ActivatedRoute } from "@angular/router";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 export interface TaskTemplateEditorLauncher {
   editTask(taskType: ApiTaskType, taskGroup: ApiTaskGroup, task?: ApiTaskTemplate);
@@ -40,8 +50,12 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
 
   private selectedTaskSub: Subscription;
 
-  constructor(builder: TemplateBuilderService, private dialog: MatDialog) {
-    super(builder);
+  constructor(builder: TemplateBuilderService,
+              route: ActivatedRoute,
+              templateService: TemplateService,
+              snackBar: MatSnackBar,
+              private dialog: MatDialog) {
+    super(builder,route,templateService,snackBar);
   }
 
   ngOnInit(): void {

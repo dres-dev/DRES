@@ -35,6 +35,18 @@
   }
 }
 
+.tb-container-4col-left {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: auto;
+  grid-template-areas: "left left left right";
+  column-gap: 1em;
+
+  > * {
+    min-width: 0;
+  }
+}
+
 .tb-container-3col-right {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;

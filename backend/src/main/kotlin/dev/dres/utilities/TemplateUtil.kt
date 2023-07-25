@@ -248,7 +248,15 @@ object TemplateUtil {
     fun copyTemplate(dbEvaluationTemplate: DbEvaluationTemplate): TemplateId {
 
         val apiTemplate = dbEvaluationTemplate.toApi()
-        val copy = apiTemplate.copy(name = "${apiTemplate.name} (copy)")
+        val copy = apiTemplate.copy(
+            name = "${apiTemplate.name} (copy)",
+            tasks = apiTemplate.tasks.map {
+                it.copy(id = null)
+            },
+            teams = apiTemplate.teams.map {
+                it.copy(id = null)
+            }
+        )
 
         val newTemplate = DbEvaluationTemplate.new()
 

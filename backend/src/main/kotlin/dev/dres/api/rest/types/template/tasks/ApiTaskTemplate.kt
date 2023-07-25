@@ -11,7 +11,7 @@ import dev.dres.data.model.template.TemplateId
  * @author Luca Rossetto & Ralph Gasser
  * @version 2.0.0
  */
-class ApiTaskTemplate(
+data class ApiTaskTemplate(
     val id: TemplateId? = null,
     val name: String,
     val taskGroup: String,

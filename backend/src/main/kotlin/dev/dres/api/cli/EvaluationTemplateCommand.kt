@@ -11,9 +11,10 @@ import com.github.ajalt.clikt.parameters.options.validate
 import com.github.ajalt.clikt.parameters.types.path
 import com.jakewharton.picnic.table
 import dev.dres.DRES
-import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.mgmt.cache.CacheManager
+import dev.dres.utilities.TemplateUtil
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 import org.joda.time.DateTime
@@ -29,7 +30,8 @@ import java.util.concurrent.TimeUnit
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class EvaluationTemplateCommand(private val store: TransientEntityStore, private val cache: CacheManager) : NoOpCliktCommand(name = "template") {
+class EvaluationTemplateCommand(private val store: TransientEntityStore, private val cache: CacheManager) :
+    NoOpCliktCommand(name = "template") {
 
     init {
         this.subcommands(
@@ -53,7 +55,8 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
         )
     }
 
-    abstract inner class AbstractEvaluationCommand(name: String, help: String, printHelpOnEmptyArgs: Boolean = true) : CliktCommand(name = name, help = help, printHelpOnEmptyArgs = printHelpOnEmptyArgs) {
+    abstract inner class AbstractEvaluationCommand(name: String, help: String, printHelpOnEmptyArgs: Boolean = true) :
+        CliktCommand(name = name, help = help, printHelpOnEmptyArgs = printHelpOnEmptyArgs) {
         protected val id: String? by option("-i", "--id")
         protected val name: String? by option("-t", "--template")
     }
@@ -68,10 +71,10 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
             .validate { require(it.isNotEmpty()) { "Template description must be non empty." } }
 
         private val description: String by option("-d", "--description", help = "Description of the new Template")
-                .required()
-                .validate { require(it.isNotEmpty()) { "Template description must be non empty." } }
+            .required()
+            .validate { require(it.isNotEmpty()) { "Template description must be non empty." } }
 
-        override fun run()  {
+        override fun run() {
             val newCompetition = this@EvaluationTemplateCommand.store.transactional {
                 DbEvaluationTemplate.new {
                     this.name = this@Create.name
@@ -90,7 +93,9 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
     inner class Delete : AbstractEvaluationCommand(name = "delete", help = "Deletes a template") {
         override fun run() {
             this@EvaluationTemplateCommand.store.transactional {
-                val competition = DbEvaluationTemplate.query((DbEvaluationTemplate::id eq this.id).or(DbEvaluationTemplate::name eq this.name)).firstOrNull()
+                val competition =
+                    DbEvaluationTemplate.query((DbEvaluationTemplate::id eq this.id).or(DbEvaluationTemplate::name eq this.name))
+                        .firstOrNull()
                 if (competition == null) {
                     println("Could not find template to delete.")
                     return@transactional
@@ -107,13 +112,16 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
     inner class Copy : AbstractEvaluationCommand(name = "copy", help = "Copies a Template") {
         override fun run() {
             this@EvaluationTemplateCommand.store.transactional {
-                val competition = DbEvaluationTemplate.query((DbEvaluationTemplate::id eq this.id).or(DbEvaluationTemplate::name eq this.name)).firstOrNull()
-                if (competition == null) {
+                val evaluationTemplate =
+                    DbEvaluationTemplate.query((DbEvaluationTemplate::id eq this.id).or(DbEvaluationTemplate::name eq this.name))
+                        .firstOrNull()
+                if (evaluationTemplate == null) {
                     println("Could not find template to copy.")
                     return@transactional
                 }
 
-                /* TODO: Copy competition. */
+                TemplateUtil.copyTemplate(evaluationTemplate)
+                println("template copied")
             }
             //println("Successfully copied template.")
         }
@@ -132,10 +140,10 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
                     paddingRight = 1
                 }
                 header {
-                    row("name", "id", "# teams", "# tasks", "description", )
+                    row("name", "id", "# teams", "# tasks", "description")
                 }
                 body {
-                    DbEvaluationTemplate.all().asSequence().forEach { c ->
+                    DbEvaluationTemplate.all().filter { it.instance eq false }.asSequence().forEach { c ->
                         row(c.name, c.id, c.teams.size(), c.tasks.size(), c.description).also { no++ }
                     }
                 }
@@ -178,7 +186,10 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
     /**
      * [CliktCommand] to prepare a specific [DbEvaluationTemplate].
      */
-    inner class Prepare : AbstractEvaluationCommand(name = "prepare", help = "Checks the used media items and generates precomputed previews.") {
+    inner class Prepare : AbstractEvaluationCommand(
+        name = "prepare",
+        help = "Checks the used media items and generates precomputed previews."
+    ) {
 
         override fun run() = this@EvaluationTemplateCommand.store.transactional(true) {
             val competition = DbEvaluationTemplate.query(
@@ -194,7 +205,7 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
             val videos = competition.getAllVideos().toList()
             val await = videos.mapNotNull { source ->
 
-                when(source) {
+                when (source) {
                     is DbEvaluationTemplate.VideoSource.ItemSource -> {
                         val item = source.item
                         val path = item.pathToOriginal()
@@ -204,8 +215,13 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
                         }
 
                         println("Rendering ${item.name}$ at ${source.range}")
-                        this@EvaluationTemplateCommand.cache.asyncPreviewVideo(item, source.range.start.toMilliseconds(), source.range.end.toMilliseconds())
+                        this@EvaluationTemplateCommand.cache.asyncPreviewVideo(
+                            item,
+                            source.range.start.toMilliseconds(),
+                            source.range.end.toMilliseconds()
+                        )
                     }
+
                     is DbEvaluationTemplate.VideoSource.PathSource -> {
                         val path = DRES.EXTERNAL_ROOT.resolve(source.path)
                         if (!Files.exists(path)) {
@@ -214,7 +230,11 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
                         }
 
                         println("Rendering ${path.fileName}$ at ${source.range}")
-                        this@EvaluationTemplateCommand.cache.asyncPreviewVideo(path, source.range.start.toMilliseconds(), source.range.end.toMilliseconds())
+                        this@EvaluationTemplateCommand.cache.asyncPreviewVideo(
+                            path,
+                            source.range.start.toMilliseconds(),
+                            source.range.end.toMilliseconds()
+                        )
                     }
                 }
             }
@@ -245,17 +265,22 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
     inner class Export : AbstractEvaluationCommand(name = "export", help = "Exports a template as JSON.") {
 
         /** Path to the file that should be created .*/
-        private val path: Path by option("-o", "--out", help = "The destination file for the template.").path().required()
+        private val path: Path by option("-o", "--out", help = "The destination file for the template.").path()
+            .required()
 
         /** Flag indicating whether export should be pretty printed.*/
-        private val pretty: Boolean by option("-p", "--pretty", help = "Flag indicating whether exported JSON should be pretty printed.").flag("-u", "--ugly", default = true)
+        private val pretty: Boolean by option(
+            "-p",
+            "--pretty",
+            help = "Flag indicating whether exported JSON should be pretty printed."
+        ).flag("-u", "--ugly", default = true)
 
         override fun run() = this@EvaluationTemplateCommand.store.transactional(true) {
-            val competition = DbEvaluationTemplate.query(
+            val template = DbEvaluationTemplate.query(
                 (DbEvaluationTemplate::id eq this.id).or(DbEvaluationTemplate::name eq this.name)
             ).firstOrNull()
 
-            if (competition == null) {
+            if (template == null) {
                 println("Could not find specified template.")
                 return@transactional
             }
@@ -267,56 +292,57 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
                 } else {
                     mapper.writer()
                 }
-                writer.writeValue(it, competition)
+                writer.writeValue(it, template.toApi())
             }
-            println("Successfully wrote template '${competition.name}' (ID = ${competition.id}) to $path.")
+            println("Successfully wrote template '${template.name}' (ID = ${template.id}) to $path.")
         }
     }
 
 
     /**
-     * Imports a competition from a JSON file.
+     * Imports a template from a JSON file.
      */
     inner class Import : CliktCommand(name = "import", help = "Imports a template from JSON.") {
-
-        /** Flag indicating whether a new competition should be created.*/
-        private val new: Boolean by option("-n", "--new", help = "Flag indicating whether a new template should be created.").flag("-u", "--update", default = true)
 
         /** Path to the file that should be imported.*/
         private val path: Path by option("-i", "--in", help = "The file to import the template from.").path().required()
 
-        override fun run() {
-            /* TODO: Probably won't work this way. */
-            /* Read competition from file */
-            /*val reader = jacksonObjectMapper().readerFor(CompetitionDescription::class.java)
-            val competition = try {
+        override fun run() = this@EvaluationTemplateCommand.store.transactional {
+
+            /* Read template from file */
+            val reader = jacksonObjectMapper().readerFor(ApiEvaluationTemplate::class.java)
+            val template = try {
                 Files.newBufferedReader(this.path).use {
                     val tree = reader.readTree(it)
-                    if (tree.get("id") != null && (tree.get("description") == null || tree.get("description").isNull || tree.get("description").isTextual)) {
-                        reader.readValue<CompetitionDescription>(tree)
-                    } else if (tree.get("id") != null && tree.get("description") != null && tree.get("description").isObject) {
-                        reader.readValue<CompetitionDescription>(tree["description"])
-                    } else {
-                        null
-                    }
+                    reader.readValue<ApiEvaluationTemplate>(tree)
                 }
             } catch (e: Throwable) {
-                println("Could not import competition from $path: ${e.message}.")
-                return
+                println("Could not import template from $path: ${e.message}.")
+                return@transactional
             }
 
-            /* Create/update competition. */
-            if (competition != null) {
-                if (this.new) {
-                    val id = this@CompetitionCommand.competitions.append(competition)
-                    println("Successfully imported new competition '${competition.name}' (ID = $id) from $path.")
-                } else {
-                    this@CompetitionCommand.competitions.update(competition)
-                    println("Successfully updated competition '${competition.name}' (ID = ${competition.id}) from $path.")
-                }
+            /* Create/update template. */
+            if (template != null) {
+
+                val target = DbEvaluationTemplate.new()
+
+                val import =  //null out ids to force new task creation
+                    template.copy(
+                        tasks = template.tasks.map {
+                            it.copy(id = null)
+                        },
+                        teams = template.teams.map {
+                            it.copy(id = null)
+                        }
+                    )
+
+
+                TemplateUtil.updateDbTemplate(target, import)
+                println("template imported")
+
             } else {
-                println("Could not import competition from $path: Unknown format.")
-            }*/
+                println("Could not import template from $path: Unknown format.")
+            }
         }
     }
 }

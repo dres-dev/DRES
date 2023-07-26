@@ -48,7 +48,8 @@ object DRES {
     val APPLICATION_ROOT: Path = File(DRES::class.java.protectionDomain.codeSource.location.toURI()).toPath()
 
     /** The path to the data folder. Can be different from the application root if provided via command line argument */
-    var DATA_ROOT: Path = APPLICATION_ROOT
+    lateinit var DATA_ROOT: Path
+        internal set
 
     /** Path to the directory that contains the external items. */
     lateinit var EXTERNAL_ROOT: Path
@@ -59,8 +60,9 @@ object DRES {
         internal set
 
     /** Path to the classpath directory that contains task type presets shipped with DRES. */
-    val TASK_TYPE_PRESETS_LOCATION = "dres-type-presets"
+    const val TASK_TYPE_PRESETS_LOCATION = "dres-type-presets"
 
+    /** The config tloaded */
     lateinit var CONFIG : Config
         internal set
 
@@ -75,10 +77,9 @@ object DRES {
             try{
                 val configPath = Paths.get(args[0])
                 val config = Config.read(configPath)
-                DATA_ROOT = configPath.absolute().parent
                 config
             }catch(e: Exception){
-                println("ERROR: The config at ${Paths.get(args[0])} could not be loaded. See stacktrace for more information.")
+                println("ERROR: The config at ${Paths.get(args[0]).toAbsolutePath()} could not be loaded. See stacktrace for more information.")
                 exitProcess(11)
             }
         } else {
@@ -87,6 +88,7 @@ object DRES {
 
         EXTERNAL_ROOT = CONFIG.externalMediaLocation
         TASK_TYPE_PRESETS_EXTERNAL_LOCATION = CONFIG.presetsLocation
+        DATA_ROOT = CONFIG.dataPath
 
         println("Starting DRES (application: $APPLICATION_ROOT, data: $DATA_ROOT)")
         println("Initializing...")

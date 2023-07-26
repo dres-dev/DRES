@@ -37,7 +37,7 @@ data class CacheConfig(
     val previewVideoMaxSize: Int = 480,
 
     /** The location of the cache, relative to APPLICATION_ROOT */
-    val cachePath: Path = DRES.DATA_ROOT.resolve("cache"),
+    val cachePath: Path = DRES.APPLICATION_ROOT.resolve("cache"),
 
 ) {
 

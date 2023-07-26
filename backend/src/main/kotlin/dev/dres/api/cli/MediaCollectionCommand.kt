@@ -386,14 +386,18 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
                 return
             }
 
-            /* Find media collection. */
-            val collection = this.getCollection()
+            /* Find media collection and note base path */
+            val collectionAndPathTuple = this.store.transactional(true) {
+                val collection = this.getCollection()
+                return@transactional collection to collection?.path
+            }
+            val collection = collectionAndPathTuple.first
             if (collection == null) {
                 println("Collection not found.")
                 return
             }
 
-            val base = this.store.transactional(true) { Paths.get(collection.path) }
+            val base = Paths.get(collectionAndPathTuple.second)
             if (!Files.exists(base)) {
                 println("Failed to scan collection; '${collection.path}' does not exist.")
                 return

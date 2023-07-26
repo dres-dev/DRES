@@ -29,6 +29,7 @@ import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.absolute
+import kotlin.system.exitProcess
 
 
 /**
@@ -50,12 +51,12 @@ object DRES {
     var DATA_ROOT: Path = APPLICATION_ROOT
 
     /** Path to the directory that contains the external items. */
-    val EXTERNAL_ROOT: Path
-        get() = DATA_ROOT.resolve("external")
+    lateinit var EXTERNAL_ROOT: Path
+        internal set
 
     /** Path to the directory that contains task type presets. */
-    val TASK_TYPE_PRESETS_EXTERNAL_LOCATION: Path
-        get() = DATA_ROOT.resolve("type-presets")
+    lateinit var TASK_TYPE_PRESETS_EXTERNAL_LOCATION: Path
+        internal set
 
     /** Path to the classpath directory that contains task type presets shipped with DRES. */
     val TASK_TYPE_PRESETS_LOCATION = "dres-type-presets"
@@ -71,13 +72,21 @@ object DRES {
     @JvmStatic
     fun main(args: Array<String>) {
         CONFIG = if (args.isNotEmpty()) {
-            val configPath = Paths.get(args[0])
-            val config = Config.read(configPath)
-            DATA_ROOT = configPath.absolute().parent
-            config
+            try{
+                val configPath = Paths.get(args[0])
+                val config = Config.read(configPath)
+                DATA_ROOT = configPath.absolute().parent
+                config
+            }catch(e: Exception){
+                println("ERROR: The config at ${Paths.get(args[0])} could not be loaded. See stacktrace for more information.")
+                exitProcess(11)
+            }
         } else {
             Config()
         }
+
+        EXTERNAL_ROOT = CONFIG.externalMediaLocation
+        TASK_TYPE_PRESETS_EXTERNAL_LOCATION = CONFIG.presetsLocation
 
         println("Starting DRES (application: $APPLICATION_ROOT, data: $DATA_ROOT)")
         println("Initializing...")

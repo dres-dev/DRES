@@ -50,7 +50,15 @@ export class TemplateBuilderComponent extends AbstractTemplateBuilderComponent i
 
   ngOnInit(): void {
     this.onInit();
-
+    this.routeSub = this.route.params.subscribe( (p) => {
+      this.templateService.getApiV2TemplateByTemplateId(p.templateId).subscribe((t) => {
+          /* initialise from route */
+          this.builderService.initialise(t);
+        },
+        (r) => {
+          this.snackBar.open(`Error: ${r?.error?.description}`, null,{duration: 5000});
+        });
+    });
   }
 
   fileProvider = () => {

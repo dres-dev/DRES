@@ -2,9 +2,9 @@
   <app-back-button></app-back-button>
   <div><h1>Users</h1></div>
   <div class="spacer-flex"></div>
-  <div *ngIf="isFilterInputActive" style="padding-right: 1.5rem">
-    <mat-form-field class="example-form-field" appearance="fill">
-      <mat-label>Quick filter</mat-label>
+  <div #filterWrapper *ngIf="shouldDisplayFilter" style="padding-right: 1.5rem">
+    <mat-form-field appearance="fill">
+      <mat-label>Filter</mat-label>
       <input matInput type="text" [(ngModel)]="filterValue" (keyup)="filter()" />
       <button *ngIf="filterValue" matSuffix mat-icon-button aria-label="Clear" (click)="filterValue = ''">
         <mat-icon>close</mat-icon>
@@ -14,10 +14,11 @@
   <div>
     <button
       mat-icon-button
-      matTooltip="{{ isFilterInputActive ? 'Close' : 'Open' }} quick filter"
-      (click)="isFilterInputActive = !isFilterInputActive"
+      fxFlex="15"
+      (click)="shouldDisplayFilter = !shouldDisplayFilter"
+      [matTooltip]="(shouldDisplayFilter ? 'Close' : 'Open') + ' quick filter'"
     >
-      <mat-icon>{{ isFilterInputActive ? 'sort' : 'filter_list' }}</mat-icon>
+      <mat-icon style="">{{ shouldDisplayFilter ? 'sort' : 'filter_list' }}</mat-icon>
     </button>
   </div>
   <div>
@@ -32,8 +33,9 @@
   </div>
 </div>
 
-<div>
+<div fxLayout="column">
   <table
+    fxFill
     mat-table
     [dataSource]="dataSource"
     style="width: 100%"

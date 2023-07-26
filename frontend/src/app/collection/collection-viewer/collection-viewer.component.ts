@@ -20,13 +20,16 @@ import {ApiMediaItem, ApiPopulatedMediaCollection, CollectionService} from '../.
   styleUrls: ['./collection-viewer.component.scss'],
 })
 export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
+
+  public isLoading = true;
+
   displayedColumns = ['actions', 'id', 'name', 'location', 'type', 'durationMs', 'fps'];
 
   /** Material Table UI element for sorting. */
   @ViewChild(MatSort) sort: MatSort;
 
   /** Material Table UI element for pagination. */
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
 
   /** Data source for Material tabl.e */
   dataSource = new MatTableDataSource<ApiMediaItem>();
@@ -63,6 +66,8 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
     /* Initialize sorting and pagination. */
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+    /* Custom filter: on ID, Name and Location */
+    this.dataSource.filterPredicate = (data: ApiMediaItem, value: string) => data.mediaItemId.includes(value) || data.name.includes(value) || data.location.includes(value)
 
     /*
      * Initialize subscription for collection data.
@@ -88,7 +93,17 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
     );
     this.subscription = this.collection.subscribe((s: ApiPopulatedMediaCollection) => {
       this.dataSource.data = s.items;
+      this.isLoading = false;
     });
+  }
+
+  applyFilter(event: Event){
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+
+    if(this.dataSource.paginator){
+      this.dataSource.paginator.firstPage();
+    }
   }
 
   /**

@@ -39,7 +39,7 @@ import { MatSortModule } from '@angular/material/sort';
     ClipboardModule,
     SharedModule,
     MatSortModule,
-    FormsModule
+    FormsModule,
   ],
   exports: [
     LoginComponent

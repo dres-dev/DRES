@@ -43,7 +43,7 @@ class CacheManager(private val config: Config, private val store: TransientEntit
     private val ffmpegBin = this.config.cache.ffmpegPath()
 
     /** The [Path] to the cache location. */
-    private val cacheLocation = DRES.DATA_ROOT.resolve("cache")
+    private val cacheLocation = DRES.CONFIG.cache.cachePath
 
     /** A [ConcurrentHashMap] of all [Path]s* that are currently being calculated. */
     private val inTransit = ConcurrentHashMap<Path,Future<Path>>()

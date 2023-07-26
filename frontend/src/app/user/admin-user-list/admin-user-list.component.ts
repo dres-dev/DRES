@@ -22,7 +22,8 @@ export class AdminUserListComponent implements AfterViewInit {
   @ViewChild(MatSort) sort: MatSort;
   dataSource = new MatTableDataSource<ApiUser>([]);
 
-  isFilterInputActive = false;
+
+  shouldDisplayFilter = false;
   filterValue = '';
 
   constructor(

@@ -1,6 +1,7 @@
 package dev.dres.run.eventstream
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import dev.dres.DRES
 import dev.dres.utilities.extensions.read
 import dev.dres.utilities.extensions.write
 import org.slf4j.LoggerFactory
@@ -23,10 +24,10 @@ object EventStreamProcessor {
     private val eventQueue = ConcurrentLinkedQueue<StreamEvent>()
     private val eventHandlers = mutableListOf<StreamEventHandler>()
     private val handlerLock = StampedLock()
-    private val eventSink = PrintWriter(File("events/${System.currentTimeMillis()}.txt").also { it.parentFile.mkdirs() })
+    private val eventSink = PrintWriter(DRES.CONFIG.eventsPath.resolve("${System.currentTimeMillis()}.txt").toFile().also { it.parentFile.mkdirs() })
 
     private val eventBuffer = mutableListOf<StreamEvent>()
-    private val eventBufferRetentionTime = 60_000 //TODO make configurable
+    private val eventBufferRetentionTime = DRES.CONFIG.eventBufferRetentionTime
     private val eventBufferLock = StampedLock()
 
     val recentEvents: List<StreamEvent>

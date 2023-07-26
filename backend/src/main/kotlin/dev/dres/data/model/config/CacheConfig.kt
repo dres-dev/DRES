@@ -10,7 +10,8 @@ import java.nio.file.Paths
  * Configuration related to the handling of the preview cache by DRES.
  *
  * @author Ralph Gasser
- * @version 1.0.0
+ * @author Loris Sauter
+ * @version 1.1.0
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CacheConfig(
@@ -34,6 +35,10 @@ data class CacheConfig(
 
     /** The maximum bounding box for a preview video. Defaults to 480p. */
     val previewVideoMaxSize: Int = 480,
+
+    /** The location of the cache, relative to APPLICATION_ROOT */
+    val cachePath: Path = DRES.DATA_ROOT.resolve("cache"),
+
 ) {
 
     /**
@@ -47,4 +52,5 @@ data class CacheConfig(
         Files.isDirectory(Paths.get("ffmpeg")) -> Paths.get("ffmpeg")
         else -> throw IllegalStateException("Could not find valid FFmpeg binary path.")
     }
+
 }

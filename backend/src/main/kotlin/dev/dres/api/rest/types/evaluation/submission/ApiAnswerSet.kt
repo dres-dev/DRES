@@ -1,5 +1,6 @@
 package dev.dres.api.rest.types.evaluation.submission
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.run.TaskId
 import dev.dres.data.model.submissions.*
 
@@ -12,4 +13,23 @@ import dev.dres.data.model.submissions.*
  * @author Ralph Gasser
  * @version 1.0.0
  */
-data class ApiAnswerSet(val id: AnswerSetId, val status: ApiVerdictStatus, val taskId: TaskId, val answers: List<ApiAnswer>)
+data class ApiAnswerSet(
+    override val id: AnswerSetId,
+    val status: ApiVerdictStatus,
+    override val taskId: TaskId,
+    val answers: List<ApiAnswer>
+) : AnswerSet {
+
+    @get:JsonIgnore
+    override lateinit var submission: Submission
+        internal set
+
+    override fun status(): VerdictStatus = when(this.status) {
+        ApiVerdictStatus.CORRECT -> VerdictStatus.CORRECT
+        ApiVerdictStatus.WRONG -> VerdictStatus.WRONG
+        ApiVerdictStatus.INDETERMINATE -> VerdictStatus.INDETERMINATE
+        ApiVerdictStatus.UNDECIDABLE -> VerdictStatus.UNDECIDABLE
+    }
+
+    override fun answers(): Sequence<Answer> = answers.asSequence()
+}

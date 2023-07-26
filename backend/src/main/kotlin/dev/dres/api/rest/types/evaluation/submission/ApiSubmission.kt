@@ -13,11 +13,18 @@ import dev.dres.data.model.submissions.*
  * @version 2.0.0
  */
 data class ApiSubmission(
-    val submissionId: SubmissionId,
-    val teamId: String,
-    val memberId: String,
+    override val submissionId: SubmissionId,
+    override val teamId: String,
+    override val memberId: String,
     val teamName: String,
     val memberName: String,
-    val timestamp: Long,
+    override val timestamp: Long,
     val answers: List<ApiAnswerSet> = emptyList()
- )
+ ) : Submission {
+
+    init {
+        answers.forEach { it.submission = this }
+    }
+    override fun answerSets(): Sequence<AnswerSet> = answers.asSequence()
+
+}

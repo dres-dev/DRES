@@ -75,9 +75,9 @@ class KisTaskScorerTest {
     @Test
     fun allWrong() {
         val submissions = sequenceOf(
-            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", wrongAnswer, taskStartTime + 1000, "task2"),
-            ApiSubmission(teams[1], teams[1], "user2", "team1", "user2", wrongAnswer, taskStartTime + 2000, "task2"),
-            ApiSubmission(teams[2], teams[2], "user3", "team1", "user3", wrongAnswer, taskStartTime + 3000, "task2")
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", taskStartTime + 1000, wrongAnswer),
+            ApiSubmission(teams[1], teams[1], "user2", "team1", "user2", taskStartTime + 2000, wrongAnswer),
+            ApiSubmission(teams[2], teams[2], "user3", "team1", "user3", taskStartTime + 3000, wrongAnswer)
         )
         val scores = this.scorer.scoreMap(submissions)
         assertEquals(0.0, scores[teams[0]])
@@ -88,7 +88,7 @@ class KisTaskScorerTest {
     @Test
     fun immediatelyRight() {
         val submissions = sequenceOf(
-            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", correctAnswer, taskStartTime, "task3"),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", taskStartTime, correctAnswer),
         )
         val scores = this.scorer.scoreMap(submissions)
         assertEquals(maxPointsPerTask, scores[teams[0]])
@@ -99,7 +99,7 @@ class KisTaskScorerTest {
     @Test
     fun rightAtTheEnd() {
         val submissions = sequenceOf(
-            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", correctAnswer, taskStartTime + (defaultTaskDuration * 1000), "task4"),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", taskStartTime + (defaultTaskDuration * 1000), correctAnswer),
         )
         val scores = this.scorer.scoreMap(submissions)
         assertEquals(maxPointsAtTaskEnd, scores[teams[0]])
@@ -108,7 +108,7 @@ class KisTaskScorerTest {
     @Test
     fun rightInTheMiddle() {
         val submissions = sequenceOf(
-            ApiSubmission(teams[0], teams[0], "user1", "team1",  "user1", correctAnswer, taskStartTime + (defaultTaskDuration * 1000 / 2), "task5"),
+            ApiSubmission(teams[0], teams[0], "user1", "team1",  "user1", taskStartTime + (defaultTaskDuration * 1000 / 2), correctAnswer),
         )
         val scores = this.scorer.scoreMap(submissions)
         assertEquals(maxPointsAtTaskEnd + (maxPointsPerTask - maxPointsAtTaskEnd) / 2, scores[teams[0]])
@@ -119,19 +119,19 @@ class KisTaskScorerTest {
         val submissions = sequenceOf(
 
             //incorrect submissions
-            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", wrongAnswer, taskStartTime + 1, "task6"),
+            ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", taskStartTime + 1, wrongAnswer),
 
-            ApiSubmission(teams[1], teams[1], "user2", "team2","user2", wrongAnswer, taskStartTime + 2, "task6"),
-            ApiSubmission(teams[1], teams[1], "user2", "team2","user2", wrongAnswer, taskStartTime + 3, "task6"),
+            ApiSubmission(teams[1], teams[1], "user2", "team2","user2", taskStartTime + 2, wrongAnswer),
+            ApiSubmission(teams[1], teams[1], "user2", "team2","user2", taskStartTime + 3, wrongAnswer),
 
-            ApiSubmission(teams[2], teams[2], "user3", "team3","user3", wrongAnswer, taskStartTime + 4, "task6"),
-            ApiSubmission(teams[2], teams[2], "user3", "team3","user3", wrongAnswer, taskStartTime + 5, "task6"),
-            ApiSubmission(teams[2], teams[2], "user3", "team3","user3", wrongAnswer, taskStartTime + 6, "task6"),
+            ApiSubmission(teams[2], teams[2], "user3", "team3","user3", taskStartTime + 4, wrongAnswer),
+            ApiSubmission(teams[2], teams[2], "user3", "team3","user3", taskStartTime + 5, wrongAnswer),
+            ApiSubmission(teams[2], teams[2], "user3", "team3","user3", taskStartTime + 6, wrongAnswer),
 
             //correct submissions at 1/2 the task time
-            ApiSubmission(teams[0], teams[0], "user1", "team1","user1", correctAnswer, taskStartTime + (defaultTaskDuration * 1000 / 2), "task6"),
-            ApiSubmission(teams[1], teams[1], "user2", "team2","user2", correctAnswer, taskStartTime + (defaultTaskDuration * 1000 / 2), "task6"),
-            ApiSubmission(teams[2], teams[2], "user3", "team3","user3", correctAnswer, taskStartTime + (defaultTaskDuration * 1000 / 2), "task6"),
+            ApiSubmission(teams[0], teams[0], "user1", "team1","user1", taskStartTime + (defaultTaskDuration * 1000 / 2), correctAnswer),
+            ApiSubmission(teams[1], teams[1], "user2", "team2","user2", taskStartTime + (defaultTaskDuration * 1000 / 2), correctAnswer),
+            ApiSubmission(teams[2], teams[2], "user3", "team3","user3", taskStartTime + (defaultTaskDuration * 1000 / 2), correctAnswer),
 
         )
         val scores = this.scorer.scoreMap(submissions)

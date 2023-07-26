@@ -49,11 +49,10 @@ class PostVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(sto
 
         this.store.transactional {
             val evaluationManager = ctx.eligibleManagerForId<RunManager>()
-            val validator = evaluationManager.judgementValidators.find { it is VoteValidator && it.isActive } // Get first active vote validator
+            val validator = evaluationManager.judgementValidators.find { it is VoteValidator && it.isActive } as? VoteValidator // Get first active vote validator
                 ?: throw ErrorStatusException(404, "There is currently no voting going on in evaluation ${evaluationManager.id}.", ctx)
-            validator as VoteValidator
-            validator.vote(VerdictStatus.fromApi(vote.verdict))
+            validator.vote(vote.verdict.toDb())
         }
-        return SuccessStatus("vote received")
+        return SuccessStatus("Vote received.")
     }
 }

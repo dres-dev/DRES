@@ -7,6 +7,7 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -39,7 +40,7 @@ class PreviousTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminH
         val evaluationId = ctx.evaluationId()
         val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
         return this.store.transactional(true) {
-            val rac = RunActionContext.runActionContext(ctx, evaluationManager)
+            val rac = ctx.runActionContext()
             try {
                 if (evaluationManager.previous(rac)) {
                     SuccessStatus("Task for evaluation $evaluationId was successfully moved to '${evaluationManager.currentTaskTemplate(rac).name}'.")

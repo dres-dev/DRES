@@ -2,7 +2,7 @@ package dres.run.score.scorer
 
 import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.collection.ApiMediaType
-import dev.dres.api.rest.types.evaluation.*
+import dev.dres.api.rest.types.evaluation.submission.*
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.Scoreable

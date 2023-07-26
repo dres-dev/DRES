@@ -6,6 +6,7 @@ import dev.dres.api.rest.types.evaluation.ApiTaskTemplateInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.*
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -39,7 +40,7 @@ class ClientTaskInfoHandler(store: TransientEntityStore): AbstractEvaluationClie
     )
     override fun doGet(ctx: Context): ApiTaskTemplateInfo = this.store.transactional(true) {
         val run = ctx.eligibleManagerForId<RunManager>()
-        val rac = RunActionContext.runActionContext(ctx, run)
+        val rac = ctx.runActionContext()
         if (run !is InteractiveRunManager) throw ErrorStatusException(404, "Specified evaluation is not interactive.", ctx)
         val task = run.currentTask(rac) ?: throw ErrorStatusException(404, "Specified evaluation has no active task.", ctx)
         ApiTaskTemplateInfo(task.template)

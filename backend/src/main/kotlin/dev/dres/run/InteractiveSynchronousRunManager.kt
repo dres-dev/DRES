@@ -2,11 +2,14 @@ package dev.dres.run
 
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.WebSocketConnection
-import dev.dres.api.rest.types.evaluation.ApiSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
+import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.EvaluationId
@@ -18,6 +21,7 @@ import dev.dres.data.model.template.task.options.DbSubmissionOption
 import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.data.model.template.task.options.Defaults.SCOREBOARD_UPDATE_INTERVAL_DEFAULT
 import dev.dres.data.model.template.task.options.Defaults.VIEWER_TIMEOUT_DEFAULT
+import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager.Companion.MAXIMUM_RUN_LOOP_ERROR_COUNT
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
@@ -30,6 +34,8 @@ import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.ReadyLatch
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
+import kotlinx.dnq.query.FilteringContext.eq
+import kotlinx.dnq.query.FilteringContext.isNotEmpty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -275,6 +281,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      * @return [DbTask] or null
      */
     override fun currentTask(context: RunActionContext) = this.stateLock.read {
+        this.evaluation.currentTask
         when (this.evaluation.currentTask?.status) {
             DbTaskStatus.PREPARING,
             DbTaskStatus.RUNNING,
@@ -439,36 +446,46 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
-     * @param context The [RunActionContext] used for the invocation
+     * @param context The [RunActionContext] used for the invocation.
      * @param submission [ApiSubmission] that should be registered.
      */
-    override fun postSubmission(context: RunActionContext, submission: ApiSubmission) = this.stateLock.read {
-        /* Register submission. */
-        val task = this.currentTask(context) ?: throw IllegalStateException("Could not find ongoing task in run manager, despite correct status. This is a programmer's error!")
+    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) = this.stateLock.read {
 
-        /* Sanity check. */
-        check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running. This is a programmer's error!" }
-        check(this.template.teams.asSequence().filter { it.teamId == submission.teamId }.any()) { "Team ${submission.teamId} does not exists for evaluation run ${this.name}. This is a programmer's error!" }
+        /* Phase 1: Basic lookups required for validation (read-only). */
+        val task = this.store.transactional(true) {
+            val task = this.currentTask(context) ?: throw IllegalStateException("Could not find ongoing task in run manager.")
+            check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running." }
 
-        /* Check if ApiSubmission meets formal requirements. */
-        task.filter.acceptOrThrow(submission)
+            /* Update submission with contextual information. */
+            submission.userId = context.userId
+            submission.teamId = context.teamId()
+            submission.answerSets.forEach {
+                it.taskId = task.taskId /* All answers are explicitly associated with the running task. */
+            }
 
-        /* Apply transformations to submissions */
-        val transformedSubmission = task.transformer.transform(submission)
-
-        /* Check if there are answers left after transformation */
-        if (transformedSubmission.answers.isEmpty()) {
-            throw IllegalStateException("Submission contains no valid answer sets")
+            /* Run submission through all the filters. */
+            task.filter.acceptOrThrow(submission)
+            task
         }
 
-        /* At this point, the submission is considered valid and is persisted */
-        /* Validator is applied to each answer set */
-        transformedSubmission.answerSets().forEach {
-            task.validator.validate(it)
-        }
+        /* Phase 2: Create DbSubmission, apply transformers and validate it. */
+        this.store.transactional {
+            /* Convert submission to database representation. */
+            val db = submission.toNewDb()
 
-        /* Persist the submission. */
-        transformedSubmission.toNewDb()
+            /* Apply transformer(s) to submission. */
+            task.transformer.transform(db)
+
+            /* Check if there are answers left after transformation */
+            if (db.answerSets.isEmpty) {
+                throw IllegalStateException("Submission contains no valid answer sets.")
+            }
+
+            /* Apply validators to each answer set. */
+            db.answerSets.asSequence().forEach {
+                task.validator.validate(it)
+            }
+        }
 
         /* Enqueue submission for post-processing. */
         this.scoresUpdatable.enqueue(task)
@@ -477,43 +494,45 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.taskId))
     }
 
+    /**
+     * Processes incoming [DbSubmission]s. If a [DbTask] is running then that [DbSubmission] will usually
+     * be associated with that [DbTask].
+     *
+     * @param context The [RunActionContext] used for the invocation.
+     * @param submissionId The [EvaluationId] of the [DbSubmission] to update.
+     * @return True on success, false otherwise.
+     */
+    override fun updateSubmission(context: RunActionContext, submissionId: SubmissionId, submissionStatus: ApiVerdictStatus): Boolean = this.stateLock.read {
+        val (taskId, status) = this.store.transactional {
+            val answerSet = DbAnswerSet.filter { it.submission.submissionId eq submissionId }.singleOrNull()
+                ?: throw IllegalArgumentException("Could not find submission with ID ${submissionId}.")
+
+            /* Actual update - currently, only status update is allowed */
+            val newStatus = submissionStatus.toDb()
+            if (answerSet.status != newStatus) {
+                answerSet.status = newStatus
+                answerSet.task.id to true
+            } else {
+                answerSet.task.id to false
+            }
+        }
+
+        /** Broadcast information about change to submission. */
+        if (status) {
+            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_UPDATED, taskId))
+        }
+
+        return status
+    }
+
+    /**
+     *
+     */
     override fun reScore(taskId: TaskId) {
         val task = evaluation.tasks.find { it.taskId == taskId }
         if (task != null) {
             this.scoresUpdatable.enqueue(task)
         }
-    }
-
-    /**
-     * Processes incoming [DbSubmission]s. If a [DbTask] is running then that [DbSubmission] will usually
-     * be associated with that [DbTask].
-     *
-     * This method will not throw an exception and instead return false if a [DbSubmission] was
-     * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
-     * this method again.
-     *
-     * @param context The [RunActionContext] used for the invocation
-     * @param submissionId The [EvaluationId] of the [DbSubmission] to update.
-     * @param submissionStatus The new [DbVerdictStatus]
-     * @return True on success, false otherwise.
-     */
-    override fun updateSubmission(context: RunActionContext, submissionId: EvaluationId, submissionStatus: DbVerdictStatus): Boolean = this.stateLock.read {
-        val answerSet = DbAnswerSet.filter { it.submission.submissionId eq submissionId }.singleOrNull() ?: return false
-        val task = this.taskForId(context, answerSet.task.id) ?: return false
-
-        /* Actual update - currently, only status update is allowed */
-        if (answerSet.status != submissionStatus) {
-            answerSet.status = submissionStatus
-
-            /* Enqueue submission for post-processing. */
-            this.scoresUpdatable.enqueue(task)
-
-            /* Enqueue WS message for sending */
-            RunExecutor.broadcastWsMessage(context.teamId!!, ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.taskId))
-            return true
-        }
-
-        return false
     }
 
     /**
@@ -667,5 +686,19 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      */
     private fun assureNoRunningTask() {
         if (this.evaluation.tasks.any { it.status == DbTaskStatus.RUNNING }) throw IllegalStateException("Task is already running!")
+    }
+
+    /**
+     * Convenience method: Tries to find a matching [TeamId] in the context of this [InteractiveSynchronousRunManager]
+     * for the user associated with the current [RunActionContext].
+     *
+     * @return [TeamId]
+     */
+    private fun RunActionContext.teamId(): TeamId {
+        val userId = this.userId
+        val user = DbUser.filter { u -> u.id eq userId }.singleOrNull()
+            ?: throw IllegalArgumentException("Could not find user with ID ${userId}.")
+       return this@InteractiveSynchronousRunManager.template.teams.filter { t -> t.users.contains(user) }.singleOrNull()?.teamId
+            ?: throw IllegalArgumentException("Could not find matching team for user, which is required for interaction with this run manager.")
     }
 }

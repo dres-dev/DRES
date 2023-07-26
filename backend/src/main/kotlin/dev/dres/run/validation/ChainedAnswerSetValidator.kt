@@ -1,8 +1,6 @@
 package dev.dres.run.validation
 
-import dev.dres.data.model.submissions.AnswerSet
-import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.*
 import dev.dres.run.validation.interfaces.AnswerSetValidator
 
 /**
@@ -10,12 +8,12 @@ import dev.dres.run.validation.interfaces.AnswerSetValidator
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 2.0.0
  */
-class ChainedAnswerSetValidator(private val firstValidator: AnswerSetValidator, private val continueStates: Set<VerdictStatus>, private val secondValidator: AnswerSetValidator) : AnswerSetValidator {
+class ChainedAnswerSetValidator(private val firstValidator: AnswerSetValidator, private val continueStates: Set<DbVerdictStatus>, private val secondValidator: AnswerSetValidator) : AnswerSetValidator {
 
     companion object{
-        fun of(continueStates: Set<VerdictStatus>, vararg validator: AnswerSetValidator) : ChainedAnswerSetValidator {
+        fun of(continueStates: Set<DbVerdictStatus>, vararg validator: AnswerSetValidator) : ChainedAnswerSetValidator {
             return when {
                 validator.size < 2 -> throw IllegalArgumentException("Chain needs at least two validators")
                 validator.size == 2 -> ChainedAnswerSetValidator(validator[0], continueStates, validator[1])
@@ -24,6 +22,7 @@ class ChainedAnswerSetValidator(private val firstValidator: AnswerSetValidator, 
         }
     }
 
+    /** */
     override val deferring: Boolean
         get() = this.secondValidator.deferring
 
@@ -32,13 +31,15 @@ class ChainedAnswerSetValidator(private val firstValidator: AnswerSetValidator, 
     }
 
     /**
-     * Validates a [DbSubmission] based on two [AnswerSetValidator]s.
+     * Validates the [DbAnswerSet] and updates its [DbVerdictStatus].
      *
-     * @param submission The [DbSubmission] to validate.
+     * Usually requires an ongoing transaction.
+     *
+     * @param answerSet The [DbAnswerSet] to validate.
      */
-    override fun validate(answerSet: AnswerSet) {
+    override fun validate(answerSet: DbAnswerSet) {
         this.firstValidator.validate(answerSet)
-        if (this.continueStates.contains(answerSet.status())) {
+        if (this.continueStates.contains(answerSet.status)) {
             this.secondValidator.validate(answerSet)
         }
     }

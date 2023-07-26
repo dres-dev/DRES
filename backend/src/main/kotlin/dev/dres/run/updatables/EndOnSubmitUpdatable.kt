@@ -50,7 +50,7 @@ class EndOnSubmitUpdatable(private val manager: InteractiveRunManager, private v
                         for (s in submissions) {
                             for (a in s.answerSets.toList()) {
                                 if (a.status == DbVerdictStatus.CORRECT) {
-                                    teams[s.teamId] = teams[s.teamId]!! + 1
+                                    teams[s.team.id] = teams[s.team.id]!! + 1
                                 }
                             }
                         }

@@ -1,5 +1,6 @@
 package dev.dres.api.rest.types.evaluation
 
+import dev.dres.api.rest.types.evaluation.submission.ApiAnswerSet
 import dev.dres.data.model.run.DbTask
 import dev.dres.data.model.run.TaskId
 import dev.dres.data.model.template.TemplateId

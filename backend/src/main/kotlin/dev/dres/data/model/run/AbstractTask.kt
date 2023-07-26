@@ -9,8 +9,8 @@ import dev.dres.data.model.template.TemplateId
 import dev.dres.data.model.template.team.TeamAggregatorImpl
 import dev.dres.data.model.template.team.TeamGroupId
 import dev.dres.data.model.template.team.TeamId
-import dev.dres.run.filter.SubmissionFilter
-import dev.dres.run.transformer.SubmissionTransformer
+import dev.dres.run.filter.basics.SubmissionFilter
+import dev.dres.run.transformer.basics.SubmissionTransformer
 import dev.dres.run.validation.interfaces.AnswerSetValidator
 import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.filter

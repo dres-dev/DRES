@@ -1,39 +1,37 @@
 package dev.dres.data.model.submissions
 
-import dev.dres.data.model.run.Task
 import dev.dres.data.model.run.TaskId
 
 typealias AnswerSetId = String
+
+/**
+ * An [AnswerSet] as issued by a DRES user as part of a [Submission].
+ *
+ * This abstraction is mainly required to enable testability of implementations.
+ *
+ * @author Luca Rossetto
+ * @author Ralph Gasser
+ * @version 2.0.0
+ */
 interface AnswerSet {
+    /** The ID of this [AnswerSet]. */
     val id : AnswerSetId
+
+    /** The ID of the task this [AnswerSet] belongs to. */
     val taskId: TaskId
+
+    /** The [Submission] this [AnswerSet] belongs to. */
     val submission: Submission
 
-    fun task(): Task
-
-    fun answers() : Sequence<Answer>
-
-    fun status() : VerdictStatus
-    fun status(status: VerdictStatus)
+    /**
+     *  The [VerdictStatus] of this [AnswerSet].
+     *
+     *  @return The [VerdictStatus] of this [AnswerSet].
+     */
+    fun status(): VerdictStatus
 
     /**
-     * checks if the answers of a given [AnswerSet] have the same content as
+     * Returns a [Sequence] of [Answer]s for this [AnswerSet].
      */
-    infix fun equivalent(answerSet: AnswerSet): Boolean {
-
-        if (this.answers().count() != answerSet.answers().count()) {
-            return false
-        }
-
-        val tmp = this.answers().toMutableList()
-
-        //pairwise comparison
-        answerSet.answers().forEach { answer ->
-            //this assumes that there are no duplicates within an AnswerSet
-            tmp.removeIf { it eq answer }
-        }
-
-        return tmp.isEmpty()
-
-    }
+    fun answers() : Sequence<Answer>
 }

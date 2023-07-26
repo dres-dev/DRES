@@ -6,6 +6,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -42,7 +43,7 @@ class SwitchTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHan
         val idx = ctx.pathParamMap()["idx"]?.toIntOrNull() ?: throw ErrorStatusException(404, "Parameter 'idx' is missing!'", ctx)
         val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
         return this.store.transactional(true) {
-            val rac = RunActionContext.runActionContext(ctx, evaluationManager)
+            val rac = ctx.runActionContext()
             try {
                 evaluationManager.goTo(rac, idx)
                 SuccessStatus("Task for evaluation $evaluationId was successfully moved to '${evaluationManager.currentTaskTemplate(rac).name}'.")

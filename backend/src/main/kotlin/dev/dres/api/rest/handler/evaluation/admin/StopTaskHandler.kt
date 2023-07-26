@@ -7,6 +7,7 @@ import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.DbEvaluation
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.sessionToken
@@ -42,7 +43,7 @@ class StopTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandl
         val evaluationId = ctx.evaluationId()
         val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
         return this.store.transactional {
-            val rac = RunActionContext.runActionContext(ctx, evaluationManager)
+            val rac = ctx.runActionContext()
             try {
                 val task = evaluationManager.currentTaskTemplate(rac)
                 evaluationManager.abortTask(rac)

@@ -1,36 +1,49 @@
 package dev.dres.run.transformer
 
-import dev.dres.api.rest.types.evaluation.ApiAnswer
-import dev.dres.api.rest.types.evaluation.ApiAnswerType
-import dev.dres.api.rest.types.evaluation.ApiSubmission
-import dev.dres.data.model.media.DbMediaItem
 import dev.dres.data.model.media.DbMediaSegment
 import dev.dres.data.model.media.time.TemporalPoint
-import kotlinx.dnq.query.eq
-import kotlinx.dnq.query.firstOrNull
-import kotlinx.dnq.query.query
+import dev.dres.data.model.submissions.DbAnswer
+import dev.dres.data.model.submissions.DbAnswerType
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.run.transformer.basics.SubmissionTransformer
+import kotlinx.dnq.query.iterator
 
+/**
+ * A [SubmissionTransformer] that maps temporal [DbSubmission]
+ *
+ * @author Luca Rossetto
+ */
 class MapToSegmentTransformer : SubmissionTransformer {
-    override fun transform(submission: ApiSubmission): ApiSubmission = submission.copy(
-        answers = submission.answers.map { apiAnswerSet ->
-            apiAnswerSet.copy(
-                answers = apiAnswerSet.answers.map { mapAnswer(it) }
-            )
+
+    /**
+     * Apply this [MapToSegmentTransformer] to the provided [DbSubmission]. Transformation happens in place.
+     *
+     * Requires an ongoing transaction.
+     *
+     * @param submission [DbSubmission] to transform.
+     */
+    override fun transform(submission: DbSubmission)  {
+        for (answerSet in submission.answerSets) {
+            for (answer in answerSet.answers) {
+                if (answer.type == DbAnswerType.TEMPORAL) {
+                    transformAnswer(answer)
+                }
+            }
         }
-    )
+    }
 
-    private fun mapAnswer(answer: ApiAnswer) : ApiAnswer {
-
-        if (answer.type != ApiAnswerType.TEMPORAL) {
-            return answer
-        }
-
-        val item = DbMediaItem.query(DbMediaItem::id eq answer.item?.mediaItemId).firstOrNull() ?: throw IllegalStateException("MediaItem with id ${answer.item?.mediaItemId} not found")
-
-
+    /**
+     * Apples transformation to an individual [DbAnswer].
+     *
+     * @param answer The [DbAnswer] to transform.
+     */
+    private fun transformAnswer(answer: DbAnswer) {
+        /* Extract item and find start and end segment. */
+        val item = answer.item ?: throw IllegalStateException("Media item not specified for answer.")
         val startSegment = answer.start?.let { DbMediaSegment.findContaining(item, TemporalPoint.Millisecond(it)) }
         val endSegment = answer.end?.let { DbMediaSegment.findContaining(item, TemporalPoint.Millisecond(it)) }
 
+        /* Calculate bounds. */
         val bounds = when{
             startSegment != null && endSegment == null -> startSegment
             startSegment == null && endSegment != null -> endSegment
@@ -39,12 +52,8 @@ class MapToSegmentTransformer : SubmissionTransformer {
             else -> throw IllegalStateException("Cannot map answer time to segment, range does not fall within one segment")
         }.range.toMilliseconds()
 
-        return answer.copy(
-            start = bounds.first,
-            end = bounds.second
-        )
-
-
+        /* Adjust start and end timestamp. */
+        answer.start = bounds.first
+        answer.end = bounds.second
     }
-
 }

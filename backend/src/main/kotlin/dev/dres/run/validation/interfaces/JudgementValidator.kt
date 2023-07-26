@@ -7,8 +7,9 @@ import dev.dres.data.model.submissions.*
  *
  * This kind of [AnswerSetValidator]  is inherently asynchronous.
  *
- * @author Luca Rossetto & Ralph Gasser
- * @version 1.1.0
+ * @author Luca Rossetto
+ * @author Ralph Gasser
+ * @version 2.0.0
  */
 interface JudgementValidator {
     /** unique id to identify the [JudgementValidator]*/
@@ -22,23 +23,23 @@ interface JudgementValidator {
 
     /** Returns true, if this [JudgementValidator] has open [DbSubmission]s. */
     val hasOpen: Boolean
-        get() = open > 0
+        get() = this.open > 0
 
     /**
-     * Retrieves and returns the next element that requires a verdict from this [JudgementValidator]'
-     * internal queue. If such an element exists, then the [DbSubmission] is returned alongside a
-     * unique token, that can be used to update the [DbSubmission]'s [DbVerdictStatus].
+     * Retrieves and returns the next element that requires a verdict from this [JudgementValidator]'s internal queue.
+     *
+     * If such an element exists, then the [DbSubmission] is returned alongside a unique token, that can be used to update the [DbSubmission]'s [DbVerdictStatus].
      *
      * @return Optional [Pair] containing a string token and the [DbSubmission] that should be judged.
      */
-    fun next(queue: String): Pair<String, DbAnswerSet>?
+    fun next(): Pair<String, DbAnswerSet>?
 
     /**
      * Places a verdict for the [Submission] identified by the given token.
      *
      * @param token The token used to identify the [Submission].
-     * @param verdict The verdict of the judge.
+     * @param verdict The [DbVerdictStatus] assigned by the judge.
      */
-    fun judge(token: String, verdict: VerdictStatus)
+    fun judge(token: String, verdict: DbVerdictStatus)
 }
 

@@ -2,13 +2,14 @@ package dev.dres.run.validation
 
 import dev.dres.data.model.submissions.*
 import dev.dres.run.validation.interfaces.AnswerSetValidator
+import kotlinx.dnq.query.iterator
 
 /**
- * A [AnswerSetValidator] class that valiadates textual submissions based on [Regex].
+ * A [AnswerSetValidator] class that validates textual submissions based on [Regex].
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 2.0.0
  */
 class TextAnswerSetValidator(targets: List<String>) : AnswerSetValidator {
 
@@ -26,44 +27,37 @@ class TextAnswerSetValidator(targets: List<String>) : AnswerSetValidator {
      */
     private val regex = targets.map {
         when {
-            it.startsWith("\\") && it.endsWith("\\") -> {
-                Regex(it.substring(1, it.length - 1), RegexOption.CANON_EQ)
-            }
-
-            it.startsWith("\\") && it.endsWith("\\i") -> {
-                Regex(it.substring(1, it.length - 2), setOf(RegexOption.CANON_EQ, RegexOption.IGNORE_CASE))
-            }
-
-            else -> {
-                Regex(it, setOf(RegexOption.CANON_EQ, RegexOption.LITERAL))
-            }
+            it.startsWith("\\") && it.endsWith("\\") -> Regex(it.substring(1, it.length - 1), RegexOption.CANON_EQ)
+            it.startsWith("\\") && it.endsWith("\\i") ->Regex(it.substring(1, it.length - 2), setOf(RegexOption.CANON_EQ, RegexOption.IGNORE_CASE))
+            else -> Regex(it, setOf(RegexOption.CANON_EQ, RegexOption.LITERAL))
         }
     }
 
-    override fun validate(answerSet: AnswerSet) {
+    /**
+     * Validates the [DbAnswerSet] and updates its [DBVerdictStatus].
+     *
+     * Usually requires an ongoing transaction.
+     *
+     * @param answerSet The [DbAnswerSet] to validate.
+     */
+    override fun validate(answerSet: DbAnswerSet) {
+        /* Basically, we assume that the DBAnswerSet is wrong. */
+        answerSet.status = DbVerdictStatus.WRONG
 
-        answerSet.answers().forEach { answer ->
-
+        /* Now we check all the answers. */
+        for (answer in answerSet.answers) {
             /* Perform sanity checks. */
-            if (answer.type() != AnswerType.TEXT) {
-                answerSet.status(VerdictStatus.WRONG)
-                return@forEach
-            }
-
-            /* Perform text validation. */
             val text = answer.text
-            if (text == null) {
-                answerSet.status(VerdictStatus.WRONG)
-                return@forEach
+            if (answer.type != DbAnswerType.TEXT || text == null) {
+                return
             }
 
-            if (regex.any { it matches text }) {
-                answerSet.status(VerdictStatus.CORRECT)
-            } else {
-                answerSet.status(VerdictStatus.WRONG)
-                return@forEach
+            if (!regex.any { it matches text }) {
+                return
             }
         }
 
+        /* If code reaches this point, the [DbAnswerSet] is correct. */
+        answerSet.status = DbVerdictStatus.CORRECT
     }
 }

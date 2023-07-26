@@ -37,13 +37,13 @@ class DbSubmissionOption(entity: Entity) : XdEnumEntity(entity) {
      */
     fun newFilter(parameters: Map<String, String>) = when (this) {
         NO_DUPLICATES -> DuplicateSubmissionFilter()
-        LIMIT_CORRECT_PER_TEAM -> CorrectPerTeamFilter(parameters)
+        LIMIT_CORRECT_PER_TEAM -> MaximumCorrectPerTeamFilter(parameters)
         LIMIT_WRONG_PER_TEAM -> MaximumWrongPerTeamFilter(parameters)
         LIMIT_TOTAL_PER_TEAM -> MaximumTotalPerTeamFilter(parameters)
-        LIMIT_CORRECT_PER_MEMBER -> CorrectPerTeamMemberFilter(parameters)
-        TEMPORAL_SUBMISSION -> TemporalSubmissionFilter()
-        TEXTUAL_SUBMISSION -> TextualSubmissionFilter()
-        ITEM_SUBMISSION -> ItemSubmissionFilter()
+        LIMIT_CORRECT_PER_MEMBER -> MaximumCorrectPerTeamMemberFilter(parameters)
+        TEMPORAL_SUBMISSION -> ValidTemporalSubmissionFilter()
+        TEXTUAL_SUBMISSION -> ValidTextualSubmissionFilter()
+        ITEM_SUBMISSION -> ValidItemSubmissionFilter()
         MINIMUM_TIME_GAP -> SubmissionRateFilter(parameters)
         else -> throw IllegalStateException("The task filter option ${this.description} is currently not supported.")
     }

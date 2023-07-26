@@ -1,6 +1,5 @@
-package dev.dres.api.rest.types.evaluation
+package dev.dres.api.rest.types.evaluation.submission
 
-import dev.dres.data.model.submissions.AnswerType
 import dev.dres.data.model.submissions.DbAnswerType
 
 /**

@@ -1,18 +1,34 @@
 package dev.dres.data.model.submissions
 
 import dev.dres.data.model.admin.UserId
-import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.template.team.TeamId
 
 typealias SubmissionId = String
 
+/**
+ * A [Submission] as issued by a DRES user.
+ *
+ * This abstraction is mainly required to enable testability of implementations.
+ *
+ * @author Luca Rossetto
+ * @author Ralph Gasser
+ * @version 2.0.0
+ */
 interface Submission {
-
+    /** The ID of this [Submission]. */
     val submissionId: SubmissionId
-    val timestamp: Long
-    val teamId: TeamId
-    val memberId: UserId
-    val evaluationId: EvaluationId
 
+    /** The ID of the user who issued this [Submission]. */
+    val memberId: UserId
+
+    /** The ID of the team, the user belongs to. */
+    val teamId: TeamId
+
+    /** The timestamp of this [Submission]. */
+    val timestamp: Long
+
+    /**
+     * Returns a [Sequence] of [AnswerSet]s.
+     */
     fun answerSets(): Sequence<AnswerSet>
 }

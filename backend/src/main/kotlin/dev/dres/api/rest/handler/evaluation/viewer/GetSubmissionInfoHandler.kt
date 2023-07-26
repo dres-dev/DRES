@@ -2,12 +2,11 @@ package dev.dres.api.rest.handler.evaluation.viewer
 
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.utilities.extensions.eligibleManagerForId
-import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.isParticipant
-import dev.dres.api.rest.types.evaluation.ApiSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.run.InteractiveRunManager
@@ -40,7 +39,7 @@ class GetSubmissionInfoHandler(store: TransientEntityStore): AbstractEvaluationV
     )
     override fun doGet(ctx: Context): List<ApiSubmission> = this.store.transactional (true) {
         val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
-        val rac = RunActionContext.runActionContext(ctx, manager)
+        val rac = ctx.runActionContext()
 
         if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
             throw ErrorStatusException(403, "Access denied.", ctx)

@@ -8,8 +8,8 @@ import dev.dres.api.rest.types.evaluation.scores.ApiScore
 import dev.dres.api.rest.types.evaluation.scores.ApiScoreOverview
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.DbTask
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.score.scoreboard.ScoreOverview
 import io.javalin.http.Context
@@ -52,7 +52,7 @@ class CurrentTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandle
         }
 
 
-        val rac = RunActionContext.runActionContext(ctx, manager)
+        val rac = ctx.runActionContext()
         val scorer = manager.currentTask(rac)?.scorer ?: throw ErrorStatusException(
             404,
             "No active task run in evaluation ${ctx.evaluationId()}.",

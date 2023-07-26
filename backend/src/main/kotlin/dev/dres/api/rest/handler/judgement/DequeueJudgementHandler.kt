@@ -1,22 +1,15 @@
 package dev.dres.api.rest.handler.judgement
 
 import dev.dres.api.rest.handler.GetRestHandler
-import dev.dres.api.rest.types.collection.ApiMediaType
-import dev.dres.api.rest.types.evaluation.ApiAnswer
 import dev.dres.api.rest.types.judgement.ApiJudgementRequest
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.submissions.Answer
-import dev.dres.data.model.submissions.AnswerType
-import dev.dres.data.model.submissions.DbAnswerSet
-import dev.dres.data.model.submissions.DbAnswerType
 import dev.dres.run.RunManager
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
-import kotlinx.dnq.query.firstOrNull
 
 /**
  * A [GetRestHandler] to dequeue the next [ApiJudgementRequest] that is ready for judgement.
@@ -54,12 +47,9 @@ class DequeueJudgementHandler(store: TransientEntityStore) : AbstractJudgementHa
         val request = this.store.transactional(false) {
             val evaluationManager = ctx.eligibleManagerForId<RunManager>()
             checkEligibility(ctx, evaluationManager)
-            val validator = evaluationManager.judgementValidators.find { it.hasOpen }
-                ?: return@transactional null
-            val next = validator?.next(ctx.sessionToken()!!)
-                ?: /* No submission awaiting judgement */
-                return@transactional null
-            val taskDescription = next.second.task().template.textualDescription()
+            val validator = evaluationManager.judgementValidators.find { it.hasOpen } ?: return@transactional null
+            val next = validator.next() ?: return@transactional null
+            val taskDescription = next.second.task.template.textualDescription()
             return@transactional ApiJudgementRequest(
                 token = next.first,
                 validator = validator.id,

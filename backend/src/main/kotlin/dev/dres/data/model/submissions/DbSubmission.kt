@@ -1,6 +1,6 @@
 package dev.dres.data.model.submissions
 
-import dev.dres.api.rest.types.evaluation.ApiSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.admin.UserId
@@ -10,7 +10,6 @@ import dev.dres.data.model.template.team.TeamId
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
-import kotlinx.dnq.query.first
 import kotlinx.dnq.simple.min
 
 /**
@@ -35,21 +34,27 @@ class DbSubmission(entity: Entity) : PersistentEntity(entity), Submission {
 
     /** The [DbTeam] that submitted this [DbSubmission] */
     var team by xdLink1(DbTeam)
+
+    /** Implementation of the [Submission] interface: Returns the [UserId] of this [DbSubmission]. */
+    override val memberId: UserId
+        get() = this.user.id
+
+    /** Implementation of the [Submission] interface: Returns the [TeamId] of this [DbSubmission]. */
     override val teamId: TeamId
         get() = this.team.teamId
 
     /** The [DbUser] that submitted this [DbSubmission] */
     var user by xdLink1(DbUser)
 
-    override val memberId: UserId
-        get() = this.user.userId
-    override val evaluationId: EvaluationId
-        get() = this.answerSets.first().task.evaluation.evaluationId
-
     /** The [DbAnswerSet]s that make-up this [DbSubmission]. For batched submissions, more than one verdict can be possible. */
     val answerSets by xdChildren1_N<DbSubmission,DbAnswerSet>(DbAnswerSet::submission)
 
-    override fun answerSets(): Sequence<AnswerSet> = answerSets.asSequence()
+    /**
+     * Returns a [Sequence] of the [AnswerSet]s contained in this [DbSubmission].
+     *
+     * @return [Sequence] of [AnswerSet].
+     */
+    override fun answerSets(): Sequence<AnswerSet> = this.answerSets.asSequence()
 
     /**
      * Converts this [DbSubmission] to a RESTful API representation [ApiSubmission].
@@ -66,7 +71,6 @@ class DbSubmission(entity: Entity) : PersistentEntity(entity), Submission {
         memberId = this.user.id,
         memberName = this.user.username,
         timestamp = this.timestamp,
-        answers = this.answerSets.asSequence().map { it.toApi(blind) }.toList(),
-        evaluationId = this.evaluationId
+        answers = this.answerSets.asSequence().map { it.toApi(blind) }.toList()
     )
 }

@@ -11,6 +11,7 @@ import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.run.eventstream.*
 import dev.dres.run.validation.interfaces.JudgementValidator
+import kotlinx.dnq.query.first
 
 /**
  * Audit logging instance of DRES. Requires one-time initialisation
@@ -123,16 +124,16 @@ object DbAuditLogger {
      * @param sessionToken The identifier of the user session.
      * @param address The IP address of the submitter.
      */
-    fun submission(submission: Submission, api: DbAuditLogSource, sessionToken: SessionToken?, address: String) {
-        DbAuditLogEntry.new {
+    fun submission(submission: DbSubmission, api: DbAuditLogSource, sessionToken: SessionToken?, address: String) {
+        val entry = DbAuditLogEntry.new {
             this.type = DbAuditLogType.SUBMISSION
             this.source = api
             this.submissionId = submission.submissionId
-            this.evaluationId = submission.evaluationId
+            this.evaluationId = submission.answerSets.first().task.evaluation.evaluationId
             this.session = sessionToken
             this.address = address
         }
-        EventStreamProcessor.event(SubmissionEvent(sessionToken ?: "na", submission.evaluationId, null, submission))
+        EventStreamProcessor.event(SubmissionEvent(sessionToken ?: "na", entry.evaluationId!!, null, submission))
     }
 
     /**
@@ -163,8 +164,8 @@ object DbAuditLogger {
             this.source = DbAuditLogSource.INTERNAL
             this.submissionId = answerSet.submission.submissionId
             this.evaluationId = answerSet.task.evaluation.evaluationId
-            this.taskId = answerSet.taskId
-            this.description = "Token: $token, Validator: ${validator.id}, AnswerSet: ${answerSet.id}, Verdict: ${answerSet.status()}"
+            this.taskId = answerSet.task.taskId
+            this.description = "Token: $token, Validator: ${validator.id}, AnswerSet: ${answerSet.id}, Verdict: ${answerSet.status.description}"
         }
     }
 

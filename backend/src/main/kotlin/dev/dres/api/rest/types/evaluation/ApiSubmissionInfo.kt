@@ -1,5 +1,6 @@
 package dev.dres.api.rest.types.evaluation
 
+import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.template.TemplateId
 

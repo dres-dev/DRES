@@ -10,6 +10,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.DbTask
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.score.scoreboard.ScoreOverview
 import io.javalin.http.Context
@@ -54,7 +55,7 @@ class HistoryTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandle
         return this.store.transactional(true) {
             val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
 
-            val rac = RunActionContext.runActionContext(ctx, manager)
+            val rac = ctx.runActionContext()
             val scorer = manager.currentTask(rac)?.scorer ?: throw ErrorStatusException(404, "No task run with ID $taskId in run ${manager.id}.", ctx)
             val scores =  scorer.scoreMapFromCache()
             ApiScoreOverview("task",

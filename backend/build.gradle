@@ -38,12 +38,11 @@ repositories {
 
 compileKotlin {
     kotlinOptions.jvmTarget = "11"
-    kotlinOptions {
-        freeCompilerArgs = ["-Xinline-classes"]
-    }
+    compilerOptions.freeCompilerArgs.add("-Xcontext-receivers")
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "11"
+    compilerOptions.freeCompilerArgs.add("-Xcontext-receivers")
 }
 
 dependencies {

@@ -1,6 +1,6 @@
 package dev.dres.api.rest.types.judgement
 
-import dev.dres.api.rest.types.evaluation.ApiVerdictStatus
+import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
 
 /**
  *

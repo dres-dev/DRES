@@ -10,9 +10,9 @@ import dev.dres.data.model.template.task.options.DbConfiguredOption
 import dev.dres.data.model.template.task.options.DbScoreOption
 import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.data.model.template.team.TeamId
-import dev.dres.run.filter.AllSubmissionFilter
-import dev.dres.run.filter.SubmissionFilter
-import dev.dres.run.filter.SubmissionFilterAggregator
+import dev.dres.run.filter.basics.AcceptAllSubmissionFilter
+import dev.dres.run.filter.basics.SubmissionFilter
+import dev.dres.run.filter.basics.CombiningSubmissionFilter
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
@@ -21,9 +21,9 @@ import dev.dres.run.score.scorer.CachingTaskScorer
 import dev.dres.run.score.scorer.KisTaskScorer
 import dev.dres.run.score.scorer.LegacyAvsTaskScorer
 import dev.dres.run.transformer.MapToSegmentTransformer
-import dev.dres.run.transformer.SubmissionTaskMatchFilter
-import dev.dres.run.transformer.SubmissionTransformer
-import dev.dres.run.transformer.SubmissionTransformerAggregator
+import dev.dres.run.transformer.SubmissionTaskMatchTransformer
+import dev.dres.run.transformer.basics.SubmissionTransformer
+import dev.dres.run.transformer.basics.CombiningSubmissionTransformer
 import kotlinx.dnq.query.*
 import java.lang.IndexOutOfBoundsException
 import java.util.LinkedList
@@ -152,9 +152,9 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
 
             /* Initialize submission filter. */
             if (this.template.taskGroup.type.submission.isEmpty) {
-                this.filter = AllSubmissionFilter
+                this.filter = AcceptAllSubmissionFilter
             } else {
-                this.filter = SubmissionFilterAggregator(
+                this.filter = CombiningSubmissionFilter(
                     this.template.taskGroup.type.submission.asSequence().map { option ->
                         val parameters = this.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq option.description)
                             .asSequence().map { it.key to it.value }.toMap()
@@ -164,14 +164,14 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
             }
             val mapToSegment = this.template.taskGroup.type.options.contains(DbTaskOption.MAP_TO_SEGMENT)
             this.transformer = if (mapToSegment) {
-                SubmissionTransformerAggregator(
+                CombiningSubmissionTransformer(
                     listOf(
-                        SubmissionTaskMatchFilter(this.taskId),
+                        SubmissionTaskMatchTransformer(this.taskId),
                         MapToSegmentTransformer()
                     )
                 )
             } else {
-                SubmissionTaskMatchFilter(this.taskId)
+                SubmissionTaskMatchTransformer(this.taskId)
             }
 
             /* Initialize task scorer. */

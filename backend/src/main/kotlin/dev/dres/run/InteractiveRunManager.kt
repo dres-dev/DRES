@@ -1,12 +1,13 @@
 package dev.dres.run
 
+import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.SubmissionId
 import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
 
@@ -147,6 +148,17 @@ interface InteractiveRunManager : RunManager {
     fun taskForId(context: RunActionContext, taskId: EvaluationId): TaskRun?
 
     /**
+     * Invoked by an external caller to update an existing submission by its [SubmissionId] with a new [ApiVerdictStatus].
+     *
+     * @param context The [RunActionContext] used for the invocation.
+     * @param submissionId The [SubmissionId] of the submission to update.
+     * @param submissionStatus The new [ApiVerdictStatus]
+     *
+     * @return Whether the update was successful or not.
+     */
+    fun updateSubmission(context: RunActionContext, submissionId: SubmissionId, submissionStatus: ApiVerdictStatus): Boolean
+
+    /**
      * List of all [DbSubmission]s for this [InteractiveRunManager], irrespective of the [DbTask] it belongs to.
      *
      * @param context The [RunActionContext] used for the invocation.
@@ -170,21 +182,4 @@ interface InteractiveRunManager : RunManager {
      * @return true on success, false otherwise
      */
     fun overrideReadyState(context: RunActionContext, viewerId: String): Boolean
-
-    /**
-     * Invoked by an external caller to update an existing [DbSubmission] by its [DbSubmission.uid] with a new [DbVerdictStatus].
-     * [DbSubmission]s usually cause updates to the internal state and/or the [Scoreboard] of this [InteractiveRunManager].
-     *
-     * This method will not throw an exception and instead returns false if a [DbSubmission] was
-     * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
-     * this method again.
-     *
-     * @param context The [RunActionContext] used for the invocation
-     * @param submissionId The [EvaluationId] of the [DbSubmission] to update.
-     * @param submissionStatus The new [DbVerdictStatus]
-     *
-     * @return Whether the update was successful or not
-     * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
-     */
-    fun updateSubmission(context: RunActionContext, submissionId: EvaluationId, submissionStatus: DbVerdictStatus): Boolean
 }

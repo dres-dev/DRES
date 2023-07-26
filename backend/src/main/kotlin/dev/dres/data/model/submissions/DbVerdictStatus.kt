@@ -1,6 +1,6 @@
 package dev.dres.data.model.submissions
 
-import dev.dres.api.rest.types.evaluation.ApiVerdictStatus
+import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
 import dev.dres.data.model.admin.DbRole
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.XdEnumEntity

@@ -11,6 +11,7 @@ import dev.dres.api.rest.types.task.ApiContentType
 import dev.dres.data.model.media.DbMediaType
 import dev.dres.data.model.run.DbTaskStatus
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.data.model.template.task.DbHint
 import dev.dres.data.model.template.task.DbTargetType
 import dev.dres.data.model.template.task.DbTaskTemplate
@@ -57,12 +58,13 @@ class GetTaskTargetHandler(store: TransientEntityStore, private val cache: Cache
     )
     override fun doGet(ctx: Context): ApiTargetContent {
         val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskId' not specified.", ctx)
+        val rac = ctx.runActionContext()
+
         return this.store.transactional (true) {
             val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
             if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
                 throw ErrorStatusException(403, "Access Denied", ctx)
             }
-            val rac = RunActionContext.runActionContext(ctx, manager)
 
             /* Test for correct state. */
             var task = manager.currentTask(rac)

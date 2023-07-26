@@ -138,7 +138,7 @@ object RestApi {
 
             // Submission
             LegacySubmissionHandler(store, cache),
-            SubmissionHandler(store, config),
+            SubmissionHandler(),
 
             // Log
             QueryLogHandler(),

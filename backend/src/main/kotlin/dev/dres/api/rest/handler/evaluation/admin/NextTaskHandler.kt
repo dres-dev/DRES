@@ -9,6 +9,7 @@ import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.run.DbTaskStatus
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.sessionToken
@@ -52,7 +53,7 @@ class NextTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandl
         synchronousAdminCheck(evaluationManager, ctx)
 
         return this.store.transactional(true) {
-            val rac = RunActionContext.runActionContext(ctx, evaluationManager)
+            val rac = ctx.runActionContext()
             if (evaluationManager is InteractiveAsynchronousRunManager
                 && !AccessManager.rolesOfSession(ctx.sessionToken()).contains(ApiRole.ADMIN)
                 && evaluationManager.currentTask(rac)?.status !in setOf(DbTaskStatus.ENDED, DbTaskStatus.IGNORED)) {

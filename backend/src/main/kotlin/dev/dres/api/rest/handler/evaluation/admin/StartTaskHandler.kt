@@ -8,6 +8,7 @@ import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.DbEvaluation
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.sessionToken
@@ -52,7 +53,7 @@ class StartTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHand
         synchronousAdminCheck(evaluationManager, ctx)
 
         return this.store.transactional {
-            val rac = RunActionContext.runActionContext(ctx, evaluationManager)
+            val rac = ctx.runActionContext()
             try {
                 evaluationManager.startTask(rac)
                 DbAuditLogger.taskStart(evaluationManager.id, evaluationManager.currentTask(rac)!!.taskId, evaluationManager.currentTaskTemplate(rac), DbAuditLogSource.REST, ctx.sessionToken())

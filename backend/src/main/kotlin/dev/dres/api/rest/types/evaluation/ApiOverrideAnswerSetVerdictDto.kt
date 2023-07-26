@@ -1,5 +1,7 @@
 package dev.dres.api.rest.types.evaluation
 
+import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
+
 /**
  * Data transfer object for overriding a [ApiAnswerSet]'s verdict.
  *

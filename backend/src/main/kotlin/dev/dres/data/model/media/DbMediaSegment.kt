@@ -24,16 +24,21 @@ class DbMediaSegment(entity: Entity) : PersistentEntity(entity) {
             listOf(DbMediaSegment::name, DbMediaSegment::item)
         )
 
+        /**
+         *
+         */
         fun findContaining(itemId: MediaItemId, time: TemporalPoint): DbMediaSegment? {
             val item = DbMediaItem.filter { it.mediaItemId eq itemId }.firstOrNull() ?: return null
             return findContaining(item, time)
         }
 
+        /**
+         *
+         */
         fun findContaining(item: DbMediaItem, time: TemporalPoint): DbMediaSegment? {
             val ms = time.toMilliseconds().toInt()
             return item.segments.filter { (ms ge it.start) and (it.end ge ms) }.firstOrNull()
         }
-
     }
 
     /** The name of this [DbMediaSegment]. */

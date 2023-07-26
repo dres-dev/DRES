@@ -58,7 +58,7 @@ class PostJudgementHandler(store: TransientEntityStore): AbstractJudgementHandle
             val validator = evaluationManager.judgementValidators.find { it.id == judgement.validator }
                 ?: throw ErrorStatusException(404, "No matching task found for validator ${judgement.validator}.", ctx)
             try {
-                validator.judge(judgement.token, VerdictStatus.fromApi(judgement.verdict))
+                validator.judge(judgement.token, judgement.verdict.toDb())
             } catch (ex: JudgementTimeoutException) {
                 throw ErrorStatusException(408, ex.message!!, ctx)
             }

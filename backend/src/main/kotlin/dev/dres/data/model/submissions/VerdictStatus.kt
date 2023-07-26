@@ -1,6 +1,6 @@
 package dev.dres.data.model.submissions
 
-import dev.dres.api.rest.types.evaluation.ApiVerdictStatus
+import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
 
 enum class VerdictStatus {
         CORRECT, WRONG, INDETERMINATE, UNDECIDABLE;

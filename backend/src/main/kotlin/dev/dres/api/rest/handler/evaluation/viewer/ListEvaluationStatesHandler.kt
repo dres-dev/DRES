@@ -4,6 +4,7 @@ import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.evaluation.ApiEvaluationState
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -28,7 +29,7 @@ class ListEvaluationStatesHandler(store: TransientEntityStore): AbstractEvaluati
     )
     override fun doGet(ctx: Context): List<ApiEvaluationState> = this.store.transactional(true) {
         this.getRelevantManagers(ctx).map {
-            val rac = RunActionContext.runActionContext(ctx, it)
+            val rac = ctx.runActionContext()
             ApiEvaluationState(it, rac)
         }
     }

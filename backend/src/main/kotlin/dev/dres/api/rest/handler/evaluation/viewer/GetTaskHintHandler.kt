@@ -8,8 +8,8 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.task.ApiContentElement
 import dev.dres.api.rest.types.task.ApiContentType
-import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.DbTask
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.data.model.template.task.DbHint
 import dev.dres.data.model.template.task.DbHintType
 import dev.dres.data.model.template.task.DbTaskTemplate
@@ -60,14 +60,14 @@ class GetTaskHintHandler(store: TransientEntityStore, private val cache: CacheMa
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): ApiHintContent {
-        val taskId =
-            ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskId' not specified.", ctx)
+        val taskId = ctx.pathParamMap()["taskId"] ?: throw ErrorStatusException(400, "Parameter 'taskId' not specified.", ctx)
+        val rac = ctx.runActionContext()
+
         return this.store.transactional(true) {
             val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
             if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
                 throw ErrorStatusException(403, "Access Denied", ctx)
             }
-            val rac = RunActionContext.runActionContext(ctx, manager)
 
             val currentTaskDescription = manager.currentTaskTemplate(rac)
             val template = if (currentTaskDescription.id == taskId) {

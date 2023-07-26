@@ -46,10 +46,10 @@ class DequeueVoteHandler(store: TransientEntityStore): AbstractJudgementHandler(
             val evaluationManager = ctx.eligibleManagerForId<RunManager>()
 
             val validator = evaluationManager.judgementValidators.filterIsInstance<VoteValidator>().find {  it.isActive } ?: return@transactional null
-            val next = validator?.next(ctx.sessionToken()!!)
+            val next = validator.next()
                 ?: /* No submission awaiting judgement */
                 return@transactional null
-            val taskDescription = next.second.task().template.textualDescription()
+            val taskDescription = next.second.task.template.textualDescription()
             return@transactional ApiJudgementRequest(
                 token = next.first,
                 validator = validator.id,

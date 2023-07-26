@@ -3,16 +3,15 @@ package dev.dres.run.updatables
 import dev.dres.api.rest.types.evaluation.ApiEvaluationState
 import dev.dres.api.rest.types.evaluation.ApiTaskStatus
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbSubmission
-import dev.dres.data.model.submissions.VerdictStatus
+import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.data.model.template.task.options.DbTaskOption
 import dev.dres.data.model.template.task.options.Defaults
 import dev.dres.data.model.template.task.options.Parameters
 import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunManagerStatus
-import kotlinx.dnq.query.any
-import kotlinx.dnq.query.filter
-import kotlinx.dnq.query.firstOrNull
+import kotlinx.dnq.query.*
 
 /**
  * An [Updatable] that takes care of prolonging a task if a last-minute [DbSubmission] was received.
@@ -49,8 +48,8 @@ class ProlongOnSubmitUpdatable(private val manager: InteractiveRunManager): Upda
                 }.firstOrNull()?.value?.toBooleanStrictOrNull() ?: Defaults.PROLONG_ON_SUBMISSION_CORRECT_DEFAULT
 
                 /* Apply prolongation if necessary. */
-                val submission: DbSubmission? = this.manager.currentSubmissions(context).lastOrNull()
-                if (submission == null || (correctOnly && submission.answerSets().all { it.status() != VerdictStatus.CORRECT })) {
+                val lastSubmission: DbSubmission? = DbAnswerSet.filter { it.task.id eq currentTask.taskId }.mapDistinct { it.submission }.lastOrNull()
+                if (lastSubmission == null || (correctOnly && lastSubmission.answerSets.asSequence().all { it.status != DbVerdictStatus.CORRECT })) {
                     return
                 }
                 val timeLeft = Math.floorDiv(this.manager.timeLeft(context), 1000)

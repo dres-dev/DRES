@@ -2,6 +2,7 @@ package dev.dres.run.validation
 
 import dev.dres.data.model.submissions.*
 import dev.dres.run.validation.interfaces.AnswerSetValidator
+import kotlinx.dnq.query.iterator
 
 /**
  * A [AnswerSetValidator] class that checks, if a submission is correct based on the target segment and the
@@ -9,47 +10,48 @@ import dev.dres.run.validation.interfaces.AnswerSetValidator
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 2.0.0
  */
 class TemporalContainmentAnswerSetValidator(private val targetSegment: TransientMediaSegment) : AnswerSetValidator {
 
     override val deferring: Boolean
         get() = false
 
-    override fun validate(answerSet: AnswerSet) {
+    /**
+     * Validates the [DbAnswerSet] and updates its [DBVerdictStatus].
+     *
+     * Usually requires an ongoing transaction.
+     *
+     * @param answerSet The [DbAnswerSet] to validate.
+     */
+    override fun validate(answerSet: DbAnswerSet) {
 
-        answerSet.answers().forEach { answer ->
+        /* Basically, we assume that the DBAnswerSet is wrong. */
+        answerSet.status = DbVerdictStatus.WRONG
 
+        /* Now we check all the answers. */
+        for (answer in answerSet.answers) {
             /* Perform sanity checks. */
-            if (answer.type() != AnswerType.TEMPORAL) {
-                answerSet.status(VerdictStatus.WRONG)
-                return@forEach
-            }
-
+            val item = answer.item
             val start = answer.start
             val end = answer.end
-            val item = answer.item
-            if (item == null || start == null || end == null || start > end) {
-                answerSet.status(VerdictStatus.WRONG)
-                return@forEach
-
+            if (answer.type != DbAnswerType.TEMPORAL || item == null || start == null || end == null || start > end) {
+                return
             }
 
             /* Perform item validation. */
-            if (answer.item?.mediaItemId != this.targetSegment.first.mediaItemId) {
-                answerSet.status(VerdictStatus.WRONG)
-                return@forEach
+            if (item.mediaItemId != this.targetSegment.first.mediaItemId) {
+                return
             }
 
             /* Perform temporal validation. */
             val outer = this.targetSegment.second.toMilliseconds()
-            if (outer.first <= start && outer.second >= end) {
-                answerSet.status(VerdictStatus.CORRECT)
-            } else {
-                answerSet.status(VerdictStatus.WRONG)
+            if (outer.first > start || outer.second < end) {
+                return
             }
-
         }
 
+        /* If code reaches this point, the [DbAnswerSet] is correct. */
+        answerSet.status = DbVerdictStatus.CORRECT
     }
 }

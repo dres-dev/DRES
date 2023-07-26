@@ -5,6 +5,7 @@ import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.evaluation.*
+import dev.dres.api.rest.types.evaluation.submission.*
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessfulSubmissionsStatus
@@ -16,6 +17,7 @@ import dev.dres.data.model.media.*
 import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.DbTask
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.data.model.submissions.*
 import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.InteractiveRunManager
@@ -115,250 +117,130 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): SuccessfulSubmissionsStatus {
-        val (s, r) = this.store.transactional {
-            val userId = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(
-                401,
-                "Authorization required.",
-                ctx
-            )
-            val run = getEligibleRunManager(userId, ctx)
-            val time = System.currentTimeMillis()
-            val submission = toSubmission(userId, run, time, ctx)
-            val rac = RunActionContext.runActionContext(ctx, run)
+        /* Obtain run action context and parse submission. */
+        val rac = ctx.runActionContext()
+        val run = getEligibleRunManager(rac, ctx)
+        val submission = toSubmission(rac, run, ctx)
 
-            try {
-                run.postSubmission(rac, submission)
-            } catch (e: SubmissionRejectedException) {
-                throw ErrorStatusException(412, e.message ?: "Submission rejected by submission filter.", ctx)
-            } catch (e: IllegalRunStateException) {
-                logger.info("Submission was received while run manager was not accepting submissions.")
-                throw ErrorStatusException(
-                    400,
-                    "Run manager is in wrong state and cannot accept any more submission.",
-                    ctx
-                )
-            } catch (e: IllegalTeamIdException) {
-                logger.info("Submission with unknown team id '${rac.teamId}' was received.")
-                throw ErrorStatusException(400, "Run manager does not know the given teamId ${rac.teamId}.", ctx)
-            }
-
-            DbAuditLogger.submission(submission, DbAuditLogSource.REST, ctx.sessionToken(), ctx.req().remoteAddr)
-            if (run.currentTaskTemplate(rac).taskGroup.type.options.contains(DbTaskOption.HIDDEN_RESULTS)) { //pre-generate preview
-                generatePreview(submission.answerSets().first())
-            }
-
-            val result = DbSubmission.filter { it.id eq submission.submissionId }.firstOrNull()?.answerSets?.first()?.status?.let { VerdictStatus.fromDb(it) } ?: VerdictStatus.INDETERMINATE
-
-            submission to result
+        /* Post submission. */
+        try {
+            run.postSubmission(rac, submission)
+        } catch (e: SubmissionRejectedException) {
+            throw ErrorStatusException(412, e.message ?: "Submission rejected by submission filter.", ctx)
+        } catch (e: IllegalRunStateException) {
+            logger.info("Submission was received while run manager was not accepting submissions.")
+            throw ErrorStatusException(400, "Run manager is in wrong state and cannot accept any more submission.", ctx)
+        } catch (e: IllegalTeamIdException) {
+            logger.info("Submission with unknown team id '${submission.teamId}' was received.")
+            throw ErrorStatusException(400, "Run manager does not know the given teamId ${submission.teamId}.", ctx)
         }
 
-        logger.info("Submission ${s.submissionId} received status $r.")
-
-        return when (r) {
-            VerdictStatus.CORRECT -> SuccessfulSubmissionsStatus(ApiVerdictStatus.CORRECT, "Submission correct!")
-            VerdictStatus.WRONG -> SuccessfulSubmissionsStatus(
-                ApiVerdictStatus.WRONG,
-                "Submission incorrect! Try again"
-            )
-
-            VerdictStatus.INDETERMINATE -> {
-                ctx.status(202) /* HTTP Accepted. */
-                SuccessfulSubmissionsStatus(ApiVerdictStatus.INDETERMINATE, "Submission received. Waiting for verdict!")
+        /* Lookup verdict for submission and return it. */
+        return this.store.transactional(true) {
+            when (DbSubmission.filter { it.id eq submission.submissionId }.firstOrNull()?.answerSets?.first()?.status) {
+                DbVerdictStatus.CORRECT -> SuccessfulSubmissionsStatus(ApiVerdictStatus.CORRECT, "Submission correct!")
+                DbVerdictStatus.WRONG -> SuccessfulSubmissionsStatus(ApiVerdictStatus.WRONG, "Submission incorrect! Try again")
+                DbVerdictStatus.INDETERMINATE -> {
+                    ctx.status(202) /* HTTP Accepted. */
+                    SuccessfulSubmissionsStatus(ApiVerdictStatus.INDETERMINATE, "Submission received. Waiting for verdict!")
+                }
+                DbVerdictStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(ApiVerdictStatus.UNDECIDABLE, "Submission undecidable. Try again!")
+                else -> throw ErrorStatusException(500, "Unsupported submission status. This is very unusual!", ctx)
             }
-
-            VerdictStatus.UNDECIDABLE -> SuccessfulSubmissionsStatus(
-                ApiVerdictStatus.UNDECIDABLE,
-                "Submission undecidable. Try again!"
-            )
-
-            else -> throw ErrorStatusException(500, "Unsupported submission status. This is very unusual!", ctx)
         }
     }
 
     /**
      * Returns the [InteractiveRunManager] that is eligible for the given [UserId] and [Context]
+     *
+     * @param rac The [RunActionContext] used for the lookup.
+     * @param ctx The current [Context].
      */
-    private fun getEligibleRunManager(userId: UserId, ctx: Context): InteractiveRunManager {
-        val managers =
-            AccessManager.getRunManagerForUser(userId).filterIsInstance(InteractiveRunManager::class.java).filter {
-                val rac = RunActionContext.runActionContext(ctx, it)
-                it.currentTask(rac)?.isRunning == true
-            }
-        if (managers.isEmpty()) throw ErrorStatusException(
-            404,
-            "There is currently no eligible competition with an active task.",
-            ctx
-        )
-        if (managers.size > 1) throw ErrorStatusException(
-            409,
-            "More than one possible competition found: ${managers.joinToString { it.template.name }}",
-            ctx
-        )
+    private fun getEligibleRunManager(rac: RunActionContext, ctx: Context): InteractiveRunManager {
+        val managers = AccessManager.getRunManagerForUser(rac.userId).filterIsInstance(InteractiveRunManager::class.java).filter {
+            it.currentTask(rac)?.isRunning == true
+        }
+        if (managers.isEmpty()) throw ErrorStatusException(404, "There is currently no eligible competition with an active task.", ctx)
+        if (managers.size > 1) throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.template.name }}", ctx)
         return managers.first()
     }
 
     /**
-     * Converts the user request tu a [DbSubmission].
+     * Converts the user request tu a [ApiClientSubmission].
      *
-     * Creates the associated database entry. Requires an ongoing transaction.
-     *
-     * @param userId The [UserId] of the user who triggered the [DbSubmission].
+     * @param rac The [RunActionContext] used for the conversion.
      * @param runManager The [InteractiveRunManager]
-     * @param submissionTime Time of the submission.
      * @param ctx The HTTP [Context]
      */
-    private fun toSubmission(
-        userId: UserId,
-        runManager: InteractiveRunManager,
-        submissionTime: Long,
-        ctx: Context
-    ): ApiSubmission {
+    private fun toSubmission(rac: RunActionContext, runManager: InteractiveRunManager, ctx: Context): ApiClientSubmission {
         val map = ctx.queryParamMap()
+        return this.store.transactional(true) {
+            /* If text is supplied, it supersedes other parameters */
+            val textParam = map[PARAMETER_NAME_TEXT]?.first()
+            val itemParam = map[PARAMETER_NAME_ITEM]?.first()
 
-        /* Find team that the user belongs to. */
-        val user = DbUser.query(DbUser::id eq userId).firstOrNull()
-            ?: throw ErrorStatusException(404, "No user with ID '$userId' could be found.", ctx)
-        val team = runManager.template.teams.filter { it.users.contains(user) }.firstOrNull()
-            ?: throw ErrorStatusException(404, "No team for user '$userId' could be found.", ctx)
-        val rac = RunActionContext.runActionContext(ctx, runManager)
-
-        val answerSets = mutableListOf<ApiAnswerSet>()
-
-        /* Create new submission. */
-        val submission = ApiSubmission(
-            teamId = team.teamId,
-            memberId = user.userId,
-            teamName = team.name,
-            memberName = user.username,
-            answers = answerSets,
-            evaluationId = runManager.id
-        )
-
-        /* If text is supplied, it supersedes other parameters */
-        val textParam = map[PARAMETER_NAME_TEXT]?.first()
-        val itemParam = map[PARAMETER_NAME_ITEM]?.first()
-        val currentTaskId = runManager.currentTask(rac)?.taskId
-        val task = DbTask.query(DbTask::id eq currentTaskId).firstOrNull() ?: throw ErrorStatusException(
-            404,
-            "No active task for ID '$currentTaskId' could be found.",
-            ctx
-        )
-
-
-        val answer = if (textParam != null) {
-            ApiAnswer(
-                type = ApiAnswerType.TEXT,
-                text = textParam,
-                item = null,
-                start = null,
-                end = null
-            )
-        } else if (itemParam != null) {
-            val collection =
-                runManager.currentTaskTemplate(rac).collection /* TODO: Do we need the option to explicitly set the collection name? */
-            val mapToSegment =
-                runManager.currentTaskTemplate(rac).taskGroup.type.options.contains(DbTaskOption.MAP_TO_SEGMENT)
-            val item = DbMediaItem.query((DbMediaItem::name eq itemParam) and (DbMediaItem::collection eq collection))
-                .firstOrNull()
-                ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_ITEM' is missing but required!'", ctx)
-            val range: Pair<Long, Long>? = when {
-                map.containsKey(PARAMETER_NAME_SHOT) && item.type == DbMediaType.VIDEO -> {
-                    val shot = map[PARAMETER_NAME_SHOT]?.first()!!
-                    val time = item.segments.filter { it.name eq shot }.firstOrNull()?.range?.toMilliseconds()//TimeUtil.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item.segments.toList())
-                        ?: throw ErrorStatusException(
-                            400,
-                            "Shot '${item.name}.${map[PARAMETER_NAME_SHOT]?.first()!!}' not found.",
-                            ctx
-                        )
-                    time.first to time.second
-                }
-
-                map.containsKey(PARAMETER_NAME_FRAME) && item.type == DbMediaType.VIDEO -> {
-                    val fps = item.fps
-                        ?: throw IllegalStateException("Missing media item fps information prevented mapping from frame number to milliseconds.")
-                    val time = TemporalPoint.Frame(
-                        map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull()
-                            ?: throw ErrorStatusException(
-                                400,
-                                "Parameter '$PARAMETER_NAME_FRAME' must be a number.",
-                                ctx
-                            ),
-                        fps
-                    )
-                    if (mapToSegment) {
-                        DbMediaSegment.findContaining(item, time)?.range?.toMilliseconds()//TimeUtil.timeToSegment(time, item.segments.toList())
-                            ?: throw ErrorStatusException(
-                                400,
-                                "No matching segments found for item '${item.name}'.",
-                                ctx
-                            )
-                    } else {
-                        val ms = time.toMilliseconds()
-                        ms to ms
+            val answer = if (textParam != null) {
+                ApiClientAnswer(text = textParam)
+            } else if (itemParam != null) {
+                val collection = runManager.currentTaskTemplate(rac).collection /* TODO: Do we need the option to explicitly set the collection name? */
+                val mapToSegment = runManager.currentTaskTemplate(rac).taskGroup.type.options.contains(DbTaskOption.MAP_TO_SEGMENT)
+                val item = DbMediaItem.query((DbMediaItem::name eq itemParam) and (DbMediaItem::collection eq collection)).firstOrNull()
+                    ?: throw ErrorStatusException(404, "Parameter '$PARAMETER_NAME_ITEM' is missing but required!'", ctx)
+                val range: Pair<Long, Long>? = when {
+                    map.containsKey(PARAMETER_NAME_SHOT) && item.type == DbMediaType.VIDEO -> {
+                        val shot = map[PARAMETER_NAME_SHOT]?.first()!!
+                        val time = item.segments.filter { it.name eq shot }.firstOrNull()?.range?.toMilliseconds()//TimeUtil.shotToTime(map[PARAMETER_NAME_SHOT]?.first()!!, item.segments.toList())
+                            ?: throw ErrorStatusException(400, "Shot '${item.name}.${map[PARAMETER_NAME_SHOT]?.first()!!}' not found.", ctx)
+                        time.first to time.second
                     }
-                }
 
-                map.containsKey(PARAMETER_NAME_TIMECODE) -> {
-                    val fps = item.fps
-                        ?: throw IllegalStateException("Missing media item fps information prevented mapping from frame number to milliseconds.")
-                    val time =
-                        TemporalPoint.Millisecond(TemporalPoint.Timecode.timeCodeToMilliseconds(map[PARAMETER_NAME_TIMECODE]?.first()!!, fps)
-                            ?: throw ErrorStatusException(
-                                400,
-                                "'${map[PARAMETER_NAME_TIMECODE]?.first()!!}' is not a valid time code",
-                                ctx
-                            )
+                    map.containsKey(PARAMETER_NAME_FRAME) && item.type == DbMediaType.VIDEO -> {
+                        val fps = item.fps
+                            ?: throw IllegalStateException("Missing media item fps information prevented mapping from frame number to milliseconds.")
+                        val time = TemporalPoint.Frame(
+                            map[PARAMETER_NAME_FRAME]?.first()?.toIntOrNull()
+                                ?: throw ErrorStatusException(400, "Parameter '$PARAMETER_NAME_FRAME' must be a number.", ctx),
+                            fps
                         )
-                    if (mapToSegment) {
-                        DbMediaSegment.findContaining(item, time)?.range?.toMilliseconds()//TimeUtil.timeToSegment(time, item.segments.toList())
-                            ?: throw ErrorStatusException(
-                                400,
-                                "No matching segments found for item '${item.name}'.",
-                                ctx
-                            )
-                    } else {
-                        val ms = time.toMilliseconds()
-                        ms to ms
+                        if (mapToSegment) {
+                            DbMediaSegment.findContaining(item, time)?.range?.toMilliseconds()//TimeUtil.timeToSegment(time, item.segments.toList())
+                                ?: throw ErrorStatusException(400, "No matching segments found for item '${item.name}'.", ctx)
+                        } else {
+                            val ms = time.toMilliseconds()
+                            ms to ms
+                        }
                     }
+
+                    map.containsKey(PARAMETER_NAME_TIMECODE) -> {
+                        val fps = item.fps ?: throw IllegalStateException("Missing media item fps information prevented mapping from frame number to milliseconds.")
+                        val time =
+                            TemporalPoint.Millisecond(TemporalPoint.Timecode.timeCodeToMilliseconds(map[PARAMETER_NAME_TIMECODE]?.first()!!, fps)
+                                ?: throw ErrorStatusException(400, "'${map[PARAMETER_NAME_TIMECODE]?.first()!!}' is not a valid time code", ctx)
+                            )
+                        if (mapToSegment) {
+                            DbMediaSegment.findContaining(item, time)?.range?.toMilliseconds()//TimeUtil.timeToSegment(time, item.segments.toList())
+                                ?: throw ErrorStatusException(400, "No matching segments found for item '${item.name}'.", ctx)
+                        } else {
+                            val ms = time.toMilliseconds()
+                            ms to ms
+                        }
+                    }
+                    else -> null
                 }
 
-                else -> null
-            }
-
-            /* Assign information to submission. */
-            if (range != null) {
-                ApiAnswer(
-                    type = ApiAnswerType.TEMPORAL,
-                    item = item.toApi(),
-                    start = range.first,
-                    end = range.second,
-                    text = null
-                )
+                /* Assign information to submission. */
+                if (range != null) {
+                    ApiClientAnswer(itemName = itemParam, start = range.first, end = range.second)
+                } else {
+                    ApiClientAnswer(itemName = itemParam)
+                }
             } else {
-                ApiAnswer(
-                    type = ApiAnswerType.ITEM,
-                    item = item.toApi(),
-                    start = null,
-                    end = null,
-                    text = null
-                )
+                throw ErrorStatusException(404, "Required submission parameters are missing (content not set)!", ctx)
             }
 
-        } else {
-            throw ErrorStatusException(404, "Required submission parameters are missing (content not set)!", ctx)
+            /* Generate and return ApiClientSubmission. */
+            ApiClientSubmission(listOf(ApiClientAnswerSet(answers = listOf(answer))))
         }
-
-        /* Create AnswerSet. */
-        answerSets.add(
-            ApiAnswerSet(
-                id = UUID.randomUUID().toString(),
-                status = ApiVerdictStatus.INDETERMINATE,
-                taskId = task.taskId,
-                answers = listOf(answer)
-            )
-        )
-
-        return submission
     }
 
     /**

@@ -6,6 +6,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -42,9 +43,9 @@ class ForceViewerHandler(store: TransientEntityStore): AbstractEvaluationAdminHa
         val evaluationId = ctx.evaluationId()
         val viewerId = ctx.pathParamMap()["viewerId"] ?: throw ErrorStatusException(404, "Parameter 'viewerId' is missing!'", ctx)
         val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Run $evaluationId not found", ctx)
+        val rac = ctx.runActionContext()
 
         return this.store.transactional(true) {
-            val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             try {
                 if (evaluationManager.overrideReadyState(rac, viewerId)) {
                     SuccessStatus("State for viewer $viewerId (evaluation '$evaluationId') forced successfully.")

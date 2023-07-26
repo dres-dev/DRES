@@ -8,6 +8,7 @@ import dev.dres.api.rest.types.evaluation.ApiEvaluationState
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.InteractiveRunManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -39,7 +40,7 @@ class GetEvaluationStateHandler(store: TransientEntityStore): AbstractEvaluation
         if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
             throw ErrorStatusException(403, "Access Denied", ctx)
         }
-        val rac = RunActionContext.runActionContext(ctx, manager)
+        val rac = ctx.runActionContext()
         ApiEvaluationState(manager, rac)
     }
 }

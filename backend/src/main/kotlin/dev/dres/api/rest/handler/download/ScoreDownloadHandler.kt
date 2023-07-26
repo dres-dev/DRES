@@ -3,6 +3,7 @@ package dev.dres.api.rest.handler.download
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.RunManager
 import dev.dres.utilities.extensions.eligibleManagerForId
 import io.javalin.http.Context
@@ -39,7 +40,7 @@ class ScoreDownloadHandler(store: TransientEntityStore) : AbstractDownloadHandle
     )
     override fun doGet(ctx: Context): String = this.store.transactional(true) {
         val manager = ctx.eligibleManagerForId<RunManager>()
-        val rac = RunActionContext.runActionContext(ctx, manager)
+        val rac = ctx.runActionContext()
 
         /* Update response header. */
         ctx.contentType("text/csv")

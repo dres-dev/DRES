@@ -3,7 +3,15 @@ package dev.dres.data.model.submissions
 import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.time.TemporalPoint
 import dev.dres.data.model.media.time.TemporalRange
-
+/**
+ * A [Answer] as issued by a DRES user as part of a [AnswerSet].
+ *
+ * This abstraction is mainly required to enable testability of implementations.
+ *
+ * @author Luca Rossetto
+ * @author Ralph Gasser
+ * @version 2.0.0
+ */
 interface Answer {
 
     val item: MediaItem?
@@ -14,20 +22,13 @@ interface Answer {
     /**  Returns the [TemporalRange] for this [DbAnswerSet]. */
     val temporalRange: TemporalRange?
         get() {
-
             val start = this.start ?: return null
             val end = this.end ?: return null
-
             return TemporalRange(TemporalPoint.Millisecond(start), TemporalPoint.Millisecond(end))
         }
 
+    /**
+     *
+     */
     fun type(): AnswerType
-
-    infix fun eq(answer: Answer) : Boolean =
-        answer.type() == this.type() &&
-                answer.item?.mediaItemId == this.item?.mediaItemId &&
-                //answer.item?.collection?.id == this.item?.collection?.id &&
-                answer.start == this.start &&
-                answer.end == this.end &&
-                answer.text == this.text
 }

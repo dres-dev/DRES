@@ -1,10 +1,10 @@
 package dev.dres.run.validation
 
-import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.media.MediaItem
 import dev.dres.data.model.media.time.TemporalRange
 import dev.dres.data.model.submissions.*
 import dev.dres.run.validation.interfaces.AnswerSetValidator
+import kotlinx.dnq.query.iterator
 
 /** */
 typealias TransientMediaSegment = Pair<MediaItem, TemporalRange>
@@ -15,51 +15,46 @@ typealias TransientMediaSegment = Pair<MediaItem, TemporalRange>
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 2.0.0
  */
 class TemporalOverlapAnswerSetValidator(private val targetSegment: TransientMediaSegment) : AnswerSetValidator {
 
     override val deferring: Boolean = false
 
     /**
-     * Validates a [DbSubmission] based on the target segment and the temporal overlap of the
-     * [DbSubmission] with the [DbTaskTemplate].
+     * Validates the [DbAnswerSet] and updates its [DbVerdictStatus].
      *
-     * @param submission The [DbSubmission] to validate.
+     * Usually requires an ongoing transaction.
+     *
+     * @param answerSet The [DbAnswerSet] to validate.
      */
-    override fun validate(answerSet: AnswerSet) {
+    override fun validate(answerSet: DbAnswerSet) {
+        /* Basically, we assume that the DBAnswerSet is wrong. */
+        answerSet.status = DbVerdictStatus.WRONG
 
-        answerSet.answers().forEach { answer ->
-
+        /* Now we check all the answers. */
+        for (answer in answerSet.answers) {
             /* Perform sanity checks. */
-            if (answer.type() != AnswerType.TEMPORAL) {
-                answerSet.status(VerdictStatus.WRONG)
-                return@forEach
-            }
-
             val start = answer.start
             val end = answer.end
             val item = answer.item
-            if (item == null || start == null || end == null || start > end) {
-                answerSet.status(VerdictStatus.WRONG)
-                return@forEach
+            if (answer.type != DbAnswerType.TEMPORAL || item == null || start == null || end == null || start > end) {
+                return
             }
 
             /* Perform item validation. */
-            if (answer.item?.mediaItemId != this.targetSegment.first.mediaItemId) {
-                answerSet.status(VerdictStatus.WRONG)
-                return@forEach
+            if (item.id != this.targetSegment.first.mediaItemId) {
+                return
             }
 
             /* Perform temporal validation. */
             val outer = this.targetSegment.second.toMilliseconds()
-            if ((outer.first <= start && outer.second >= start) || (outer.first <= end && outer.second >= end)) {
-                answerSet.status(VerdictStatus.CORRECT)
-            } else {
-                answerSet.status(VerdictStatus.WRONG)
+            if (!((outer.first <= start && outer.second >= start) || (outer.first <= end && outer.second >= end))) {
+                return
             }
         }
 
-
+        /* If code reaches this point, the [DbAnswerSet] is correct. */
+        answerSet.status = DbVerdictStatus.CORRECT
     }
 }

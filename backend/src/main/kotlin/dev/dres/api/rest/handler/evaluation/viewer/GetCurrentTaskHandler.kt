@@ -9,6 +9,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.DbTask
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.run.InteractiveRunManager
 import io.javalin.http.Context
@@ -51,7 +52,7 @@ class GetCurrentTaskHandler(store: TransientEntityStore): AbstractEvaluationView
         if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
-        val rac = RunActionContext.runActionContext(ctx, manager)
+        val rac = ctx.runActionContext()
         ApiTaskTemplateInfo(manager.currentTaskTemplate(rac))
     }
 }

@@ -6,6 +6,7 @@ import dev.dres.api.rest.types.evaluation.ApiSubmissionInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -39,8 +40,9 @@ class ListSubmissionsHandler(store: TransientEntityStore): AbstractEvaluationAdm
         val evaluationId = ctx.evaluationId()
         val templateId = ctx.pathParamMap()["templateId"] ?: throw ErrorStatusException(404, "Parameter 'templateId' is missing!'", ctx)
         val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
+        val rac = ctx.runActionContext()
         return this.store.transactional(true) {
-            evaluationManager.tasks(RunActionContext.runActionContext(ctx, evaluationManager)).filter { it.template.templateId == templateId }.map {
+            evaluationManager.tasks(rac).filter { it.template.templateId == templateId }.map {
                 ApiSubmissionInfo(evaluationId, it.taskId, it.getSubmissions().map { sub -> sub.toApi() }.toList())
             }
         }

@@ -7,14 +7,12 @@ import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.util.MimeTypeHelper
 import dev.dres.data.model.admin.UserId
 import dev.dres.data.model.run.interfaces.EvaluationId
-import dev.dres.run.InteractiveRunManager
 import dev.dres.run.RunExecutor
 import dev.dres.run.RunManager
 import dev.dres.run.RunManagerStatus
 import io.javalin.http.Context
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.flatMapDistinct
-import kotlinx.dnq.query.isEmpty
 import kotlinx.dnq.query.isNotEmpty
 import java.io.File
 import java.nio.file.Files
@@ -102,8 +100,7 @@ fun Context.userId(): UserId = AccessManager.userIdForSession(this.sessionToken(
  *
  * @return [EvaluationId]
  */
-fun Context.evaluationId(): EvaluationId
-        = this.pathParamMap()["evaluationId"] ?: throw ErrorStatusException(400, "Parameter 'evaluationId' is missing!'", this)
+fun Context.evaluationId(): EvaluationId = this.pathParamMap()["evaluationId"] ?: throw ErrorStatusException(400, "Parameter 'evaluationId' is missing!'", this)
 
 
 /**

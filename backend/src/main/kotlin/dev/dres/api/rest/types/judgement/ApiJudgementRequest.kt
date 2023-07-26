@@ -1,8 +1,6 @@
 package dev.dres.api.rest.types.judgement
 
-import dev.dres.api.rest.types.collection.ApiMediaType
-import dev.dres.api.rest.types.evaluation.ApiAnswer
-import dev.dres.api.rest.types.evaluation.ApiAnswerSet
+import dev.dres.api.rest.types.evaluation.submission.ApiAnswerSet
 
 /**
  *

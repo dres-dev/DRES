@@ -2,11 +2,13 @@ package dev.dres.run
 
 import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.types.WebSocketConnection
-import dev.dres.api.rest.types.evaluation.ApiSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
+import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.admin.DbRole
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.template.DbEvaluationTemplate
@@ -145,12 +147,11 @@ class InteractiveAsynchronousRunManager(
         this.evaluation.tasks.forEach { task ->
             task.getSubmissions().forEach { sub ->
                 this.scoresUpdatable.enqueue(task)
-                sub.answerSets().filter { v -> v.status() == VerdictStatus.INDETERMINATE }.forEach {
-                    task.validator.validate(it)
+                for (answerSet in sub.answerSets.filter { v -> v.status eq DbVerdictStatus.INDETERMINATE }) {
+                    task.validator.validate(answerSet)
                 }
             }
         }
-
     }
 
     /**
@@ -222,8 +223,7 @@ class InteractiveAsynchronousRunManager(
      * @return The [DbTaskTemplate] for the given team.
      */
     override fun currentTaskTemplate(context: RunActionContext): DbTaskTemplate {
-        require(context.teamId != null) { "TeamId missing from RunActionContext, which is required for interaction with InteractiveAsynchronousRunManager." }
-        return this.evaluation.currentTaskDescription(context.teamId)
+        return this.evaluation.currentTaskDescription(context.teamId())
     }
 
     /**
@@ -281,32 +281,30 @@ class InteractiveAsynchronousRunManager(
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     override fun goTo(context: RunActionContext, index: Int) = this.stateLock.write {
-        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
-        checkTeamStatus(context.teamId, RunManagerStatus.ACTIVE)//, RunManagerStatus.TASK_ENDED)
-        require(!teamHasRunningTask(context.teamId)) { "Cannot change task while task is active" }
+        val teamId = context.teamId()
+        checkTeamStatus(teamId, RunManagerStatus.ACTIVE)//, RunManagerStatus.TASK_ENDED)
+        require(!teamHasRunningTask(teamId)) { "Cannot change task while task is active" }
 
         val idx = (index + this.template.tasks.size()) % this.template.tasks.size()
 
 
         /* Update active task. */
         //this.run.navigationMap[context.teamId] = this.description.tasks[index]
-        this.evaluation.goTo(context.teamId, idx)
+        this.evaluation.goTo(teamId, idx)
         //FIXME since task run and competition run states are separated, this is not actually a state change
-        this.statusMap[context.teamId] = RunManagerStatus.ACTIVE
+        this.statusMap[teamId] = RunManagerStatus.ACTIVE
 
         /* Enqueue WS message for sending */
         RunExecutor.broadcastWsMessage(
-            context.teamId,
+            teamId,
             ServerMessage(
                 this.id,
                 ServerMessageType.COMPETITION_UPDATE,
-                this.evaluation.currentTaskForTeam(context.teamId)?.taskId
+                this.evaluation.currentTaskForTeam(teamId)?.taskId
             )
         )
 
         LOGGER.info("SynchronousRunManager ${this.id} set to task $idx")
-
-
     }
 
     /**
@@ -321,27 +319,24 @@ class InteractiveAsynchronousRunManager(
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.ACTIVE] or [currentTask] is not set.
      */
     override fun startTask(context: RunActionContext) = this.stateLock.write {
-        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
-        checkTeamStatus(context.teamId, RunManagerStatus.ACTIVE)
+        val teamId = context.teamId()
+        checkTeamStatus(teamId, RunManagerStatus.ACTIVE)
 
         /* Create task and update status. */
-        val currentTaskTemplate = this.evaluation.currentTaskDescription(context.teamId)
+        val currentTaskTemplate = this.evaluation.currentTaskDescription(teamId)
 
         /* Check for duplicate task runs */
-        if (!this.evaluation.allowRepeatedTasks && this.evaluation.tasksForTeam(context.teamId)
+        if (!this.evaluation.allowRepeatedTasks && this.evaluation.tasksForTeam(teamId)
                 .any { it.template.id == currentTaskTemplate.id }
         ) {
             throw IllegalStateException("Task '${currentTaskTemplate.name}' has already been used")
         }
 
-        val currentTaskRun = this.evaluation.IATaskRun(currentTaskTemplate, context.teamId)
+        val currentTaskRun = this.evaluation.IATaskRun(currentTaskTemplate, teamId)
         currentTaskRun.prepare()
 
         /* Enqueue WS message for sending */
-        RunExecutor.broadcastWsMessage(
-            context.teamId,
-            ServerMessage(this.id, ServerMessageType.TASK_PREPARE, currentTaskRun.taskId)
-        )
+        RunExecutor.broadcastWsMessage(teamId, ServerMessage(this.id, ServerMessageType.TASK_PREPARE, currentTaskRun.taskId))
 
         LOGGER.info("Run manager  ${this.id} started task $currentTaskTemplate.")
     }
@@ -358,19 +353,16 @@ class InteractiveAsynchronousRunManager(
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.ACTIVE].
      */
     override fun abortTask(context: RunActionContext) = this.stateLock.write {
-        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
-        require(teamHasRunningTask(context.teamId)) { "No running task for Team ${context.teamId}" }
+        val teamId = context.teamId()
+        require(teamHasRunningTask(teamId)) { "No running task for Team ${teamId}" }
 
         /* End TaskRun and update status. */
         val currentTask = this.currentTask(context)
-            ?: throw IllegalStateException("Could not find active task for team ${context.teamId} despite status of the team being ${this.statusMap[context.teamId]}. This is a programmer's error!")
+            ?: throw IllegalStateException("Could not find active task for team ${teamId} despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
         currentTask.end()
 
         /* Enqueue WS message for sending */
-        RunExecutor.broadcastWsMessage(
-            context.teamId,
-            ServerMessage(this.id, ServerMessageType.TASK_END, currentTask.taskId)
-        )
+        RunExecutor.broadcastWsMessage(teamId, ServerMessage(this.id, ServerMessageType.TASK_END, currentTask.taskId))
 
         LOGGER.info("Run manager ${this.id} aborted task $currentTask.")
     }
@@ -384,7 +376,7 @@ class InteractiveAsynchronousRunManager(
      * @return Time remaining until the task will end or -1, if no task is running.
      */
     override fun timeLeft(context: RunActionContext): Long = this.stateLock.read {
-        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
+        val teamId = context.teamId()
         val currentTaskRun = this.currentTask(context)
 
         return if (currentTaskRun?.isRunning == true) {
@@ -422,8 +414,8 @@ class InteractiveAsynchronousRunManager(
      */
     override fun taskCount(context: RunActionContext): Int {
         if (context.isAdmin) return this.evaluation.tasks.size
-        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
-        return this.evaluation.tasksForTeam(context.teamId).size
+        val teamId = context.teamId()
+        return this.evaluation.tasksForTeam(teamId).size
     }
 
     /**
@@ -436,8 +428,8 @@ class InteractiveAsynchronousRunManager(
      */
     override fun tasks(context: RunActionContext): List<AbstractInteractiveTask> {
         if (context.isAdmin) return this.evaluation.tasks
-        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
-        return this.evaluation.tasksForTeam(context.teamId)
+        val teamId = context.teamId()
+        return this.evaluation.tasksForTeam(teamId)
     }
 
     /**
@@ -455,11 +447,10 @@ class InteractiveAsynchronousRunManager(
      * @param context The [RunActionContext] used for the invocation.
      * @return [InteractiveAsynchronousEvaluation.IATaskRun] that is currently active or null, if no such task is active.
      */
-    override fun currentTask(context: RunActionContext): InteractiveAsynchronousEvaluation.IATaskRun? =
-        this.stateLock.read {
-            require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
-            return this.evaluation.currentTaskForTeam(context.teamId)
-        }
+    override fun currentTask(context: RunActionContext): InteractiveAsynchronousEvaluation.IATaskRun? = this.stateLock.read {
+        val teamId = context.teamId()
+        return this.evaluation.currentTaskForTeam(teamId)
+    }
 
     /**
      * List of all [DbSubmission]s for this [InteractiveAsynchronousRunManager], irrespective of the [DbTask] it belongs to.
@@ -486,11 +477,10 @@ class InteractiveAsynchronousRunManager(
      *
      */
     override fun adjustDuration(context: RunActionContext, s: Int): Long {
-        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
-        require(teamHasRunningTask(context.teamId)) { "No running task for Team ${context.teamId}" }
+        val teamId = context.teamId()
+        require(teamHasRunningTask(teamId)) { "No running task for Team $teamId." }
 
-        val currentTaskRun = this.currentTask(context)
-            ?: throw IllegalStateException("No active TaskRun found. This is a serious error!")
+        val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("No active TaskRun found. This is a serious error!")
         val newDuration = currentTaskRun.duration + s
         check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
         currentTaskRun.duration = newDuration
@@ -522,8 +512,10 @@ class InteractiveAsynchronousRunManager(
      * @return [DbVerdictStatus] of the [DbSubmission]
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.ACTIVE].
      */
-    override fun postSubmission(context: RunActionContext, submission: ApiSubmission) = this.stateLock.read {
-        require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
+    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) = this.stateLock.read {
+        TODO("Not yet implemented")
+
+        /* require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
         require(teamHasRunningTask(context.teamId)) { "No running task for Team ${context.teamId}" }
         require(
             submission.answerSets().count() == 1
@@ -564,8 +556,7 @@ class InteractiveAsynchronousRunManager(
         RunExecutor.broadcastWsMessage(
             context.teamId,
             ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.taskId)
-        )
-
+        ) */
     }
 
     override fun reScore(taskId: TaskId) {
@@ -589,26 +580,21 @@ class InteractiveAsynchronousRunManager(
      *
      * @return Whether the update was successful or not
      */
-    override fun updateSubmission(
-        context: RunActionContext,
-        submissionId: SubmissionId,
-        submissionStatus: DbVerdictStatus
-    ): Boolean = this.stateLock.read {
+    override fun updateSubmission(context: RunActionContext, submissionId: SubmissionId, submissionStatus: ApiVerdictStatus): Boolean = this.stateLock.read {
+        val teamId = context.teamId()
         val answerSet = DbAnswerSet.filter { it.submission.submissionId eq submissionId }.singleOrNull() ?: return false
         val task = this.taskForId(context, answerSet.task.id) ?: return false
 
         /* Actual update - currently, only status update is allowed */
-        if (answerSet.status != submissionStatus) {
-            answerSet.status = submissionStatus
+        val dbStatus = submissionStatus.toDb()
+        if (answerSet.status != dbStatus) {
+            answerSet.status = dbStatus
 
             /* Enqueue submission for post-processing. */
             this.scoresUpdatable.enqueue(task)
 
             /* Enqueue WS message for sending */
-            RunExecutor.broadcastWsMessage(
-                context.teamId!!,
-                ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.taskId)
-            )
+            RunExecutor.broadcastWsMessage(teamId, ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.taskId))
             return true
         }
 
@@ -713,7 +699,7 @@ class InteractiveAsynchronousRunManager(
             val taskStatus = this.evaluation.currentTaskForTeam(teamId)?.status?.toApi()
             for (updatable in this.updatables) {
                 if (updatable.shouldBeUpdated(runStatus, taskStatus)) {
-                    updatable.update(runStatus, taskStatus, RunActionContext(null, teamId, setOf(DbRole.ADMIN)))
+                    updatable.update(runStatus, taskStatus, RunActionContext("SYSTEM", teamId, setOf(ApiRole.ADMIN)))
                 }
             }
         }
@@ -804,4 +790,16 @@ class InteractiveAsynchronousRunManager(
      */
     private fun teamHasPreparingTask(teamId: TeamId) =
         this.evaluation.currentTaskForTeam(teamId)?.status == DbTaskStatus.PREPARING
+
+    /**
+     * Convenience method: Tries to find a matching [TeamId] in the context of this [InteractiveAsynchronousEvaluation]
+     * for the user associated with the current [RunActionContext].
+     *
+     * @return [TeamId]
+     */
+    private fun RunActionContext.teamId(): TeamId {
+        val userId = this.userId
+        return this@InteractiveAsynchronousRunManager.template.teams.filter { it.users.filter { it.id eq userId }.isNotEmpty() }.firstOrNull()?.teamId
+            ?: throw IllegalArgumentException("Could not find matching team for user, which is required for interaction with this run manager.")
+    }
 }

@@ -1,7 +1,8 @@
 package dev.dres.run
 
 import dev.dres.api.rest.types.WebSocketConnection
-import dev.dres.api.rest.types.evaluation.ApiSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.EvaluationId
@@ -112,13 +113,12 @@ interface RunManager : Runnable {
      * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
      * this method again.
      *
-     *
-     * @param context The [RunActionContext] used for the invocation
-     * @param submission The [ApiSubmission] to be posted.
+     * @param context: The [RunActionContext]
+     * @param submission The [ApiClientSubmission] to be posted.
      *
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.RUNNING_TASK].
      */
-    fun postSubmission(context: RunActionContext, submission: ApiSubmission)
+    fun postSubmission(context: RunActionContext, submission: ApiClientSubmission)
 
     /**
      * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.

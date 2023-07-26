@@ -7,6 +7,7 @@ import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.DbTask
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.sessionToken
@@ -46,8 +47,9 @@ class AdjustDurationHandler(store: TransientEntityStore): AbstractEvaluationAdmi
         val evaluationId = ctx.evaluationId()
         val duration = ctx.pathParamMap()["duration"]?.toIntOrNull() ?: throw ErrorStatusException(404, "Parameter 'duration' is missing!'", ctx)
         val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
+        val rac = ctx.runActionContext()
+
         return this.store.transactional {
-            val rac = RunActionContext.runActionContext(ctx, evaluationManager)
             try {
                 evaluationManager.adjustDuration(rac, duration)
                 DbAuditLogger.taskModified(evaluationManager.id, evaluationManager.currentTaskTemplate(rac).id, "Task duration adjusted by ${duration}s.", DbAuditLogSource.REST, ctx.sessionToken())

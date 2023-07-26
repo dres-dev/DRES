@@ -1,14 +1,14 @@
 package dev.dres.run
 
 import dev.dres.api.rest.types.WebSocketConnection
-import dev.dres.api.rest.types.evaluation.ApiSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.data.model.run.*
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.*
-import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.filter.SubmissionRejectedException
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.ScoreboardsUpdatable
@@ -16,8 +16,6 @@ import dev.dres.run.updatables.ScoresUpdatable
 import dev.dres.run.validation.interfaces.JudgementValidator
 import jetbrains.exodus.database.TransientEntityStore
 import org.slf4j.LoggerFactory
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -59,8 +57,7 @@ class NonInteractiveRunManager(
     private val scoresUpdatable = ScoresUpdatable(this)
 
     /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable =
-        ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_MS) //TODO requires some changes
+    private val scoreboardsUpdatable = ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_MS) //TODO requires some changes
 
     /** The [List] of [Scoreboard]s maintained by this [NonInteractiveRunManager]. */
     override val scoreboards: List<Scoreboard>
@@ -159,9 +156,15 @@ class NonInteractiveRunManager(
 
     private val taskMap = this.evaluation.tasks.associateBy { it.taskId }
 
-    override fun postSubmission(context: RunActionContext, submission: ApiSubmission) {
+    /**
+     *
+     */
+    override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) {
 
-        val submissionByTask =
+
+        TODO("Not yet implemented")
+
+        /*val submissionByTask =
             submission.answers.groupBy { it.taskId }.mapValues { submission.copy(answers = it.value) }
 
         if (submissionByTask.keys.any { !taskMap.containsKey(it) }) {
@@ -211,9 +214,7 @@ class NonInteractiveRunManager(
                 throw SubmissionRejectedException(submission, errorBuffer.toString())
             }
 
-        }
-
-        TODO("Not yet implemented")
+        } */
     }
 
     override fun reScore(taskId: TaskId) {

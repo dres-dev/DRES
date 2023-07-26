@@ -7,6 +7,7 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.sessionToken
@@ -44,7 +45,7 @@ class StopEvaluationHandler(store: TransientEntityStore): AbstractEvaluationAdmi
         val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Run $evaluationId not found", ctx)
 
         return this.store.transactional {
-            val rac = RunActionContext.runActionContext(ctx, evaluationManager)
+            val rac = ctx.runActionContext()
             try {
                 evaluationManager.end(rac)
                 DbAuditLogger.evaluationEnd(evaluationManager.id, DbAuditLogSource.REST, AccessManager.userIdForSession(ctx.sessionToken())!!, ctx.sessionToken())

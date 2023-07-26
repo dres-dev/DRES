@@ -1,6 +1,6 @@
 package dev.dres.data.model.submissions
 
-import dev.dres.api.rest.types.evaluation.ApiAnswerType
+import dev.dres.api.rest.types.evaluation.submission.ApiAnswerType
 
 enum class AnswerType {
     ITEM, TEMPORAL, TEXT;

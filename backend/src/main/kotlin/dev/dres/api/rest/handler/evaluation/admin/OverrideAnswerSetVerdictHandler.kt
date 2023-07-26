@@ -2,12 +2,12 @@ package dev.dres.api.rest.handler.evaluation.admin
 
 import dev.dres.api.rest.handler.PatchRestHandler
 import dev.dres.api.rest.types.evaluation.ApiOverrideAnswerSetVerdictDto
-import dev.dres.api.rest.types.evaluation.ApiVerdictStatus
+import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.audit.DbAuditLogSource
-import dev.dres.data.model.run.RunActionContext
+import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.data.model.submissions.DbVerdictStatus
 import dev.dres.run.audit.DbAuditLogger
 import dev.dres.utilities.extensions.evaluationId
@@ -68,7 +68,7 @@ class OverrideAnswerSetVerdictHandler(store: TransientEntityStore): AbstractEval
         }
 
         return this.store.transactional {
-            val rac = RunActionContext.runActionContext(ctx, evaluationManager)
+            val rac = ctx.runActionContext()
 
             val dbSubmission = evaluationManager.allSubmissions(rac).find { submission -> submission.answerSets.filter { it.id eq answerSetId }.any() } ?:
             throw ErrorStatusException(404, "No AnswerSet with Id '$answerSetId' found.", ctx)

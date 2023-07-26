@@ -1,10 +1,8 @@
 package dev.dres.data.model.submissions
 
-import dev.dres.api.rest.types.evaluation.ApiAnswer
+import dev.dres.api.rest.types.evaluation.submission.ApiAnswer
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.media.DbMediaItem
-import dev.dres.data.model.media.time.TemporalPoint
-import dev.dres.data.model.media.time.TemporalRange
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
 import kotlinx.dnq.simple.requireIf
@@ -29,7 +27,12 @@ class DbAnswer(entity: Entity) : PersistentEntity(entity), Answer {
     /** The text submitted. Only for [DbAnswerType.TEXT] . */
     override var text by xdStringProp { requireIf { this.type == DbAnswerType.TEXT } }
 
-    override fun type(): AnswerType = AnswerType.fromDb(this.type)
+    /**
+     * Implementation of the [Answer] interface: Returns the [AnswerType] representation of this [DbAnswer]'s [DbAnswerType].
+     *
+     * @return [AnswerType] of this [DbAnswer].
+     */
+    override fun type(): AnswerType = AnswerType.valueOf(this.type.description)
 
     /**
      * Converts this [DbAnswer] to a RESTful API representation [ApiAnswer].

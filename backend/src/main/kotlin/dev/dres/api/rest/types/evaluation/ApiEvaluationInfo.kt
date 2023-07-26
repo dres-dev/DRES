@@ -2,11 +2,13 @@ package dev.dres.api.rest.types.evaluation
 
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.run.RunProperties
+import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.run.InteractiveAsynchronousRunManager
 import dev.dres.run.InteractiveSynchronousRunManager
 import dev.dres.run.NonInteractiveRunManager
 import dev.dres.run.RunManager
 import kotlinx.dnq.query.asSequence
+import kotlinx.dnq.query.sortedBy
 
 /**
  * Contains the basic and most importantly static information about a [InteractiveSynchronousEvaluation] and the
@@ -39,6 +41,6 @@ data class ApiEvaluationInfo(
         },
         manager.runProperties,
         manager.template.teams.asSequence().map { team -> ApiTeamInfo(team) }.toList(),
-        manager.template.tasks.asSequence().map { task -> ApiTaskTemplateInfo(task) }.toList()
+        manager.template.tasks.sortedBy(DbTaskTemplate::idx).asSequence().map { task -> ApiTaskTemplateInfo(task) }.toList()
     )
 }

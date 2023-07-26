@@ -48,7 +48,7 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
     override val tasks = LinkedList<ISTaskRun>()
 
     /** Reference to the currently active [DbTaskTemplate]. This is part of the task navigation. */
-    private val templates = this.description.tasks.asSequence().map { it.templateId }.toList()
+    private val templates = this.description.tasks.sortedBy(DbTaskTemplate::idx).asSequence().map { it.templateId }.toList()
 
     /** Returns the last [TaskRun]. */
     val currentTask: AbstractInteractiveTask?

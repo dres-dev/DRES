@@ -14,6 +14,7 @@ import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.run.interfaces.Run
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.run.*
 import dev.dres.utilities.extensions.toDateString
 import jetbrains.exodus.database.TransientEntityStore
@@ -191,7 +192,7 @@ class EvaluationCommand(internal val store: TransientEntityStore) : NoOpCliktCom
 
                 println()
                 println("All Tasks:")
-                it.template.tasks.asSequence().forEach { task ->
+                it.template.tasks.sortedBy(DbTaskTemplate::idx).asSequence().forEach { task ->
                     println(task)
                 }
 

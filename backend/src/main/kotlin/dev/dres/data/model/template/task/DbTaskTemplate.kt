@@ -56,6 +56,9 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), TaskTemplate {
     /** Optional comment to be used by evaluation administrators */
     var comment by xdStringProp()
 
+    /** Sort key for task order within template */
+    var idx by xdIntProp()
+
     /**
      * Creates a [DbTaskTemplate] instance and returns it.
      *
@@ -71,6 +74,7 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), TaskTemplate {
             this.duration = this@DbTaskTemplate.duration
             this.taskGroup = forEvaluation.taskGroups.query(DbTaskGroup::name eq this@DbTaskTemplate.taskGroup.name).first()
             this.comment = this@DbTaskTemplate.comment
+            this.idx = this@DbTaskTemplate.idx
         }
 
         /* Copy task targets. */

@@ -13,6 +13,7 @@ import com.jakewharton.picnic.table
 import dev.dres.DRES
 import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.mgmt.cache.CacheManager
 import dev.dres.utilities.TemplateUtil
 import jetbrains.exodus.database.TransientEntityStore
@@ -157,24 +158,24 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
      */
     inner class Show : AbstractEvaluationCommand(name = "show", help = "Shows details of a Template") {
         override fun run() = this@EvaluationTemplateCommand.store.transactional(true) {
-            val competition = DbEvaluationTemplate.query(
+            val template = DbEvaluationTemplate.query(
                 (DbEvaluationTemplate::id eq this.id).or(DbEvaluationTemplate::name eq this.name)
             ).firstOrNull()
 
-            if (competition == null) {
+            if (template == null) {
                 println("Could not find specified template.")
                 return@transactional
             }
 
-            println("${competition.name}: ${competition.description}")
+            println("${template.name}: ${template.description}")
             println("Teams:")
 
-            competition.teams.asSequence().forEach(::println)
+            template.teams.asSequence().forEach(::println)
 
             println()
             println("Tasks:")
 
-            competition.tasks.asSequence().forEach { _ ->
+            template.tasks.sortedBy(DbTaskTemplate::idx).asSequence().forEach { _ ->
                 /* TODO: it.printOverview(System.out) */
                 println()
             }

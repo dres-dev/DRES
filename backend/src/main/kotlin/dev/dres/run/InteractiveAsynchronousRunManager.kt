@@ -239,7 +239,7 @@ class InteractiveAsynchronousRunManager(
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     override fun previous(context: RunActionContext): Boolean = this.stateLock.write {
-        val newIndex = this.template.tasks.indexOf(this.currentTaskTemplate(context)) - 1
+        val newIndex = this.template.tasks.sortedBy(DbTaskTemplate::idx).indexOf(this.currentTaskTemplate(context)) - 1
         return try {
             this.goTo(context, newIndex)
             true
@@ -260,7 +260,7 @@ class InteractiveAsynchronousRunManager(
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     override fun next(context: RunActionContext): Boolean = this.stateLock.write {
-        val newIndex = this.template.tasks.indexOf(this.currentTaskTemplate(context)) + 1
+        val newIndex = this.template.tasks.sortedBy(DbTaskTemplate::idx).indexOf(this.currentTaskTemplate(context)) + 1
         return try {
             this.goTo(context, newIndex)
             true

@@ -91,7 +91,7 @@ class DbEvaluationTemplate(entity: Entity) : PersistentEntity(entity), Evaluatio
         teamGroups = this.teamGroups.asSequence().map { it.toApi() }.toList(),
         teams = this.teams.asSequence().map { it.toApi() }.toList(),
         judges = this.judges.asSequence().map { it.id }.toList(),
-        tasks = this.tasks.asSequence().map { it.toApi() }.toList(),
+        tasks = this.tasks.sortedBy(DbTaskTemplate::idx).asSequence().map { it.toApi() }.toList(),
     )
 
     /**

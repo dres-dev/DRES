@@ -100,7 +100,7 @@ object TemplateUtil {
         )
 
         /*  Update task information: Remaining tasks. */
-        for (apiTask in apiEvaluationTemplate.tasks) {
+        apiEvaluationTemplate.tasks.forEachIndexed { idx, apiTask ->
             val task = if (apiTask.id != null) {
                 dbEvaluationTemplate.tasks.filter { it.id eq apiTask.id }.firstOrNull()
                     ?: throw IllegalArgumentException("Unknown task ${apiTask.id} for evaluation ${apiEvaluationTemplate.id}.")
@@ -114,6 +114,7 @@ object TemplateUtil {
             task.name = apiTask.name
             task.duration = apiTask.duration
             task.comment = apiTask.comment
+            task.idx = idx
 
             /* Conditional updating of parameters that do!. */
             if (task.isNew || task.collection.id != apiTask.collectionId) {
@@ -155,6 +156,8 @@ object TemplateUtil {
                 })
             }
         }
+
+
 
         /* Update team information. */
         val teamIds = apiEvaluationTemplate.teams.map { it.id }.toTypedArray()

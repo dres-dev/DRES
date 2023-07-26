@@ -14,11 +14,9 @@ import com.github.kokorin.jaffree.StreamType
 import com.github.kokorin.jaffree.ffprobe.FFprobe
 import com.github.kokorin.jaffree.ffprobe.FFprobeResult
 import com.jakewharton.picnic.table
-import dev.dres.DRES
 import dev.dres.api.rest.types.collection.ApiMediaType
 import dev.dres.data.model.config.Config
 import dev.dres.data.model.media.*
-import dev.dres.data.model.media.time.TemporalPoint
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 import org.slf4j.LoggerFactory
@@ -51,17 +49,17 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
     init {
         this.subcommands(
             Create(),
-            Delete(store),
-            Update(store),
+            Delete(),
+            Update(),
             List(),
-            Show(store),
-            Check(store),
-            Scan(store),
-            AddItem(store),
-            DeleteItem(store),
-            Export(store),
-            Import(store),
-            ImportSegments(store)
+            Show(),
+            Check(),
+            Scan(),
+            AddItem(),
+            DeleteItem(),
+            Export(),
+            Import(),
+            ImportSegments()
         )
     }
 
@@ -87,7 +85,6 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
      *
      */
     abstract inner class AbstractCollectionCommand(
-        protected val store: TransientEntityStore,
         name: String,
         help: String
     ) :
@@ -151,8 +148,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
     /**
      * [CliktCommand] to create a new [DbMediaCollection].
      */
-    inner class Delete(store: TransientEntityStore) :
-        AbstractCollectionCommand(store, "delete", help = "Deletes a media collection.") {
+    inner class Delete :
+        AbstractCollectionCommand( "delete", help = "Deletes a media collection.") {
         override fun run() {
             this@MediaCollectionCommand.store.transactional {
                 val collection = this.getCollection()
@@ -169,8 +166,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
     /**
      * [CliktCommand] to create a new [DbMediaCollection].
      */
-    inner class Update(store: TransientEntityStore) :
-        AbstractCollectionCommand(store, name = "update", help = "Updates an existing Collection") {
+    inner class Update :
+        AbstractCollectionCommand(name = "update", help = "Updates an existing Collection") {
 
         /** The new name for the [DbMediaCollection]. */
         private val newName: String? by option("-n", "--name", help = "The new name of the collection")
@@ -246,8 +243,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
     /**
      * [CliktCommand] to show a [DbMediaCollection]'s [DbMediaItem]s in detail.
      */
-    inner class Show(store: TransientEntityStore) :
-        AbstractCollectionCommand(store, "show", help = "Lists the content of a media collection.") {
+    inner class Show :
+        AbstractCollectionCommand("show", help = "Lists the content of a media collection.") {
 
         /** The property of the [DbMediaItem]s to sort by. */
         private val sort by option(
@@ -312,9 +309,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
     /**
      * [CliktCommand] to validate a [DbMediaCollection]'s [DbMediaItem]s.
      */
-    inner class Check(store: TransientEntityStore) : AbstractCollectionCommand(
-        store,
-        "check",
+    inner class Check : AbstractCollectionCommand(
+                "check",
         help = "Checks if all the files in a media collection are present and accessible."
     ) {
         override fun run() = this@MediaCollectionCommand.store.transactional(true) {
@@ -346,8 +342,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
     /**
      * [CliktCommand] to validate a [DbMediaCollection]'s [DbMediaItem]s.
      */
-    inner class Scan(store: TransientEntityStore) : AbstractCollectionCommand(
-        store,
+    inner class Scan() : AbstractCollectionCommand(
         "scan",
         help = "Scans a collection directory and adds found items"
     ) {
@@ -387,7 +382,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
             }
 
             /* Find media collection and note base path */
-            val collectionAndPathTuple = this.store.transactional(true) {
+            val collectionAndPathTuple = this@MediaCollectionCommand.store.transactional(true) {
                 val collection = this.getCollection()
                 return@transactional collection to collection?.path
             }
@@ -399,17 +394,17 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
 
             val base = Paths.get(collectionAndPathTuple.second)
             if (!Files.exists(base)) {
-                println("Failed to scan collection; '${collection.path}' does not exist.")
+                println("Failed to scan collection; '$base' does not exist.")
                 return
             }
 
             if (!Files.isReadable(base)) {
-                println("Failed to scan collection;  '${collection.path}' is not readable.")
+                println("Failed to scan collection;  '$base' is not readable.")
                 return
             }
 
             if (!Files.isDirectory(base)) {
-                println("Failed to scan collection; '${collection.path}' is no directory.")
+                println("Failed to scan collection; '$base' is no directory.")
                 return
             }
 
@@ -499,8 +494,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
     /**
      * [CliktCommand] to delete [DbMediaItem]s.
      */
-    inner class DeleteItem(store: TransientEntityStore) :
-        AbstractCollectionCommand(store, "deleteItem", help = "Deletes media item(s).") {
+    inner class DeleteItem :
+        AbstractCollectionCommand( "deleteItem", help = "Deletes media item(s).") {
         /** The item ID matching the name of the [DbMediaItem] to delete. */
         private val itemId: MediaId? by option("-ii", "--itemId", help = "ID of the media item.")
 
@@ -550,8 +545,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
     /**
      * [CliktCommand] to delete [DbMediaItem]s.
      */
-    inner class AddItem(store: TransientEntityStore) :
-        AbstractCollectionCommand(store, name = "add", help = "Adds a media item to a media collection.") {
+    inner class AddItem :
+        AbstractCollectionCommand( name = "add", help = "Adds a media item to a media collection.") {
 
         /** The [ApiMediaType] of the new [DbMediaItem]. */
         private val type: ApiMediaType by option(
@@ -603,8 +598,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
     /**
      * [CliktCommand] to export a [DbMediaCollection].
      */
-    inner class Export(store: TransientEntityStore) :
-        AbstractCollectionCommand(store, "export", help = "Exports a media collection into a CSV file.") {
+    inner class Export :
+        AbstractCollectionCommand( "export", help = "Exports a media collection into a CSV file.") {
 
         /** The output path for the export.. */
         private val output: Path by option(
@@ -646,8 +641,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
     /**
      * [CliktCommand] to import a [DbMediaCollection].
      */
-    inner class Import(store: TransientEntityStore) :
-        AbstractCollectionCommand(store, "import", help = "Imports a media collection from a CSV file.") {
+    inner class Import :
+        AbstractCollectionCommand( "import", help = "Imports a media collection from a CSV file.") {
 
         /** [Path] to the input file. */
         private val input: Path by option(
@@ -703,8 +698,8 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
      *
      * Uses the VBS format.
      */
-    inner class ImportSegments(store: TransientEntityStore) : AbstractCollectionCommand(
-        store,
+    inner class ImportSegments() : AbstractCollectionCommand(
+
         "importSegments",
         "Imports the Segment information for the Items in a Collection from a CSV file"
     ) {

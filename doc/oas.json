@@ -4062,12 +4062,12 @@
     "/api/v2/submit/{evaluationId}" : {
       "post" : {
         "tags" : [ "Submission" ],
-        "summary" : "Endpoint to accept submissions",
+        "summary" : "Endpoint to accept submissions.",
         "operationId" : "postApiV2SubmitByEvaluationId",
         "parameters" : [ {
           "name" : "evaluationId",
           "in" : "path",
-          "description" : "The evaluation ID.",
+          "description" : "The ID of the evaluation the submission belongs to.",
           "required" : true,
           "deprecated" : false,
           "allowEmptyValue" : false,
@@ -5369,108 +5369,6 @@
         "type" : "string",
         "enum" : [ "FRAME_NUMBER", "SECONDS", "MILLISECONDS", "TIMECODE" ]
       },
-      "ApiAnswer" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "type" : {
-            "$ref" : "#/components/schemas/ApiAnswerType"
-          },
-          "item" : {
-            "$ref" : "#/components/schemas/ApiMediaItem"
-          },
-          "text" : {
-            "type" : "string"
-          },
-          "start" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "end" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        },
-        "required" : [ "type" ]
-      },
-      "ApiAnswerSet" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "id" : {
-            "type" : "string"
-          },
-          "status" : {
-            "$ref" : "#/components/schemas/ApiVerdictStatus"
-          },
-          "taskId" : {
-            "type" : "string"
-          },
-          "answers" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiAnswer"
-            }
-          }
-        },
-        "required" : [ "id", "status", "taskId", "answers" ]
-      },
-      "ApiAnswerType" : {
-        "type" : "string",
-        "enum" : [ "ITEM", "TEMPORAL", "TEXT" ]
-      },
-      "ApiClientAnswer" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "text" : {
-            "type" : "string"
-          },
-          "itemName" : {
-            "type" : "string"
-          },
-          "itemCollectionName" : {
-            "type" : "string"
-          },
-          "start" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "end" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        }
-      },
-      "ApiClientAnswerSet" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "taskName" : {
-            "type" : "string"
-          },
-          "answers" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiClientAnswer"
-            }
-          }
-        },
-        "required" : [ "answers" ]
-      },
-      "ApiClientSubmission" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "answerSets" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiClientAnswerSet"
-            }
-          }
-        },
-        "required" : [ "answerSets" ]
-      },
       "ApiEvaluationInfo" : {
         "type" : "object",
         "additionalProperties" : false,
@@ -5568,41 +5466,6 @@
           }
         },
         "required" : [ "verdict" ]
-      },
-      "ApiSubmission" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "submissionId" : {
-            "type" : "string"
-          },
-          "teamId" : {
-            "type" : "string"
-          },
-          "memberId" : {
-            "type" : "string"
-          },
-          "teamName" : {
-            "type" : "string"
-          },
-          "memberName" : {
-            "type" : "string"
-          },
-          "answers" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ApiAnswerSet"
-            }
-          },
-          "timestamp" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "evaluationId" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "submissionId", "teamId", "memberId", "teamName", "memberName", "answers", "timestamp", "evaluationId" ]
       },
       "ApiSubmissionInfo" : {
         "type" : "object",
@@ -5719,10 +5582,6 @@
         },
         "required" : [ "teamId", "tasks" ]
       },
-      "ApiVerdictStatus" : {
-        "type" : "string",
-        "enum" : [ "CORRECT", "WRONG", "INDETERMINATE", "UNDECIDABLE" ]
-      },
       "ApiViewerInfo" : {
         "type" : "object",
         "additionalProperties" : false,
@@ -5822,6 +5681,156 @@
           }
         },
         "required" : [ "name", "value" ]
+      },
+      "ApiAnswer" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/ApiAnswerType"
+          },
+          "item" : {
+            "$ref" : "#/components/schemas/ApiMediaItem"
+          },
+          "text" : {
+            "type" : "string"
+          },
+          "start" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "end" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "temporalRange" : {
+            "$ref" : "#/components/schemas/TemporalRange"
+          }
+        },
+        "required" : [ "type" ]
+      },
+      "ApiAnswerSet" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/ApiVerdictStatus"
+          },
+          "taskId" : {
+            "type" : "string"
+          },
+          "answers" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiAnswer"
+            }
+          }
+        },
+        "required" : [ "id", "status", "taskId", "answers" ]
+      },
+      "ApiAnswerType" : {
+        "type" : "string",
+        "enum" : [ "ITEM", "TEMPORAL", "TEXT" ]
+      },
+      "ApiClientAnswer" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "text" : {
+            "type" : "string"
+          },
+          "itemName" : {
+            "type" : "string"
+          },
+          "itemCollectionName" : {
+            "type" : "string"
+          },
+          "start" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "end" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "mediaItemId" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ApiClientAnswerSet" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "taskId" : {
+            "type" : "string"
+          },
+          "taskName" : {
+            "type" : "string"
+          },
+          "answers" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiClientAnswer"
+            }
+          },
+          "answerSetId" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "answers", "answerSetId" ]
+      },
+      "ApiClientSubmission" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "answerSets" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiClientAnswerSet"
+            }
+          }
+        },
+        "required" : [ "answerSets" ]
+      },
+      "ApiSubmission" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "submissionId" : {
+            "type" : "string"
+          },
+          "teamId" : {
+            "type" : "string"
+          },
+          "memberId" : {
+            "type" : "string"
+          },
+          "teamName" : {
+            "type" : "string"
+          },
+          "memberName" : {
+            "type" : "string"
+          },
+          "timestamp" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "answers" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ApiAnswerSet"
+            }
+          }
+        },
+        "required" : [ "submissionId", "teamId", "memberId", "teamName", "memberName", "timestamp", "answers" ]
+      },
+      "ApiVerdictStatus" : {
+        "type" : "string",
+        "enum" : [ "CORRECT", "WRONG", "INDETERMINATE", "UNDECIDABLE" ]
       },
       "ApiJudgement" : {
         "type" : "object",
@@ -6528,6 +6537,28 @@
           }
         },
         "required" : [ "timestamp", "sortType", "resultSetAvailability", "results", "events", "serverTimeStamp$backend" ]
+      },
+      "TemporalPoint" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : { }
+      },
+      "TemporalRange" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "start" : {
+            "$ref" : "#/components/schemas/TemporalPoint"
+          },
+          "end" : {
+            "$ref" : "#/components/schemas/TemporalPoint"
+          },
+          "center" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "start", "end", "center" ]
       },
       "RunProperties" : {
         "type" : "object",

@@ -3,6 +3,7 @@ package dev.dres.api.rest.types.evaluation.submission
 import com.fasterxml.jackson.annotation.JsonIgnore
 import dev.dres.data.model.run.TaskId
 import dev.dres.data.model.submissions.*
+import io.javalin.openapi.OpenApiIgnore
 
 /**
  * The RESTful API equivalent for the type of an answer set as submitted by the DRES endpoint.
@@ -21,7 +22,10 @@ data class ApiAnswerSet(
 ) : AnswerSet {
 
     @get:JsonIgnore
+    @get:OpenApiIgnore
     override lateinit var submission: Submission
+        @JsonIgnore
+        @OpenApiIgnore
         internal set
 
     override fun status(): VerdictStatus = when(this.status) {

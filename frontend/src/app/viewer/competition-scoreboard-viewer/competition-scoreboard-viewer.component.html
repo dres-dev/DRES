@@ -1,8 +1,10 @@
 <mat-card appearance="outlined">
-  <mat-card-title>
-    <span *ngIf="competitionOverview">Normalized Competition Scores</span>
-    <span *ngIf="!competitionOverview">Scores of {{ currentTaskGroup | async }}</span>
-  </mat-card-title>
+  <mat-card-header>
+    <mat-card-title>
+      <span *ngIf="competitionOverview">Normalized Competition Scores</span>
+      <span *ngIf="!competitionOverview">Scores of {{ currentTaskGroup | async }}</span>
+    </mat-card-title>
+  </mat-card-header>
   <mat-card-content id="chart">
     <apx-chart
       [series]="series | async"

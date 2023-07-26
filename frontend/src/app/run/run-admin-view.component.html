@@ -68,13 +68,15 @@
           <mat-action-list>
             <mat-list-item
               *ngFor="let viewer of viewers | async; let i = index; trackBy: resolveViewerById"
-              [style.color]="viewer.ready ? 'darkgreen' : 'darkred'"
               (click)="forceViewer(viewer.viewersId)"
             >
-              <div class="p4" mat-line>
-                <span>{{ viewer.viewersId }}</span>
+              <mat-icon matListItemIcon>
+                {{viewer.ready ? 'link' : 'link_off'}}
+              </mat-icon>
+              <div class="p4" matListItemTitle>
+                <span [style.color]="viewer.ready ? 'darkgreen' : 'darkred'">{{ viewer.viewersId }}</span>
               </div>
-              <div class="p4" mat-line>
+              <div class="p4" matListItemLine>
                 <span>User:</span> {{ viewer.username }}, <span>Address:</span> {{ viewer.host }}
               </div>
             </mat-list-item>
@@ -177,7 +179,6 @@
           <mat-list dense>
             <mat-list-item
               *ngFor="let team of teams | async; let i = index; trackBy: resolveTeamByName"
-              [style.color]="team.color"
             >
               <img
                 matListItemIcon
@@ -188,7 +189,7 @@
                 class="alt-list-avatar image-fit-to-container"
                 alt="{{ team.name }}'s logo"
               />
-              <h3 matListItemTitle>{{ team.name }}</h3>
+              <h3 matListItemTitle [style.color]="team.color">{{ team.name }}</h3>
               <p matListItemLine>{{ team.users.length }} member(s)</p>
               <p matListItemLine *ngFor="let user of team.users">
                 <!-- <mat-icon>person</mat-icon>-->

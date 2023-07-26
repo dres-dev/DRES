@@ -1,10 +1,4 @@
 import { Component, Injector, Input } from "@angular/core";
-import { UntypedFormControl } from "@angular/forms";
-import {
-  CompetitionFormBuilder
-} from "../../../../competition/competition-builder/competition-builder-task-dialog/competition-form.builder";
-import { ApiMediaItem } from "../../../../../../openapi";
-import { FormatMediaItemPipe, MediaItemDisplayOptions } from "../../../../services/pipes/format-media-item.pipe";
 import {
   QueryDescriptionMediaItemFormFieldComponent
 } from "../query-description-media-item-form-field/query-description-media-item-form-field.component";

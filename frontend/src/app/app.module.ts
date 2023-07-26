@@ -26,6 +26,8 @@ import { CompetitionBuilderModule } from './competition/competition-builder/comp
 import { TemplateModule } from './template/template.module';
 import { EvaluationModule } from './evaluation/evaluation.module';
 import { ErrorModule } from "./error/error.module";
+import {DragDropModule} from '@angular/cdk/drag-drop';
+import {MatTableModule} from '@angular/material/table';
 
 /**
  * Method used to load application config.
@@ -50,6 +52,8 @@ export function initializeApp(appConfig: AppConfig) {
     MatMenuModule,
     MatTooltipModule,
     HttpClientModule,
+    DragDropModule,
+    MatTableModule,
 
     /* Our own modules. */
     SharedModule,

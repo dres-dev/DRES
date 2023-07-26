@@ -21,6 +21,7 @@ import {
 import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute } from "@angular/router";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import {CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
 
 export interface TaskTemplateEditorLauncher {
   editTask(taskType: ApiTaskType, taskGroup: ApiTaskGroup, task?: ApiTaskTemplate);
@@ -102,27 +103,27 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
     this.selection.toggle(task);
   }
 
-  public moveTaskUp(task: ApiTaskTemplate) {
-    const oldIndex = this.builderService.getTemplate().tasks.indexOf(task);
-    if (oldIndex > 0) {
-      const buffer = this.builderService.getTemplate().tasks[oldIndex - 1];
-      this.builderService.getTemplate().tasks[oldIndex - 1] = task;
-      this.builderService.getTemplate().tasks[oldIndex] = buffer;
-      this.builderService.update();
-      this.taskTable.renderRows();
-    }
-  }
-
-  public moveTaskDown(task: ApiTaskTemplate) {
-    const oldIndex = this.builderService.getTemplate().tasks.indexOf(task);
-    if (oldIndex < this.builderService.getTemplate().tasks.length - 1) {
-      const buffer = this.builderService.getTemplate().tasks[oldIndex + 1];
-      this.builderService.getTemplate().tasks[oldIndex + 1] = task;
-      this.builderService.getTemplate().tasks[oldIndex] = buffer;
-      this.builderService.update();
-      this.taskTable.renderRows();
-    }
-  }
+  // public moveTaskUp(task: ApiTaskTemplate) {
+  //   const oldIndex = this.builderService.getTemplate().tasks.indexOf(task);
+  //   if (oldIndex > 0) {
+  //     const buffer = this.builderService.getTemplate().tasks[oldIndex - 1];
+  //     this.builderService.getTemplate().tasks[oldIndex - 1] = task;
+  //     this.builderService.getTemplate().tasks[oldIndex] = buffer;
+  //     this.builderService.update();
+  //     this.taskTable.renderRows();
+  //   }
+  // }
+  //
+  // public moveTaskDown(task: ApiTaskTemplate) {
+  //   const oldIndex = this.builderService.getTemplate().tasks.indexOf(task);
+  //   if (oldIndex < this.builderService.getTemplate().tasks.length - 1) {
+  //     const buffer = this.builderService.getTemplate().tasks[oldIndex + 1];
+  //     this.builderService.getTemplate().tasks[oldIndex + 1] = task;
+  //     this.builderService.getTemplate().tasks[oldIndex] = buffer;
+  //     this.builderService.update();
+  //     this.taskTable.renderRows();
+  //   }
+  // }
 
   public tasksLength() {
     return this.builderService.getTemplate().tasks.length;
@@ -145,5 +146,11 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
 
   onChange() {
     this.taskTable?.renderRows();
+  }
+
+  public dropTable(event: CdkDragDrop<any, any>) {
+    moveItemInArray(this.builderService.getTemplate().tasks, event.previousIndex, event.currentIndex);
+    this.builderService.update();
+    this.taskTable.renderRows();
   }
 }

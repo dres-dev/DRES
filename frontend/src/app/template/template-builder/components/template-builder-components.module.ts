@@ -46,6 +46,7 @@ import { TeamBuilderDialogComponent } from './team-builder-dialog/team-builder-d
 import { MatChipsModule } from "@angular/material/chips";
 import { MatDialogModule } from "@angular/material/dialog";
 import { ColorPickerModule } from "ngx-color-picker";
+import {CdkDrag, CdkDropList} from '@angular/cdk/drag-drop';
 
 
 @NgModule({
@@ -67,28 +68,30 @@ import { ColorPickerModule } from "ngx-color-picker";
     QueryDescriptionExternalImageFormFieldComponent,
     TeamBuilderDialogComponent
   ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatTooltipModule,
-    MatIconModule,
-    MatMenuModule,
-    MatAutocompleteModule,
-    MatTableModule,
-    MatListModule,
-    SharedModule,
-    MatSelectModule,
-    MatButtonToggleModule,
-    MatGridListModule,
-    CompetitionBuilderModule,
-    NgOptimizedImage,
-    MatChipsModule,
-    MatDialogModule,
-    ColorPickerModule
-  ],
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatTooltipModule,
+        MatIconModule,
+        MatMenuModule,
+        MatAutocompleteModule,
+        MatTableModule,
+        MatListModule,
+        SharedModule,
+        MatSelectModule,
+        MatButtonToggleModule,
+        MatGridListModule,
+        CompetitionBuilderModule,
+        NgOptimizedImage,
+        MatChipsModule,
+        MatDialogModule,
+        ColorPickerModule,
+        CdkDropList,
+        CdkDrag
+    ],
   exports: [TemplateInformationComponent,
     JudgesListComponent,
     TeamsListComponent,

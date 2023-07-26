@@ -180,16 +180,17 @@
               [style.color]="team.color"
             >
               <img
-                matListAvatar
+                matListItemIcon
                 src="{{ teamLogo(team) }}"
                 [style.width]="'50%'"
+                [style.height]="'100%'"
                 [style.background-color]="team.color"
                 class="alt-list-avatar image-fit-to-container"
                 alt="{{ team.name }}'s logo"
               />
-              <h3 matLine>{{ team.name }}</h3>
-              <p matLine>{{ team.users.length }} member(s)</p>
-              <p matLine *ngFor="let user of team.users">
+              <h3 matListItemTitle>{{ team.name }}</h3>
+              <p matListItemLine>{{ team.users.length }} member(s)</p>
+              <p matListItemLine *ngFor="let user of team.users">
                 <!-- <mat-icon>person</mat-icon>-->
                 &bull; {{ user.username }}
               </p>

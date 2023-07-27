@@ -1,4 +1,4 @@
-import { AfterViewChecked, AfterViewInit, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { AppConfig } from '../app.config';
 import { ApiAnswerType, ApiJudgementRequest } from "../../../openapi";
@@ -8,7 +8,7 @@ import { ApiAnswerType, ApiJudgementRequest } from "../../../openapi";
   templateUrl: './judgement-media-viewer.component.html',
   styleUrls: ['./judgement-media-viewer.component.scss'],
 })
-export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, AfterViewChecked {
+export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   /**
    * The zero-based index in the answerset to which this viewer is for
@@ -63,7 +63,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
     return req?.answerSet?.answers[index]?.type
   }
 
-  ngAfterViewInit(): void {
+  ngOnInit(): void {
     /* Handling request */
     this.requestSub = this.req.subscribe((req) => {
       if (req != null) {
@@ -245,7 +245,7 @@ export class JudgementMediaViewerComponent implements AfterViewInit, OnDestroy, 
   onTemporalContextToggle(event){
     /* Reload everything to correctly recalculate the temporal context (either if its enabled or disabled) */
     this.stop();
-    this.ngAfterViewInit();
+    this.ngOnInit();
   }
 
   private resolvePath(req: ApiJudgementRequest,index: number, time = true): string {

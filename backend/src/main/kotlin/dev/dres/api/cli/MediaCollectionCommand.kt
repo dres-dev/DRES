@@ -723,7 +723,7 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
 
 
             /* Find media collection. */
-            val collection = this.getCollection()
+            val collection = this@MediaCollectionCommand.store.transactional { this.getCollection() }
             if (collection == null) {
                 println("Collection not found.")
                 return

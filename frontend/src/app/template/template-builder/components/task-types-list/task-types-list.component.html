@@ -28,10 +28,12 @@
     <td mat-cell *matCellDef="let element">
       <ng-container *ngIf="element.hintOptions.length > 1; else singleHint">
         <ul>
-          <li *ngFor="let hint of element.hintOptions">{{hint}}</li>
+          <li *ngFor="let hint of element.hintOptions" >{{hint | underscoreWordBreak}}</li>
         </ul>
       </ng-container>
-      <ng-template #singleHint>{{element.hintOptions[0]}}</ng-template>
+      <ng-template #singleHint>
+        <span>{{element.hintOptions[0] | underscoreWordBreak}}</span>
+      </ng-template>
     </td>
   </ng-container>
   <ng-container matColumnDef="submissions">
@@ -39,10 +41,13 @@
     <td mat-cell *matCellDef="let element">
       <ng-container *ngIf="element.submissionOptions.length > 1; else singleSubmission">
         <ul>
-          <li *ngFor="let elem of element.submissionOptions">{{elem}}</li>
+          <li *ngFor="let elem of element.submissionOptions">{{elem | underscoreWordBreak}}</li>
         </ul>
       </ng-container>
-      <ng-template #singleSubmission>{{element.submissionOptions[0]}}</ng-template>
+      <ng-template #singleSubmission>
+        <span>{{element.submissionOptions[0] | underscoreWordBreak}}</span>
+      </ng-template>
+
     </td>
   </ng-container>
   <ng-container matColumnDef="tasks">
@@ -53,7 +58,9 @@
           <li *ngFor="let hint of element.taskOptions">{{hint}}</li>
         </ul>
       </ng-container>
-      <ng-template #singleTask>{{element.taskOptions[0]}}</ng-template>
+      <ng-template #singleTask>
+        <span >{{element.taskOptions[0] | underscoreWordBreak}}</span>
+      </ng-template>
     </td>
   </ng-container>
 </app-actionable-dynamic-table>

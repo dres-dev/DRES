@@ -21,6 +21,7 @@ import { ResolveMediaItemPreviewPipe } from './pipes/resolve-media-item-preview.
 import { FormatMediaItemPipe } from './pipes/format-media-item.pipe';
 import { OrderByPipe } from './pipes/order-by.pipe';
 import { FilterNotInPipe } from './pipes/filter-not-in.pipe';
+import { UnderscoreWordBreakPipe } from './pipes/underscore-wordbreak.pipe';
 
 /**
  * Provides the {@link AppConfig} reference.
@@ -55,7 +56,8 @@ export function initializeApiConfig(appConfig: AppConfig) {
     ResolveMediaItemPreviewPipe,
     FormatMediaItemPipe,
     OrderByPipe,
-    FilterNotInPipe
+    FilterNotInPipe,
+    UnderscoreWordBreakPipe
   ],
   declarations: [
     RoundPipePipe,
@@ -75,6 +77,7 @@ export function initializeApiConfig(appConfig: AppConfig) {
     FormatMediaItemPipe,
     OrderByPipe,
     FilterNotInPipe,
+    UnderscoreWordBreakPipe,
   ],
   providers: [
     AuthenticationService,

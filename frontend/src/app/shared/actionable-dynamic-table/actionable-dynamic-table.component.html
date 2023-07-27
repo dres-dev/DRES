@@ -24,7 +24,7 @@
                     </ng-container>
                 </ng-container>
                 <div *ngSwitchDefault>
-                    {{ element[column.property] }}
+                    <span>{{ element[column.property] | underscoreWordBreak }}</span>
                 </div>
             </ng-container>
         </td>

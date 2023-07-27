@@ -58,6 +58,6 @@ class CreateEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEva
                 this.modified = DateTime.now()
             }
         }
-        return SuccessStatus("Competition description with ID $newId was created successfully.")
+        return SuccessStatus("Evaluation template with ID $newId was created successfully.")
     }
 }

@@ -41,14 +41,14 @@ class EvaluationTemplateDownloadHandler(store: TransientEntityStore) : AbstractD
     )
     override fun doGet(ctx: Context): String {
         /* Obtain run id and run. */
-        val templateId = ctx.pathParamMap()["competitionId"] ?: throw ErrorStatusException(400, "Parameter 'templateId' is missing!'", ctx)
+        val templateId = ctx.pathParamMap()["templateId"] ?: throw ErrorStatusException(400, "Parameter 'templateId' is missing!'", ctx)
         val template = this.store.transactional(true) {
            DbEvaluationTemplate.query(DbEvaluationTemplate::id eq templateId).firstOrNull()?.toApi()
-               ?: throw ErrorStatusException(404, "Competition $templateId not found", ctx)
+               ?: throw ErrorStatusException(404, "Evaluation template $templateId not found", ctx)
         }
 
         /* Set header for download. */
-        ctx.header("Content-Disposition", "attachment; filename=\"competition-${templateId}.json")
+        ctx.header("Content-Disposition", "attachment; filename=\"evaluation-template-${templateId}.json")
 
         /* Return value. */
         val mapper = jacksonObjectMapper()

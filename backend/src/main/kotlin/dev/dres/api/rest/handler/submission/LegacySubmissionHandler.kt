@@ -155,8 +155,8 @@ class LegacySubmissionHandler(private val store: TransientEntityStore, private v
         val managers = AccessManager.getRunManagerForUser(rac.userId).filterIsInstance(InteractiveRunManager::class.java).filter {
             it.currentTask(rac)?.isRunning == true
         }
-        if (managers.isEmpty()) throw ErrorStatusException(404, "There is currently no eligible competition with an active task.", ctx)
-        if (managers.size > 1) throw ErrorStatusException(409, "More than one possible competition found: ${managers.joinToString { it.template.name }}", ctx)
+        if (managers.isEmpty()) throw ErrorStatusException(404, "There is currently no eligible evaluation with an active task.", ctx)
+        if (managers.size > 1) throw ErrorStatusException(409, "More than one possible evaluation found: ${managers.joinToString { it.template.name }}", ctx)
         return managers.first()
     }
 

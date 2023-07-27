@@ -4060,7 +4060,7 @@
     "/api/v2/template/list" : {
       "get" : {
         "tags" : [ "Template" ],
-        "summary" : "Lists an overview of all available competitions with basic information about their content.",
+        "summary" : "Lists an overview of all available evaluation templates with basic information about their content.",
         "operationId" : "getApiV2TemplateList",
         "parameters" : [ ],
         "responses" : {

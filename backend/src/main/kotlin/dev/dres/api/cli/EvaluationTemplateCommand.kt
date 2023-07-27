@@ -67,7 +67,7 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
      */
     inner class Create : CliktCommand(name = "create", help = "Creates a new Template") {
 
-        private val name: String by option("-c", "--competition", help = "Name of the new Template")
+        private val name: String by option("-t", "--template", help = "Name of the new Template")
             .required()
             .validate { require(it.isNotEmpty()) { "Template description must be non empty." } }
 
@@ -261,7 +261,7 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
 
 
     /**
-     * Exports a specific competition to a JSON file.
+     * Exports a specific evaluation to a JSON file.
      */
     inner class Export : AbstractEvaluationCommand(name = "export", help = "Exports a template as JSON.") {
 

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import dev.dres.DRES
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -23,10 +24,10 @@ data class Config(
     val cache: CacheConfig = CacheConfig(),
     /** Folder taht contains the database. Defaults to `$APPLICATION_ROOT/data`*/
     val dataPath: Path = DRES.APPLICATION_ROOT.resolve("data"),
-    /** Folder that contains external media. Defaults to `$APPLICATION_ROOT/external` */
-    val externalMediaLocation : Path = DRES.APPLICATION_ROOT.resolve("external"),
-    /** Folder that contains task type rpesets. Defaults to `$APPLICATION_ROOT/type-presets` */
-    val presetsLocation: Path = DRES.APPLICATION_ROOT.resolve("type-presets"),
+    /** Folder that contains external media. Defaults to `$cwd/external` */
+    val externalMediaLocation : Path = Paths.get("./external"),
+    /** Folder that contains task type rpesets. Defaults to `$cwd/type-presets` */
+    val presetsLocation: Path = Paths.get("./type-presets"),
     /** Folder for event data. Defaults to `$APPLICATION_ROOT/external` */
     val eventsLocation: Path = DRES.APPLICATION_ROOT.resolve("events"),
     /** Location for Audit event log. */

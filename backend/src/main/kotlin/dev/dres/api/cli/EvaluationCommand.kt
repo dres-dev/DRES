@@ -61,7 +61,7 @@ class EvaluationCommand(internal val store: TransientEntityStore) : NoOpCliktCom
     data class RunSummary(val id: String, val name: String, val description: String?, val task: String?)
 
     /**
-     * Lists all ongoing competitions runs for the current DRES instance.
+     * Lists all ongoing evaluations runs for the current DRES instance.
      */
     inner class Ongoing :
         CliktCommand(name = "ongoing", help = "Lists all ongoing evaluations.") {
@@ -234,7 +234,7 @@ class EvaluationCommand(internal val store: TransientEntityStore) : NoOpCliktCom
     }
 
     /**
-     *  [CliktCommand] to export a specific competition run as JSON.
+     *  [CliktCommand] to export a specific evaluation template run as JSON.
      */
     inner class Export : CliktCommand(name = "export", help = "Exports the selected evaluation to a JSON file.", printHelpOnEmptyArgs = true) {
 

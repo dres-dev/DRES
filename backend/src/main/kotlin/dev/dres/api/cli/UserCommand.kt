@@ -156,7 +156,7 @@ class UserCommand(store: TransientEntityStore) : NoOpCliktCommand(name = "user")
     }
 
     /**
-     * Imports a specific competition from JSON.
+     * Imports a specific user(s) from JSON.
      */
     inner class Import(private val store: TransientEntityStore): CliktCommand(name = "import", help = "Imports a user description from JSON. Either a single user or an array of users", printHelpOnEmptyArgs = true) {
 

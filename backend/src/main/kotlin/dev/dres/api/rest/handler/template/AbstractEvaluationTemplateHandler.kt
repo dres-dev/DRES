@@ -43,5 +43,5 @@ abstract class AbstractEvaluationTemplateHandler(protected val store: TransientE
 
     /** Convenience method to extract [DbEvaluationTemplate] by ID. */
     protected fun evaluationTemplateById(id: TemplateId, ctx: Context): DbEvaluationTemplate
-        = DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq id and (DbEvaluationTemplate::instance eq false)).firstOrNull() ?: throw ErrorStatusException(404, "Competition with ID $id not found.'", ctx)
+        = DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq id and (DbEvaluationTemplate::instance eq false)).firstOrNull() ?: throw ErrorStatusException(404, "Evaluation template with ID $id not found.'", ctx)
 }

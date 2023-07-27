@@ -25,7 +25,6 @@ class ClientOpenApiPlugin : OpenApiPlugin(OpenApiPluginConfiguration()
             val blacklist = setOf(
                 "/external/",
                 "/collection",
-                "/competition",
                 "/run",
                 "/audit",
                 "/mediaItem",

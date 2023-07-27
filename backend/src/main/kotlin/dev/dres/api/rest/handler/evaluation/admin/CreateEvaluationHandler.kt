@@ -65,7 +65,7 @@ class CreateEvaluationHandler(store: TransientEntityStore, private val cache: Ca
             val template = DbEvaluationTemplate.query((DbEvaluationTemplate::id eq message.templateId) and (DbEvaluationTemplate::instance eq false)).firstOrNull()
                 ?: throw ErrorStatusException(404, "Evaluation template with ID ${message.templateId} could not be found.'", ctx)
 
-            /* ensure that only one synchronous run of a competition is happening at any given time */
+            /* ensure that only one synchronous run of an evaluation is happening at any given time */
             if (message.type == ApiEvaluationType.SYNCHRONOUS && RunExecutor.managers().any {
                     it is InteractiveSynchronousRunManager && it.template == template && it.status != RunManagerStatus.TERMINATED
                 }

@@ -24,7 +24,7 @@ class ListEvaluationTemplatesHandler(store: TransientEntityStore) : AbstractEval
     override val route: String = "template/list"
 
     @OpenApi(
-        summary = "Lists an overview of all available competitions with basic information about their content.",
+        summary = "Lists an overview of all available evaluation templates with basic information about their content.",
         path = "/api/v2/template/list",
         operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["Template"],

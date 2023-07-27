@@ -153,7 +153,7 @@ object RestApi {
             GetSubmissionAfterInfoHandler(store),
             GetSubmissionHistoryInfoHandler(store),
 
-            // Competition run scores
+            // Evaluation run scores
             ListEvaluationScoreHandler(store),
             CurrentTaskScoreHandler(store),
             HistoryTaskScoreHandler(store),

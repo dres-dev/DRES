@@ -82,7 +82,7 @@ class UpdateEvaluationTemplateHandler(store: TransientEntityStore, val config: C
             }
 
         }
-        return SuccessStatus("Competition with ID ${apiValue.id} was updated successfully.")
+        return SuccessStatus("Evaluation template with ID ${apiValue.id} was updated successfully.")
     }
 }
 

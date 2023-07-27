@@ -19,11 +19,14 @@ data class ApiClientAnswer(
     /** The text that is part of this [ApiClientAnswer]. */
     val text: String? = null,
 
+    /** The [MediaItemId] associated with the [ApiClientAnswer]. Is usually added as contextual information by the receiving endpoint. */
+    val mediaItemId: MediaItemId? = null,
+
     /** The name of the media item that is part of the answer. */
-    val itemName: String?  = null,
+    val mediaItemName: String?  = null,
 
     /** The name of the collection the media item belongs to. */
-    val itemCollectionName: String? = null,
+    val mediaItemCollectionName: String? = null,
 
     /** For temporal [ApiClientAnswer]s: Start of the segment in question in milliseconds. */
     val start: Long? = null,
@@ -32,8 +35,7 @@ data class ApiClientAnswer(
     val end: Long? = null,
 ) {
 
-    /** The [MediaItemId] associated with the [ApiClientAnswer]. Is usually added as contextual information by the receiving endpoint. */
-    val mediaItemId: MediaItemId? = null
+
 
     /**
      * Creates a new [DbAnswer] for this [ApiAnswer]. Requires an ongoing transaction.
@@ -46,11 +48,11 @@ data class ApiClientAnswer(
             this@ApiClientAnswer.mediaItemId != null ->
                 DbMediaItem.filter { it.id eq mediaItemId }.singleOrNull()
                     ?: throw IllegalArgumentException("Could not find media item with ID ${this@ApiClientAnswer.mediaItemId}.")
-            this@ApiClientAnswer.itemName != null && this@ApiClientAnswer.itemCollectionName != null ->
-                DbMediaItem.filter { (it.name eq itemName) and (it.collection.name eq this@ApiClientAnswer.itemCollectionName) }.singleOrNull()
-                    ?: throw IllegalArgumentException("Could not find media item with name '${this@ApiClientAnswer.itemName}' in collection '${this@ApiClientAnswer.itemCollectionName}'.")
-            this@ApiClientAnswer.itemName != null -> DbMediaItem.filter { it.name eq itemName}.singleOrNull()
-                    ?: throw IllegalArgumentException("Could not find media item with name '${this@ApiClientAnswer.itemName}'. Maybe collection name is required.")
+            this@ApiClientAnswer.mediaItemName != null && this@ApiClientAnswer.mediaItemCollectionName != null ->
+                DbMediaItem.filter { (it.name eq mediaItemName) and (it.collection.name eq this@ApiClientAnswer.mediaItemCollectionName) }.singleOrNull()
+                    ?: throw IllegalArgumentException("Could not find media item with name '${this@ApiClientAnswer.mediaItemName}' in collection '${this@ApiClientAnswer.mediaItemCollectionName}'.")
+            this@ApiClientAnswer.mediaItemName != null -> DbMediaItem.filter { it.name eq mediaItemName}.singleOrNull()
+                    ?: throw IllegalArgumentException("Could not find media item with name '${this@ApiClientAnswer.mediaItemName}'. Maybe collection name is required.")
             else -> null
         }
         this.text = this@ApiClientAnswer.text
@@ -64,8 +66,8 @@ data class ApiClientAnswer(
      * @return The [DbAnswerType] for this [ApiClientAnswer].
      */
     fun tryDetermineType() = when {
-        this.itemName != null && this.start != null && this.end != null -> DbAnswerType.TEMPORAL
-        this.itemName != null  -> DbAnswerType.ITEM
+        this.mediaItemName != null && this.start != null && this.end != null -> DbAnswerType.TEMPORAL
+        this.mediaItemName != null  -> DbAnswerType.ITEM
         this.text != null  -> DbAnswerType.TEXT
         else -> throw IllegalArgumentException("Could not determine answer type for provided answer.")
     }

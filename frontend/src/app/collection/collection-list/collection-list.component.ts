@@ -6,6 +6,9 @@ import { CollectionBuilderDialogComponent } from '../collection-builder/collecti
 import { filter, mergeMap } from 'rxjs/operators';
 import {ApiMediaCollection, CollectionService} from '../../../../openapi';
 
+/**
+ * @deprecated
+ */
 @Component({
   selector: 'app-collection-list',
   templateUrl: './collection-list.component.html',

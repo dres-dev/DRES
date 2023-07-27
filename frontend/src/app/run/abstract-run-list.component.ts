@@ -152,6 +152,10 @@ export class AbstractRunListComponent {
     return item.id;
   }
 
+  public refresh(){
+    this.initStateUpdates();
+  }
+
   protected initStateUpdates() {
     /**
      * Creates a combined observable that updates the state in a regular interval and the info +

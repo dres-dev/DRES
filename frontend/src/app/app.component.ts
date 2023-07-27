@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from "@angular/core";
 import { Router } from '@angular/router';
 import { AuthenticationService } from './services/session/authentication.sevice';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -8,6 +8,7 @@ import { AppConfig } from './app.config';
 import {ApiRole, ApiUser} from '../../openapi';
 import { MatDialog } from "@angular/material/dialog";
 import { ServerInfoComponent } from "./shared/server-info/server-info.component";
+import { LogService } from "./services/logging/log.service";
 
 @Component({
   selector: 'app-root',
@@ -15,6 +16,9 @@ import { ServerInfoComponent } from "./shared/server-info/server-info.component"
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
+
+  private readonly LOGGER = inject<LogService>(LogService);
+
   title = 'dres-frontend';
 
   user: Observable<ApiUser>;
@@ -27,7 +31,7 @@ export class AppComponent {
     private router: Router,
     private snackBar: MatSnackBar,
     public config: AppConfig,
-    private dialog: MatDialog
+    private dialog: MatDialog,
   ) {
     this.user = this.authenticationService.user;
     this.loggedIn = this.authenticationService.isLoggedIn;
@@ -40,6 +44,7 @@ export class AppComponent {
    */
   public toggleMute() {
     this.config.config.effects.mute = !this.config.config.effects.mute;
+    this.LOGGER.fatal("Mute state", this.config.config.effects.mute)
   }
 
   public logout() {

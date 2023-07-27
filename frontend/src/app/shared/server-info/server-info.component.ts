@@ -1,14 +1,20 @@
-import { AfterViewInit, Component, OnDestroy, OnInit } from "@angular/core";
+import { AfterViewInit, Component, inject, OnDestroy, OnInit } from "@angular/core";
 import { AuthenticationService } from "../../services/session/authentication.sevice";
 import { Observable, Subscription } from "rxjs";
 import { ApiRole, DresInfo, StatusService } from "../../../../openapi";
+import { LogService } from "../../services/logging/log.service";
+import { LOGGER_CONFIG } from "../../services/logging/logger-config.token";
+import { LoggerConfig } from "../../services/logging/logger.config";
 
 @Component({
   selector: "app-server-info",
   templateUrl: "./server-info.component.html",
-  styleUrls: ["./server-info.component.scss"]
+  styleUrls: ["./server-info.component.scss"],
+  providers:[LogService, {provide: LOGGER_CONFIG, useValue: {identifier: 'ServerInfoComponent'} as LoggerConfig}]
 })
 export class ServerInfoComponent implements OnInit, OnDestroy, AfterViewInit {
+
+  private readonly LOGGER: LogService = inject<LogService>(LogService)
 
   public info: Observable<DresInfo>;
 
@@ -20,7 +26,7 @@ export class ServerInfoComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor(private auth: AuthenticationService, private status: StatusService) {
     this.authSub = this.auth.user.subscribe(
       u => {
-        this.isAdmin = u?.role === ApiRole.ADMIN
+        this.isAdmin = u?.role === ApiRole.ADMIN;
       }
     );
   }
@@ -34,7 +40,7 @@ export class ServerInfoComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
-
+    this.LOGGER.info("Hi")
   }
 
   ngOnDestroy(): void {

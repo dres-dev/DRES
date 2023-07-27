@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormControl, FormGroup } from "@angular/forms";
 import { ApiEvaluationType } from "../../../../openapi";
 import { MatDialogRef } from "@angular/material/dialog";
+import { Observable, Subscription } from "rxjs";
 
 export interface EvaluationStartDialogResult {
   name: string;
@@ -30,9 +31,19 @@ export class EvaluationStartDialogComponent {
 
   evaluationTypes: ApiEvaluationType[] = [ApiEvaluationType.SYNCHRONOUS, ApiEvaluationType.ASYNCHRONOUS];
 
-  typeObservable = this.form.get('type').valueChanges;
+  typeObservable: Observable<ApiEvaluationType> = this.form.get('type').valueChanges;
+
+  sub: Subscription
 
   constructor(public dialogRef: MatDialogRef<EvaluationStartDialogComponent>) {
+    this.form.get('shuffleTasks')?.disable({emitEvent: false})
+    this.sub = this.typeObservable.subscribe((type) => {
+      if(type !== "ASYNCHRONOUS"){
+        this.form.get('shuffleTasks')?.disable({emitEvent: false})
+      }else{
+        this.form.get('shuffleTasks')?.enable({emitEvent: false})
+      }
+    })
   }
 
   public create(){
@@ -49,6 +60,7 @@ export class EvaluationStartDialogComponent {
   }
 
   public close(){
+    this.sub.unsubscribe();
     this.dialogRef.close(null);
   }
 

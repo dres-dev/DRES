@@ -438,10 +438,10 @@ class MediaCollectionCommand(private val store: TransientEntityStore, private va
                                         val result = this.analyze(it).streams.first()
                                         val fps = (result.rFrameRate
                                             ?: result.avgFrameRate!!).toFloat()
-                                        val duration = result.getDuration(TimeUnit.MILLISECONDS)
+                                        val duration = result.duration
                                             .let { duration ->
                                                 if (duration != null) {
-                                                    duration
+                                                    (duration.toDouble() * 1000.0).toLong()
                                                 } else {
                                                     println("Cannot read duration from file, counting frames")
                                                     val analysis =

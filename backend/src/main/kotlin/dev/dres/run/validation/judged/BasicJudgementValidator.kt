@@ -1,7 +1,7 @@
 package dev.dres.run.validation.judged
 
 import dev.dres.data.model.submissions.*
-import dev.dres.run.audit.DbAuditLogger
+import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.JudgementTimeoutException
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.run.validation.interfaces.AnswerSetValidator
@@ -119,7 +119,7 @@ open class BasicJudgementValidator(knownCorrectRanges: Collection<ItemRange> = e
         val token = UUID.randomUUID().toString()
         this.waiting[token] = next
         this.timeouts.add((System.currentTimeMillis() + judgementTimeout) to token)
-        DbAuditLogger.prepareJudgement(answerSet, this, token)
+        AuditLogger.prepareJudgement(answerSet.toApi(), this, token)
         token to answerSet
     }
 

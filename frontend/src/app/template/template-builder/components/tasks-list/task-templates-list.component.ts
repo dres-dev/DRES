@@ -103,28 +103,6 @@ export class TaskTemplatesListComponent extends AbstractTemplateBuilderComponent
     this.selection.toggle(task);
   }
 
-  // public moveTaskUp(task: ApiTaskTemplate) {
-  //   const oldIndex = this.builderService.getTemplate().tasks.indexOf(task);
-  //   if (oldIndex > 0) {
-  //     const buffer = this.builderService.getTemplate().tasks[oldIndex - 1];
-  //     this.builderService.getTemplate().tasks[oldIndex - 1] = task;
-  //     this.builderService.getTemplate().tasks[oldIndex] = buffer;
-  //     this.builderService.update();
-  //     this.taskTable.renderRows();
-  //   }
-  // }
-  //
-  // public moveTaskDown(task: ApiTaskTemplate) {
-  //   const oldIndex = this.builderService.getTemplate().tasks.indexOf(task);
-  //   if (oldIndex < this.builderService.getTemplate().tasks.length - 1) {
-  //     const buffer = this.builderService.getTemplate().tasks[oldIndex + 1];
-  //     this.builderService.getTemplate().tasks[oldIndex + 1] = task;
-  //     this.builderService.getTemplate().tasks[oldIndex] = buffer;
-  //     this.builderService.update();
-  //     this.taskTable.renderRows();
-  //   }
-  // }
-
   public tasksLength() {
     return this.builderService.getTemplate().tasks.length;
   }

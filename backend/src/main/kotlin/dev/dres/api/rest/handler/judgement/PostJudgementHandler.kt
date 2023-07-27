@@ -6,10 +6,9 @@ import dev.dres.api.rest.types.judgement.ApiJudgementRequest
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.audit.DbAuditLogSource
-import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.RunManager
-import dev.dres.run.audit.DbAuditLogger
+import dev.dres.run.audit.AuditLogSource
+import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.JudgementTimeoutException
 import dev.dres.utilities.extensions.eligibleManagerForId
 import dev.dres.utilities.extensions.sessionToken
@@ -62,7 +61,7 @@ class PostJudgementHandler(store: TransientEntityStore): AbstractJudgementHandle
             } catch (ex: JudgementTimeoutException) {
                 throw ErrorStatusException(408, ex.message!!, ctx)
             }
-            DbAuditLogger.judgement(evaluationManager.id, validator, judgement.token, judgement.verdict.toDb(), DbAuditLogSource.REST, ctx.sessionToken())
+            AuditLogger.judgement(evaluationManager.id, validator, judgement.token, judgement.verdict, AuditLogSource.REST, ctx.sessionToken())
         }
         return SuccessStatus("Verdict ${judgement.verdict} received and accepted. Thanks!")
     }

@@ -5,7 +5,6 @@ import dev.dres.DRES
 import dev.dres.utilities.extensions.read
 import dev.dres.utilities.extensions.write
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.io.PrintWriter
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.StampedLock
@@ -24,7 +23,7 @@ object EventStreamProcessor {
     private val eventQueue = ConcurrentLinkedQueue<StreamEvent>()
     private val eventHandlers = mutableListOf<StreamEventHandler>()
     private val handlerLock = StampedLock()
-    private val eventSink = PrintWriter(DRES.CONFIG.eventsPath.resolve("${System.currentTimeMillis()}.txt").toFile().also { it.parentFile.mkdirs() })
+    private val eventSink = PrintWriter(DRES.CONFIG.eventsLocation.resolve("${System.currentTimeMillis()}.txt").toFile().also { it.parentFile.mkdirs() })
 
     private val eventBuffer = mutableListOf<StreamEvent>()
     private val eventBufferRetentionTime = DRES.CONFIG.eventBufferRetentionTime

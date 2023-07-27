@@ -7,9 +7,9 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.Password
-import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.mgmt.admin.DbUserManager
-import dev.dres.run.audit.DbAuditLogger
+import dev.dres.run.audit.AuditLogSource
+import dev.dres.run.audit.AuditLogger
 import dev.dres.utilities.extensions.getOrCreateSessionToken
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
@@ -63,7 +63,7 @@ class LoginHandler(private val store: TransientEntityStore) : RestHandler, PostR
             val sessionToken = ctx.getOrCreateSessionToken()
 
             AccessManager.registerUserForSession(sessionToken, user)
-            DbAuditLogger.login(loginRequest.username, DbAuditLogSource.REST, sessionToken)
+            AuditLogger.login(loginRequest.username, AuditLogSource.REST, sessionToken)
 
             //explicitly set cookie on login
             ctx.cookie(AccessManager.SESSION_COOKIE_NAME, sessionToken, AccessManager.SESSION_COOKIE_LIFETIME)

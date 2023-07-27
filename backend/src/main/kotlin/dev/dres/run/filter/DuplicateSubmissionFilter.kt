@@ -2,8 +2,6 @@ package dev.dres.run.filter
 
 import dev.dres.api.rest.types.evaluation.submission.ApiClientAnswerSet
 import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
-import dev.dres.data.model.run.DbTask
-import dev.dres.data.model.submissions.AnswerSet
 import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.run.filter.basics.AbstractSubmissionFilter
@@ -50,7 +48,7 @@ class DuplicateSubmissionFilter : AbstractSubmissionFilter("Duplicate submission
      */
     private fun isEquivalent(a: DbAnswerSet, b: ApiClientAnswerSet): Boolean {
         for (answer in a.answers) {
-            if (b.answers.find { it.text == answer.text && it.start == answer.start && it.end == answer.end && it.itemName == answer.item?.name } == null) {
+            if (b.answers.find { it.text == answer.text && it.start == answer.start && it.end == answer.end && it.mediaItemName == answer.item?.name } == null) {
                 return false
             }
         }

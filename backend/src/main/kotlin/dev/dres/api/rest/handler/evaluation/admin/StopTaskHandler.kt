@@ -4,11 +4,10 @@ import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.DbEvaluation
-import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
-import dev.dres.run.audit.DbAuditLogger
+import dev.dres.run.audit.AuditLogSource
+import dev.dres.run.audit.AuditLogger
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
@@ -47,7 +46,7 @@ class StopTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHandl
             try {
                 val task = evaluationManager.currentTaskTemplate(rac)
                 evaluationManager.abortTask(rac)
-                DbAuditLogger.taskEnd(evaluationManager.id, task.id, DbAuditLogSource.REST, ctx.sessionToken())
+                AuditLogger.taskEnd(evaluationManager.id, task.id, AuditLogSource.REST, ctx.sessionToken())
                 SuccessStatus("Task '${evaluationManager.currentTaskTemplate(rac).name}' for evaluation $evaluationId was successfully aborted.")
             } catch (e: IllegalStateException) {
                 throw ErrorStatusException(400, "Task '${evaluationManager.currentTaskTemplate(rac).name}' for evaluation $evaluationId could not be aborted because run is in the wrong state (state = ${evaluationManager.status}).", ctx)

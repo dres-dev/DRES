@@ -24,7 +24,7 @@ class ValidTemporalSubmissionFilter : AbstractSubmissionFilter("Submission does 
     override fun test(t: ApiClientSubmission): Boolean {
         for (answerSet in t.answerSets) {
             for (answer in answerSet.answers) {
-                if (answer.itemName == null) return false /* Check that either a media item or a text has been specified. */
+                if (answer.mediaItemName == null) return false /* Check that either a media item or a text has been specified. */
                 if (answer.start == null) return false /* Check that start timestamp is contained. */
                 if (answer.end == null) return false /* Check that end timestamp is contained. */
                 if (answer.start > answer.end) return false /* Check that start precedes end timestamp. */

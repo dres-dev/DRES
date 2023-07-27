@@ -1,11 +1,8 @@
 package dev.dres.api.rest
 
-import GetAuditLogInfoHandler
 import GetTaskHintHandler
 import dev.dres.DRES
 import dev.dres.api.rest.handler.*
-import dev.dres.api.rest.handler.audit.ListAuditLogsHandler
-import dev.dres.api.rest.handler.audit.ListAuditLogsInRangeHandler
 import dev.dres.api.rest.handler.collection.*
 import dev.dres.api.rest.handler.download.EvaluationDownloadHandler
 import dev.dres.api.rest.handler.download.EvaluationTemplateDownloadHandler
@@ -191,11 +188,6 @@ object RestApi {
             PostJudgementHandler(store),
             PostVoteHandler(store),
             JudgementStatusHandler(store),
-
-            // Audit Log
-            GetAuditLogInfoHandler(store),
-            ListAuditLogsInRangeHandler(store),
-            ListAuditLogsHandler(store),
 
             // Status
             CurrentTimeHandler(),

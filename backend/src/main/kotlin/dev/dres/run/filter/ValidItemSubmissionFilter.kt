@@ -23,7 +23,7 @@ class ValidItemSubmissionFilter: AbstractSubmissionFilter("Submission does inclu
     override fun test(t: ApiClientSubmission): Boolean {
         for (answerSet in t.answerSets) {
             for (answer in answerSet.answers) {
-                if (answer.itemName == null) return false /* Check that a media item has been specified. */
+                if (answer.mediaItemName == null) return false /* Check that a media item has been specified. */
                 if (answer.start != null) return false /* Check no start timestamp is contained. */
                 if (answer.end != null) return false /* Check no end timestamp is contained. */
                 if (answer.text != null) return false /* Check no text is contained. */

@@ -6,10 +6,10 @@ import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
-import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.data.model.submissions.DbVerdictStatus
-import dev.dres.run.audit.DbAuditLogger
+import dev.dres.run.audit.AuditLogSource
+import dev.dres.run.audit.AuditLogger
 import dev.dres.utilities.extensions.evaluationId
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.BadRequestResponse
@@ -77,7 +77,7 @@ class OverrideAnswerSetVerdictHandler(store: TransientEntityStore): AbstractEval
             val verdictStatus = apiVerdictStatus.toDb()
             answerSet.status = verdictStatus
 
-            DbAuditLogger.overrideVerdict(answerSet, verdictStatus, DbAuditLogSource.REST, ctx.sessionToken())
+            AuditLogger.overrideVerdict(answerSet.toApi(), verdictStatus.toApi(), AuditLogSource.REST, ctx.sessionToken())
 
             SuccessStatus("Set status of AnswerSet '$answerSetId' to '${apiVerdictStatus.name}'")
         }

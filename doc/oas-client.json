@@ -1616,71 +1616,6 @@
         },
         "required" : [ "username", "password" ]
       },
-      "ApiAuditLogEntry" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "id" : {
-            "type" : "string"
-          },
-          "type" : {
-            "$ref" : "#/components/schemas/ApiAuditLogType"
-          },
-          "source" : {
-            "$ref" : "#/components/schemas/ApiAuditLogSource"
-          },
-          "timestamp" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "competitionId" : {
-            "type" : "string"
-          },
-          "userId" : {
-            "type" : "string"
-          },
-          "submissionId" : {
-            "type" : "string"
-          },
-          "session" : {
-            "type" : "string"
-          },
-          "address" : {
-            "type" : "string"
-          },
-          "description" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "id", "type", "source", "timestamp" ]
-      },
-      "ApiAuditLogSource" : {
-        "type" : "string",
-        "enum" : [ "REST", "CLI", "INTERNAL" ]
-      },
-      "ApiAuditLogType" : {
-        "type" : "string",
-        "enum" : [ "COMPETITION_START", "COMPETITION_END", "TASK_START", "TASK_MODIFIED", "TASK_END", "SUBMISSION", "PREPARE_JUDGEMENT", "JUDGEMENT", "LOGIN", "LOGOUT", "SUBMISSION_VALIDATION", "SUBMISSION_STATUS_OVERWRITE" ]
-      },
-      "AuditLogInfo" : {
-        "type" : "object",
-        "additionalProperties" : false,
-        "properties" : {
-          "timestamp" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "size" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "latest" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        },
-        "required" : [ "timestamp", "size" ]
-      },
       "ApiMediaCollection" : {
         "type" : "object",
         "additionalProperties" : false,
@@ -2172,10 +2107,13 @@
           "text" : {
             "type" : "string"
           },
-          "itemName" : {
+          "mediaItemId" : {
             "type" : "string"
           },
-          "itemCollectionName" : {
+          "mediaItemName" : {
+            "type" : "string"
+          },
+          "mediaItemCollectionName" : {
             "type" : "string"
           },
           "start" : {
@@ -2185,9 +2123,6 @@
           "end" : {
             "type" : "integer",
             "format" : "int64"
-          },
-          "mediaItemId" : {
-            "type" : "string"
           }
         }
       },
@@ -2206,12 +2141,9 @@
             "items" : {
               "$ref" : "#/components/schemas/ApiClientAnswer"
             }
-          },
-          "answerSetId" : {
-            "type" : "string"
           }
         },
-        "required" : [ "answers", "answerSetId" ]
+        "required" : [ "answers" ]
       },
       "ApiClientSubmission" : {
         "type" : "object",

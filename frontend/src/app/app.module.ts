@@ -19,7 +19,6 @@ import { AppConfig } from './app.config';
 import { UserModule } from './user/user.module';
 import { JudgementModule } from './judgement/judgement.module';
 import { AccessRoleService } from './services/session/access-role.service';
-import { AuditlogModule } from './auditlog/auditlog.module';
 import { SharedModule } from './shared/shared.module';
 import { CollectionModule } from './collection/collection.module';
 import { CompetitionBuilderModule } from './competition/competition-builder/competition-builder.module';
@@ -59,7 +58,6 @@ export function initializeApp(appConfig: AppConfig) {
     SharedModule,
     ServicesModule,
     UserModule,
-    AuditlogModule,
     CompetitionModule,
     CompetitionBuilderModule,
     ViewerModule,

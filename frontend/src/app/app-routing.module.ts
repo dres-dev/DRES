@@ -9,7 +9,6 @@ import { RunListComponent } from './run/run-list.component';
 import { RunAdminViewComponent } from './run/run-admin-view.component';
 import { CollectionListComponent } from './collection/collection-list/collection-list.component';
 import { CollectionViewerComponent } from './collection/collection-viewer/collection-viewer.component';
-import { AdminAuditlogOverviewComponent } from './auditlog/admin-auditlog-overview/admin-auditlog-overview.component';
 import { CanDeactivateGuard } from './services/can-deactivate.guard';
 import { RunScoreHistoryComponent } from './run/score-history/run-score-history.component';
 import { JudgementVotingViewerComponent } from './judgement/judgement-voting-viewer.component';
@@ -110,12 +109,6 @@ const routes: Routes = [
   {
     path: 'collection/:collectionId',
     component: CollectionViewerComponent,
-    canActivate: [canActivateAdministrator]
-  },
-
-  {
-    path: 'logs/list',
-    component: AdminAuditlogOverviewComponent,
     canActivate: [canActivateAdministrator]
   },
 

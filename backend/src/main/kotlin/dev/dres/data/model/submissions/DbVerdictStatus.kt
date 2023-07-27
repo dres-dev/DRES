@@ -11,14 +11,19 @@ import kotlinx.dnq.xdRequiredStringProp
  * Status of a [DbSubmission] with respect to its validation.
  *
  * @author Luca Rossetto
+ * @author Loris Sauter
  * @version 2.0.0
  */
 class DbVerdictStatus(entity: Entity) : XdEnumEntity(entity) {
     companion object : XdEnumEntityType<DbVerdictStatus>() {
-        val CORRECT by enumField { description = VerdictStatus.CORRECT.name }                 /** Submission has been deemed as correct. */
+        /** Submission has been deemed as correct. */
+        val CORRECT by enumField { description = VerdictStatus.CORRECT.name }
+        /** Submission has been deemed as wrong. */
         val WRONG by enumField { description = VerdictStatus.WRONG.name }
-        val INDETERMINATE by enumField { description = VerdictStatus.INDETERMINATE.name }     /** Submission has been deemed as wrong. */
-        val UNDECIDABLE by enumField { description = VerdictStatus.UNDECIDABLE.name }        /** Submission has not been validated yet. */
+        /** Submission has not been validated yet. */
+        val INDETERMINATE by enumField { description = VerdictStatus.INDETERMINATE.name }
+        /** Submission has been deemed as undecidable. The semantic of this depends on the consumer of this information */
+        val UNDECIDABLE by enumField { description = VerdictStatus.UNDECIDABLE.name }
 
         /**
          * Returns a list of all [DbRole] values.

@@ -9,10 +9,11 @@ import kotlinx.dnq.*
 import kotlinx.dnq.query.asSequence
 
 /**
- * A [DbVerdictStatus] as submitted by a competition participant. Makes a statement about a [DbTask].
+ * A [DbAnswerSet] as submitted by a evaluation participant. This is a portion of a proposed 'solution' for a [DbTask].
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
+ * @author Loris Sauter
  * @version 2.0.0
  */
 class DbAnswerSet(entity: Entity) : PersistentEntity(entity), AnswerSet {

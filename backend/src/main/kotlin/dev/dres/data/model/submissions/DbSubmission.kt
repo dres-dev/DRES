@@ -4,7 +4,6 @@ import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.data.model.PersistentEntity
 import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.admin.UserId
-import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.TeamId
 import jetbrains.exodus.entitystore.Entity
@@ -13,12 +12,14 @@ import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.simple.min
 
 /**
- * A [DbSubmission] as submitted by a competition participant and received by DRES.
+ * A [DbSubmission] as submitted by an evaluation participant and received by DRES.
+ * Essentially, this is a proposed _solution_ for the referenced [Task]s (via [DbAnswerSet]s)
  *
  * Contains one to N [DbAnswerSet]s regarding a [Task].
  *
  * @author Ralph Gasser
  * @author Luca Rossetto
+ * @author Loris Sauter
  * @version 2.0.0
  */
 class DbSubmission(entity: Entity) : PersistentEntity(entity), Submission {

@@ -7,11 +7,13 @@ typealias SubmissionId = String
 
 /**
  * A [Submission] as issued by a DRES user.
+ * Essentially a proposed solution to a certain task. The task's reference is linked via the answer sets.
  *
  * This abstraction is mainly required to enable testability of implementations.
  *
  * @author Luca Rossetto
  * @author Ralph Gasser
+ * @author Loris Sauter
  * @version 2.0.0
  */
 interface Submission {

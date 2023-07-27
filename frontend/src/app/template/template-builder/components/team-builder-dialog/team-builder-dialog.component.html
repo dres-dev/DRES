@@ -6,7 +6,7 @@
         <span style="text-align: center" [style.text-align]="'center'">
             <img [src]="teamLogo()" alt="The logo of the team" style="max-height: 75px; max-width: 150px"  [style.width]="'100px'" [style.height]="'100px'" [style.object-fit]="'contain'"/>
         </span>
-        <input hidden type="file" #logoInput formControlName="logoData" (change)="processImage($event)" />
+        <input hidden type="file" #logoInput (change)="processImage($event)" />
         <button type="button" mat-button (click)="logoInput.click()">Select logo</button>
       </div>
       <div class="grid-element-form">

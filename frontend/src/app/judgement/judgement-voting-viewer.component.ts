@@ -50,7 +50,7 @@ export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
                 if (req.status === 202) {
                   this.isJudgmentAvailable = false;
                   this.judgementRequest = null;
-                  this.judgePlayer.stop();
+                  this.judgePlayer?.stop();
                   console.log('currently nothing for audience to vote on');
                   return null;
                 } else {
@@ -89,6 +89,10 @@ export class JudgementVotingViewerComponent implements OnInit, OnDestroy {
         this.observableJudgementRequest.next(req);
         this.isJudgmentAvailable = true;
       });
+  }
+
+  allAnswers(){
+    return this.observableJudgementRequest?.value?.answerSet?.answers || []
   }
 
   ngOnDestroy(): void {

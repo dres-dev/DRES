@@ -46,9 +46,8 @@ compileTestKotlin {
 }
 
 dependencies {
-    def javalin = '5.6.1'
+
     def javalinOpenapi = '5.6.1'
-    def log4jVersion = '2.17.1'
 
     ///// Frontend files (produced by sub-project).
     implementation frontendClasspath(project(path: ":frontend", configuration: 'frontendFiles'))
@@ -64,12 +63,12 @@ dependencies {
     implementation group: 'org.jetbrains.xodus', name: 'dnq', version: version_xodus_dnq
 
     ////// Javalin
-    implementation group: 'io.javalin', name:  'javalin', version: javalin
+    implementation group: 'io.javalin', name:  'javalin', version: version_javalin
     kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenapi")
 
     implementation group: 'io.javalin.community.openapi', name: 'javalin-openapi-plugin', version: javalinOpenapi
     implementation group: 'io.javalin.community.openapi', name:'javalin-swagger-plugin', version: javalinOpenapi
-    implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: javalin
+    implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: version_javalin
 
     ////// Bcrypt
     implementation group: 'org.mindrot', name: 'jbcrypt', version: version_bcrypt
@@ -79,7 +78,7 @@ dependencies {
     implementation group: 'org.jline', name: 'jline-terminal-jna', version: version_jline3
     implementation group: 'org.jline', name: 'jline-reader', version: version_jline3
     implementation group: 'org.jline', name: 'jline-builtins', version: version_jline3
-    implementation group: 'com.github.ajalt', name: 'clikt', version: version_clikt
+    implementation group: 'com.github.ajalt.clikt', name: 'clikt', version: version_clikt
     implementation group: 'com.jakewharton.picnic', name: 'picnic', version: version_picnic
 
     ///// Fuel
@@ -91,8 +90,6 @@ dependencies {
     ////// Jaffree ffmpeg wrapper
     implementation group: 'com.github.kokorin.jaffree', name: 'jaffree', version: version_jaffree
 
-    ////// Cache
-    implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '2.8.6'
 
     ////// Log4J
     implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: version_log4j

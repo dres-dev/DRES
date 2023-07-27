@@ -1,12 +1,11 @@
 package dev.dres.api.cli
 
 
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.core.NoOpCliktCommand
-import com.github.ajalt.clikt.core.context
-import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.output.CliktHelpFormatter
+import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.output.HelpFormatter
+import com.github.ajalt.clikt.output.MordantHelpFormatter
+import com.github.ajalt.mordant.rendering.Widget
+import com.github.ajalt.mordant.table.verticalLayout
 import dev.dres.data.model.config.Config
 import dev.dres.mgmt.cache.CacheManager
 import jetbrains.exodus.database.TransientEntityStore
@@ -98,7 +97,8 @@ object Cli {
                     break
                 }
                 if (line.lowercase() == "help") {
-                    println(clikt.getFormattedHelp()) //TODO overwrite with something more useful in a cli context
+                    println(clikt.getFormattedHelp())
+                    lineReader.printAbove(PROMPT)
                     continue
                 }
                 if (line.isBlank()) {
@@ -109,13 +109,14 @@ object Cli {
                     execute(line)
                 } catch (e: Exception) {
                     when (e) {
-                        is com.github.ajalt.clikt.core.NoSuchSubcommand -> println("command not found")
-                        is com.github.ajalt.clikt.core.PrintHelpMessage -> println(e.command.getFormattedHelp())
-                        is com.github.ajalt.clikt.core.MissingParameter -> println(e.localizedMessage)
-                        is com.github.ajalt.clikt.core.NoSuchOption -> println(e.localizedMessage)
-                        is com.github.ajalt.clikt.core.UsageError -> println("invalid command: ${e.localizedMessage}")
+                        is NoSuchSubcommand -> println("command not found")
+                        is PrintHelpMessage -> println(e.context?.command?.getFormattedHelp())
+                        is MissingArgument -> println(e.localizedMessage)
+                        is NoSuchOption -> println(e.localizedMessage)
+                        is UsageError -> println("invalid command: ${e.localizedMessage}")
                         else -> e.printStackTrace()
                     }
+                    lineReader.printAbove(PROMPT)
                 }
             } catch (e: EndOfFileException) {
                 System.err.println("Could not read from terminal due to EOF. If you're running DRES in Docker, try running the container in interactive mode.")
@@ -161,7 +162,7 @@ object Cli {
     class DRESBaseCommand : NoOpCliktCommand(name = "dres") {
 
         init {
-            context { helpFormatter = CliHelpFormatter() }
+            context { helpFormatter = {CliHelpFormatter(it)} }
         }
 
     }
@@ -180,17 +181,26 @@ object Cli {
         }
     }
 
-    class CliHelpFormatter : CliktHelpFormatter() {
-        override fun formatHelp(
+    class CliHelpFormatter(context: Context) : MordantHelpFormatter(context) {
+
+
+
+        override fun collectHelpParts(
+            error: UsageError?,
             prolog: String,
             epilog: String,
             parameters: List<HelpFormatter.ParameterHelp>,
-            programName: String
-        ) = buildString {
-            addOptions(parameters)
-            addArguments(parameters)
-            addCommands(parameters)
+            programName: String,
+        ): List<Widget> = buildList {
+            if (error == null) {
+                if (prolog.isNotEmpty()) add(renderProlog(prolog))
+                if (parameters.isNotEmpty()) add(renderParameters(parameters))
+                if (epilog.isNotEmpty()) add(renderEpilog(epilog))
+            } else {
+                add(renderError(parameters, error))
+            }
         }
+
     }
 
 }

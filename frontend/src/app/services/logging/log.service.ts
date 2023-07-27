@@ -56,10 +56,11 @@ export class LogService {
     /* We have FATAl but console doesnt */
     const lvl = (log.level === LogLevel.FATAL ? 'ERROR' : LogLevel[log.level]).toLowerCase()
     const prefix = `${log.timestamp.toISOString()} [${log.source}] ${lvl}:`
+    const logFn = window.console[lvl].bind(window.console) // Attempt to get proper line numbers, which failed
     if(log?.data?.length > 0){
-      console[lvl](prefix, log.message, ...log.data)
+      logFn(prefix, log.message, ...log.data)
     }else{
-      console[lvl](prefix, log.message)
+      logFn(prefix, log.message)
     }
   }
 

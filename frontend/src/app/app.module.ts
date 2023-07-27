@@ -28,6 +28,7 @@ import { ErrorModule } from "./error/error.module";
 import {DragDropModule} from '@angular/cdk/drag-drop';
 import {MatTableModule} from '@angular/material/table';
 import { LoggingModule } from "./services/logging/logging.module";
+import { ErrorHandlingModule } from "./error-handling/error-handling.module";
 
 /**
  * Method used to load application config.
@@ -69,6 +70,7 @@ export function initializeApp(appConfig: AppConfig) {
     EvaluationModule,
     ErrorModule,
     LoggingModule,
+    ErrorHandlingModule,
   ],
   providers: [
     AppConfig,

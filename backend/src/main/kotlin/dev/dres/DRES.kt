@@ -169,7 +169,7 @@ object DRES {
             DbAnswerType,
             DbVerdictStatus,
         )
-        val store = StaticStoreContainer.init(dbFolder = DATA_ROOT.resolve("data").toFile(), entityStoreName = "dres-db")
+        val store = StaticStoreContainer.init(dbFolder = DATA_ROOT.toFile(), entityStoreName = "dres-db")
         initMetaData(XdModel.hierarchy, store)
         return store
     }

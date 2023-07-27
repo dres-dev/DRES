@@ -29,7 +29,7 @@ export class CollectionViewerComponent implements AfterViewInit, OnDestroy {
   @ViewChild(MatSort) sort: MatSort;
 
   /** Material Table UI element for pagination. */
-  @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild('paginator') paginator: MatPaginator;
 
   /** Data source for Material tabl.e */
   dataSource = new MatTableDataSource<ApiMediaItem>();

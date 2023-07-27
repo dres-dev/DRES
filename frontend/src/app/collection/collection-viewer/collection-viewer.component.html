@@ -24,7 +24,9 @@
     <b>Base Path: </b>{{ (collection | async)?.collection?.basePath }}
   </div>
 </div>
-<div *ngIf="!isLoading; else loading">
+<div>
+  <mat-spinner *ngIf="isLoading"></mat-spinner>
+
   <!-- Filter -->
   <mat-form-field style="width: 100%;">
     <mat-label>Filter</mat-label>
@@ -32,7 +34,7 @@
   </mat-form-field>
 
   <!-- Pagination -->
-  <mat-paginator [pageSizeOptions]="[50, 100, 250]" showFirstLastButtons></mat-paginator>
+  <mat-paginator #paginator [pageSizeOptions]="[50, 100, 250]" showFirstLastButtons></mat-paginator>
 
   <table
     mat-table
@@ -102,5 +104,5 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
+
 </div>
-<ng-template #loading><mat-spinner></mat-spinner></ng-template>

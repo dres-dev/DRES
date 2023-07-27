@@ -36,8 +36,8 @@
   >
     <mat-icon>skip_next</mat-icon>
   </button>
-  <span *ngIf="(run | async)?.state.timeLeft > 0" class="mat-body"
-    >Time left: {{ toFormattedTime((run | async)?.state.timeLeft) }}</span
+  <div *ngIf="(run | async)?.state.timeLeft > 0" class="mat-body" style="align-self: center;"
+    >Time left: {{ toFormattedTime((run | async)?.state.timeLeft) }}</div
   >
   <button
     *ngIf="(run | async)?.state.taskStatus === 'RUNNING'"

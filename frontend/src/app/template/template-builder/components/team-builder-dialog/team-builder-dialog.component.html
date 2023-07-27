@@ -25,10 +25,10 @@
             </mat-chip-row>
             <input placeholder="New user..." #userInput
                    [formControlName]="'userInput'" [matAutocomplete]="auto" [matChipInputFor]="chipList"
-                   [matChipInputSeparatorKeyCodes]="separatorKeyCodes" (matChipInputTokenEnd)="addUser($event)"
+                   [matChipInputSeparatorKeyCodes]="separatorKeyCodes"
             />
           </mat-chip-grid>
-          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectedUser($event)">
+          <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption (optionSelected)="selectedUser($event)">
             <mat-option *ngFor="let user of availableUsers | async | orderBy:'asc':sortUsersByName" [value]="user">
               {{ user.username }}
             </mat-option>

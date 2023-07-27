@@ -62,7 +62,7 @@ export class TeamBuilderDialogComponent {
       users: new FormControl(team?.users || []),
       userInput: new FormControl(''),
     });
-    this.userService.getApiV2UserList().subscribe(value => this.users = value.filter(u => u.role === "PARTICIPANT").filter(user => !this.form.get('users').value.includes(user)));
+    this.userService.getApiV2UserList().subscribe(value => this.users = value.filter(u => u.role === "PARTICIPANT" || u.role === "ADMIN").filter(user => !this.form.get('users').value.includes(user)));
     this.availableUsers = this.form.get('userInput').valueChanges.pipe(
       startWith(''),
       map(value => this.filterAvailableUsers(value || ''))
@@ -73,20 +73,6 @@ export class TeamBuilderDialogComponent {
 
   downloadProvider = () => this.asJson();
 
-  /**
-   * Adds the selected user to the list of users.
-   *
-   * @param event @{MatAutocompleteSelectedEvent}
-   */
-  public addUser(event: MatChipInputEvent): void {
-    const value = (event.value || '').trim()
-    if(value){
-      this.form.get('users').value.push(value);
-    }
-
-    event.chipInput!.clear();
-    this.form.get('userInput').setValue(null, {emit: false});
-  }
 
   /**
    * Selected user gets added to the list of users

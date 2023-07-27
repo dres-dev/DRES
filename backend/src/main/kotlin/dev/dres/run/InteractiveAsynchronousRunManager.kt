@@ -9,8 +9,6 @@ import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
 import dev.dres.api.rest.types.users.ApiRole
-import dev.dres.data.model.admin.DbRole
-import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.run.*
@@ -20,7 +18,8 @@ import dev.dres.data.model.template.task.options.DbSubmissionOption
 import dev.dres.data.model.template.task.options.Defaults.SCOREBOARD_UPDATE_INTERVAL_DEFAULT
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager.Companion.MAXIMUM_RUN_LOOP_ERROR_COUNT
-import dev.dres.run.audit.DbAuditLogger
+import dev.dres.run.audit.AuditLogSource
+import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.score.ScoreTimePoint
@@ -721,7 +720,7 @@ class InteractiveAsynchronousRunManager(
                     )
                     if (timeLeft <= 0) {
                         task.end()
-                        DbAuditLogger.taskEnd(this.id, task.taskId, DbAuditLogSource.INTERNAL, null)
+                        AuditLogger.taskEnd(this.id, task.taskId, AuditLogSource.INTERNAL, null)
 
                         /* Enqueue WS message for sending */
                         RunExecutor.broadcastWsMessage(
@@ -735,7 +734,7 @@ class InteractiveAsynchronousRunManager(
                     val task = this.evaluation.currentTaskForTeam(teamId)
                         ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
                     task.start()
-                    DbAuditLogger.taskStart(this.id, task.teamId, task.template, DbAuditLogSource.REST, null)
+                    AuditLogger.taskStart(this.id, task.teamId, task.template.toApi(), AuditLogSource.REST, null)
                     RunExecutor.broadcastWsMessage(
                         teamId,
                         ServerMessage(this.id, ServerMessageType.TASK_START, task.taskId)

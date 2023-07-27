@@ -10,7 +10,6 @@ import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
 import dev.dres.data.model.admin.DbUser
-import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.run.interfaces.TaskRun
@@ -23,7 +22,8 @@ import dev.dres.data.model.template.task.options.Defaults.SCOREBOARD_UPDATE_INTE
 import dev.dres.data.model.template.task.options.Defaults.VIEWER_TIMEOUT_DEFAULT
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager.Companion.MAXIMUM_RUN_LOOP_ERROR_COUNT
-import dev.dres.run.audit.DbAuditLogger
+import dev.dres.run.audit.AuditLogSource
+import dev.dres.run.audit.AuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
 import dev.dres.run.exceptions.IllegalRunStateException
@@ -619,7 +619,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         if (this.evaluation.currentTask?.status == DbTaskStatus.PREPARING && this.readyLatch.allReadyOrTimedOut()) {
             this.stateLock.write {
                 this.evaluation.currentTask!!.start()
-                DbAuditLogger.taskStart(this.id, this.evaluation.currentTask!!.taskId, this.evaluation.getCurrentTemplate(), DbAuditLogSource.INTERNAL, null)
+                AuditLogger.taskStart(this.id, this.evaluation.currentTask!!.taskId, this.evaluation.getCurrentTemplate().toApi(), AuditLogSource.INTERNAL, null)
             }
 
             /* Enqueue WS message for sending */
@@ -633,7 +633,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 val timeLeft = max(0L, task.duration * 1000L - (System.currentTimeMillis() - task.started!!) + InteractiveRunManager.COUNTDOWN_DURATION)
                 if (timeLeft <= 0) {
                     task.end()
-                    DbAuditLogger.taskEnd(this.id, this.evaluation.currentTask!!.taskId, DbAuditLogSource.INTERNAL, null)
+                    AuditLogger.taskEnd(this.id, this.evaluation.currentTask!!.taskId, AuditLogSource.INTERNAL, null)
                     EventStreamProcessor.event(TaskEndEvent(this.id, task.taskId))
 
                     /* Enqueue WS message for sending */

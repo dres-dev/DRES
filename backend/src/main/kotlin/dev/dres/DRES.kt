@@ -6,9 +6,6 @@ import dev.dres.api.rest.RestApi
 import dev.dres.data.model.config.Config
 import dev.dres.data.model.admin.DbRole
 import dev.dres.data.model.admin.DbUser
-import dev.dres.data.model.audit.DbAuditLogEntry
-import dev.dres.data.model.audit.DbAuditLogSource
-import dev.dres.data.model.audit.DbAuditLogType
 import dev.dres.data.model.media.*
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.*
@@ -20,6 +17,7 @@ import dev.dres.data.model.run.*
 import dev.dres.data.model.submissions.*
 import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.RunExecutor
+import dev.dres.run.audit.AuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.XdModel
@@ -28,7 +26,6 @@ import kotlinx.dnq.util.initMetaData
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.io.path.absolute
 import kotlin.system.exitProcess
 
 
@@ -55,6 +52,10 @@ object DRES {
     lateinit var EXTERNAL_ROOT: Path
         internal set
 
+    /** Path to the directory that contains the audit log. */
+    lateinit var AUDIT_LOG_ROOT: Path
+        internal set
+
     /** Path to the directory that contains task type presets. */
     lateinit var TASK_TYPE_PRESETS_EXTERNAL_LOCATION: Path
         internal set
@@ -62,7 +63,7 @@ object DRES {
     /** Path to the classpath directory that contains task type presets shipped with DRES. */
     const val TASK_TYPE_PRESETS_LOCATION = "dres-type-presets"
 
-    /** The config tloaded */
+    /** The config loaded */
     lateinit var CONFIG : Config
         internal set
 
@@ -89,12 +90,13 @@ object DRES {
         EXTERNAL_ROOT = CONFIG.externalMediaLocation
         TASK_TYPE_PRESETS_EXTERNAL_LOCATION = CONFIG.presetsLocation
         DATA_ROOT = CONFIG.dataPath
+        AUDIT_LOG_ROOT = CONFIG.auditLocation
 
         println("Starting DRES (application: $APPLICATION_ROOT, data: $DATA_ROOT)")
         println("Initializing...")
 
         /* Initialize Xodus based data store. */
-        val store = this.prepareDatabase(CONFIG)
+        val store = this.prepareDatabase()
 
         /* Initialize the global Cache Manager. */
         val global = CacheManager(CONFIG, store)
@@ -122,18 +124,14 @@ object DRES {
         RestApi.stop()
         RunExecutor.stop()
         EventStreamProcessor.stop()
+        AuditLogger.stop()
     }
 
     /**
      * Loads and prepares the database.
-     *
-     * @param config The [Config]
      */
-    private fun prepareDatabase(config: Config): TransientEntityStore  {
+    private fun prepareDatabase(): TransientEntityStore  {
         XdModel.registerNodes(
-            DbAuditLogEntry,
-            DbAuditLogSource,
-            DbAuditLogType,
             DbConfiguredOption,
             DbEvaluation,
             DbEvaluationStatus,

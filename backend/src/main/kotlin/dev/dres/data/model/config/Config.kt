@@ -28,7 +28,9 @@ data class Config(
     /** Folder that contains task type rpesets. Defaults to `$APPLICATION_ROOT/type-presets` */
     val presetsLocation: Path = DRES.APPLICATION_ROOT.resolve("type-presets"),
     /** Folder for event data. Defaults to `$APPLICATION_ROOT/external` */
-    val eventsPath: Path = DRES.APPLICATION_ROOT.resolve("events"),
+    val eventsLocation: Path = DRES.APPLICATION_ROOT.resolve("events"),
+    /** Location for Audit event log. */
+    val auditLocation: Path = DRES.APPLICATION_ROOT.resolve("audit"),
     /** Event buffer retention time, defaults to 1 minute */
     val eventBufferRetentionTime: Int = 60_000,
 ) {

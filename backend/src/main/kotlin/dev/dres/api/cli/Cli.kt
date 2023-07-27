@@ -48,7 +48,6 @@ object Cli {
             EvaluationCommand(store),
             OpenApiCommand(),
             ExecutionCommand(),
-            AuditCommand(store),
             ConfigCommand()
         )
 

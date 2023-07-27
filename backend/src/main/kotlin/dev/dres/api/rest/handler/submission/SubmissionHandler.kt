@@ -8,11 +8,13 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.api.rest.types.users.ApiRole
-import dev.dres.data.model.audit.DbAuditLogSource
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
+import dev.dres.run.audit.AuditLogSource
+import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
 import dev.dres.run.filter.SubmissionRejectedException
+import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
@@ -72,7 +74,7 @@ class SubmissionHandler: PostRestHandler<SuccessStatus>, AccessManagedRestHandle
             logger.info("Submission with unknown team id '${apiClientSubmission.teamId}' was received.")
             throw ErrorStatusException(400, "Run manager does not know the given teamId ${apiClientSubmission.teamId}.", ctx)
         } finally {
-            DbAuditLogSource
+            AuditLogger.submission(apiClientSubmission, rac.evaluationId!!, AuditLogSource.REST, ctx.sessionToken(), ctx.ip())
         }
 
         /* Return status. */

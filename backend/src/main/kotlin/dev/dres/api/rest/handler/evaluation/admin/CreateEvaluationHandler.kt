@@ -83,7 +83,7 @@ class CreateEvaluationHandler(store: TransientEntityStore, private val cache: Ca
                         val path = item.pathToOriginal()
                         if (!Files.exists(path)) {
                             logger.error("Required media file $path not found for item ${item.name}.")
-                            //throw ErrorStatusException(500, "Required media file $path not found for item ${item.name}.", ctx)
+                            throw ErrorStatusException(500, "Required media file $path not found for item ${item.name}.", ctx)
                         }
 
                         this@CreateEvaluationHandler.cache.asyncPreviewVideo(item, source.range.start.toMilliseconds(), source.range.end.toMilliseconds())
@@ -92,21 +92,19 @@ class CreateEvaluationHandler(store: TransientEntityStore, private val cache: Ca
                         val path = DRES.EXTERNAL_ROOT.resolve(source.path)
                         if (!Files.exists(path)) {
                             logger.error("ERROR: Media file $path not found for external video.")
-                            //throw ErrorStatusException(500, "Required media file $path not found.", ctx)
+                            throw ErrorStatusException(500, "Required media file $path not found.", ctx)
                         }
 
                         this@CreateEvaluationHandler.cache.asyncPreviewVideo(path, source.range.start.toMilliseconds(), source.range.end.toMilliseconds())
                     }
                 }
-
             }
             await.all {
                 try {
                     it.get(60, TimeUnit.SECONDS)
                     true
                  } catch (e: Throwable) {
-                    //throw ErrorStatusException(500, "Required media file could not be prepared.", ctx)
-                     true
+                    throw ErrorStatusException(500, "Required media file could not be prepared.", ctx)
                  }
             }
 

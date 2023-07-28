@@ -58,7 +58,7 @@ class CurrentTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandle
             "No active task run in evaluation ${ctx.evaluationId()}.",
             ctx
         )
-        val scores = scorer.scoreMapFromCache()
+        val scores = scorer.scoreMap()
         return@transactional ApiScoreOverview(
             "task",
             manager.currentTaskTemplate(rac).taskGroup.name,

@@ -2,23 +2,18 @@ package dev.dres.run
 
 import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
-import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.data.model.run.*
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.TaskId
 import dev.dres.data.model.submissions.*
-import dev.dres.run.filter.SubmissionRejectedException
 import dev.dres.run.score.scoreboard.Scoreboard
-import dev.dres.run.updatables.ScoreboardsUpdatable
-import dev.dres.run.updatables.ScoresUpdatable
 import dev.dres.run.validation.interfaces.JudgementValidator
 import jetbrains.exodus.database.TransientEntityStore
 import org.slf4j.LoggerFactory
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
-import kotlin.concurrent.write
 
 class NonInteractiveRunManager(
     override val evaluation: NonInteractiveEvaluation,
@@ -52,12 +47,6 @@ class NonInteractiveRunManager(
     /** The [DbEvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
     override val template: DbEvaluationTemplate
         get() = this.evaluation.description
-
-    /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoresUpdatable = ScoresUpdatable(this)
-
-    /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable = ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_MS) //TODO requires some changes
 
     /** The [List] of [Scoreboard]s maintained by this [NonInteractiveRunManager]. */
     override val scoreboards: List<Scoreboard>
@@ -129,11 +118,6 @@ class NonInteractiveRunManager(
 
             try {
                 this.stateLock.read {
-
-                    scoresUpdatable.update(this.status)
-
-                    scoreboardsUpdatable.update(this.status)
-
 
                 }
             } catch (ie: InterruptedException) {

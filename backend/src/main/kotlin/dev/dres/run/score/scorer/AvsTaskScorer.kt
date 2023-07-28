@@ -13,8 +13,11 @@ import kotlin.math.abs
 
 /**
  * The new AVS Scorer.
+ *
+ * @author Luca Rossetto
+ * @version 2.0.0
  */
-class AvsTaskScorer(override val scoreable: Scoreable, private val penaltyConstant: Double, private val maxPointsPerTask: Double) : TaskScorer {
+class AvsTaskScorer(scoreable: Scoreable, private val penaltyConstant: Double, private val maxPointsPerTask: Double) : AbstractTaskScorer(scoreable) {
 
     private var lastScores: Map<TeamId, Double> = emptyMap()
     private val lastScoresLock = ReentrantReadWriteLock()
@@ -49,11 +52,14 @@ class AvsTaskScorer(override val scoreable: Scoreable, private val penaltyConsta
     }
 
     /**
-     * Computes and returns the scores for this [AvsTaskScorer]. Requires an ongoing database transaction.
+     * Computes and returns the scores for this [KisTaskScorer] based on a [Sequence] of [Submission]s.
      *
+     * The sole use of this method is to keep the implementing classes unit-testable (irrespective of the database).
+     *
+     * @param submissions A [Sequence] of [Submission]s to obtain scores for.
      * @return A [Map] of [TeamId] to calculated task score.
      */
-    override fun scoreMap(submissions: Sequence<Submission>): Map<TeamId, Double> {
+    override fun calculateScores(submissions: Sequence<Submission>): Map<TeamId, Double> {
         /* Make necessary calculations. */
         val distinctCorrectVideos = submissions.flatMap { submission ->
             submission.answerSets().filter { it.status() == VerdictStatus.CORRECT && it.answers().firstOrNull()?.item != null }

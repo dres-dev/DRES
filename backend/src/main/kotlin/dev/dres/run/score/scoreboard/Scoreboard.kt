@@ -11,17 +11,18 @@ import dev.dres.run.score.scorer.TaskScorer
  * A [Scoreboard] tracks the [Score]s for different [DbTeam]s
  *
  * @author Ralph Gasser
- * @version 1.1.0
+ * @version 2.0.0
  */
 interface Scoreboard {
 
     /** The [EvaluationRun] this [Scoreboard] instance belongs to. */
     val run: EvaluationRun
 
-    /**
-     * Returns the name of the [Scoreboard]
-     */
+    /** * Returns the name of the [Scoreboard] */
     val name: String
+
+    /** Flag indicating, that this [Scoreboard] is dirty and needs re-calculation. */
+    val dirty: Boolean
 
     /**
      * Returns all overall [Score]s tracked by this [Scoreboard].
@@ -29,20 +30,20 @@ interface Scoreboard {
     fun scores(): List<Score>
 
     /**
-     * Retrieves and returns the score of the given [DbTeam]
+     * Retrieves and returns the score of the given [TeamId]
      *
-     * @param teamId The [DbTeam]'s [TeamId].
-     * @return The score for the given [DbTeam].
+     * @param teamId The [TeamId] to retrieve the score for.
+     * @return The score for the given [TeamId].
      */
     fun score(teamId: TeamId): Double
-
-    /**
-     * Updates the scores held by this [Scoreboard].
-     */
-    fun update()
 
     /**
      * Returns a summary of all current scores in a [ScoreOverview]
      */
     fun overview(): ScoreOverview
+
+    /**
+     * Invalidates this [Scoreboard] and marks its content as dirty.
+     */
+    fun invalidate()
 }

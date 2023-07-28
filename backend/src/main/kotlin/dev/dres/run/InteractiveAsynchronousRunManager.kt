@@ -507,50 +507,48 @@ class InteractiveAsynchronousRunManager(
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.ACTIVE].
      */
     override fun postSubmission(context: RunActionContext, submission: ApiClientSubmission) = this.stateLock.read {
-        TODO("Not yet implemented")
 
-        /* require(context.teamId != null) { "TeamId is missing from action context, which is required for interaction with run manager." }
-        require(teamHasRunningTask(context.teamId)) { "No running task for Team ${context.teamId}" }
-        require(
-            submission.answerSets().count() == 1
-        ) { "Only single verdict per submission is allowed for InteractiveAsynchronousRunManager." } /* TODO: Do we want this restriction? */
+        /* Phase 1: Basic lookups required for validation (read-only). */
+        val task = this.store.transactional(true) {
+            val teamId = context.teamId()
 
-        /* Register submission. */
-        val task = this.currentTask(context)
-            ?: throw IllegalStateException("Could not find ongoing task in run manager, despite being in status ${this.statusMap[context.teamId]}. This is a programmer's error!")
+            require(teamHasRunningTask(teamId)) { "No running task for Team ${teamId}" }
+            val task = this.currentTask(context)
+                ?: throw IllegalStateException("Could not find ongoing task in run manager, despite being in status ${this.statusMap[teamId]}. This is a programmer's error!")
 
-        /* Sanity check. */
-        check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running. This is a programmer's error!" }
-        check(task.teamId == submission.teamId) { "Team ${submission.teamId} is not eligible to submit to this task. This is a programmer's error!" }
+            /* Sanity check. */
+            check(task.isRunning) { "Task run '${this.name}.${task.position}' is currently not running. This is a programmer's error!" }
 
-        /* Check if ApiSubmission meets formal requirements. */
-        task.filter.acceptOrThrow(submission)
+            /* Update submission with contextual information. */
+            submission.userId = context.userId
+            submission.teamId = teamId
+            submission.answerSets.forEach {
+                it.taskId = task.taskId /* All answers are explicitly associated with the running task. */
+            }
 
-        /* Apply transformations to submissions */
-        val transformedSubmission = task.transformer.transform(submission)
-
-        /* Check if there are answers left after transformation */
-        if (transformedSubmission.answers.isEmpty()) {
-            throw IllegalStateException("Submission contains no valid answer sets")
+            /* Check if ApiSubmission meets formal requirements. */
+            task.filter.acceptOrThrow(submission)
+            task
         }
 
-        /* At this point, the submission is considered valid and is persisted */
-        /* Validator is applied to each answer set */
-        transformedSubmission.answerSets().forEach {
-            task.validator.validate(it)
+        /* Phase 2: Create DbSubmission, apply transformers and validate it. */
+        this.store.transactional {
+            /* Convert submission to database representation. */
+            val db = submission.toNewDb()
+
+            /* Apply transformer(s) to submission. */
+            task.transformer.transform(db)
+
+            /* Check if there are answers left after transformation */
+            if (db.answerSets.isEmpty) {
+                throw IllegalStateException("Submission contains no valid answer sets.")
+            }
+
+            /* Apply validators to each answer set. */
+            db.answerSets.asSequence().forEach {
+                task.validator.validate(it)
+            }
         }
-
-        /* Persist the submission. */
-        transformedSubmission.toNewDb()
-
-        /* Enqueue submission for post-processing. */
-        this.scoresUpdatable.enqueue(task)
-
-        /* Enqueue WS message for sending */
-        RunExecutor.broadcastWsMessage(
-            context.teamId,
-            ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.taskId)
-        ) */
     }
 
     override fun reScore(taskId: TaskId) {
@@ -626,6 +624,9 @@ class InteractiveAsynchronousRunManager(
             }
         }
 
+        /** Add this InteractiveAsynchronousRunManager as a listener for changes to the data store. */
+        this.store.addListener(this)
+
         /* Initialize error counter. */
         var errorCounter = 0
 
@@ -643,28 +644,27 @@ class InteractiveAsynchronousRunManager(
                 }
 
                 /* 3) Yield to other threads. */
-                Thread.sleep(250)
+                Thread.sleep(500)
 
                 /* 4) Reset error counter and yield to other threads. */
                 errorCounter = 0
             } catch (ie: InterruptedException) {
-                LOGGER.info("Interrupted run manager thread; exiting...")
+                LOGGER.info("Interrupted SynchronousRunManager, exiting")
                 return
             } catch (e: Throwable) {
-                LOGGER.error(
-                    "Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!",
-                    e
-                )
+                LOGGER.error("Uncaught exception in run loop for competition run ${this.id}. Loop will continue to work but this error should be handled!", e)
+                LOGGER.error("This is the ${++errorCounter}. in a row, will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")
 
                 // oh shit, something went horribly, horribly wrong
                 if (errorCounter >= MAXIMUM_RUN_LOOP_ERROR_COUNT) {
-                    LOGGER.error("Reached maximum consecutive error count of  $MAXIMUM_RUN_LOOP_ERROR_COUNT; terminating loop...")
-                    break
-                } else {
-                    LOGGER.error("This is the ${++errorCounter}-th in a row. Run manager will terminate loop after $MAXIMUM_RUN_LOOP_ERROR_COUNT errors")
+                    LOGGER.error("Reached maximum consecutive error count, terminating loop")
+                    break //terminate loop
                 }
             }
         }
+
+        /* Remove this InteractiveAsynchronousRunManager as a listener for changes to the data store. */
+        this.store.removeListener(this)
 
         /* Finalization. */
         this.stateLock.read {
@@ -674,7 +674,7 @@ class InteractiveAsynchronousRunManager(
             }
         }
 
-        LOGGER.info("Run manager ${this.id} has reached end of run logic.")
+        LOGGER.info("InteractiveAsynchronousRunManager ${this.id} has reached end of run logic.")
     }
 
     /**
@@ -699,7 +699,7 @@ class InteractiveAsynchronousRunManager(
      */
     private fun internalStateUpdate() = this.stateLock.read {
         for (teamId in teamIds) {
-            if (teamHasRunningTask(teamId)) { //FIXME DbTaskTemplate[...] was removed.
+            if (teamHasRunningTask(teamId)) {
                 this.stateLock.write {
                     val task = this.evaluation.currentTaskForTeam(teamId)
                         ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")

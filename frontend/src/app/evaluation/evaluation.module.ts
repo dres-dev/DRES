@@ -13,6 +13,8 @@ import { MatExpansionModule } from "@angular/material/expansion";
 import { FormsModule } from "@angular/forms";
 import { MatCardModule } from "@angular/material/card";
 import { TemplateInfoComponent } from './admin/submission/template-info/template-info.component';
+import { TaskControlsComponent } from './task-controls/task-controls.component';
+import { MatMenuModule } from "@angular/material/menu";
 
 
 
@@ -23,6 +25,7 @@ import { TemplateInfoComponent } from './admin/submission/template-info/template
     SubmissionsDetailsComponent,
     SubmissionsListComponent,
     TemplateInfoComponent,
+    TaskControlsComponent,
   ],
   imports: [
     CommonModule,
@@ -33,7 +36,11 @@ import { TemplateInfoComponent } from './admin/submission/template-info/template
     MatSlideToggleModule,
     MatExpansionModule,
     FormsModule,
-    MatCardModule
+    MatCardModule,
+    MatMenuModule
+  ],
+  exports:[
+    TaskControlsComponent
   ]
 })
 export class EvaluationModule { }

@@ -19,7 +19,6 @@ import { ViewerRunListComponent } from './viewer-run-list.component';
 import { RunAdminViewComponent } from './run-admin-view.component';
 import { MatCardModule } from '@angular/material/card';
 import { SharedModule } from '../shared/shared.module';
-import { RunAdminSubmissionsListComponent } from './run-admin-submissions-list/run-admin-submissions-list.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -30,6 +29,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { RunAsyncAdminViewComponent } from './run-async-admin-view/run-async-admin-view.component';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RunAdminToolbarComponent } from './run-admin-toolbar/run-admin-toolbar.component';
+import { EvaluationModule } from "../evaluation/evaluation.module";
 
 @NgModule({
   imports: [
@@ -57,6 +57,7 @@ import { RunAdminToolbarComponent } from './run-admin-toolbar/run-admin-toolbar.
     NgApexchartsModule,
     MatExpansionModule,
     MatToolbarModule,
+    EvaluationModule
   ],
   exports: [RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent],
   declarations: [
@@ -65,7 +66,6 @@ import { RunAdminToolbarComponent } from './run-admin-toolbar/run-admin-toolbar.
     RunScoreHistoryComponent,
     AdminRunListComponent,
     ViewerRunListComponent,
-    RunAdminSubmissionsListComponent,
     RunAsyncAdminViewComponent,
     RunAdminToolbarComponent,
   ],

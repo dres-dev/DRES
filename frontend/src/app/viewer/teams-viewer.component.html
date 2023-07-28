@@ -37,7 +37,7 @@
                   <p *ngIf="answer.previewItem === null || answer.previewStart === null">?</p>
                 </div>
                 <div *ngSwitchCase="'TEXT'">
-                  <img matTooltip="{{answer.previewText}}" [src]="config.resolveUrl('img/text.png')" alt="A texticon, the actual submission text is displayed via tooltip"/>
+                  <img matTooltip="{{answer.previewText}}" src="/immutable/assets/images/text.png" alt="A texticon, the actual submission text is displayed via tooltip"/>
                 </div>
               </div>
             </div>

@@ -17,7 +17,7 @@ typealias TransientMediaSegment = Pair<MediaItem, TemporalRange>
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class TemporalOverlapAnswerSetValidator(private val targetSegment: TransientMediaSegment) : AnswerSetValidator {
+class TemporalOverlapAnswerSetValidator(private val targetSegments: Collection<TransientMediaSegment>) : AnswerSetValidator {
 
     override val deferring: Boolean = false
 
@@ -42,16 +42,20 @@ class TemporalOverlapAnswerSetValidator(private val targetSegment: TransientMedi
                 return
             }
 
-            /* Perform item validation. */
-            if (item.id != this.targetSegment.first.mediaItemId) {
+            if (targetSegments.any { targetSegment ->
+                    /* Perform item validation. */
+                    if (item.id != targetSegment.first.mediaItemId) {
+                        return@any false
+                    }
+
+                    /* Perform temporal validation. */
+                    val outer = targetSegment.second.toMilliseconds()
+
+                    return@any (outer.first <= start && outer.second >= start) || (outer.first <= end && outer.second >= end)
+                }) {
                 return
             }
 
-            /* Perform temporal validation. */
-            val outer = this.targetSegment.second.toMilliseconds()
-            if (!((outer.first <= start && outer.second >= start) || (outer.first <= end && outer.second >= end))) {
-                return
-            }
         }
 
         /* If code reaches this point, the [DbAnswerSet] is correct. */

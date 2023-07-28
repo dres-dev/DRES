@@ -35,8 +35,8 @@ abstract class AbstractInteractiveTask(task: DbTask): AbstractTask(task) {
         this.validator = when (val targetOption = this.template.taskGroup.type.target) {
             DbTargetOption.MEDIA_ITEM -> MediaItemsAnswerSetValidator(this.template.targets.filter { it.item ne null }.mapDistinct { it.item }.toSet())
             DbTargetOption.MEDIA_SEGMENT -> {
-                val target = this.template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null)}.take(1) .first()
-                TemporalOverlapAnswerSetValidator(TransientMediaSegment(target.item!!, target.range!!))
+                val target = this.template.targets.filter { (it.item ne null) and (it.start ne null) and (it.end ne null)}.asSequence().map { TransientMediaSegment(it.item!!, it.range!!) }.toSet()
+                TemporalOverlapAnswerSetValidator(target)
             }
             DbTargetOption.TEXT -> TextAnswerSetValidator(this.template.targets.filter { it.text ne null }.asSequence().map { it.text!! }.toList())
             DbTargetOption.JUDGEMENT -> {

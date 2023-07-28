@@ -12,7 +12,8 @@ import kotlinx.dnq.query.iterator
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class TemporalContainmentAnswerSetValidator(private val targetSegment: TransientMediaSegment) : AnswerSetValidator {
+class TemporalContainmentAnswerSetValidator(private val targetSegments: Collection<TransientMediaSegment>) :
+    AnswerSetValidator {
 
     override val deferring: Boolean
         get() = false
@@ -39,14 +40,16 @@ class TemporalContainmentAnswerSetValidator(private val targetSegment: Transient
                 return
             }
 
-            /* Perform item validation. */
-            if (item.mediaItemId != this.targetSegment.first.mediaItemId) {
-                return
-            }
+            if (targetSegments.any { targetSegment ->
+                    /* Perform item validation. */
+                    if (item.mediaItemId != targetSegment.first.mediaItemId) {
+                        return@any false
+                    }
 
-            /* Perform temporal validation. */
-            val outer = this.targetSegment.second.toMilliseconds()
-            if (outer.first > start || outer.second < end) {
+                    /* Perform temporal validation. */
+                    val outer = targetSegment.second.toMilliseconds()
+                    !(outer.first > start || outer.second < end)
+                }) {
                 return
             }
         }

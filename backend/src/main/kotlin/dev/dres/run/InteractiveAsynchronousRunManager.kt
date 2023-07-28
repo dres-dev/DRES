@@ -15,7 +15,6 @@ import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.*
 import dev.dres.data.model.template.task.options.DbSubmissionOption
-import dev.dres.data.model.template.task.options.Defaults.SCOREBOARD_UPDATE_INTERVAL_DEFAULT
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager.Companion.MAXIMUM_RUN_LOOP_ERROR_COUNT
 import dev.dres.run.audit.AuditLogSource
@@ -26,8 +25,13 @@ import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.*
 import dev.dres.run.validation.interfaces.JudgementValidator
+import jetbrains.exodus.database.TransientEntityChange
 import jetbrains.exodus.database.TransientEntityStore
+import jetbrains.exodus.database.TransientStoreSession
+import jetbrains.exodus.database.TransientStoreSessionListener
+import jetbrains.exodus.database.exceptions.DataIntegrityViolationException
 import kotlinx.dnq.query.*
+import kotlinx.dnq.util.findById
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -51,7 +55,7 @@ import kotlin.math.max
 class InteractiveAsynchronousRunManager(
     override val evaluation: InteractiveAsynchronousEvaluation,
     override val store: TransientEntityStore
-) : InteractiveRunManager {
+) : InteractiveRunManager, TransientStoreSessionListener {
 
     companion object {
         /** The [Logger] instance used by [InteractiveAsynchronousRunManager]. */
@@ -100,7 +104,7 @@ class InteractiveAsynchronousRunManager(
     } else {
         RunManagerStatus.CREATED
     }
-    private set
+        private set
 
     /** Returns list [JudgementValidator]s associated with this [InteractiveAsynchronousRunManager]. May be empty! */
     override val judgementValidators: List<JudgementValidator>
@@ -323,7 +327,10 @@ class InteractiveAsynchronousRunManager(
         currentTaskRun.prepare()
 
         /* Enqueue WS message for sending */
-        RunExecutor.broadcastWsMessage(teamId, ServerMessage(this.id, ServerMessageType.TASK_PREPARE, currentTaskRun.taskId))
+        RunExecutor.broadcastWsMessage(
+            teamId,
+            ServerMessage(this.id, ServerMessageType.TASK_PREPARE, currentTaskRun.taskId)
+        )
 
         LOGGER.info("Run manager  ${this.id} started task $currentTaskTemplate.")
     }
@@ -434,10 +441,11 @@ class InteractiveAsynchronousRunManager(
      * @param context The [RunActionContext] used for the invocation.
      * @return [InteractiveAsynchronousEvaluation.IATaskRun] that is currently active or null, if no such task is active.
      */
-    override fun currentTask(context: RunActionContext): InteractiveAsynchronousEvaluation.IATaskRun? = this.stateLock.read {
-        val teamId = context.teamId()
-        return this.evaluation.currentTaskForTeam(teamId)
-    }
+    override fun currentTask(context: RunActionContext): InteractiveAsynchronousEvaluation.IATaskRun? =
+        this.stateLock.read {
+            val teamId = context.teamId()
+            return this.evaluation.currentTaskForTeam(teamId)
+        }
 
     /**
      * List of all [DbSubmission]s for this [InteractiveAsynchronousRunManager], irrespective of the [DbTask] it belongs to.
@@ -467,7 +475,8 @@ class InteractiveAsynchronousRunManager(
         val teamId = context.teamId()
         require(teamHasRunningTask(teamId)) { "No running task for Team $teamId." }
 
-        val currentTaskRun = this.currentTask(context) ?: throw IllegalStateException("No active TaskRun found. This is a serious error!")
+        val currentTaskRun = this.currentTask(context)
+            ?: throw IllegalStateException("No active TaskRun found. This is a serious error!")
         val newDuration = currentTaskRun.duration + s
         check((newDuration * 1000L - (System.currentTimeMillis() - currentTaskRun.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
         currentTaskRun.duration = newDuration
@@ -565,7 +574,11 @@ class InteractiveAsynchronousRunManager(
      *
      * @return Whether the update was successful or not
      */
-    override fun updateSubmission(context: RunActionContext, submissionId: SubmissionId, submissionStatus: ApiVerdictStatus): Boolean = this.stateLock.read {
+    override fun updateSubmission(
+        context: RunActionContext,
+        submissionId: SubmissionId,
+        submissionStatus: ApiVerdictStatus
+    ): Boolean = this.stateLock.read {
         val answerSet = DbAnswerSet.filter { it.submission.submissionId eq submissionId }.singleOrNull() ?: return false
 
         /* Actual update - currently, only status update is allowed */
@@ -671,7 +684,8 @@ class InteractiveAsynchronousRunManager(
      */
     private fun invokeUpdatables() = this.stateLock.read {
         for (teamId in this.teamIds) {
-            val runStatus = this.statusMap[teamId] ?: throw IllegalStateException("Run status for team $teamId is not set. This is a programmers error!")
+            val runStatus = this.statusMap[teamId]
+                ?: throw IllegalStateException("Run status for team $teamId is not set. This is a programmers error!")
             val taskStatus = this.evaluation.currentTaskForTeam(teamId)?.status?.toApi()
             for (updatable in this.updatables) {
                 if (updatable.shouldBeUpdated(runStatus, taskStatus)) {
@@ -726,7 +740,8 @@ class InteractiveAsynchronousRunManager(
      */
     private fun registerOptionalUpdatables() {
         /* Determine if task should be ended once submission threshold per team is reached. */
-        val endOnSubmit = this.template.taskGroups.mapDistinct { it.type }.flatMapDistinct { it.options }.filter { it.description eq DbSubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.any()
+        val endOnSubmit = this.template.taskGroups.mapDistinct { it.type }.flatMapDistinct { it.options }
+            .filter { it.description eq DbSubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.any()
         if (endOnSubmit) {
             this.updatables.add(EndOnSubmitUpdatable(this))
         }
@@ -775,7 +790,54 @@ class InteractiveAsynchronousRunManager(
      */
     private fun RunActionContext.teamId(): TeamId {
         val userId = this.userId
-        return this@InteractiveAsynchronousRunManager.template.teams.filter { it.users.filter { it.id eq userId }.isNotEmpty() }.firstOrNull()?.teamId
+        return this@InteractiveAsynchronousRunManager.template.teams.asSequence().firstOrNull { team ->
+            team.users.filter { it.id eq userId }.isNotEmpty
+        }?.teamId
             ?: throw IllegalArgumentException("Could not find matching team for user, which is required for interaction with this run manager.")
+    }
+
+    override fun afterConstraintsFail(
+        session: TransientStoreSession,
+        exceptions: Set<DataIntegrityViolationException>
+    ) {
+        /* nop */
+    }
+
+    override fun beforeFlushBeforeConstraints(
+        session: TransientStoreSession,
+        changedEntities: Set<TransientEntityChange>
+    ) {
+        /* nop */
+    }
+
+    /**
+     * [TransientStoreSessionListener] implementation: Reacts to changes to the [DbAnswerSet] entity and invalidates [Scoreboard]s and [Scorer]s if necessary.
+     *
+     * @param session The [TransientStoreSession] that triggered the invocation.
+     * @param changedEntities The [TransientEntityChange]s for the transaction.
+     */
+    override fun flushed(session: TransientStoreSession, changedEntities: Set<TransientEntityChange>) {
+        if (!session.isReadonly) {
+            for (c in changedEntities) {
+                if (c.transientEntity.persistentEntity.type == "DbAnswerSet") {
+                    val xdId = c.transientEntity.persistentEntity.id.toString()
+                    val task = DbAnswerSet.findById(xdId).task
+                    if (this.evaluation.id == task.evaluation.id) {
+                        val t = this.taskForId(RunActionContext.INTERNAL, task.id)
+                        if (t != null) {
+                            t.scorer.invalidate()
+                            this.scoreboards.forEach { it.invalidate() }
+                            RunExecutor.broadcastWsMessage(
+                                ServerMessage(
+                                    this.id,
+                                    ServerMessageType.TASK_UPDATED,
+                                    task.id
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }

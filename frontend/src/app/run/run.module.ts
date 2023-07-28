@@ -29,6 +29,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { RunAsyncAdminViewComponent } from './run-async-admin-view/run-async-admin-view.component';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RunAdminToolbarComponent } from './run-admin-toolbar/run-admin-toolbar.component';
+import { EvaluationModule } from "../evaluation/evaluation.module";
 
 @NgModule({
   imports: [
@@ -56,6 +57,7 @@ import { RunAdminToolbarComponent } from './run-admin-toolbar/run-admin-toolbar.
     NgApexchartsModule,
     MatExpansionModule,
     MatToolbarModule,
+    EvaluationModule
   ],
   exports: [RunListComponent, RunAdminViewComponent, RunScoreHistoryComponent],
   declarations: [

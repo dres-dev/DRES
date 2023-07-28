@@ -8,6 +8,8 @@
         <mat-card-subtitle><strong>Description:</strong> {{ (runInfo | async)?.templateDescription }}</mat-card-subtitle>
 
         <div class="spacer-flex"></div>
+        <app-task-controls *ngIf="(runInfo | async)?.type === 'ASYNCHRONOUS'" [runState]="runState"></app-task-controls>
+        <div class="spacer-flex"></div>
 
         <button mat-icon-button [matMenuTriggerFor]="animals">
           <mat-icon>dashboard</mat-icon>

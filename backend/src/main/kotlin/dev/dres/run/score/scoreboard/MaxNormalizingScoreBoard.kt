@@ -4,6 +4,8 @@ import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.data.model.template.TemplateId
+import dev.dres.run.eventstream.EventStreamProcessor
+import dev.dres.run.eventstream.ScoreUpdateEvent
 import dev.dres.utilities.extensions.convertWriteLock
 import dev.dres.utilities.extensions.write
 import java.util.concurrent.locks.StampedLock
@@ -16,14 +18,14 @@ import kotlin.math.max
  * @author Ralph Gasser
  * @version 2.0.0
  */
-class MaxNormalizingScoreBoard(override val name: String, override val run: EvaluationRun, val teamIds: List<TeamId>, private val taskFilter: (DbTaskTemplate) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 1000.0) : Scoreboard {
+class MaxNormalizingScoreBoard(override val name: String, override val run: EvaluationRun, private val teamIds: List<TeamId>, private val taskFilter: (DbTaskTemplate) -> Boolean, private val taskGroupName: String? = null, private val maxScoreNormalized: Double = 1000.0) : Scoreboard {
 
     /** A [StampedLock] to synchronise access to this [MaxNormalizingScoreBoard]. */
     private val lock = StampedLock()
 
-    /** Tracks the score per [TemplateId] (references a [DbTaskTemplate]). */
+    /** Tracks the score per [TeamId]. */
     @Volatile
-    private var scores: Map<TemplateId,Double> = emptyMap()
+    private var scores: Map<TeamId,Double> = emptyMap()
 
     /** Flag indicating, that this [MaxNormalizingScoreBoard] is dirty and needs re-calculation. */
     @Volatile
@@ -102,5 +104,8 @@ class MaxNormalizingScoreBoard(override val name: String, override val run: Eval
         /* Update local score map. */
         this.scores = scoreSums.mapValues { it.value * maxScoreNormalized / maxScore }
         this.dirty = false
+
+        /* Emit event */
+        EventStreamProcessor.event(ScoreUpdateEvent(this.run.id, this.name, this.scores))
     }
 }

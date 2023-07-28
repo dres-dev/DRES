@@ -14,7 +14,6 @@ import dev.dres.run.filter.basics.SubmissionFilter
 import dev.dres.run.filter.basics.CombiningSubmissionFilter
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
-import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
 import dev.dres.run.score.scorer.AvsTaskScorer
 import dev.dres.run.score.scorer.CachingTaskScorer
 import dev.dres.run.score.scorer.KisTaskScorer
@@ -60,11 +59,9 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
 
         /* Prepare the evaluation scoreboards. */
         val teams = this.description.teams.asSequence().map { it.teamId }.toList()
-        val groupBoards = this.description.taskGroups.asSequence().map { group ->
+        this.scoreboards = this.description.taskGroups.asSequence().map { group ->
             MaxNormalizingScoreBoard(group.name, this, teams, {task -> task.taskGroup.name == group.name}, group.name)
         }.toList()
-        val aggregateScoreBoard = SumAggregateScoreBoard("sum", this, groupBoards)
-        this.scoreboards = groupBoards.plus(aggregateScoreBoard)
     }
 
     fun goTo(teamId: TeamId, index: Int) {

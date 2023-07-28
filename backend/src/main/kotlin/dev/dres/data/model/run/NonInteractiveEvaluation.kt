@@ -13,7 +13,6 @@ import dev.dres.run.filter.basics.SubmissionFilter
 import dev.dres.run.filter.basics.CombiningSubmissionFilter
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
-import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
 import dev.dres.run.score.scorer.*
 import dev.dres.run.score.scorer.AvsTaskScorer
 import dev.dres.run.score.scorer.CachingTaskScorer
@@ -50,11 +49,9 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
 
     init {
         val teams = this.description.teams.asSequence().map { it.teamId }.toList()
-        val groupBoards = this.description.taskGroups.asSequence().map { group ->
+        this.scoreboards = this.description.taskGroups.asSequence().map { group ->
             MaxNormalizingScoreBoard(group.name, this, teams, {task -> task.taskGroup.name == group.name}, group.name)
         }.toList()
-        val aggregateScoreBoard = SumAggregateScoreBoard("sum", this, groupBoards)
-        this.scoreboards = groupBoards.plus(aggregateScoreBoard)
     }
 
     /**
@@ -91,7 +88,7 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
         }
 
         /** The [SubmissionFilter] instance used by this [NITaskRun]. */
-        override val filter: SubmissionFilter;
+        override val filter: SubmissionFilter
 
         init{
             if (this.template.taskGroup.type.submission.isEmpty) {

@@ -21,7 +21,6 @@ import dev.dres.run.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
 import dev.dres.run.exceptions.IllegalTeamIdException
-import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.*
 import dev.dres.run.validation.interfaces.JudgementValidator
@@ -113,9 +112,6 @@ class InteractiveAsynchronousRunManager(
     /** The list of [Scoreboard]s maintained by this [InteractiveAsynchronousEvaluation]. */
     override val scoreboards: List<Scoreboard>
         get() = this.evaluation.scoreboards
-
-    /** The score history for this [InteractiveAsynchronousEvaluation]. */
-    override val scoreHistory: List<ScoreTimePoint> = emptyList()
 
     init {
         /* Loads optional updatable. */

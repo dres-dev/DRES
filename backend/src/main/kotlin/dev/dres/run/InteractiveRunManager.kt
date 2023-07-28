@@ -17,9 +17,6 @@ interface InteractiveRunManager : RunManager {
         const val COUNTDOWN_DURATION = 5_000 //countdown time in milliseconds
     }
 
-    /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
-    val scoreHistory: List<ScoreTimePoint>
-
     /**
      * Prepares this [InteractiveRunManager] for the execution of previous [DbTaskTemplate] as per order defined in
      * [DbEvaluationTemplate.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].

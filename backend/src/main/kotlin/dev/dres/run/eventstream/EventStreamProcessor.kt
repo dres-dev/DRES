@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import java.io.PrintWriter
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.StampedLock
+import kotlin.concurrent.thread
 
 object EventStreamProcessor {
 
@@ -23,14 +24,13 @@ object EventStreamProcessor {
     private val eventQueue = ConcurrentLinkedQueue<StreamEvent>()
     private val eventHandlers = mutableListOf<StreamEventHandler>()
     private val handlerLock = StampedLock()
-    private val eventSink = PrintWriter(DRES.CONFIG.eventsLocation.resolve("${System.currentTimeMillis()}.txt").toFile().also { it.parentFile.mkdirs() })
+    private val eventSink = PrintWriter(
+        DRES.CONFIG.eventsLocation.resolve("${System.currentTimeMillis()}.txt").toFile()
+            .also { it.parentFile.mkdirs() })
 
-    private val eventBuffer = mutableListOf<StreamEvent>()
+
     private val eventBufferRetentionTime = DRES.CONFIG.eventBufferRetentionTime
-    private val eventBufferLock = StampedLock()
 
-    val recentEvents: List<StreamEvent>
-    get() = eventBufferLock.read {eventBuffer}
 
     fun event(event: StreamEvent) = eventQueue.add(event)
     fun register(vararg handler: StreamEventHandler) = handlerLock.write { eventHandlers.addAll(handler) }
@@ -42,7 +42,7 @@ object EventStreamProcessor {
 
         active = true
 
-        processorThread = Thread( {
+        processorThread = thread(name = "EventStreamProcessorThread", isDaemon = true, start = true) {
 
             while (active) {
                 try {
@@ -53,35 +53,33 @@ object EventStreamProcessor {
                         handlerLock.read {
                             for (handler in eventHandlers) {
                                 try {
-                                    handler.handle(event)
+                                    handler.handleStreamEvent(event)
                                 } catch (t: Throwable) {
-                                    LOGGER.error("Uncaught exception while handling event $event in ${handler.javaClass.simpleName}", t)
+                                    LOGGER.error(
+                                        "Uncaught exception while handling event $event in ${handler.javaClass.simpleName}",
+                                        t
+                                    )
                                 }
                             }
                         }
 
                         try {
                             eventSink.println(
-                                    mapper.writeValueAsString(event)
+                                mapper.writeValueAsString(event)
                             )
                         } catch (t: Throwable) {
                             LOGGER.error("Error while storing event $event", t)
                         }
-
-                        eventBufferLock.write { eventBuffer.add(event) }
                     }
 
-                    val removeThreshold = System.currentTimeMillis() - eventBufferRetentionTime
-                    eventBufferLock.write { eventBuffer.removeIf { it.timeStamp < removeThreshold } }
 
-
-                } catch (t : Throwable) {
+                } catch (t: Throwable) {
                     LOGGER.error("Uncaught exception in EventStreamProcessor", t)
                 } finally {
-                    Thread.sleep(10)
+                    Thread.sleep(100)
                 }
 
-                if (flushTimer < System.currentTimeMillis()){
+                if (flushTimer < System.currentTimeMillis()) {
                     eventSink.flush()
                     flushTimer = System.currentTimeMillis() + flushInterval
                 }
@@ -91,14 +89,11 @@ object EventStreamProcessor {
             eventSink.flush()
             eventSink.close()
 
-        }, "EventStreamProcessorThread")
-
-        processorThread.isDaemon = true
-        processorThread.start()
+        }
 
     }
 
-    fun stop(){
+    fun stop() {
         active = false
     }
 

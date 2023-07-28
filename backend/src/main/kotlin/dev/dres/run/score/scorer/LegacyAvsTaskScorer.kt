@@ -10,16 +10,19 @@ import dev.dres.run.score.Scoreable
  * A [TeamTaskScorer] used for AVS tasks.
  *
  * @author Luca Rossetto
- * @version 1.1.0
+ * @version 2.0.0
  */
-class LegacyAvsTaskScorer(override val scoreable: Scoreable) : TaskScorer {
+class LegacyAvsTaskScorer(scoreable: Scoreable) : AbstractTaskScorer(scoreable) {
+
     /**
-     * Computes and returns the scores for this [TaskScorer]. Requires an ongoing database transaction.
+     * Computes and returns the scores for this [LegacyAvsTaskScorer] based on a [Sequence] of [Submission]s.
+     *
+     * The sole use of this method is to keep the implementing classes unit-testable (irrespective of the database).
      *
      * @param submissions A [Sequence] of [Submission]s to obtain scores for.
      * @return A [Map] of [TeamId] to calculated task score.
      */
-    override fun scoreMap(submissions: Sequence<Submission>): Map<TeamId, Double> {
+    override fun calculateScores(submissions: Sequence<Submission>): Map<TeamId, Double>  {
         val correctSubmissions = submissions.flatMap { s -> s.answerSets().filter { v -> v.status() == VerdictStatus.CORRECT } }
         val wrongSubmissions = submissions.flatMap { s -> s.answerSets().filter { v -> v.status() == VerdictStatus.WRONG } }
         val correctSubmissionsPerTeam = correctSubmissions.groupBy { it.submission.teamId }

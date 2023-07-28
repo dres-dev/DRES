@@ -51,9 +51,8 @@ class ScoreDownloadHandler(store: TransientEntityStore) : AbstractDownloadHandle
             it.started != null
         }.sortedBy {
             it.started
-        }
-        .flatMap { task ->
-            task.scorer.scoreListFromCache().map { "${task.started},\"${task.template.name}\",\"${task.template.taskGroup.name}\",\"${manager.template.teams.filter { t -> t.id eq it.first }.firstOrNull()?.name ?: "???"}\",${it.third}" }
+        }.flatMap { task ->
+            task.scorer.scores().map { "${task.started},\"${task.template.name}\",\"${task.template.taskGroup.name}\",\"${manager.template.teams.filter { t -> t.id eq it.first }.firstOrNull()?.name ?: "???"}\",${it.third}" }
         }.joinToString(separator = "\n")
     }
 

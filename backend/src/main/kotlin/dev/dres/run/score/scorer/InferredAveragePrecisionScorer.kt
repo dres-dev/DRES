@@ -15,14 +15,7 @@ import dev.dres.run.score.Scoreable
  * @author Luca Rossetto
  * @version 1.0.0
  */
-class InferredAveragePrecisionScorer(override val scoreable: Scoreable) : TaskScorer {
-
-    override fun scoreMap(submissions: Sequence<Submission>): Map<TeamId, Double> {
-        return this.scoreable.teams.associateWith { teamId ->
-            val answerSets = submissions.filter { it.teamId == teamId }.flatMap { it.answerSets() }.filter { it.taskId == this.scoreable.taskId }
-            infAP(answerSets)
-        }
-    }
+class InferredAveragePrecisionScorer( scoreable: Scoreable) : AbstractTaskScorer(scoreable) {
 
     companion object {
 
@@ -76,4 +69,18 @@ class InferredAveragePrecisionScorer(override val scoreable: Scoreable) : TaskSc
 
     }
 
+    /**
+     * Computes and returns the scores for this [InferredAveragePrecisionScorer] based on a [Sequence] of [Submission]s.
+     *
+     * The sole use of this method is to keep the implementing classes unit-testable (irrespective of the database).
+     *
+     * @param submissions A [Sequence] of [Submission]s to obtain scores for.
+     * @return A [Map] of [TeamId] to calculated task score.
+     */
+    override fun calculateScores(submissions: Sequence<Submission>): Map<TeamId, Double> {
+        return this.scoreable.teams.associateWith { teamId ->
+            val answerSets = submissions.filter { it.teamId == teamId }.flatMap { it.answerSets() }.filter { it.taskId == this.scoreable.taskId }
+            infAP(answerSets)
+        }
+    }
 }

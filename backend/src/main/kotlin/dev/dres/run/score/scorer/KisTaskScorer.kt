@@ -8,11 +8,11 @@ import dev.dres.run.score.Scoreable
 import kotlin.math.max
 
 class KisTaskScorer(
-    override val scoreable: Scoreable,
+    scoreable: Scoreable,
     private val maxPointsPerTask: Double = defaultmaxPointsPerTask,
     private val maxPointsAtTaskEnd: Double = defaultmaxPointsAtTaskEnd,
     private val penaltyPerWrongSubmission: Double = defaultpenaltyPerWrongSubmission
-) : TaskScorer {
+) : AbstractTaskScorer(scoreable) {
 
     constructor(run: TaskRun, parameters: Map<String, String>) : this(
         run,
@@ -28,12 +28,14 @@ class KisTaskScorer(
     }
 
     /**
-     * Computes and returns the scores for this [KisTaskScorer]. Requires an ongoing database transaction.
+     * Computes and returns the scores for this [KisTaskScorer] based on a [Sequence] of [Submission]s.
+     *
+     * The sole use of this method is to keep the implementing classes unit-testable (irrespective of the database).
      *
      * @param submissions A [Sequence] of [Submission]s to obtain scores for.
      * @return A [Map] of [TeamId] to calculated task score.
      */
-    override fun scoreMap(submissions: Sequence<Submission>): Map<TeamId, Double>  {
+    override fun calculateScores(submissions: Sequence<Submission>): Map<TeamId, Double>  {
         val taskDuration = this.scoreable.duration.toDouble() * 1000.0
         val taskStartTime = this.scoreable.started ?: throw IllegalArgumentException("No task start time specified.")
         return this.scoreable.teams.associateWith { teamId ->

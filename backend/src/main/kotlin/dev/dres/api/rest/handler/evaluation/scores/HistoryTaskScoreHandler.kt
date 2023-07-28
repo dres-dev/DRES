@@ -57,7 +57,7 @@ class HistoryTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandle
 
             val rac = ctx.runActionContext()
             val scorer = manager.currentTask(rac)?.scorer ?: throw ErrorStatusException(404, "No task run with ID $taskId in run ${manager.id}.", ctx)
-            val scores =  scorer.scoreMapFromCache()
+            val scores =  scorer.scoreMap()
             ApiScoreOverview("task",
                 manager.currentTaskTemplate(rac).taskGroup.name,
                 manager.template.teams.asSequence().map { ApiScore(it.teamId, scores[it.teamId] ?: 0.0) }.toList()

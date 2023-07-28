@@ -78,12 +78,6 @@ class InteractiveAsynchronousRunManager(
     /** A lock for state changes to this [InteractiveAsynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
 
-    /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable = ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_DEFAULT)
-
-    /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoresUpdatable = ScoresUpdatable(this)
-
     /** List of [Updatable] held by this [InteractiveAsynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
 
@@ -117,14 +111,9 @@ class InteractiveAsynchronousRunManager(
         get() = this.evaluation.scoreboards
 
     /** The score history for this [InteractiveAsynchronousEvaluation]. */
-    override val scoreHistory: List<ScoreTimePoint>
-        get() = this.scoreboardsUpdatable.timeSeries
+    override val scoreHistory: List<ScoreTimePoint> = emptyList()
 
     init {
-        /* Register relevant Updatables. */
-        this.updatables.add(this.scoresUpdatable)
-        this.updatables.add(this.scoreboardsUpdatable)
-
         /* Loads optional updatable. */
         this.registerOptionalUpdatables()
 
@@ -145,7 +134,6 @@ class InteractiveAsynchronousRunManager(
         /** Trigger score updates and re-enqueue pending submissions for judgement (if any). */
         this.evaluation.tasks.forEach { task ->
             task.getSubmissions().forEach { sub ->
-                this.scoresUpdatable.enqueue(task)
                 for (answerSet in sub.answerSets.filter { v -> v.status eq DbVerdictStatus.INDETERMINATE }) {
                     task.validator.validate(answerSet)
                 }
@@ -560,9 +548,7 @@ class InteractiveAsynchronousRunManager(
 
     override fun reScore(taskId: TaskId) {
         val task = evaluation.tasks.find { it.taskId == taskId }
-        if (task != null) {
-            this.scoresUpdatable.enqueue(task)
-        }
+        task?.scorer?.invalidate()
     }
 
     /**
@@ -580,23 +566,14 @@ class InteractiveAsynchronousRunManager(
      * @return Whether the update was successful or not
      */
     override fun updateSubmission(context: RunActionContext, submissionId: SubmissionId, submissionStatus: ApiVerdictStatus): Boolean = this.stateLock.read {
-        val teamId = context.teamId()
         val answerSet = DbAnswerSet.filter { it.submission.submissionId eq submissionId }.singleOrNull() ?: return false
-        val task = this.taskForId(context, answerSet.task.id) ?: return false
 
         /* Actual update - currently, only status update is allowed */
         val dbStatus = submissionStatus.toDb()
         if (answerSet.status != dbStatus) {
             answerSet.status = dbStatus
-
-            /* Enqueue submission for post-processing. */
-            this.scoresUpdatable.enqueue(task)
-
-            /* Enqueue WS message for sending */
-            RunExecutor.broadcastWsMessage(teamId, ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.taskId))
             return true
         }
-
         return false
     }
 

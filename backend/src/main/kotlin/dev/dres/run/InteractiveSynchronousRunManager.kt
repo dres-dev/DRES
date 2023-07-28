@@ -32,10 +32,10 @@ import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.*
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.ReadyLatch
-import jetbrains.exodus.database.TransientEntityStore
+import jetbrains.exodus.database.*
+import jetbrains.exodus.database.exceptions.DataIntegrityViolationException
 import kotlinx.dnq.query.*
-import kotlinx.dnq.query.FilteringContext.eq
-import kotlinx.dnq.query.FilteringContext.isNotEmpty
+import kotlinx.dnq.util.findById
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -50,7 +50,7 @@ import kotlin.math.max
  * @version 3.0.0
  * @author Ralph Gasser
  */
-class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynchronousEvaluation, override val store: TransientEntityStore) : InteractiveRunManager {
+class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynchronousEvaluation, override val store: TransientEntityStore) : InteractiveRunManager, TransientStoreSessionListener {
 
 
     companion object {
@@ -93,16 +93,10 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
 
     /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time. */
     override val scoreHistory: List<ScoreTimePoint>
-        get() = this.scoreboardsUpdatable.timeSeries
+        get() = emptyList()
 
     /** Internal data structure that tracks all [WebSocketConnection]s and their ready state. */
     private val readyLatch = ReadyLatch<WebSocketConnection>()
-
-    /** The internal [ScoreboardsUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoreboardsUpdatable = ScoreboardsUpdatable(this, SCOREBOARD_UPDATE_INTERVAL_DEFAULT)
-
-    /** The internal [ScoresUpdatable] instance for this [InteractiveSynchronousRunManager]. */
-    private val scoresUpdatable = ScoresUpdatable(this)
 
     /** List of [Updatable] held by this [InteractiveSynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
@@ -116,10 +110,6 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     }
 
     init {
-        /* Register relevant updatable (these are always required). */
-        this.updatables.add(this.scoresUpdatable)
-        this.updatables.add(this.scoreboardsUpdatable)
-
         /* Loads optional updatable. */
         this.registerOptionalUpdatables()
 
@@ -133,7 +123,6 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         /** Trigger score updates and re-enqueue pending submissions for judgement (if any). */
         this.evaluation.tasks.forEach { task ->
             task.getSubmissions().forEach { sub ->
-                this.scoresUpdatable.enqueue(task)
                 sub.answerSets.filter { v -> v.status eq DbVerdictStatus.INDETERMINATE }.asSequence().forEach {
                     task.validator.validate(it)
                 }
@@ -486,12 +475,6 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 task.validator.validate(it)
             }
         }
-
-        /* Enqueue submission for post-processing. */
-        this.scoresUpdatable.enqueue(task)
-
-        /* Enqueue WS message for sending */
-        RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.taskId))
     }
 
     /**
@@ -516,12 +499,6 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 answerSet.task.id to false
             }
         }
-
-        /** Broadcast information about change to submission. */
-        if (status) {
-            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_UPDATED, taskId))
-        }
-
         return status
     }
 
@@ -530,9 +507,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      */
     override fun reScore(taskId: TaskId) {
         val task = evaluation.tasks.find { it.taskId == taskId }
-        if (task != null) {
-            this.scoresUpdatable.enqueue(task)
-        }
+        task?.scorer?.invalidate()
     }
 
     /**
@@ -548,6 +523,9 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 AccessManager.registerRunManager(this) /* Register the run manager with the access manager. */
             }
         }
+
+        /** Add this InteractiveSynchronousRunManager as a listener for changes to the data store. */
+        this.store.addListener(this)
 
         /* Initialize error counter. */
         var errorCounter = 0
@@ -585,6 +563,9 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 }
             }
         }
+
+        /* Remove this InteractiveSynchronousRunManager as a listener for changes to the data store. */
+        this.store.removeListener(this)
 
         /* Finalization. */
         this.stateLock.read {
@@ -700,5 +681,47 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             ?: throw IllegalArgumentException("Could not find user with ID ${userId}.")
        return this@InteractiveSynchronousRunManager.template.teams.filter { t -> t.users.contains(user) }.singleOrNull()?.teamId
             ?: throw IllegalArgumentException("Could not find matching team for user, which is required for interaction with this run manager.")
+    }
+
+    /**
+     * [TransientStoreSessionListener] implementation: Currently has no effect.
+     */
+    override fun afterConstraintsFail(session: TransientStoreSession, exceptions: Set<DataIntegrityViolationException>) {
+        /* No op. */
+    }
+
+    /**
+     * [TransientStoreSessionListener] implementation: Currently has no effect.
+     *
+     * @param session The [TransientStoreSession] that triggered the invocation.
+     * @param changedEntities The [TransientEntityChange]s for the transaction.
+     */
+    override fun beforeFlushBeforeConstraints(session: TransientStoreSession, changedEntities: Set<TransientEntityChange>) {
+        /* No op. */
+    }
+
+    /**
+    * [TransientStoreSessionListener] implementation: Reacts to changes to the [DbAnswerSet] entity and invalidates [Scoreboard]s and [Scorer]s if necessary.
+     *
+     * @param session The [TransientStoreSession] that triggered the invocation.
+     * @param changedEntities The [TransientEntityChange]s for the transaction.
+    */
+    override fun flushed(session: TransientStoreSession, changedEntities: Set<TransientEntityChange>) {
+        if (!session.isReadonly) {
+            for (c in changedEntities) {
+                if (c.transientEntity.persistentEntity.type == "DbAnswerSet") {
+                    val xdId = c.transientEntity.persistentEntity.id.toString()
+                    val task = DbAnswerSet.findById(xdId).task
+                    if (this.evaluation.id == task.evaluation.id) {
+                        val t = this.taskForId(RunActionContext.INTERNAL, task.id)
+                        if (t != null) {
+                            t.scorer.invalidate()
+                            this.scoreboards.forEach { it.invalidate() }
+                            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.id))
+                        }
+                    }
+                }
+            }
+        }
     }
 }

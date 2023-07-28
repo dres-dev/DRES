@@ -177,7 +177,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
                 )
             }
 
-            this.transformer = if (this.template.taskGroup.type.options.filter { it eq DbTaskOption.MAP_TO_SEGMENT }.any()) {
+            this.transformer = if (this.template.taskGroup.type.options.asSequence().any { it == DbTaskOption.MAP_TO_SEGMENT }) {
                 CombiningSubmissionTransformer(
                     listOf(
                         SubmissionTaskMatchTransformer(this.taskId),

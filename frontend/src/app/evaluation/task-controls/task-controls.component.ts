@@ -1,9 +1,9 @@
 import { Component, Input, OnInit } from "@angular/core";
 import { Observable, Subject } from "rxjs";
 import { CombinedRun } from "../../run/run-admin-view.component";
-import { map, switchMap } from "rxjs/operators";
+import { map, switchMap, tap } from "rxjs/operators";
 import { ActivatedRoute, Router } from "@angular/router";
-import { ApiEvaluationState, EvaluationAdministratorService, EvaluationService, TemplateService } from "../../../../openapi";
+import { ApiEvaluationState, ApiRole, EvaluationAdministratorService, EvaluationService, TemplateService } from "../../../../openapi";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatDialog } from "@angular/material/dialog";
 import {
@@ -24,19 +24,34 @@ export class TaskControlsComponent implements OnInit{
 
   @Input() showTime: boolean = false;
 
-  runId: Observable<string>;
+  @Input() runId?: Observable<string>;
+  isAdmin: Observable<boolean>;
 
   constructor(
+    private activatedRoute: ActivatedRoute,
     private runAdminService: EvaluationAdministratorService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     public authenticationService: AuthenticationService
   ) {
+    this.isAdmin = this.authenticationService.user.pipe(map((u) => u?.role === ApiRole.ADMIN));
   }
 
   ngOnInit(): void {
-        this.runId = this.runState?.pipe(map((s) => s.evaluationId))
+    if(!this.runId){
+      this.runId = this.activatedRoute.params.pipe(
+        tap((a) => console.log("PARAMS:", a)),
+        map((a) => {
+          if(a.runId.includes(';')){
+            return a.runId.substring(0, a.runId.indexOf(';'))
+          }else{
+            return a.runId
+          }
+        }),
+        tap((runId) => console.log("RUNID: ",runId)));
     }
+    }
+
   public startTask() {
     this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskStart(id))).subscribe(
       (r) => {

@@ -32,7 +32,7 @@ export interface CombinedRun {
 export class RunAdminViewComponent {
 
   private static VIEWER_POLLING_FREQUENCY = 3 * 1000; //ms
-  private static STATE_POLLING_FREQUENCY = 5 * 1000; //ms
+  private static STATE_POLLING_FREQUENCY = 1 * 1000; //ms
   private static OVERVIEW_POLLING_FREQUENCY = 5 * 1000; //ms
 
   runId: Observable<string>;
@@ -165,64 +165,11 @@ export class RunAdminViewComponent {
       shareReplay({ bufferSize: 1, refCount: true })
     );
   }
-
-  public nextTask() {
-    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskNext(id))).subscribe(
-      (r) => {
-        this.refreshSubject.next();
-        this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
-      },
-      (r) => {
-        this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
-      }
-    );
+  stateFromCombined(combined: Observable<CombinedRun>): Observable<ApiEvaluationState>{
+    return combined.pipe(map((c) => c.state))
   }
 
-  public previousTask() {
-    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskPrevious(id))).subscribe(
-      (r) => {
-        this.refreshSubject.next();
-        this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
-      },
-      (r) => {
-        this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
-      }
-    );
-  }
 
-  public startTask() {
-    this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskStart(id))).subscribe(
-      (r) => {
-        this.refreshSubject.next();
-        this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
-      },
-      (r) => {
-        this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
-      }
-    );
-  }
-
-  public abortTask() {
-    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-      data: {
-        text: 'Really end the task?',
-        color: 'warn',
-      } as ConfirmationDialogComponentData,
-    });
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskAbort(id))).subscribe(
-          (r) => {
-            this.refreshSubject.next();
-            this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
-          },
-          (r) => {
-            this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
-          }
-        );
-      }
-    });
-  }
 
   public switchTask(idx: number) {
     this.runId.pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskSwitchByIdx(id, idx))).subscribe(
@@ -243,20 +190,6 @@ export class RunAdminViewComponent {
     });
   }
 
-  public adjustDuration(duration: number) {
-    this.runId
-      .pipe(switchMap((id) => this.runAdminService.patchApiV2EvaluationAdminByEvaluationIdAdjustByDuration(id, duration)))
-      .subscribe(
-        (r) => {
-          this.refreshSubject.next();
-          this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
-        },
-        (r) => {
-          this.snackBar.open(`Error: ${r.error.description}`, null, { duration: 5000 });
-        }
-      );
-  }
-
   public forceViewer(viewerId: string) {
     this.runId
       .pipe(switchMap((id) => this.runAdminService.postApiV2EvaluationAdminByEvaluationIdViewerListByViewerIdForce(id, viewerId)))
@@ -271,16 +204,6 @@ export class RunAdminViewComponent {
       );
   }
 
-  public toFormattedTime(sec: number): string {
-    const hours = Math.floor(sec / 3600);
-    const minutes = Math.floor(sec / 60) % 60;
-    const seconds = sec % 60;
-
-    return [hours, minutes, seconds]
-      .map((v) => (v < 10 ? '0' + v : v))
-      .filter((v, i) => v !== '00' || i > 0)
-      .join(':');
-  }
 
   /**
    * Generates a URL for the logo of the team.

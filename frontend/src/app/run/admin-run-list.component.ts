@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component } from "@angular/core";
 import { AbstractRunListComponent, RunInfoWithState } from './abstract-run-list.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
@@ -26,7 +26,7 @@ export interface RunInfoOverviewTuple {
   selector: 'app-admin-run-list',
   templateUrl: './admin-run-list.component.html',
 })
-export class AdminRunListComponent extends AbstractRunListComponent {
+export class AdminRunListComponent extends AbstractRunListComponent implements AfterViewInit{
   constructor(
     runService: EvaluationService,
     runAdminService: EvaluationAdministratorService,
@@ -62,7 +62,8 @@ export class AdminRunListComponent extends AbstractRunListComponent {
       if (result) {
         this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTerminate(runId).subscribe(
           (r) => {
-            this.refreshSubject.next();
+            this.refreshSubject.complete();
+            this.refreshSubject.unsubscribe();
             this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
           },
           (r) => {
@@ -133,5 +134,9 @@ export class AdminRunListComponent extends AbstractRunListComponent {
       switchMap((runs$) => forkJoin(...runs$))
       // https://betterprogramming.pub/how-to-turn-an-array-of-observable-into-an-observable-of-array-in-angular-d6cfe42a72d4
     );
+  }
+
+  ngAfterViewInit(): void {
+    this.initStateUpdates();
   }
 }

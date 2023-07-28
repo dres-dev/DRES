@@ -105,6 +105,7 @@ export class AbstractRunListComponent {
     });
   }
 
+  /*
   public nextTask(runId: string) {
     this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTaskNext(runId).subscribe({
       next: (r) => {
@@ -128,6 +129,7 @@ export class AbstractRunListComponent {
       }
     });
   }
+  */
 
   scoreDownloadProvider = (runId: string) => {
     return this.downloadService

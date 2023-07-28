@@ -19,7 +19,6 @@ import { ViewerRunListComponent } from './viewer-run-list.component';
 import { RunAdminViewComponent } from './run-admin-view.component';
 import { MatCardModule } from '@angular/material/card';
 import { SharedModule } from '../shared/shared.module';
-import { RunAdminSubmissionsListComponent } from './run-admin-submissions-list/run-admin-submissions-list.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -65,7 +64,6 @@ import { RunAdminToolbarComponent } from './run-admin-toolbar/run-admin-toolbar.
     RunScoreHistoryComponent,
     AdminRunListComponent,
     ViewerRunListComponent,
-    RunAdminSubmissionsListComponent,
     RunAsyncAdminViewComponent,
     RunAdminToolbarComponent,
   ],

@@ -239,6 +239,8 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_PREPARE, this.evaluation.currentTask?.taskId))
 
         LOGGER.info("SynchronousRunManager ${this.id} started task ${this.evaluation.getCurrentTemplateId()}.")
+
+        this.evaluation.currentTask!!.taskId
     }
 
     override fun abortTask(context: RunActionContext) = this.stateLock.write {

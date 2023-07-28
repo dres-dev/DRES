@@ -16,6 +16,8 @@ import java.lang.IllegalStateException
 import java.lang.Long.max
 import java.util.*
 
+typealias TaskTemplateId = String
+
 /**
  * Basic description of a [TaskRun] as executed in DRES. Defines basic attributes such as its name, its duration,
  * the [DbTaskTemplateTarget] and the [DbHint]s, that should be presented to the user.
@@ -27,8 +29,8 @@ import java.util.*
 class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), TaskTemplate {
     companion object: XdNaturalEntityType<DbTaskTemplate>()
 
-    /** The [TemplateId] of this [DbTaskTemplate]. */
-    override var templateId: TemplateId
+    /** The [TaskTemplateId] of this [DbTaskTemplate]. */
+    override var templateId: TaskTemplateId
         get() = this.id
         set(value) { this.id = value }
 

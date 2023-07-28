@@ -5,6 +5,7 @@ import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
 import dev.dres.data.model.run.interfaces.Run
+import dev.dres.data.model.template.task.TaskTemplateId
 import dev.dres.data.model.template.task.options.DbConfiguredOption
 import dev.dres.data.model.template.task.options.DbScoreOption
 import dev.dres.data.model.template.task.options.DbTaskOption
@@ -47,8 +48,8 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
     /** A [ConcurrentHashMap] that maps a list of [IATaskRun]s to the [TeamId]s they belong to.*/
     private val tasksMap = ConcurrentHashMap<TeamId, MutableList<IATaskRun>>()
 
-    /** Tracks the current [DbTaskTemplate] per [TeamId]. */
-    private val navigationMap: MutableMap<TeamId, DbTaskTemplate> = HashMap()
+    /** Tracks the current [TaskTemplateId] per [TeamId]. */
+    private val navigationMap: MutableMap<TeamId, TaskTemplateId> = HashMap()
 
     /** List of [Scoreboard]s maintained by this [NonInteractiveEvaluation]. */
     override val scoreboards: List<Scoreboard>
@@ -65,11 +66,13 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
     }
 
     fun goTo(teamId: TeamId, index: Int) {
-        this.navigationMap[teamId] = this.description.tasks.drop(this.permutation[teamId]!![index]).first()
+        this.navigationMap[teamId] = this.description.tasks.drop(this.permutation[teamId]!![index]).first().templateId
     }
 
-    fun currentTaskDescription(teamId: TeamId): DbTaskTemplate =
-        navigationMap[teamId] ?: throw IllegalTeamIdException(teamId)
+    fun currentTaskDescription(teamId: TeamId): DbTaskTemplate {
+        val templateId = navigationMap[teamId] ?: throw IllegalTeamIdException(teamId)
+        return DbTaskTemplate.filter { it.id eq templateId }.firstOrNull() ?: throw IllegalTeamIdException(teamId)
+    }
 
     init {
         val numberOfTasks = this.description.tasks.size()
@@ -86,7 +89,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
      * @param teamId The [TeamId] to lookup.
      */
     fun currentTaskForTeam(teamId: TeamId): IATaskRun? {
-        val currentTaskTemplateId = this.navigationMap[teamId]!!.id
+        val currentTaskTemplateId = this.navigationMap[teamId]!!
         return this.tasksForTeam(teamId).findLast {
             it.template.id == currentTaskTemplateId
         }

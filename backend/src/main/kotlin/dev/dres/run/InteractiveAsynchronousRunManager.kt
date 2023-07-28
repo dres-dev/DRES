@@ -329,6 +329,8 @@ class InteractiveAsynchronousRunManager(
         )
 
         LOGGER.info("Run manager  ${this.id} started task $currentTaskTemplate.")
+
+        currentTaskRun.taskId
     }
 
     /**

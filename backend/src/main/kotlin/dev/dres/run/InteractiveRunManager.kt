@@ -74,7 +74,7 @@ interface InteractiveRunManager : RunManager {
      * @param context The [RunActionContext] used for the invocation.
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.ACTIVE] or [currentTask] is not set.
      */
-    fun startTask(context: RunActionContext)
+    fun startTask(context: RunActionContext): TaskId
 
     /**
      * Force-abort the [currentTask] and thus moves the [RunManager.status] from

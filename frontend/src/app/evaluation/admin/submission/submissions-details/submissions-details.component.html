@@ -12,7 +12,10 @@
   </ng-container>
   <ng-container matColumnDef="author">
     <th mat-header-cell *matHeaderCellDef>Submitter</th>
-    <td mat-cell *matCellDef="let row">{{row.memberId}} / {{row.teamId}}</td>
+    <td mat-cell *matCellDef="let row">
+      <span *ngIf="anonymise else revealed">{{row.memberId}} / {{row.teamId}}</span>
+      <ng-template #revealed>{{row.memberName}} / {{row.teamName}}</ng-template>
+    </td>
   </ng-container>
   <ng-container matColumnDef="nbAnswers">
     <th mat-header-cell *matHeaderCellDef># Answers</th>
@@ -31,7 +34,7 @@
   <ng-container matColumnDef="expandedDetail">
     <td mat-cell *matCellDef="let element" [attr.colspan]="columnsToDisplayWithExpand.length" [style.padding-bottom]="isExpanded(element) ? '1em' : '0'">
       <div class="submissions-element-detail mat-elevation-z8" [@detailExpand]="isExpanded(element) ? 'expanded' : 'collapsed'">
-        <app-answer-set [answerSets]="element.answers" [evaluationId]="element.evaluationId"></app-answer-set>
+        <app-answer-set [answerSets]="element.answers" [evaluationId]="submission.evaluationId"></app-answer-set>
       </div>
     </td>
   </ng-container>

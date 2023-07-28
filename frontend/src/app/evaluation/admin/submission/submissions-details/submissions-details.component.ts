@@ -15,6 +15,8 @@ import { animate, state, style, transition, trigger } from "@angular/animations"
   ],
 })
 export class SubmissionsDetailsComponent {
+  @Input()
+  public anonymise: boolean = true
 
   @Input()
   public submission: ApiSubmissionInfo;

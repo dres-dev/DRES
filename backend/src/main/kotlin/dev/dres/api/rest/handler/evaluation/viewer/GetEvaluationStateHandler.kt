@@ -10,6 +10,7 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.run.RunActionContext
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
 import dev.dres.run.InteractiveRunManager
+import dev.dres.run.RunManagerStatus
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -37,6 +38,9 @@ class GetEvaluationStateHandler(store: TransientEntityStore): AbstractEvaluation
     )
     override fun doGet(ctx: Context): ApiEvaluationState = this.store.transactional (true) {
         val manager = ctx.eligibleManagerForId<InteractiveRunManager>()
+        if (manager.status == RunManagerStatus.TERMINATED) {
+            throw ErrorStatusException(404, "Evaluation has ended.", ctx)
+        }
         if (!manager.runProperties.participantCanView && ctx.isParticipant()) {
             throw ErrorStatusException(403, "Access Denied", ctx)
         }

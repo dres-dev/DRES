@@ -17,9 +17,6 @@ interface InteractiveRunManager : RunManager {
         const val COUNTDOWN_DURATION = 5_000 //countdown time in milliseconds
     }
 
-    /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time*/
-    val scoreHistory: List<ScoreTimePoint>
-
     /**
      * Prepares this [InteractiveRunManager] for the execution of previous [DbTaskTemplate] as per order defined in
      * [DbEvaluationTemplate.tasks]. Requires [RunManager.status] to be [RunManagerStatus.ACTIVE].
@@ -77,7 +74,7 @@ interface InteractiveRunManager : RunManager {
      * @param context The [RunActionContext] used for the invocation.
      * @throws IllegalStateException If [InteractiveRunManager] was not in status [RunManagerStatus.ACTIVE] or [currentTask] is not set.
      */
-    fun startTask(context: RunActionContext)
+    fun startTask(context: RunActionContext): TaskId
 
     /**
      * Force-abort the [currentTask] and thus moves the [RunManager.status] from

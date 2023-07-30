@@ -18,7 +18,6 @@ import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.task.options.DbSubmissionOption
 import dev.dres.data.model.template.task.options.DbTaskOption
-import dev.dres.data.model.template.task.options.Defaults.SCOREBOARD_UPDATE_INTERVAL_DEFAULT
 import dev.dres.data.model.template.task.options.Defaults.VIEWER_TIMEOUT_DEFAULT
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.RunManager.Companion.MAXIMUM_RUN_LOOP_ERROR_COUNT
@@ -27,7 +26,6 @@ import dev.dres.run.audit.AuditLogger
 import dev.dres.run.eventstream.EventStreamProcessor
 import dev.dres.run.eventstream.TaskEndEvent
 import dev.dres.run.exceptions.IllegalRunStateException
-import dev.dres.run.score.ScoreTimePoint
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.updatables.*
 import dev.dres.run.validation.interfaces.JudgementValidator
@@ -90,10 +88,6 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     /** List of [Scoreboard]s for this [InteractiveSynchronousRunManager]. */
     override val scoreboards: List<Scoreboard>
         get() = this.evaluation.scoreboards
-
-    /** List of [ScoreTimePoint]s tracking the states of the different [Scoreboard]s over time. */
-    override val scoreHistory: List<ScoreTimePoint>
-        get() = emptyList()
 
     /** Internal data structure that tracks all [WebSocketConnection]s and their ready state. */
     private val readyLatch = ReadyLatch<WebSocketConnection>()
@@ -245,6 +239,8 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_PREPARE, this.evaluation.currentTask?.taskId))
 
         LOGGER.info("SynchronousRunManager ${this.id} started task ${this.evaluation.getCurrentTemplateId()}.")
+
+        this.evaluation.currentTask!!.taskId
     }
 
     override fun abortTask(context: RunActionContext) = this.stateLock.write {

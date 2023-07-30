@@ -51,7 +51,7 @@ class TemporalOverlapAnswerSetValidator(private val targetSegments: Collection<T
                     /* Perform temporal validation. */
                     val outer = targetSegment.second.toMilliseconds()
 
-                    return@any (outer.first <= start && outer.second >= start) || (outer.first <= end && outer.second >= end)
+                    !((outer.first <= start && outer.second >= start) || (outer.first <= end && outer.second >= end))
                 }) {
                 return
             }

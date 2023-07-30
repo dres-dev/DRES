@@ -54,8 +54,8 @@ class StartTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminHand
         return this.store.transactional {
             val rac = ctx.runActionContext()
             try {
-                evaluationManager.startTask(rac)
-                AuditLogger.taskStart(evaluationManager.id, evaluationManager.currentTask(rac)!!.taskId, evaluationManager.currentTaskTemplate(rac).toApi(), AuditLogSource.REST, ctx.sessionToken())
+                val taskId = evaluationManager.startTask(rac)
+                AuditLogger.taskStart(evaluationManager.id, taskId, evaluationManager.currentTaskTemplate(rac).toApi(), AuditLogSource.REST, ctx.sessionToken())
                 SuccessStatus("Task '${evaluationManager.currentTaskTemplate(rac).name}' for evaluation $evaluationId was successfully started.")
             } catch (e: IllegalStateException) {
                 throw ErrorStatusException(400, e.message ?: "", ctx)

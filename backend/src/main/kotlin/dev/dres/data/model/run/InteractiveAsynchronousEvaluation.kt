@@ -5,6 +5,7 @@ import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
 import dev.dres.data.model.run.interfaces.Run
+import dev.dres.data.model.template.task.TaskTemplateId
 import dev.dres.data.model.template.task.options.DbConfiguredOption
 import dev.dres.data.model.template.task.options.DbScoreOption
 import dev.dres.data.model.template.task.options.DbTaskOption
@@ -14,7 +15,6 @@ import dev.dres.run.filter.basics.SubmissionFilter
 import dev.dres.run.filter.basics.CombiningSubmissionFilter
 import dev.dres.run.score.scoreboard.MaxNormalizingScoreBoard
 import dev.dres.run.score.scoreboard.Scoreboard
-import dev.dres.run.score.scoreboard.SumAggregateScoreBoard
 import dev.dres.run.score.scorer.AvsTaskScorer
 import dev.dres.run.score.scorer.CachingTaskScorer
 import dev.dres.run.score.scorer.KisTaskScorer
@@ -48,8 +48,8 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
     /** A [ConcurrentHashMap] that maps a list of [IATaskRun]s to the [TeamId]s they belong to.*/
     private val tasksMap = ConcurrentHashMap<TeamId, MutableList<IATaskRun>>()
 
-    /** Tracks the current [DbTaskTemplate] per [TeamId]. */
-    private val navigationMap: MutableMap<TeamId, DbTaskTemplate> = HashMap()
+    /** Tracks the current [TaskTemplateId] per [TeamId]. */
+    private val navigationMap: MutableMap<TeamId, TaskTemplateId> = HashMap()
 
     /** List of [Scoreboard]s maintained by this [NonInteractiveEvaluation]. */
     override val scoreboards: List<Scoreboard>
@@ -60,19 +60,19 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
 
         /* Prepare the evaluation scoreboards. */
         val teams = this.description.teams.asSequence().map { it.teamId }.toList()
-        val groupBoards = this.description.taskGroups.asSequence().map { group ->
+        this.scoreboards = this.description.taskGroups.asSequence().map { group ->
             MaxNormalizingScoreBoard(group.name, this, teams, {task -> task.taskGroup.name == group.name}, group.name)
         }.toList()
-        val aggregateScoreBoard = SumAggregateScoreBoard("sum", this, groupBoards)
-        this.scoreboards = groupBoards.plus(aggregateScoreBoard)
     }
 
     fun goTo(teamId: TeamId, index: Int) {
-        this.navigationMap[teamId] = this.description.tasks.drop(this.permutation[teamId]!![index]).first()
+        this.navigationMap[teamId] = this.description.tasks.drop(this.permutation[teamId]!![index]).first().templateId
     }
 
-    fun currentTaskDescription(teamId: TeamId): DbTaskTemplate =
-        navigationMap[teamId] ?: throw IllegalTeamIdException(teamId)
+    fun currentTaskDescription(teamId: TeamId): DbTaskTemplate {
+        val templateId = navigationMap[teamId] ?: throw IllegalTeamIdException(teamId)
+        return DbTaskTemplate.filter { it.id eq templateId }.firstOrNull() ?: throw IllegalTeamIdException(teamId)
+    }
 
     init {
         val numberOfTasks = this.description.tasks.size()
@@ -89,7 +89,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
      * @param teamId The [TeamId] to lookup.
      */
     fun currentTaskForTeam(teamId: TeamId): IATaskRun? {
-        val currentTaskTemplateId = this.navigationMap[teamId]!!.id
+        val currentTaskTemplateId = this.navigationMap[teamId]!!
         return this.tasksForTeam(teamId).findLast {
             it.template.id == currentTaskTemplateId
         }
@@ -180,7 +180,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
                 )
             }
 
-            this.transformer = if (this.template.taskGroup.type.options.filter { it eq DbTaskOption.MAP_TO_SEGMENT }.any()) {
+            this.transformer = if (this.template.taskGroup.type.options.asSequence().any { it == DbTaskOption.MAP_TO_SEGMENT }) {
                 CombiningSubmissionTransformer(
                     listOf(
                         SubmissionTaskMatchTransformer(this.taskId),

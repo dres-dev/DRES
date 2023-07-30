@@ -90,7 +90,7 @@ class LegacyAvsTaskScorerTest {
 
     @Test
     fun noSubmissions() {
-        val scores = this.scorer.scoreMap(emptySequence())
+        val scores = this.scorer.calculateScores(emptySequence())
         assertEquals(0.0, scores[teams[0]])
         assertEquals(0.0, scores[teams[1]])
         assertEquals(0.0, scores[teams[2]])
@@ -127,7 +127,7 @@ class LegacyAvsTaskScorerTest {
                 answerSets(ApiVerdictStatus.WRONG, dummyImageItems[0])
             )
         )
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
         assertEquals(0.0, scores[teams[0]])
         assertEquals(0.0, scores[teams[1]])
         assertEquals(0.0, scores[teams[2]])
@@ -164,7 +164,7 @@ class LegacyAvsTaskScorerTest {
                 answerSets(ApiVerdictStatus.WRONG, dummyImageItems[2]),
             )
         )
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
         assertEquals(0.0, scores[teams[0]])
         assertEquals(0.0, scores[teams[1]])
         assertEquals(0.0, scores[teams[2]])
@@ -201,7 +201,7 @@ class LegacyAvsTaskScorerTest {
                 answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[0])
             )
         )
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
         assertEquals(100.0, scores[teams[0]])
         assertEquals(100.0, scores[teams[1]])
         assertEquals(100.0, scores[teams[2]])
@@ -238,7 +238,7 @@ class LegacyAvsTaskScorerTest {
                 answerSets(ApiVerdictStatus.CORRECT, dummyImageItems[2])
             )
         )
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
         assertEquals(100.0 / 3.0, scores[teams[0]]!!, 0.001)
         assertEquals(100.0 / 3.0, scores[teams[1]]!!, 0.001)
         assertEquals(100.0 / 3.0, scores[teams[2]]!!, 0.001)
@@ -343,7 +343,7 @@ class LegacyAvsTaskScorerTest {
         )
 
 
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
 
         /*
         c = q(c) = 3, i = 1, q(p) = 4
@@ -409,7 +409,7 @@ class LegacyAvsTaskScorerTest {
             )
         )
 
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
         assertEquals(100.0, scores[teams[0]])
         assertEquals(100.0, scores[teams[1]])
         assertEquals(100.0, scores[teams[2]])
@@ -450,7 +450,7 @@ class LegacyAvsTaskScorerTest {
             )
         )
 
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
         assertEquals(33.33333333333333, scores[teams[0]]!!, 0.0001)
         assertEquals(33.33333333333333, scores[teams[1]]!!, 0.0001)
         assertEquals(33.33333333333333, scores[teams[2]]!!, 0.0001)
@@ -491,7 +491,7 @@ class LegacyAvsTaskScorerTest {
             )
         )
 
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
         assertEquals(33.33333333333333, scores[teams[0]]!!, 0.0001)
         assertEquals(33.33333333333333, scores[teams[1]]!!, 0.0001)
         assertEquals(33.33333333333333, scores[teams[2]]!!, 0.0001)
@@ -588,7 +588,7 @@ class LegacyAvsTaskScorerTest {
             ),
         )
 
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
         assertEquals(100.0, scores[teams[0]])
         assertEquals(100.0, scores[teams[1]])
         assertEquals(100.0, scores[teams[2]])
@@ -712,7 +712,7 @@ class LegacyAvsTaskScorerTest {
             ),
 
             )
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
 
         assertEquals(85.71428571428571, scores[teams[0]]!!, 0.001)
         assertEquals(85.71428571428571, scores[teams[1]]!!, 0.001)
@@ -907,7 +907,7 @@ class LegacyAvsTaskScorerTest {
             //c = 4, q(c) = 2, i = 2
 
         )
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
 
         /*
         c = 5, q(c) = 3, i = 1, q(p) = 3

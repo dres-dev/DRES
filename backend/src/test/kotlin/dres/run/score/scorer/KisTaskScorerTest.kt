@@ -66,7 +66,7 @@ class KisTaskScorerTest {
 
     @Test
     fun noSubmissions() {
-        val scores = this.scorer.scoreMap(emptySequence())
+        val scores = this.scorer.calculateScores(emptySequence())
         assertEquals(0.0, scores[teams[0]])
         assertEquals(0.0, scores[teams[1]])
         assertEquals(0.0, scores[teams[2]])
@@ -79,7 +79,7 @@ class KisTaskScorerTest {
             ApiSubmission(teams[1], teams[1], "user2", "team1", "user2", taskStartTime + 2000, wrongAnswer),
             ApiSubmission(teams[2], teams[2], "user3", "team1", "user3", taskStartTime + 3000, wrongAnswer)
         )
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
         assertEquals(0.0, scores[teams[0]])
         assertEquals(0.0, scores[teams[1]])
         assertEquals(0.0, scores[teams[2]])
@@ -90,7 +90,7 @@ class KisTaskScorerTest {
         val submissions = sequenceOf(
             ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", taskStartTime, correctAnswer),
         )
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
         assertEquals(maxPointsPerTask, scores[teams[0]])
         assertEquals(0.0, scores[teams[1]])
         assertEquals(0.0, scores[teams[2]])
@@ -101,7 +101,7 @@ class KisTaskScorerTest {
         val submissions = sequenceOf(
             ApiSubmission(teams[0], teams[0], "user1", "team1", "user1", taskStartTime + (defaultTaskDuration * 1000), correctAnswer),
         )
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
         assertEquals(maxPointsAtTaskEnd, scores[teams[0]])
     }
 
@@ -110,7 +110,7 @@ class KisTaskScorerTest {
         val submissions = sequenceOf(
             ApiSubmission(teams[0], teams[0], "user1", "team1",  "user1", taskStartTime + (defaultTaskDuration * 1000 / 2), correctAnswer),
         )
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
         assertEquals(maxPointsAtTaskEnd + (maxPointsPerTask - maxPointsAtTaskEnd) / 2, scores[teams[0]])
     }
 
@@ -134,7 +134,7 @@ class KisTaskScorerTest {
             ApiSubmission(teams[2], teams[2], "user3", "team3","user3", taskStartTime + (defaultTaskDuration * 1000 / 2), correctAnswer),
 
         )
-        val scores = this.scorer.scoreMap(submissions)
+        val scores = this.scorer.calculateScores(submissions)
 
         assertEquals(
             maxPointsAtTaskEnd + (maxPointsPerTask - maxPointsAtTaskEnd) / 2 - penaltyPerWrongSubmission,

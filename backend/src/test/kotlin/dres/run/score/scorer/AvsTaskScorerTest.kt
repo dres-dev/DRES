@@ -76,7 +76,7 @@ class AvsTaskScorerTest {
     @Test
     @DisplayName("Three teams all without a submission. Expected score: 0.0")
     fun noSubmissions() {
-        val scores = this.scorer.scoreMap(emptySequence())
+        val scores = this.scorer.calculateScores(emptySequence())
         Assertions.assertEquals(0.0, scores[teams[0]])
         Assertions.assertEquals(0.0, scores[teams[1]])
         Assertions.assertEquals(0.0, scores[teams[2]])
@@ -96,7 +96,7 @@ class AvsTaskScorerTest {
                 answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000, "task2")
             ),
         )
-        val scores = this.scorer.scoreMap(subs)
+        val scores = this.scorer.calculateScores(subs)
         Assertions.assertEquals(maxPointsPerTask, scores[teams[0]])
         Assertions.assertEquals(0.0, scores[teams[1]])
         Assertions.assertEquals(0.0, scores[teams[2]])
@@ -134,7 +134,7 @@ class AvsTaskScorerTest {
                 answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000, "task2")
             )
         )
-        val scores = this.scorer.scoreMap(subs)
+        val scores = this.scorer.calculateScores(subs)
         Assertions.assertEquals(maxPointsPerTask, scores[teams[0]])
         Assertions.assertEquals(maxPointsPerTask, scores[teams[1]])
         Assertions.assertEquals(maxPointsPerTask, scores[teams[2]])
@@ -172,7 +172,7 @@ class AvsTaskScorerTest {
                 answerSets(ApiVerdictStatus.CORRECT, dummyVideoItems[0], 10_000, 20_000, "task3")
             ),
         )
-        val scores = this.scorer.scoreMap(subs)
+        val scores = this.scorer.calculateScores(subs)
         Assertions.assertEquals(maxPointsPerTask, scores[teams[0]])
         Assertions.assertEquals(maxPointsPerTask / 2.0, scores[teams[1]])
         Assertions.assertEquals(0.0, scores[teams[2]])
@@ -356,7 +356,7 @@ class AvsTaskScorerTest {
             ),
 
             )
-        val scores = this.scorer.scoreMap(subs)
+        val scores = this.scorer.calculateScores(subs)
         /*
         Team One: No penalty => 1000 = 1000 * [1/3 * 1+1+1] => 1000 * 3/3
          */

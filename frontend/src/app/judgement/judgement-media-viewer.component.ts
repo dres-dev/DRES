@@ -1,4 +1,4 @@
-import { AfterViewChecked, AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import { AfterViewChecked, AfterViewInit, Component, ElementRef, ErrorHandler, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { AppConfig } from '../app.config';
 import { ApiAnswerType, ApiJudgementRequest } from "../../../openapi";
@@ -7,8 +7,11 @@ import { ApiAnswerType, ApiJudgementRequest } from "../../../openapi";
   selector: 'app-judgement-media-viewer',
   templateUrl: './judgement-media-viewer.component.html',
   styleUrls: ['./judgement-media-viewer.component.scss'],
+  providers: [
+    {provide: ErrorHandler, useClass: JudgementMediaViewerComponent}
+  ]
 })
-export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterViewChecked, ErrorHandler {
 
   /**
    * The zero-based index in the answerset to which this viewer is for
@@ -53,6 +56,14 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
 
 
   constructor(public config: AppConfig) {}
+
+  handleError(error: Error): void {
+        if(error?.message?.includes("uncaught in Promise")){
+          // silently ignore
+        }else{
+          throw error;
+        }
+    }
 
   private static log(msg: string) {
     console.log(`[JudgeMedia] ${msg}`);

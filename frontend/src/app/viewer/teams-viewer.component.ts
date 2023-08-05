@@ -9,7 +9,7 @@ import {
     ViewChild,
 } from '@angular/core';
 import {BehaviorSubject, combineLatest, merge, mergeMap, Observable, of, Subscription} from 'rxjs';
-import {catchError, filter, map, pairwise, retry, shareReplay, switchMap, withLatestFrom,} from 'rxjs/operators';
+import {catchError, filter, map, pairwise, retry, sampleTime, shareReplay, switchMap, withLatestFrom,} from 'rxjs/operators';
 import {AppConfig} from '../app.config';
 import {animate, keyframes, style, transition, trigger} from '@angular/animations';
 import {
@@ -20,6 +20,7 @@ import {
     EvaluationScoresService,
     EvaluationService
 } from 'openapi';
+import { HttpErrorResponse } from '@angular/common/http';
 
 /**
  * Internal helper interface.
@@ -135,11 +136,13 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     /* Create source observable; list of all submissions.  */
     this.submissions = this.state.pipe(
+      sampleTime(2000), //only check once every two seconds
       switchMap((st) =>
         this.evaluationService.getApiV2EvaluationByEvaluationIdSubmissionList(st.evaluationId).pipe(
-          retry(3),
-          catchError((err, o) => {
-            console.log(`[TeamsViewerComponent] Error while loading submissions: ${err?.message}.`);
+          catchError((err: HttpErrorResponse) => {
+            if (err.status != 404) { //log anything but 404
+              console.log(`[TeamsViewerComponent] Error while loading submissions: ${err?.message}.`);
+            }
             return of(null);
           }),
           filter((sb) => sb != null) /* Filter null responses. */
@@ -165,8 +168,10 @@ export class TeamsViewerComponent implements AfterViewInit, OnDestroy {
       switchMap((st) =>
         this.scoresService.getApiV2ScoreEvaluationByEvaluationIdCurrent(st.evaluationId).pipe(
           retry(3),
-          catchError((err, o) => {
-            console.log(`[TeamsViewerComponent] Error while loading scores: ${err?.message}.`);
+          catchError((err: HttpErrorResponse) => {
+            if (err.status != 404) { //log anything but 404
+              console.log(`[TeamsViewerComponent] Error while loading scores: ${err?.message}.`);
+            }
             return of(null);
           }),
           filter((sc) => sc != null) /* Filter null responses. */

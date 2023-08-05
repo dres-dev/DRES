@@ -123,37 +123,14 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
       shareReplay({ bufferSize: 1, refCount: true })
     );
 
-    /*
-     * This Observable is used to poll the RunState; it merges the normal state observable with a timer and makes sure that:
-     * - If normal state changes (e.g. due to an external event), that state object is re-used
-     * - If timer fire, the state is queried.
-     * - Both timer + normal state only trigger an update every 500ms.
-     *
-     * Implicitly, this Observable is only used when a task is running due to how it is used in the template!
-     */
-    const polledState = merge(interval(1000).pipe(mergeMap(() => this.evaluationId)), this.state).pipe(
-      sampleTime(1000) /* This is again sampled to only ever emit once every second. */,
-      switchMap((s) => {
-        if (typeof s === 'string') {
-          return this.runService.getApiV2EvaluationByEvaluationIdState(s); /* Timer! Load run state! */
-        } else {
-          return of(s as ApiEvaluationState); /* This is a freshly loaded run state. */
-        }
-      }),
-      catchError((err, o) => {
-        console.log(`[TaskViewerComponent] Error occurred while polling state: ${err?.message}`);
-        return of(null);
-      }),
-      filter((p) => p != null),
-      share()
-    );
+    
 
     /*
      * This is the main switch that updates the viewer's state and the only actual subscription.
      *
      * IMPORTANT: Unsubscribe onDestroy.
      */
-    this.viewerStateSubscription = combineLatest([currentTaskHint, polledState]).subscribe(([h, s]) => {
+    this.viewerStateSubscription = combineLatest([currentTaskHint, this.state]).subscribe(([h, s]) => {
       switch (s.taskStatus) {
         case 'NO_TASK':
         case 'CREATED':
@@ -237,7 +214,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     );
 
     /* Observable for the time that is still left. */
-    this.timeLeft = polledState.pipe(
+    this.timeLeft = this.state.pipe(
       map((s) => s.timeLeft) /* Compensating for added countdown. */,
       tap((t) => {
         if (t === 30 || t === 60) {
@@ -247,7 +224,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     );
 
     /* Observable for the time that has elapsed. */
-    this.timeElapsed = polledState.pipe(map((s) => s.timeElapsed));
+    this.timeElapsed = this.state.pipe(map((s) => s.timeElapsed));
   }
 
   /**

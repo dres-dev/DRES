@@ -220,25 +220,28 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
       filter((m) => m.type !== 'PING') /* Filter out ping messages. */,
       map((b) => b.evaluationId)
     );
-    this.runState = merge(this.evaluationId, wsMessages).pipe(
-      sampleTime(500) /* State updates are triggered only once every 500ms. */,
-      switchMap((evaluationId) =>
-        this.runService.getApiV2EvaluationByEvaluationIdState(evaluationId).pipe(
-          catchError((err, o) => {
-            console.log(
-              `[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`
-            );
-            this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {
-              duration: 5000,
-            });
-            if (err.status === 404) {
-              this.router.navigate(['/template/list']);
-            }
-            return of(null);
-          }),
-          filter((q) => q != null)
-        )
-      ),
+
+    wsMessages.subscribe({next: 
+      (message) => {
+        //console.log("Ws Message: ", message);
+      }
+    }); 
+
+    this.runState = interval(1000).pipe(mergeMap(() => this.evaluationId)).pipe(
+      switchMap((id) => this.runService.getApiV2EvaluationByEvaluationIdState(id)),
+      catchError((err, o) => {
+        console.log(
+          `[RunViewerComponent] There was an error while loading information in the current run state: ${err?.message}`
+        );
+        this.snackBar.open(`There was an error while loading information in the current run: ${err?.message}`, null, {
+          duration: 5000,
+        });
+        if (err.status === 404) {
+          this.router.navigate(['/template/list']);
+        }
+        return of(null);
+      }),
+      filter((q) => q != null),
       shareReplay({ bufferSize: 1, refCount: true })
     );
 

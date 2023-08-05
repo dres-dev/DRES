@@ -13,6 +13,7 @@ import {
 } from 'ng-apexcharts';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import {ApiEvaluationInfo, ApiEvaluationState, ApiScore, ApiScoreOverview, ApiTeamInfo, EvaluationScoresService} from '../../../../openapi';
+import { HttpErrorResponse } from '@angular/common/http';
 
 /**
  * Component displaying a lovely scoreboard.
@@ -21,11 +22,11 @@ import {ApiEvaluationInfo, ApiEvaluationState, ApiScore, ApiScoreOverview, ApiTe
  * competitionOverview = false -- In this mode, a bar chart of the current task group is shown
  */
 @Component({
-  selector: 'app-competition-scoreboard-viewer',
-  templateUrl: './competition-scoreboard-viewer.component.html',
-  styleUrls: ['./competition-scoreboard-viewer.component.scss'],
+  selector: 'app-scoreboard-viewer',
+  templateUrl: './scoreboard-viewer.component.html',
+  styleUrls: ['./scoreboard-viewer.component.scss'],
 })
-export class CompetitionScoreboardViewerComponent implements OnInit {
+export class ScoreboardViewerComponent implements OnInit {
   /**
    * The run info of the current run
    */
@@ -131,8 +132,10 @@ export class CompetitionScoreboardViewerComponent implements OnInit {
     const score = this.state.pipe(
       switchMap((s) => {
         return this.scoreService.getApiV2ScoreEvaluationByEvaluationIdCurrent(s.evaluationId).pipe(
-          catchError((err) => {
-            console.log('Error when retrieving scores.', err);
+          catchError((err: HttpErrorResponse) => {
+            if (err.status != 404) { //log anything but 404
+              console.log('Error when retrieving scores.', err);
+            }
             return of(null);
           })
         );

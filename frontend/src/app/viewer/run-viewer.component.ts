@@ -299,7 +299,9 @@ export class RunViewerComponent implements OnInit, AfterViewInit, OnDestroy {
     /* Create subscription for WebSocket connection status and show overlay. */
     this.overlaySubscription = this.webSocketConnectionSubject.subscribe((status) => {
       if (status == false) {
-        this.overlayRef.attach(new TemplatePortal(this.overlayTemplateRef, this._viewContainerRef))
+        if(!this.overlayRef.hasAttached()) {
+          this.overlayRef.attach(new TemplatePortal(this.overlayTemplateRef, this._viewContainerRef));
+        }
       } else {
         this.overlayRef.detach()
       }

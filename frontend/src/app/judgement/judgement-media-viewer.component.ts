@@ -189,12 +189,16 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
         if(this.startInSeconds === undefined){
           this.req.subscribe((req) => {
             this.calculateTime(req);
-            this.video.nativeElement.currentTime = this.startInSeconds;
-            this.video.nativeElement.play().then((r) => JudgementMediaViewerComponent.log('Playing video after event fired, recalc done'))
+            if(this?.video?.nativeElement){
+              this.video.nativeElement.currentTime = this.startInSeconds;
+              this.video.nativeElement.play().then((r) => JudgementMediaViewerComponent.log('Playing video after event fired, recalc done'))
+            }
           })
         }else{
-          this.video.nativeElement.currentTime = this.startInSeconds;
-          this.video.nativeElement.play().then((r) => JudgementMediaViewerComponent.log('Playing video after event fired'));
+          if(this?.video?.nativeElement){
+            this.video.nativeElement.currentTime = this.startInSeconds;
+            this.video.nativeElement.play().then((r) => JudgementMediaViewerComponent.log('Playing video after event fired'));
+          }
         }
       });
     }
@@ -255,7 +259,6 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
 
   ngAfterViewChecked(): void {
     if (!this.videoPlayerInitialized) {
-      console.log('Initializing video');
       this.initVideoPlayerHandling();
     }
   }

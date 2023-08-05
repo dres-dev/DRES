@@ -62,8 +62,11 @@ export class AdminRunListComponent extends AbstractRunListComponent implements A
       if (result) {
         this.runAdminService.postApiV2EvaluationAdminByEvaluationIdTerminate(runId).subscribe(
           (r) => {
-            this.refreshSubject.complete();
-            this.refreshSubject.unsubscribe();
+            /* Attempt to prevent senting requests twice to the backend */
+            if(this.refreshSubject && this.refreshSubject?.closed){
+              this.refreshSubject.complete();
+              this.refreshSubject.unsubscribe();
+            }
             this.snackBar.open(`Success: ${r.description}`, null, { duration: 5000 });
           },
           (r) => {

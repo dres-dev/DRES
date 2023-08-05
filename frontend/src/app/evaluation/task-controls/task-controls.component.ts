@@ -38,6 +38,7 @@ export class TaskControlsComponent implements OnInit{
   }
 
   ngOnInit(): void {
+    console.log("Show Time: ", this.showTime)
     if(!this.runId){
       this.runId = this.activatedRoute.params.pipe(
         tap((a) => console.log("PARAMS:", a)),

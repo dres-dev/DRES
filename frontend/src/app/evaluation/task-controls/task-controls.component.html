@@ -38,7 +38,7 @@
     <mat-icon>skip_next</mat-icon>
   </button>
   <ng-container *ngIf="showTime">
-    <div *ngIf="(runState | async)?.timeLeft > 0"
+    <div #timer
          class="mat-body" style="align-self: center;"
     >
       Time left: {{ (runState | async)?.timeLeft | formatTime:false }}

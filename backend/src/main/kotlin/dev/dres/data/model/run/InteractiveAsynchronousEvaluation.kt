@@ -24,6 +24,7 @@ import dev.dres.run.transformer.SubmissionTaskMatchTransformer
 import dev.dres.run.transformer.basics.SubmissionTransformer
 import dev.dres.run.transformer.basics.CombiningSubmissionTransformer
 import kotlinx.dnq.query.*
+import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -34,6 +35,8 @@ import java.util.concurrent.ConcurrentHashMap
  *
  */
 class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(evaluation) {
+
+    private val LOGGER = LoggerFactory.getLogger(InteractiveAsynchronousEvaluation::class.java)
 
     private val permutation: Map<TeamId, List<Int>>
 
@@ -88,7 +91,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
      *
      * @param teamId The [TeamId] to lookup.
      */
-    fun currentTaskForTeam(teamId: TeamId): IATaskRun? {
+    fun currentTaskForTeam(teamId: TeamId): IATaskRun? { //FIXME
         val currentTaskTemplateId = this.navigationMap[teamId]!!
         return this.tasksForTeam(teamId).findLast {
             it.template.id == currentTaskTemplateId
@@ -162,7 +165,7 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
         init {
             this@InteractiveAsynchronousEvaluation.tasksMap.compute(this.task.team!!.id) { _, v ->
                 val list = v ?: LinkedList<IATaskRun>()
-                check(list.isEmpty() || list.last().hasEnded) { "Cannot create a new task. Another task is currently running." }
+                check(list.isEmpty() || list.last().hasEnded) { "Cannot create a new task. Another task is currently running." } //FIXME crashes on restart
                 list.add(this)
                 list
             }

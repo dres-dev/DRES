@@ -738,7 +738,7 @@ class InteractiveAsynchronousRunManager(
      */
     private fun registerOptionalUpdatables() {
         /* Determine if task should be ended once submission threshold per team is reached. */
-        val endOnSubmit = this.template.taskGroups.mapDistinct { it.type }.flatMapDistinct { it.options }
+        val endOnSubmit = this.template.taskGroups.mapDistinct { it.type }.flatMapDistinct { it.submission }
             .filter { it.description eq DbSubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.any()
         if (endOnSubmit) {
             this.updatables.add(EndOnSubmitUpdatable(this))

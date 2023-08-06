@@ -1,13 +1,10 @@
 package dev.dres.run
 
-import dev.dres.api.rest.types.WebSocketConnection
+import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
-import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
-import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.data.model.run.*
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.run.interfaces.TaskId
-import dev.dres.data.model.submissions.*
 import dev.dres.run.score.scoreboard.Scoreboard
 import dev.dres.run.validation.interfaces.JudgementValidator
 import jetbrains.exodus.database.TransientEntityStore
@@ -19,8 +16,6 @@ class NonInteractiveRunManager(
     override val evaluation: NonInteractiveEvaluation,
     override val store: TransientEntityStore
 ) : RunManager {
-
-    private val SCOREBOARD_UPDATE_INTERVAL_MS = 10_000L // TODO make configurable
 
     private val LOGGER = LoggerFactory.getLogger(this.javaClass)
 
@@ -98,19 +93,30 @@ class NonInteractiveRunManager(
 
     override fun taskCount(context: RunActionContext): Int = this.evaluation.tasks.size
 
-    private val viewerMap: MutableMap<WebSocketConnection, Boolean> = mutableMapOf()
+    private val viewerMap: MutableMap<ViewerInfo, Boolean> = mutableMapOf()
 
-    override fun viewers(): Map<WebSocketConnection, Boolean> = viewerMap
+    override fun viewers(): Map<ViewerInfo, Boolean> = viewerMap
 
-    override fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean {
-        when (message.type) {
-            ClientMessageType.REGISTER -> this.viewerMap[connection] = true
-            ClientMessageType.UNREGISTER -> this.viewerMap.remove(connection)
-            ClientMessageType.ACK, ClientMessageType.PING -> {} //nop
-        }
-        return true
+//    override fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean {
+//        when (message.type) {
+//            ClientMessageType.REGISTER -> this.viewerMap[connection] = true
+//            ClientMessageType.UNREGISTER -> this.viewerMap.remove(connection)
+//            ClientMessageType.ACK, ClientMessageType.PING -> {} //nop
+//        }
+//        return true
+//    }
+
+    override fun viewerPreparing(
+        taskId: dev.dres.data.model.run.TaskId,
+        rac: RunActionContext,
+        viewerInfo: ViewerInfo
+    ) {
+        /* nop */
     }
 
+    override fun viewerReady(taskId: dev.dres.data.model.run.TaskId, rac: RunActionContext, viewerInfo: ViewerInfo) {
+        /* nop */
+    }
 
     override fun run() {
 

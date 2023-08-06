@@ -127,12 +127,12 @@ inline fun <reified T: RunManager> Context.eligibleManagerForId(): T {
     val userId = this.userId()
     val evaluationId = this.evaluationId()
     val manager = RunExecutor.managerForId(evaluationId) as? T ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found.", this)
-    if (this.isJudge() && manager.template.judges.filter { it.userId eq userId }.isNotEmpty) {
-        return manager
+    return if (this.isJudge() && manager.template.judges.filter { it.userId eq userId }.isNotEmpty) {
+        manager
     } else if (this.isParticipant() && manager.template.teams.flatMapDistinct { it.users }.filter { it.userId eq userId }.isNotEmpty) {
-        return manager
+        manager
     } else if (this.isAdmin()) {
-        return manager
+        manager
     } else {
         throw ErrorStatusException(401, "Current user is not allowed to access evaluation $evaluationId as participant.", this)
     }

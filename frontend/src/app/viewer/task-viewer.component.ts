@@ -50,7 +50,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   @Input() taskStarted: Observable<ApiTaskTemplateInfo>;
   @Input() taskChanged: Observable<ApiTaskTemplateInfo>;
   @Input() taskEnded: Observable<ApiTaskTemplateInfo>;
-  @Input() webSocketSubject: WebSocketSubject<IWsMessage>;
+
 
   /** Time that is still left (only when a task is running). */
   timeLeft: Observable<number>;
@@ -138,9 +138,10 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
           break;
         case 'PREPARING':
           this.viewerState.next(ViewerState.VIEWER_SYNC);
+          /* Send ACK. */
           if (h != null) {
-            this.webSocketSubject.next({ evaluationId: s.evaluationId, type: 'ACK' } as IWsClientMessage);
-          } /* Send ACK. */
+            this.runService.getApiV2EvaluationByEvaluationIdHintByTaskIdReady(s.evaluationId, h.taskId).subscribe();
+          } 
           break;
         case 'RUNNING':
           if (s.timeElapsed < 0) {

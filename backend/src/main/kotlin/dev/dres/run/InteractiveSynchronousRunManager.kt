@@ -1,7 +1,8 @@
 package dev.dres.run
 
 import dev.dres.api.rest.AccessManager
-import dev.dres.api.rest.types.WebSocketConnection
+import dev.dres.api.rest.handler.users.SessionToken
+import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
 import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
@@ -90,7 +91,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         get() = this.evaluation.scoreboards
 
     /** Internal data structure that tracks all [WebSocketConnection]s and their ready state. */
-    private val readyLatch = ReadyLatch<WebSocketConnection>()
+    private val readyLatch = ReadyLatch<ViewerInfo>()
 
     /** List of [Updatable] held by this [InteractiveSynchronousRunManager]. */
     private val updatables = mutableListOf<Updatable>()
@@ -131,8 +132,8 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         /* Start the run. */
         this.evaluation.start()
 
-        /* Enqueue WS message for sending */
-        RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_START))
+//        /* Enqueue WS message for sending */
+//        RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_START))
 
         /* Log and update status. */
         LOGGER.info("SynchronousRunManager ${this.id} started")
@@ -149,8 +150,8 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         /* Update status. */
         this.status = RunManagerStatus.TERMINATED
 
-        /* Enqueue WS message for sending */
-        RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_END))
+//        /* Enqueue WS message for sending */
+//        RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_END))
 
         LOGGER.info("SynchronousRunManager ${this.id} terminated")
     }
@@ -208,8 +209,8 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             /* Update active task. */
             this.evaluation.goTo(index)
 
-            /* Enqueue WS message for sending */
-            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_UPDATE, this.evaluation.currentTask?.taskId))
+//            /* Enqueue WS message for sending */
+//            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_UPDATE, this.evaluation.currentTask?.taskId))
             LOGGER.info("SynchronousRunManager ${this.id} set to task $index")
         } else {
             throw IndexOutOfBoundsException("Index $index is out of bounds for the number of available tasks.")
@@ -235,8 +236,8 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         /* Reset the ReadyLatch. */
         this.readyLatch.reset(VIEWER_TIMEOUT_DEFAULT)
 
-        /* Enqueue WS message for sending */
-        RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_PREPARE, this.evaluation.currentTask?.taskId))
+//        /* Enqueue WS message for sending */
+//        RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_PREPARE, this.evaluation.currentTask?.taskId))
 
         LOGGER.info("SynchronousRunManager ${this.id} started task ${this.evaluation.getCurrentTemplateId()}.")
 
@@ -251,8 +252,8 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         /* End TaskRun and persist. */
         this.currentTask(context)?.end()
 
-        /* Enqueue WS message for sending */
-        RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_END, this.currentTask(context)?.taskId))
+//        /* Enqueue WS message for sending */
+//        RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_END, this.currentTask(context)?.taskId))
         LOGGER.info("SynchronousRunManager ${this.id} aborted task  ${this.evaluation.getCurrentTemplateId()}.")
     }
 
@@ -374,7 +375,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      *
      * @return Map of session ID to ready state.
      */
-    override fun viewers(): HashMap<WebSocketConnection, Boolean> = this.readyLatch.state()
+    override fun viewers(): HashMap<ViewerInfo, Boolean> = this.readyLatch.state()
 
     /**
      * Can be used to manually override the READY state of a viewer. Can be used in case a viewer hangs in the PREPARING_TASK phase.
@@ -387,7 +388,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         checkContext(context)
 
         return try {
-            val viewer = this.readyLatch.state().keys.find { it.sessionId == viewerId }
+            val viewer = this.readyLatch.state().keys.find { it.sessionToken == viewerId }
             if (viewer != null) {
                 this.readyLatch.setReady(viewer)
                 true
@@ -399,29 +400,53 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         }
     }
 
-    /**
-     * Processes WebSocket [ClientMessage] received by the [RunExecutor].
-     *
-     * @param connection The [WebSocketConnection] through which the message was received.
-     * @param message The [ClientMessage] received.
-     */
-    override fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean =
-        this.stateLock.read {
-            when (message.type) {
-                ClientMessageType.ACK -> {
-                    this.store.transactional(true) {
-                        if (this.evaluation.currentTask?.status == DbTaskStatus.PREPARING) {
-                            this.readyLatch.setReady(connection)
-                        }
-                    }
-                }
-                ClientMessageType.REGISTER -> this.readyLatch.register(connection)
-                ClientMessageType.UNREGISTER -> this.readyLatch.unregister(connection)
-                ClientMessageType.PING -> {
-                } //handled in [RunExecutor]
-            }
-            return true
+//    /**
+//     * Processes WebSocket [ClientMessage] received by the [RunExecutor].
+//     *
+//     * @param connection The [WebSocketConnection] through which the message was received.
+//     * @param message The [ClientMessage] received.
+//     */
+//    override fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean =
+//        this.stateLock.read {
+//            when (message.type) {
+//                ClientMessageType.ACK -> {
+//                    this.store.transactional(true) {
+//                        if (this.evaluation.currentTask?.status == DbTaskStatus.PREPARING) {
+//                            this.readyLatch.setReady(connection)
+//                        }
+//                    }
+//                }
+//                ClientMessageType.REGISTER -> this.readyLatch.register(connection)
+//                ClientMessageType.UNREGISTER -> this.readyLatch.unregister(connection)
+//                ClientMessageType.PING -> {
+//                } //handled in [RunExecutor]
+//            }
+//            return true
+//        }
+
+    override fun viewerPreparing(taskId: TaskId, rac: RunActionContext, viewerInfo: ViewerInfo) {
+
+        val currentTaskId = this.currentTask(rac)?.taskId
+
+        if (taskId == currentTaskId) {
+            this.readyLatch.register(viewerInfo)
         }
+
+    }
+
+    override fun viewerReady(taskId: TaskId, rac: RunActionContext, viewerInfo: ViewerInfo) {
+
+        val currentTaskId = this.currentTask(rac)?.taskId
+
+        if (taskId == currentTaskId) {
+            this.store.transactional(true) {
+                if (this.evaluation.currentTask?.status == DbTaskStatus.PREPARING) {
+                    this.readyLatch.setReady(viewerInfo)
+                }
+            }
+        }
+
+    }
 
     /**
      * Processes incoming [ApiSubmission]s. If a [DbTask] is running then that [ApiSubmission] will usually
@@ -599,8 +624,8 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                 AuditLogger.taskStart(this.id, this.evaluation.currentTask!!.taskId, this.evaluation.getCurrentTemplate().toApi(), AuditLogSource.INTERNAL, null)
             }
 
-            /* Enqueue WS message for sending */
-            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_START, this.evaluation.currentTask?.taskId))
+//            /* Enqueue WS message for sending */
+//            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_START, this.evaluation.currentTask?.taskId))
         }
 
         /** Case 2: Facilitates internal transition from RunManagerStatus.RUNNING_TASK to RunManagerStatus.TASK_ENDED due to timeout. */
@@ -613,8 +638,8 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                     AuditLogger.taskEnd(this.id, this.evaluation.currentTask!!.taskId, AuditLogSource.INTERNAL, null)
                     EventStreamProcessor.event(TaskEndEvent(this.id, task.taskId))
 
-                    /* Enqueue WS message for sending */
-                    RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_END, this.evaluation.currentTask?.taskId))
+//                    /* Enqueue WS message for sending */
+//                    RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_END, this.evaluation.currentTask?.taskId))
                 }
             }
         }
@@ -713,7 +738,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
                         if (t != null) {
                             t.scorer.invalidate()
                             this.scoreboards.forEach { it.invalidate() }
-                            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.id))
+//                            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.TASK_UPDATED, task.id))
                         }
                     }
                 }

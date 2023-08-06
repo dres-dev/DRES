@@ -1,7 +1,7 @@
 package dev.dres.run
 
 import dev.dres.api.rest.AccessManager
-import dev.dres.api.rest.types.WebSocketConnection
+import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
 import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
@@ -76,7 +76,7 @@ class InteractiveAsynchronousRunManager(
     private val statusMap: MutableMap<TeamId, RunManagerStatus> = HashMap()
 
     /** A [Map] of all viewers, i.e., DRES clients currently registered with this [InteractiveAsynchronousRunManager]. */
-    private val viewers = ConcurrentHashMap<WebSocketConnection, Boolean>()
+    private val viewers = ConcurrentHashMap<ViewerInfo, Boolean>()
 
     /** A lock for state changes to this [InteractiveAsynchronousRunManager]. */
     private val stateLock = ReentrantReadWriteLock()
@@ -161,8 +161,8 @@ class InteractiveAsynchronousRunManager(
             this.statusMap.forEach { (t, _) -> this.statusMap[t] = RunManagerStatus.ACTIVE }
             this.status = RunManagerStatus.ACTIVE
 
-            /* Enqueue WS message for sending */
-            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_START))
+//            /* Enqueue WS message for sending */
+//            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_START))
 
             LOGGER.info("Run manager ${this.id} started")
         }
@@ -188,8 +188,8 @@ class InteractiveAsynchronousRunManager(
             this.statusMap.forEach { (t, _) -> this.statusMap[t] = RunManagerStatus.TERMINATED }
             this.status = RunManagerStatus.TERMINATED
 
-            /* Enqueue WS message for sending */
-            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_END))
+//            /* Enqueue WS message for sending */
+//            RunExecutor.broadcastWsMessage(ServerMessage(this.id, ServerMessageType.COMPETITION_END))
 
             LOGGER.info("SynchronousRunManager ${this.id} terminated")
         }
@@ -281,15 +281,15 @@ class InteractiveAsynchronousRunManager(
         //FIXME since task run and competition run states are separated, this is not actually a state change
         this.statusMap[teamId] = RunManagerStatus.ACTIVE
 
-        /* Enqueue WS message for sending */
-        RunExecutor.broadcastWsMessage(
-            teamId,
-            ServerMessage(
-                this.id,
-                ServerMessageType.COMPETITION_UPDATE,
-                this.evaluation.currentTaskForTeam(teamId)?.taskId
-            )
-        )
+//        /* Enqueue WS message for sending */
+//        RunExecutor.broadcastWsMessage(
+//            teamId,
+//            ServerMessage(
+//                this.id,
+//                ServerMessageType.COMPETITION_UPDATE,
+//                this.evaluation.currentTaskForTeam(teamId)?.taskId
+//            )
+//        )
 
         LOGGER.info("SynchronousRunManager ${this.id} set to task $idx")
     }
@@ -322,11 +322,11 @@ class InteractiveAsynchronousRunManager(
         val currentTaskRun = this.evaluation.IATaskRun(currentTaskTemplate, teamId)
         currentTaskRun.prepare()
 
-        /* Enqueue WS message for sending */
-        RunExecutor.broadcastWsMessage(
-            teamId,
-            ServerMessage(this.id, ServerMessageType.TASK_PREPARE, currentTaskRun.taskId)
-        )
+//        /* Enqueue WS message for sending */
+//        RunExecutor.broadcastWsMessage(
+//            teamId,
+//            ServerMessage(this.id, ServerMessageType.TASK_PREPARE, currentTaskRun.taskId)
+//        )
 
         LOGGER.info("Run manager  ${this.id} started task $currentTaskTemplate.")
 
@@ -353,8 +353,8 @@ class InteractiveAsynchronousRunManager(
             ?: throw IllegalStateException("Could not find active task for team ${teamId} despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
         currentTask.end()
 
-        /* Enqueue WS message for sending */
-        RunExecutor.broadcastWsMessage(teamId, ServerMessage(this.id, ServerMessageType.TASK_END, currentTask.taskId))
+//        /* Enqueue WS message for sending */
+//        RunExecutor.broadcastWsMessage(teamId, ServerMessage(this.id, ServerMessageType.TASK_END, currentTask.taskId))
 
         LOGGER.info("Run manager ${this.id} aborted task $currentTask.")
     }
@@ -592,22 +592,36 @@ class InteractiveAsynchronousRunManager(
      *
      * @return List of viewer [WebSocketConnection]s for this [RunManager].
      */
-    override fun viewers(): Map<WebSocketConnection, Boolean> = Collections.unmodifiableMap(this.viewers)
+    override fun viewers(): Map<ViewerInfo, Boolean> = Collections.unmodifiableMap(this.viewers)
 
-    /**
-     * Processes WebSocket [ClientMessage] received by the [InteractiveAsynchronousRunManager].
-     *
-     * @param connection The [WebSocketConnection] through which the message was received.
-     * @param message The [ClientMessage] received.
-     */
-    override fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean {
-        when (message.type) {
-            ClientMessageType.REGISTER -> this.viewers[connection] = true
-            ClientMessageType.UNREGISTER -> this.viewers.remove(connection)
-            else -> { /* No op. */
-            }
+//    /**
+//     * Processes WebSocket [ClientMessage] received by the [InteractiveAsynchronousRunManager].
+//     *
+//     * @param connection The [WebSocketConnection] through which the message was received.
+//     * @param message The [ClientMessage] received.
+//     */
+//    override fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean {
+//        when (message.type) {
+//            ClientMessageType.REGISTER -> this.viewers[connection] = true
+//            ClientMessageType.UNREGISTER -> this.viewers.remove(connection)
+//            else -> { /* No op. */
+//            }
+//        }
+//        return true
+//    }
+
+    override fun viewerPreparing(taskId: TaskId, rac: RunActionContext, viewerInfo: ViewerInfo) {
+        val currentTaskId = this.currentTask(rac)?.taskId
+        if (taskId == currentTaskId) {
+            this.viewers[viewerInfo] = false
         }
-        return true
+    }
+
+    override fun viewerReady(taskId: TaskId, rac: RunActionContext, viewerInfo: ViewerInfo) {
+        val currentTaskId = this.currentTask(rac)?.taskId
+        if (taskId == currentTaskId) {
+            this.viewers[viewerInfo] = true
+        }
     }
 
     /**
@@ -711,11 +725,11 @@ class InteractiveAsynchronousRunManager(
                         task.end()
                         AuditLogger.taskEnd(this.id, task.taskId, AuditLogSource.INTERNAL, null)
 
-                        /* Enqueue WS message for sending */
-                        RunExecutor.broadcastWsMessage(
-                            teamId,
-                            ServerMessage(this.id, ServerMessageType.TASK_END, task.taskId)
-                        )
+//                        /* Enqueue WS message for sending */
+//                        RunExecutor.broadcastWsMessage(
+//                            teamId,
+//                            ServerMessage(this.id, ServerMessageType.TASK_END, task.taskId)
+//                        )
                     }
                 }
             } else if (teamHasPreparingTask(teamId)) {
@@ -724,10 +738,10 @@ class InteractiveAsynchronousRunManager(
                         ?: throw IllegalStateException("Could not find active task for team $teamId despite status of the team being ${this.statusMap[teamId]}. This is a programmer's error!")
                     task.start()
                     AuditLogger.taskStart(this.id, task.teamId, task.template.toApi(), AuditLogSource.REST, null)
-                    RunExecutor.broadcastWsMessage(
-                        teamId,
-                        ServerMessage(this.id, ServerMessageType.TASK_START, task.taskId)
-                    )
+//                    RunExecutor.broadcastWsMessage(
+//                        teamId,
+//                        ServerMessage(this.id, ServerMessageType.TASK_START, task.taskId)
+//                    )
                 }
             }
         }
@@ -825,13 +839,13 @@ class InteractiveAsynchronousRunManager(
                         if (t != null) {
                             t.scorer.invalidate()
                             this.scoreboards.forEach { it.invalidate() }
-                            RunExecutor.broadcastWsMessage(
-                                ServerMessage(
-                                    this.id,
-                                    ServerMessageType.TASK_UPDATED,
-                                    task.id
-                                )
-                            )
+//                            RunExecutor.broadcastWsMessage(
+//                                ServerMessage(
+//                                    this.id,
+//                                    ServerMessageType.TASK_UPDATED,
+//                                    task.id
+//                                )
+//                            )
                         }
                     }
                 }

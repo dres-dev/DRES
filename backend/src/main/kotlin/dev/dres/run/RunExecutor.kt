@@ -1,32 +1,22 @@
 package dev.dres.run
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import dev.dres.api.rest.AccessManager
-import dev.dres.api.rest.types.WebSocketConnection
-import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
-import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
-import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
-import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
+
+import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.data.model.config.Config
 import dev.dres.data.model.run.*
-import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.interfaces.EvaluationId
-import dev.dres.data.model.run.interfaces.EvaluationRun
 import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.validation.interfaces.JudgementValidator
 import dev.dres.utilities.extensions.read
 import dev.dres.utilities.extensions.write
-import io.javalin.websocket.WsConfig
 import io.javalin.websocket.WsContext
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.locks.StampedLock
-import java.util.function.Consumer
 
 /**
  * The execution environment for [RunManager]s
@@ -34,7 +24,7 @@ import java.util.function.Consumer
  * @author Ralph Gasser
  * @version 1.3.0
  */
-object RunExecutor : Consumer<WsConfig> {
+object RunExecutor {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -48,10 +38,10 @@ object RunExecutor : Consumer<WsConfig> {
     private val judgementValidators = LinkedList<JudgementValidator>()
 
     /** List of [WsContext] that are currently connected. */
-    private val connectedClients = HashMap<String,WebSocketConnection>()
+    private val connectedClients = HashMap<String,ViewerInfo>()
 
     /** List of session IDs that are currently observing an evaluation. */
-    private val observingClients = HashMap<EvaluationId, MutableSet<WebSocketConnection>>()
+    private val observingClients = HashMap<EvaluationId, MutableSet<ViewerInfo>>()
 
     /** Lock for accessing and changing all data structures related to WebSocket clients. */
     private val clientLock = StampedLock()
@@ -127,55 +117,55 @@ object RunExecutor : Consumer<WsConfig> {
         this.cleanerThread.start()
     }
 
-    /**
-     * Callback for when registering this [RunExecutor] as handler for Javalin's WebSocket.
-     *
-     * @param t The [WsConfig] of the WebSocket endpoint.
-     */
-    override fun accept(t: WsConfig) {
-        t.onConnect {
-            /* Add WSContext to set of connected clients. */
-            this@RunExecutor.clientLock.write {
-                val connection = WebSocketConnection(it)
-                this.connectedClients[connection.httpSessionId] = connection
-            }
-        }
-        t.onClose {
-            val session = WebSocketConnection(it)
-            this@RunExecutor.clientLock.write {
-                val connection = WebSocketConnection(it)
-                this.connectedClients.remove(connection.httpSessionId)
-                this.runManagerLock.read {
-                    for (m in this.runManagers) {
-                        if (this.observingClients[m.key]?.remove(connection) == true) {
-                            m.value.wsMessageReceived(session, ClientMessage(m.key, ClientMessageType.UNREGISTER)) /* Send implicit unregister message associated with a disconnect. */
-                        }
-                    }
-                }
-            }
-        }
-        t.onMessage {
-            val message = try {
-                it.messageAsClass<ClientMessage>()
-            } catch (e: Exception) {
-                logger.warn("Cannot parse WebSocket message: ${e.localizedMessage}")
-                return@onMessage
-            }
-            val session = WebSocketConnection(it)
-            logger.debug("Received WebSocket message: $message from ${it.session.policy}")
-            this.runManagerLock.read {
-                if (this.runManagers.containsKey(message.evaluationId)) {
-                    when (message.type) {
-                        ClientMessageType.ACK -> {}
-                        ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.evaluationId]?.add(WebSocketConnection(it)) }
-                        ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.evaluationId]?.remove(WebSocketConnection(it)) }
-                        ClientMessageType.PING -> it.send(ServerMessage(message.evaluationId, ServerMessageType.PING))
-                    }
-                    this.runManagers[message.evaluationId]!!.wsMessageReceived(session, message) /* Forward message to RunManager. */
-                }
-            }
-        }
-    }
+//    /**
+//     * Callback for when registering this [RunExecutor] as handler for Javalin's WebSocket.
+//     *
+//     * @param t The [WsConfig] of the WebSocket endpoint.
+//     */
+//    fun accept(t: WsConfig) { //TODO remove
+//        t.onConnect {
+//            /* Add WSContext to set of connected clients. */
+//            this@RunExecutor.clientLock.write {
+//                val connection = WebSocketConnection(it)
+//                this.connectedClients[connection.httpSessionId] = connection
+//            }
+//        }
+//        t.onClose {
+//            val session = WebSocketConnection(it)
+//            this@RunExecutor.clientLock.write {
+//                val connection = WebSocketConnection(it)
+//                this.connectedClients.remove(connection.httpSessionId)
+//                this.runManagerLock.read {
+//                    for (m in this.runManagers) {
+//                        if (this.observingClients[m.key]?.remove(connection) == true) {
+//                            m.value.wsMessageReceived(session, ClientMessage(m.key, ClientMessageType.UNREGISTER)) /* Send implicit unregister message associated with a disconnect. */
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        t.onMessage {
+//            val message = try {
+//                it.messageAsClass<ClientMessage>()
+//            } catch (e: Exception) {
+//                logger.warn("Cannot parse WebSocket message: ${e.localizedMessage}")
+//                return@onMessage
+//            }
+//            val session = WebSocketConnection(it)
+//            logger.debug("Received WebSocket message: $message from ${it.session.policy}")
+//            this.runManagerLock.read {
+//                if (this.runManagers.containsKey(message.evaluationId)) {
+//                    when (message.type) {
+//                        ClientMessageType.ACK -> {}
+//                        ClientMessageType.REGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.evaluationId]?.add(WebSocketConnection(it)) }
+//                        ClientMessageType.UNREGISTER -> this@RunExecutor.clientLock.write { this.observingClients[message.evaluationId]?.remove(WebSocketConnection(it)) }
+//                        ClientMessageType.PING -> it.send(ServerMessage(message.evaluationId, ServerMessageType.PING))
+//                    }
+//                    this.runManagers[message.evaluationId]!!.wsMessageReceived(session, message) /* Forward message to RunManager. */
+//                }
+//            }
+//        }
+//    }
 
     /**
      * Lists all [RunManager]s currently executed by this [RunExecutor]
@@ -196,40 +186,40 @@ object RunExecutor : Consumer<WsConfig> {
         return this.runManagers[evaluationId]
     }
 
-    /**
-     * Broadcasts a [ServerMessage] to all clients currently connected and observing a specific [RunManager].
-     *
-     * @param message The [ServerMessage] that should be broadcast.
-     */
-    fun broadcastWsMessage(message: ServerMessage) = this.clientLock.read {
-        this.runManagerLock.read {
-            this.connectedClients.values.filter {
-                this.observingClients[message.evaluationId]?.contains(it) ?: false
-            }.forEach {
-                it.send(message)
-            }
-        }
-    }
+//    /**
+//     * Broadcasts a [ServerMessage] to all clients currently connected and observing a specific [RunManager].
+//     *
+//     * @param message The [ServerMessage] that should be broadcast.
+//     */
+//    fun broadcastWsMessage(message: ServerMessage) = this.clientLock.read {
+//        this.runManagerLock.read {
+//            this.connectedClients.values.filter {
+//                this.observingClients[message.evaluationId]?.contains(it) ?: false
+//            }.forEach {
+//                it.send(message)
+//            }
+//        }
+//    }
 
-    /**
-     * Broadcasts a [ServerMessage] to all clients currently connected and observing a specific [RunManager] and are member of the specified team.
-     *
-     * @param teamId The [TeamId] of the relevant team
-     * @param message The [ServerMessage] that should be broadcast.
-     */
-    fun broadcastWsMessage(teamId: TeamId, message: ServerMessage) = this.clientLock.read {
-        val manager = managerForId(message.evaluationId)
-        if (manager != null) {
-            val teamMembers = manager.template.teams.filter { it.id eq teamId }.flatMapDistinct { it.users }.asSequence().map { it.userId }.toList()
-            this.runManagerLock.read {
-                this.connectedClients.values.filter {
-                    this.observingClients[message.evaluationId]?.contains(it) ?: false && AccessManager.userIdForSession(it.sessionId) in teamMembers
-                }.forEach {
-                    it.send(message)
-                }
-            }
-        }
-    }
+//    /**
+//     * Broadcasts a [ServerMessage] to all clients currently connected and observing a specific [RunManager] and are member of the specified team.
+//     *
+//     * @param teamId The [TeamId] of the relevant team
+//     * @param message The [ServerMessage] that should be broadcast.
+//     */
+//    fun broadcastWsMessage(teamId: TeamId, message: ServerMessage) = this.clientLock.read {
+//        val manager = managerForId(message.evaluationId)
+//        if (manager != null) {
+//            val teamMembers = manager.template.teams.filter { it.id eq teamId }.flatMapDistinct { it.users }.asSequence().map { it.userId }.toList()
+//            this.runManagerLock.read {
+//                this.connectedClients.values.filter {
+//                    this.observingClients[message.evaluationId]?.contains(it) ?: false && AccessManager.userIdForSession(it.sessionId) in teamMembers
+//                }.forEach {
+//                    it.send(message)
+//                }
+//            }
+//        }
+//    }
 
     /**
      * Stops all runs

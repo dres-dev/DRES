@@ -1,9 +1,8 @@
 package dev.dres.run
 
-import dev.dres.api.rest.types.WebSocketConnection
+import dev.dres.api.rest.types.ViewerInfo
 import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
 import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
-import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.run.interfaces.EvaluationRun
@@ -121,24 +120,16 @@ interface RunManager : Runnable {
     fun postSubmission(context: RunActionContext, submission: ApiClientSubmission)
 
     /**
-     * Returns a list of viewer [WebSocketConnection]s for this [RunManager] alongside with their respective state.
+     * Returns a list of viewer [ViewerInfo]s for this [RunManager] alongside with their respective state.
      *
-     * @return List of viewer [WebSocketConnection]s for this [RunManager].
+     * @return List of viewer [ViewerInfo]s for this [RunManager].
      */
-    fun viewers(): Map<WebSocketConnection,Boolean>
+    fun viewers(): Map<ViewerInfo,Boolean>
 
-    /**
-     * Invoked by an external caller such in order to inform the [RunManager] that it has received a [ClientMessage].
-     *
-     * This method does not throw an exception and instead returns false if a [DbSubmission] was
-     * ignored for whatever reason (usually a state mismatch). It is up to the caller to re-invoke
-     * this method again.
-     *
-     * @param connection The [WebSocketConnection] through which the message was received.
-     * @param message The [ClientMessage] that was received.
-     * @return True if [ClientMessage] was processed, false otherwise
-     */
-    fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean
+    fun viewerPreparing(taskId: TaskId, rac: RunActionContext, viewerInfo: ViewerInfo)
+
+    fun viewerReady(taskId: TaskId, rac: RunActionContext, viewerInfo: ViewerInfo)
+
 
     /**
      * Triggers a re-scoring of submissions. Used by Judgement validation mechanism.

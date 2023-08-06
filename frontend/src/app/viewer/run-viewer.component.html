@@ -90,8 +90,7 @@
         [state]="runState"
         [taskChanged]="taskChanged"
         [taskStarted]="taskStarted"
-        [taskEnded]="taskEnded"
-        [webSocketSubject]="webSocketSubject"
+        [taskEnded]="taskEnded"  
       ></app-task-viewer>
       <app-scoreboard-viewer
         *ngSwitchCase="'competition_score'"
@@ -120,7 +119,6 @@
         [taskChanged]="taskChanged"
         [taskStarted]="taskStarted"
         [taskEnded]="taskEnded"
-        [webSocketSubject]="webSocketSubject"
       ></app-task-viewer>
       <app-scoreboard-viewer
         *ngSwitchCase="'competition_score'"
@@ -149,7 +147,6 @@
         [taskChanged]="taskChanged"
         [taskStarted]="taskStarted"
         [taskEnded]="taskEnded"
-        [webSocketSubject]="webSocketSubject"
       ></app-task-viewer>
       <app-scoreboard-viewer
         *ngSwitchCase="'competition_score'"
@@ -177,6 +174,6 @@
   </div>
 </div>
 
-<ng-template #overlayTemplate>
+<!-- <ng-template #overlayTemplate>
   <p style="font-size: 48px">⚡Viewer is out of sync. Please wait for WebSocket connection to be re-established!⚡</p>
-</ng-template>
+</ng-template> -->

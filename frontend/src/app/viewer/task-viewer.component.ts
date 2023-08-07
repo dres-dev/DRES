@@ -52,6 +52,12 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
   @Input() taskEnded: Observable<ApiTaskTemplateInfo>;
   @Input() webSocketSubject: WebSocketSubject<IWsMessage>;
 
+  /** Seconds duration remaining for early warning. Default is 60 */
+  @Input() earlyWarningThreshold: number = 60;
+
+  /** Seconds duration remaining for late warning. Default is 30 */
+  @Input() lateWarningThreshold: number = 30;
+
   /** Time that is still left (only when a task is running). */
   timeLeft: Observable<number>;
 
@@ -169,7 +175,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
         }
         return from(h.sequence).pipe(
           delayWhen<ApiContentElement>((c: ApiContentElement) => interval(1000 * c.offset)),
-          repeat(-1)
+          repeat(1)
         );
       })
     );
@@ -217,7 +223,7 @@ export class TaskViewerComponent implements AfterViewInit, OnDestroy {
     this.timeLeft = this.state.pipe(
       map((s) => s.timeLeft) /* Compensating for added countdown. */,
       tap((t) => {
-        if (t === 30 || t === 60) {
+        if (t === this.lateWarningThreshold || t === this.earlyWarningThreshold) {
           this.playOnce(this.glass.nativeElement); /* Reminder that time is running out. */
         }
       })

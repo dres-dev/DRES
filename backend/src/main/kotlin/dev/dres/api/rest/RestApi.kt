@@ -135,7 +135,7 @@ object RestApi {
 
             // Submission
             LegacySubmissionHandler(store, cache),
-            SubmissionHandler(),
+            SubmissionHandler(store),
 
             // Log
             QueryLogHandler(),
@@ -226,7 +226,7 @@ object RestApi {
                                 t.contact = contact
                                 val license = OpenApiLicense()
                                 license.name = "MIT"
-                                license.identifier = "MIT"
+                                // license.identifier = "MIT"
                                 t.license = license
                             }
                             u.withSecurity(SecurityComponentConfiguration()

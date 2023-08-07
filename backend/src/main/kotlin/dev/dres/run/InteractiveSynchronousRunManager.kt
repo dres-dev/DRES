@@ -328,7 +328,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
 
         /* Adjust duration. */
         val newDuration = task.duration + s
-        check((newDuration * 1000L - (System.currentTimeMillis() - task.started!!)) > 0) { "New duration $s can not be applied because too much time has already elapsed." }
+        if((newDuration * 1000L - (System.currentTimeMillis() - task.started!!)) < 0) { throw IllegalArgumentException( "New duration $s can not be applied because too much time has already elapsed.") }
         task.duration = newDuration
         return (task.duration * 1000L - (System.currentTimeMillis() - task.started!!))
     }

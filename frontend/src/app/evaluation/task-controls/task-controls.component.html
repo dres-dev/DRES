@@ -39,6 +39,7 @@
   </button>
   <ng-container *ngIf="showTime">
     <div #timer
+         *ngIf="(isAdmin | async) && (runState | async)?.taskStatus === 'RUNNING'"
          class="mat-body" style="align-self: center;"
     >
       Time left: {{ (runState | async)?.timeLeft | formatTime:false }}

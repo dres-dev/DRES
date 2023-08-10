@@ -6,6 +6,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.mgmt.TemplateManager
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
@@ -22,7 +23,7 @@ import java.util.*
  * @author Loris Sauter
  * @version 2.0.0
  */
-class CreateEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), PostRestHandler<SuccessStatus> {
+class CreateEvaluationTemplateHandler : AbstractEvaluationTemplateHandler(), PostRestHandler<SuccessStatus> {
 
     override val route: String = "template"
 
@@ -47,17 +48,8 @@ class CreateEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEva
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        val newId = UUID.randomUUID().toString()
-        this.store.transactional {
-            DbEvaluationTemplate.new {
-                this.id = newId
-                this.instance = false
-                this.name = createRequest.name
-                this.description = createRequest.description
-                this.created = DateTime.now()
-                this.modified = DateTime.now()
-            }
-        }
-        return SuccessStatus("Evaluation template with ID $newId was created successfully.")
+        val template = TemplateManager.createEvaluationTemplate(createRequest.name, createRequest.description)
+
+        return SuccessStatus("Evaluation template with ID ${template.id} was created successfully.")
     }
 }

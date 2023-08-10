@@ -3,7 +3,9 @@ package dev.dres.api.rest.handler.template
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.template.tasks.ApiTaskTemplate
 import dev.dres.api.rest.types.status.ErrorStatus
+import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.template.task.DbTaskTemplate
+import dev.dres.mgmt.TemplateManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -18,7 +20,7 @@ import kotlinx.dnq.query.filter
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ListTasksHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), GetRestHandler<List<ApiTaskTemplate>> {
+class ListTasksHandler() : AbstractEvaluationTemplateHandler(), GetRestHandler<List<ApiTaskTemplate>> {
 
     override val route: String = "template/{templateId}/task/list"
 
@@ -39,8 +41,6 @@ class ListTasksHandler(store: TransientEntityStore) : AbstractEvaluationTemplate
 
     override fun doGet(ctx: Context): List<ApiTaskTemplate> {
         val templateId = ctx.pathParam("templateId")
-        return this.store.transactional(true) {
-            DbTaskTemplate.filter { it.evaluation.id eq templateId }.asSequence().map { it.toApi() }.toList()
-        }
+        return TemplateManager.getTemplate(templateId)?.tasks ?: throw ErrorStatusException(404, "Template with id '$templateId' not found.", ctx)
     }
 }

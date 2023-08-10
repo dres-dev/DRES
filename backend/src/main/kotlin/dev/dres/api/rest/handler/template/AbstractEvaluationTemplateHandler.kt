@@ -23,7 +23,7 @@ import kotlinx.dnq.query.query
  * @author Loris Sauter
  * @version 1.0.0
  */
-abstract class AbstractEvaluationTemplateHandler(protected val store: TransientEntityStore) : RestHandler, AccessManagedRestHandler {
+abstract class AbstractEvaluationTemplateHandler() : RestHandler, AccessManagedRestHandler {
 
     /** All [AbstractCollectionHandler]s require [ApiRole.ADMIN]. */
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)
@@ -32,16 +32,16 @@ abstract class AbstractEvaluationTemplateHandler(protected val store: TransientE
     override val apiVersion = "v2"
 
     /** Convenience method to extract [DbEvaluationTemplate]'s ID from [Context]. */
-    private fun templateIdFromContext(ctx: Context): TemplateId =
+    protected fun templateIdFromContext(ctx: Context): TemplateId =
         ctx.pathParamMap().getOrElse("templateId") {
             throw ErrorStatusException(404, "Parameter 'templateId' is missing!'", ctx)
         }
 
-    /** Convenience method to extract [DbEvaluationTemplate] from [Context]. */
-    protected fun evaluationTemplateFromContext(ctx: Context): DbEvaluationTemplate
-        = evaluationTemplateById(templateIdFromContext(ctx), ctx)
-
-    /** Convenience method to extract [DbEvaluationTemplate] by ID. */
-    protected fun evaluationTemplateById(id: TemplateId, ctx: Context): DbEvaluationTemplate
-        = DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq id and (DbEvaluationTemplate::instance eq false)).firstOrNull() ?: throw ErrorStatusException(404, "Evaluation template with ID $id not found.'", ctx)
+//    /** Convenience method to extract [DbEvaluationTemplate] from [Context]. */
+//    protected fun evaluationTemplateFromContext(ctx: Context): DbEvaluationTemplate
+//        = evaluationTemplateById(templateIdFromContext(ctx), ctx)
+//
+//    /** Convenience method to extract [DbEvaluationTemplate] by ID. */
+//    protected fun evaluationTemplateById(id: TemplateId, ctx: Context): DbEvaluationTemplate
+//        = DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq id and (DbEvaluationTemplate::instance eq false)).firstOrNull() ?: throw ErrorStatusException(404, "Evaluation template with ID $id not found.'", ctx)
 }

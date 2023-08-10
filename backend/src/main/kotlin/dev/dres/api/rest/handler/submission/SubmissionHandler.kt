@@ -4,11 +4,16 @@ import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
+import dev.dres.api.rest.types.evaluation.submission.ApiVerdictStatus
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
+import dev.dres.api.rest.types.status.SuccessfulSubmissionsStatus
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.run.RunActionContext.Companion.runActionContext
+import dev.dres.data.model.submissions.DbSubmission
+import dev.dres.data.model.submissions.DbVerdictStatus
+import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
 import dev.dres.run.exceptions.IllegalRunStateException
@@ -19,9 +24,14 @@ import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.http.bodyAsClass
 import io.javalin.openapi.*
+import jetbrains.exodus.database.TransientEntityStore
+import kotlinx.dnq.query.filter
+import kotlinx.dnq.query.first
+import kotlinx.dnq.query.firstOrNull
+import kotlinx.dnq.transactional
 import org.slf4j.LoggerFactory
 
-class SubmissionHandler: PostRestHandler<SuccessStatus>, AccessManagedRestHandler {
+class SubmissionHandler(private val store: TransientEntityStore): PostRestHandler<SuccessfulSubmissionsStatus>, AccessManagedRestHandler {
 
     override val permittedRoles = setOf(ApiRole.PARTICIPANT)
 
@@ -41,15 +51,16 @@ class SubmissionHandler: PostRestHandler<SuccessStatus>, AccessManagedRestHandle
             OpenApiParam("evaluationId", String::class, "The ID of the evaluation the submission belongs to.", required = true),
         ],
         responses = [
-            OpenApiResponse("200", [OpenApiContent(SuccessStatus::class)]),
+            OpenApiResponse("200", [OpenApiContent(SuccessfulSubmissionsStatus::class)], description = "The submission was accepted by the server and there was a verdict"),
+            OpenApiResponse("202", [OpenApiContent(SuccessfulSubmissionsStatus::class)],description = "The submission was accepted by the server and there has not yet been a verdict available"),
             OpenApiResponse("400", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)]),
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)]),
-            OpenApiResponse("412", [OpenApiContent(ErrorStatus::class)])
+            OpenApiResponse("412", [OpenApiContent(ErrorStatus::class)], description = "The submission was rejected by the server")
         ],
         tags = ["Submission"]
     )
-    override fun doPost(ctx: Context): SuccessStatus {
+    override fun doPost(ctx: Context): SuccessfulSubmissionsStatus {
         /* Obtain run action context and parse submission. */
         val rac = ctx.runActionContext()
         val apiClientSubmission = try {
@@ -77,7 +88,34 @@ class SubmissionHandler: PostRestHandler<SuccessStatus>, AccessManagedRestHandle
             AuditLogger.submission(apiClientSubmission, rac.evaluationId!!, AuditLogSource.REST, ctx.sessionToken(), ctx.ip())
         }
 
+
         /* Return status. */
-        return SuccessStatus("Submission received.")
+        return this.store.transactional(readonly = true) {
+            var correct = 0
+            var wrong = 0
+            var undcidable = 0
+            var indeterminate = 0
+            DbSubmission.filter { it.id eq apiClientSubmission.submissionId }.firstOrNull()?.answerSets()?.map { it.status() }?.forEach {
+                when(it){
+                    VerdictStatus.CORRECT -> correct++
+                    VerdictStatus.WRONG -> wrong++
+                    VerdictStatus.INDETERMINATE -> indeterminate++
+                    VerdictStatus.UNDECIDABLE -> undcidable++
+                }
+            }
+            val max = listOf(correct,wrong,undcidable,indeterminate).max()
+            when( max){
+                0 -> throw ErrorStatusException(500, "No verdict information available ${apiClientSubmission.submissionId}. This is a serious bug and should be reported!", ctx)
+                correct -> SuccessfulSubmissionsStatus(ApiVerdictStatus.CORRECT, "Submission correct, well done!")
+                wrong -> SuccessfulSubmissionsStatus(ApiVerdictStatus.WRONG, "Submission wrong, try again!")
+                undcidable -> SuccessfulSubmissionsStatus(ApiVerdictStatus.UNDECIDABLE, "Submission undecidable, try again!")
+                indeterminate -> {
+                    ctx.status(202)
+                    SuccessfulSubmissionsStatus(ApiVerdictStatus.INDETERMINATE, "Submission received, awaiting verdict!")
+                }
+
+                else -> throw ErrorStatusException(500, "Error while calculating submission verdict for submission ${apiClientSubmission.submissionId}. This is a serious bug and should be reported!", ctx)
+            }
+        }
     }
 }

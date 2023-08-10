@@ -4,6 +4,7 @@ import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.template.ApiEvaluationTemplateOverview
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.mgmt.TemplateManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -20,7 +21,7 @@ import kotlinx.dnq.query.size
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ListEvaluationTemplatesHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), GetRestHandler<List<ApiEvaluationTemplateOverview>> {
+class ListEvaluationTemplatesHandler() : AbstractEvaluationTemplateHandler(), GetRestHandler<List<ApiEvaluationTemplateOverview>> {
     override val route: String = "template/list"
 
     @OpenApi(
@@ -34,9 +35,5 @@ class ListEvaluationTemplatesHandler(store: TransientEntityStore) : AbstractEval
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context) = this.store.transactional(true) {
-        DbEvaluationTemplate.query(DbEvaluationTemplate::instance eq false).asSequence().map {
-            ApiEvaluationTemplateOverview(it.id, it.name, it.description, it.tasks.size(), it.teams.size())
-        }.toList()
-    }
+    override fun doGet(ctx: Context) = TemplateManager.getTemplateOverview()
 }

@@ -15,7 +15,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Ralph Gasser
  * @version 1.0
  */
-class ShowCurrentUserHandler(private val store: TransientEntityStore) : AbstractUserHandler(), GetRestHandler<ApiUser>, AccessManagedRestHandler {
+class ShowCurrentUserHandler() : AbstractUserHandler(), GetRestHandler<ApiUser>, AccessManagedRestHandler {
     override val route = "user"
 
     /** [ShowCurrentUserHandler] can be used by [ApiRole.ADMIN], [[ApiRole.VIEWER], [ApiRole.PARTICIPANT]*/
@@ -32,9 +32,9 @@ class ShowCurrentUserHandler(private val store: TransientEntityStore) : Abstract
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): ApiUser = this.store.transactional(readonly = true){
-        val user = userFromSession(ctx).toApi()
+    override fun doGet(ctx: Context): ApiUser {
+        val user = userFromSession(ctx)
         user.sessionId = ctx.sessionToken()
-        user
+        return user
     }
 }

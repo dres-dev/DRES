@@ -2,22 +2,19 @@ package dev.dres.api.rest.handler.collection
 
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.collection.ApiPopulatedMediaCollection
-import dev.dres.api.rest.types.collection.ApiMediaCollection
 import dev.dres.api.rest.types.status.ErrorStatus
-import dev.dres.data.model.media.DbMediaItem
+import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.mgmt.MediaCollectionManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import jetbrains.exodus.database.TransientEntityStore
-import kotlinx.dnq.query.asSequence
-import kotlinx.dnq.query.eq
-import kotlinx.dnq.query.query
+
 
 /**
  *
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ShowCollectionHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), GetRestHandler<ApiPopulatedMediaCollection> {
+class ShowCollectionHandler() : AbstractCollectionHandler(), GetRestHandler<ApiPopulatedMediaCollection> {
 
     override val route: String = "collection/{collectionId}"
 
@@ -34,9 +31,8 @@ class ShowCollectionHandler(store: TransientEntityStore) : AbstractCollectionHan
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): ApiPopulatedMediaCollection = this.store.transactional(true) {
-        val collection = collectionFromContext(ctx) //also checks if collection exists
-        val items = DbMediaItem.query(DbMediaItem::collection eq collection).asSequence().map { it.toApi() }.toList()
-        ApiPopulatedMediaCollection(ApiMediaCollection.fromMediaCollection(collection), items)
+    override fun doGet(ctx: Context): ApiPopulatedMediaCollection {
+        val id = collectionId(ctx)
+        return MediaCollectionManager.getPopulatedCollection(id) ?: throw ErrorStatusException(404, "Collection '$id' not found.'", ctx)
     }
 }

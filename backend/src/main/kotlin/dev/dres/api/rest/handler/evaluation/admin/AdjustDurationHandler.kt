@@ -22,7 +22,8 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class AdjustDurationHandler(store: TransientEntityStore): AbstractEvaluationAdminHandler(store), PatchRestHandler<SuccessStatus> {
+class AdjustDurationHandler(store: TransientEntityStore) : AbstractEvaluationAdminHandler(store),
+    PatchRestHandler<SuccessStatus> {
     override val route: String = "evaluation/admin/{evaluationId}/adjust/{duration}"
 
     @OpenApi(
@@ -31,8 +32,20 @@ class AdjustDurationHandler(store: TransientEntityStore): AbstractEvaluationAdmi
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.PATCH],
         pathParams = [
-            OpenApiParam("evaluationId", String::class, "The evaluation ID.", required = true, allowEmptyValue = false),
-            OpenApiParam("duration", Int::class, "Duration to add. Can be negative.", required = true, allowEmptyValue = false)
+            OpenApiParam(
+                "evaluationId",
+                String::class,
+                "The evaluation ID.",
+                required = true,
+                allowEmptyValue = false
+            ),
+            OpenApiParam(
+                "duration",
+                Int::class,
+                "Duration to add. Can be negative.",
+                required = true,
+                allowEmptyValue = false
+            )
         ],
         tags = ["Evaluation Administrator"],
         responses = [
@@ -44,22 +57,44 @@ class AdjustDurationHandler(store: TransientEntityStore): AbstractEvaluationAdmi
     )
     override fun doPatch(ctx: Context): SuccessStatus {
         val evaluationId = ctx.evaluationId()
-        val duration = ctx.pathParamMap()["duration"]?.toIntOrNull() ?: throw ErrorStatusException(404, "Parameter 'duration' is missing!'", ctx)
-        val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(404, "Evaluation $evaluationId not found", ctx)
+        val duration = ctx.pathParamMap()["duration"]?.toIntOrNull() ?: throw ErrorStatusException(
+            404,
+            "Parameter 'duration' is missing!'",
+            ctx
+        )
+        val evaluationManager = getManager(evaluationId) ?: throw ErrorStatusException(
+            404,
+            "Evaluation $evaluationId not found",
+            ctx
+        )
         val rac = ctx.runActionContext()
 
         return this.store.transactional {
             try {
-                evaluationManager.adjustDuration(rac, duration)
-                AuditLogger.taskModified(evaluationManager.id, evaluationManager.currentTaskTemplate(rac).id, "Task duration adjusted by ${duration}s.", AuditLogSource.REST, ctx.sessionToken())
-                SuccessStatus("Duration for run $evaluationId was successfully adjusted.")
+                try {
+                    evaluationManager.adjustDuration(rac, duration)
+                    AuditLogger.taskModified(
+                        evaluationManager.id,
+                        evaluationManager.currentTaskTemplate(rac).id,
+                        "Task duration adjusted by ${duration}s.",
+                        AuditLogSource.REST,
+                        ctx.sessionToken()
+                    )
+                    SuccessStatus("Duration for run $evaluationId was successfully adjusted.")
+                } catch (e: IllegalArgumentException) {
+                    evaluationManager.abortTask(rac)
+                    SuccessStatus("Successfully stopped task since the duration was below zero after adjusting.")
+                } catch (e: IllegalAccessError) {
+                    throw ErrorStatusException(403, e.message!!, ctx)
+                }
             } catch (e: IllegalStateException) {
-                throw ErrorStatusException(400, "Duration for run $evaluationId could not be adjusted because it is in the wrong state (state = ${evaluationManager.status}).", ctx)
-            } catch (e: IllegalArgumentException) {
-                throw ErrorStatusException(400, "Duration for run $evaluationId could not be adjusted because new duration would drop bellow zero (state = ${evaluationManager.status}).", ctx)
-            } catch (e: IllegalAccessError) {
-                throw ErrorStatusException(403, e.message!!, ctx)
+                throw ErrorStatusException(
+                    400,
+                    "Duration for run $evaluationId could not be adjusted because it is in the wrong state (state = ${evaluationManager.status}).",
+                    ctx
+                )
             }
+
         }
     }
 }

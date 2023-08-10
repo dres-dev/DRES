@@ -3,8 +3,10 @@ package dev.dres.api.rest.handler.collection
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.RestHandler
+import dev.dres.api.rest.types.collection.ApiMediaCollection
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.media.DbMediaCollection
+import dev.dres.mgmt.MediaCollectionManager
 import io.javalin.http.Context
 import io.javalin.security.RouteRole
 import jetbrains.exodus.database.TransientEntityStore
@@ -17,7 +19,7 @@ import kotlinx.dnq.query.query
  * @author Ralph Gasser
  * @version 1.0
  */
-abstract class AbstractCollectionHandler(protected val store: TransientEntityStore) : RestHandler, AccessManagedRestHandler {
+abstract class AbstractCollectionHandler() : RestHandler, AccessManagedRestHandler {
 
     /** All [AbstractCollectionHandler]s require [ApiRole.ADMIN]. */
     override val permittedRoles: Set<RouteRole> = setOf(ApiRole.ADMIN)
@@ -25,9 +27,5 @@ abstract class AbstractCollectionHandler(protected val store: TransientEntitySto
     /** All [AbstractCollectionHandler]s are part of the v1 API. */
     override val apiVersion = "v2"
 
-    /** Convenience method to extract [DbMediaCollection] from [Context]. */
-    protected fun collectionFromContext(ctx: Context): DbMediaCollection {
-        val id = ctx.pathParamMap()["collectionId"] ?: throw ErrorStatusException(404, "Parameter 'collectionId' is missing!'", ctx)
-        return DbMediaCollection.query(DbMediaCollection::id eq id).firstOrNull() ?:  throw ErrorStatusException(404, "Collection with ID $id not found.'", ctx)
-    }
+    protected fun collectionId(ctx: Context) = ctx.pathParamMap()["collectionId"] ?: throw ErrorStatusException(404, "Parameter 'collectionId' is missing!'", ctx)
 }

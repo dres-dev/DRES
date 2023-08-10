@@ -6,6 +6,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.media.DbMediaItem
+import dev.dres.mgmt.MediaCollectionManager
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -19,7 +20,7 @@ import kotlinx.dnq.query.query
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class UpdateMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), PatchRestHandler<SuccessStatus> {
+class UpdateMediaItemHandler : AbstractCollectionHandler(), PatchRestHandler<SuccessStatus> {
 
     override val route: String = "mediaitem"
 
@@ -45,17 +46,11 @@ class UpdateMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHa
             throw ErrorStatusException(400, e.message ?: "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        return this.store.transactional {
-            val item = DbMediaItem.query(DbMediaItem::id eq mediaItem.mediaItemId).firstOrNull()
-                ?: throw ErrorStatusException(404, "Media item with ID ${mediaItem.mediaItemId} not found.", ctx)
-
-            item.type = mediaItem.type.toDb()
-            item.name = mediaItem.name
-            item.location = mediaItem.location
-            item.fps = mediaItem.fps
-            item.durationMs = mediaItem.durationMs
-
-            SuccessStatus("Media item ${item.id} updated successfully.")
+        try{
+            MediaCollectionManager.updateMediaItem(mediaItem)
+            return SuccessStatus("Media item ${mediaItem.mediaItemId} updated successfully.")
+        } catch (e: Exception) {
+            throw ErrorStatusException(404, e.message ?: "Could not update item", ctx)
         }
     }
 }

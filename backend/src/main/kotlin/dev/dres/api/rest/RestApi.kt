@@ -90,16 +90,16 @@ object RestApi {
         val apiRestHandlers = listOf(
 
             // User
-            LoginHandler(store),
-            LogoutHandler(store),
-            ListUsersHandler(store),
-            ListActiveUsersHandler(store),
-            ShowCurrentUserHandler(store),
+            LoginHandler(),
+            LogoutHandler(),
+            ListUsersHandler(),
+            ListActiveUsersHandler(),
+            ShowCurrentUserHandler(),
             ShowCurrentSessionHandler(),
-            CreateUsersHandler(store),
-            DeleteUsersHandler(store),
-            UpdateUsersHandler(store),
-            UserDetailsHandler(store),
+            CreateUsersHandler(),
+            DeleteUsersHandler(),
+            UpdateUsersHandler(),
+            UserDetailsHandler(),
 
             // Media
             PreviewImageHandler(store, cache),
@@ -108,34 +108,34 @@ object RestApi {
             GetMediaHandler(store),
 
             // Collection
-            ListCollectionHandler(store),
-            ShowCollectionHandler(store),
-            AddCollectionHandler(store),
-            UpdateCollectionHandler(store),
-            DeleteCollectionHandler(store),
-            AddMediaItemHandler(store),
-            UpdateMediaItemHandler(store),
-            DeleteMediaItemHandler(store),
-            RandomMediaItemHandler(store), // Must be before ListMediaItem
-            ShowMediaItemHandler(store),
-            ResolveMediaItemListByNameHandler(store), // Must be before ListMediaItem
-            ListMediaItemHandler(store),
+            ListCollectionHandler(),
+            ShowCollectionHandler(),
+            AddCollectionHandler(),
+            UpdateCollectionHandler(),
+            DeleteCollectionHandler(),
+            AddMediaItemHandler(),
+            UpdateMediaItemHandler(),
+            DeleteMediaItemHandler(),
+            RandomMediaItemHandler(), // Must be before ListMediaItem
+            ShowMediaItemHandler(),
+            ResolveMediaItemListByNameHandler(), // Must be before ListMediaItem
+            ListMediaItemHandler(),
             ListExternalItemHandler(),
 
             // Template
-            ListEvaluationTemplatesHandler(store),
-            CreateEvaluationTemplateHandler(store),
-            UpdateEvaluationTemplateHandler(store, config),
-            ShowEvaluationTemplateHandler(store),
-            DeleteEvaluationTemplateHandler(store),
-            ListTeamHandler(store),
-            ListTasksHandler(store),
+            ListEvaluationTemplatesHandler(),
+            CreateEvaluationTemplateHandler(),
+            UpdateEvaluationTemplateHandler(),
+            ShowEvaluationTemplateHandler(),
+            DeleteEvaluationTemplateHandler(),
+            ListTeamHandler(),
+            ListTasksHandler(),
             ListTaskTypePresetsHandler(),
-            GetTeamLogoHandler(store),
+            GetTeamLogoHandler(),
 
             // Submission
             LegacySubmissionHandler(store, cache),
-            SubmissionHandler(),
+            SubmissionHandler(store),
 
             // Log
             QueryLogHandler(),
@@ -227,7 +227,7 @@ object RestApi {
                                 t.contact = contact
                                 val license = OpenApiLicense()
                                 license.name = "MIT"
-                                license.identifier = "MIT"
+                                // license.identifier = "MIT"
                                 t.license = license
                             }
                             u.withSecurity(SecurityComponentConfiguration()

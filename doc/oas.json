@@ -4013,11 +4013,21 @@
         },
         "responses" : {
           "200" : {
-            "description" : "OK",
+            "description" : "The submission was accepted by the server and there was a verdict",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/SuccessStatus"
+                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
+                }
+              }
+            }
+          },
+          "202" : {
+            "description" : "The submission was accepted by the server and there has not yet been a verdict available",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SuccessfulSubmissionsStatus"
                 }
               }
             }
@@ -4053,7 +4063,7 @@
             }
           },
           "412" : {
-            "description" : "Precondition Failed",
+            "description" : "The submission was rejected by the server",
             "content" : {
               "application/json" : {
                 "schema" : {

@@ -11,7 +11,6 @@ import dev.dres.run.audit.AuditLogger
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import jetbrains.exodus.database.TransientEntityStore
 
 /**
  * A [GetRestHandler] that handles user-requests to logout.
@@ -19,11 +18,12 @@ import jetbrains.exodus.database.TransientEntityStore
  * @version 2.0.0
  * @author Luca Rossetto
  */
-class LogoutHandler(private val store: TransientEntityStore) : RestHandler, GetRestHandler<SuccessStatus> {
+class LogoutHandler() : RestHandler, GetRestHandler<SuccessStatus> {
     override val route = "logout"
     override val apiVersion = "v2"
 
-    @OpenApi(summary = "Clears all user roles of the current session.",
+    @OpenApi(
+        summary = "Clears all user roles of the current session.",
         path = "/api/v2/logout",
         operationId = OpenApiOperation.AUTO_GENERATE,
         tags = ["User"],
@@ -37,13 +37,21 @@ class LogoutHandler(private val store: TransientEntityStore) : RestHandler, GetR
         methods = [HttpMethod.GET]
     )
     override fun doGet(ctx: Context): SuccessStatus {
-        val username = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(400, "You are currently not logged in.", ctx)
-        val userId = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(400, "You are currently not logged in.", ctx)
-        return store.transactional {
-            AuditLogger.logout(userId, AuditLogSource.REST, ctx.sessionToken()!!)
-            AccessManager.deregisterUserSession(ctx.sessionToken()!!)
+        val username = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(
+            400,
+            "You are currently not logged in.",
+            ctx
+        )
+        val userId = AccessManager.userIdForSession(ctx.sessionToken()) ?: throw ErrorStatusException(
+            400,
+            "You are currently not logged in.",
+            ctx
+        )
 
-            SuccessStatus("User '${username}' logged out successfully.")
-        }
+        AuditLogger.logout(userId, AuditLogSource.REST, ctx.sessionToken()!!)
+        AccessManager.deregisterUserSession(ctx.sessionToken()!!)
+
+        return SuccessStatus("User '${username}' logged out successfully.")
+
     }
 }

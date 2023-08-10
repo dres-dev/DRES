@@ -6,8 +6,7 @@ import dev.dres.utilities.extensions.evaluationId
 import dev.dres.api.rest.types.evaluation.ApiViewerInfo
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.admin.DbUser
-import dev.dres.mgmt.admin.DbUserManager
+import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -41,7 +40,7 @@ class ListViewersHandler(store: TransientEntityStore): AbstractEvaluationAdminHa
             evaluation.viewers().map {
                 ApiViewerInfo(
                     it.key.sessionToken,
-                    DbUserManager.get(AccessManager.userIdForSession(it.key.sessionToken))?.username ?: "UNKNOWN",
+                    UserManager.get(AccessManager.userIdForSession(it.key.sessionToken))?.username ?: "UNKNOWN",
                     it.key.host,
                     it.value)
             }

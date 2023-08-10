@@ -7,7 +7,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.DbUser
-import dev.dres.mgmt.admin.DbUserManager
+import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -18,7 +18,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ListActiveUsersHandler(private val store: TransientEntityStore) : GetRestHandler<List<ApiUser>>, AccessManagedRestHandler {
+class ListActiveUsersHandler() : GetRestHandler<List<ApiUser>>, AccessManagedRestHandler {
     override val permittedRoles = setOf(ApiRole.ADMIN)
 
     /** All [UserDetailsHandler] requires [ApiRole.ADMIN]. */
@@ -37,11 +37,12 @@ class ListActiveUsersHandler(private val store: TransientEntityStore) : GetRestH
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): List<ApiUser> = this.store.transactional {
-        AccessManager.currentSessions.map { session ->
+    override fun doGet(ctx: Context): List<ApiUser> {
+        return AccessManager.currentSessions.map { session ->
             AccessManager.userIdForSession(session)?.let {
-                DbUserManager.get(id = it)
-            }?.toApi() ?: return@map ApiUser("??", "??", ApiRole.VIEWER, session)
+                UserManager.get(id = it)
+            } ?: return@map ApiUser("??", "??", ApiRole.VIEWER, session)
         }
     }
+
 }

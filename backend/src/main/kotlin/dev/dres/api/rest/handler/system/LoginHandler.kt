@@ -7,7 +7,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.Password
-import dev.dres.mgmt.admin.DbUserManager
+import dev.dres.mgmt.admin.UserManager
 import dev.dres.run.audit.AuditLogSource
 import dev.dres.run.audit.AuditLogger
 import dev.dres.utilities.extensions.getOrCreateSessionToken
@@ -22,14 +22,15 @@ import jetbrains.exodus.database.TransientEntityStore
  * @version 1.0.0
  * @author Luca Rossetto
  */
-class LoginHandler(private val store: TransientEntityStore) : RestHandler, PostRestHandler<ApiUser> {
+class LoginHandler() : RestHandler, PostRestHandler<ApiUser> {
 
     override val route = "login"
     override val apiVersion = "v2"
 
     data class LoginRequest(var username: String, var password: String)
 
-    @OpenApi(summary = "Sets roles for session based on user account and returns a session cookie.",
+    @OpenApi(
+        summary = "Sets roles for session based on user account and returns a session cookie.",
         path = "/api/v2/login",
         operationId = OpenApiOperation.AUTO_GENERATE,
         methods = [HttpMethod.POST],
@@ -45,32 +46,31 @@ class LoginHandler(private val store: TransientEntityStore) : RestHandler, PostR
 
         val loginRequest = try {
             ctx.bodyAsClass(LoginRequest::class.java)
-        }catch (e: BadRequestResponse){
+        } catch (e: BadRequestResponse) {
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error.", ctx)
         }
 
-        return this.store.transactional {
 
-            /* Validate login request. */
-            val username = loginRequest.username
-            val password = Password.Plain(loginRequest.password)
-            val user = DbUserManager.getMatchingApiUser(username, password) ?: throw ErrorStatusException(
-                401,
-                "Invalid credentials. Please try again!",
-                ctx
-            )
+        /* Validate login request. */
+        val username = loginRequest.username
+        val password = Password.Plain(loginRequest.password)
+        val user = UserManager.getMatchingApiUser(username, password) ?: throw ErrorStatusException(
+            401,
+            "Invalid credentials. Please try again!",
+            ctx
+        )
 
-            val sessionToken = ctx.getOrCreateSessionToken()
+        val sessionToken = ctx.getOrCreateSessionToken()
 
-            AccessManager.registerUserForSession(sessionToken, user)
-            AuditLogger.login(loginRequest.username, AuditLogSource.REST, sessionToken)
+        AccessManager.registerUserForSession(sessionToken, user)
+        AuditLogger.login(loginRequest.username, AuditLogSource.REST, sessionToken)
 
-            //explicitly set cookie on login
-            ctx.cookie(AccessManager.SESSION_COOKIE_NAME, sessionToken, AccessManager.SESSION_COOKIE_LIFETIME)
+        //explicitly set cookie on login
+        ctx.cookie(AccessManager.SESSION_COOKIE_NAME, sessionToken, AccessManager.SESSION_COOKIE_LIFETIME)
 
-            user.sessionId = sessionToken
-            return@transactional user
-        }
+        user.sessionId = sessionToken
+        return user
+
     }
 
 }

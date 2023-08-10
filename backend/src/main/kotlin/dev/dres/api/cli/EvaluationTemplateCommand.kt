@@ -15,7 +15,7 @@ import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.mgmt.cache.CacheManager
-import dev.dres.utilities.TemplateUtil
+import dev.dres.mgmt.TemplateManager
 import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.*
 import org.joda.time.DateTime
@@ -121,7 +121,7 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
                     return@transactional
                 }
 
-                TemplateUtil.copyTemplate(evaluationTemplate)
+                TemplateManager.copyTemplate(evaluationTemplate)
                 println("template copied")
             }
             //println("Successfully copied template.")
@@ -338,7 +338,7 @@ class EvaluationTemplateCommand(private val store: TransientEntityStore, private
                     )
 
 
-                TemplateUtil.updateDbTemplate(target, import)
+                TemplateManager.updateDbTemplate(target, import)
                 println("template imported")
 
             } else {

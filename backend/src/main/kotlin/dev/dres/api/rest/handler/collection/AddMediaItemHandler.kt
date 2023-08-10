@@ -7,6 +7,7 @@ import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.media.DbMediaCollection
 import dev.dres.data.model.media.DbMediaItem
+import dev.dres.mgmt.MediaCollectionManager
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -18,7 +19,7 @@ import kotlinx.dnq.query.*
  * @author Ralph Gasser
  * @version 1.0
  */
-class AddMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), PostRestHandler<SuccessStatus> {
+class AddMediaItemHandler : AbstractCollectionHandler(), PostRestHandler<SuccessStatus> {
 
     override val route: String = "mediaItem"
 
@@ -45,25 +46,12 @@ class AddMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHandl
             throw ErrorStatusException(400, e.message ?: "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        /* Try to persist media item. */
-        val collectionId = mediaItem.collectionId
-        return this.store.transactional {
-            val collection = DbMediaCollection.query(DbMediaCollection::id eq collectionId).firstOrNull()
-                ?: throw ErrorStatusException(400, "Invalid parameters, collection with ID $collectionId does not exist.", ctx)
-            if (collection.items.filter { it.name eq mediaItem.name }.isNotEmpty) {
-                throw ErrorStatusException(400, "Media item with name '${mediaItem.name}' already exists in collection ${collection.name}.", ctx)
-            }
-
-            val item = DbMediaItem.new {
-                this.type = mediaItem.type.toDb()
-                this.name = mediaItem.name
-                this.location = mediaItem.location
-                this.fps = mediaItem.fps
-                this.durationMs = mediaItem.durationMs
-            }
-            collection.items.add(item)
-
-            SuccessStatus("Media item added successfully.")
+        try {
+            MediaCollectionManager.addMediaItem(mediaItem)
+            return SuccessStatus("Media item added successfully.")
+        } catch (e: Exception) {
+            throw ErrorStatusException(400, e.message ?: "Could not create item", ctx)
         }
+
     }
 }

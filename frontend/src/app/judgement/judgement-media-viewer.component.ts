@@ -112,7 +112,7 @@ export class JudgementMediaViewerComponent implements OnInit, OnDestroy, AfterVi
 
   ngOnDestroy(): void {
     this.stop();
-    this.requestSub.unsubscribe();
+    this.requestSub?.unsubscribe();
   }
 
   togglePlaying() {

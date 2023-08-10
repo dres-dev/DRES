@@ -5,6 +5,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.mgmt.TemplateManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -17,7 +18,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class DeleteEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), DeleteRestHandler<SuccessStatus> {
+class DeleteEvaluationTemplateHandler : AbstractEvaluationTemplateHandler(), DeleteRestHandler<SuccessStatus> {
     override val route: String = "template/{templateId}"
 
     @OpenApi(
@@ -34,10 +35,13 @@ class DeleteEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEva
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
         ]
     )
-    override fun doDelete(ctx: Context): SuccessStatus = this.store.transactional {
-        val template = evaluationTemplateFromContext(ctx)
-        template.delete()
-        SuccessStatus("Evaluation template with ID ${ctx.pathParam("templateId")} was deleted successfully.")
+    override fun doDelete(ctx: Context): SuccessStatus {
+        val template = TemplateManager.deleteTemplate(templateIdFromContext(ctx))
+        if (template != null) {
+            return SuccessStatus("Evaluation template with ID ${template.id} was deleted successfully.")
+        } else {
+            throw ErrorStatusException(404, "Template not found", ctx)
+        }
     }
 }
 

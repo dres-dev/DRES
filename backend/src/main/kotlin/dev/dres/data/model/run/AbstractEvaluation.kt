@@ -36,7 +36,7 @@ abstract class AbstractEvaluation(evaluation: DbEvaluation): EvaluationRun {
      *
      * Since this cannot change during the lifetime of an evaluation, it is stored in memory.
      */
-    override val description: DbEvaluationTemplate = evaluation.template
+    override val template: DbEvaluationTemplate = evaluation.template
 
     /**
      * Accessor for the [DbEvaluation] underpinning this [AbstractEvaluation]

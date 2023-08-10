@@ -4,6 +4,7 @@ import dev.dres.api.rest.types.WebSocketConnection
 import dev.dres.api.rest.types.evaluation.submission.ApiClientSubmission
 import dev.dres.api.rest.types.evaluation.submission.ApiSubmission
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
+import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.run.interfaces.EvaluationRun
@@ -39,8 +40,8 @@ interface RunManager : Runnable {
     /** The [DbEvaluation] instance that backs this [RunManager]. */
     val evaluation: EvaluationRun
 
-    /** The [DbEvaluationTemplate] that is executed / run by this [RunManager]. */
-    val template: DbEvaluationTemplate
+    /** The [EvaluationTemplate] that is executed / run by this [RunManager]. */
+    val template: ApiEvaluationTemplate
 
     /** List of [Scoreboard]s for this [RunManager]. */
     val scoreboards: List<Scoreboard>

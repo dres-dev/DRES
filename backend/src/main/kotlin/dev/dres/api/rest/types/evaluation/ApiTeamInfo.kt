@@ -1,5 +1,6 @@
 package dev.dres.api.rest.types.evaluation
 
+import dev.dres.api.rest.types.template.team.ApiTeam
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.run.InteractiveSynchronousEvaluation
 import dev.dres.data.model.template.team.TeamId
@@ -13,5 +14,5 @@ import dev.dres.data.model.template.team.TeamId
  * @version 1.1.0
  */
 data class ApiTeamInfo(val id: TeamId, val name: String, val color: String) {
-    constructor(team: DbTeam) : this(team.id, team.name, team.color)
+    constructor(team: ApiTeam) : this(team.id!!, team.name!!, team.color!!)
 }

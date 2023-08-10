@@ -220,10 +220,11 @@ object RunExecutor : Consumer<WsConfig> {
     fun broadcastWsMessage(teamId: TeamId, message: ServerMessage) = this.clientLock.read {
         val manager = managerForId(message.evaluationId)
         if (manager != null) {
-            val teamMembers = manager.template.teams.filter { it.id eq teamId }.flatMapDistinct { it.users }.asSequence().map { it.userId }.toList()
+            val teamMembers = manager.template.teams.filter { it.id == teamId }.flatMap { it.users }
             this.runManagerLock.read {
                 this.connectedClients.values.filter {
-                    this.observingClients[message.evaluationId]?.contains(it) ?: false && AccessManager.userIdForSession(it.sessionId) in teamMembers
+                    val userId = AccessManager.userIdForSession(it.sessionId)
+                    this.observingClients[message.evaluationId]?.contains(it) ?: false && teamMembers.any {u -> u.id == userId}
                 }.forEach {
                     it.send(message)
                 }

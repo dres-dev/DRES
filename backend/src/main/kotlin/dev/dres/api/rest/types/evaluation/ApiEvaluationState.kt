@@ -24,7 +24,7 @@ data class ApiEvaluationState(
         run.status.toApi(),
         run.currentTask(context)?.status?.toApi() ?: ApiTaskStatus.NO_TASK,
         try {
-            ApiTaskTemplateInfo(run.currentTaskTemplate(context))
+            ApiTaskTemplateInfo(run.currentTaskTemplate(context).toApi())
         } catch (e: IllegalArgumentException) {
             ApiTaskTemplateInfo.EMPTY_INFO
         },

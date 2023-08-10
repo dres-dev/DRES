@@ -14,7 +14,6 @@ import dev.dres.data.model.run.*
 import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.*
-import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.task.options.DbSubmissionOption
 import dev.dres.data.model.template.task.options.DbTaskOption
@@ -68,9 +67,11 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
     override val name: String
         get() = this.evaluation.name
 
-    /** The [DbEvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
-    override val template: DbEvaluationTemplate
-        get() = this.evaluation.description
+    /** The [ApiEvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
+    override val template = this.evaluation.template.toApi()
+
+    private val dbTemplate
+        get() = this.evaluation.template //TODO is there a nicer way to handle this?
 
     /** The status of this [RunManager]. */
     @Volatile
@@ -204,7 +205,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         checkStatus(RunManagerStatus.ACTIVE)
         assureNoRunningTask()
         this.evaluation.tasks.any { it.status == DbTaskStatus.RUNNING }
-        if (index >= 0 && index < this.template.tasks.size()) {
+        if (index >= 0 && index < this.template.tasks.size) {
             /* Update active task. */
             this.evaluation.goTo(index)
 
@@ -405,7 +406,10 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      * @param connection The [WebSocketConnection] through which the message was received.
      * @param message The [ClientMessage] received.
      */
-    override fun wsMessageReceived(connection: WebSocketConnection, message: ClientMessage): Boolean =
+    override fun wsMessageReceived(
+        connection: WebSocketConnection,
+        message: ClientMessage
+    ): Boolean =
         this.stateLock.read {
             when (message.type) {
                 ClientMessageType.ACK -> {
@@ -625,13 +629,13 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
      */
     private fun registerOptionalUpdatables() {
         /* Determine if any task should be prolonged upon submission. */
-        val prolongOnSubmit = this.template.taskGroups.mapDistinct { it.type }.flatMapDistinct { it.options }.filter { it.description eq DbTaskOption.PROLONG_ON_SUBMISSION.description }.any()
+        val prolongOnSubmit = this.dbTemplate.taskGroups.mapDistinct { it.type }.flatMapDistinct { it.options }.filter { it.description eq DbTaskOption.PROLONG_ON_SUBMISSION.description }.any()
         if (prolongOnSubmit) {
             this.updatables.add(ProlongOnSubmitUpdatable(this))
         }
 
         /* Determine if any task should be ended once submission threshold per team is reached. */
-        val endOnSubmit = this.template.taskGroups.mapDistinct { it.type }.flatMapDistinct { it.submission }.filter { it.description eq DbSubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.any()
+        val endOnSubmit = this.dbTemplate.taskGroups.mapDistinct { it.type }.flatMapDistinct { it.submission }.filter { it.description eq DbSubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.any()
         if (endOnSubmit) {
             this.updatables.add(EndOnSubmitUpdatable(this))
         }
@@ -675,7 +679,7 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
         val userId = this.userId
         val user = DbUser.filter { u -> u.id eq userId }.singleOrNull()
             ?: throw IllegalArgumentException("Could not find user with ID ${userId}.")
-       return this@InteractiveSynchronousRunManager.template.teams.filter { t -> t.users.contains(user) }.singleOrNull()?.teamId
+       return this@InteractiveSynchronousRunManager.dbTemplate.teams.filter { t -> t.users.contains(user) }.singleOrNull()?.teamId
             ?: throw IllegalArgumentException("Could not find matching team for user, which is required for interaction with this run manager.")
     }
 

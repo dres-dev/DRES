@@ -8,8 +8,7 @@ import dev.dres.data.model.run.interfaces.EvaluationId
 import dev.dres.data.model.run.interfaces.TaskRun
 import dev.dres.data.model.submissions.DbSubmission
 import dev.dres.data.model.submissions.SubmissionId
-import dev.dres.run.score.ScoreTimePoint
-import dev.dres.run.score.scoreboard.Scoreboard
+
 
 interface InteractiveRunManager : RunManager {
 

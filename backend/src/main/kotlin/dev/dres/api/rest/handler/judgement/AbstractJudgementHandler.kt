@@ -38,7 +38,7 @@ abstract class AbstractJudgementHandler(protected val store: TransientEntityStor
         if (AccessManager.rolesOfSession(ctx.sessionToken()).contains(ApiRole.ADMIN)) {
             return //Admins require no further check
         }
-        if (runManager.template.judges.filter { it.userId eq userId }.isEmpty) {
+        if (runManager.template.judges.none { it == userId }) {
             throw ErrorStatusException(403, "Access to specified run is denied.", ctx)
         }
     }

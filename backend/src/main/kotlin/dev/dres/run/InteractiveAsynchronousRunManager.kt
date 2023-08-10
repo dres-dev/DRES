@@ -8,6 +8,7 @@ import dev.dres.api.rest.types.evaluation.websocket.ClientMessage
 import dev.dres.api.rest.types.evaluation.websocket.ClientMessageType
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessage
 import dev.dres.api.rest.types.evaluation.websocket.ServerMessageType
+import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.template.DbEvaluationTemplate
 import dev.dres.data.model.template.task.DbTaskTemplate
@@ -70,7 +71,7 @@ class InteractiveAsynchronousRunManager(
             this.evaluation.limitSubmissionPreviews
         )
 
-    private val teamIds = this.evaluation.description.teams.asSequence().map { it.teamId }.toList()
+    private val teamIds = this.evaluation.template.teams.asSequence().map { it.teamId }.toList()
 
     /** Tracks the current [DbTaskTemplate] per [TeamId]. */
     private val statusMap: MutableMap<TeamId, RunManagerStatus> = HashMap()
@@ -92,9 +93,11 @@ class InteractiveAsynchronousRunManager(
     override val name: String
         get() = this.evaluation.name
 
-    /** The [DbEvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
-    override val template: DbEvaluationTemplate
-        get() = this.evaluation.description
+    /** The [ApiEvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
+    override val template = this.evaluation.template.toApi()
+
+    private val dbTemplate
+        get() = this.evaluation.template //TODO is there a nicer way to handle this?
 
     /** The global [RunManagerStatus] of this [InteractiveAsynchronousRunManager]. */
     @Volatile
@@ -226,7 +229,7 @@ class InteractiveAsynchronousRunManager(
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     override fun previous(context: RunActionContext): Boolean = this.stateLock.write {
-        val newIndex = this.template.tasks.sortedBy(DbTaskTemplate::idx).indexOf(this.currentTaskTemplate(context)) - 1
+        val newIndex = this.dbTemplate.tasks.sortedBy(DbTaskTemplate::idx).indexOf(this.currentTaskTemplate(context)) - 1
         return try {
             this.goTo(context, newIndex)
             true
@@ -247,7 +250,7 @@ class InteractiveAsynchronousRunManager(
      * @throws IllegalStateException If [RunManager] was not in status [RunManagerStatus.ACTIVE]
      */
     override fun next(context: RunActionContext): Boolean = this.stateLock.write {
-        val newIndex = this.template.tasks.sortedBy(DbTaskTemplate::idx).indexOf(this.currentTaskTemplate(context)) + 1
+        val newIndex = this.dbTemplate.tasks.sortedBy(DbTaskTemplate::idx).indexOf(this.currentTaskTemplate(context)) + 1
         return try {
             this.goTo(context, newIndex)
             true
@@ -272,7 +275,7 @@ class InteractiveAsynchronousRunManager(
         checkTeamStatus(teamId, RunManagerStatus.ACTIVE)//, RunManagerStatus.TASK_ENDED)
         require(!teamHasRunningTask(teamId)) { "Cannot change task while task is active" }
 
-        val idx = (index + this.template.tasks.size()) % this.template.tasks.size()
+        val idx = (index + this.template.tasks.size) % this.template.tasks.size
 
 
         /* Update active task. */
@@ -738,7 +741,7 @@ class InteractiveAsynchronousRunManager(
      */
     private fun registerOptionalUpdatables() {
         /* Determine if task should be ended once submission threshold per team is reached. */
-        val endOnSubmit = this.template.taskGroups.mapDistinct { it.type }.flatMapDistinct { it.submission }
+        val endOnSubmit = this.dbTemplate.taskGroups.mapDistinct { it.type }.flatMapDistinct { it.submission }
             .filter { it.description eq DbSubmissionOption.LIMIT_CORRECT_PER_TEAM.description }.any()
         if (endOnSubmit) {
             this.updatables.add(EndOnSubmitUpdatable(this))
@@ -788,7 +791,7 @@ class InteractiveAsynchronousRunManager(
      */
     private fun RunActionContext.teamId(): TeamId {
         val userId = this.userId
-        return this@InteractiveAsynchronousRunManager.template.teams.asSequence().firstOrNull { team ->
+        return this@InteractiveAsynchronousRunManager.dbTemplate.teams.asSequence().firstOrNull { team ->
             team.users.filter { it.id eq userId }.isNotEmpty
         }?.teamId
             ?: throw IllegalArgumentException("Could not find matching team for user, which is required for interaction with this run manager.")

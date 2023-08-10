@@ -46,7 +46,7 @@ class StartEvaluationHandler(store: TransientEntityStore) : AbstractEvaluationAd
             val rac = ctx.runActionContext()
             try {
                 evaluationManager.start(rac)
-                AuditLogger.evaluationStart(evaluationManager.id, evaluationManager.template.toApi(), AuditLogSource.REST, AccessManager.userIdForSession(ctx.sessionToken())!!, ctx.sessionToken())
+                AuditLogger.evaluationStart(evaluationManager.id, evaluationManager.template, AuditLogSource.REST, AccessManager.userIdForSession(ctx.sessionToken())!!, ctx.sessionToken())
                 SuccessStatus("Evaluation $evaluationId was successfully started.")
             } catch (e: IllegalStateException) {
                 throw ErrorStatusException(400, "Evaluation $evaluationId could not be started because it is in the wrong state (state = ${evaluationManager.status}).", ctx)

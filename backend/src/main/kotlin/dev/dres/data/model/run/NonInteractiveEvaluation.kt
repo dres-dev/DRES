@@ -35,8 +35,8 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
 
     init {
         require(this.evaluation.type == DbEvaluationType.NON_INTERACTIVE) { "Incompatible competition type ${this.evaluation.type}. This is a programmer's error!" }
-        require(this.description.tasks.size() > 0) { "Cannot create a run from a competition that doesn't have any tasks." }
-        require(this.description.teams.size() > 0) { "Cannot create a run from a competition that doesn't have any teams." }
+        require(this.template.tasks.size() > 0) { "Cannot create a run from a competition that doesn't have any tasks." }
+        require(this.template.teams.size() > 0) { "Cannot create a run from a competition that doesn't have any teams." }
     }
 
     /** List of [TaskRun]s registered for this [NonInteractiveEvaluation]. */
@@ -48,8 +48,8 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
     override val scoreboards: List<Scoreboard>
 
     init {
-        val teams = this.description.teams.asSequence().map { it.teamId }.toList()
-        this.scoreboards = this.description.taskGroups.asSequence().map { group ->
+        val teams = this.template.teams.asSequence().map { it.teamId }.toList()
+        this.scoreboards = this.template.taskGroups.asSequence().map { group ->
             MaxNormalizingScoreBoard(group.name, this, teams, {task -> task.taskGroup.name == group.name}, group.name)
         }.toList()
     }
@@ -105,7 +105,7 @@ class NonInteractiveEvaluation(evaluation: DbEvaluation) : AbstractEvaluation(ev
         }
 
         /** List of [TeamId]s that work on this [NITaskRun]. */
-        override val teams: List<TeamId> = this@NonInteractiveEvaluation.description.teams.asSequence().map { it.teamId }.toList()
+        override val teams: List<TeamId> = this@NonInteractiveEvaluation.template.teams.asSequence().map { it.teamId }.toList()
 
         /** */
         override val duration: Long = 0

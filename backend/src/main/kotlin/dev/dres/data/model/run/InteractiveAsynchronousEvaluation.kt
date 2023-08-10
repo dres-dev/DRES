@@ -62,14 +62,14 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
         this.evaluation.tasks.asSequence().forEach { IATaskRun(it) }
 
         /* Prepare the evaluation scoreboards. */
-        val teams = this.description.teams.asSequence().map { it.teamId }.toList()
-        this.scoreboards = this.description.taskGroups.asSequence().map { group ->
+        val teams = this.template.teams.asSequence().map { it.teamId }.toList()
+        this.scoreboards = this.template.taskGroups.asSequence().map { group ->
             MaxNormalizingScoreBoard(group.name, this, teams, {task -> task.taskGroup.name == group.name}, group.name)
         }.toList()
     }
 
     fun goTo(teamId: TeamId, index: Int) {
-        this.navigationMap[teamId] = this.description.tasks.drop(this.permutation[teamId]!![index]).first().templateId
+        this.navigationMap[teamId] = this.template.tasks.drop(this.permutation[teamId]!![index]).first().templateId
     }
 
     fun currentTaskDescription(teamId: TeamId): DbTaskTemplate {
@@ -78,9 +78,9 @@ class InteractiveAsynchronousEvaluation(evaluation: DbEvaluation) : AbstractEval
     }
 
     init {
-        val numberOfTasks = this.description.tasks.size()
+        val numberOfTasks = this.template.tasks.size()
         require(numberOfTasks > 0) { "Cannot create a run from a competition that doesn't have any tasks. " }
-        this.description.teams.asSequence().forEach {
+        this.template.teams.asSequence().forEach {
             this.tasksMap[it.id] = ArrayList(numberOfTasks)
             goTo(it.id, 0)
         }

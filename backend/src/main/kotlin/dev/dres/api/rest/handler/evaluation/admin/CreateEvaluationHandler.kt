@@ -67,7 +67,7 @@ class CreateEvaluationHandler(store: TransientEntityStore, private val cache: Ca
 
             /* ensure that only one synchronous run of an evaluation is happening at any given time */
             if (message.type == ApiEvaluationType.SYNCHRONOUS && RunExecutor.managers().any {
-                    it is InteractiveSynchronousRunManager && it.template == template && it.status != RunManagerStatus.TERMINATED
+                    it is InteractiveSynchronousRunManager && it.template.id == template.id && it.status != RunManagerStatus.TERMINATED
                 }
             ) {
                 throw ErrorStatusException(400, "Synchronous run of evaluation template ${template.name} already exists.", ctx)

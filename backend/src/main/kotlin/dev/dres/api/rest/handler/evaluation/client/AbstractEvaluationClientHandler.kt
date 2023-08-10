@@ -30,5 +30,5 @@ abstract class AbstractEvaluationClientHandler(protected val store: TransientEnt
      * @return [RunManager] or null
      */
     fun getRelevantManagers(ctx: Context): List<RunManager> =
-        RunExecutor.managers().filter { m -> m.template.teams.filter { t -> t.users.filter { u -> u.id eq ctx.userId() }.isNotEmpty() }.isNotEmpty }
+        RunExecutor.managers().filter { m -> m.template.teams.any { t -> t.users.any { u -> u.id == ctx.userId() } } }
 }

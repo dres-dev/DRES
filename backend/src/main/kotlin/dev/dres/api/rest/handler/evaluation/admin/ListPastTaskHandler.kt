@@ -42,7 +42,7 @@ class ListPastTaskHandler(store: TransientEntityStore): AbstractEvaluationAdminH
         val rac = ctx.runActionContext()
         return this.store.transactional (true) {
             runManager.tasks(rac).filter { it.hasEnded }.map {
-                ApiTaskTemplateInfo(it.template)
+                ApiTaskTemplateInfo(it.template.toApi())
             }
         }
     }

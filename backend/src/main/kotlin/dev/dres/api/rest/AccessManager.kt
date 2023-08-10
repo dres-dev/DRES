@@ -117,11 +117,11 @@ object AccessManager {
      * @param runManager The [RunManager] to register.
      */
     fun registerRunManager(runManager: RunManager) = this.locks.write {
-        runManager.template.teams.flatMapDistinct { it.users }.asSequence().forEach {
+        runManager.template.teams.flatMap { it.users }.forEach {
             if (this.usersToRunMap.containsKey(it.id)) {
                 this.usersToRunMap[it.id]?.add(runManager)
             } else {
-                this.usersToRunMap[it.id] = mutableSetOf(runManager)
+                this.usersToRunMap[it.id!!] = mutableSetOf(runManager)
             }
         }
     }

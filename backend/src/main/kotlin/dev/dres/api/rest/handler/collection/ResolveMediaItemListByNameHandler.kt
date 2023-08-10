@@ -4,10 +4,10 @@ import dev.dres.api.rest.handler.PostRestHandler
 import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.mgmt.MediaCollectionManager
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.filter
 
@@ -16,7 +16,7 @@ import kotlinx.dnq.query.filter
  * @author Ralph Gasser
  * @version 1.0
  */
-class ResolveMediaItemListByNameHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), PostRestHandler<List<ApiMediaItem>> {
+class ResolveMediaItemListByNameHandler : AbstractCollectionHandler(), PostRestHandler<List<ApiMediaItem>> {
     override val route = "collection/{collectionId}/resolve"
 
     @OpenApi(
@@ -49,10 +49,7 @@ class ResolveMediaItemListByNameHandler(store: TransientEntityStore) : AbstractC
         }
 
         /** Execute query. */
-        return this.store.transactional(true) {
-            val collection = collectionFromContext(ctx)
-            collection.items.filter { it.name isIn(queriedNames.asIterable()) }.asSequence().map { it.toApi() }.toList()
-        }
+        return MediaCollectionManager.getMediaItemsByName(collectionId(ctx), queriedNames.toList())
     }
 
 }

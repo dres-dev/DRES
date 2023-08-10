@@ -108,18 +108,18 @@ object RestApi {
             GetMediaHandler(store),
 
             // Collection
-            ListCollectionHandler(store),
-            ShowCollectionHandler(store),
-            AddCollectionHandler(store),
-            UpdateCollectionHandler(store),
-            DeleteCollectionHandler(store),
-            AddMediaItemHandler(store),
-            UpdateMediaItemHandler(store),
-            DeleteMediaItemHandler(store),
-            RandomMediaItemHandler(store), // Must be before ListMediaItem
-            ShowMediaItemHandler(store),
-            ResolveMediaItemListByNameHandler(store), // Must be before ListMediaItem
-            ListMediaItemHandler(store),
+            ListCollectionHandler(),
+            ShowCollectionHandler(),
+            AddCollectionHandler(),
+            UpdateCollectionHandler(),
+            DeleteCollectionHandler(),
+            AddMediaItemHandler(),
+            UpdateMediaItemHandler(),
+            DeleteMediaItemHandler(),
+            RandomMediaItemHandler(), // Must be before ListMediaItem
+            ShowMediaItemHandler(),
+            ResolveMediaItemListByNameHandler(), // Must be before ListMediaItem
+            ListMediaItemHandler(),
             ListExternalItemHandler(),
 
             // Template

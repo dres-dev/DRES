@@ -4,20 +4,16 @@ import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
-import dev.dres.data.model.media.DbMediaItem
+import dev.dres.mgmt.MediaCollectionManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import jetbrains.exodus.database.TransientEntityStore
-import kotlinx.dnq.query.eq
-import kotlinx.dnq.query.firstOrNull
-import kotlinx.dnq.query.query
 
 /**
  *
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ShowMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), GetRestHandler<ApiMediaItem> {
+class ShowMediaItemHandler : AbstractCollectionHandler(), GetRestHandler<ApiMediaItem> {
     override val route: String = "mediaItem/{mediaItemId}"
 
     @OpenApi(
@@ -41,10 +37,11 @@ class ShowMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHand
             throw ErrorStatusException(404, "Parameter 'mediaItemId' is missing!'", ctx)
         }
 
-        return this.store.transactional(true) {
-            val item = DbMediaItem.query(DbMediaItem::id eq mediaId).firstOrNull()
-                ?: throw ErrorStatusException(404, "Media item with ID $mediaId not found.", ctx)
-            item.toApi()
-        }
+        return MediaCollectionManager.getMediaItem(mediaId) ?: throw ErrorStatusException(
+            404,
+            "Media item with ID $mediaId not found.",
+            ctx
+        )
+
     }
 }

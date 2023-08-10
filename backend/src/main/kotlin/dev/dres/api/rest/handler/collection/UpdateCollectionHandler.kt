@@ -6,11 +6,11 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
 import dev.dres.data.model.media.DbMediaCollection
+import dev.dres.mgmt.MediaCollectionManager
 import dev.dres.utilities.extensions.cleanPathString
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
-import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.eq
 import kotlinx.dnq.query.firstOrNull
 import kotlinx.dnq.query.query
@@ -20,7 +20,8 @@ import kotlinx.dnq.query.query
  * @author Ralph Gasser
  * @version 1.0
  */
-class UpdateCollectionHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), PatchRestHandler<SuccessStatus> {
+class UpdateCollectionHandler : AbstractCollectionHandler(),
+    PatchRestHandler<SuccessStatus> {
 
     override val route: String = "collection"
 
@@ -45,15 +46,12 @@ class UpdateCollectionHandler(store: TransientEntityStore) : AbstractCollectionH
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        val status = this.store.transactional {
-            val collection = DbMediaCollection.query(DbMediaCollection::id eq restCollection.id).firstOrNull()
-                ?: throw ErrorStatusException(400, "Invalid parameters, collection with ID ${restCollection.id} does not exist.", ctx)
-            collection.name = restCollection.name.trim()
-            collection.description = restCollection.description?.trim() ?: collection.description
-            collection.path = restCollection.basePath?.cleanPathString() ?: collection.path
-            SuccessStatus("Collection ${collection.id} updated successfully.")
+        try {
+            MediaCollectionManager.updateCollection(restCollection)
+            return SuccessStatus("Collection ${restCollection.id} updated successfully.")
+        } catch (e: Exception) {
+            throw ErrorStatusException(400, e.message ?: "Could not update collection", ctx)
         }
 
-        return status
     }
 }

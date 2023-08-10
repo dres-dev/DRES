@@ -1,5 +1,6 @@
 package dev.dres.data.model.media
 
+import dev.dres.api.rest.types.collection.ApiMediaCollection
 import dev.dres.data.model.PersistentEntity
 import jetbrains.exodus.entitystore.Entity
 import kotlinx.dnq.*
@@ -24,6 +25,8 @@ class DbMediaCollection(entity: Entity): PersistentEntity(entity), MediaItemColl
 
     /** A list of [DbMediaItem]s in this [DbMediaCollection]. */
     val items by xdChildren0_N<DbMediaCollection, DbMediaItem>(DbMediaItem::collection)
+
+    fun toApi() = ApiMediaCollection(id, name, description, path)
 }
 
 

@@ -4,6 +4,7 @@ import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.collection.ApiMediaCollection
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.data.model.media.DbMediaCollection
+import dev.dres.mgmt.MediaCollectionManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -14,7 +15,7 @@ import kotlinx.dnq.query.asSequence
  * @author Ralph Gasser
  * @version 1.0.0
  */
-class ListCollectionHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), GetRestHandler<List<ApiMediaCollection>> {
+class ListCollectionHandler : AbstractCollectionHandler(), GetRestHandler<List<ApiMediaCollection>> {
 
     override val route: String = "collection/list"
 
@@ -29,9 +30,5 @@ class ListCollectionHandler(store: TransientEntityStore) : AbstractCollectionHan
             OpenApiResponse("401", [OpenApiContent(ErrorStatus::class)])
         ]
     )
-    override fun doGet(ctx: Context): List<ApiMediaCollection> {
-        return this.store.transactional(true) {
-            DbMediaCollection.all().asSequence().map { ApiMediaCollection.fromMediaCollection(it) }.toList()
-        }
-    }
+    override fun doGet(ctx: Context): List<ApiMediaCollection> = MediaCollectionManager.getCollections()
 }

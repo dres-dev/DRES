@@ -4,6 +4,7 @@ import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.collection.ApiMediaItem
 import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.mgmt.MediaCollectionManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -18,9 +19,7 @@ import java.util.SplittableRandom
  * @author Ralph Gasser
  * @version 1.0
  */
-class RandomMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), GetRestHandler<ApiMediaItem> {
-
-    private val rand = SplittableRandom(System.currentTimeMillis())
+class RandomMediaItemHandler : AbstractCollectionHandler(), GetRestHandler<ApiMediaItem> {
 
     override val route: String = "collection/{collectionId}/random"
 
@@ -40,10 +39,11 @@ class RandomMediaItemHandler(store: TransientEntityStore) : AbstractCollectionHa
             OpenApiResponse("404", [OpenApiContent(ErrorStatus::class)])
         ]
     )
-    override fun doGet(ctx: Context): ApiMediaItem = this.store.transactional(true) {
-        val collection = collectionFromContext(ctx)
-        val item = collection.items.drop(this.rand.nextInt(0, collection.items.size())).take(1).firstOrNull() ?:
-            throw ErrorStatusException(404, "Failed to ferch media item. It seems that the given collection ${collection.id} is empty.", ctx)
-        item.toApi()
-    }
+    override fun doGet(ctx: Context): ApiMediaItem =
+        MediaCollectionManager.getRandomMediaItem(collectionId(ctx)) ?: throw ErrorStatusException(
+            404,
+            "Failed to fetch media item. It seems that the given collection is empty.",
+            ctx
+        )
+
 }

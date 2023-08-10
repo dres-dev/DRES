@@ -2,7 +2,9 @@ package dev.dres.api.rest.handler.collection
 
 import dev.dres.api.rest.handler.DeleteRestHandler
 import dev.dres.api.rest.types.status.ErrorStatus
+import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.status.SuccessStatus
+import dev.dres.mgmt.MediaCollectionManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -12,7 +14,9 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Ralph Gasser
  * @version 1.0
  */
-class DeleteCollectionHandler(store: TransientEntityStore) : AbstractCollectionHandler(store), DeleteRestHandler<SuccessStatus> {
+class DeleteCollectionHandler : AbstractCollectionHandler(), DeleteRestHandler<SuccessStatus> {
+
+    override val route: String = "collection/{collectionId}"
 
     @OpenApi(
         summary = "Deletes a media collection identified by a collection id.",
@@ -28,15 +32,16 @@ class DeleteCollectionHandler(store: TransientEntityStore) : AbstractCollectionH
         ]
     )
     override fun doDelete(ctx: Context): SuccessStatus {
-        val status = this.store.transactional {
-            val collection = collectionFromContext(ctx)
-            val collectionId = collection.id
-            collection.delete()
-            SuccessStatus("Collection $collectionId deleted successfully.")
-        }
-        return status
-    }
 
-    override val route: String = "collection/{collectionId}"
+        val collectionId = collectionId(ctx)
+
+        val deleted = MediaCollectionManager.deleteCollection(collectionId)
+
+        if (deleted != null) {
+            return SuccessStatus("Collection $collectionId deleted successfully.")
+        } else {
+            throw ErrorStatusException(404, "Collection $collectionId not found", ctx)
+        }
+    }
 
 }

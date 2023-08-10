@@ -3,7 +3,9 @@ package dev.dres.api.rest.handler.template
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.template.team.ApiTeam
 import dev.dres.api.rest.types.status.ErrorStatus
+import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.template.team.DbTeam
+import dev.dres.mgmt.TemplateManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -18,7 +20,7 @@ import kotlinx.dnq.query.filter
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ListTeamHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), GetRestHandler<List<ApiTeam>> {
+class ListTeamHandler : AbstractEvaluationTemplateHandler(), GetRestHandler<List<ApiTeam>> {
 
     override val route: String = "template/{templateId}/team/list"
 
@@ -39,8 +41,6 @@ class ListTeamHandler(store: TransientEntityStore) : AbstractEvaluationTemplateH
 
     override fun doGet(ctx: Context): List<ApiTeam> {
         val templateId = ctx.pathParam("templateId")
-        return this.store.transactional(true) {
-            DbTeam.filter { it.evaluation.id eq templateId }.asSequence().map { it.toApi() }.toList()
-        }
+        return TemplateManager.getTemplate(templateId)?.teams ?: throw ErrorStatusException(404, "Template with id '$templateId' not found.", ctx)
     }
 }

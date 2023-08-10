@@ -4,6 +4,7 @@ import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.users.ApiRole
 import dev.dres.data.model.template.team.DbTeam
+import dev.dres.mgmt.TemplateManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import io.javalin.security.RouteRole
@@ -20,7 +21,7 @@ import kotlinx.dnq.query.query
  * @author Loris Sauter
  * @version 1.0.0
  */
-class GetTeamLogoHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), GetRestHandler<Any> {
+class GetTeamLogoHandler : AbstractEvaluationTemplateHandler(), GetRestHandler<Any> {
 
     override val route = "template/logo/{teamId}"
     override val apiVersion = "v2"
@@ -29,7 +30,8 @@ class GetTeamLogoHandler(store: TransientEntityStore) : AbstractEvaluationTempla
     override fun doGet(ctx: Context): Any = ""
 
     /** All authorised users can access the team logo. */
-    override val permittedRoles: Set<RouteRole> = setOf(ApiRole.PARTICIPANT, ApiRole.VIEWER, ApiRole.JUDGE, ApiRole.ADMIN)
+    override val permittedRoles: Set<RouteRole> =
+        setOf(ApiRole.PARTICIPANT, ApiRole.VIEWER, ApiRole.JUDGE, ApiRole.ADMIN)
 
     @OpenApi(
         summary = "Returns the logo for the given team ID.",
@@ -43,17 +45,17 @@ class GetTeamLogoHandler(store: TransientEntityStore) : AbstractEvaluationTempla
     )
     override fun get(ctx: Context) {
         /* Extract logoId. */
-        val teamId = ctx.pathParamMap()["teamId"]  ?: throw ErrorStatusException(400, "Parameter 'teamId' is missing!'", ctx)
-        this.store.transactional(true) {
-            val logo = DbTeam.query(DbTeam::id eq teamId).firstOrNull()?.logo
-            if (logo != null) {
-                ctx.contentType("image/png")
-                ctx.result(logo)
-            } else {
-                ctx.status(404)
-                ctx.contentType("image/png")
-                ctx.result(this.javaClass.getResourceAsStream("/img/missing.png")!!)
-            }
+        val teamId =
+            ctx.pathParamMap()["teamId"] ?: throw ErrorStatusException(400, "Parameter 'teamId' is missing!'", ctx)
+        ctx.contentType("image/png")
+
+        val logo = TemplateManager.getTeamLogo(teamId)
+        if (logo != null) {
+            ctx.result(logo)
+        } else {
+            ctx.status(404)
+            ctx.result(this.javaClass.getResourceAsStream("/img/missing.png")!!)
         }
+
     }
 }

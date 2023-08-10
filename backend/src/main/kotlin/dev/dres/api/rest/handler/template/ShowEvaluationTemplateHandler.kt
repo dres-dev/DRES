@@ -3,7 +3,9 @@ package dev.dres.api.rest.handler.template
 import dev.dres.api.rest.handler.GetRestHandler
 import dev.dres.api.rest.types.template.ApiEvaluationTemplate
 import dev.dres.api.rest.types.status.ErrorStatus
+import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.data.model.template.DbEvaluationTemplate
+import dev.dres.mgmt.TemplateManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -16,7 +18,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class ShowEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEvaluationTemplateHandler(store), GetRestHandler<ApiEvaluationTemplate> {
+class ShowEvaluationTemplateHandler : AbstractEvaluationTemplateHandler(), GetRestHandler<ApiEvaluationTemplate> {
     override val route: String = "template/{templateId}"
 
     @OpenApi(
@@ -33,7 +35,5 @@ class ShowEvaluationTemplateHandler(store: TransientEntityStore) : AbstractEvalu
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context)= this.store.transactional(true) {
-       evaluationTemplateFromContext(ctx).toApi()
-    }
+    override fun doGet(ctx: Context) = TemplateManager.getTemplate(templateIdFromContext(ctx)) ?: throw ErrorStatusException(404, "Evaluation template not found.'", ctx)
 }

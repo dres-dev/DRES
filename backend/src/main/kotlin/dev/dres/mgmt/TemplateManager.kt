@@ -1,6 +1,7 @@
-package dev.dres.utilities
+package dev.dres.mgmt
 
 import dev.dres.api.rest.types.template.ApiEvaluationTemplate
+import dev.dres.api.rest.types.template.ApiEvaluationTemplateOverview
 import dev.dres.api.rest.types.template.tasks.ApiTargetType
 import dev.dres.data.model.admin.DbUser
 import dev.dres.data.model.media.DbMediaCollection
@@ -11,19 +12,72 @@ import dev.dres.data.model.template.task.*
 import dev.dres.data.model.template.task.options.DbConfiguredOption
 import dev.dres.data.model.template.team.DbTeam
 import dev.dres.data.model.template.team.DbTeamGroup
+import dev.dres.data.model.template.team.TeamId
+import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.creator.findOrNew
 import kotlinx.dnq.query.*
 import kotlinx.dnq.util.getSafe
 import org.joda.time.DateTime
+import java.io.InputStream
 
-object TemplateUtil {
+object TemplateManager {
+
+    private lateinit var store: TransientEntityStore
+
+    fun init(store: TransientEntityStore) {
+        this.store = store
+    }
+
+    fun createEvaluationTemplate(name: String, description: String): ApiEvaluationTemplate = this.store.transactional {
+        val template = DbEvaluationTemplate.new {
+            this.instance = false
+            this.name = name
+            this.description = description
+            this.created = DateTime.now()
+            this.modified = DateTime.now()
+        }
+        template.toApi()
+    }
+
+    fun deleteTemplate(templateId: TemplateId): ApiEvaluationTemplate? = this.store.transactional {
+        val template =
+            DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq templateId and (DbEvaluationTemplate::instance eq false))
+                .firstOrNull() ?: return@transactional null
+        val api = template.toApi()
+        template.delete()
+        api
+    }
+
+    fun getTemplateOverview(): List<ApiEvaluationTemplateOverview> = this.store.transactional(true) {
+        DbEvaluationTemplate.query(DbEvaluationTemplate::instance eq false).asSequence().map {
+            ApiEvaluationTemplateOverview(it.id, it.name, it.description, it.tasks.size(), it.teams.size())
+        }.toList()
+    }
+
+    fun getTemplate(templateId: TemplateId): ApiEvaluationTemplate? = this.store.transactional(true) {
+        DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq templateId and (DbEvaluationTemplate::instance eq false))
+            .firstOrNull()?.toApi()
+    }
+
+    fun getTeamLogo(teamId: TeamId) : InputStream? = this.store.transactional(true) {
+        DbTeam.query(DbTeam::id eq teamId).firstOrNull()?.logo
+    }
 
     /**
-     * Writes the state of an [ApiEvaluationTemplate] into an existing [DbEvaluationTemplate].
+     * Writes the state of an [ApiEvaluationTemplate].
      * Requires a transaction context.
      */
+    fun updateDbTemplate(apiEvaluationTemplate: ApiEvaluationTemplate) {
+
+        val dbEvaluationTemplate =
+            DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq apiEvaluationTemplate.id and (DbEvaluationTemplate::instance eq false))
+                .firstOrNull() ?: throw IllegalArgumentException("No template with id '${apiEvaluationTemplate.id}'")
+
+        updateDbTemplate(dbEvaluationTemplate, apiEvaluationTemplate)
+    }
+
     @Throws(IllegalArgumentException::class)
-    fun updateDbTemplate(dbEvaluationTemplate: DbEvaluationTemplate, apiEvaluationTemplate: ApiEvaluationTemplate) {
+    fun updateDbTemplate(dbEvaluationTemplate: DbEvaluationTemplate, apiEvaluationTemplate: ApiEvaluationTemplate) = this.store.transactional {
 
 
         /* Update core information. */
@@ -156,7 +210,6 @@ object TemplateUtil {
                 })
             }
         }
-
 
 
         /* Update team information. */

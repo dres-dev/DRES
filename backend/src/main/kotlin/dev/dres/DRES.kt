@@ -16,6 +16,7 @@ import dev.dres.data.model.template.team.DbTeamGroup
 import dev.dres.data.model.run.*
 import dev.dres.data.model.submissions.*
 import dev.dres.mgmt.MediaCollectionManager
+import dev.dres.mgmt.TemplateManager
 import dev.dres.mgmt.admin.UserManager
 import dev.dres.mgmt.cache.CacheManager
 import dev.dres.run.RunExecutor
@@ -106,6 +107,7 @@ object DRES {
         /* Initialize data managers */
         UserManager.init(store)
         MediaCollectionManager.init(store)
+        TemplateManager.init(store)
 
         /* Initialize RunExecutor. */
         RunExecutor.init(CONFIG, store, global)

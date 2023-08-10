@@ -123,15 +123,15 @@ object RestApi {
             ListExternalItemHandler(),
 
             // Template
-            ListEvaluationTemplatesHandler(store),
-            CreateEvaluationTemplateHandler(store),
-            UpdateEvaluationTemplateHandler(store, config),
-            ShowEvaluationTemplateHandler(store),
-            DeleteEvaluationTemplateHandler(store),
-            ListTeamHandler(store),
-            ListTasksHandler(store),
+            ListEvaluationTemplatesHandler(),
+            CreateEvaluationTemplateHandler(),
+            UpdateEvaluationTemplateHandler(),
+            ShowEvaluationTemplateHandler(),
+            DeleteEvaluationTemplateHandler(),
+            ListTeamHandler(),
+            ListTasksHandler(),
             ListTaskTypePresetsHandler(),
-            GetTeamLogoHandler(store),
+            GetTeamLogoHandler(),
 
             // Submission
             LegacySubmissionHandler(store, cache),

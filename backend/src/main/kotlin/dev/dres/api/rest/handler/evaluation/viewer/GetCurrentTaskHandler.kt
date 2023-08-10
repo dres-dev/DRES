@@ -53,6 +53,6 @@ class GetCurrentTaskHandler(store: TransientEntityStore): AbstractEvaluationView
             throw ErrorStatusException(403, "Access denied.", ctx)
         }
         val rac = ctx.runActionContext()
-        ApiTaskTemplateInfo(manager.currentTaskTemplate(rac))
+        ApiTaskTemplateInfo(manager.currentTaskTemplate(rac).toApi())
     }
 }

@@ -41,6 +41,6 @@ data class ApiEvaluationInfo(
         },
         manager.runProperties,
         manager.template.teams.asSequence().map { team -> ApiTeamInfo(team) }.toList(),
-        manager.template.tasks.sortedBy(DbTaskTemplate::idx).asSequence().map { task -> ApiTaskTemplateInfo(task) }.toList()
+        manager.template.tasks.map { task -> ApiTaskTemplateInfo(task) }.toList()
     )
 }

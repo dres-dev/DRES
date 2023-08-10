@@ -62,7 +62,7 @@ class CurrentTaskScoreHandler(store: TransientEntityStore) : AbstractScoreHandle
         return@transactional ApiScoreOverview(
             "task",
             manager.currentTaskTemplate(rac).taskGroup.name,
-            manager.template.teams.asSequence().map { team -> ApiScore(team.id, scores[team.id] ?: 0.0) }.toList()
+            manager.template.teams.asSequence().map { team -> ApiScore(team.id!!, scores[team.id] ?: 0.0) }.toList()
         )
     }
 

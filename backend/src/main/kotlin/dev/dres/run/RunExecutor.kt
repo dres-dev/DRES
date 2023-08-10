@@ -38,7 +38,7 @@ object RunExecutor {
     private val judgementValidators = LinkedList<JudgementValidator>()
 
     /** List of [WsContext] that are currently connected. */
-    private val connectedClients = HashMap<String,ViewerInfo>()
+    private val connectedClients = HashMap<String, ViewerInfo>()
 
     /** List of session IDs that are currently observing an evaluation. */
     private val observingClients = HashMap<EvaluationId, MutableSet<ViewerInfo>>()

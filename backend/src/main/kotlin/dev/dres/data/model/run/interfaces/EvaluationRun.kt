@@ -18,7 +18,7 @@ interface EvaluationRun: Run {
     val name: String
 
     /** Reference to the [DbEvaluationTemplate] that describes the content of this [EvaluationRun]. */
-    val description: DbEvaluationTemplate
+    val template: DbEvaluationTemplate
 
     /** Collection of [TaskRun]s that make up this [EvaluationRun]. */
     val tasks: List<TaskRun>

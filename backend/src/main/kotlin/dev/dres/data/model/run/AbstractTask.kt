@@ -152,7 +152,7 @@ abstract class AbstractTask(task: DbTask): TaskRun {
 
     /** Map of [TeamGroupId] to [TeamAggregatorImpl]. */
     val teamGroupAggregators: Map<TeamGroupId, TeamAggregatorImpl> by lazy {
-        this.competition.description.teamGroups.asSequence().associate { it.id to it.newAggregator() }
+        this.competition.template.teamGroups.asSequence().associate { it.id to it.newAggregator() }
     }
 
     /**

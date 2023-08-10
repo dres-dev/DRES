@@ -39,15 +39,15 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
 
     init {
         require(this.evaluation.type == DbEvaluationType.INTERACTIVE_SYNCHRONOUS) { "Incompatible competition type ${this.evaluation.type}. This is a programmer's error!" }
-        require(this.description.tasks.size() > 0) { "Cannot create a run from a competition that doesn't have any tasks." }
-        require(this.description.teams.size() > 0) { "Cannot create a run from a competition that doesn't have any teams." }
+        require(this.template.tasks.size() > 0) { "Cannot create a run from a competition that doesn't have any tasks." }
+        require(this.template.teams.size() > 0) { "Cannot create a run from a competition that doesn't have any teams." }
     }
 
     /** List of [TaskRun]s registered for this [InteractiveSynchronousEvaluation]. */
     override val tasks = LinkedList<ISTaskRun>()
 
     /** Reference to the currently active [DbTaskTemplate]. This is part of the task navigation. */
-    private val templates = this.description.tasks.sortedBy(DbTaskTemplate::idx).asSequence().map { it.templateId }.toList()
+    private val templates = this.template.tasks.sortedBy(DbTaskTemplate::idx).asSequence().map { it.templateId }.toList()
 
     /** Returns the last [TaskRun]. */
     val currentTask: AbstractInteractiveTask?
@@ -65,8 +65,8 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
         this.evaluation.tasks.asSequence().forEach { ISTaskRun(it) }
 
         /* Prepare the evaluation scoreboards. */
-        val teams = this.description.teams.asSequence().map { it.teamId }.toList()
-        this.scoreboards = this.description.taskGroups.asSequence().map { group ->
+        val teams = this.template.teams.asSequence().map { it.teamId }.toList()
+        this.scoreboards = this.template.taskGroups.asSequence().map { group ->
             MaxNormalizingScoreBoard(group.name, this, teams, {task -> task.taskGroup.name == group.name}, group.name)
         }.toList()
     }
@@ -139,7 +139,7 @@ class InteractiveSynchronousEvaluation(evaluation: DbEvaluation) : AbstractEvalu
         override var duration: Long = this.template.duration
 
         /** */
-        override val teams: List<TeamId> = this@InteractiveSynchronousEvaluation.description.teams.asSequence().map { it.teamId }.toList()
+        override val teams: List<TeamId> = this@InteractiveSynchronousEvaluation.template.teams.asSequence().map { it.teamId }.toList()
 
         init {
             check(this@InteractiveSynchronousEvaluation.tasks.isEmpty() || this@InteractiveSynchronousEvaluation.tasks.last().hasEnded) {

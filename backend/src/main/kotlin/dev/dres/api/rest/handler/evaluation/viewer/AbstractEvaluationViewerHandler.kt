@@ -40,7 +40,7 @@ abstract class AbstractEvaluationViewerHandler(protected val store: TransientEnt
     fun getEvaluationManager(ctx: Context, evaluationId: EvaluationId): InteractiveRunManager? {
         val run = RunExecutor.managerForId(evaluationId) ?: return null
         if (run !is InteractiveRunManager) return null
-        if (ctx.isParticipant() && run.template.teams.flatMapDistinct { it.users }.filter { it.id eq ctx.userId() }.isEmpty) return null
+        if (ctx.isParticipant() && run.template.teams.flatMap { it.users }.none { it.id == ctx.userId() }) return null
         return run
     }
 
@@ -53,8 +53,10 @@ abstract class AbstractEvaluationViewerHandler(protected val store: TransientEnt
     fun getRelevantManagers(ctx: Context): List<InteractiveRunManager> {
         val managers = RunExecutor.managers().filterIsInstance(InteractiveRunManager::class.java)
         return when {
-            ctx.isParticipant() -> managers.filter { m -> m.template.teams.flatMapDistinct { it.users }.filter { it.id eq ctx.userId() }.isNotEmpty }
-            ctx.isJudge() -> managers.filter { m -> m.template.judges.filter { u -> u.id eq ctx.userId() }.isNotEmpty }
+            ctx.isParticipant() -> managers.filter { m ->
+                m.template.teams.flatMap { it.users }.any { it.id == ctx.userId() }
+            }
+            ctx.isJudge() -> managers.filter { m -> m.template.judges.any { u -> u == ctx.userId() } }
             else -> managers
         }
     }

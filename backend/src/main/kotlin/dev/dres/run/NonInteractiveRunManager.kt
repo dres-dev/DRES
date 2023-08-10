@@ -39,9 +39,8 @@ class NonInteractiveRunManager(
     override val name: String
         get() = this.evaluation.name
 
-    /** The [DbEvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
-    override val template: DbEvaluationTemplate
-        get() = this.evaluation.description
+    /** The [ApiEvaluationTemplate] executed by this [InteractiveSynchronousRunManager]. */
+    override val template = this.evaluation.template.toApi()
 
     /** The [List] of [Scoreboard]s maintained by this [NonInteractiveRunManager]. */
     override val scoreboards: List<Scoreboard>

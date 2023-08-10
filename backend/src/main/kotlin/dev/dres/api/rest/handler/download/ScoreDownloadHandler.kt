@@ -38,7 +38,7 @@ class ScoreDownloadHandler(store: TransientEntityStore) : AbstractDownloadHandle
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context): String = this.store.transactional(true) {
+    override fun doGet(ctx: Context): String {
         val manager = ctx.eligibleManagerForId<RunManager>()
         val rac = ctx.runActionContext()
 
@@ -47,12 +47,12 @@ class ScoreDownloadHandler(store: TransientEntityStore) : AbstractDownloadHandle
         ctx.header("Content-Disposition", "attachment; filename=\"scores-${manager.id}.csv\"")
 
         /* Prepare and return response. */
-        "startTime,task,group,team,score\n" + manager.tasks(rac).filter {
+        return "startTime,task,group,team,score\n" + manager.tasks(rac).filter {
             it.started != null
         }.sortedBy {
             it.started
         }.flatMap { task ->
-            task.scorer.scores().map { "${task.started},\"${task.template.name}\",\"${task.template.taskGroup.name}\",\"${manager.template.teams.filter { t -> t.id eq it.first }.firstOrNull()?.name ?: "???"}\",${it.third}" }
+            task.scorer.scores().map { "${task.started},\"${task.template.name}\",\"${task.template.taskGroup.name}\",\"${manager.template.teams.firstOrNull { t -> t.id == it.first }?.name ?: "???"}\",${it.third}" }
         }.joinToString(separator = "\n")
     }
 

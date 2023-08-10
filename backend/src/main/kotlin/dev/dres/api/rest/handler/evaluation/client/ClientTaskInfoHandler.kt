@@ -43,6 +43,6 @@ class ClientTaskInfoHandler(store: TransientEntityStore): AbstractEvaluationClie
         val rac = ctx.runActionContext()
         if (run !is InteractiveRunManager) throw ErrorStatusException(404, "Specified evaluation is not interactive.", ctx)
         val task = run.currentTask(rac) ?: throw ErrorStatusException(404, "Specified evaluation has no active task.", ctx)
-        ApiTaskTemplateInfo(task.template)
+        ApiTaskTemplateInfo(task.template.toApi())
     }
 }

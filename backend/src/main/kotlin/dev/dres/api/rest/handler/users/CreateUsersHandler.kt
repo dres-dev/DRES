@@ -9,7 +9,7 @@ import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.api.rest.types.users.UserRequest
 import dev.dres.data.model.admin.Password
 import dev.dres.data.model.admin.DbUser
-import dev.dres.mgmt.admin.DbUserManager
+import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -21,7 +21,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class CreateUsersHandler(private val store: TransientEntityStore) : AbstractUserHandler(), PostRestHandler<ApiUser>, AccessManagedRestHandler {
+class CreateUsersHandler() : AbstractUserHandler(), PostRestHandler<ApiUser>, AccessManagedRestHandler {
     override val route = "user"
 
     /** [CreateUsersHandler] requires [ApiRole.ADMIN]. */
@@ -46,32 +46,18 @@ class CreateUsersHandler(private val store: TransientEntityStore) : AbstractUser
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        if (req.password == null || req.password.length < DbUser.MIN_LENGTH_PASSWORD)
+        if (req.password == null )
             throw ErrorStatusException(400, "Invalid parameters. Password must consist of at least ${DbUser.MIN_LENGTH_PASSWORD} characters.", ctx)
         if (req.username.length < DbUser.MIN_LENGTH_USERNAME)
             throw ErrorStatusException(400, "Invalid parameters. Username must consist of at least ${DbUser.MIN_LENGTH_USERNAME} characters.", ctx)
         if (req.role == null)
             throw ErrorStatusException(400, "Invalid parameters. Role must be defined.", ctx)
 
-        val success = this.store.transactional {
-            DbUserManager.create(
-                req.username,
-                Password.Plain(req.password),
-                req.role.toDb() ?: throw ErrorStatusException(
-                    400,
-                    "Invalid parameters. Provided role is undefined or invalid!",
-                    ctx
-                )
-            )
+        try {
+            return UserManager.create(req.username, Password.Plain(req.password).hash(), req.role)
+        } catch (e: Exception) {
+            throw ErrorStatusException(400, e.message ?: "could not create user", ctx)
         }
-        //needs to be in a new transaction
-        //TODO is there a nicer way of doing this?
-        return this.store.transactional {
-            if (success) {
-                return@transactional DbUserManager.get(username = req.username)!!.toApi()
-            } else {
-                throw ErrorStatusException(400, "The request could not be fulfilled.", ctx)
-            }
-        }
+
     }
 }

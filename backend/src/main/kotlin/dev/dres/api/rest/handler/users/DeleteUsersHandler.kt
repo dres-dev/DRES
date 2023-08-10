@@ -7,7 +7,7 @@ import dev.dres.api.rest.types.status.ErrorStatus
 import dev.dres.api.rest.types.status.ErrorStatusException
 import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.DbUser
-import dev.dres.mgmt.admin.DbUserManager
+import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.Context
 import io.javalin.openapi.*
 import jetbrains.exodus.database.TransientEntityStore
@@ -18,7 +18,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class DeleteUsersHandler(private val store: TransientEntityStore) : AbstractUserHandler(), DeleteRestHandler<ApiUser>, AccessManagedRestHandler {
+class DeleteUsersHandler() : AbstractUserHandler(), DeleteRestHandler<ApiUser>, AccessManagedRestHandler {
     override val permittedRoles = setOf(ApiRole.ADMIN)
 
     /** [DeleteUsersHandler] requires [ApiRole.ADMIN]. */
@@ -36,11 +36,10 @@ class DeleteUsersHandler(private val store: TransientEntityStore) : AbstractUser
             OpenApiResponse("500", [OpenApiContent(ErrorStatus::class)])
         ]
     )
-    override fun doDelete(ctx: Context): ApiUser = this.store.transactional {
+    override fun doDelete(ctx: Context): ApiUser  {
         val user = userFromContext(ctx)
-        val apiUser = user.toApi() //needs to be done before, since it can no longer be transformed to ApiUser after successful delete
-        if (DbUserManager.delete(id = user.id)) {
-            return@transactional apiUser
+        if (UserManager.delete(id = user.id)) {
+            return user
         } else {
             throw ErrorStatusException(500, "Could not delete the user (${user.id})", ctx)
         }

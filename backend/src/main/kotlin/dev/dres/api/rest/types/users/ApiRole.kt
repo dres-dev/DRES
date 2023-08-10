@@ -14,6 +14,19 @@ import io.javalin.security.RouteRole
 enum class ApiRole : RouteRole {
     ANYONE, VIEWER, PARTICIPANT, JUDGE, ADMIN;
 
+    companion object {
+        /**
+         * Parses a [DbRole] instance from a [String].
+         */
+        fun parse(string: String) = when (string.uppercase()) {
+            "VIEWER" -> VIEWER
+            "PARTICIPANT" -> PARTICIPANT
+            "JUDGE" -> JUDGE
+            "ADMIN", "ADMINISTRATOR" -> ADMIN
+            else -> throw IllegalArgumentException("Failed to parse role '$string'.")
+        }
+    }
+
     /**
      * Converts this [ApiMediaType] to a [DbMediaType] representation. Requires an ongoing transaction.
      *

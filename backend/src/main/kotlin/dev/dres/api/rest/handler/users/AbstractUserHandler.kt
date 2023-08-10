@@ -4,8 +4,9 @@ import dev.dres.api.rest.AccessManager
 import dev.dres.api.rest.handler.AccessManagedRestHandler
 import dev.dres.api.rest.handler.RestHandler
 import dev.dres.api.rest.types.status.ErrorStatusException
+import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.data.model.admin.DbUser
-import dev.dres.mgmt.admin.DbUserManager
+import dev.dres.mgmt.admin.UserManager
 import dev.dres.utilities.extensions.sessionToken
 import io.javalin.http.Context
 
@@ -22,14 +23,14 @@ abstract class AbstractUserHandler: RestHandler, AccessManagedRestHandler {
     override val apiVersion = "v2"
 
     /** Convenience method to extract [DbUser] from current session. */
-    protected fun userFromSession(ctx: Context): DbUser {
-        return DbUserManager.get(id = AccessManager.userIdForSession(ctx.sessionToken())!!)
+    protected fun userFromSession(ctx: Context): ApiUser {
+        return UserManager.get(id = AccessManager.userIdForSession(ctx.sessionToken())!!)
             ?: throw ErrorStatusException(404, "User could not be found!", ctx)
     }
 
     /** Convenience method to extract [DbUser] from [Context] (userId parameter). */
-    protected fun userFromContext(ctx: Context): DbUser {
+    protected fun userFromContext(ctx: Context): ApiUser {
         val id = ctx.pathParamMap()["userId"] ?: throw ErrorStatusException(404, "Parameter 'userId' is missing!'", ctx)
-        return DbUserManager.get(id = id) ?: throw ErrorStatusException(404, "User ($id) not found!", ctx)
+        return UserManager.get(id = id) ?: throw ErrorStatusException(404, "User ($id) not found!", ctx)
     }
 }

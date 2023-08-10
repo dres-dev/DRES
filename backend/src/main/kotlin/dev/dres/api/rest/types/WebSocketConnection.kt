@@ -1,10 +1,7 @@
 package dev.dres.api.rest.types
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import dev.dres.api.rest.AccessManager
-import dev.dres.mgmt.admin.DbUserManager
 import io.javalin.websocket.WsContext
-import org.eclipse.jetty.server.session.Session
 import java.nio.ByteBuffer
 
 /**

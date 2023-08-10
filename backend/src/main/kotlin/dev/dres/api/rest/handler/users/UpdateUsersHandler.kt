@@ -9,7 +9,7 @@ import dev.dres.api.rest.types.users.ApiUser
 import dev.dres.api.rest.types.users.UserRequest
 import dev.dres.data.model.admin.DbRole
 import dev.dres.data.model.admin.DbUser
-import dev.dres.mgmt.admin.DbUserManager
+import dev.dres.mgmt.admin.UserManager
 import io.javalin.http.BadRequestResponse
 import io.javalin.http.Context
 import io.javalin.openapi.*
@@ -21,7 +21,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class UpdateUsersHandler(private val store: TransientEntityStore) : AbstractUserHandler(), PatchRestHandler<ApiUser>, AccessManagedRestHandler {
+class UpdateUsersHandler() : AbstractUserHandler(), PatchRestHandler<ApiUser>, AccessManagedRestHandler {
 
     /** [UpdateUsersHandler] can be used by [ApiRole.ADMIN], [[ApiRole.VIEWER], [ApiRole.PARTICIPANT]*/
     override val permittedRoles = setOf(ApiRole.VIEWER, ApiRole.ADMIN, ApiRole.PARTICIPANT)
@@ -49,33 +49,32 @@ class UpdateUsersHandler(private val store: TransientEntityStore) : AbstractUser
             throw ErrorStatusException(400, "Invalid parameters. This is a programmers error!", ctx)
         }
 
-        return this.store.transactional {
 
-            /* Fetch existing objects. */
-            val user = userFromContext(ctx)
-            val caller = userFromSession(ctx)
+        /* Fetch existing objects. */
+        val user = userFromContext(ctx)
+        val caller = userFromSession(ctx)
 
-            if (caller.role == DbRole.ADMIN || user.id == caller.id) {
+        if (caller.role == ApiRole.ADMIN || user.id == caller.id) {
 
-                val sanitized = if (caller.role == DbRole.ADMIN) {
-                    request
-                } else { //non admins can only change their passwords, nothing else
-                    request.copy(username = user.username, role = user.role.toApi())
-                }
-
-                val success = DbUserManager.update(id = user.id, request = sanitized)
-                if (success) {
-                    return@transactional DbUserManager.get(id = user.id)!!.toApi()
-                } else {
-                    throw ErrorStatusException(500, "Could not update user!", ctx)
-                }
-            } else {
-                throw ErrorStatusException(
-                    403,
-                    "You do not have permissions to edit user (${user.id}) as ${caller.id}!",
-                    ctx
-                )
+            val sanitized = if (caller.role == ApiRole.ADMIN) {
+                request
+            } else { //non admins can only change their passwords, nothing else
+                request.copy(username = user.username!!, role = user.role)
             }
+
+            val updated = UserManager.update(id = user.id, request = sanitized)
+            if (updated != null) {
+                return updated
+            } else {
+                throw ErrorStatusException(500, "Could not update user!", ctx)
+            }
+        } else {
+            throw ErrorStatusException(
+                403,
+                "You do not have permissions to edit user (${user.id}) as ${caller.id}!",
+                ctx
+            )
         }
+
     }
 }

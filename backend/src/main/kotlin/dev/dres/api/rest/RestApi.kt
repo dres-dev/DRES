@@ -90,16 +90,16 @@ object RestApi {
         val apiRestHandlers = listOf(
 
             // User
-            LoginHandler(store),
-            LogoutHandler(store),
-            ListUsersHandler(store),
-            ListActiveUsersHandler(store),
-            ShowCurrentUserHandler(store),
+            LoginHandler(),
+            LogoutHandler(),
+            ListUsersHandler(),
+            ListActiveUsersHandler(),
+            ShowCurrentUserHandler(),
             ShowCurrentSessionHandler(),
-            CreateUsersHandler(store),
-            DeleteUsersHandler(store),
-            UpdateUsersHandler(store),
-            UserDetailsHandler(store),
+            CreateUsersHandler(),
+            DeleteUsersHandler(),
+            UpdateUsersHandler(),
+            UserDetailsHandler(),
 
             // Media
             PreviewImageHandler(store, cache),

@@ -16,7 +16,7 @@ import jetbrains.exodus.database.TransientEntityStore
  * @author Loris Sauter
  * @version 2.0.0
  */
-class UserDetailsHandler(private val store: TransientEntityStore) : AbstractUserHandler(), GetRestHandler<ApiUser>, AccessManagedRestHandler {
+class UserDetailsHandler() : AbstractUserHandler(), GetRestHandler<ApiUser>, AccessManagedRestHandler {
     override val route = "user/{userId}"
 
     /** [UserDetailsHandler] requires [ApiRole.ADMIN]. */
@@ -37,7 +37,7 @@ class UserDetailsHandler(private val store: TransientEntityStore) : AbstractUser
         ],
         methods = [HttpMethod.GET]
     )
-    override fun doGet(ctx: Context) = this.store.transactional { userFromContext(ctx).toApi() }
+    override fun doGet(ctx: Context) = userFromContext(ctx)
 
 
 }

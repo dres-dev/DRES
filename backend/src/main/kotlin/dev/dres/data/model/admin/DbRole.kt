@@ -26,16 +26,7 @@ class DbRole(entity: Entity) : XdEnumEntity(entity) {
          */
         fun values() = listOf(VIEWER, PARTICIPANT, JUDGE, ADMIN)
 
-        /**
-         * Parses a [DbRole] instance from a [String].
-         */
-        fun parse(string: String) = when(string.uppercase()) {
-            "VIEWER" -> VIEWER
-            "PARTICIPANT" -> PARTICIPANT
-            "JUDGE" -> JUDGE
-            "ADMIN", "ADMINISTRATOR" -> ADMIN
-            else -> throw IllegalArgumentException("Failed to parse role '$string'.")
-        }
+
     }
 
     /** Name / description of the [DbRole]. */

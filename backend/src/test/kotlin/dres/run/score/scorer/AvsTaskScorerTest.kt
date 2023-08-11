@@ -70,7 +70,7 @@ class AvsTaskScorerTest {
 
     @BeforeEach
     fun setup() {
-        this.scorer = AvsTaskScorer(this.scoreable, penaltyConstant = penalty, maxPointsPerTask)
+        this.scorer = AvsTaskScorer(this.scoreable, penaltyConstant = penalty, maxPointsPerTask, null)
     }
 
     @Test

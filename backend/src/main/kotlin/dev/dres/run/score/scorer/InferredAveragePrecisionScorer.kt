@@ -5,6 +5,7 @@ import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.Scoreable
+import jetbrains.exodus.database.TransientEntityStore
 
 
 /**
@@ -15,7 +16,7 @@ import dev.dres.run.score.Scoreable
  * @author Luca Rossetto
  * @version 1.0.0
  */
-class InferredAveragePrecisionScorer( scoreable: Scoreable) : AbstractTaskScorer(scoreable) {
+class InferredAveragePrecisionScorer( scoreable: Scoreable, store: TransientEntityStore?) : AbstractTaskScorer(scoreable, store) {
 
     companion object {
 

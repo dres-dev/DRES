@@ -5,6 +5,7 @@ import dev.dres.data.model.media.MediaItemType
 import dev.dres.data.model.media.time.TemporalRange
 import dev.dres.data.model.submissions.*
 import dev.dres.run.score.Scoreable
+import jetbrains.exodus.database.TransientEntityStore
 
 /**
  * A [TeamTaskScorer] used for AVS tasks.
@@ -12,7 +13,7 @@ import dev.dres.run.score.Scoreable
  * @author Luca Rossetto
  * @version 2.0.0
  */
-class LegacyAvsTaskScorer(scoreable: Scoreable) : AbstractTaskScorer(scoreable) {
+class LegacyAvsTaskScorer(scoreable: Scoreable, store: TransientEntityStore?) : AbstractTaskScorer(scoreable, store) {
 
     /**
      * Computes and returns the scores for this [LegacyAvsTaskScorer] based on a [Sequence] of [Submission]s.

@@ -55,8 +55,7 @@ object TemplateManager {
     }
 
     fun getTemplate(templateId: TemplateId): ApiEvaluationTemplate? = this.store.transactional(true) {
-        DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq templateId and (DbEvaluationTemplate::instance eq false))
-            .firstOrNull()?.toApi()
+        DbEvaluationTemplate.query((DbEvaluationTemplate::id) eq templateId).firstOrNull()?.toApi()
     }
 
     fun getTeamLogo(teamId: TeamId) : InputStream? = this.store.transactional(true) {

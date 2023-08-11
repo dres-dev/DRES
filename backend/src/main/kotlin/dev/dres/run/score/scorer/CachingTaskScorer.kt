@@ -45,7 +45,7 @@ class CachingTaskScorer(private val wrapped: TaskScorer): TaskScorer {
                 this.latest.putAll(this.wrapped.scoreMap())
                 this.dirty = false
             }
-            return Collections.unmodifiableMap(this.latest)
+            return this.latest
         } finally {
             this.lock.unlock(stamp)
         }

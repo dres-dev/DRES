@@ -134,7 +134,7 @@ class DbTaskTemplate(entity: Entity) : PersistentEntity(entity), TaskTemplate {
         this.collection.id,
         this.targets.asSequence().map { it.toApi() }.toList(),
         this.hints.asSequence().map { it.toApi() }.toList(),
-        this.comment ?: ""
+        "debug: ${this.xdId}"//this.comment ?: ""
     )
 
     /**

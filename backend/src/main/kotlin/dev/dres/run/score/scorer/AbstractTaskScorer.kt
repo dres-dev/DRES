@@ -4,6 +4,7 @@ import dev.dres.data.model.submissions.DbAnswerSet
 import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.Scoreable
+import jetbrains.exodus.database.TransientEntityStore
 import kotlinx.dnq.query.asSequence
 import kotlinx.dnq.query.filter
 import kotlinx.dnq.query.mapDistinct
@@ -13,14 +14,17 @@ import kotlinx.dnq.query.mapDistinct
  * @author Ralph Gasser
  * @version 1.0.0
  */
-abstract class AbstractTaskScorer(override val scoreable: Scoreable): TaskScorer {
+abstract class AbstractTaskScorer(
+    override val scoreable: Scoreable,
+    private val store: TransientEntityStore? //nullable for unit tests
+    ): TaskScorer {
 
     /**
      *
      */
-    override fun scoreMap(): Map<TeamId, Double> {
+    override fun scoreMap(): Map<TeamId, Double> = this.store!!.transactional (true) {
         val sequence = DbAnswerSet.filter { (it.task.id eq this@AbstractTaskScorer.scoreable.taskId) }.mapDistinct { it.submission }.asSequence()
-        return this.calculateScores(sequence)
+        this.calculateScores(sequence)
     }
 
     /**

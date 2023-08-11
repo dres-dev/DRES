@@ -226,12 +226,24 @@ class InteractiveSynchronousRunManager(override val evaluation: InteractiveSynch
             throw IllegalStateException("Task '${currentTaskTemplate.name}' has already been used.")
         }
 
+        val dbTask = this.store.transactional {
+
+            val dbTaskTemplate = DbTaskTemplate.filter { it.id eq currentTaskTemplate.id!! }.first()
+
+            /* create task, needs to be persisted before run can be created */
+            val dbTask = DbTask.new {
+                status = DbTaskStatus.CREATED
+                evaluation = this@InteractiveSynchronousRunManager.evaluation.dbEvaluation
+                template = dbTaskTemplate
+            }
+
+            dbTask
+        }
+
         this.store.transactional {
 
-            val dbTaskTemplate = DbTaskTemplate.query(DbTaskTemplate::templateId eq currentTaskTemplate.id!!).first()
-
             /* Create and prepare pipeline for submission. */
-            this.evaluation.ISTaskRun(dbTaskTemplate)
+            this.evaluation.ISTaskRun(dbTask)
 
             /* Update status. */
             this.evaluation.currentTask!!.prepare()

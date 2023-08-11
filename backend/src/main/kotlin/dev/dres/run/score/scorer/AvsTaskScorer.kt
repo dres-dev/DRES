@@ -5,6 +5,7 @@ import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.run.score.Scoreable
+import jetbrains.exodus.database.TransientEntityStore
 import java.lang.Double.max
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -17,19 +18,20 @@ import kotlin.math.abs
  * @author Luca Rossetto
  * @version 2.0.0
  */
-class AvsTaskScorer(scoreable: Scoreable, private val penaltyConstant: Double, private val maxPointsPerTask: Double) : AbstractTaskScorer(scoreable) {
+class AvsTaskScorer(scoreable: Scoreable, private val penaltyConstant: Double, private val maxPointsPerTask: Double, store: TransientEntityStore?) : AbstractTaskScorer(scoreable, store) {
 
     private var lastScores: Map<TeamId, Double> = emptyMap()
     private val lastScoresLock = ReentrantReadWriteLock()
 
 
-    constructor(context: Scoreable, parameters: Map<String, String>) : this(
+    constructor(context: Scoreable, parameters: Map<String, String>, store: TransientEntityStore?) : this(
         context,
         abs(parameters.getOrDefault("penalty", "$defaultPenalty").toDoubleOrNull() ?: defaultPenalty),
-        parameters.getOrDefault("maxPointsPerTask", "$defaultMaxPointsPerTask").toDoubleOrNull() ?: defaultMaxPointsPerTask
+        parameters.getOrDefault("maxPointsPerTask", "$defaultMaxPointsPerTask").toDoubleOrNull() ?: defaultMaxPointsPerTask,
+        store
     )
 
-    constructor(context: Scoreable) : this(context, defaultPenalty, defaultMaxPointsPerTask)
+    constructor(context: Scoreable, store: TransientEntityStore?) : this(context, defaultPenalty, defaultMaxPointsPerTask, store)
 
     companion object {
         const val defaultPenalty: Double = 0.2

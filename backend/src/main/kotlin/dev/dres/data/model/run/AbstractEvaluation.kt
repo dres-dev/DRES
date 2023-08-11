@@ -43,39 +43,39 @@ abstract class AbstractEvaluation(protected val store: TransientEntityStore, eva
     /**
      * Accessor for the [DbEvaluation] underpinning this [AbstractEvaluation]
      */
-    protected val evaluation: DbEvaluation
+    internal val dbEvaluation: DbEvaluation
         get() = DbEvaluation.findById(this.xdId)
 
     /** Timestamp of when this [AbstractEvaluation] was started. */
     override var started: Long?
-        get() = this.store.transactional (true) { this.evaluation.started }
+        get() = this.store.transactional (true) { this.dbEvaluation.started }
         protected set(value) {
-            this.evaluation.started = value
+            this.dbEvaluation.started = value
         }
 
     /** Timestamp of when this [AbstractEvaluation] was ended. */
     override var ended: Long?
-        get() = this.store.transactional (true) { this.evaluation.ended }
+        get() = this.store.transactional (true) { this.dbEvaluation.ended }
         protected set(value) {
-            this.evaluation.ended = value
+            this.dbEvaluation.ended = value
         }
 
     /** Flag indicating that participants can also use the viewer for this [DbEvaluation]. */
     override var participantCanView: Boolean
-        get() = this.store.transactional (true) { this.evaluation.participantCanView }
-        internal set(value) { this.evaluation.participantCanView = value}
+        get() = this.store.transactional (true) { this.dbEvaluation.participantCanView }
+        internal set(value) { this.dbEvaluation.participantCanView = value}
 
 
     /** Flag indicating that tasks can be repeated.*/
     override var allowRepeatedTasks: Boolean
-        get() = this.store.transactional (true) { this.evaluation.allowRepeatedTasks }
-        internal set(value) { this.evaluation.allowRepeatedTasks = value}
+        get() = this.store.transactional (true) { this.dbEvaluation.allowRepeatedTasks }
+        internal set(value) { this.dbEvaluation.allowRepeatedTasks = value}
 
 
     /** A fixed limit on submission previews. */
     override var limitSubmissionPreviews: Int
-        get() = this.store.transactional (true) { this.evaluation.limitSubmissionPreviews }
-        internal set(value) {this.evaluation.limitSubmissionPreviews = value}
+        get() = this.store.transactional (true) { this.dbEvaluation.limitSubmissionPreviews }
+        internal set(value) {this.dbEvaluation.limitSubmissionPreviews = value}
 
 
     /**

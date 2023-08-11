@@ -61,7 +61,7 @@ class CreateEvaluationHandler(private val store: TransientEntityStore, private v
         }
 
         /* Prepare run manager. */
-        val manager = this.store.transactional {
+        val evaluation = this.store.transactional {
             val template = DbEvaluationTemplate.query((DbEvaluationTemplate::id eq message.templateId) and (DbEvaluationTemplate::instance eq false)).firstOrNull()
                 ?: throw ErrorStatusException(404, "Evaluation template with ID ${message.templateId} could not be found.'", ctx)
 
@@ -120,6 +120,11 @@ class CreateEvaluationHandler(private val store: TransientEntityStore, private v
                 initPermutation()
             }
 
+            evaluation
+
+        }
+
+        val manager = this.store.transactional {
             /* Create evaluation + run manager and end transaction. */
             evaluation.toRunManager(this.store)
         }

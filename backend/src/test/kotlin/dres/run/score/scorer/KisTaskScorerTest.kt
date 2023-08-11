@@ -61,7 +61,7 @@ class KisTaskScorerTest {
 
     @BeforeEach
     fun setup() {
-        this.scorer = KisTaskScorer(this.scoreable, maxPointsPerTask, maxPointsAtTaskEnd, penaltyPerWrongSubmission)
+        this.scorer = KisTaskScorer(this.scoreable, maxPointsPerTask, maxPointsAtTaskEnd, penaltyPerWrongSubmission, null)
     }
 
     @Test

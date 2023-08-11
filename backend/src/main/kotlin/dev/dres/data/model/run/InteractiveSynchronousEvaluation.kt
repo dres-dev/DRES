@@ -41,7 +41,7 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
     AbstractEvaluation(store, evaluation) {
 
     init {
-        store.transactional(true) { require(this.evaluation.type == DbEvaluationType.INTERACTIVE_SYNCHRONOUS) { "Incompatible competition type ${this.evaluation.type}. This is a programmer's error!" } }
+        store.transactional(true) { require(this.dbEvaluation.type == DbEvaluationType.INTERACTIVE_SYNCHRONOUS) { "Incompatible competition type ${this.dbEvaluation.type}. This is a programmer's error!" } }
         require(this.template.tasks.isNotEmpty()) { "Cannot create a run from a competition that doesn't have any tasks." }
         require(this.template.teams.isNotEmpty()) { "Cannot create a run from a competition that doesn't have any teams." }
     }
@@ -57,7 +57,7 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
         get() = this.tasks.lastOrNull { it.templateId == this.templates[this.templateIndex].id }
 
     /** The index of the task template this [InteractiveSynchronousEvaluation] is pointing to. */
-    var templateIndex: Int = this.currentTask?.templateId?.let { id -> this.templates.indexOfFirst { template -> template.id == id } } ?: 0
+    var templateIndex: Int = 0
         private set
 
     /** List of [Scoreboard]s maintained by this [NonInteractiveEvaluation]. */
@@ -65,7 +65,7 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
 
     init {
         /* Load all ongoing tasks. */
-        this.evaluation.tasks.asSequence().forEach { ISTaskRun(it) }
+        this.dbEvaluation.tasks.asSequence().forEach { ISTaskRun(it) }
 
         /* Prepare the evaluation scoreboards. */
         val teams = this.template.teams.asSequence().map { it.teamId }.toList()
@@ -82,13 +82,13 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
     fun getCurrentTemplateId(): TemplateId = this.currentTask?.templateId!!
 
     /**
-     * Returns the [DbTaskTemplate] this [InteractiveSynchronousEvaluation] is currently pointing to.
+     * Returns the [ApiTaskTemplate] this [InteractiveSynchronousEvaluation] is currently pointing to.
      *
      * Requires an active database transaction.
      *
-     * @return [DbTaskTemplate]
+     * @return [ApiTaskTemplate]
      */
-    fun getCurrentTemplate(): ApiTaskTemplate = this.currentTask?.template!!
+    fun getCurrentTemplate(): ApiTaskTemplate = this.templates[this.templateIndex]
 
     /**
      * Moves this [InteractiveSynchronousEvaluation] to the given task index.
@@ -108,17 +108,6 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
      * As a [InteractiveSynchronousEvaluation], [DbTask]s can be started and ended, and they can be used to register [DbSubmission]s.
      */
     inner class ISTaskRun(task: DbTask) : AbstractInteractiveTask(store, task) {
-
-        /**
-         * Constructor used to generate an [ISTaskRun] from a [DbTaskTemplate].
-         *
-         * @param t [DbTaskTemplate] to generate [ISTaskRun] from.
-         */
-        constructor(t: DbTaskTemplate) : this(DbTask.new {
-            status = DbTaskStatus.CREATED
-            evaluation = this@InteractiveSynchronousEvaluation.evaluation
-            template = t
-        })
 
         /** The [InteractiveSynchronousEvaluation] this [DbTask] belongs to.*/
         override val evaluationRun: InteractiveSynchronousEvaluation
@@ -141,7 +130,7 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
 
         /** */
         override val teams: List<TeamId> =
-            this@InteractiveSynchronousEvaluation.template.teams.asSequence().map { it.teamId }.toList()
+            this@InteractiveSynchronousEvaluation.template.teams.map { it.teamId }.toList()
 
         init {
 
@@ -187,11 +176,12 @@ class InteractiveSynchronousEvaluation(store: TransientEntityStore, evaluation: 
                         DbScoreOption.KIS -> KisTaskScorer(
                             this,
                             task.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq scoreOption.description)
-                                .asSequence().map { it.key to it.value }.toMap()
+                                .asSequence().map { it.key to it.value }.toMap(),
+                            store
                         )
 
-                        DbScoreOption.AVS -> AvsTaskScorer(this)
-                        DbScoreOption.LEGACY_AVS -> LegacyAvsTaskScorer(this)
+                        DbScoreOption.AVS -> AvsTaskScorer(this, store)
+                        DbScoreOption.LEGACY_AVS -> LegacyAvsTaskScorer(this, store)
                         else -> throw IllegalStateException("The task score option $scoreOption is currently not supported.")
                     }
                 )

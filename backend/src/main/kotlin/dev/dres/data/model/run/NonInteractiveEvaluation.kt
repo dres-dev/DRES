@@ -35,13 +35,13 @@ import kotlinx.dnq.query.*
 class NonInteractiveEvaluation(store: TransientEntityStore, evaluation: DbEvaluation) : AbstractEvaluation(store, evaluation) {
 
     init {
-        require(this.evaluation.type == DbEvaluationType.NON_INTERACTIVE) { "Incompatible competition type ${this.evaluation.type}. This is a programmer's error!" }
+        require(this.dbEvaluation.type == DbEvaluationType.NON_INTERACTIVE) { "Incompatible competition type ${this.dbEvaluation.type}. This is a programmer's error!" }
         require(this.template.tasks.isNotEmpty()) { "Cannot create a run from a competition that doesn't have any tasks." }
         require(this.template.teams.isNotEmpty()) { "Cannot create a run from a competition that doesn't have any teams." }
     }
 
     /** List of [TaskRun]s registered for this [NonInteractiveEvaluation]. */
-    override val tasks = this.evaluation.tasks.asSequence().map {
+    override val tasks = this.dbEvaluation.tasks.asSequence().map {
         NITaskRun(it)
     }.toList()
 
@@ -71,8 +71,8 @@ class NonInteractiveEvaluation(store: TransientEntityStore, evaluation: DbEvalua
         override val scorer: CachingTaskScorer = store.transactional { CachingTaskScorer(
             when(val scoreOption = task.template.taskGroup.type.score) {
                 DbScoreOption.KIS -> throw IllegalStateException("KIS task scorer is not applicable to non-interactive evaluations")
-                DbScoreOption.AVS -> AvsTaskScorer(this)
-                DbScoreOption.LEGACY_AVS -> LegacyAvsTaskScorer(this)
+                DbScoreOption.AVS -> AvsTaskScorer(this, store)
+                DbScoreOption.LEGACY_AVS -> LegacyAvsTaskScorer(this, store)
                 else -> throw IllegalStateException("The task score option $scoreOption is currently not supported.")
             }
         ) }

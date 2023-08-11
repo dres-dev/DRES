@@ -85,7 +85,7 @@ class LegacyAvsTaskScorerTest {
 
     @BeforeEach
     fun setup() {
-        this.scorer = LegacyAvsTaskScorer(this.scoreable)
+        this.scorer = LegacyAvsTaskScorer(this.scoreable, null)
     }
 
     @Test

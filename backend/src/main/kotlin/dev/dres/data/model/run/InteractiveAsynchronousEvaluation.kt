@@ -6,7 +6,6 @@ import dev.dres.data.model.template.task.DbTaskTemplate
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.run.InteractiveAsynchronousEvaluation.IATaskRun
 import dev.dres.data.model.run.interfaces.Run
-import dev.dres.data.model.template.task.TaskTemplate
 import dev.dres.data.model.template.task.TaskTemplateId
 import dev.dres.data.model.template.task.options.DbConfiguredOption
 import dev.dres.data.model.template.task.options.DbScoreOption
@@ -63,7 +62,7 @@ class InteractiveAsynchronousEvaluation(store: TransientEntityStore, evaluation:
 
     init {
         /* Load all ongoing tasks. */
-        this.evaluation.tasks.asSequence().forEach { IATaskRun(it) }
+        this.dbEvaluation.tasks.asSequence().forEach { IATaskRun(it) }
 
         /* Prepare the evaluation scoreboards. */
         val teams = this.template.teams.asSequence().map { it.teamId }.toList()
@@ -133,9 +132,9 @@ class InteractiveAsynchronousEvaluation(store: TransientEntityStore, evaluation:
          */
         constructor(t: DbTaskTemplate, teamId: TeamId) : this(DbTask.new {
             status = DbTaskStatus.CREATED
-            evaluation = this@InteractiveAsynchronousEvaluation.evaluation
+            evaluation = this@InteractiveAsynchronousEvaluation.dbEvaluation
             template = t
-            team = this@InteractiveAsynchronousEvaluation.evaluation.template.teams.filter { it.teamId eq teamId }
+            team = this@InteractiveAsynchronousEvaluation.dbEvaluation.template.teams.filter { it.teamId eq teamId }
                 .singleOrNull()
                 ?: throw IllegalArgumentException("Cannot start a new task run for team with ID ${teamId}. Team is not registered for competition.")
         })
@@ -209,11 +208,12 @@ class InteractiveAsynchronousEvaluation(store: TransientEntityStore, evaluation:
                         DbScoreOption.KIS -> KisTaskScorer(
                             this,
                             task.template.taskGroup.type.configurations.query(DbConfiguredOption::key eq scoreOption.description)
-                                .asSequence().map { it.key to it.value }.toMap()
+                                .asSequence().map { it.key to it.value }.toMap(),
+                            store
                         )
 
-                        DbScoreOption.AVS -> AvsTaskScorer(this)
-                        DbScoreOption.LEGACY_AVS -> LegacyAvsTaskScorer(this)
+                        DbScoreOption.AVS -> AvsTaskScorer(this, store)
+                        DbScoreOption.LEGACY_AVS -> LegacyAvsTaskScorer(this, store)
                         else -> throw IllegalStateException("The task score option $scoreOption is currently not supported.")
                     }
                 )

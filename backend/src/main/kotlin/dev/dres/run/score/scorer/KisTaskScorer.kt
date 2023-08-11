@@ -5,20 +5,23 @@ import dev.dres.data.model.submissions.Submission
 import dev.dres.data.model.template.team.TeamId
 import dev.dres.data.model.submissions.VerdictStatus
 import dev.dres.run.score.Scoreable
+import jetbrains.exodus.database.TransientEntityStore
 import kotlin.math.max
 
 class KisTaskScorer(
     scoreable: Scoreable,
     private val maxPointsPerTask: Double = defaultmaxPointsPerTask,
     private val maxPointsAtTaskEnd: Double = defaultmaxPointsAtTaskEnd,
-    private val penaltyPerWrongSubmission: Double = defaultpenaltyPerWrongSubmission
-) : AbstractTaskScorer(scoreable) {
+    private val penaltyPerWrongSubmission: Double = defaultpenaltyPerWrongSubmission,
+    store: TransientEntityStore?
+) : AbstractTaskScorer(scoreable, store) {
 
-    constructor(run: TaskRun, parameters: Map<String, String>) : this(
+    constructor(run: TaskRun, parameters: Map<String, String>, store: TransientEntityStore?) : this(
         run,
         parameters.getOrDefault("maxPointsPerTask", "$defaultmaxPointsPerTask").toDoubleOrNull() ?: defaultmaxPointsPerTask,
         parameters.getOrDefault("maxPointsAtTaskEnd", "$defaultmaxPointsAtTaskEnd").toDoubleOrNull() ?: defaultmaxPointsAtTaskEnd,
-        parameters.getOrDefault("penaltyPerWrongSubmission", "$defaultpenaltyPerWrongSubmission").toDoubleOrNull() ?: defaultpenaltyPerWrongSubmission
+        parameters.getOrDefault("penaltyPerWrongSubmission", "$defaultpenaltyPerWrongSubmission").toDoubleOrNull() ?: defaultpenaltyPerWrongSubmission,
+        store
     )
 
     companion object {
